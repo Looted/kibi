@@ -76,20 +76,18 @@ function runGit(cmd: string, exec: ExecFn): string {
 /**
  * Parse null-separated name-status output from git
  */
-// implements REQ-014
 export function parseNameStatusNull(
   input: string,
 ): Array<{ status: string; parts: string[] }> {
-  if (!input) return [];
   const entries = input.split("\0").filter(Boolean);
   const rows: Array<{ status: string; parts: string[] }> = [];
 
   for (let i = 0; i < entries.length; ) {
-    const entry = entries[i] ?? "";
+    const entry = entries[i] as string;
 
     if (entry.includes("\t")) {
-      const cols = entry.split("\t");
-      rows.push({ status: cols[0] ?? "", parts: cols.slice(1) });
+      const [status, ...parts] = entry.split("\t") as [string, ...string[]];
+      rows.push({ status, parts });
       i += 1;
       continue;
     }
@@ -98,7 +96,8 @@ export function parseNameStatusNull(
     const isRenameOrCopy = /^[RC]\d*$/.test(status);
     const partCount = isRenameOrCopy ? 2 : 1;
     const parts = entries.slice(i + 1, i + 1 + partCount);
-    rows.push({ status, parts });
+    // A status cut off from its paths names nothing to read.
+    if (parts.length > 0) rows.push({ status, parts });
     i += 1 + partCount;
   }
 
@@ -114,12 +113,6 @@ const SUPPORTED_EXT = new Set([
   ".cts",
   ".mjs",
   ".cjs",
-]);
-
-const SUPPORTED_MANIFEST = new Set([
-  ".kb/symbols.yaml",
-  ".kb/symbols.yml",
-  ".kb/symbol-coordinates.yaml",
 ]);
 
 function shouldLogTraceDebug(): boolean {
@@ -141,13 +134,14 @@ function isEntityMarkdown(p: string): boolean {
   return p.endsWith(".md") && isEntityLanePath(p);
 }
 
+// The symbols manifest, its .yml spelling, or the coordinates overlay.
 function isManifestFile(p: string): boolean {
   const posix = p.replaceAll("\\", "/");
-  return SUPPORTED_MANIFEST.has(posix) || isSymbolsManifestPath(posix);
+  return posix === ".kb/symbols.yml" || isSymbolsManifestPath(posix);
 }
 
-function isRelationshipShard(p: string): boolean {
-  const posix = p.replaceAll("\\", "/");
+/** Expects a POSIX path. */
+function isRelationshipShard(posix: string): boolean {
   return (
     posix.startsWith(".kb/relationships/") &&
     (posix.endsWith(".yaml") || posix.endsWith(".yml"))
@@ -194,7 +188,6 @@ function normalizeNewFileHunks(ranges: HunkRange[], content: string): void {
  * validation cannot inspect deeply. Blob contents always come from Git rather
  * than the working tree.
  */
-// implements REQ-014
 export function getStagedInventory(exec?: GitArgsExecFn): StagedPath[] {
   // The normal path reads only immutable tree/blob object IDs captured from the
   // index. Keep the injectable reader path for existing callers and tests.
@@ -220,15 +213,14 @@ export function getStagedInventory(exec?: GitArgsExecFn): StagedPath[] {
     const status = (entry.status[0] as Status) || "M";
     const oldPath = status === "R" ? entry.parts[0] : undefined;
     const copyFromPath = status === "C" ? entry.parts[0] : undefined;
-    const path =
-      status === "R" || status === "C"
-        ? (entry.parts[1] ?? entry.parts[0] ?? "")
-        : (entry.parts[0] ?? "");
-    const lookupPath = status === "D" ? (oldPath ?? path) : path;
+    // Renames and copies list [source, destination]; other rows one path.
+    const path = entry.parts.at(-1) as string;
+    // A deletion is read from HEAD at its own path; everything else from the
+    // index.
     const modeArgs =
       status === "D"
-        ? ["ls-tree", "-z", "HEAD", "--", lookupPath]
-        : ["ls-files", "--stage", "-z", "--", lookupPath];
+        ? ["ls-tree", "-z", "HEAD", "--", path]
+        : ["ls-files", "--stage", "-z", "--", path];
     const gitMode = parseMode(runGitArgs(modeArgs, exec));
 
     if (gitMode === "120000" || gitMode === "160000") {
@@ -252,7 +244,7 @@ export function getStagedInventory(exec?: GitArgsExecFn): StagedPath[] {
     const isNewFile = status === "A" || /\bdev\/null\b/.test(diffText);
     const hunkRanges = parseHunksFromDiff(diffText, isNewFile);
     const blobArgs =
-      status === "D" ? ["show", `HEAD:${lookupPath}`] : ["show", `:${path}`];
+      status === "D" ? ["show", `HEAD:${path}`] : ["show", `:${path}`];
     const decoded = decodeText(runGitArgs(blobArgs, exec));
     if ("skipReason" in decoded) {
       return {
@@ -324,7 +316,6 @@ export function supportedStagedFiles(
  * Parse unified diff hunks (new-file coordinates) from git diff output
  */
 export function parseHunksFromDiff(
-  // implements REQ-014
   diffText: string,
   isNewFile = false,
 ): HunkRange[] {
@@ -335,10 +326,7 @@ export function parseHunksFromDiff(
   while (true) {
     m = regex.exec(diffText);
     if (!m) break;
-    const startLine = m[1];
-    if (!startLine) continue;
-
-    const c = Number.parseInt(startLine, 10);
+    const c = Number.parseInt(m[1] as string, 10);
     const d = m[2] ? Number.parseInt(m[2], 10) : 1;
     if (d > 0) {
       ranges.push({ start: c, end: c + d - 1 });
@@ -355,7 +343,6 @@ export function parseHunksFromDiff(
 /**
  * Get staged files with statuses, hunks and content.
  */
-// implements REQ-014
 export function getStagedFiles(exec: ExecFn = defaultExec): StagedFile[] {
   // 1. get staged name-status -z
   let nameStatus: string;
@@ -377,26 +364,15 @@ export function getStagedFiles(exec: ExecFn = defaultExec): StagedFile[] {
 
     if (status === "D") {
       if (shouldLogTraceDebug()) {
-        console.debug(
-          `Skipping deleted file (staged): ${entry.parts.join(" -> ")}`,
-        );
+        console.debug(`Skipping deleted file (staged): ${entry.parts[0]}`);
       }
       continue;
     }
 
-    // handle renames: parts = [old, new]
-    let path = entry.parts[0] ?? "";
-    let oldPath: string | undefined;
-    if (status === "R") {
-      if (entry.parts.length >= 2) {
-        const previousPath = entry.parts[0];
-        const renamedPath = entry.parts[1];
-        if (previousPath !== undefined && renamedPath !== undefined) {
-          oldPath = previousPath;
-          path = renamedPath;
-        }
-      }
-    }
+    // Renames and copies list [source, destination]; read the destination.
+    const path = entry.parts.at(-1) as string;
+    const oldPath =
+      status === "R" && entry.parts.length === 2 ? entry.parts[0] : undefined;
 
     if (
       !hasSupportedExt(path) &&
@@ -418,7 +394,6 @@ export function getStagedFiles(exec: ExecFn = defaultExec): StagedFile[] {
       if (shouldLogTraceDebug()) {
         console.debug(`Failed to get diff for ${path}: ${String(err)}`);
       }
-      diffText = "";
     }
 
     // determine if new file: status 'A' or diff contains /dev/null in old file path
@@ -431,11 +406,10 @@ export function getStagedFiles(exec: ExecFn = defaultExec): StagedFile[] {
       content = runGit(`git show :"${escapePath(path)}"`, exec);
     } catch (err: unknown) {
       // binary or deleted in index
-      const e = err as { message?: unknown } | undefined;
-      const em = e?.message ? String(e.message) : String(err);
+      // runGit always rethrows an Error naming the failed command.
       if (shouldLogTraceDebug()) {
         console.debug(
-          `Skipping binary/deleted or unreadable staged file ${path}: ${em}`,
+          `Skipping binary/deleted or unreadable staged file ${path}: ${(err as Error).message}`,
         );
       }
       continue;

@@ -1,14 +1,12 @@
 import type { OperationContext } from "../runtime-types.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 
-// implements REQ-kibi-operation-interface-parity
 export type SparqlRemoteInput = {
   readonly endpoint: string;
   readonly query: string;
   readonly timeoutMs?: number;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type SparqlRemoteOutput = {
   readonly rows: readonly Readonly<Record<string, unknown>>[];
 };
@@ -69,7 +67,6 @@ function decodeRows(payload: unknown): SparqlRemoteOutput {
   return { rows };
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-002, REQ-013
 async function executeSparqlRemote(
   input: SparqlRemoteInput,
   context: OperationContext,
@@ -83,9 +80,9 @@ async function executeSparqlRemote(
       ? context.signal
       : AbortSignal.any([
           context.signal,
-          AbortSignal.timeout(
-            Math.max(1, Math.ceil(input.timeoutMs / 1_000)) * 1_000,
-          ),
+          // A validated timeout is positive, so this rounds up to at least
+          // one whole second.
+          AbortSignal.timeout(Math.ceil(input.timeoutMs / 1_000) * 1_000),
         ]);
   try {
     const response = await context.net.fetch(endpoint, {

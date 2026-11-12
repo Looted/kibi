@@ -9,6 +9,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-09: UI design plugin'
+  approved_by: maintainer
   recorded_at: '2026-10-09T12:14:07.254Z'
 rationale: Kibi aims to stay mostly configuration-less, so an optional plugin should be offered when the workspace shows it fits instead of requiring hand configuration.
 semantic_text: The bootstrap plan must offer kibi-plugin-ui when production React or Angular component files exist. The bootstrap plan must not offer a plugin that package.json activates or lists in kibi.declinedPlugins. Project configuration validation must reject a kibi.declinedPlugins entry that is not a bare package name.

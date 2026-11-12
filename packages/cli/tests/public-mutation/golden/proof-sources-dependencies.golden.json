@@ -1,0 +1,99 @@
+{
+  "json": [
+    {
+      "id": "source-file:a.json",
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  ],
+  "yaml": [
+    {
+      "id": "source-file:missing.yaml",
+      "hash": "missing"
+    }
+  ],
+  "openapi": [
+    {
+      "id": "source-file:a.json",
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  ],
+  "outside": [
+    {
+      "id": "source-file:../a.json",
+      "hash": "missing"
+    }
+  ],
+  "glob": [
+    {
+      "id": "source-glob:docs/*.md",
+      "hash": "c792f40a9a0948fc57a23b46d0aaec5bcfbf92266a7af3c3003edd3891a5f25c"
+    }
+  ],
+  "references": [
+    {
+      "id": "source-file:docs/y.md",
+      "hash": "a1fce4363854ff888cff4b8e7875d600c2682390412a8cf79b37d0b11148b0fa"
+    },
+    {
+      "id": "source-glob:docs/*.md",
+      "hash": "db4e401beb753dd1b3647e38a9c61bacaec51b897244e8104e9080852c7761ab"
+    }
+  ],
+  "sql": [
+    {
+      "id": "source-file:m/1.sql",
+      "hash": "291a0f6d454589b4c8571acec911dc477d44327957e3b24cb804d2286eacca3a"
+    },
+    {
+      "id": "source-glob:m/*.sql",
+      "hash": "77549a039ff586806db6f1d2a1beebf3d61ada00ed898fefee84a5a72c0b9d38"
+    }
+  ],
+  "drizzle": [
+    {
+      "id": "source-file:app.ts",
+      "hash": "0e5b374704ca670dbd66362f8396885b51d65b295e1f05002963c68bef409a5f"
+    },
+    {
+      "id": "source-file:dep.ts",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "prisma": [
+    {
+      "id": "source-file:app.ts",
+      "hash": "0e5b374704ca670dbd66362f8396885b51d65b295e1f05002963c68bef409a5f"
+    }
+  ],
+  "routes": [
+    {
+      "id": "source-file:app.ts",
+      "hash": "0e5b374704ca670dbd66362f8396885b51d65b295e1f05002963c68bef409a5f"
+    },
+    {
+      "id": "source-file:dep.ts",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "source-file:mw.ts",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "validator": [
+    {
+      "id": "source-file:app.ts",
+      "hash": "0e5b374704ca670dbd66362f8396885b51d65b295e1f05002963c68bef409a5f"
+    },
+    {
+      "id": "source-file:dep.ts",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "prolog": [
+    {
+      "id": "source-file:k.pl",
+      "hash": "a567fb14d0276a57266b17b1e59336bb70d5ff3dcd3795d85da711a5f52e40ee"
+    }
+  ],
+  "unknown": []
+}

@@ -15,8 +15,6 @@ import type { OperationContext } from "../../src/public/operations/runtime-types
 import { certificateDigest } from "../../src/public/proof-certificates.js";
 import type { ProofContract } from "../../src/public/proof-protocol.js";
 
-// implements REQ-kibi-claim-bound-proofs, REQ-kibi-multilingual-code-proofs
-
 const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))

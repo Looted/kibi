@@ -17,9 +17,6 @@ export const KIBI_SYMBOLS_MANIFEST_PATH = ".kb/symbols.yaml";
 /** Canonical symbol coordinates artifact used by staged traceability enforcement. */
 export const KIBI_SYMBOL_COORDINATES_PATH = ".kb/symbol-coordinates.yaml";
 
-/** Explicit declaration string for audited no-impact overrides. */
-export const KIBI_NO_IMPACT_DECLARATION = "Kibi-Impact: none";
-
 /** Canonical Kibi entity types that can provide staged evidence. */
 export type KibiEntityType =
   | "req"
@@ -120,30 +117,6 @@ export interface KibiImpactSymbolsManifest {
   fileDetails?: readonly KibiImpactSymbolsManifestFileDetail[];
 }
 
-/** Supported audited reasons for a no-impact override. */
-export type KibiNoImpactReason =
-  | "false_positive"
-  | "non_behavioral_source_edit";
-
-/**
- * Explicit no-impact override record.
- *
- * Overrides are only valid for non-behavioral edits or classifier false
- * positives. They never satisfy real behavior-changing source edits.
- */
-export interface KibiNoImpactOverride {
-  /** Required literal declaration. */
-  declaration: typeof KIBI_NO_IMPACT_DECLARATION;
-  /** Repo-relative staged record path carrying the override. */
-  path: string;
-  /** Repo-relative source paths covered by the override record. */
-  sourcePaths: string[];
-  /** Audited reason for allowing the override. */
-  reason: KibiNoImpactReason;
-  /** Human-readable justification stored with the override record. */
-  rationale: string;
-}
-
 /** Explicit evidence state: staged KB artifacts are present. */
 export interface KibiImpactKbChangesMode {
   kind: "kb_changes";
@@ -151,30 +124,20 @@ export interface KibiImpactKbChangesMode {
   kbArtifacts: KibiImpactKbArtifact[];
 }
 
-/** Explicit evidence state: a staged no-impact override is being used. */
-export interface KibiImpactNoImpactOverrideMode {
-  kind: "no_impact_override";
-  /** Staged override record for false positives or non-behavioral edits. */
-  override: KibiNoImpactOverride;
-}
-
-/** Explicit evidence state: no staged KB evidence or override exists. */
+/** Explicit evidence state: no staged KB evidence exists. */
 export interface KibiImpactMissingMode {
   kind: "missing";
 }
 
 /** Discriminated union describing how the staged change-set is justified. */
-export type KibiImpactMode =
-  | KibiImpactKbChangesMode
-  | KibiImpactNoImpactOverrideMode
-  | KibiImpactMissingMode;
+export type KibiImpactMode = KibiImpactKbChangesMode | KibiImpactMissingMode;
 
 /**
  * Full evidence snapshot for staged Kibi impact enforcement.
  *
  * `sourceChanges` is always required so diagnostics can cite exact staged source
- * files. `mode` captures whether those files are backed by KB changes, by an
- * audited no-impact override, or by nothing. `symbolsManifest` records whether a
+ * files. `mode` captures whether those files are backed by KB changes or by
+ * nothing. `symbolsManifest` records whether a
  * staged manifest refresh is part of that evidence.
  */
 export interface KibiImpactEvidence {
@@ -238,14 +201,6 @@ export function getKbEvidencePaths(evidence: KibiImpactEvidence): string[] {
   }
 
   return uniqueSorted(paths);
-}
-
-/** True when a staged no-impact override includes a non-empty rationale. */
-export function hasOverrideRationale(evidence: KibiImpactEvidence): boolean {
-  return (
-    evidence.mode.kind === "no_impact_override" &&
-    evidence.mode.override.rationale.trim().length > 0
-  );
 }
 
 /**

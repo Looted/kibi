@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import type { Command } from "commander";
 import {
   detectTelemetryHost,
@@ -6,6 +5,7 @@ import {
   recordOperationTelemetry,
   takeTelemetryNotice,
   telemetryErrorClass,
+  telemetryRootError,
 } from "kibi-agent-core/usage-telemetry";
 
 import { operationTelemetrySignals } from "./telemetry-details.js";
@@ -38,7 +38,6 @@ const OUTCOME_CATEGORIES: Readonly<Record<string, string>> = {
   "proof run-steps": "tests_failed",
 };
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * Name why this command failed with a fixed identifier (an error code, a
  * failing doctor check), for the event recorded at exit. The first note wins.
@@ -49,16 +48,16 @@ export function noteCliErrorCategory(category: string | undefined): void {
   }
 }
 
-// implements REQ-kibi-telemetry-expected-outcomes
 /**
  * Note an error an operation threw before its route turned it into a result:
  * its code (a coded rejection such as ENTITY_VALIDATION_FAILED) when it has
  * one, and its class. Never its message.
  */
 export function noteCliThrownError(error: unknown): void {
+  const root = telemetryRootError(error);
   const code =
-    error !== null && typeof error === "object"
-      ? (error as { code?: unknown }).code
+    root !== null && typeof root === "object"
+      ? (root as { code?: unknown }).code
       : undefined;
   // An empty code is no category: noteCliErrorCategory ignores it.
   if (typeof code === "string") noteCliErrorCategory(code);
@@ -66,7 +65,6 @@ export function noteCliThrownError(error: unknown): void {
   notedError ??= error;
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * Note the Kibi operation a command ran, with its input and result, so the
  * event recorded at exit carries its struggle signals (see
@@ -78,7 +76,6 @@ export function noteCliOperationCall(
   notedCall ??= call;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** The error code of a failed JSON result printed by a command, if any. */
 export function noteCliResultError(stdout: string | undefined): void {
   // No output, `null` and a result without `error` all throw here and are
@@ -97,7 +94,8 @@ export function noteCliResultError(stdout: string | undefined): void {
 }
 
 /** A thrown error's code or class name; never its message. */
-function thrownErrorCategory(error: unknown): string {
+function thrownErrorCategory(thrown: unknown): string {
+  const error = telemetryRootError(thrown);
   if (error !== null && typeof error === "object") {
     const code = (error as { code?: unknown }).code;
     if (typeof code === "string" && code !== "") return code;
@@ -109,7 +107,6 @@ function thrownErrorCategory(error: unknown): string {
   return "uncaught_error";
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Remember which registered command ran, for the event recorded at exit. */
 export function trackCommandPath(program: Command): () => string | undefined {
   let commandPath: string | undefined;
@@ -125,7 +122,6 @@ export function trackCommandPath(program: Command): () => string | undefined {
   return () => commandPath;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export async function finishCliTelemetry(input: {
   readonly commandPath: string | undefined;
   readonly packageVersion: string;

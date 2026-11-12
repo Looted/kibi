@@ -1,13 +1,12 @@
 ---
 title: SkillOpt runs the harness and models the operator selects
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:
   - skillopt
   - harness
   - evaluation
-  - review:context-missing
 semantic_text: SkillOpt must support more than one agent harness for target cells and must run the harness, models and efforts the operator selects for a run. Codex is the default harness when the operator selects none. An unknown harness selection must be refused before any cell work. A command that the selected harness cannot execute must be refused before paid preparation instead of silently switching harness. Every supported harness must feed the same scorers, evidence replay and leak scans.
 logic_claims:
   - CLAIM-4E4DAF500121AA55
@@ -61,7 +60,7 @@ semantic_source_field: semantic_text
 semantic_source_hash: afae973ad11d7ff16333bd7e0e0fc99a2cbc953ae440e12c09ef2971c6127a2f
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks'
+  ref: 'Maintainer request, 2026-10-05: supersede the Codex-only rule; support different harnesses and run what the operator asks Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   approved_by: maintainer
   recorded_at: '2026-10-05T23:49:00.429Z'
 rationale: Codex usage can run out and operators want to compare harnesses; the Codex-only rule blocked measuring skills on other agent hosts. The maintainer asked to support different harnesses and run what the operator selects.
@@ -69,3 +68,6 @@ id: REQ-skillopt-operator-selected-harness
 type: req
 ---
 SkillOpt must support more than one agent harness for target cells and must run the harness, models and efforts the operator selects for a run. Codex is the default harness when the operator selects none. An unknown harness selection must be refused before any cell work. A command that the selected harness cannot execute must be refused before paid preparation instead of silently switching harness. Every supported harness must feed the same scorers, evidence replay and leak scans.
+
+## Why
+This replaced the Codex-only rule once SkillOpt could run more than one harness. Codex stays the default, and an unknown or unusable harness is refused before any work. Source: commit "supersede the Codex-only SkillOpt rule".

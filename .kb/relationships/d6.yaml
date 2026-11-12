@@ -17,34 +17,6 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-001.md
-  - type: covered_by
-    from: SYM-core-journaled-search-index
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.421Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-67c90b0e8deb
-  - type: implements
-    from: SYM-scripts-runUnitCoverage
-    to: REQ-014
-    created_at: 2026-08-22T20:14:38.527Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e77cc19dbcf
-  - type: covered_by
-    from: SYM-scripts-runUnitCoverage
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-08-22T20:14:38.539Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-798ad1eaf306
-  - type: covered_by
-    from: SYM-scripts-runUnitCoverage
-    to: TEST-006
-    created_at: 2026-08-22T20:14:38.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c0bcd8a9974f
   - type: implements
     from: SYM-operation-model-requirement-spec
     to: REQ-kibi-operation-interface-parity
@@ -67,68 +39,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-c968bff169db
   - type: covered_by
-    from: SYM-runtime-OperationContext
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-23T18:40:24.597Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c00e57cf4518
-  - type: implements
-    from: SYM-runtime-OperationContext
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-23T22:08:20.376Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b77f6ed1fcc
-  - type: covered_by
-    from: SYM-runtime-OperationContext
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-23T22:08:20.410Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9c3d3322f498
-  - type: covered_by
-    from: SYM-enrichSymbolCoordinatesWithTsMorph
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:17:55.045Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23f2f2b70699
-  - type: covered_by
-    from: SYM-scripts-runUnitCoverage
-    to: TEST-011
-    created_at: 2026-09-05T14:52:46.048Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f5893c3f8050
-  - type: covered_by
-    from: SYM-NpmFixtureLive
-    to: TEST-014
-    created_at: 2026-09-05T14:53:45.537Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9c86cdd80818
-  - type: covered_by
     from: SYM-cli-impact-collectSymbols
     to: TEST-audit-quality-diagnostics-v1
     created_at: 2026-09-05T15:03:10.748Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73dd369316a5
-  - type: covered_by
-    from: SYM-enrichSymbolCoordinatesWithTsMorph
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:25:23.520Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8920a7a0389c
-  - type: covered_by
-    from: SYM-core-journaled-search-index
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:32:55.760Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-20d1148ac6a3
   - type: covered_by
     from: SYM-mcp-startup-resolution-compareMcpResolution
     to: TEST-cursor-agent-plugin-v1
@@ -151,13 +67,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-de4b423407de
   - type: covered_by
-    from: SYM-HeldOutEvidenceBinding
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:08:00.569Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4cbc30e9879c
-  - type: covered_by
     from: SYM-skillopt-fake-provider-execute-with-crash
     to: TEST-skillopt-paid-launch-accounting
     created_at: 2026-09-05T18:17:35.152Z
@@ -165,26 +74,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-aa5d557e2a34
   - type: implements
-    from: SYM-HeldOutEvidenceBinding
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:35:41.427Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b409f2bea394
-  - type: implements
     from: SYM-skillopt-fake-provider-execute-with-crash
     to: REQ-skillopt-paid-matrix-infrastructure
     created_at: 2026-09-19T19:41:10.559Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7615894ab71
-  - type: implements
-    from: SYM-env-bootstrap-get-last-result
-    to: REQ-kibi-env-bootstrap
-    created_at: 2026-09-23T11:19:45.544Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-81bdfa311222
   - type: covered_by
     from: SYM-env-bootstrap-get-last-result
     to: TEST-cli-env-bootstrap
@@ -201,25 +96,11 @@ relationships:
     id: rel-96fe78a4154b
   - type: validates
     from: TEST-claude-code-kibi-plugin-v1
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:14:28.298Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5364c8f0f216
-  - type: validates
-    from: TEST-claude-code-kibi-plugin-v1
     to: SCEN-claude-code-kibi-plugin-v1
     created_at: 2026-09-27T09:14:28.331Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-038df86c53fe
-  - type: implements
-    from: SYM-mcp-release-package-metadata
-    to: REQ-020
-    created_at: 2026-09-30T14:20:18.121Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eb161f29f9a3
   - type: covered_by
     from: SYM-mcp-release-package-metadata
     to: TEST-014
@@ -235,13 +116,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3ca93ec58583
   - type: implements
-    from: SYM-proof-receipt-max-age-seconds
-    to: REQ-kibi-fresh-verification-receipts-v2
-    created_at: 2026-10-04T03:05:00.905Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30a6043e11c6
-  - type: implements
     from: SYM-init-helpers-hook-delegation-snippet
     to: REQ-git-hook-effective-install
     created_at: 2026-10-13T12:57:30.079Z
@@ -255,34 +129,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63dc9d67f911
-  - type: implements
-    from: SYM-agent-core-decision-guard-markdecisionflag
-    to: REQ-agent-hosts-decision-guard
-    created_at: 2026-10-14T17:47:42.371Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c995c62e37b2
-  - type: covered_by
-    from: SYM-agent-core-decision-guard-markdecisionflag
-    to: TEST-codex-kibi-plugin-v1
-    created_at: 2026-10-14T17:47:42.383Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4e6aaf2a5f70
-  - type: covered_by
-    from: SYM-agent-core-decision-guard-markdecisionflag
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-10-14T17:47:42.391Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f41df048b334
-  - type: covered_by
-    from: SYM-agent-core-decision-guard-markdecisionflag
-    to: TEST-zcode-kibi-plugin-v1
-    created_at: 2026-10-14T17:47:42.400Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7b5841d09527
   - type: validates
     from: TEST-kibi-entity-origin-exhaustive
     to: SCEN-kibi-entity-origin
@@ -339,13 +185,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9113d486c32
-  - type: implements
-    from: SYM-const-requirement-rationale-missing-rule
-    to: REQ-kibi-check-rule-names
-    created_at: 2026-10-28T20:21:45.135Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f84a0fb5ddce
   - type: covered_by
     from: SYM-const-requirement-rationale-missing-rule
     to: TEST-proof-rationale-missing-rule
@@ -409,3 +248,213 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-731d89b8fc5d
+  - type: assumes
+    from: SCEN-NEG-search-answer-replacement-STRONG-MATCH-DROPPED
+    to: FACT-NEG-search-answer-replacement-STRONG-MATCH-DROPPED
+    created_at: 2026-11-11T17:39:03.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73502189288e
+  - type: verified_by
+    from: SCEN-NEG-search-answer-replacement-STRONG-MATCH-DROPPED
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:39:03.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe28813041ac
+  - type: validates
+    from: TEST-claude-code-kibi-plugin-v1
+    to: REQ-claude-adapter-isolation
+    created_at: 2026-09-27T09:14:28.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8616a4529964
+  - type: validates
+    from: TEST-claude-code-kibi-plugin-v1
+    to: REQ-claude-linked-requirement-context
+    created_at: 2026-09-27T09:14:28.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1743f721708a
+  - type: validates
+    from: TEST-claude-code-kibi-plugin-v1
+    to: REQ-claude-stop-reminder-and-firm-ask
+    created_at: 2026-09-27T09:14:28.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-506cefb461f2
+  - type: validates
+    from: TEST-claude-code-kibi-plugin-v1
+    to: REQ-claude-unowned-project-silence
+    created_at: 2026-09-27T09:14:28.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-216767759a64
+  - type: constrains
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-kibi-kb-lifecycle-component
+    created_at: 2026-11-04T18:19:16.360Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56b4eff4b2af
+  - type: requires_predicate
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-PRED-kb-lifecycle-superseded-closed
+    created_at: 2026-11-04T18:19:16.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd20667ebf64
+  - type: requires_property
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-PRED-kb-lifecycle-cycle-once
+    created_at: 2026-11-04T18:19:16.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a132afa43876
+  - type: requires_predicate
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-PRED-kb-lifecycle-migrate-closes
+    created_at: 2026-11-04T18:19:16.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3bbf403b81e
+  - type: requires_predicate
+    from: REQ-kibi-superseded-requirements-closed
+    to: FACT-PRED-kb-lifecycle-cycle-review
+    created_at: 2026-11-04T18:19:16.435Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bd94a9e6677
+  - type: specified_by
+    from: REQ-kibi-superseded-requirements-closed
+    to: SCEN-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:19:16.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55bbdd6cc9b1
+  - type: specified_by
+    from: REQ-kibi-superseded-requirements-closed
+    to: SCEN-CASE-kibi-kb-lifecycle-integrity-cycle-reported-twice
+    created_at: 2026-11-04T18:19:16.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948d17749e06
+  - type: specified_by
+    from: REQ-kibi-superseded-requirements-closed
+    to: SCEN-CASE-kibi-kb-lifecycle-integrity-cycle-unreported
+    created_at: 2026-11-04T18:19:16.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4088bf831d87
+  - type: relates_to
+    from: REQ-kibi-superseded-requirements-closed
+    to: REQ-kibi-schema6-migration
+    created_at: 2026-11-04T18:19:16.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1b724c8790f
+  - type: supersedes
+    from: REQ-kibi-superseded-requirements-closed
+    to: REQ-kibi-kb-lifecycle-integrity
+    created_at: 2026-11-04T18:19:16.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaed12bb67c1
+  - type: constrains
+    from: REQ-kibi-engine-single-writer-protocol
+    to: FACT-kibi-engine-journal-component
+    created_at: 2026-11-10T07:25:49.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c13890283937
+  - type: requires_property
+    from: REQ-kibi-engine-single-writer-protocol
+    to: FACT-JOURNALED-ENGINE-SINGLE-WRITER
+    created_at: 2026-11-10T07:25:49.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d6b0edb0cc9
+  - type: requires_predicate
+    from: REQ-kibi-engine-single-writer-protocol
+    to: FACT-JOURNALED-ENGINE-PROTOCOL
+    created_at: 2026-11-10T07:25:49.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca3b24635f5b
+  - type: specified_by
+    from: REQ-kibi-engine-single-writer-protocol
+    to: SCEN-core-journaled-engine-lifecycle
+    created_at: 2026-11-10T07:25:49.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-440aa7c5f40c
+  - type: specified_by
+    from: REQ-kibi-engine-single-writer-protocol
+    to: SCEN-CASE-core-journaled-engine-persistence-NO-WRITER
+    created_at: 2026-11-10T07:25:49.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1aaba1523cfc
+  - type: specified_by
+    from: REQ-kibi-engine-single-writer-protocol
+    to: SCEN-CASE-core-journaled-engine-persistence-SECOND-WRITER
+    created_at: 2026-11-10T07:25:50.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bfd21b59539
+  - type: verified_by
+    from: REQ-kibi-engine-single-writer-protocol
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-11-10T07:25:50.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-923a55c435d7
+  - type: supersedes
+    from: REQ-kibi-engine-single-writer-protocol
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-11-10T07:25:50.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8197f8f4e1ab
+  - type: assumes
+    from: SCEN-NEG-kibi-coverage-depth-quality-UNREPORTED-SHALLOW
+    to: FACT-NEG-kibi-coverage-depth-quality-UNREPORTED-SHALLOW
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b38b354ebb00
+  - type: verified_by
+    from: SCEN-NEG-kibi-coverage-depth-quality-UNREPORTED-SHALLOW
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-11-10T13:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-450986c492d8
+  - type: verified_by
+    from: SCEN-kibi-negative-path-facts-marked
+    to: TEST-kibi-negative-path-facts-marked
+    created_at: 2026-11-11T17:20:35.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f076746597d
+  - type: assumes
+    from: SCEN-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-marked-as-forbidden-where-shown
+    created_at: 2026-11-11T17:21:56.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fbfcf8bc48c
+  - type: assumes
+    from: SCEN-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-ranked-below-guarded-requirement
+    created_at: 2026-11-11T17:21:56.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0af283a22fe2
+  - type: assumes
+    from: SCEN-kibi-negative-path-facts-marked
+    to: FACT-kibi-negative-path-facts-hints-show-guarded-requirement
+    created_at: 2026-11-11T17:21:56.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2512001ae00a

@@ -51,6 +51,8 @@
     check_semantic_completeness/1,
     check_related_requirement_unmodeled/1,
     check_req_status_vocabulary/1,
+    check_retired_reason_missing/1,
+    check_retired_owner_only/1,
     check_entity_id_style/1,
     check_domain_redundancy/1,
     check_domain_implication/1,
@@ -136,6 +138,8 @@ aggregated_check(rule_verifiability, 'rule-verifiability', check_rule_verifiabil
 aggregated_check(semantic_completeness, 'semantic-completeness', check_semantic_completeness).
 aggregated_check(related_requirement_unmodeled, 'related-requirement-unmodeled', check_related_requirement_unmodeled).
 aggregated_check(req_status_vocabulary, 'req-status-vocabulary', check_req_status_vocabulary).
+aggregated_check(retired_reason_missing, 'retired-reason-missing', check_retired_reason_missing).
+aggregated_check(retired_owner_only, 'retired-owner-only', check_retired_owner_only).
 aggregated_check(proof_contract_symbols, 'proof-contract-symbols', check_proof_contract_symbols).
 aggregated_check(entity_id_style, 'entity-id-style', check_entity_id_style).
 aggregated_check(domain_redundancy, 'domain-redundancy', check_domain_redundancy).
@@ -198,7 +202,6 @@ check_symbol_coverage(Violations) :-
 % The symbol-coverage rule for the staged gate: the same violations
 % check_symbol_coverage/1 reports, restricted to the changed symbols
 % (kb:changed_symbol/1 overlay facts plus ExtraSymbols).
-% implements REQ-014
 check_changed_symbol_coverage(ExtraSymbols, Violations) :-
     findall(SymbolId,
             changed_symbol_no_req_coverage(ExtraSymbols, SymbolId),
@@ -221,7 +224,6 @@ symbol_coverage_violation(SymbolId, violation(
 % has covered_by is missing a different link: none of its tests verifies a
 % requirement, so the message names the tests, the requirement the symbol
 % implements and the relationship that would connect them.
-% implements REQ-kibi-symbol-link-guidance
 symbol_coverage_message(SymbolId, Description, Suggestion) :-
     findall(Test, kb_relationship(covered_by, SymbolId, Test), Tests0),
     sort(Tests0, Tests),
@@ -698,7 +700,6 @@ deprecated_adr_violation(violation(
 %% ------------------------------------------------------------------
 
 %% check_superseded_requirement_open(-Violations)
-% implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 % A requirement that another requirement supersedes is retired, so it must
 % carry the terminal status `closed`; an open superseded requirement reads as
 % current to every agent that finds it.  Supersession must also be acyclic:
@@ -843,7 +844,7 @@ supersession_cycle_violation(Edges, Members, violation(
 
 %% requirement_sets(-ReqIds, -Retired)
 % Ordered sets of every requirement id and of the retired ones: superseded by
-% another requirement, or deprecated.  `closed` means done, not retired: code
+% another requirement, deprecated, or retired.  `closed` means done, not retired: code
 % that implements a closed requirement still has a current owner.
 requirement_sets(ReqIds, Retired) :-
     findall(
@@ -856,15 +857,18 @@ requirement_sets(ReqIds, Retired) :-
     findall(ReqId, member(ReqId-_, Pairs), ReqIds0),
     sort(ReqIds0, ReqIds),
     findall(To, kb_relationship(supersedes, _, To), Superseded),
-    findall(ReqId, member(ReqId-deprecated, Pairs), Deprecated),
+    findall(ReqId,
+        (   member(ReqId-Status, Pairs),
+            memberchk(Status, [deprecated, retired])
+        ),
+        Deprecated),
     append(Superseded, Deprecated, Retired0),
     sort(Retired0, Retired1),
     ord_intersection(Retired1, ReqIds, Retired).
 
 %% check_symbol_owner_superseded(-Violations)
-% implements REQ-core-validation-rules
-% Advisory: a symbol whose every `implements` target is superseded or
-% deprecated has no current owner, so its behavior is governed by retired intent.  The
+% Advisory: a symbol whose every `implements` target is superseded,
+% deprecated or retired has no current owner, so its behavior is governed by retired intent.  The
 % first symbol_owner_review_limit/1 symbols (by id) are listed, then one
 % summary finding counts the rest, so a large KB yields a bounded queue.
 symbol_owner_review_limit(25).
@@ -884,7 +888,7 @@ check_symbol_owner_superseded(Violations) :-
         append(Listed, _, Pairs),
         Remaining is Total - Limit,
         format(string(SummaryText),
-            "~w more symbol(s) implement only superseded or deprecated requirements; the list above stops at ~w",
+            "~w more symbol(s) implement only superseded, deprecated or retired requirements; the list above stops at ~w",
             [Remaining, Limit]),
         Summary = [violation(
             'symbol-owner-superseded',
@@ -938,7 +942,7 @@ symbol_owner_superseded_violation(SymbolId-Owners, violation(
     ),
     atomic_list_concat(Owners, ', ', OwnerText),
     format(string(Description),
-        "Symbol ~w (~w) implements only superseded or deprecated requirements (~w), so no current requirement owns it",
+        "Symbol ~w (~w) implements only superseded, deprecated or retired requirements (~w), so no current requirement owns it",
         [Title, SymbolId, OwnerText]),
     (   Replacements == []
     ->  Suggestion = "Link the symbol to the current requirement that governs it (implements), or remove the symbol if its behavior is gone"
@@ -950,7 +954,6 @@ symbol_owner_superseded_violation(SymbolId-Owners, violation(
     violation_source(SymbolId, symbol, Source).
 
 %% check_adr_unlinked(-Violations)
-% implements REQ-016
 % Advisory: an accepted ADR that no requirement or other ADR is linked with
 % (relates_to, supersedes or any other typed edge, in either direction)
 % explains nothing an agent can reach from the requirements it governs.
@@ -993,7 +996,6 @@ adr_knowledge_link(AdrId) :-
     !.
 
 %% check_adr_proposed(-Violations)
-% implements REQ-016
 % Informational: an ADR still `proposed` (and not superseded) is a decision
 % nobody accepted or withdrew; agents cannot tell whether it governs.
 check_adr_proposed(Violations) :-
@@ -1022,7 +1024,6 @@ adr_not_superseded(AdrId) :-
     \+ kb_relationship(supersedes, _, AdrId).
 
 %% check_scenario_feasibility(-Violations)
-% implements REQ-kibi-scenario-feasibility-v2
 % A scenario that expects success and whose assumptions cannot hold together
 % with what current requirements require can never pass.  Each witness names
 % the scenario, the requirements, the assumed facts and the requirement facts
@@ -1104,7 +1105,6 @@ scenario_feasibility_violation(violation(
     ).
 
 %% infeasible_scenario(?ScenarioId, -ReqIds, -AssumedFacts, -ReqFacts, -Reason)
-% implements REQ-kibi-scenario-feasibility-v2
 % One blocking witness for a success scenario: sorted lists of current,
 % non-exempted requirements, the scenario's assumed facts and the requirement
 % facts (property values or rules) whose constraints admit no common value.
@@ -1131,7 +1131,6 @@ scenario_expects(ScenarioId, Outcome) :-
     kb:normalize_term_atom(Raw, Outcome).
 
 %% constraint_exempt(+ScenarioId, +ReqId, +FactId)
-% implements REQ-kibi-scenario-feasibility-v2
 % An approved, current exception requirement exempts ReqId, specifies the
 % scenario and covers the requirement constraint grounded by FactId: every
 % constraint when the exception lists no exempts_claims, otherwise only those
@@ -1198,7 +1197,6 @@ evidence_text(Raw, Text) :-
     ).
 
 %% scenario_feasibility_outcome(?ScenarioId, -Outcome)
-% implements REQ-kibi-scenario-feasibility-v2
 % The analysis result for a scenario that expects success:
 %   infeasible(witness(ReqIds, AssumedFacts, ReqFacts, Reason))
 %                            the assumptions cannot hold with the constraints
@@ -1264,7 +1262,6 @@ analysis_outcome(analysis(Witnesses, Unknowns, ByException, NotApplicable), Outc
     ).
 
 %% scenario_feasibility_analysis(+ScenarioId, -analysis(Witnesses, Unknowns, ByException, NotApplicable))
-% implements REQ-kibi-scenario-feasibility-v2
 % Every assumed property value becomes a member constraint on its subject and
 % property.  Requirement constraints share that form, whichever lane grounds
 % them:
@@ -1633,7 +1630,6 @@ earlier_time(Time, Acc, Earlier) :-
     (   time_before(Time, Acc) -> Earlier = Time ; Earlier = Acc ).
 
 %% validity_applicability(+Window, +From, +To, -Applicability)
-% implements REQ-kibi-scenario-feasibility-v2
 % A constraint without a validity window applies.  A bounded constraint is
 % undetermined when the scenario's time is unspecified, outside when the two
 % windows are disjoint, applies when the scenario's window lies inside the
@@ -1817,7 +1813,6 @@ member_label(m(_, _, FactId, _, _, _, _, _, _, Text), Label) :-
     format(atom(Label), '~w (~w)', [FactId, Text]).
 
 %% general_rule_results(+Assumptions, +GeneralRule, +Results0, -Results)
-% implements REQ-kibi-scenario-feasibility-v2
 % Decide a restricting rule that is not one constraint per property against
 % the assumptions on the properties it reads (in the rule's scope).  Its
 % conditions hold when every read property is assumed and each condition is
@@ -2117,7 +2112,6 @@ bool_domain_exhausted(bool, Different) :-
     memberchk(false, Different).
 
 %% negative_scenario_witness(?ScenarioId, ?ReqId, -Witness)
-% implements REQ-kibi-happy-path-gap
 % A scenario that expects rejection or error is a targeted negative for a
 % requirement when its assumptions break that requirement: the feasibility
 % analysis finds a witness naming it, or (below) an assumption opposes one of
@@ -2168,7 +2162,6 @@ facts_oppose(AssumedFact, ReqFact) :-
     !.
 
 %% opposing_assumption(+FactId, -Assumption)
-% implements REQ-kibi-happy-path-gap
 % A fact a negative scenario can assume to oppose the claim fact FactId, as
 % the fields of a new fact: the boundary value just past a numeric bound, the
 % other boolean, a different string, a set missing a required member or
@@ -2258,7 +2251,6 @@ negative_scenario(ScenarioId) :-
     ).
 
 %% check_scenario_outcome_mismatch(-Violations)
-% implements REQ-kibi-happy-path-gap
 % A scenario that expects rejection or error but whose assumptions current
 % requirements govern and permit together aims at no failure: the knowledge
 % base predicts success for it.  Only a decided feasible outcome is reported;
@@ -2292,7 +2284,6 @@ scenario_outcome_mismatch_violation(violation(
     ).
 
 %% check_scenario_feasibility_unknown(-Violations)
-% implements REQ-kibi-scenario-feasibility-v2
 % Advisory: success scenarios whose feasibility the checker cannot decide.
 check_scenario_feasibility_unknown(Violations) :-
     findall(Violation, scenario_feasibility_unknown_violation(Violation), Unsorted),
@@ -2360,7 +2351,6 @@ unknown_feasibility_text(undetermined_validity(FactIds), Description,
         [FactText]).
 
 %% check_exception_claim_keys(-Violations)
-% implements REQ-kibi-scenario-feasibility-v2
 % An exception requirement narrows its waiver to individual clauses of the
 % requirement it exempts by listing their claim keys in exempts_claims.  Each
 % listed key must be a claim of an exempted requirement (its logic_claims, its
@@ -2408,7 +2398,6 @@ requirement_declares_claim(ReqId, ClaimKey) :-
     !.
 
 %% check_numeric_string_values(-Violations)
-% implements REQ-kibi-truthful-consistency
 % Advisory: a property_value fact stores a numeric-looking value as a string
 % where the comparison is numeric, because its operator orders values (lt,
 % lte, gt, gte) or another fact on the same subject and property is typed int
@@ -2481,7 +2470,7 @@ numeric_string_context(_FactId, Subject, Property, _, Why) :-
 % compile and pass schema validation, then silently fall out of
 % current_req/1 — the proof ladder reports them not_applicable with no
 % signal. This rule surfaces the vocabulary mismatch at check time instead.
-canonical_req_statuses([open, in_progress, closed]).
+canonical_req_statuses([open, in_progress, closed, retired]).
 legacy_req_statuses([active, approved]).
 
 check_req_status_vocabulary(Violations) :-
@@ -2505,13 +2494,124 @@ req_status_vocabulary_violation(violation(
     legacy_req_statuses(Legacy),
     \+ (memberchk(StatusAtom, Canonical) ; memberchk(StatusAtom, Legacy)),
     format(string(Description), "Requirement status '~w' is not a current requirement status; it is silently excluded from the proof ladder", [StatusAtom]),
-    format(string(Suggestion), "Set status to one of open, in_progress, closed (legacy: active, approved). To park a current requirement out of E2E-proof scope, use proof_exempt: true with proof_exempt_reason instead of an ADR status", []),
+    format(string(Suggestion), "Set status to one of open, in_progress, closed, retired (legacy: active, approved). Use retired with retired_reason when the behavior no longer exists; to park a current requirement out of E2E-proof scope, use proof_exempt: true with proof_exempt_reason instead of an ADR status", []),
     violation_source(ReqId, req, Source).
+
+%% check_retired_reason_missing(-Violations)
+% A requirement with status retired no longer governs, so it must say why:
+% retired_reason names why the behavior is gone. Without it a requirement
+% could drop out of search, the proof ladder and every current-intent rule
+% silently, the way proof_exempt needs proof_exempt_reason.
+check_retired_reason_missing(Violations) :-
+    findall(Violation, retired_reason_violation(Violation), Violations).
+
+retired_reason_violation(violation(
+    'retired-reason-missing',
+    ReqId,
+    Description,
+    "Add retired_reason: why the behavior no longer exists, with the date or change that retired it. If the requirement still states current intent, set status back to closed or open",
+    Source
+)) :-
+    kb_entity(ReqId, req, Props),
+    requirement_status_atom(Props, retired),
+    \+ retired_reason(Props, _),
+    format(string(Description),
+        "Requirement ~w is retired but states no retired_reason, so nothing records why it stopped governing",
+        [ReqId]),
+    violation_source(ReqId, req, Source).
+
+%% retired_reason(+Props, -Reason)
+% The non-blank retired_reason of a requirement.
+retired_reason(Props, Reason) :-
+    memberchk(retired_reason=Raw, Props),
+    evidence_text(Raw, Text),
+    normalize_space(string(Reason), Text),
+    Reason \== "".
+
+%% check_retired_owner_only(-Violations)
+% A current fact, scenario or test whose every owning requirement is retired
+% describes behavior that no longer exists, yet search and coverage still
+% read it as current. Owners: the requirements that ground a fact
+% (constrains, requires_property, requires_predicate, requires_rule), that
+% specify a scenario (specified_by), and that a test verifies directly
+% (verified_by, validates) or through a scenario it verifies. Entities
+% without any owner are left to the coverage and dangling rules.
+check_retired_owner_only(Violations) :-
+    findall(ReqId,
+        (   kb_entity(ReqId, req, Props),
+            requirement_status_atom(Props, retired)
+        ),
+        Retired0),
+    sort(Retired0, Retired),
+    (   Retired == []
+    ->  Violations = []
+    ;   findall(Type-Id-Owners,
+            retired_only_dependent(Retired, Type, Id, Owners),
+            Found0),
+        sort(Found0, Found),
+        maplist(retired_owner_only_violation, Found, Violations)
+    ).
+
+retired_only_dependent(Retired, Type, Id, Owners) :-
+    member(Type, [fact, scenario, test]),
+    kb_entity(Id, Type, Props),
+    live_dependent(Type, Props),
+    findall(ReqId, dependent_owner(Type, Id, ReqId), Owners0),
+    sort(Owners0, Owners),
+    Owners \== [],
+    ord_subtract(Owners, Retired, []).
+
+%% live_dependent(+Type, +Props)
+% A fact or scenario is archived once its status is deprecated (or a legacy
+% archived, inactive or deleted); a test has no archived status, so every
+% test is live until it is deleted or relinked.
+live_dependent(test, _) :- !.
+live_dependent(_, Props) :-
+    requirement_status_atom(Props, Status),
+    \+ memberchk(Status, [deprecated, archived, inactive, deleted]).
+
+dependent_owner(fact, FactId, ReqId) :-
+    member(Rel, [constrains, requires_property, requires_predicate, requires_rule]),
+    kb_relationship(Rel, ReqId, FactId),
+    kb_entity(ReqId, req, _).
+dependent_owner(scenario, ScenarioId, ReqId) :-
+    kb_relationship(specified_by, ReqId, ScenarioId),
+    kb_entity(ReqId, req, _).
+dependent_owner(test, TestId, ReqId) :-
+    (   kb_relationship(verified_by, ReqId, TestId)
+    ;   kb_relationship(validates, TestId, ReqId)
+    ;   (   kb_relationship(verified_by, ScenarioId, TestId)
+        ;   kb_relationship(validates, TestId, ScenarioId)
+        ),
+        kb_entity(ScenarioId, scenario, _),
+        kb_relationship(specified_by, ReqId, ScenarioId)
+    ),
+    kb_entity(ReqId, req, _).
+
+retired_owner_only_violation(Type-Id-Owners, violation(
+    'retired-owner-only',
+    Id,
+    Description,
+    Suggestion,
+    Source,
+    _{entityType: Type, owners: Owners}
+)) :-
+    atomic_list_concat(Owners, ', ', OwnerText),
+    format(string(Description),
+        "Current ~w ~w is owned only by retired requirements (~w), so it describes behavior that no longer exists",
+        [Type, Id, OwnerText]),
+    retired_owner_only_suggestion(Type, Suggestion),
+    violation_source(Id, Type, Source).
+
+retired_owner_only_suggestion(test,
+    "Link the test to the current requirement or scenario whose behavior it still checks, or delete it (kb_delete) if that behavior is gone").
+retired_owner_only_suggestion(Type,
+    "Link it to the current requirement that took over this behavior, or archive it with status: deprecated") :-
+    Type \== test.
 
 %% check_strict_fact_shape(-Violations)
 % Finds all strict facts (with fact_kind) that have malformed shape.
 % Only checks facts with fact_kind present; legacy facts without fact_kind are ignored.
-% implements REQ-006
 check_strict_fact_shape(Violations) :-
     findall(
         Violation,
@@ -2740,7 +2840,6 @@ compute_domain_contradiction_witnesses(Witnesses) :-
     sort(Witnesses0, Witnesses).
 
 %% what_if_contradiction_witnesses(+Entries, -Witnesses)
-% implements REQ-kibi-truthful-consistency
 % Contradiction witnesses for the KB as it would be after staging Entries,
 % computed inside an RDF transaction that is always rolled back.  Entries are
 % upsert(Type, Props, Relationships) or relate(Relationships) terms, with
@@ -2757,7 +2856,6 @@ what_if_contradiction_witnesses_json(Entries, JsonString) :-
     with_output_to(string(JsonString), json_write_dict(current_output, Witnesses, [width(0)])).
 
 %% what_if_analysis(+Entries, -Analysis)
-% implements REQ-kibi-truthful-consistency
 % Compare the current KB with the KB after staging Entries (rolled back).
 % Both sides cover domain contradictions (property, predicate and rule
 % witnesses) and scenario infeasibility witnesses (kind scenario_feasibility).
@@ -2814,7 +2912,6 @@ what_if_witnesses(Contradictions, Infeasible) :-
     findall(Witness, scenario_infeasibility_witness(Witness), Infeasible0),
     sort(Infeasible0, Infeasible).
 
-% implements REQ-kibi-scenario-feasibility-v2
 scenario_infeasibility_witness(_{
     kind: scenario_feasibility,
     status: infeasible,
@@ -2953,7 +3050,6 @@ rule_contradiction_witness(Functional, Witness) :-
     }.
 
 %% check_rule_key_arguments_missing(-Violations)
-% implements REQ-kibi-truthful-consistency
 % Advisory: an opposing rule pair that stays unresolved only because a body
 % predicate declares no key_arguments.  Without the declaration the
 % predicate is multivalued, so atoms of the two bodies are never read as the
@@ -3203,7 +3299,6 @@ strict_req_fact_pairing_fact_kind(FactId, Kind) :-
 % `subject` holds it, wherever that argument sits. A predicate without a
 % project-local schema and without subject_key keeps the catalog convention
 % of the subject as its first argument.
-% implements REQ-check-strict-pairing-predicate-grounding-v2
 strict_req_predicate_grounds_subject(ReqId, SubjectKey) :-
     kb:effective_req_predicate(ReqId, FactId, Namespace, Name, Args, _Polarity),
     predicate_fact_subject_key(FactId, Namespace, Name, Args, PredicateSubject),
@@ -3710,7 +3805,6 @@ inventory_entry_status(Entry, Status) :-
     normalize_term_atom(Raw, Status).
 
 %% check_related_requirement_unmodeled(-Violations)
-% implements REQ-check-related-requirement-unmodeled
 % domain-contradictions compares grounded facts only. A current requirement
 % whose proposition ledger still carries `missing` entries contributes no
 % facts, so when it relates_to a current requirement that is modeled (strict

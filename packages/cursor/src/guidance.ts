@@ -1,6 +1,5 @@
 import type { McpState } from "./kb-mcp-tools.js";
 import { interfaceAdvisory } from "./messages.js";
-// implements REQ-cursor-kibi-plugin-v1, REQ-agent-kibi-interface-selection
 import {
   isDocumentationTrackedPath,
   isMeaningfulTrackedPath,
@@ -24,7 +23,6 @@ export type GuidanceContext = {
   readonly knowledge?: string | undefined;
 };
 
-// implements REQ-cursor-kibi-plugin-v1
 /** Cursor's own ask once the shared snippet has named the requirements. */
 export const PRE_EDIT_FOLLOWUP =
   "Kibi pre-edit guidance: read those requirements with kb_query before changing behavior here; if the change contradicts one, resolve that in Kibi before writing the edit.";
@@ -134,7 +132,7 @@ export function writeGuidance(
   const guidance = [
     `Kibi impact review: run kb_check({sourceFiles:["${relativePath}"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
     "Check symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.",
-    "Prefer symbol manifest + executable_for or // implements REQ-<area>-<behavior> for traceability.",
+    "Record traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.",
   ];
   return withAdvisory(context, guidance);
 }

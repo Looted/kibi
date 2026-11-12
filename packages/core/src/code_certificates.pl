@@ -1,5 +1,4 @@
 % Module: code_certificates
-% implements REQ-kibi-code-proof-kinds
 %
 % Re-checks the kibi.code-certificate.v1 a certificate-kind proof contract
 % leaves in its receipt.  A receipt counts as proved only when its
@@ -285,7 +284,6 @@ kind_problem(regex, Certificate, Reason) :-
     ;   Reason = "the pattern's type must be regexp or string"
     ).
 
-% implements REQ-kibi-source-proof-kinds
 kind_problem(source, Certificate, Reason) :-
     % mutalog-disable-next-line cut_insert: the kinds are distinct and the kind is bound
     field(Certificate, source, Source),

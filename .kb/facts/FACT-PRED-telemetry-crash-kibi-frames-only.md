@@ -22,4 +22,4 @@ origin:
 id: FACT-PRED-telemetry-crash-kibi-frames-only
 type: fact
 ---
-A telemetry event for a Kibi fault shall carry only stack frames from Kibi's own packages. Grounds one clause of REQ-kibi-telemetry-agent-signals as a conditional behavior of telemetry events.
+A telemetry event for a Kibi fault shall carry only stack frames from Kibi's own packages. Grounds one clause of REQ-kibi-telemetry-event-contents as a conditional behavior of telemetry events.

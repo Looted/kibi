@@ -27,7 +27,6 @@ export interface GraphResult {
   };
 }
 
-// implements REQ-002, REQ-013
 export async function handleKbGraph(
   prolog: ReportingProlog,
   args: GraphArgs,

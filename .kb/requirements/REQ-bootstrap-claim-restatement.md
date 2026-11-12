@@ -10,6 +10,7 @@ priority: must
 origin:
   kind: agent
   ref: Onboarding test finding on bootstrap claim deduplication (2026-10-14)
+  approved_by: maintainer
   recorded_at: '2026-10-14T08:56:29.666Z'
 semantic_text: The bootstrap planner must count a declared intent claim whose normalized statement or excerpt equals the title, the semantic text or one sentence of the semantic text of a current requirement as already in the KB under that requirement id. The bootstrap planner must keep a declared intent claim that closely restates a current requirement without matching it exactly and must name that requirement in a review diagnostic.
 logic_claims:

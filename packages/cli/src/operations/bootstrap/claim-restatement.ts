@@ -4,7 +4,6 @@ import {
 } from "../../entity-body-context.js";
 
 /** A current requirement a declared intent claim may restate. */
-// implements REQ-bootstrap-claim-restatement
 export type ExistingRequirement = {
   readonly id: string;
   readonly title: string;
@@ -19,10 +18,8 @@ export type ExistingRequirement = {
  * entity-context check uses to call a context section a restatement of the
  * title. Below it a claim is planned with no signal.
  */
-// implements REQ-bootstrap-claim-restatement
 export const NEAR_RESTATEMENT_JACCARD = RESTATEMENT_JACCARD;
 
-// implements REQ-bootstrap-claim-restatement
 export type RestatementMatch = {
   /** exact: the normalized texts are equal; near: overlap at the threshold. */
   readonly kind: "exact" | "near";
@@ -37,22 +34,21 @@ export type RestatementMatch = {
  * Case, whitespace and punctuation do not change what a sentence says, so
  * they do not count when a claim is compared with a requirement.
  */
-// implements REQ-bootstrap-claim-restatement
 export function normalizeRestatementText(text: string): string {
   return text
     .toLowerCase()
-    .split(/[^\p{L}\p{N}]+/u)
+    .split(/[^\p{L}\p{N}]/u)
     .filter((token) => token !== "")
     .join(" ");
 }
 
-/** The whole prose and each of its sentences. */
+/**
+ * The whole prose and each of its sentences. Whitespace and empty pieces
+ * never change a normalized comparison or a token-set score, so the pieces
+ * are not trimmed or filtered.
+ */
 function proseUnits(text: string): readonly string[] {
-  const sentences = text
-    .split(/(?<=[.!?])\s+|\n+/)
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence !== "");
-  return [text, ...sentences];
+  return [text, ...text.split(/(?<=[.!?])\s|\n/)];
 }
 
 function references(requirement: ExistingRequirement): readonly {
@@ -65,7 +61,7 @@ function references(requirement: ExistingRequirement): readonly {
       field: "semantic_text" as const,
       text,
     })),
-  ].filter((reference) => normalizeRestatementText(reference.text) !== "");
+  ];
 }
 
 /**
@@ -76,7 +72,6 @@ function references(requirement: ExistingRequirement): readonly {
  * a near restatement: a review signal, never a reason to drop the claim.
  * Requirements are compared in id order, so the answer is deterministic.
  */
-// implements REQ-bootstrap-claim-restatement
 export function findRestatement(
   claimTexts: readonly (string | undefined)[],
   requirements: readonly ExistingRequirement[],
@@ -84,10 +79,12 @@ export function findRestatement(
   const texts = claimTexts
     .filter((text): text is string => typeof text === "string")
     .map((text) => ({ text, normalized: normalizeRestatementText(text) }))
+    // An empty claim would equal an empty reference.
     .filter((text) => text.normalized !== "");
-  if (texts.length === 0) return null;
+  // A stable sort only asks whether a pair is out of order, so equal ids
+  // keep their input order without a separate 0 result.
   const ordered = [...requirements].sort((left, right) =>
-    left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
+    left.id < right.id ? -1 : 1,
   );
   let near: RestatementMatch | null = null;
   let nearScore = 0;

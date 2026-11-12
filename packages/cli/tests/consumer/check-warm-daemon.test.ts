@@ -1,4 +1,3 @@
-// implements REQ-kibi-conservative-requirement-proof
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

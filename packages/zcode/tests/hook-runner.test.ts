@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -265,7 +264,6 @@ describe("ZCode hook runner workspace opt-in", () => {
     expect(context.endsWith("\n")).toBe(false);
   });
 
-  // implements REQ-kibi-fresh-clone-setup
   test("SessionStart adds the missing-hooks note in a checkout without Kibi hooks", async () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-nohooks");
     spawnSync("git", ["init", "-q"], { cwd });
@@ -1825,7 +1823,6 @@ describe("ZCode reminders from Claude-compatible payloads", () => {
     expect(reminder).toContain("src/checkout.ts");
   });
 
-  // implements REQ-kibi-anonymous-usage-telemetry
   test("every hook event that decides something queues one kibi_hook, and KIBI_TELEMETRY=0 queues none", async () => {
     const telemetryDir = createTempRoot("kibi-zcode-telemetry-");
     tempRoots.push(telemetryDir);

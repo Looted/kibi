@@ -9,7 +9,6 @@ priority: must
 tags:
   - core
   - validation
-  - review:context-missing
 links:
   - type: supersedes
     target: REQ-006
@@ -58,7 +57,7 @@ logic_claims:
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
@@ -66,3 +65,6 @@ The Prolog KB core implements foundational validation rules to ensure data consi
 - `must-priority-coverage`: ensures requirements with "must" priority have at least one scenario and one test.
 - `no-dangling-refs`: ensures all relationship targets exist as entities in the KB.
 - `no-cycles`: prevents circular dependency chains in requirements and ADRs.
+
+## Why this changed
+When the app-surface requirements were split so each command and surface could be traced and tested on its own, REQ-006 moved into this requirement for the core validation rules. Source: commit "docs(req): split app surface requirements", May 13.

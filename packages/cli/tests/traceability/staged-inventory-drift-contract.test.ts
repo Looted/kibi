@@ -12,8 +12,6 @@ import {
   stagedStatementDriftViolations,
 } from "../../src/traceability/staged-inventory-drift.js";
 
-// implements REQ-kibi-proposition-complete-ingestion
-
 const ORIGINAL = "The checkout total stays positive for every order.";
 const EDITED = "The checkout total stays positive for every paid order.";
 

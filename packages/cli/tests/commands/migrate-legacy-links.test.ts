@@ -224,7 +224,6 @@ describe("kibi migrate marks coarse symbol links legacy-link", () => {
     ).toBe(false);
   });
 
-  // implements REQ-cli-migration-first-commit
   describe("refreshes generated coordinates after marking", () => {
     function coordinateIds(cwd: string): string[] {
       const file = path.join(cwd, ".kb", "symbol-coordinates.yaml");

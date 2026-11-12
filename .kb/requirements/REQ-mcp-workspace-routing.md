@@ -7,7 +7,6 @@ tags:
   - worktree
   - routing
   - search
-  - review:context-missing
 semantic_text: |-
   When a Kibi MCP tool call carries a workspaceRoot argument, the Kibi MCP server must answer the call from the Kibi workspace that owns that directory.
 
@@ -94,7 +93,7 @@ id: REQ-mcp-workspace-routing
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the supersession reasons recovered from history in the KB gold-standard review (reasons batch 1): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 When a Kibi MCP tool call carries a workspaceRoot argument, the Kibi MCP server must answer the call from the Kibi workspace that owns that directory.
@@ -110,3 +109,6 @@ When a Kibi workspace environment variable is set, the Kibi MCP server must not 
 A routed Kibi MCP child server must not route calls further.
 
 The Kibi MCP server must strip the workspaceRoot argument before dispatching a tool call.
+
+## Why this changed
+Hosts start the MCP server once and then let the agent work in a worktree. The server kept answering from the checkout it started in, so kb_query found nothing on the worktree branch. Routing per call replaces the two launcher-specific rules. Source: PR 324.

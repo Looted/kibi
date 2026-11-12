@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { BOOTSTRAP_PROVIDER_ORDER } from "../../../src/operations/bootstrap/types.js";
 
-// implements REQ-kibi-bootstrap-evidence-providers
-
 /**
  * The evidence providers a bootstrap plan reads from. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

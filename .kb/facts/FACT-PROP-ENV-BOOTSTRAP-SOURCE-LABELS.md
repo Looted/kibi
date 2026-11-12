@@ -5,7 +5,7 @@ tags:
   - lane:strict
   - env
   - bootstrap
-text_ref: .kb/requirements/REQ-kibi-env-bootstrap.md
+text_ref: .kb/requirements/REQ-kibi-env-bootstrap-shared.md
 fact_kind: property_value
 subject_key: kibi.env_bootstrap
 property_key: source_label_set

@@ -1,4 +1,3 @@
-// implements REQ-mcp-apply-plan-async-preflight
 import { afterEach, describe, expect, test } from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -121,31 +120,56 @@ describe("kb_apply_plan async preflight over MCP", () => {
   };
 
   for (const [label, extra, message] of [
-    ["a missing approvedPlanHash", {}, "approvedPlanHash must be"],
+    [
+      "a missing approvedPlanHash",
+      {},
+      "must have required property 'approvedPlanHash'",
+    ],
     [
       "a malformed approvedPlanHash",
       { approvedPlanHash: "not-a-hash" },
-      "approvedPlanHash must be",
-    ],
-    [
-      "an approvedPlanHash that differs from planHash",
-      { approvedPlanHash: "c".repeat(64) },
-      "approvedPlanHash does not match planHash",
+      "/approvedPlanHash must match pattern",
     ],
   ] as const) {
-    test(`async:true with ${label} fails the call itself and starts no job`, async () => {
+    test(`async:true with ${label} is refused by the input contract and starts no job`, async () => {
       process.env.KIBI_MCP_OPTIONAL_TOOLS = "kb_job_status";
       const { handler, calls } = createHarness(1);
-      let failure: unknown;
-      try {
-        await handler({ plan: bootstrapPlan, ...extra, async: true });
-      } catch (error) {
-        failure = error;
-      }
-      expect(String(failure)).toContain(message);
-      // No detached job ran the apply.
+      // The canonical input contract refuses it with the error envelope the
+      // CLI JSON route gives, before any job could start.
+      const result = (await handler({
+        plan: bootstrapPlan,
+        ...extra,
+        async: true,
+      })) as {
+        isError?: boolean;
+        structuredContent?: { error?: { code?: string; message?: string } };
+      };
+      expect(result.isError).toBe(true);
+      expect(result.structuredContent?.error?.code).toBe("VALIDATION_FAILED");
+      expect(result.structuredContent?.error?.message).toContain(message);
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(calls).toEqual([]);
     });
   }
+
+  test("async:true with an approvedPlanHash that differs from planHash fails the call itself and starts no job", async () => {
+    process.env.KIBI_MCP_OPTIONAL_TOOLS = "kb_job_status";
+    const { handler, calls } = createHarness(1);
+    let failure: unknown;
+    try {
+      await handler({
+        plan: bootstrapPlan,
+        approvedPlanHash: "c".repeat(64),
+        async: true,
+      });
+    } catch (error) {
+      failure = error;
+    }
+    expect(String(failure)).toContain(
+      "approvedPlanHash does not match planHash",
+    );
+    // No detached job ran the apply.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(calls).toEqual([]);
+  });
 });

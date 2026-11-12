@@ -83,6 +83,18 @@ different workspace than the one you asked for; its `detail.reason` says why.
 Use the CLI from your working directory instead: `npx --no-install kibi ...`
 runs where you are and needs no `workspaceRoot`.
 
+## Reading another repository's knowledge base
+
+When the project declares KB dependencies (`kibi deps status` lists them),
+the tools `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`
+and `kb_graph` take `kb: "<name>"` to answer from that repository's KB at its
+pinned commit (CLI: `--kb <name>`). Reach for it when a question is about a
+library or service this project calls rather than about this project's own
+code. A dependency KB is read-only: never pass `kb` to a
+write, and do not copy its requirements into this project's KB. A
+`DEPENDENCY_NOT_LOCKED` or `DEPENDENCY_LOCK_STALE` error means the pin needs
+`kibi deps lock`, which changes committed files, so ask before running it.
+
 ## Reading a hook snippet
 
 On hosts where Kibi hooks are installed, a short block
@@ -339,9 +351,15 @@ authored. Each one is the order the write path accepts.
    plan carries `supersessionRequired: true` and both routes refuse it
    (`REQUIREMENT_SUPERSESSION_REQUIRED`): Kibi never deletes an authored
    requirement. Evolve it instead with a new
-   requirement linked by `supersedes` and close the old one, or, for an
-   agent-origin requirement nobody approved and nothing links to, upsert it
-   with `status: closed` (keep its `title`); it stays on disk as history. A
+   requirement linked by `supersedes` and close the old one. When the
+   behavior is gone and nothing replaces it (or for an agent-origin
+   requirement nobody approved and nothing links to), upsert it with
+   `status: retired` and a `retired_reason` saying why (keep its `title`);
+   it stays on disk as history and stops governing. Then relink or archive
+   (`status: deprecated`) the facts and scenarios it alone owned, and
+   relink or delete its tests: `kb_check` blocks them under
+   `retired-owner-only`. Leave a requirement that is done and still valid
+   `closed`. A
    person may remove the file in Git and run `kibi sync`; agents do not edit
    `.kb/` directly.
 4. **After a commit-time refusal** (`Contradiction detected …
@@ -590,8 +608,9 @@ Represent implementation ownership with a `symbol` entity that has
 `sourceFile`, `implements` to the requirement, and `covered_by` to the test.
 Prolog `symbol-coverage` also requires the test to `validates` the requirement
 (or the requirement `verified_by` the test). `covered_by` alone is not
-enough. Do not rely on legacy `// implements REQ-<area>-<behavior>` comments as the
-traceability record.
+enough. Code comments such as `// implements REQ-<area>-<behavior>` are not read
+by any Kibi check; the symbol manifest is the only traceability record, so do
+not add them.
 
 Set the symbol's `title` to the behavioral member the extractor can locate in
 `sourceFile`: `ClassName.methodName`, an exported function, or a class, not a

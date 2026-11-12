@@ -22,10 +22,8 @@ import {
   sourceWebUrl,
 } from "./repository.js";
 
-// implements REQ-kibi-html-health-report
 export type UnknownRecord = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-html-health-report
 function reportStyles(): string {
   const raw = readFileSync(
     join(fileURLToPath(new URL(".", import.meta.url)), "html-report.css"),
@@ -45,11 +43,9 @@ function reportStyles(): string {
     .replaceAll("__KIBI_DANGER__", KIBI_BRAND.danger);
 }
 
-// implements REQ-kibi-html-health-report
 export const REPORT_CSP =
   "default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'";
 
-// implements REQ-kibi-html-health-report
 export const KIBI_GETTING_STARTED_URL =
   "https://github.com/Looted/kibi/blob/develop/docs/install.md";
 
@@ -209,7 +205,6 @@ function stagePassed(stages: UnknownRecord, name: string): boolean {
  * integration tests for component-scope UI pattern scenarios. Other tests carry
  * the `not_end_to_end` state.
  */
-// implements REQ-ui-pattern-component-proof
 function isProofScopeEvidence(item: UnknownRecord): boolean {
   return item.state !== undefined
     ? item.state !== "not_end_to_end"
@@ -290,7 +285,6 @@ function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
   });
 }
 
-// implements REQ-kibi-html-health-report
 // covered_by TEST-kibi-html-health-report
 export function firstFailingProofGate(
   gates: readonly ProofGateKey[],
@@ -302,7 +296,6 @@ export function firstFailingProofGate(
   return "tested";
 }
 
-// implements REQ-kibi-html-health-report
 // covered_by TEST-kibi-html-health-report
 export function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "tested" {
   // A tested requirement passes every gate before proved.
@@ -584,7 +577,6 @@ type EvidenceFloor = Readonly<{
  * tested for a firm requirement. A floor of unverified accepts anything and
  * reads as no floor.
  */
-// implements REQ-kibi-evidence-floors
 function evidenceFloor(row: UnknownRecord): EvidenceFloor | undefined {
   const floor = record(row.evidenceFloor);
   const required = text(floor.required);
@@ -605,7 +597,6 @@ function rowSeverity(row: UnknownRecord): number {
   return 4;
 }
 
-// implements REQ-kibi-html-health-report, REQ-kibi-evidence-floors
 function rowStates(row: UnknownRecord): string {
   const states = new Set<string>();
   const gaps = strings(row.proofGaps);
@@ -626,7 +617,6 @@ const FLOOR_STATUS_LABELS: Readonly<Record<string, string>> = {
   pending_reproof: "pending re-proof",
 };
 
-// implements REQ-kibi-evidence-floors
 function renderFloorChip(floor: EvidenceFloor | undefined): string {
   if (floor === undefined) return "";
   const origin =
@@ -641,7 +631,6 @@ function renderFloorChip(floor: EvidenceFloor | undefined): string {
  * Certificates a requirement's tests carry: the proof kinds that earned
  * proved, and certificates or claim bindings that no longer re-check.
  */
-// implements REQ-kibi-code-proof-kinds
 function certificateStage(row: UnknownRecord): ReportStage | undefined {
   const certificate = records(row.evidence).find(
     (entry) => text(entry.kind) === "certificate",
@@ -687,7 +676,6 @@ function certificateStage(row: UnknownRecord): ReportStage | undefined {
   return undefined;
 }
 
-// implements REQ-kibi-code-proof-kinds
 export function certificateRejectionLines(
   row: UnknownRecord,
 ): readonly string[] {
@@ -775,7 +763,6 @@ function renderRequirement(
   </article>`;
 }
 
-// implements REQ-kibi-claim-bound-proofs
 function claimsProvedLabel(row: UnknownRecord): string | null {
   const summary = record(row.claimSummary);
   const applicable = summary.applicable;
@@ -784,13 +771,11 @@ function claimsProvedLabel(row: UnknownRecord): string | null {
   return `${proved}/${applicable} claims proved`;
 }
 
-// implements REQ-kibi-evidence-levels
 function evidenceCount(rows: readonly UnknownRecord[], level: string): number {
   return rows.filter((row) => text(row.evidenceLevel, "unverified") === level)
     .length;
 }
 
-// implements REQ-kibi-kb-certificates
 function renderKbCertificates(
   bundle: HtmlReportKbCertificates | undefined,
 ): string {
@@ -901,7 +886,6 @@ function renderFilters(
   }).join("");
 }
 
-// implements REQ-kibi-html-health-report
 export function renderHtmlReport(input: HtmlReportInput): string {
   const summary = input.requirements.summary;
   const symbolSummary = input.symbols.summary;

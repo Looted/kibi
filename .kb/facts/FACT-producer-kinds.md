@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-5FD532ADAFB84B98
 claim_text: A proof producer shall be command, playwright, junit or tap
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-producers-and-storage
 property_key: producer_kinds
 operator: eq
 value_type: set

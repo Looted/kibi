@@ -1,5 +1,34 @@
 # kibi-agent-core
 
+## 0.13.0
+
+### Minor Changes
+
+- 3e0e613: Search and the edit hooks no longer treat a closed requirement as if it were current. A closed requirement may be done and still hold, so it stays findable, but it now ranks below a current requirement that matches as well, and a closed requirement that a current one supersedes is no longer offered as a candidate for a file no symbol links.
+  - `kb_search` scores a closed requirement that no current requirement supersedes at 0.75 of its match and gives the reason `demoted: closed`. The answer applies the same factor to a closed requirement reached through a matched fact, scenario or test, so it follows a current requirement reached as well in `governing`. A superseded requirement keeps its 0.5 demotion.
+  - The answer proposes the replacement of a superseded requirement only when that requirement scored at least 0.8 of the best candidate's score, so a weak match on an old requirement no longer pulls its replacement into an unrelated answer. The old requirement still names its replacement under `notGoverning`.
+  - The edit hook note (every host) and an impact `kb_check` for an unlinked file list current candidate requirements before closed ones and leave out a closed requirement that a current requirement supersedes, read from front matter links and relationship shards. kibi-agent-core exports `replacedRequirements` for this.
+
+### Patch Changes
+
+- 30d56b9: The file-context hint that hooks inject now points agents at `kb_query({id, includeBody:true})`, which returns the requirement's full body including why it exists. The hint previously suggested `kb_query({id})`, which returns the statement without the body.
+- df02251: When the Kibi engine cannot start, anonymous telemetry now says why in a fixed word, so start failures can be told apart without sending any message text. Every `kibi sync` refusal now has its own error code, so a refusal you can act on (unresolved Git conflicts, a requirement that failed proposition-complete ingestion) is counted as a rejection and not as a Kibi failure.
+  - The engine daemon writes its start diagnostic as one JSON line: a fixed failure kind (the error's own code such as `swipl_not_found`, or `already_listening`, `store_locked`, `journal_unreadable`, `prolog_module_load_failed`, `branch_attach_failed`, `invalid_branch`, `daemon_error`) and the message. The client still accepts a plain-text diagnostic and raises `ENGINE_START_FAILED` with the same message as before, plus a `startFailure` property. A daemon that exits without a diagnostic reports `daemon_exited`, and an unreadable diagnostic reports `diagnostic_unreadable`. Telemetry sends this kind as `rejection_code`.
+  - `SyncError`s that had no code now have one: `GIT_CONFLICTS_UNRESOLVED`, `INVENTORY_INGESTION_FAILED`, `LEGACY_BRANCH_STORAGE`, `BRANCH_RESOLUTION_FAILED`, `ENGINE_SOCKET_UNREACHABLE`, `KB_SAVE_FAILED`, `STAGING_ATTACH_FAILED`, `STAGING_SAVE_FAILED`, `RELATIONSHIP_SHARD_CLEAR_FAILED`, `SYNC_CHECKPOINT_FAILED`, `SYNC_CACHE_KEY_INVALID`, `SNAPSHOT_COMPILE_REFUSED`, `RECOVERY_TARGET_MISSING` and `RECOVERY_BACKUP_EXISTS`. `git_conflicts_unresolved` and `inventory_ingestion_failed` count as rejections.
+  - The MCP error classifier recognizes a missing SWI-Prolog (`swipl_not_found`), a failed engine start (`engine_start_failed`) and an engine that never accepted connections (`engine_connect_timeout`) instead of reporting them as `handler_error`.
+
+- 6411b83: Telemetry now names the error underneath a plain wrapper such as "Upsert execution failed: …": the event carries the wrapped error's code, class and crash frame instead of a generic `operation_failed` from the wrapper. The engine client also stops waiting when the daemon it started exits without listening (reporting `ENGINE_START_FAILED` with the exit code or signal after a one-second grace, instead of waiting out the two-minute start timeout), and a start that does time out reports `ENGINE_CONNECT_TIMEOUT` instead of an uncategorized error.
+
+  On native Windows, Kibi now finds a system SWI-Prolog on the search path: it looks for `swipl.exe` and reads the `Path` variable whatever its case. Before, it looked only for an extensionless `swipl` under `PATH`, so doctor and every Prolog-backed command reported that no SWI-Prolog was installed.
+
+  The engine daemon now starts on Windows named pipes: it no longer tries to create the pipe namespace as a directory, and its start diagnostic and publication lock are written to the runtime directory instead of beside the pipe, where no file can exist.
+
+  Escape backslashes in the file paths Kibi passes to SWI-Prolog, so loading the core modules and attaching a KB work on Windows paths such as `C:\Users\...`.
+
+  SWI-Prolog's standard output and error now use LF line ends on every platform, so queries complete on Windows, where SWI-Prolog otherwise writes CRLF.
+
+  The engine flushes its journal through writable file handles on Windows, where fsync on a read-only handle fails with EPERM.
+
 ## 0.12.0
 
 ### Minor Changes

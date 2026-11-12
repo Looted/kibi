@@ -20,7 +20,6 @@ import type { ChangedFileImpactResult } from "../impact-diagnostics.js";
 import type { QualityDiagnostic } from "../impact-diagnostics.js";
 import type { MigrationPlan } from "./migration-plan.js";
 
-// implements REQ-mcp-tool-check
 export interface CheckDiagnostic {
   readonly category: string;
   readonly severity: "error" | "warning";
@@ -34,13 +33,11 @@ export interface CheckDiagnostic {
  * "nothing evaluated": the rules that ran, and for `domain-contradictions`
  * how many pairs of requirement facts it compared.
  */
-// implements REQ-search-answer-hygiene
 export interface CheckEvaluated {
   readonly rules: readonly string[];
   readonly domainContradictions?: Readonly<{ factPairsExamined: number }>;
 }
 
-// implements REQ-mcp-tool-check, REQ-search-answer-hygiene
 export interface CheckStructuredContent {
   readonly violations: readonly Violation[];
   readonly count: number;
@@ -65,7 +62,6 @@ function formatDiagnostics(diagnostics: readonly CheckDiagnostic[]) {
   }));
 }
 
-// implements REQ-mcp-tool-check
 export function formatImpactText(
   impactResult: ChangedFileImpactResult,
 ): string {
@@ -93,7 +89,6 @@ function formatOptionalList(
   return [`${label}: ${values.join(", ")}`];
 }
 
-// implements REQ-mcp-tool-check
 export function formatQualityDiagnosticsText(
   diagnostics: readonly QualityDiagnostic[],
 ): string {
@@ -130,19 +125,18 @@ export function formatQualityDiagnosticsText(
  * Requirements the changed code implements whose statements the check did not
  * compare with the code (`requirement_statement_unverified`).
  */
-// implements REQ-kb-check-unverified-requirement-statements
 function unverifiedRequirementIds(input: {
   readonly impactResult: ChangedFileImpactResult | undefined;
 }): string[] {
-  return (input.impactResult?.impactDiagnostics ?? [])
+  const ids = input.impactResult?.impactDiagnostics
     .filter(
       (diagnostic) => diagnostic.id === "requirement_statement_unverified",
     )
     .map((diagnostic) => diagnostic.entityId)
     .filter((id): id is string => id !== undefined);
+  return ids ?? [];
 }
 
-// implements REQ-mcp-tool-check, REQ-kb-check-unverified-requirement-statements
 export function formatViolationText(
   violations: readonly Violation[],
   unverifiedRequirements: readonly string[] = [],
@@ -169,7 +163,6 @@ export function formatViolationText(
   return `${violations.length} violations found\n${details.join("\n")}`;
 }
 
-// implements REQ-mcp-tool-check
 export function buildStructuredContent(input: {
   violations: readonly Violation[];
   evaluated: CheckEvaluated;
@@ -207,8 +200,6 @@ export function buildStructuredContent(input: {
   };
 }
 
-// implements REQ-mcp-tool-check
-// implements REQ-search-answer-hygiene
 /** One line saying what the check evaluated, so a clean result is readable. */
 export function formatEvaluatedText(evaluated: CheckEvaluated): string {
   const rules =

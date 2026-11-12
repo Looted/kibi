@@ -8,7 +8,7 @@ tags:
   - read-only
 claim_key: CLAIM-1D06495FE053404E
 claim_text: Write operations and kibi sync on a detached HEAD with zero or several local branches at HEAD must be refused with a message naming git switch or KIBI_BRANCH
-text_ref: .kb/requirements/REQ-branch-store-recovery-v4.md
+text_ref: .kb/requirements/REQ-kibi-detached-head-snapshots.md
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:

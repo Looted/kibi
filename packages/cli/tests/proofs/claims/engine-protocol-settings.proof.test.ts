@@ -9,8 +9,6 @@ import {
   ENGINE_PROTOCOL_VERSION,
 } from "../../../src/engine.js";
 
-// implements REQ-engine-protocol-settings
-
 /**
  * The protocol version of the Kibi engine daemon and how long it waits idle. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

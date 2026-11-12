@@ -19,19 +19,20 @@ import path from "node:path";
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { getKbPlPathOverride } from "../../env.js";
 import { resolveKbPlPath } from "../../prolog.js";
 import { getStagedFiles } from "../../traceability/git-staged.js";
 import { createStagedEntityIdStyleDiagnostics } from "../../traceability/staged-entity-id-style.js";
 import { analyzePrologQueryPlanSafety } from "../../utils/prolog-query-plan-safety.js";
 import {
   RULE_NAMES,
+  type RuleDefinition,
   type Violation,
   getEffectiveRules,
   getRuleDefinition,
   getRuleEnforcementClass,
 } from "../../utils/rule-registry.js";
 import {
+  type ChangedFileImpactOptions,
   type ChangedFileImpactResult,
   type QualityDiagnostic,
   analyzeChangedFileImpact,
@@ -48,7 +49,6 @@ export { RULE_NAMES, getEffectiveRules };
  * always become non-blocking quality diagnostics. Migration findings are
  * also non-blocking and only appear when that rule was selected to run.
  */
-// implements REQ-cli-check, REQ-mcp-tool-check
 export function partitionCheckFindings(findings: readonly Violation[]): {
   violations: Violation[];
   qualityDiagnostics: QualityDiagnostic[];
@@ -63,12 +63,13 @@ export function partitionCheckFindings(findings: readonly Violation[]): {
       continue;
     }
 
-    const definition = getRuleDefinition(finding.rule);
+    // Only a registered rule has a non-canonical enforcement class.
+    const definition = getRuleDefinition(finding.rule) as RuleDefinition;
     qualityDiagnostics.push({
       id: `rule.${finding.rule}`,
-      severity: definition?.diagnosticSeverity ?? "warning",
+      severity: definition.diagnosticSeverity ?? "warning",
       blocking: false,
-      category: definition?.category ?? "integrity",
+      category: definition.category,
       ...(finding.entityId !== undefined ? { entityId: finding.entityId } : {}),
       ...(finding.source !== undefined ? { source: finding.source } : {}),
       message: finding.description,
@@ -91,7 +92,6 @@ const OMITTED_RULES_SHOWN = 5;
  * so a check after a small edit answers about that edit; kb_check without
  * sourceFiles still lists every finding.
  */
-// implements REQ-cli-check
 export function scopeQualityDiagnosticsToImpact(
   diagnostics: readonly QualityDiagnostic[],
   impactResult: ChangedFileImpactResult,
@@ -104,11 +104,13 @@ export function scopeQualityDiagnosticsToImpact(
     entityIds.add(linked.id);
     entityIds.add(linked.sourceSymbolId);
   }
+  // Linked entity and symbol ids are strings, so a missing entityId is never
+  // among them.
   const inScope = (diagnostic: QualityDiagnostic) =>
-    (diagnostic.entityId !== undefined && entityIds.has(diagnostic.entityId)) ||
+    entityIds.has(diagnostic.entityId as string) ||
     (diagnostic.source !== undefined &&
       files.has(normalizePath(diagnostic.source))) ||
-    (diagnostic.files ?? []).some((file) => files.has(normalizePath(file)));
+    diagnostic.files?.some((file) => files.has(normalizePath(file))) === true;
 
   const kept: QualityDiagnostic[] = [];
   const omittedByRule = new Map<string, number>();
@@ -146,11 +148,10 @@ export function scopeQualityDiagnosticsToImpact(
 }
 
 function resolveChecksPlPath(): string {
-  const override = getKbPlPathOverride();
-  return path.join(path.dirname(override ?? resolveKbPlPath()), "checks.pl");
+  // resolveKbPlPath honours KIBI_KB_PL_PATH and treats an empty one as unset.
+  return path.join(path.dirname(resolveKbPlPath()), "checks.pl");
 }
 
-// implements REQ-mcp-tool-check
 export function collectQueryPlanSafetyViolations(): Violation[] {
   const checksPlPath = resolveChecksPlPath();
   const source = readFileSync(checksPlPath, "utf8");
@@ -170,16 +171,10 @@ export function collectQueryPlanSafetyViolations(): Violation[] {
  * checks. `args.rules` is an invocation-time diagnostic selector that never
  * persists and never redefines project health.
  */
-// implements REQ-mcp-tool-check
 export function resolveCheckRules(
   args: Pick<CheckInput, "rules">,
 ): Set<string> {
-  if (args.rules === undefined) {
-    return getEffectiveRules();
-  }
-  if (args.rules.length === 0) {
-    return new Set<string>();
-  }
+  // No selection runs the default rules; an empty one runs none.
   return getEffectiveRules(args.rules);
 }
 
@@ -188,20 +183,18 @@ export function resolveCheckRules(
  * Retained only so check summaries can point operators at migration; the
  * document never alters rule selection.
  */
-// implements REQ-mcp-tool-check
 export async function readLegacyChecksHint(
   workspaceRoot: string,
 ): Promise<string | null> {
   const configPath = path.join(workspaceRoot, ".kb", "config.json");
   try {
-    await readFile(configPath, "utf8");
+    await readFile(configPath);
   } catch {
     return null;
   }
   return `Legacy ${path.join(".kb", "config.json")} is present. Kibi no longer reads project check or path configuration; run 'kibi migrate' to adopt the canonical .kb/ layout and retire this file.`;
 }
 
-// implements REQ-mcp-tool-check
 export function hasImpactOptions(args: CheckInput): boolean {
   return Boolean(
     args.includeImpactDiagnostics ||
@@ -211,7 +204,6 @@ export function hasImpactOptions(args: CheckInput): boolean {
   );
 }
 
-// implements REQ-mcp-tool-check
 export async function analyzeKbCheckImpact(
   workspaceRoot: string,
   args: CheckInput,
@@ -219,22 +211,15 @@ export async function analyzeKbCheckImpact(
   if (!hasImpactOptions(args)) {
     return undefined;
   }
+  // Every option the analyzer reads treats undefined as absent.
   return analyzeChangedFileImpact({
     workspaceRoot,
-    ...(args.sourceFiles !== undefined
-      ? { sourceFiles: args.sourceFiles }
-      : {}),
-    ...(args.staged !== undefined ? { staged: args.staged } : {}),
-    ...(args.includeWorkingTreeDiff !== undefined
-      ? { includeWorkingTreeDiff: args.includeWorkingTreeDiff }
-      : {}),
-    ...(args.includeImpactDiagnostics !== undefined
-      ? { includeImpactDiagnostics: args.includeImpactDiagnostics }
-      : {}),
-    ...(args.maxDiagnostics !== undefined
-      ? { maxDiagnostics: args.maxDiagnostics }
-      : {}),
-  });
+    sourceFiles: args.sourceFiles,
+    staged: args.staged,
+    includeWorkingTreeDiff: args.includeWorkingTreeDiff,
+    includeImpactDiagnostics: args.includeImpactDiagnostics,
+    maxDiagnostics: args.maxDiagnostics,
+  } as ChangedFileImpactOptions);
 }
 
 /**
@@ -242,7 +227,6 @@ export async function analyzeKbCheckImpact(
  * for `staged: true`, the creation boundary where a purely numeric ID can
  * still be renamed cheaply; committed legacy entities are never evaluated.
  */
-// implements REQ-kibi-entity-id-style
 export function stagedEntityIdStyleDiagnostics(
   workspaceRoot: string,
   args: Pick<CheckInput, "staged">,
@@ -260,7 +244,6 @@ export function stagedEntityIdStyleDiagnostics(
   }
 }
 
-// implements REQ-mcp-tool-check
 export function qualityDiagnosticsFromImpact(
   impactResult: ChangedFileImpactResult | undefined,
 ): readonly QualityDiagnostic[] {

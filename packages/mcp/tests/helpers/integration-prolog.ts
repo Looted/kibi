@@ -21,40 +21,11 @@ export function createIntegrationProlog(
   return prolog;
 }
 
-/**
- * Bun 1.4.4 can leave the continuation of a query answered from the engine's
- * stdout waiting until the next timer fires (up to about a second), so a test
- * that runs a few hundred reads crawls past its timeout. A short timer kept
- * while an integration engine is open lets each answer resume at once; it is
- * unref'd so it never holds the test process open.
- */
-let keepAwake: ReturnType<typeof setInterval> | null = null;
-let openEngines = 0;
-
-function holdEventLoopAwake(): void {
-  openEngines += 1;
-  keepAwake ??= setInterval(() => {}, 5).unref();
-}
-
-function releaseEventLoop(): void {
-  openEngines = Math.max(0, openEngines - 1);
-  if (openEngines === 0 && keepAwake !== null) {
-    clearInterval(keepAwake);
-    keepAwake = null;
-  }
-}
-
 export async function startIntegrationProlog(
   options?: PrologOptions,
 ): Promise<PrologProcess> {
   const prolog = createIntegrationProlog(options);
-  holdEventLoopAwake();
-  try {
-    await prolog.start();
-  } catch (error) {
-    releaseEventLoop();
-    throw error;
-  }
+  await prolog.start();
   const flagResult = await prolog.query(
     "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
   );
@@ -86,12 +57,8 @@ export async function detachTestKb(prolog: PrologProcess): Promise<void> {
 export async function stopIntegrationProlog(
   prolog: PrologProcess,
 ): Promise<void> {
-  try {
-    await detachTestKb(prolog);
-    if (prolog.isRunning()) {
-      await prolog.terminate();
-    }
-  } finally {
-    releaseEventLoop();
+  await detachTestKb(prolog);
+  if (prolog.isRunning()) {
+    await prolog.terminate();
   }
 }

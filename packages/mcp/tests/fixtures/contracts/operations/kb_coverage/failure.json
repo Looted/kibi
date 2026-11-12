@@ -36,6 +36,13 @@
           "description": "Count symbol coverage reached transitively through linked entities, not only direct links.",
           "type": "boolean"
         },
+        "kb": {
+          "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+          "type": "string"
+        },
         "limit": {
           "default": 100,
           "description": "Maximum rows to return. When the repair plan reports scope.complete false, rerun with offset 0 and a larger limit.",

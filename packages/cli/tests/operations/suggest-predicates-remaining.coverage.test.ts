@@ -1,4 +1,3 @@
-// implements REQ-mcp-suggest-predicates
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as applicability from "../../src/operations/modeling/predicate-applicability.js";
 import { BUILT_IN_PREDICATE_SCHEMAS } from "../../src/operations/modeling/predicate-catalog.js";

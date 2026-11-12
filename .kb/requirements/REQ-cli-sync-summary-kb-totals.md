@@ -30,6 +30,7 @@ logic_claims:
   - CLAIM-E10FD05EAC1101D3
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T21:06:53.102Z'
 id: REQ-cli-sync-summary-kb-totals
 type: req

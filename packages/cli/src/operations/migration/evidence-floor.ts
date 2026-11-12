@@ -18,6 +18,7 @@
 
 import path from "node:path";
 import { effectiveFirmness } from "../../decision-firmness.js";
+import type { StatusPayload } from "../../public/operations/discovery-executors.js";
 import {
   type AuthoredEntity,
   authoredSupersededIds,
@@ -30,14 +31,12 @@ import type {
   BodyContextTarget,
 } from "./entity-body-context.js";
 import {
-  listLaneMarkdownFiles,
-  readText,
+  listLaneMarkdownSources,
   withTopLevelField,
   writeFileAtomically,
 } from "./kb-sources.js";
 
 /** Schema 11: record the floor of firm requirements that had no proof path. */
-// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export const EVIDENCE_FLOOR_PIN_CODE = "evidence_floor_pin";
 
 /** Pins to write, plus the firm requirements that keep the tested floor. */
@@ -69,29 +68,22 @@ const PINNED_FLOOR = "asserted";
 function linkTargets(entity: AuthoredEntity, type: string): string[] {
   const links = entity.data.links;
   if (!Array.isArray(links)) return [];
-  return links.flatMap((link) =>
-    link !== null &&
-    typeof link === "object" &&
-    (link as { type?: unknown }).type === type &&
-    typeof (link as { target?: unknown }).target === "string"
-      ? [(link as { target: string }).target]
-      : [],
-  );
+  // Reading a field of a scalar link gives undefined, so only null needs care.
+  return (links as ({ type?: unknown; target?: unknown } | null)[])
+    .filter((link) => link?.type === type && typeof link.target === "string")
+    .map((link) => link?.target as string);
 }
 
 function authoredEntities(
   workspaceRoot: string,
   lane: "requirements" | "scenarios" | "tests",
 ): { entity: AuthoredEntity; content: string; relativePath: string }[] {
-  const entities = [];
-  for (const file of listLaneMarkdownFiles(workspaceRoot, [lane])) {
-    const content = readText(file.absolutePath);
-    if (content === null) continue;
-    const entity = readAuthoredEntity(content, file.relativePath);
-    if (entity !== null)
-      entities.push({ entity, content, relativePath: file.relativePath });
-  }
-  return entities;
+  return listLaneMarkdownSources(workspaceRoot, [lane]).flatMap(
+    ({ content, relativePath }) => {
+      const entity = readAuthoredEntity(content, relativePath);
+      return entity === null ? [] : [{ entity, content, relativePath }];
+    },
+  );
 }
 
 /**
@@ -104,7 +96,8 @@ function hasPassingProof(entity: AuthoredEntity): boolean {
   if (entity.data.proof_contract === undefined) return false;
   if (entity.data.verification_scope !== "end_to_end") return false;
   const receipts = entity.data.proof_receipts;
-  if (!Array.isArray(receipts) || receipts.length === 0) return false;
+  // An empty history reduces to null below.
+  if (!Array.isArray(receipts)) return false;
   const latest = receipts.reduce<{ at: string; outcome: unknown } | null>(
     (best, receipt, index) => {
       if (receipt === null || typeof receipt !== "object") return best;
@@ -164,12 +157,16 @@ function requirementsWithProofPath(
   } catch {
     // Malformed shards fail sync with their own diagnostic.
   }
-  const withPath = new Set<string>();
-  for (const [requirementId, scenarios] of scenariosOf)
-    for (const scenarioId of scenarios)
-      for (const testId of testsOf.get(scenarioId) ?? [])
-        if (contracted.has(testId)) withPath.add(requirementId);
-  return withPath;
+  const proven = new Set(
+    [...testsOf]
+      .filter(([, tests]) => [...tests].some((test) => contracted.has(test)))
+      .map(([scenario]) => scenario),
+  );
+  return new Set(
+    [...scenariosOf]
+      .filter(([, scenarios]) => [...scenarios].some((id) => proven.has(id)))
+      .map(([requirement]) => requirement),
+  );
 }
 
 /**
@@ -181,7 +178,6 @@ function requirementsWithProofPath(
  * floor; `kept` lists them, since remaining gaps (a stale receipt, a missing
  * covered_by) still show in kibi check. Read-only.
  */
-// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export function planEvidenceFloorPins(
   workspaceRoot: string,
   ladder?: LadderFloorVerdicts | null,
@@ -242,7 +238,6 @@ export function planEvidenceFloorPins(
 }
 
 /** Write the planned floors; returns how many requirements were rewritten. */
-// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export function applyEvidenceFloorPins(
   workspaceRoot: string,
   ladder?: LadderFloorVerdicts | null,
@@ -260,7 +255,6 @@ export function applyEvidenceFloorPins(
  * damaged, another branch's store) or the evaluation fails; the migration
  * then decides from authored receipts alone and says so.
  */
-// implements REQ-kibi-evidence-floors, REQ-cli-schema-migration
 export async function readLadderFloorVerdicts(
   workspaceRoot: string,
 ): Promise<LadderFloorVerdicts | null> {
@@ -277,12 +271,14 @@ export async function readLadderFloorVerdicts(
       import("../../public/operations/evidence-floor.js"),
     ]);
     const runtime = createCliRuntime({ workspaceRoot });
-    const status = (await executeOperation(runtime, statusSpec, {}))
-      .structuredContent;
+    // A missing payload or field throws, and the catch returns null for it.
+    const { branchStore, snapshotId, branchAttachment } = (
+      await executeOperation(runtime, statusSpec, {})
+    ).structuredContent as Required<StatusPayload>;
     if (
-      status?.branchStore?.state !== "healthy" ||
-      status?.snapshotId === "missing" ||
-      status?.branchAttachment?.kind !== "exact"
+      branchStore.state !== "healthy" ||
+      snapshotId === "missing" ||
+      branchAttachment.kind !== "exact"
     )
       return null;
     const rows = await executeOperation(

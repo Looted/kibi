@@ -31,7 +31,6 @@ function newestTemporaryLcovFile(
   );
 }
 
-// implements REQ-014
 export async function finalizeLcov(coverageDir: string): Promise<string> {
   const lcovPath = join(coverageDir, "lcov.info");
   if (existsSync(lcovPath)) return lcovPath;

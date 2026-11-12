@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 /**
  * Claude Code hook input (JSON on stdin). Only the fields the runner uses are
  * parsed; everything else is ignored so newer hosts stay compatible.

@@ -1,0 +1,502 @@
+[
+  {
+    "text": "The gateway must reject invalid tokens.",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "gateway_reject_invalid_policy",
+      "title": "gateway_reject_invalid_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: The gateway must reject invalid tokens.",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {
+        "subject": "gateway",
+        "required_outcome": "reject_invalid_tokens"
+      },
+      "unresolved_bindings": ["condition"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "When the cache is cold, the loader must warm it.",
+    "subject": "requirement.subject",
+    "draft": {
+      "predicate_name": "cache_cold_loader_policy",
+      "title": "cache_cold_loader_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: When the cache is cold, the loader must warm it.",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "condition": "the_cache_is_cold",
+        "behavior": "warm_it"
+      },
+      "unresolved_bindings": ["subject"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "If the job fails then retry",
+    "subject": "unknown",
+    "draft": {
+      "predicate_name": "fails_then_retry_policy",
+      "title": "fails_then_retry_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: If the job fails then retry",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {
+        "condition": "the_job_fails"
+      },
+      "unresolved_bindings": ["subject", "required_outcome"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Unless paused the worker must poll.",
+    "subject": "  ",
+    "draft": {
+      "predicate_name": "unless_paused_worker_policy",
+      "title": "unless_paused_worker_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Unless paused the worker must poll.",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "subject": "  ",
+        "condition": "paused_the_worker",
+        "behavior": "poll"
+      },
+      "unresolved_bindings": [],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Users should see dashboards",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "users_dashboards_policy",
+      "title": "users_dashboards_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Users should see dashboards",
+      "argument_names": ["subject", "claim"],
+      "argument_types": ["entity", "claim"],
+      "candidate_bindings": {
+        "subject": "gateway",
+        "claim": "see_dashboards"
+      },
+      "unresolved_bindings": [],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "abc",
+    "subject": "requirement.subject",
+    "draft": {
+      "predicate_name": "domain_policy",
+      "title": "domain_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: abc",
+      "argument_names": ["subject", "claim"],
+      "argument_types": ["entity", "claim"],
+      "candidate_bindings": {},
+      "unresolved_bindings": ["subject", "claim"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Must shall should when where that with from into only this there their required requires data",
+    "subject": "unknown",
+    "draft": {
+      "predicate_name": "data_policy",
+      "title": "data_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Must shall should when where that with from into only this there their required requires data",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "behavior": "shall_should_when_where_that_with_from_into_only_this_there_their_required_requires_data"
+      },
+      "unresolved_bindings": ["subject", "condition"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Alpha beta gamma delta epsilon",
+    "subject": "  ",
+    "draft": {
+      "predicate_name": "alpha_beta_gamma_policy",
+      "title": "alpha_beta_gamma_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Alpha beta gamma delta epsilon",
+      "argument_names": ["subject", "claim"],
+      "argument_types": ["entity", "claim"],
+      "candidate_bindings": {
+        "subject": "  "
+      },
+      "unresolved_bindings": ["claim"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "cache cache cache store",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "cache_store_policy",
+      "title": "cache_store_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: cache cache cache store",
+      "argument_names": ["subject", "claim"],
+      "argument_types": ["entity", "claim"],
+      "candidate_bindings": {
+        "subject": "gateway"
+      },
+      "unresolved_bindings": ["claim"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "The API shall return HTTP-200 & JSON!",
+    "subject": "requirement.subject",
+    "draft": {
+      "predicate_name": "return_http-200_json_policy",
+      "title": "return_http-200_json_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: The API shall return HTTP-200 & JSON!",
+      "argument_names": ["subject", "claim"],
+      "argument_types": ["entity", "claim"],
+      "candidate_bindings": {
+        "claim": "return_http-200_json"
+      },
+      "unresolved_bindings": ["subject"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "x must not leak",
+    "subject": "unknown",
+    "draft": {
+      "predicate_name": "leak_policy",
+      "title": "leak_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: x must not leak",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {
+        "required_outcome": "not_leak"
+      },
+      "unresolved_bindings": ["subject", "condition"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Uploads cannot exceed limits",
+    "subject": "  ",
+    "draft": {
+      "predicate_name": "uploads_cannot_exceed_policy",
+      "title": "uploads_cannot_exceed_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Uploads cannot exceed limits",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {
+        "subject": "  "
+      },
+      "unresolved_bindings": ["condition", "required_outcome"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Admins prohibit exports",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "admins_prohibit_exports_policy",
+      "title": "admins_prohibit_exports_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Admins prohibit exports",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {
+        "subject": "gateway"
+      },
+      "unresolved_bindings": ["condition", "required_outcome"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Tenants forbid sharing",
+    "subject": "requirement.subject",
+    "draft": {
+      "predicate_name": "tenants_forbid_sharing_policy",
+      "title": "tenants_forbid_sharing_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Tenants forbid sharing",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {},
+      "unresolved_bindings": ["subject", "condition", "required_outcome"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Report every error",
+    "subject": "unknown",
+    "draft": {
+      "predicate_name": "report_every_error_policy",
+      "title": "report_every_error_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Report every error",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {},
+      "unresolved_bindings": ["subject", "condition", "required_outcome"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Parsers reject input",
+    "subject": "  ",
+    "draft": {
+      "predicate_name": "parsers_reject_input_policy",
+      "title": "parsers_reject_input_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Parsers reject input",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {
+        "subject": "  "
+      },
+      "unresolved_bindings": ["condition", "required_outcome"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Values are invalid",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "values_invalid_policy",
+      "title": "values_invalid_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Values are invalid",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {
+        "subject": "gateway"
+      },
+      "unresolved_bindings": ["condition", "required_outcome"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Builds FAIL loudly",
+    "subject": "requirement.subject",
+    "draft": {
+      "predicate_name": "builds_fail_loudly_policy",
+      "title": "builds_fail_loudly_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Builds FAIL loudly",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {},
+      "unresolved_bindings": ["subject", "condition", "required_outcome"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "the notification is sent",
+    "subject": "unknown",
+    "draft": {
+      "predicate_name": "notification_sent_policy",
+      "title": "notification_sent_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: the notification is sent",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {},
+      "unresolved_bindings": ["subject", "condition", "behavior"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "abcd a1b2 9abc ab-cd-ef",
+    "subject": "  ",
+    "draft": {
+      "predicate_name": "abcd_a1b2_ab-cd-ef_policy",
+      "title": "abcd_a1b2_ab-cd-ef_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: abcd a1b2 9abc ab-cd-ef",
+      "argument_names": ["subject", "claim"],
+      "argument_types": ["entity", "claim"],
+      "candidate_bindings": {
+        "subject": "  "
+      },
+      "unresolved_bindings": ["claim"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "when  the queue drains ,  workers must  idle.",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "queue_drains_workers_policy",
+      "title": "queue_drains_workers_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: when  the queue drains ,  workers must  idle.",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "subject": "gateway",
+        "condition": "the_queue_drains",
+        "behavior": "idle"
+      },
+      "unresolved_bindings": [],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "If x then  y must z",
+    "subject": "requirement.subject",
+    "draft": {
+      "predicate_name": "then_policy",
+      "title": "then_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: If x then  y must z",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "condition": "x",
+        "behavior": "z"
+      },
+      "unresolved_bindings": ["subject"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "Should   wait   politely. Then go",
+    "subject": "unknown",
+    "draft": {
+      "predicate_name": "wait_politely_then_policy",
+      "title": "wait_politely_then_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: Should   wait   politely. Then go",
+      "argument_names": ["subject", "claim"],
+      "argument_types": ["entity", "claim"],
+      "candidate_bindings": {
+        "claim": "wait_politely"
+      },
+      "unresolved_bindings": ["subject"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "unless\nidle, poll must stop",
+    "subject": "  ",
+    "draft": {
+      "predicate_name": "unless_idle_poll_policy",
+      "title": "unless_idle_poll_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: unless\nidle, poll must stop",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "subject": "  ",
+        "condition": "idle",
+        "behavior": "stop"
+      },
+      "unresolved_bindings": [],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "  padded text must trim  ",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "padded_text_trim_policy",
+      "title": "padded_text_trim_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: padded text must trim",
+      "argument_names": ["subject", "claim"],
+      "argument_types": ["entity", "claim"],
+      "candidate_bindings": {
+        "subject": "gateway",
+        "claim": "trim"
+      },
+      "unresolved_bindings": [],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "When\n\nfoo, the gateway must bar.",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "gateway_policy",
+      "title": "gateway_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: When\n\nfoo, the gateway must bar.",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "subject": "gateway",
+        "condition": "foo",
+        "behavior": "bar"
+      },
+      "unresolved_bindings": [],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "When foo\n\nthen bar.",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "then_policy",
+      "title": "then_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: When foo\n\nthen bar.",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "subject": "gateway",
+        "condition": "foo"
+      },
+      "unresolved_bindings": ["behavior"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "When foo\n\nmust bar.",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "domain_policy",
+      "title": "domain_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: When foo\n\nmust bar.",
+      "argument_names": ["subject", "condition", "behavior"],
+      "argument_types": ["entity", "condition", "behavior"],
+      "candidate_bindings": {
+        "subject": "gateway",
+        "condition": "foo",
+        "behavior": "bar"
+      },
+      "unresolved_bindings": [],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  },
+  {
+    "text": "The gateway must\n\nreject tokens.",
+    "subject": "gateway",
+    "draft": {
+      "predicate_name": "gateway_reject_tokens_policy",
+      "title": "gateway_reject_tokens_policy review draft",
+      "description": "Review-only schema draft derived from the unresolved proposition: The gateway must\n\nreject tokens.",
+      "argument_names": ["subject", "condition", "required_outcome"],
+      "argument_types": ["entity", "condition", "outcome"],
+      "candidate_bindings": {
+        "subject": "gateway",
+        "required_outcome": "reject_tokens"
+      },
+      "unresolved_bindings": ["condition"],
+      "rationale": "No available predicate schema passed semantic applicability. Review the proposed signature and promote it to a reusable predicate_schema before grounding the claim.",
+      "reuse_scope": "Domain-general schema for propositions with the same subject, condition, and required outcome pattern."
+    }
+  }
+]

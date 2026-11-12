@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_08_the_opencode_plugin_must_only_prompt_for_medium_confidence_a
+property_key: prompts_medium_high_only
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_08_the_opencode_plugin_must_only_prompt_for_medium_confidence_a.eq.true
+canonical_key: req.req_opencode_comment_routing.prompts_medium_high_only.eq.true
 claim_key: CLAIM-98A5AAEE1B539EAA
 claim_text: The OpenCode plugin must only prompt for medium-confidence and high-confidence suggestions
 origin:

@@ -1,4 +1,3 @@
-// implements REQ-skillopt-predicate-first-requirements
 import { describe, expect, test } from "bun:test";
 import { DETERMINISTIC_CANDIDATES } from "../fixtures/predicate-corpus";
 import { freezeMaterialization } from "../fixtures/predicate-materialization";

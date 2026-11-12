@@ -11,6 +11,6 @@ After meaningful source edits, run `kb_check({sourceFiles:[...], includeImpactDi
 
 Preserve the canonical chain `REQ-* -> SCEN-* -> TEST-*` when modeling behavior.
 
-Prefer symbol manifest + `executable_for` for test/e2e code. Inline `// implements REQ-xxx` remains acceptable for quick code-only changes.
+Link symbols through the symbol manifest: `implements` for production code, `executable_for` for test/e2e code. Code comments are never a traceability link.
 
 Route durable domain facts to strict `fact` entities. Use `fact_kind: observation` or `meta` for bugs and workarounds, not `flag`.

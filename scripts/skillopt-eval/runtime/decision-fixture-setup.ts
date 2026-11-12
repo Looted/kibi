@@ -41,7 +41,6 @@ const SIDE_BRANCH = "fixture-side";
 const COORDINATE_CACHE_PATH = ".kb/symbol-coordinates.yaml";
 
 /** Setup modes owned by the kibi-decisions and kibi-commit-review cases. */
-// implements REQ-skillopt-codex-optimization
 export const DECISION_SETUP_MODES = [
   "seeded_decision_kb",
   "seeded_unrecorded_change_kb",
@@ -53,10 +52,8 @@ export const DECISION_SETUP_MODES = [
   "seeded_merge_commit_kb",
 ] as const satisfies readonly FixtureSetupMode[];
 
-// implements REQ-skillopt-codex-optimization
 export type DecisionSetupMode = (typeof DECISION_SETUP_MODES)[number];
 
-// implements REQ-skillopt-codex-optimization
 export function isDecisionSetupMode(
   mode: string | undefined,
 ): mode is DecisionSetupMode {
@@ -137,7 +134,6 @@ async function stage(
  * staged change for the Kibi gate to judge, the unrecorded-change mode an
  * uncommitted edit the session made without recording it.
  */
-// implements REQ-skillopt-codex-optimization
 export async function setupDecisionFixture(
   workspaceTarget: string,
   cliRoot: string,

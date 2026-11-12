@@ -8,8 +8,6 @@ import {
   resetSessionTracker,
 } from "../src/session-tracker";
 
-// implements REQ-opencode-kibi-plugin-v1
-
 describe("session-tracker SessionTracker", () => {
   let tracker: SessionTracker;
 

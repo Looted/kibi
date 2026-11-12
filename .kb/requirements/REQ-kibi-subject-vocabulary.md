@@ -5,7 +5,6 @@ priority: must
 tags:
   - modeling
   - vocabulary-convergence
-  - review:context-missing
 semantic_text: Kibi check must report a subject key derived from a requirement ID as a subject-key-identity warning. Kibi check must report a subject key that is not dotted lowercase snake segments as a subject-key-shape warning. kb_model_requirement must reuse the existing subject fact when the ranked vocabulary matches the clause. kb_model_requirement must explicitly declare a new subject when no existing subject matches the clause.
 semantic_clauses:
   - Kibi check must report a subject key derived from a requirement ID as a subject-key-identity warning.
@@ -57,9 +56,12 @@ id: REQ-kibi-subject-vocabulary
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 2): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Kibi check must report a subject key derived from a requirement ID as a subject-key-identity warning. Kibi check must report a subject key that is not dotted lowercase snake segments as a subject-key-shape warning. kb_model_requirement must reuse the existing subject fact when the ranked vocabulary matches the clause. kb_model_requirement must explicitly declare a new subject when no existing subject matches the clause.
+
+## Why
+52 of 89 subject keys in Kibi's own KB were derived from requirement IDs, because the fallback claim took its subject from the file name. Equivalent claims therefore landed on different subjects, and redundancy stayed at zero even where requirements overlapped: divergence, not a lack of duplicates, was hiding it. Modeling now ranks existing subjects first, and only explains a new one.

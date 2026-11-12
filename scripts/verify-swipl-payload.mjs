@@ -70,14 +70,18 @@ export function verifySwiplPayload(root) {
   return problems;
 }
 
-if (import.meta.main) {
-  const problems = verifySwiplPayload(packageRoot);
+/** The prepack check: reports problems on stderr and returns the exit code. */
+export function prepack(root = packageRoot) {
+  const problems = verifySwiplPayload(root);
   if (problems.length > 0) {
     console.error(
-      `Refusing to pack ${path.basename(packageRoot)}: bundled SWI-Prolog payload is not valid:`,
+      `Refusing to pack ${path.basename(root)}: bundled SWI-Prolog payload is not valid:`,
     );
     for (const problem of problems) console.error(`  - ${problem}`);
-    process.exit(1);
+    return 1;
   }
-  console.error(`Verified SWI-Prolog payload: ${path.basename(packageRoot)}`);
+  console.error(`Verified SWI-Prolog payload: ${path.basename(root)}`);
+  return 0;
 }
+
+if (import.meta.main) process.exitCode = prepack();

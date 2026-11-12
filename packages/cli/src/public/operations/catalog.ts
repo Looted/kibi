@@ -187,7 +187,6 @@ const SPECS_BY_NAME: ReadonlyMap<OperationName, ResolvedOperationSpec> =
     OPERATION_CATALOG.map((spec) => [spec.name, withContractDefaults(spec)]),
   );
 
-// implements REQ-kibi-operation-interface-parity
 export function requireKnownSpec(
   spec: ResolvedOperationSpec | undefined,
   name: OperationName,
@@ -202,7 +201,6 @@ export function getSpec(name: OperationName): ResolvedOperationSpec {
   return requireKnownSpec(SPECS_BY_NAME.get(name), name);
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function listSpecs(): readonly ResolvedOperationSpec[] {
   return OPERATION_CATALOG.map(withContractDefaults);
 }

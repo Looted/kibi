@@ -25,7 +25,6 @@ import * as path from "node:path";
  * `package.json` `kibi.setup` next to the project's other Kibi decisions,
  * or `.kb/setup.json` in a repository without a root package.json.
  */
-// implements REQ-kibi-fresh-clone-setup
 export type SetupChoices = {
   /** Compile a missing branch store on first use instead of answering empty. */
   readonly autoSync: boolean;
@@ -37,10 +36,8 @@ export type SetupChoices = {
   readonly ciGate: boolean;
 };
 
-// implements REQ-kibi-fresh-clone-setup
 export type SetupChoiceName = keyof SetupChoices;
 
-// implements REQ-kibi-fresh-clone-setup
 export const SETUP_CHOICE_NAMES: readonly SetupChoiceName[] = [
   "autoSync",
   "prepareHooks",
@@ -48,7 +45,6 @@ export const SETUP_CHOICE_NAMES: readonly SetupChoiceName[] = [
   "ciGate",
 ];
 
-// implements REQ-kibi-fresh-clone-setup
 export const DEFAULT_SETUP_CHOICES: SetupChoices = {
   autoSync: true,
   prepareHooks: true,
@@ -57,13 +53,10 @@ export const DEFAULT_SETUP_CHOICES: SetupChoices = {
   ciGate: false,
 };
 
-// implements REQ-kibi-fresh-clone-setup
 export const SETUP_FILE = path.join(".kb", "setup.json");
 
-// implements REQ-kibi-fresh-clone-setup
 export type SetupChoicesSource = "package.json" | "setup.json" | "defaults";
 
-// implements REQ-kibi-fresh-clone-setup
 export type ResolvedSetupChoices = SetupChoices & {
   readonly source: SetupChoicesSource;
   /** Choices recorded explicitly, as opposed to defaulted. */
@@ -100,7 +93,6 @@ function packageSetup(workspaceRoot: string): unknown {
   return manifest.kibi.setup;
 }
 
-// implements REQ-kibi-fresh-clone-setup
 export function readSetupChoices(workspaceRoot: string): ResolvedSetupChoices {
   let source: SetupChoicesSource = "defaults";
   let recorded: Partial<SetupChoices> = {};
@@ -121,7 +113,6 @@ export function readSetupChoices(workspaceRoot: string): ResolvedSetupChoices {
  * repository that is not a JavaScript project must not get a package.json.
  * Returns the file it wrote, or null when nothing changed.
  */
-// implements REQ-kibi-fresh-clone-setup
 export function writeSetupChoices(
   workspaceRoot: string,
   changes: Partial<SetupChoices>,
@@ -153,7 +144,6 @@ export function writeSetupChoices(
  * Serializes with the file's own indentation and trailing newline, so a
  * recorded choice is the only line a reviewer sees change.
  */
-// implements REQ-kibi-fresh-clone-setup
 export function serializeJson(value: unknown, original: string): string {
   const indent = /^\{\r?\n([ \t]+)"/.exec(original)?.[1] ?? "  ";
   const newline = original.includes("\r\n") ? "\r\n" : "\n";
@@ -164,7 +154,6 @@ export function serializeJson(value: unknown, original: string): string {
 }
 
 /** Whether auto-sync may run here: the env opt-out wins over the recorded choice. */
-// implements REQ-kibi-fresh-clone-setup
 export function autoSyncEnabled(
   workspaceRoot: string,
   env: NodeJS.ProcessEnv = process.env,

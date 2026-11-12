@@ -11,6 +11,7 @@ import {
   CapabilityRegistryCache,
   ensureCapabilityRegistry,
 } from "../plugins/registry.js";
+import { escapeAtom } from "../prolog/codec.js";
 import {
   nodeFilesystem,
   nodeGit,
@@ -78,7 +79,7 @@ function workspaceRoot(options: RuntimeOptions): string {
 }
 
 function quoteProlog(value: string): string {
-  return value.replaceAll("'", "''");
+  return escapeAtom(value);
 }
 
 function bindSignal(
@@ -138,7 +139,6 @@ function resolvePluginsOption(
  * path keeps its lazy, non-mutating behavior). A failed snapshot compile is
  * reported but not fatal, so status can still diagnose the snapshot store.
  */
-// implements REQ-branch-store-recovery-v4
 async function resolveDetachedReadAttachment(
   root: string,
 ): Promise<BranchAttachment | undefined> {
@@ -156,7 +156,6 @@ async function resolveDetachedReadAttachment(
   return attachment;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function createCliRuntime(
   options: RuntimeOptions = {},
 ): OperationRuntime {
@@ -267,7 +266,6 @@ export function createCliRuntime(
         await prolog.start?.();
         const kbPath = attachment.storePath;
         if (!usesEngine) {
-          // implements REQ-core-journaled-engine-persistence
           // A killed holder never makes kb_attach fail, so note it first.
           const recordTakeover = noteDeadHolderBeforeAttach(kbPath);
           let attached = await prolog.query(

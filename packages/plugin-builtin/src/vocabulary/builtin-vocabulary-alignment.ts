@@ -30,15 +30,12 @@ import {
 import { singularize } from "../ontology/normalize.js";
 
 /** Minimum builtin score for reusing an existing subject instead of a new one. */
-// implements REQ-kibi-vocabulary-alignment-capability
 export const BUILTIN_SUBJECT_REUSE_THRESHOLD = 0.4;
 
 /** Conservative token-similarity bar for flagging a possible duplicate claim. */
-// implements REQ-kibi-vocabulary-alignment-capability
 export const BUILTIN_CLAIM_SIMILARITY_THRESHOLD = 0.75;
 
 /** One existing subject fact as read from the KB. */
-// implements REQ-kibi-vocabulary-alignment-capability
 export type SubjectVocabularyEntry = Readonly<{
   subjectKey: string;
   title?: string;
@@ -94,7 +91,6 @@ const NEGATIONS = new Set(["not", "never", "no", "without", "forbid"]);
  * Deterministic content tokens: lowercase alphanumeric words, stopwords
  * removed, simple plural folding. Dots and underscores split subject keys.
  */
-// implements REQ-kibi-vocabulary-alignment-capability
 export function vocabularyTokens(text: string): string[] {
   return (
     text
@@ -157,7 +153,6 @@ function weightedMatch(
  * by every subject, such as a product name, weigh little).
  * Ties break by subject key, so the ranking is fully deterministic.
  */
-// implements REQ-kibi-vocabulary-alignment-capability
 export function rankSubjectCandidates(
   clauseText: string,
   vocabulary: readonly SubjectVocabularyEntry[],
@@ -241,7 +236,6 @@ function quantities(text: string): string {
  * which of two different bounds is meant, so the builtin stays conservative and
  * leaves unit-converted paraphrases to Prolog canonicalization or a provider.
  */
-// implements REQ-kibi-vocabulary-alignment-capability
 export function claimSimilarity(left: string, right: string): number {
   const a = tokenSet(left);
   const b = tokenSet(right);
@@ -268,7 +262,6 @@ function normalizedKey(value: string): string {
     .replace(/^[._]+|[._]+$/g, "");
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export function builtinSubjectDecision(
   clause: RankSubjectsInput["clauses"][number],
 ): SubjectRankingDecision {
@@ -302,7 +295,6 @@ export function builtinSubjectDecision(
 }
 
 /** Deterministic, offline vocabulary-alignment provider. */
-// implements REQ-kibi-vocabulary-alignment-capability
 export class BuiltinVocabularyAlignment implements VocabularyAlignmentV1 {
   readonly id = "kibi-plugin-builtin.vocabulary-alignment";
 
@@ -326,7 +318,6 @@ export class BuiltinVocabularyAlignment implements VocabularyAlignmentV1 {
   }
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export function createBuiltinVocabularyAlignment(): BuiltinVocabularyAlignment {
   return new BuiltinVocabularyAlignment();
 }

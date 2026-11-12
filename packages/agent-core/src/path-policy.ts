@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import path from "node:path";
 
 /**
@@ -164,7 +163,6 @@ const patchTextKeys = ["command", "patch", "input", "patchText"] as const;
  * Files named by an `apply_patch` envelope (`*** Update File: <path>`,
  * `*** Add File:`, `*** Delete File:`), in patch order.
  */
-// implements REQ-codex-kibi-plugin-v1
 export function extractPatchFilePaths(patch: string): string[] {
   const paths: string[] = [];
   for (const line of patch.split(/\r?\n/)) {
@@ -179,7 +177,6 @@ export function extractPatchFilePaths(patch: string): string[] {
  * Paths an edit tool call targets: explicit path fields plus the files named
  * in patch text (Codex sends `apply_patch` with the patch in `command`).
  */
-// implements REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 export function extractEditedPaths(toolInput: unknown): string[] {
   const paths = extractExplicitPathFields(toolInput);
   if (isRecord(toolInput)) {

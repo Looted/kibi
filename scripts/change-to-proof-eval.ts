@@ -16,7 +16,6 @@ import type {
 } from "../packages/cli/src/public/operations/runtime-types.js";
 import { ensureBranchStoreManifest } from "../packages/cli/src/utils/branch-store-locator.js";
 
-// implements REQ-kibi-change-to-proof-evaluation
 export type SearchGoldCase = Readonly<{
   id: string;
   query: string;
@@ -30,7 +29,6 @@ export type SearchGoldCase = Readonly<{
   expectAbstention?: boolean;
 }>;
 
-// implements REQ-kibi-change-to-proof-evaluation
 export type SearchEvaluation = Readonly<{
   caseCount: number;
   positiveCaseCount: number;
@@ -45,7 +43,6 @@ export type SearchEvaluation = Readonly<{
   abstentionCount: number;
 }>;
 
-// implements REQ-kibi-change-to-proof-evaluation
 export type CompileGoldCase = Readonly<{
   id: string;
   intent: string;
@@ -56,7 +53,6 @@ export type CompileGoldCase = Readonly<{
   expectedStatus: "ready" | "needs_resolution" | "blocked";
 }>;
 
-// implements REQ-kibi-change-to-proof-evaluation
 export type CompileEvaluation = Readonly<{
   caseCount: number;
   propositionAccounting: number;
@@ -64,7 +60,6 @@ export type CompileEvaluation = Readonly<{
   statusAccuracy: number;
 }>;
 
-// implements REQ-kibi-change-to-proof-evaluation
 export type SearchCandidate = Readonly<{
   id: string;
   sourceMatches?: readonly SearchSourceMatch[];
@@ -82,14 +77,12 @@ export type SearchSourceMatch = Readonly<{
   column?: unknown;
 }>;
 
-// implements REQ-kibi-change-to-proof-evaluation
 export type SearchEvaluator = (
   gold: SearchGoldCase,
 ) => Promise<
   Readonly<{ results: readonly SearchCandidate[]; abstained: boolean }>
 >;
 
-// implements REQ-kibi-change-to-proof-evaluation
 export type CompileEvaluator = (gold: CompileGoldCase) => Promise<
   Readonly<{
     propositionCount: number;
@@ -98,7 +91,6 @@ export type CompileEvaluator = (gold: CompileGoldCase) => Promise<
   }>
 >;
 
-// implements REQ-kibi-change-to-proof-evaluation
 export type ChangeToProofEvaluation = Readonly<{
   search: SearchEvaluation;
   compile: CompileEvaluation;
@@ -142,7 +134,6 @@ function fixtureSourceMatches(
   }));
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 export async function liveSearchEvaluator(
   fixtureRoot: string,
   gold: SearchGoldCase,
@@ -193,7 +184,6 @@ function fixtureEntityGoal(
   return `kb_assert_entity(${type}, [${properties.join(", ")}])`;
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 async function assertFixtureGoals(
   process: PrologProcess,
   goals: readonly string[],
@@ -208,7 +198,6 @@ async function assertFixtureGoals(
   }
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 async function createLiveFixture(root: string): Promise<LiveFixture> {
   const branch = "held-out";
   const storePath = ensureBranchStoreManifest(root, branch);
@@ -289,7 +278,6 @@ async function createLiveFixture(root: string): Promise<LiveFixture> {
   }
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 export async function liveCompileEvaluator(
   fixture: LiveFixture,
   gold: CompileGoldCase,
@@ -344,7 +332,6 @@ export async function liveCompileEvaluator(
   };
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 export async function runLiveHeldOutEvaluation(
   searchCases: readonly SearchGoldCase[],
   compileCases: readonly CompileGoldCase[],
@@ -373,7 +360,6 @@ export async function runLiveHeldOutEvaluation(
   }
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 export function assertLiveHeldOutEvaluation(
   evaluation: ChangeToProofEvaluation,
   searchCases: readonly SearchGoldCase[],
@@ -447,7 +433,6 @@ function normalizedText(value: unknown): string {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 function sourceMatchCovers(
   match: SearchSourceMatch,
   location: NonNullable<SearchGoldCase["sourceLocation"]>,
@@ -469,7 +454,6 @@ function sourceMatchCovers(
   return true;
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 export async function readJsonl<T>(path: string): Promise<T[]> {
   const content = await readFile(path, "utf8");
   return content
@@ -487,7 +471,6 @@ export async function readJsonl<T>(path: string): Promise<T[]> {
     });
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 export async function evaluateSearch(
   cases: readonly SearchGoldCase[],
   evaluate: SearchEvaluator,
@@ -583,7 +566,6 @@ export async function evaluateSearch(
   };
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 // Run both scoring lanes against the same gold snapshot. Callers supply the
 // live search/compiler adapters, so this helper cannot accidentally turn a
 // corpus inventory into a passing evaluation without executing behavior.
@@ -602,7 +584,6 @@ export async function evaluateGoldCorpus(
   return { search, compile };
 }
 
-// implements REQ-kibi-change-to-proof-evaluation
 export async function evaluateCompile(
   cases: readonly CompileGoldCase[],
   evaluate: CompileEvaluator,
@@ -643,7 +624,6 @@ export async function evaluateCompile(
   };
 }
 
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 /**
  * A question asked of the repository's own KB through the built CLI. Any of
  * `expectedIds` (current governing requirements) in the top three of the
@@ -658,7 +638,6 @@ export type RepoSearchGoldCase = Readonly<{
   expectAbstention?: boolean;
 }>;
 
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export type RepoSearchObservation = Readonly<{
   /** `answer.governing` ids, in answer order. */
   governingIds: readonly string[];
@@ -669,7 +648,6 @@ export type RepoSearchObservation = Readonly<{
   latencyMs: number;
 }>;
 
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export type RepoSearchEvaluation = Readonly<{
   caseCount: number;
   positiveCaseCount: number;
@@ -706,7 +684,6 @@ export type RepoSearchEvaluation = Readonly<{
   falseAbstentions: readonly string[];
 }>;
 
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export type RepoSearchThresholds = Readonly<{
   minRecallAt3?: number;
   minRecallWithHints?: number;
@@ -718,7 +695,6 @@ export type RepoSearchThresholds = Readonly<{
 }>;
 
 /** Nearest-rank percentile; 0 for no values. */
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export function percentile(values: readonly number[], p: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((left, right) => left - right);
@@ -726,7 +702,6 @@ export function percentile(values: readonly number[], p: number): number {
   return sorted[Math.min(sorted.length, Math.max(1, rank)) - 1] as number;
 }
 
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export function scoreRepoSearch(
   cases: readonly RepoSearchGoldCase[],
   observations: ReadonlyMap<string, RepoSearchObservation>,
@@ -806,7 +781,6 @@ export function scoreRepoSearch(
   };
 }
 
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export function repoSearchThresholdFailures(
   evaluation: RepoSearchEvaluation,
   thresholds: RepoSearchThresholds,
@@ -847,7 +821,6 @@ export function repoSearchThresholdFailures(
 }
 
 /** Governing and result ids from `kibi search --input -` JSON output. */
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 export function parseCliSearchOutput(
   stdout: string,
 ): Omit<RepoSearchObservation, "latencyMs"> {
@@ -908,7 +881,6 @@ function runCli(
   return { stdout: result.stdout, latencyMs };
 }
 
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 /**
  * Ask every gold question of the repository KB through the built CLI, one
  * process per question as an agent's hook or shell would. The engine is
@@ -943,7 +915,6 @@ function optionValue(
   return index >= 0 ? args[index + 1] : undefined;
 }
 
-// implements REQ-kibi-search-gold-set-gate, REQ-kibi-change-to-proof-evaluation
 async function mainRepoKb(args: readonly string[]): Promise<void> {
   const goldPath = args[0];
   if (!goldPath || goldPath.startsWith("--")) {

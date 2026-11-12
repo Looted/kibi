@@ -1,6 +1,6 @@
 ---
 title: Upsert unknown field guidance and skill example tests
-status: active
+status: passing
 priority: must
 tags:
   - upsert

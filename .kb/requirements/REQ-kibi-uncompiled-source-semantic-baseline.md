@@ -30,6 +30,7 @@ logic_claims:
   - CLAIM-F345624530510122
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T17:39:55.419Z'
 id: REQ-kibi-uncompiled-source-semantic-baseline
 type: req

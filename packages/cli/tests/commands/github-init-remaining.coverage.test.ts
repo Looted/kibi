@@ -1,4 +1,3 @@
-// implements REQ-kibi-github-report-integration
 import { afterEach, describe, expect, test } from "bun:test";
 import { insertKibiBadge } from "../../src/commands/github-init.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

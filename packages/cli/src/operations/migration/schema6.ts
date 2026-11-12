@@ -91,12 +91,18 @@ import {
   planProofContractClaimPins,
 } from "./proof-contract-claims.js";
 import {
-  DELIVERED_REQUIREMENT_TAG,
   type RequirementStatusFinding,
   applyDeliveredStatusMappings,
   applyRequirementStatusMapping,
   planRequirementStatusMappings,
 } from "./requirement-status.js";
+import {
+  REQ_RETIRED_STATUS_ACTION_PREFIX,
+  REQ_RETIRED_STATUS_SUGGEST_CODE,
+  type RetiredStatusSuggestion,
+  applyRetiredStatus,
+  planRetiredStatusSuggestions,
+} from "./retired-status.js";
 import {
   type PlannedSourcePathRepairs,
   type SourcePathRemoval,
@@ -127,42 +133,31 @@ import {
 } from "./symbol-legacy-links.js";
 
 /** The KB schema generation that introduced entity `origin`. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ORIGIN_SCHEMA_VERSION = 6;
 
 /** The KB schema generation that requires body context on current entities. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const BODY_CONTEXT_SCHEMA_VERSION = 8;
 
 /** The KB schema generation that adds decision firmness. */
-// implements REQ-kb-decision-firmness, REQ-cli-schema-migration
 export const DECISION_FIRMNESS_SCHEMA_VERSION = 9;
 
 /** Automatic: re-derive a drifted inventory with the current advisor. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REDERIVE_CODE = "semantic_inventory_rederive";
 /** Review: a drifted inventory Kibi cannot re-derive safely. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REVIEW_CODE = "semantic_inventory_review";
 /**
  * Review, applied only when approved by id: re-derive a drifted inventory and
  * drop the grounding links that no longer ground a modeled claim.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE =
   "semantic_inventory_rederive_drop_grounding";
 /** Review, applied only when approved by id: map a legacy requirement status. */
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_VOCABULARY_MAP_CODE = "req_status_vocabulary_map";
 /** Automatic: map delivery statuses to `closed` plus the tag `implemented`. */
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_DELIVERED_MAP_CODE = "req_status_delivered_map";
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_DELIVERED_MAP_ACTION_ID = "req-status-delivered-map";
 /** Automatic: stamp `origin: {kind: migration}` on authored entities. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_CODE = "entity_origin_backfill";
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_ACTION_ID = "entity-origin-backfill";
 export {
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
@@ -350,6 +345,8 @@ function plannedDrops(
  * (`implemented`, `done`, `completed`): sync cannot compile them, and their
  * one lossless reading is `closed` plus the tag `implemented`.
  */
+type DeliveredMapping = NonNullable<RequirementStatusFinding["automatic"]>;
+
 function deliveredStatusAction(
   findings: readonly RequirementStatusFinding[],
 ): MigrationAction {
@@ -367,13 +364,17 @@ function deliveredStatusAction(
       reason:
         "Delivery statuses are outside the entity schema, so kibi sync cannot compile these requirements and every store-backed tool misses them. Each becomes status closed with the tag implemented, which Kibi reads as a delivered requirement that still owes coverage; only the status line and the tags change.",
       count: findings.length,
-      mappings: findings.map((finding) => ({
-        requirementId: finding.requirementId,
-        path: finding.path,
-        from: finding.status,
-        to: finding.automatic?.status ?? "closed",
-        tag: finding.automatic?.tag ?? DELIVERED_REQUIREMENT_TAG,
-      })),
+      mappings: findings.map((finding) => {
+        // Only findings with an automatic mapping reach this action.
+        const { status, tag } = finding.automatic as DeliveredMapping;
+        return {
+          requirementId: finding.requirementId,
+          path: finding.path,
+          from: finding.status,
+          to: status,
+          tag,
+        };
+      }),
     },
   });
 }
@@ -386,7 +387,6 @@ function deliveredStatusAction(
  * mapped. With a suggestion it is executable when approved by id; the
  * re-derivation of the latent drift depends on it.
  */
-// implements REQ-cli-schema-migration, REQ-kibi-proposition-complete-ingestion
 export function requirementStatusActions(
   workspaceRoot: string,
 ): MigrationAction[] {
@@ -412,8 +412,8 @@ export function requirementStatusActions(
                 kind: "review",
                 instruction:
                   finding.extractionError === null
-                    ? `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`
-                    : `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate.`,
+                    ? `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`
+                    : `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate.`,
               }
             : { kind: "cli", command_argv: approvalArgv([id]) },
         affectedEntityIds: [finding.requirementId],
@@ -438,6 +438,12 @@ export function requirementStatusActions(
                 approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
                 choice:
                   "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+                ...(target === "retired"
+                  ? {
+                      retiredReason:
+                        "A retired requirement needs retired_reason; after the mapping, add why the behavior no longer exists, or kibi check reports retired-reason-missing.",
+                    }
+                  : {}),
               }),
           latentDrift:
             drift === null
@@ -473,6 +479,47 @@ export function requirementStatusActions(
   return actions;
 }
 
+/**
+ * One review action per closed requirement whose own source says it was
+ * retired (KB schema 14): approving it by id sets status retired with the
+ * quoted retired_reason. Kibi never retires a requirement on its own.
+ */
+export function retiredStatusActions(workspaceRoot: string): MigrationAction[] {
+  return planRetiredStatusSuggestions(workspaceRoot).map(
+    (suggestion: RetiredStatusSuggestion) => {
+      const id = `${REQ_RETIRED_STATUS_ACTION_PREFIX}${suggestion.requirementId}`;
+      return migrationAction({
+        id,
+        code: REQ_RETIRED_STATUS_SUGGEST_CODE,
+        category: "semantic",
+        safety: "review",
+        autoApplicable: false,
+        invocation: { kind: "cli", command_argv: approvalArgv([id]) },
+        affectedEntityIds: [suggestion.requirementId],
+        affectedFiles: [suggestion.path],
+        postconditions: [
+          {
+            rule: "retired-reason-missing",
+            entityId: suggestion.requirementId,
+            findings: 0,
+          },
+        ],
+        dispositionRequired: true,
+        allowedDispositions: ["fixed", "deferred"],
+        evidence: {
+          reason:
+            "This requirement is closed, nothing supersedes it, and its own source says it was retired. A closed requirement still governs search, hooks and every current-intent rule; status retired stops that. Approving sets status: retired and retired_reason to the quoted words, editing only those two lines.",
+          signals: suggestion.signals.map((signal) => ({ ...signal })),
+          retiredReason: suggestion.retiredReason,
+          approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
+          choice:
+            "Retiring is a person's call. If the requirement still states current intent, leave it closed and mark this action deferred; to word the reason differently, set status: retired and retired_reason in the file by hand.",
+        },
+      });
+    },
+  );
+}
+
 /** The status mapping an approved req_status_vocabulary_map action lists. */
 function plannedStatusMapping(action: MigrationAction): {
   path: string;
@@ -500,11 +547,12 @@ type SourceRequirement = {
  * Exceptions without approved_by, read from authored sources so the list is
  * available before the KB compiles.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function unapprovedExceptionsFromSources(
   workspaceRoot: string,
 ): Array<{ exceptionId: string; exempts: string[]; source: string }> {
   const requirements = new Map<string, SourceRequirement>();
+  // rationale: a placeholder element has no type, so every filter below drops it.
+  // Stryker disable next-line ArrayDeclaration
   const relationships: ExtractedRelationship[] = [];
   for (const file of listLaneMarkdownFiles(workspaceRoot, ["requirements"])) {
     try {
@@ -559,7 +607,6 @@ export function unapprovedExceptionsFromSources(
     .sort((left, right) => left.exceptionId.localeCompare(right.exceptionId));
 }
 
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export type Schema6MigrationFragment = Readonly<{
   actions: readonly MigrationAction[];
   /** Automatic actions that rewrite authored sources. */
@@ -574,7 +621,6 @@ export type Schema6MigrationFragment = Readonly<{
  * version, and, for a KB older than schema 6, the origin backfill plus the
  * exceptions that stop exempting anything. Read-only.
  */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-proposition-complete-ingestion
 export function buildSchema6MigrationFragment(input: {
   workspaceRoot: string;
   currentSchemaVersion: number | null;
@@ -586,6 +632,8 @@ export function buildSchema6MigrationFragment(input: {
   const actions: MigrationAction[] = [];
   const sourceRewriteActionIds: string[] = [];
   const diagnostics: string[] = [];
+  // A missing or invalid version upgrades through every step.
+  const version = input.currentSchemaVersion ?? 0;
   const polarityTargets = planPolarityValueBackfill(input.workspaceRoot);
   if (polarityTargets.length > 0) {
     const id = "polarity-value-backfill";
@@ -638,10 +686,7 @@ export function buildSchema6MigrationFragment(input: {
   }
   // Schema 8: pin the checked meaning, then acknowledge missing context. A
   // missing or invalid version upgrades through every step, so it is planned.
-  if (
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < BODY_CONTEXT_SCHEMA_VERSION
-  ) {
+  if (version < BODY_CONTEXT_SCHEMA_VERSION) {
     const pins = planSemanticTextPins(input.workspaceRoot);
     if (pins.targets.length > 0) {
       const id = "semantic-text-pin";
@@ -701,10 +746,7 @@ export function buildSchema6MigrationFragment(input: {
   }
   // Schema 9: acknowledge supersedes recorded before they had to explain
   // themselves. Manifest only; no source changes and no reason is written.
-  if (
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < DECISION_FIRMNESS_SCHEMA_VERSION
-  ) {
+  if (version < DECISION_FIRMNESS_SCHEMA_VERSION) {
     const unexplained = planSupersedesReasonAcknowledgement(
       input.workspaceRoot,
     );
@@ -741,10 +783,7 @@ export function buildSchema6MigrationFragment(input: {
   // Schema 10: a decision without firmness that an agent did not write now
   // reads as firm. Acknowledge supersedes of such decisions recorded before
   // that, so history does not block; new ones must come from a person.
-  if (
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION
-  ) {
+  if (version < FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION) {
     const edges = planFirmSupersedeAcknowledgement(input.workspaceRoot);
     if (edges.length > 0) {
       const id = "firm-supersede-acknowledge";
@@ -761,9 +800,10 @@ export function buildSchema6MigrationFragment(input: {
             kind: "cli",
             command_argv: ["kibi", "migrate", "--yes"],
           },
-          affectedEntityIds: [
-            ...new Set(edges.map((edge) => edge.split(" -> ")[0] ?? edge)),
-          ].sort(),
+          // The action input dedupes and sorts the ids.
+          affectedEntityIds: edges.map(
+            (edge) => edge.split(" -> ")[0] as string,
+          ),
           affectedFiles: [".kb/manifest.json"],
           postconditions: [{ rule: "decision-firm-superseded", findings: 0 }],
           evidence: {
@@ -780,10 +820,7 @@ export function buildSchema6MigrationFragment(input: {
   // Schema 11: a firm requirement needs tested evidence. Record an asserted
   // floor on current firm requirements without a passing proof path, so the
   // upgraded knowledge base passes evidence-floor.
-  if (
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
-  ) {
+  if (version < EVIDENCE_FLOOR_SCHEMA_VERSION) {
     const floors = planEvidenceFloorPins(
       input.workspaceRoot,
       input.ladderFloors,
@@ -818,11 +855,7 @@ export function buildSchema6MigrationFragment(input: {
   }
   // Schema 12: a certificate contract names the claims it proves. Pin proves
   // where the test reaches one provable claim; list the rest for review.
-  if (
-    (input.currentSchemaVersion === null ||
-      input.currentSchemaVersion < CLAIM_BINDING_SCHEMA_VERSION) &&
-    input.claimCandidates
-  ) {
+  if (version < CLAIM_BINDING_SCHEMA_VERSION && input.claimCandidates) {
     const claims = planProofContractClaimPins(
       input.workspaceRoot,
       input.claimCandidates,
@@ -888,6 +921,9 @@ export function buildSchema6MigrationFragment(input: {
   // is re-derived only after an approved mapping.
   const statusActions = requirementStatusActions(input.workspaceRoot);
   actions.push(...statusActions);
+  // Closed requirements whose source says they were retired are suggested
+  // at any schema version: a person approves each by id.
+  actions.push(...retiredStatusActions(input.workspaceRoot));
   if (
     statusActions.some(
       (action) => action.id === REQ_STATUS_DELIVERED_MAP_ACTION_ID,
@@ -901,16 +937,13 @@ export function buildSchema6MigrationFragment(input: {
   }
   // A missing or invalid version upgrades through every step, schema 6's
   // backfill included, so it is planned here too.
-  const preOrigin =
-    input.currentSchemaVersion === null ||
-    input.currentSchemaVersion < ORIGIN_SCHEMA_VERSION;
-  if (preOrigin) {
+  if (version < ORIGIN_SCHEMA_VERSION) {
     const backfill = planOriginBackfill(input.workspaceRoot);
     if (backfill.targets.length > 0) {
       const byType: Record<string, number> = {};
       for (const target of backfill.targets) {
-        byType[target.type || "unknown"] =
-          (byType[target.type || "unknown"] ?? 0) + 1;
+        const type = target.type || "unknown";
+        byType[type] = (byType[type] ?? 0) + 1;
       }
       actions.push(
         migrationAction({
@@ -932,8 +965,7 @@ export function buildSchema6MigrationFragment(input: {
             byType,
             entityIds: backfill.targets.map((target) => target.id),
             skipped: backfill.skipped,
-            ...(input.currentSchemaVersion === null ||
-            input.currentSchemaVersion < 5
+            ...(version < 5
               ? {
                   note: "Knowledge the schema upgrade moves into .kb/ is stamped when it moves.",
                 }
@@ -971,7 +1003,6 @@ export function buildSchema6MigrationFragment(input: {
  * review per supersession cycle and per source value Kibi cannot edit
  * safely. Read-only.
  */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration
 export function buildLifecycleRepairActions(workspaceRoot: string): {
   actions: MigrationAction[];
   sourceRewriteActionIds: string[];
@@ -1003,6 +1034,9 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
           value: repair.value,
           file: repair.file,
           reason: repair.refused,
+          // rationale: a removal has no `to`, and the review reads an undefined
+          // rewrite as none, so testing the kind only keeps the key tidy.
+          // Stryker disable next-line ConditionalExpression
           ...(repair.fix.kind === "rewrite" ? { rewrite: repair.fix.to } : {}),
         }),
       ),
@@ -1020,7 +1054,6 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
  * The automatic legacy-link pass over `.kb/symbols.yaml`, bound to the
  * manifest bytes it was planned from; null when no link needs a mark.
  */
-// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
 export function symbolLegacyLinkAction(
   workspaceRoot: string,
 ): MigrationAction | null {
@@ -1049,23 +1082,24 @@ export function symbolLegacyLinkAction(
 }
 
 /** The sync that recompiles sources rewritten by earlier actions. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function migrationSyncAction(
   dependsOn: readonly string[],
 ): MigrationAction {
   return migrationAction(migrationSyncActionInput(dependsOn));
 }
 
+/**
+ * The rows of a planned evidence list, each boxed as an object so it can be
+ * destructured; a row that is not a record has none of the expected fields.
+ */
 function plannedRecords(value: unknown): Record<string, unknown>[] {
+  // rationale: a placeholder element has none of the expected fields.
+  // Stryker disable next-line ArrayDeclaration
   if (!Array.isArray(value)) return [];
-  return value.filter(
-    (raw): raw is Record<string, unknown> =>
-      raw !== null && typeof raw === "object" && !Array.isArray(raw),
-  );
+  return value.map((raw) => Object(raw) as Record<string, unknown>);
 }
 
 /** The rewrites and removals an approved source_path_rewrite action lists. */
-// implements REQ-kibi-schema6-migration
 function plannedRepairs(action: MigrationAction): PlannedSourcePathRepairs {
   const rewrites: SourcePathRewrite[] = [];
   for (const { entityId, file, field, from, to } of plannedRecords(
@@ -1108,7 +1142,6 @@ type ApplyContext = Readonly<{
 }>;
 
 /** Execute one automatic action produced by this module. */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
 export async function applySchema6MigrationAction(
   action: MigrationAction,
   context: ApplyContext,
@@ -1177,6 +1210,16 @@ export async function applySchema6MigrationAction(
         mapping.from,
         mapping.to,
       );
+      return;
+    }
+    case REQ_RETIRED_STATUS_SUGGEST_CODE: {
+      const file = action.affectedFiles[0];
+      const reason = action.evidence.retiredReason;
+      if (file === undefined || typeof reason !== "string")
+        throw new Error(
+          "Retired status suggestion names no file or reason; set status: retired and retired_reason by hand.",
+        );
+      applyRetiredStatus(context.workspaceRoot, file, reason);
       return;
     }
     case REQ_STATUS_DELIVERED_MAP_CODE: {
@@ -1272,15 +1315,14 @@ export async function applySchema6MigrationAction(
  * Review actions Kibi can execute, but only when a person approves them by
  * id (`--approved-action`): `--apply-safe` selects automatic actions alone.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
 export const SCHEMA6_APPROVABLE_REVIEW_CODES: ReadonlySet<string> = new Set([
   SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE,
   REQ_STATUS_VOCABULARY_MAP_CODE,
+  REQ_RETIRED_STATUS_SUGGEST_CODE,
   // A re-derivation that waits on an approved status mapping.
   SEMANTIC_INVENTORY_REDERIVE_CODE,
 ]);
 
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   POLARITY_VALUE_BACKFILL_CODE,
   ENTITY_TYPE_BACKFILL_CODE,

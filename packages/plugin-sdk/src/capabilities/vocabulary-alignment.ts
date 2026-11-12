@@ -14,10 +14,8 @@
  */
 
 /** Choice value meaning "none of the candidates; declare a new subject". */
-// implements REQ-kibi-vocabulary-alignment-capability
 export const NEW_SUBJECT_CHOICE = "new_subject" as const;
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface SubjectCandidate {
   readonly subjectKey: string;
   /** Deterministic builtin score in [0, 1]; higher is a better match. */
@@ -27,7 +25,6 @@ export interface SubjectCandidate {
   readonly requirementTitles?: readonly string[];
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface SubjectRankingClause {
   readonly claimKey: string;
   readonly text: string;
@@ -37,12 +34,10 @@ export interface SubjectRankingClause {
   readonly candidates: readonly SubjectCandidate[];
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface RankSubjectsInput {
   readonly clauses: readonly SubjectRankingClause[];
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface SubjectRankingDecision {
   readonly claimKey: string;
   /** One of the clause candidates' subjectKey values, or `new_subject`. */
@@ -50,12 +45,10 @@ export interface SubjectRankingDecision {
   readonly confidence: number;
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface RankSubjectsResult {
   readonly decisions: readonly SubjectRankingDecision[];
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface ComparedClaim {
   readonly claimText: string;
   /** Canonical logical signature text, when the claim is already grounded. */
@@ -63,7 +56,6 @@ export interface ComparedClaim {
   readonly factId?: string;
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface ClaimComparisonPair {
   readonly pairKey: string;
   /** Shared subject key or predicate name that made the pair comparable. */
@@ -72,12 +64,10 @@ export interface ClaimComparisonPair {
   readonly right: ComparedClaim;
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface CompareClaimsInput {
   readonly pairs: readonly ClaimComparisonPair[];
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface ClaimComparisonJudgment {
   readonly pairKey: string;
   /** Candidate verdict only: true means "review as a possible duplicate". */
@@ -85,12 +75,10 @@ export interface ClaimComparisonJudgment {
   readonly confidence: number;
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface CompareClaimsResult {
   readonly judgments: readonly ClaimComparisonJudgment[];
 }
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export interface VocabularyAlignmentV1 {
   readonly id: string;
   /** Optional provider model id copied onto provenance stamps. */

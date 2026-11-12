@@ -6,7 +6,6 @@ tags:
   - bundle
   - ci
   - lane:strict
-  - review:context-missing
 priority: must
 text_ref: docs/install.md
 semantic_text: Published installation guidance must state that no SWI-Prolog install is needed on the supported Linux and macOS platforms. Published installation guidance must document the KIBI_SWIPL override, the lookup order, and the doctor source report. The README quick start must reach a bootstrapped project from the packed release tarballs on every launch platform with no SWI-Prolog installed.
@@ -49,9 +48,12 @@ id: REQ-prolog-bundled-quickstart
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 4): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 Published installation guidance must state that no SWI-Prolog install is needed on the supported Linux and macOS platforms. Published installation guidance must document the KIBI_SWIPL override, the lookup order, and the doctor source report. The README quick start must reach a bootstrapped project from the packed release tarballs on every launch platform with no SWI-Prolog installed.
+
+## Why
+The point of the bundle is that new users need no separate SWI-Prolog install, so the docs must say so. The README quick start is run literally on runners with no `swipl`, on all four platforms, which proves the docs and not only the code. Source: PR 299 opening and phase 5.

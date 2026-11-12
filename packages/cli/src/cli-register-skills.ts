@@ -13,7 +13,6 @@ async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   await executor.runJsonInvocation(invocation);
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function registerSkillsCommands(program: Command): void {
   const skillsProgram = program
     .command("skills")

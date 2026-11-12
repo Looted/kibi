@@ -130,5 +130,4 @@ export function activate(context: vscode.ExtensionContext) {
   initializeWorkspaceFeatures(context, output, workspaceRoot);
 }
 
-// implements REQ-vscode-traceability
 export function deactivate() {}

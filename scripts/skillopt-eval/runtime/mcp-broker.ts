@@ -41,7 +41,6 @@ function isToolDescriptor(value: unknown): value is ToolDescriptor {
   return isRecord(value) && typeof value.name === "string";
 }
 
-// implements REQ-skillopt-codex-optimization
 export function filterAdvertisedTools(
   message: Readonly<Record<string, unknown>>,
 ): ToolListResponse {

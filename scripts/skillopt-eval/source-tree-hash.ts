@@ -86,7 +86,6 @@ async function assertSourceRoot(root: string): Promise<string> {
   return resolved;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function hashAuthorizedSourceTree(
   requestedRoot: string,
 ): Promise<SourceTreeHash> {
@@ -150,7 +149,6 @@ async function writeDescriptor(
   await rename(temporary, destination);
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function sourceTreeHashMain(
   argv: readonly string[],
 ): Promise<number> {

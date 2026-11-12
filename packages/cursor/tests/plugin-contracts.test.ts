@@ -884,7 +884,7 @@ describe("Cursor guidance and advisories", () => {
       'kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
     );
     expect(codeGuidance).toContain(
-      "Prefer symbol manifest + executable_for or // implements REQ-<area>-<behavior> for traceability.",
+      "Record traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.",
     );
     expect(codeGuidance?.split("\n")[0]).toBe(
       'Kibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.',

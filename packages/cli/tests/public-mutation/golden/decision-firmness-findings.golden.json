@@ -1,0 +1,100 @@
+[
+  {
+    "rule": "decision-firm-unreferenced",
+    "entityId": "ADR-firm-noref",
+    "description": "ADR-firm-noref is marked firmness: firm but names no human words it rests on (origin.ref is missing)",
+    "suggestion": "Set origin.ref to the message, review or ticket where a human stated this rule; if no human stated it, use firmness: default (or exploratory for a guess)",
+    "source": ".kb/adr/ADR-firm-noref.md",
+    "evidence": {
+      "type": "adr",
+      "firmness": "firm"
+    }
+  },
+  {
+    "rule": "decision-firm-unreferenced",
+    "entityId": "REQ-firm-noref",
+    "description": "REQ-firm-noref is marked firmness: firm but names no human words it rests on (origin.ref or approval_ref is missing)",
+    "suggestion": "Set origin.ref to the message, review or ticket where a human stated this rule; if no human stated it, use firmness: default (or exploratory for a guess)",
+    "source": ".kb/requirements/REQ-firm-noref.md",
+    "evidence": {
+      "type": "req",
+      "firmness": "firm"
+    }
+  },
+  {
+    "rule": "decision-firm-superseded",
+    "entityId": "REQ-one",
+    "description": "REQ-one (firmness: default) supersedes the firm decision REQ-firm-ref; only a human may change a firm decision",
+    "suggestion": "Ask the person who stated the firm decision; if they agree, mark the replacement firmness: firm with origin.ref to their words, otherwise remove the supersedes link and propose the change instead",
+    "source": ".kb/requirements/REQ-one.md",
+    "evidence": {
+      "firmness": "default",
+      "firmTargets": ["REQ-firm-ref"]
+    }
+  },
+  {
+    "rule": "decision-firm-superseded",
+    "entityId": "REQ-retired",
+    "description": "REQ-retired (firmness: default) supersedes the firm decision REQ-old-firm; only a human may change a firm decision",
+    "suggestion": "Ask the person who stated the firm decision; if they agree, mark the replacement firmness: firm with origin.ref to their words, otherwise remove the supersedes link and propose the change instead",
+    "source": ".kb/requirements/REQ-retired.md",
+    "evidence": {
+      "firmness": "default",
+      "firmTargets": ["REQ-old-firm"]
+    }
+  },
+  {
+    "rule": "decision-firm-superseded",
+    "entityId": "REQ-two",
+    "description": "REQ-two (firmness: default) supersedes the firm decisions REQ-firm-ref, REQ-implicit; only a human may change a firm decision",
+    "suggestion": "Ask the person who stated the firm decision; if they agree, mark the replacement firmness: firm with origin.ref to their words, otherwise remove the supersedes link and propose the change instead. This decision has no firmness and was not written by an agent, so it reads as firm from schema 10; supersedes recorded before schema 10 are acknowledged by the plan's schema-config-upgrade (kibi migrate --yes).",
+    "source": ".kb/requirements/REQ-two.md",
+    "evidence": {
+      "firmness": "default",
+      "firmTargets": ["REQ-firm-ref", "REQ-implicit"]
+    }
+  },
+  {
+    "rule": "supersedes-reason-missing",
+    "entityId": "REQ-mixed",
+    "description": "REQ-mixed supersedes REQ-unknown without a '## Why this changed' section of at least 12 words",
+    "suggestion": "Add '## Why this changed' to the body: name the evidence (a failing test, a measured cost, a constraint the old decision missed, a new requirement) and answer the superseded decision's reasoning. A preference is not evidence; propose it instead of superseding. Supersedes recorded before schema 9 are acknowledged by the plan's schema-config-upgrade (kibi migrate --yes); add the reason only when you next touch the requirement.",
+    "source": ".kb/requirements/REQ-mixed.md",
+    "evidence": {
+      "type": "req",
+      "supersedes": ["REQ-unknown"]
+    }
+  },
+  {
+    "rule": "supersedes-reason-missing",
+    "entityId": "REQ-one",
+    "description": "REQ-one supersedes REQ-firm-ref without a '## Why this changed' section of at least 12 words",
+    "suggestion": "Add '## Why this changed' to the body: name the evidence (a failing test, a measured cost, a constraint the old decision missed, a new requirement) and answer the superseded decision's reasoning. A preference is not evidence; propose it instead of superseding. Supersedes recorded before schema 9 are acknowledged by the plan's schema-config-upgrade (kibi migrate --yes); add the reason only when you next touch the requirement.",
+    "source": ".kb/requirements/REQ-one.md",
+    "evidence": {
+      "type": "req",
+      "supersedes": ["REQ-firm-ref"]
+    }
+  },
+  {
+    "rule": "supersedes-reason-missing",
+    "entityId": "REQ-two",
+    "description": "REQ-two supersedes REQ-firm-ref, REQ-implicit without a '## Why this changed' section of at least 12 words",
+    "suggestion": "Add '## Why this changed' to the body: name the evidence (a failing test, a measured cost, a constraint the old decision missed, a new requirement) and answer the superseded decision's reasoning. A preference is not evidence; propose it instead of superseding. Supersedes recorded before schema 9 are acknowledged by the plan's schema-config-upgrade (kibi migrate --yes); add the reason only when you next touch the requirement.",
+    "source": ".kb/requirements/REQ-two.md",
+    "evidence": {
+      "type": "req",
+      "supersedes": ["REQ-firm-ref", "REQ-implicit"]
+    }
+  },
+  {
+    "rule": "supersedes-reason-acknowledged",
+    "entityId": "workspace",
+    "description": "1 current superseding requirement or ADR was recorded before schema 9 without a 'Why this changed' section",
+    "suggestion": "When you next touch one, add the reason if the history or a person states it; never invent one",
+    "evidence": {
+      "total": 1,
+      "ids": ["REQ-acked"]
+    }
+  }
+]

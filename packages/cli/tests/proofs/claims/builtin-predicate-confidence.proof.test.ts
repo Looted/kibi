@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { BUILTIN_PREDICATE_CONFIDENCE } from "../../../../plugin-builtin/src/ontology/predicate-rule.js";
 
-// implements REQ-capability-builtin-predicate-confidence
-
 /**
  * The confidence the built-in ontology pack gives a predicate rule match. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

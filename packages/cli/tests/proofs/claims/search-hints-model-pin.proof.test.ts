@@ -9,8 +9,6 @@ import {
   MODEL_REVISION,
 } from "../../../../plugin-search-hints/src/model.js";
 
-// implements REQ-search-hints-model-pin
-
 /**
  * The upstream embedding model kibi-plugin-search-hints bundles and the revision of it. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

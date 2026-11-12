@@ -103,7 +103,6 @@ function writeEvaluator(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function materializeFixtureRun(options: FixtureRunOptions) {
   const { canonicalRoot, cleanupRoot } = prospectiveRoot(options.runRoot);
   const publicTasks = (options.publicTasks ?? buildPublicCatalog()).map(

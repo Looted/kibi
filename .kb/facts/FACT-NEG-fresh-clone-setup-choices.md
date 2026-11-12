@@ -3,6 +3,7 @@ title: A repository whose setup choices are not recorded where every clone reads
 status: active
 fact_kind: predicate
 predicate_name: fresh_clone_setup_policy
+predicate_namespace: kibi.setup
 predicate_args:
   - kibi_init
   - setup_choices
@@ -15,4 +16,4 @@ origin:
 id: FACT-NEG-fresh-clone-setup-choices
 type: fact
 ---
-A repository whose setup choices are not recorded where every clone reads them. The failure-side scenario of REQ-kibi-fresh-clone-setup assumes this state and expects Kibi to report it instead of carrying on silently.
+A repository whose setup choices are not recorded where every clone reads them. The failure-side scenario of REQ-kibi-init-setup-choices assumes this state and expects Kibi to report it instead of carrying on silently.

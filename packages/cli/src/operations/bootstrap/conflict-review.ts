@@ -10,7 +10,6 @@ import type { Candidate, SourceOnlySignal } from "./types.js";
 const REVIEW_AGAINST = "review_against:";
 
 /** Whether a candidate or signal names requirements to compare it with. */
-// implements REQ-kibi-contradiction-review-candidates, REQ-bootstrap-authoring-claim-review
 export function needsConflictReview(row: {
   readonly evidence: readonly string[];
 }): boolean {
@@ -37,7 +36,6 @@ function claimCitation(evidence: readonly string[], fallback: string): string {
  * Ranking is the intent search kb_search uses, over the unmodeled
  * requirements only.
  */
-// implements REQ-kibi-contradiction-review-candidates, REQ-bootstrap-authoring-claim-review
 export async function withConflictReviewSignals(
   candidates: readonly Candidate[],
   requirements: readonly ExistingRequirement[],
@@ -56,28 +54,21 @@ export async function withConflictReviewSignals(
       title: requirement.title,
       semantic_text: requirement.semanticText,
     }));
-  if (unmodeled.length === 0)
-    return {
-      candidates: [...candidates],
-      signals: [...signals],
-      diagnostics: [],
-    };
   const titles = new Map(
     requirements.map((requirement) => [requirement.id, requirement.title]),
   );
   const related = async (query: string): Promise<string[]> => {
     const ranked = await rankIntentEntities(
       unmodeled,
-      { query, type: "req", minScore: REVIEW_CANDIDATE_MIN_SCORE },
+      { query, minScore: REVIEW_CANDIDATE_MIN_SCORE },
       workspaceRoot,
     );
     return ranked.matches
       .slice(0, MAX_REVIEW_CANDIDATES)
-      .map((match) => String(match.entity.id ?? ""))
-      .filter(Boolean);
+      .map((match) => String(match.entity.id));
   };
   const named = (ids: readonly string[]) =>
-    ids.map((id) => `${id} ("${titles.get(id) ?? ""}")`).join(", ");
+    ids.map((id) => `${id} ("${titles.get(id)}")`).join(", ");
   const diagnostics: string[] = [];
   const reviewed: Candidate[] = [];
   for (const candidate of candidates) {

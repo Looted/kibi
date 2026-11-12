@@ -28,7 +28,6 @@ export interface DiscoveryDeps {
   resolveKbPl: typeof resolveKbPlPath;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function executeReportingSpec<TInput, TOutput>(
   spec: OperationSpec<TInput, TOutput>,
   input: TInput,
@@ -37,7 +36,6 @@ export async function executeReportingSpec<TInput, TOutput>(
   return executeOperation(createCliRuntime(options), spec, input, options);
 }
 
-// implements REQ-003
 export async function withAttachedBranchProlog<T>(
   callback: (prolog: PrologProcess) => Promise<T>,
   deps?: Partial<DiscoveryDeps>,
@@ -87,14 +85,12 @@ export async function withAttachedBranchProlog<T>(
   }
 }
 
-// implements REQ-003
 export async function resolveCurrentKbPath(): Promise<string> {
   const attachment = resolveBranchAttachment(process.cwd());
   if ("error" in attachment) throw new Error(attachment.error);
   return attachment.storePath;
 }
 
-// implements REQ-003
 export function resolveCoreModulePath(
   fileName: string,
   deps?: Partial<DiscoveryDeps>,
@@ -103,7 +99,6 @@ export function resolveCoreModulePath(
   return path.join(path.dirname(resolve()), fileName);
 }
 
-// implements REQ-003
 export async function runJsonModuleQuery<T>(
   prolog: PrologProcess,
   fileName: string,
@@ -137,7 +132,6 @@ export async function runJsonModuleQuery<T>(
   return parsed as T;
 }
 
-// implements REQ-003
 export function printDiscoveryResult(
   format: "json" | "table" | undefined,
   structured: unknown,

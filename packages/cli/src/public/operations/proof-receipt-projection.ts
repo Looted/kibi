@@ -1,13 +1,14 @@
 /** Remove only the top-level proof-receipt frontmatter block, byte-for-byte otherwise. */
 export function withoutProofReceiptFrontmatter(content: string): string {
-  const lines = content.match(/[^\n]*\n|[^\n]+$/g) ?? [];
-  if (lines[0]?.trim() !== "---") return content;
+  // Split after each newline so every line keeps its own terminator; a
+  // lookbehind split always yields at least one (possibly empty) line.
+  const [opening, ...lines] = content.split(/(?<=\n)/) as [string, ...string[]];
+  if (opening.trim() !== "---") return content;
   let inFrontmatter = true;
   let skippingReceipts = false;
-  const retained: string[] = [];
-  for (const [index, line] of lines.entries()) {
-    const trimmed = line.trim();
-    if (index > 0 && inFrontmatter && trimmed === "---") {
+  const retained = [opening];
+  for (const line of lines) {
+    if (inFrontmatter && line.trim() === "---") {
       inFrontmatter = false;
       skippingReceipts = false;
       retained.push(line);
@@ -17,11 +18,8 @@ export function withoutProofReceiptFrontmatter(content: string): string {
       skippingReceipts = true;
       continue;
     }
-    if (
-      inFrontmatter &&
-      skippingReceipts &&
-      /^[A-Za-z_][A-Za-z0-9_-]*\s*:/.test(line)
-    ) {
+    // skippingReceipts is only ever true inside the frontmatter.
+    if (skippingReceipts && /^[A-Za-z_][A-Za-z0-9_-]*\s*:/.test(line)) {
       skippingReceipts = false;
     }
     if (!skippingReceipts) retained.push(line);

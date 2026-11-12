@@ -217,6 +217,46 @@ describe("deriveDiagnosticFields, exact", () => {
     });
   });
 
+  test("receipt gap details name drifted fingerprint components", () => {
+    const fields = derive("kb_coverage", { by: "req" }, null, {
+      rows: [
+        {
+          id: "REQ-d",
+          proofGaps: ["stale_proof_receipt"],
+          proofStages: {
+            passingE2e: {
+              staleReceiptTests: ["T2", "T1"],
+              receiptEvidence: [
+                { testId: "T2", fingerprintDrift: ["command"] },
+                { testId: "T1", fingerprintDrift: ["integration", 4, "command"] },
+                { testId: "T3", fingerprintDrift: [] },
+                { fingerprintDrift: ["command"] },
+                "not a row",
+              ],
+            },
+          },
+        },
+        {
+          id: "REQ-e",
+          proofGaps: ["stale_proof_receipt"],
+          proofStages: { passingE2e: { receiptEvidence: "none" } },
+        },
+      ],
+    });
+    expect(fields.coverage_receipt_gaps).toStrictEqual([
+      {
+        requirementId: "REQ-d",
+        testIds: ["T1", "T2"],
+        codes: ["stale_proof_receipt"],
+        fingerprintDrift: [
+          { testId: "T1", components: ["integration", "command"] },
+          { testId: "T2", components: ["command"] },
+        ],
+      },
+      { requirementId: "REQ-e", testIds: [], codes: ["stale_proof_receipt"] },
+    ]);
+  });
+
   test("coverage fields and receipt gap details", () => {
     const rows = [
       {

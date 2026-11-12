@@ -3,6 +3,7 @@ title: A failure-side waiver counts only once a person approved it
 status: active
 fact_kind: predicate
 predicate_name: proof_gate_policy
+predicate_namespace: kibi.proof
 predicate_args:
   - failure_side_waiver
   - requirement_with_nothing_to_refuse

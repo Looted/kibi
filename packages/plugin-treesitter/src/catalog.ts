@@ -1,4 +1,3 @@
-// implements REQ-source-analysis-v2
 export const TREE_SITTER_LANGUAGES = {
   python: { extensions: [".py", ".pyi"], aliases: ["python", "py"] },
   go: { extensions: [".go"], aliases: ["go", "golang"] },

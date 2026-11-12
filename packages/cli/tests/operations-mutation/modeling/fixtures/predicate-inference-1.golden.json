@@ -1,0 +1,5141 @@
+{
+  "names": [
+    "inferAuditEventRuleArgs",
+    "inferAvailabilitySlaArgs",
+    "inferConsentRuleArgs",
+    "inferDataResidencyRuleArgs",
+    "inferDependencyRuleArgs",
+    "inferEscalationRuleArgs",
+    "inferExceptionRuleArgs",
+    "inferGuardArgs",
+    "inferIdempotencyRuleArgs",
+    "inferLifecycleRuleArgs",
+    "inferMutualExclusionArgs",
+    "inferNotificationRouteArgs",
+    "inferOwnershipRuleArgs",
+    "inferPermissionRuleArgs",
+    "inferRetryPolicyArgs"
+  ],
+  "cases": [
+    {
+      "text": "The save button must stay disabled until the form is valid.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["the_save_button", "form_is_valid", "disabled"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nThe save button must stay disabled until the form is valid.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The save button must stay disabled until the form is valid.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["the_save_button", "form_is_valid_x", "disabled"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The save button\n\nmust stay disabled until the form is valid.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["the_save_button", "form_is_valid", "disabled"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The save button must stay disabled\n\nuntil the form is valid.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["the_save_button", "form_is_valid", "disabled"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The save button must stay disabled until\n\nthe form is valid.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["the_save_button", "form_is_valid", "disabled"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Save buttons remain disabled until sync.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["save_buttons", "sync", "disabled"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Save buttons disabled until sync.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["save_buttons", "sync", "disabled"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "If a user is offline, the client app must queue writes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "If an order fails, it must be retried.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "If the cache misses, they reload.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "If uploads stall, the upload worker retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "When the cache expires, the service must refresh tokens.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "When caches expire, service must refresh tokens.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The exporter must sign artifacts unless the build is local.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["exporter", "sign_artifacts", "build_is_local"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The\n\nexporter must sign artifacts unless the build is local.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["exporter", "sign_artifacts", "build_is_local"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The exporter\n\nmust sign artifacts unless the build is local.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["exporter", "sign_artifacts", "build_is_local"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The exporter must sign artifacts\n\nunless the build is local.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["exporter", "sign_artifacts", "build_is_local"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The exporter must sign artifacts unless\n\nthe build is local.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["exporter", "sign_artifacts", "build_is_local"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The exporter must sign artifacts unless the\n\nbuild is local.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["exporter", "sign_artifacts", "build_is_local"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Exporters shall sign artifacts unless build is local.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["exporter", "sign_artifacts", "build_is_local"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode and high contrast must be mutually exclusive.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["dark_mode", "high_contrast"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nDark mode and high contrast must be mutually exclusive.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode and high contrast must be mutually exclusive.\nx",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode and high contrast must be mutually exclusive",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["dark_mode", "high_contrast"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode\n\nand high contrast must be mutually exclusive.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["dark_mode", "high_contrast"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode and\n\nhigh contrast must be mutually exclusive.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["dark_mode", "high_contrast"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode and high contrast\n\nmust be mutually exclusive.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["dark_mode", "high_contrast"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode and high contrast must\n\nbe mutually exclusive.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["dark_mode", "high_contrast"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode and high contrast must be\n\nmutually exclusive.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["dark_mode", "high_contrast"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Dark mode and high contrast must be mutually\n\nexclusive.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["dark_mode", "high_contrast"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Deploy requires approval before release.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["deploy", "approval", "release"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nDeploy requires approval before release.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Deploy requires approval before release.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["deploy", "approval", "release_x"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Deploy\n\nrequires approval before release.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["deploy", "approval", "release"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Deploy requires\n\napproval before release.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["deploy", "approval", "release"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Deploy requires approval\n\nbefore release.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["deploy", "approval", "release"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Deploy requires approval before\n\nrelease.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["deploy", "approval", "release"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Billing records are owned by the finance team.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["billing_records", "finance_team"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nBilling records are owned by the finance team.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Billing records are owned by the finance team.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["billing_records", "finance_team_x"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Billing records\n\nare owned by the finance team.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["billing_records", "finance_team"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Billing records are\n\nowned by the finance team.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["billing_records", "finance_team"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Billing records are owned\n\nby the finance team.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["billing_records", "finance_team"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Billing records are owned by\n\nthe finance team.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["billing_records", "finance_team"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Billing records are owned by the\n\nfinance team.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["billing_records", "finance_team"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Billing is owned by finance.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["billing", "finance"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The uploader must retry up to 15 times.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["the_uploader", "15", "times"]
+      ]
+    },
+    {
+      "text": "\nThe uploader must retry up to 15 times.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The uploader must retry up to 15 times.\nx",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The uploader must retry up to 15 times",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["the_uploader", "15", "times"]
+      ]
+    },
+    {
+      "text": "The uploader\n\nmust retry up to 15 times.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["the_uploader", "15", "times"]
+      ]
+    },
+    {
+      "text": "The uploader must\n\nretry up to 15 times.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["the_uploader", "15", "times"]
+      ]
+    },
+    {
+      "text": "The uploader must retry\n\nup to 15 times.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["the_uploader", "15", "times"]
+      ]
+    },
+    {
+      "text": "The uploader must retry up\n\nto 15 times.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["the_uploader", "15", "times"]
+      ]
+    },
+    {
+      "text": "The uploader must retry up to\n\n15 times.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["the_uploader", "15", "times"]
+      ]
+    },
+    {
+      "text": "The uploader must retry up to 15\n\ntimes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["the_uploader", "15", "times"]
+      ]
+    },
+    {
+      "text": "Uploaders shall retry up to 3 attempts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["uploaders", "3", "attempts"]
+      ]
+    },
+    {
+      "text": "Uploaders should retry up to 1 attempt.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["uploaders", "1", "attempt"]
+      ]
+    },
+    {
+      "text": "Incidents must escalate to on-call after 30 minutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nIncidents must escalate to on-call after 30 minutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents must escalate to on-call after 30 minutes.\nx",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents must escalate to on-call after 30 minutes",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents\n\nmust escalate to on-call after 30 minutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents must\n\nescalate to on-call after 30 minutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents must escalate\n\nto on-call after 30 minutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents must escalate to\n\non-call after 30 minutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents must escalate to on-call\n\nafter 30 minutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents must escalate to on-call after\n\n30 minutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Incidents must escalate to on-call after 30\n\nminutes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["incidents", "on_call", "30", "minutes"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must be at least 99.95 percent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nThe API availability must be at least 99.95 percent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must be at least 99.95 percent monthly.\nx",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must be at least 99.95 percent monthly",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API\n\navailability must be at least 99.95 percent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability\n\nmust be at least 99.95 percent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must\n\nbe at least 99.95 percent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must be\n\nat least 99.95 percent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must be at\n\nleast 99.95 percent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must be at least\n\n99.95 percent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must be at least 99.95\n\npercent monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability must be at least 99.95 percent\n\nmonthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99.95", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability should be at least 99 % monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["the_api", "99", "percent", "monthly"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The API availability shall be at least 99% monthly.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The scheduler must notify admins by email.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["the_scheduler", "admins", "email"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nThe scheduler must notify admins by email.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The scheduler must notify admins by email.\nx",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The scheduler must notify admins by email",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["the_scheduler", "admins", "email"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The scheduler\n\nmust notify admins by email.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["the_scheduler", "admins", "email"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The scheduler must\n\nnotify admins by email.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["the_scheduler", "admins", "email"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The scheduler must notify\n\nadmins by email.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["the_scheduler", "admins", "email"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The scheduler must notify admins\n\nby email.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["the_scheduler", "admins", "email"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The scheduler must notify admins by\n\nemail.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["the_scheduler", "admins", "email"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Payments must be idempotent by request key.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["payments", "request_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nPayments must be idempotent by request key.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Payments must be idempotent by request key.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["payments", "request_key_x"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Payments\n\nmust be idempotent by request key.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["payments", "request_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Payments must\n\nbe idempotent by request key.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["payments", "request_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Payments must be\n\nidempotent by request key.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["payments", "request_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Payments must be idempotent\n\nby request key.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["payments", "request_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Payments must be idempotent by\n\nrequest key.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["payments", "request_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be deduplicated to prevent redundant requests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nRequests should be deduplicated to prevent redundant requests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be deduplicated to prevent redundant requests during retries.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries_x"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests\n\nshould be deduplicated to prevent redundant requests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should\n\nbe deduplicated to prevent redundant requests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be\n\ndeduplicated to prevent redundant requests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be deduplicated\n\nto prevent redundant requests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be deduplicated to\n\nprevent redundant requests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be deduplicated to prevent\n\nredundant requests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be deduplicated to prevent redundant\n\nrequests during retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be deduplicated to prevent redundant requests\n\nduring retries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Requests should be deduplicated to prevent redundant requests during\n\nretries.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["requests", "retries"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must be stored in the EU region.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nCustomer data must be stored in the EU region.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must be stored in the EU region.\nx",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must be stored in the EU region",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data\n\nmust be stored in the EU region.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must\n\nbe stored in the EU region.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must be\n\nstored in the EU region.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must be stored\n\nin the EU region.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must be stored in\n\nthe EU region.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must be stored in the\n\nEU region.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data must be processed in EU jurisdiction.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "eu_jurisdiction"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data shall be kept in the home country.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "home_country"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data should be kept in zone.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Customer data should be kept in a safe area.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["customer_data", "a_safe_area"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must be recorded in the audit log.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nLogins must be recorded in the audit log.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must be recorded in the audit log.\nx",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must be recorded in the audit log",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins\n\nmust be recorded in the audit log.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must\n\nbe recorded in the audit log.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must be\n\nrecorded in the audit log.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must be recorded\n\nin the audit log.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must be recorded in\n\nthe audit log.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must be recorded in the\n\naudit log.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins must be recorded in the audit\n\nlog.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins shall be logged in audit trail.",
+      "results": [
+        ["logins", "audit_trail"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logins should be audited in the audit log.",
+      "results": [
+        ["logins", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Tracking must require explicit consent before collection.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["tracking", "explicit_consent", "collection"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nTracking must require explicit consent before collection.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Tracking must require explicit consent before collection.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["tracking", "explicit_consent", "collection_x"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Tracking\n\nmust require explicit consent before collection.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["tracking", "explicit_consent", "collection"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Tracking must\n\nrequire explicit consent before collection.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["tracking", "explicit_consent", "collection"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Tracking must require\n\nexplicit consent before collection.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["tracking", "explicit_consent", "collection"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Tracking must require explicit consent\n\nbefore collection.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["tracking", "explicit_consent", "collection"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Tracking must require explicit consent before\n\ncollection.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["tracking", "explicit_consent", "collection"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Tracking must require consent before collection.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs must be archived after 90 days.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "archived", "90", "days"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nLogs must be archived after 90 days.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs must be archived after 90 days.\nx",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs must be archived after 90 days",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "archived", "90", "days"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs\n\nmust be archived after 90 days.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "archived", "90", "days"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs must\n\nbe archived after 90 days.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "archived", "90", "days"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs must be\n\narchived after 90 days.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "archived", "90", "days"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs must be archived\n\nafter 90 days.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "archived", "90", "days"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs must be archived after\n\n90 days.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "archived", "90", "days"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs must be archived after 90\n\ndays.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "archived", "90", "days"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs shall be deleted after 1 week.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "deleted", "1", "week"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Logs should be expired after 12 months.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["logs", "expired", "12", "months"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "When edits conflict, the server wins.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "When two edits conflicts, server wins.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "If the CDN fails, clients must fall back to origin.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The importer must process rows in batches of 500.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Orders must reference an existing customer.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Orders should reference a existing customer.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "If the\n\ncache\nmisses, it reloads.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Only admins can delete any posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "delete", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nOnly admins can delete any posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Only admins can delete any posts.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "delete", "posts_x", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Only admins can\n\ndelete any posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "delete", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Only admins can delete\n\nany posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "delete", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins may edit their own reports when online.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "edit", "report", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins may edit theirown reports when online.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "edit", "theirown_report", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins may edit their own reports\n\nwhen online.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "edit", "report", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins may edit their own reports when\n\nonline.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "edit", "report", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users are allowed to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users are\n\nallowed to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users are allowed\n\nto read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users is permitted to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Every user is entitled to export reports.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "export", "report", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users are able to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users must be able to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users must\n\nbe able to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users must be\n\nable to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users must be able\n\nto read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users shall be able to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users should be able to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "User has permission to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "User has\n\npermission to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "User has permission\n\nto read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users have permission to read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not\n\ndelete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not delete\n\nposts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must never delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must\n\nnever delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests never delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests cannot delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests can't delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest is forbidden to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest is\n\nforbidden to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest is forbidden\n\nto delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests are not allowed to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests are\n\nnot allowed to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests are not\n\nallowed to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests are not allowed\n\nto delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest is not permitted to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests are not entitled to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests are not able to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not be able to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must\n\nnot be able to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not\n\nbe able to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not be\n\nable to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not be able\n\nto delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests shall not be able to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests should not be able to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest has no permission to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest has\n\nno permission to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest has no\n\npermission to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest has no permission\n\nto delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests have no permission to delete posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not delete posts unless invited.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["guest", "not_delete_posts", "invited"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nGuests must not delete posts unless invited.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not delete posts unless invited.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["guest", "not_delete_posts", "invited_x"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must\n\nnot delete posts unless invited.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["guest", "not_delete_posts", "invited"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guests must not delete posts if locked.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["guest", "delete", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins may delete posts when reviewing.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "delete", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins can delete the each.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "delete", "each", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins can delete an all a every request.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "delete", "request", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "x can do",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The admin role is the only exception to approval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "\nThe admin role is the only exception to approval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The admin role is the only exception to approval rules.x",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules_x", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The\n\nadmin role is the only exception to approval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The admin role\n\nis the only exception to approval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The admin role is\n\nthe only exception to approval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The admin role is the\n\nonly exception to approval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The admin role is the only\n\nexception to approval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The admin role is the only exception\n\nto approval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The admin role is the only exception to\n\napproval rules.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["admin.role", "approval_rules", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Maintenance windows remain the exception.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["maintenance.window", "normal_behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Legacy imports constitute the only exception to validation.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["legacy.import", "validation", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Root remains exception.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["root", "normal_behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Root accounts are exception to lockout.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["root.account", "lockout", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Guest constitutes exception.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["guest", "normal_behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Each any user can read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Each\n\nany user can read posts.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins can read posts if approved.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Admins can read posts unless locked.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "read", "post", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The each admin must not edit any posts when frozen.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["admin", "edit", "post", "deny"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "The readonly flag guards writes.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "isReadOnly", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "action", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Only  may read reports.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["actor", "read", "report", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users may read !!!.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "resource", "assert"],
+        ["subject", "0", "times"]
+      ]
+    },
+    {
+      "text": "Users must not read !!!.",
+      "results": [
+        ["subject", "audit_log"],
+        ["subject", "0", "percent", "window"],
+        ["subject", "consent", "purpose"],
+        ["data", "region"],
+        ["subject", "prerequisite", "dependent"],
+        ["subject", "target", "0", "unit"],
+        ["subj_key", "behavior", "exception"],
+        ["subj_key", "condition", "true"],
+        ["subject", "idempotency_key"],
+        ["subject", "action", "0", "unit"],
+        ["left", "right"],
+        ["subject", "recipient", "channel"],
+        ["resource", "owner"],
+        ["user", "read", "resource", "deny"],
+        ["subject", "0", "times"]
+      ]
+    }
+  ]
+}

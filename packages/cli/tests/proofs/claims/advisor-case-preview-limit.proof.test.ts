@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { CASE_LIMIT } from "../../../src/operations/semantic-advisor/case-preview.js";
 
-// implements REQ-advisor-case-preview-limit
-
 /**
  * How many edge cases the semantic advisor preview lists for one fact. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

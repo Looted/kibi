@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-B299410215E2FC50
 claim_text: Kibi shall keep at most 50 proof receipts per test
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-retention-limits
 property_key: max_receipts
 operator: eq
 value_type: int

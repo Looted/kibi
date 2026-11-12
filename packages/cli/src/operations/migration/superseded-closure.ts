@@ -38,11 +38,9 @@ import {
  */
 
 /** The terminal requirement status. */
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export const CLOSED_REQUIREMENT_STATUS = "closed";
 
 /** A superseded requirement whose status is not closed. */
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersededClosure = Readonly<{
   id: string;
   /** Workspace-relative path of the requirement's file. */
@@ -52,14 +50,12 @@ export type SupersededClosure = Readonly<{
 }>;
 
 /** Requirements that supersede each other, directly or through a chain. */
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersessionCycle = Readonly<{
   members: readonly string[];
   edges: readonly (readonly [string, string])[];
   files: readonly string[];
 }>;
 
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersessionPlan = Readonly<{
   closures: readonly SupersededClosure[];
   cycles: readonly SupersessionCycle[];
@@ -72,12 +68,12 @@ function reachable(
   start: string,
 ): Set<string> {
   const seen = new Set<string>();
-  const queue = [...(adjacency.get(start) ?? [])];
+  const queue = [...(adjacency.get(start) as readonly string[])];
   while (queue.length > 0) {
     const node = queue.shift() as string;
     if (seen.has(node)) continue;
     seen.add(node);
-    queue.push(...(adjacency.get(node) ?? []));
+    queue.push(...(adjacency.get(node) as readonly string[]));
   }
   return seen;
 }
@@ -87,34 +83,30 @@ function reachable(
  * strongly connected component that contains a cycle), as sorted member
  * lists sorted by first member.
  */
-// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function supersessionCycles(
   edges: readonly (readonly [string, string])[],
 ): string[][] {
-  const adjacency = new Map<string, string[]>();
-  for (const [from, to] of edges) {
-    adjacency.set(from, [...(adjacency.get(from) ?? []), to]);
-  }
-  const reach = new Map<string, Set<string>>();
-  const reachOf = (node: string): Set<string> => {
-    let nodes = reach.get(node);
-    if (nodes === undefined) {
-      nodes = reachable(adjacency, node);
-      reach.set(node, nodes);
-    }
-    return nodes;
-  };
+  // Every node gets an entry, so a node without outgoing edges has none.
+  const adjacency = new Map<string, string[]>(
+    edges.flat().map((node) => [node, []]),
+  );
+  for (const [from, to] of edges) (adjacency.get(from) as string[]).push(to);
+  const reach = new Map(
+    [...adjacency.keys()].map((node) => [node, reachable(adjacency, node)]),
+  );
+  const reachOf = (node: string) => reach.get(node) as Set<string>;
   const components = new Map<string, string[]>();
-  for (const start of [...adjacency.keys()].sort()) {
+  for (const start of adjacency.keys()) {
     const fromStart = reachOf(start);
     if (!fromStart.has(start)) continue;
     const members = [...fromStart]
       .filter((node) => reachOf(node).has(start))
       .sort();
-    components.set(members.join("\u0000"), members);
+    // Components are disjoint, so the first member names one.
+    components.set(members[0] as string, members);
   }
-  return [...components.values()].sort((left, right) =>
-    (left[0] ?? "").localeCompare(right[0] ?? ""),
+  return [...components.values()].sort(([left], [right]) =>
+    (left as string).localeCompare(right as string),
   );
 }
 
@@ -123,45 +115,49 @@ function readRequirementsAndEdges(workspaceRoot: string): {
   edges: Array<[string, string]>;
 } {
   const requirements = new Map<string, SourceRequirement>();
-  const relationships: ExtractedRelationship[] = [];
+  const edges = new Map<string, [string, string]>();
+  const addEdges = (relationships: readonly ExtractedRelationship[]) => {
+    for (const { type, from, to } of relationships)
+      if (type === "supersedes") edges.set(`${from}\u0000${to}`, [from, to]);
+  };
   for (const file of listLaneMarkdownFiles(workspaceRoot, ["requirements"])) {
     try {
       const result = extractFromMarkdown(file.absolutePath);
       requirements.set(result.entity.id, {
         id: result.entity.id,
-        status: String(result.entity.status ?? "").trim(),
+        // The extractor defaults a missing status and trims it.
+        status: String(result.entity.status),
         path: file.relativePath,
       });
-      relationships.push(...result.relationships);
+      addEdges(result.relationships);
     } catch {
       // Unreadable requirements fail sync with their own diagnostic.
     }
   }
   try {
-    relationships.push(...readAllShards(path.join(workspaceRoot, ".kb")));
+    addEdges(readAllShards(path.join(workspaceRoot, ".kb")));
   } catch {
     // Malformed shards fail sync with their own diagnostic.
   }
-  const edges = new Map<string, [string, string]>();
-  for (const relationship of relationships) {
-    if (
-      relationship.type !== "supersedes" ||
-      !requirements.has(relationship.to)
-    ) {
-      continue;
-    }
-    edges.set(`${relationship.from}\u0000${relationship.to}`, [
-      relationship.from,
-      relationship.to,
-    ]);
-  }
   return {
     requirements,
-    edges: [...edges.values()].sort(
-      ([leftFrom, leftTo], [rightFrom, rightTo]) =>
-        leftFrom.localeCompare(rightFrom) || leftTo.localeCompare(rightTo),
-    ),
+    edges: [...edges.values()]
+      .filter(([, to]) => requirements.has(to))
+      .sort(
+        ([leftFrom, leftTo], [rightFrom, rightTo]) =>
+          leftFrom.localeCompare(rightFrom) || leftTo.localeCompare(rightTo),
+      ),
   };
+}
+
+/**
+ * Ids of the requirements another requirement supersedes, read from authored
+ * Markdown and relationship shards. Read-only.
+ */
+export function supersededRequirementIds(workspaceRoot: string): Set<string> {
+  return new Set(
+    readRequirementsAndEdges(workspaceRoot).edges.map(([, to]) => to),
+  );
 }
 
 /**
@@ -169,7 +165,6 @@ function readRequirementsAndEdges(workspaceRoot: string): {
  * read from authored Markdown and relationship shards. Cycle members are
  * listed only under their cycle. Read-only.
  */
-// implements REQ-core-validation-rules, REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export function planSupersededClosures(
   workspaceRoot: string,
 ): SupersessionPlan {
@@ -184,19 +179,17 @@ export function planSupersededClosures(
   for (const [id, supersededBy] of [...successors.entries()].sort(
     ([left], [right]) => left.localeCompare(right),
   )) {
-    const requirement = requirements.get(id);
-    if (
-      requirement === undefined ||
-      inCycle.has(id) ||
-      requirement.status === CLOSED_REQUIREMENT_STATUS
-    ) {
+    // Every edge ends at a requirement, so each superseded id is one.
+    const requirement = requirements.get(id) as SourceRequirement;
+    if (inCycle.has(id) || requirement.status === CLOSED_REQUIREMENT_STATUS) {
       continue;
     }
     closures.push({
       id,
       path: requirement.path,
       status: requirement.status,
-      supersededBy: [...new Set(supersededBy)].sort(),
+      // Edges are distinct, so each successor is listed once.
+      supersededBy: supersededBy.sort(),
     });
   }
   return {
@@ -208,15 +201,15 @@ export function planSupersededClosures(
         edges: edges.filter(
           ([from, to]) => memberSet.has(from) && memberSet.has(to),
         ),
-        files: members
-          .map((member) => requirements.get(member)?.path)
-          .filter((file): file is string => file !== undefined),
+        // Each member has an edge into it, so each is a requirement.
+        files: members.map(
+          (member) => (requirements.get(member) as SourceRequirement).path,
+        ),
       };
     }),
   };
 }
 
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersededClosureResult = Readonly<{
   closed: readonly SupersededClosure[];
   skipped: readonly Readonly<{ path: string; reason: string }>[];
@@ -228,7 +221,6 @@ export type SupersededClosureResult = Readonly<{
  * supersession cycle are never touched. With `planned`, only those ids are
  * closed. Idempotent: a closed requirement is not planned again.
  */
-// implements REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export function applySupersededClosures(
   workspaceRoot: string,
   planned?: ReadonlySet<string>,

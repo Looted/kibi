@@ -72,7 +72,6 @@ const COVERAGE_ARGS = [
   "--max-concurrency=1",
 ] as const;
 
-// implements REQ-014
 export class UnitCoverageFailure extends Error {
   constructor(message: string) {
     super(message);
@@ -80,7 +79,6 @@ export class UnitCoverageFailure extends Error {
   }
 }
 
-// implements REQ-root-suite-batch-diagnostics
 const CLI_ROOT_TESTS = readdirSync("./packages/cli/tests")
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `./packages/cli/tests/${entry}`);
@@ -148,6 +146,7 @@ const CLI_SUPPORT_TEST_DIRECTORIES = [
   "./packages/cli/tests/runtime",
   "./packages/cli/tests/signoff",
   "./packages/cli/tests/helpers",
+  "./packages/cli/tests/dependencies",
 ];
 const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
   readdirSync(directory, { recursive: true, encoding: "utf8" })
@@ -157,20 +156,23 @@ const CLI_SUPPORT_TESTS = CLI_SUPPORT_TEST_DIRECTORIES.flatMap((directory) =>
 const CLI_OPERATIONS_DIRS = [
   "./packages/cli/tests/operations",
   "./packages/cli/tests/operations-coverage",
+  "./packages/cli/tests/operations-mutation",
 ];
 const CLI_OPERATIONS_TESTS = CLI_OPERATIONS_DIRS.flatMap((directory) =>
   readdirSync(directory, { recursive: true, encoding: "utf8" })
     .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
     .map((entry) => `${directory}/${entry}`),
 ).sort();
-const CLI_COMMANDS_COVERAGE_DIR = "./packages/cli/tests/commands-coverage";
-const CLI_COMMANDS_COVERAGE_TESTS = readdirSync(CLI_COMMANDS_COVERAGE_DIR, {
-  recursive: true,
-  encoding: "utf8",
-})
-  .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
-  .map((entry) => `${CLI_COMMANDS_COVERAGE_DIR}/${entry}`)
-  .sort();
+const CLI_COMMANDS_COVERAGE_DIRS = [
+  "./packages/cli/tests/commands-coverage",
+  "./packages/cli/tests/commands-mutation",
+];
+const CLI_COMMANDS_COVERAGE_TESTS = CLI_COMMANDS_COVERAGE_DIRS.flatMap(
+  (directory) =>
+    readdirSync(directory, { recursive: true, encoding: "utf8" })
+      .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+      .map((entry) => `${directory}/${entry}`),
+).sort();
 const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`);
@@ -278,6 +280,7 @@ export const COVERAGE_SHARDS: readonly {
     paths: [
       "./packages/cli/tests/public",
       "./packages/cli/tests/public-coverage",
+      "./packages/cli/tests/public-mutation",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
@@ -650,7 +653,6 @@ const DEFAULT_SHARD_COST_SECONDS = 2;
  * Parse `--partition K/N` / `--partition=K/N` (1-based), then
  * `KIBI_COVERAGE_PARTITION`. CI runs one partition per parallel job.
  */
-// implements REQ-root-suite-batch-diagnostics
 export function partitionFromArgv(
   argv: readonly string[],
   env: NodeJS.ProcessEnv = process.env,
@@ -680,7 +682,6 @@ export function partitionFromArgv(
  * `costSeconds` (longest-processing-time first) and return partition `index`
  * in shard order. Every shard lands in exactly one partition.
  */
-// implements REQ-root-suite-batch-diagnostics
 export function partitionShards(
   partition: CoveragePartition,
   shards: typeof COVERAGE_SHARDS = COVERAGE_SHARDS,
@@ -756,7 +757,6 @@ export function testFailureOutput(output: string): string {
     .join("\n");
 }
 
-// implements REQ-014
 export function formatCoverageFailure(
   options: Readonly<{
     label: string;
@@ -941,7 +941,6 @@ function shardUnitName(path: string, index: number): string {
   return `${String(index).padStart(3, "0")}-${base.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 }
 
-// implements REQ-014
 // covered_by TEST-scripts-unit-coverage-runner
 export type BranchCoverageSummary = Readonly<{
   readonly available: boolean;
@@ -972,7 +971,6 @@ export function summarizeBranchCoverage(lcov: string): BranchCoverageSummary {
  * Merge shard LCOV into the published report, apply the repository gates and
  * publish per-shard snapshots plus the failed-shard list.
  */
-// implements REQ-014
 function publishUnitCoverage(
   input: Readonly<{
     coverageDir: string;
@@ -1060,7 +1058,6 @@ function publishUnitCoverage(
   }
 }
 
-// implements REQ-014
 export async function runUnitCoverage(
   options: UnitCoverageOptions = {},
 ): Promise<void> {
@@ -1288,7 +1285,6 @@ export async function runUnitCoverage(
  * for a complete run the combined `test-results.json` ledger. A run whose
  * commit or tracked files changed while it ran is recorded as dirty.
  */
-// implements REQ-kibi-verification-evidence-contract
 function writeUnitTestResults(
   input: Readonly<{
     coverageDir: string;
@@ -1335,7 +1331,6 @@ function listFilesRecursive(root: string): string[] {
  * `fromDir` into one report and apply the repository gates. Fails closed when
  * any shard is missing, published twice, or unknown to this checkout.
  */
-// implements REQ-014
 export function mergeUnitCoveragePartitions(
   options: Readonly<{ fromDir: string; coverageDir?: string }>,
 ): void {

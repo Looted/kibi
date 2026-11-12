@@ -60,12 +60,17 @@ type NumericObligation = Readonly<{
 }>;
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // typeof null is "object", so null comes back as itself.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 
 function text(value: unknown): string {
+  // rationale: every caller compares the fallback with a value that is a
+  // non-empty string, or reads no path from it, so any non-path fallback is
+  // equivalent.
+  // Stryker disable next-line StringLiteral
   return typeof value === "string" ? value : "";
 }
 
@@ -90,7 +95,6 @@ function setDifference(code: readonly string[], fact: readonly string[]) {
  * The type-level witness Kibi writes for a typecheck claim binding: it
  * compiles only when the domain type has exactly the fact's members.
  */
-// implements REQ-kibi-claim-bound-proofs
 export function setEqualityWitness(
   importPath: string,
   members: readonly string[],
@@ -122,39 +126,69 @@ function membersTypeCandidates(exportName: string): string[] {
   ];
 }
 
+type FailedCompile = Readonly<{ witness: string; reason: string; errorLines?: number[] }>;
+
+/**
+ * Compiles each witness text in turn from a file beside the contract's
+ * domain file, stopping at the first that compiles; the file is always
+ * removed. Null once one compiles, a sentence when there is no domain file
+ * to compile against, otherwise every failed compile with the witness path.
+ */
+async function compileDomainWitnesses(
+  context: OperationContext,
+  contract: ProofContract,
+  texts: (importPath: string, exportName: string) => readonly string[],
+): Promise<
+  null | string | { exportName: string; witnessPath: string; failed: FailedCompile[] }
+> {
+  const source = contract.domain_source;
+  if (source === undefined) return "the contract names no domain_source symbol";
+  const domain = await loadSymbol(context, source.symbol_id);
+  if (!domain || domain.sourceFile === "")
+    return `the domain_source symbol ${source.symbol_id} has no source file`;
+  const exportName = source.export ?? domain.title;
+  const base = path.basename(domain.sourceFile).replace(/\.[cm]?[jt]sx?$/, "");
+  const witnessPath = path.join(
+    path.dirname(domain.sourceFile),
+    `.kibi-claim-witness-${randomBytes(6).toString("hex")}.ts`,
+  );
+  const absolute = path.resolve(context.workspaceRoot, witnessPath);
+  const failed: FailedCompile[] = [];
+  try {
+    for (const witness of texts(`./${base}.js`, exportName)) {
+      writeFileSync(absolute, witness);
+      const compiled = compileWitness(context.workspaceRoot, witnessPath);
+      if (compiled.ok) return null;
+      failed.push({ witness, ...compiled });
+    }
+  } finally {
+    rmSync(absolute, { force: true });
+  }
+  return { exportName, witnessPath, failed };
+}
+
+/** The compiler's last reason, naming the witness by what it checks. */
+function lastReason(
+  result: { witnessPath: string; failed: readonly FailedCompile[] },
+  name: string,
+): string {
+  // Every witness failed, so there is a last one.
+  const reason = (result.failed.at(-1) as FailedCompile).reason;
+  return reason ? ` (${reason.replace(` the witness ${result.witnessPath}`, ` the ${name} witness`)})` : "";
+}
+
 async function typecheckSetProblem(
   context: OperationContext,
   contract: ProofContract,
   obligation: SetObligation,
 ): Promise<string | null> {
-  const domainId = contract.domain_source?.symbol_id ?? "";
-  const domain = await loadSymbol(context, domainId);
-  if (!domain || domain.sourceFile === "")
-    return `the domain_source symbol ${domainId} has no source file`;
-  const exportName = contract.domain_source?.export ?? domain.title;
-  const directory = path.dirname(domain.sourceFile);
-  const base = path.basename(domain.sourceFile).replace(/\.[cm]?[jt]sx?$/, "");
-  const witnessPath = path.join(
-    directory,
-    `.kibi-claim-witness-${randomBytes(6).toString("hex")}.ts`,
+  const result = await compileDomainWitnesses(context, contract, (importPath, exportName) =>
+    membersTypeCandidates(exportName).map((membersType) =>
+      setEqualityWitness(importPath, obligation.members, membersType),
+    ),
   );
-  const absolute = path.resolve(context.workspaceRoot, witnessPath);
-  let lastReason = "";
-  try {
-    for (const membersType of membersTypeCandidates(exportName)) {
-      writeFileSync(
-        absolute,
-        setEqualityWitness(`./${base}.js`, obligation.members, membersType),
-        "utf8",
-      );
-      const compiled = compileWitness(context.workspaceRoot, witnessPath);
-      if (compiled.ok) return null;
-      lastReason = compiled.reason;
-    }
-  } finally {
-    rmSync(absolute, { force: true });
-  }
-  return `${exportName} as a type is not exactly the fact's set {${obligation.members.join(", ")}}${lastReason ? ` (${lastReason.replace(` the witness ${witnessPath}`, " the set-equality witness")})` : ""}`;
+  if (result === null || typeof result === "string") return result;
+  return `${result.exportName} as a type is not exactly the fact's set {${obligation.members.join(", ")}}${lastReason(result, "set-equality")}`;
 }
 
 function smtNegation(obligation: NumericObligation): string {
@@ -177,7 +211,6 @@ function constraintText(obligation: NumericObligation): string {
  * that the field exists, `required<i>` that it is required and non-null), so
  * a failed compile says which fields break the claim.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function requiredFieldsWitness(
   importPath: string,
   typeExpression: string,
@@ -204,7 +237,7 @@ export function requiredFieldsWitness(
 export function requiredFieldsFailures(
   witness: string,
   fields: readonly string[],
-  errorLines: readonly number[],
+  errorLines?: readonly number[],
 ): string[] {
   const lines = witness.split("\n");
   const failing = new Set(errorLines);
@@ -225,43 +258,28 @@ async function requiredFieldsProblem(
   contract: ProofContract,
   fields: readonly string[],
 ): Promise<string | null> {
-  const domainId = contract.domain_source?.symbol_id ?? "";
-  const domain = await loadSymbol(context, domainId);
-  if (!domain || domain.sourceFile === "")
-    return `the domain_source symbol ${domainId} has no source file`;
-  const exportName = contract.domain_source?.export ?? domain.title;
-  const directory = path.dirname(domain.sourceFile);
-  const base = path.basename(domain.sourceFile).replace(/\.[cm]?[jt]sx?$/, "");
-  const witnessPath = path.join(
-    directory,
-    `.kibi-claim-witness-${randomBytes(6).toString("hex")}.ts`,
+  const result = await compileDomainWitnesses(context, contract, (importPath, exportName) =>
+    [`domain.${exportName}`, `InstanceType<typeof domain.${exportName}>`].map(
+      (typeExpression) => requiredFieldsWitness(importPath, typeExpression, fields),
+    ),
   );
-  const absolute = path.resolve(context.workspaceRoot, witnessPath);
-  let lastReason = "";
-  let failures: string[] = [];
-  try {
-    for (const typeExpression of [
-      `domain.${exportName}`,
-      `InstanceType<typeof domain.${exportName}>`,
-    ]) {
-      const witness = requiredFieldsWitness(`./${base}.js`, typeExpression, fields);
-      writeFileSync(absolute, witness, "utf8");
-      const compiled = compileWitness(context.workspaceRoot, witnessPath);
-      if (compiled.ok) return null;
-      lastReason = compiled.reason;
-      // The first type expression that names a real type decides which
-      // fields fail; the InstanceType form is only for classes.
-      const errorLines = compiled.errorLines ?? [];
-      const shapeLine = witness.split("\n").findIndex((line) => line.startsWith("type Shape"));
-      if (failures.length === 0 && !errorLines.includes(shapeLine))
-        failures = requiredFieldsFailures(witness, fields, errorLines);
-    }
-  } finally {
-    rmSync(absolute, { force: true });
-  }
-  if (failures.length > 0)
-    return `${exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field: ${failures.join("; ")}`;
-  return `${exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field${lastReason ? ` (${lastReason.replace(` the witness ${witnessPath}`, " the required-fields witness")})` : ""}`;
+  if (result === null || typeof result === "string") return result;
+  // The first type expression that names a real type decides which fields
+  // fail; the InstanceType form is only for classes.
+  const failures =
+    result.failed
+      .filter(
+        ({ witness, errorLines }) =>
+          !errorLines?.includes(
+            witness.split("\n").findIndex((line) => line.startsWith("type Shape")),
+          ),
+      )
+      .map(({ witness, errorLines }) => requiredFieldsFailures(witness, fields, errorLines))
+      .find((list) => list.length > 0) ?? [];
+  const claim = `${result.exportName} does not have every field of {${fields.join(", ")}} as a required, non-nullable field`;
+  return failures.length > 0
+    ? `${claim}: ${failures.join("; ")}`
+    : `${claim}${lastReason(result, "required-fields")}`;
 }
 
 /** The symbols a non-numeric certificate read, which must be in code scope. */
@@ -304,7 +322,7 @@ async function nonNumericProblem(
   const checked = await runOperationJsonQuery<{ ok?: boolean; reason?: string }>(
     prolog,
     "claim_obligations.pl",
-    `claim_obligations:claim_model_check_json(${toPrologAtom(contract.kind ?? "")}, ${toPrologAtom(JSON.stringify(obligation))}, ${toPrologAtom(JSON.stringify(certificate))}, JsonString)`,
+    `claim_obligations:claim_model_check_json(${toPrologAtom(contract.kind)}, ${toPrologAtom(JSON.stringify(obligation))}, ${toPrologAtom(JSON.stringify(certificate))}, JsonString)`,
     "Claim model check",
   );
   return checked.ok === true ? null : (checked.reason ?? "the model check failed");
@@ -356,10 +374,10 @@ async function derivedProblem(
       const code = sorted(
         Array.isArray(members) ? members.map((member) => String(member)) : [],
       );
-      const fact = sorted(set.members ?? []);
-      if (code.join("\u0000") !== fact.join("\u0000"))
-        return `the domain members Kibi read are not ${factId}'s set (${setDifference(code, fact)})`;
-      return null;
+      const difference = setDifference(code, sorted(set.members ?? []));
+      return difference === ""
+        ? null
+        : `the domain members Kibi read are not ${factId}'s set (${difference})`;
     }
     return typecheckSetProblem(context, contract, set);
   }
@@ -392,7 +410,7 @@ const ENVIRONMENT_GETTER =
   /(?:^|[.:/\\])(?:getenv|Getenv|LookupEnv|getenvb|GetEnvironmentVariable[AW]?|secure_getenv|apache_getenv|_wgetenv|printenv)$|(?:^|[.:/])env::var(?:_os)?$|(?:^|\\)Env::get$|^(?:os\.environ\.get|ENV\.fetch|process\.env)$/i;
 
 export function environmentGetterCallee(callee: string): boolean {
-  return ENVIRONMENT_GETTER.test(callee.replace(/\s+/g, "").replace(/\/\d+$/, ""));
+  return ENVIRONMENT_GETTER.test(callee.replace(/\s/g, "").replace(/\/\d+$/, ""));
 }
 
 const CLOSED_OPERATORS = new Set(["eq", "subset_of", "excludes"]);
@@ -409,9 +427,10 @@ function claimFileCandidates(token: string): string[][] {
   // The token as a path, as a name anywhere, then with leading segments
   // dropped (a repository prefix such as fzy/src/match.c), then, for a
   // slashed name without an extension, any extension.
-  const tries: string[][] = [[escaped], [`**/${escaped}`]];
-  for (let drop = 1; drop < segments.length; drop += 1)
-    tries.push([`**/${segments.slice(drop).join("/")}`]);
+  const tries: string[][] = [
+    [escaped],
+    ...segments.map((_, index) => [`**/${segments.slice(index).join("/")}`]),
+  ];
   if (segments.length > 1 && !/\.[^/.]+$/.test(escaped))
     tries.push([`${escaped}.*`, `**/${escaped}.*`]);
   return tries;
@@ -426,27 +445,23 @@ function claimFileCandidates(token: string): string[][] {
  * that name no file (dotted subject keys such as `kibi.cli`) resolve to
  * nothing.
  */
-// implements REQ-kibi-source-proof-kinds
 export function namedClaimFiles(
   workspaceRoot: string,
   texts: readonly string[],
 ): Map<string, string[]> {
   const named = new Map<string, string[]>();
-  for (const value of texts) {
-    const tokens = [
-      ...[...value.matchAll(QUOTED_PATH)].map((match) => match[1] ?? ""),
-      ...[...value.matchAll(FILE_NAME_TOKEN)].map((match) => match[0]),
-      ...[...value.matchAll(BARE_PATH)].map((match) => match[0]),
-    ];
-    for (const raw of tokens) {
-      const token = raw.trim();
-      if (token === "" || named.has(token)) continue;
-      for (const patterns of claimFileCandidates(token)) {
-        const files = matchWorkspaceFiles(workspaceRoot, patterns, [], false);
-        if (files.length > 0) {
-          named.set(token, files);
-          break;
-        }
+  // Every token holds a path character (a slash or a dot), so none is empty.
+  const tokens = texts.flatMap((value) => [
+    ...[...value.matchAll(QUOTED_PATH)].map((match) => (match[1] as string).trim()),
+    ...[...value.matchAll(FILE_NAME_TOKEN)].map((match) => match[0]),
+    ...[...value.matchAll(BARE_PATH)].map((match) => match[0]),
+  ]);
+  for (const token of new Set(tokens)) {
+    for (const patterns of claimFileCandidates(token)) {
+      const files = matchWorkspaceFiles(workspaceRoot, patterns, undefined, false);
+      if (files.length > 0) {
+        named.set(token, files);
+        break;
       }
     }
   }
@@ -464,47 +479,44 @@ type SourceScopeCheck = (row: ObligationRow) => Promise<string | null>;
  * read of an environment getter cannot decide a closed claim (eq, subset_of,
  * excludes) about what the code reads, since the other getters are unread.
  */
-// implements REQ-kibi-source-proof-kinds
 async function sourceScopeCheck(
   context: OperationContext,
+  prolog: PrologPort,
   contract: ProofContract,
   coveredBy: ReadonlySet<string>,
 ): Promise<SourceScopeCheck | null> {
   const spec = contract.source as Record<string, unknown> | undefined;
   if (contract.kind !== "source" || spec?.reader !== "references") return null;
   const list = (value: unknown): string[] =>
-    typeof value === "string"
-      ? [value]
-      : Array.isArray(value)
-        ? value.filter((item): item is string => typeof item === "string")
-        : [];
+    [value].flat().filter((item): item is string => typeof item === "string");
   const read = new Set(
     matchWorkspaceFiles(context.workspaceRoot, list(spec.files), list(spec.ignore)),
   );
   const implementers = new Map<string, string[]>();
-  if (context.prolog !== undefined) {
-    const result = await context.prolog.query(
-      "findall([From,To,'implements'], kb_relationship(implements, From, To), Rels)",
+  const result = await prolog.query(
+    "findall([From,To,'implements'], kb_relationship(implements, From, To), Rels)",
+  );
+  if (!result.success)
+    throw new Error(
+      `implements relationship query failed: ${result.error ?? "Unknown error"}`,
     );
-    if (!result.success)
-      throw new Error(
-        `implements relationship query failed: ${result.error ?? "Unknown error"}`,
-      );
-    for (const [from, to] of parseTriples(result.bindings.Rels ?? "[]")) {
-      const requirement = normalizeEntityId(to);
-      implementers.set(requirement, [
-        ...(implementers.get(requirement) ?? []),
-        normalizeEntityId(from),
-      ]);
-    }
+  // A missing binding reads as no rows, as an empty list does.
+  for (const [from, to] of parseTriples(String(result.bindings.Rels))) {
+    const requirement = normalizeEntityId(to);
+    const symbols = implementers.get(requirement);
+    if (symbols === undefined) implementers.set(requirement, [normalizeEntityId(from)]);
+    else symbols.push(normalizeEntityId(from));
   }
   const files = new Map<string, string>();
   const fileOf = async (symbolId: string): Promise<string> => {
-    if (!files.has(symbolId))
-      files.set(symbolId, (await loadSymbol(context, symbolId))?.sourceFile ?? "");
-    return files.get(symbolId) ?? "";
+    let file = files.get(symbolId);
+    if (file === undefined) {
+      file = (await loadSymbol(context, symbolId))?.sourceFile ?? "";
+      files.set(symbolId, file);
+    }
+    return file;
   };
-  const callee = typeof spec.callee === "string" ? spec.callee : "";
+  const callee = text(spec.callee);
   const getter = spec.extract === "string_args" && environmentGetterCallee(callee);
   return async (row) => {
     const operator = text(record(row.obligation)?.operator);
@@ -512,13 +524,13 @@ async function sourceScopeCheck(
       return `a string_args read of ${callee} sees only that getter's arguments, not the other ways the code reads the environment, so it cannot decide a ${operator} claim; read the files with extract env`;
     const linked = [
       ...[...coveredBy].map((id) => ({ id, how: "is covered by the test" })),
-      ...(implementers.get(row.requirement_id ?? "") ?? []).map((id) => ({
+      ...(implementers.get(row.requirement_id as string) ?? []).map((id) => ({
         id,
         how: `implements ${row.requirement_id}`,
       })),
     ];
-    if (row.fact_id && context.prolog !== undefined) {
-      const [fact] = await loadEntities(context.prolog, { id: row.fact_id, type: "fact" });
+    if (row.fact_id) {
+      const [fact] = await loadEntities(prolog, { id: row.fact_id, type: "fact" });
       const named = namedClaimFiles(context.workspaceRoot, [
         text(fact?.subject_key),
         text(fact?.claim_text),
@@ -547,7 +559,6 @@ async function sourceScopeCheck(
  * intent-scope derivation rests on the knowledge base's own facts alone
  * (the test read no value from the code), so it does not count either.
  */
-// implements REQ-kibi-claim-bound-proofs
 export function receiptEvidenceLevel(
   level: "proved" | "tested",
   bindings: readonly ClaimBinding[] | undefined,
@@ -568,7 +579,6 @@ export function receiptEvidenceLevel(
  * whose fact has no derivation is only attested by the author. Returns
  * undefined for a contract that names no claims.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-kibi-non-numeric-proof-kinds
 export async function judgeClaimBindings(
   context: OperationContext,
   input: Readonly<{
@@ -594,9 +604,10 @@ export async function judgeClaimBindings(
     "Claim obligations",
   );
   const coveredBy = new Set(input.coveredBySymbols);
+  const valueSources = input.contract.value_source ?? [];
   const valueSourced =
-    (input.contract.value_source ?? []).length > 0 &&
-    (input.contract.value_source ?? []).every(
+    valueSources.length > 0 &&
+    valueSources.every(
       (source) => "source" in source || coveredBy.has(source.symbol_id),
     );
   // A rule decided by a test harness that drives the code is about the code
@@ -607,7 +618,7 @@ export async function judgeClaimBindings(
       (row) => (row.harness_for ?? []).length > 0,
     );
   const certificate = record(input.verdict.certificate) ?? {};
-  const scopeCheck = await sourceScopeCheck(context, input.contract, coveredBy);
+  const scopeCheck = await sourceScopeCheck(context, prolog, input.contract, coveredBy);
   const bindings: ClaimBinding[] = [];
   for (const row of rows) {
     const base = {

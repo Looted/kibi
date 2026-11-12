@@ -13,23 +13,21 @@ id: TEST-rule-registry-single-source
 type: test
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-3fc0e865f9604aae6ad3d23d
+    receipt_id: PR-c9cfb3388c39e51085781926
     test_id: TEST-rule-registry-single-source
     scope: unit
     outcome: passed
-    code_snapshot: c78d87453534f34be23060678a90114386641b97f24f1f909f008a3c1ad06ae5
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T12:28:28.446Z'
-    finished_at: '2026-10-25T12:28:29.617Z'
-    artifact_digest: e8408e590ddcd8af1ae392209fe11e1be7fbc9427fe1c3bab5e54f22ce13200c
+    code_snapshot: 77a05ac3f136388d07560216e6f9644997c4b9918c6920a54149f03a47779bca
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T05:33:42.441Z'
+    finished_at: '2026-11-10T05:36:08.645Z'
+    artifact_digest: dc8736db249dfdd88751ad8485abe81283e5b9591ca84f894b18a7ce3504ead7
     contract_hash: 626e00db815a61415250eb9b41dd48b9e1a3010bd181686b2dbf1e7702ddffe4
-    binding_hash: 1dd5779d4f8359d4ed0b182c0b257d52071bb27014d9953d05aa86cb854dc28e
+    binding_hash: 67d43af7532bd98dced4c958b281046aadd5b02e528b3400399b404b1bf5b748
     fingerprint: 83a28fb60d59d817d408705dd4aac1a74197283dd29ce3edf809beed51b697a3
     fingerprint_components:
       contract: 626e00db815a61415250eb9b41dd48b9e1a3010bd181686b2dbf1e7702ddffe4
@@ -54,3 +52,6 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
+
+## Context
+The TypeScript rule registry, the `kb_check` input enum and Prolog dispatch were kept in sync by hand. They're now generated from one JSON file, and this test fails CI if any of them drifts. Source: commit "generate the check-rule registry from a single JSON source".

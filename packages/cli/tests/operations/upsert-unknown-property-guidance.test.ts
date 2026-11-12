@@ -1,4 +1,3 @@
-// implements REQ-upsert-unknown-field-guidance
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";

@@ -1,6 +1,6 @@
 ---
 title: Predicate modeling must bind the subject argument to the subject key of the subject fact that the requirement constrains
-status: active
+status: archived
 fact_kind: property_value
 subject_key: kibi.predicate_suggestion.plan
 property_key: subject_bound_from_requirement

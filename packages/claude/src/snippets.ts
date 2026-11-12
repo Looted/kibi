@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 /**
  * Claude Code wording around the shared progressive-disclosure snippets.
  *

@@ -62,18 +62,14 @@ const REPOSITORY_POLICY_LEAKS = [
   /publishable package set/i,
 ] as const;
 
-// implements REQ-skillopt-codex-optimization
 export class CodexOptimizerError extends Error {
-  // implements REQ-skillopt-codex-optimization
   readonly name = "CodexOptimizerError";
 }
 
-// implements REQ-skillopt-codex-optimization
 export function missingRequiredGuidance(body: string): readonly string[] {
   return REQUIRED_BODY_GUIDANCE.filter((guidance) => !body.includes(guidance));
 }
 
-// implements REQ-skillopt-codex-optimization
 export function validateCompleteCandidateBody(body: string): void {
   validateCandidateBody(body);
   if (
@@ -85,7 +81,6 @@ export function validateCompleteCandidateBody(body: string): void {
   validateRepositoryPolicyLeaks(body);
 }
 
-// implements REQ-skillopt-codex-optimization
 export function validateRepositoryPolicyLeaks(body: string): void {
   if (REPOSITORY_POLICY_LEAKS.some((pattern) => pattern.test(body))) {
     throw new CodexOptimizerError("optimizer_output_repository_policy_leak");

@@ -69,7 +69,6 @@ function renderToolsDoc(): string {
 }
 
 export const PROMPTS = [
-  // implements REQ-002, REQ-013, REQ-mcp-search-discovery
   {
     name: "kibi-bootstrap",
     title: "Bootstrap Kibi knowledge",

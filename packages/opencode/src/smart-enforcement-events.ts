@@ -35,13 +35,13 @@ import { analyzePath } from "./path-kind.js";
 import type { RuntimeDegradedOverlay } from "./plugin-startup.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import type { RiskClass } from "./risk-classifier.js";
+import { getFileLinkedTargetsByType } from "./file-entity-links.js";
 import { classifyRisk } from "./risk-classifier.js";
 import type { SyncScheduler } from "./scheduler.js";
 import type { SessionEditState } from "./session-edit-state.js";
 import type { WarningCategory } from "./session-tracker.js";
 import type { WorkContext } from "./work-context-resolver.js";
 
-// implements REQ-opencode-kibi-plugin-v1
 export interface PluginEventInput {
   sessionId?: string;
   agentIdentity?: string;
@@ -49,14 +49,12 @@ export interface PluginEventInput {
   directory: string;
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export interface PluginEvent {
   type: string;
   properties?: Record<string, unknown>;
 }
 
 /** Mutable cross-event state shared by the event and chat hooks. */
-// implements REQ-opencode-kibi-plugin-v1
 export interface SmartEnforcementState {
   /** Session edits counted for the guidance log, capped. */
   recentEditCount: number;
@@ -68,7 +66,6 @@ export interface SmartEnforcementState {
   lastRiskScopeKey: string | null;
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export interface KibiEventEnv {
   input: PluginEventInput;
   cfg: {
@@ -127,7 +124,6 @@ const TOOL_EVENT_TYPES = new Set([
   "tool.Call.completed",
 ]);
 
-// implements REQ-opencode-kibi-plugin-v1
 export function isKbToolEventType(eventType: string): boolean {
   return TOOL_EVENT_TYPES.has(eventType);
 }
@@ -137,13 +133,11 @@ export function isKbToolEventType(eventType: string): boolean {
  * names MCP tools `<server>_<tool>`, so the Kibi server's `kb_upsert` arrives
  * as `kibi_kb_upsert` (or under whatever server name the user configured).
  */
-// implements REQ-opencode-kibi-plugin-v1
 export function kibiToolName(toolName: unknown): string | undefined {
   if (typeof toolName !== "string") return undefined;
   return /(?:^|_)(kb_[A-Za-z0-9_]+)$/.exec(toolName)?.[1];
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function handleKbToolEvent(
   env: KibiEventEnv,
   event: PluginEvent,
@@ -232,7 +226,6 @@ function resolveFileEvent(
 }
 
 /** Risk class of an edited file, with what it was derived from. */
-// implements REQ-opencode-kibi-plugin-v1
 export function classifyEditedFile(
   env: Pick<KibiEventEnv, "cfg" | "readFileContent" | "resolveWorktreePath">,
   worktreeRoot: string,
@@ -267,12 +260,15 @@ export function classifyEditedFile(
     hasMustPriority,
     hasDurableComment: !!precomputedSuggestion,
     fileContent,
+    hasManifestLinks:
+      pathAnalysis.kind === "code" &&
+      getFileLinkedTargetsByType(worktreeRoot, normalizedFilePath, [
+        "implements",
+      ]).length > 0,
   });
   return { hasMustPriority, precomputedSuggestion, riskClass };
 }
 
-// implements REQ-opencode-file-context-guidance-v1
-// implements REQ-opencode-kibi-plugin-v1
 export function handleFileLifecycleEvent(
   env: KibiEventEnv,
   event: PluginEvent,

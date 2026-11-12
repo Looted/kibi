@@ -26,10 +26,8 @@ import {
 } from "../utils/branch-resolver.js";
 
 /** Envelope diagnostic code reported while a detached snapshot is attached. */
-// implements REQ-branch-store-recovery-v4
 export const DETACHED_HEAD_READ_ONLY_CODE = "detached_head_read_only";
 
-// implements REQ-branch-store-recovery-v4
 export type DetachedReadOnlyDiagnostic = {
   readonly code: typeof DETACHED_HEAD_READ_ONLY_CODE;
   readonly severity: "warning";
@@ -44,7 +42,6 @@ export type DetachedReadOnlyDiagnostic = {
 };
 
 /** True when an operation declares a KB or workspace write. */
-// implements REQ-branch-store-recovery-v4
 export function declaresWriteEffect(
   effects: readonly OperationEffect[] | readonly string[],
 ): boolean {
@@ -58,7 +55,6 @@ export function declaresWriteEffect(
  * checkout. The snapshot store is a cache of the checkout's tracked sources:
  * refreshing it never touches a branch KB or an authored file.
  */
-// implements REQ-branch-store-recovery-v4
 export async function refreshDetachedSnapshot(
   workspaceRoot: string,
   attachment: BranchAttachment,
@@ -85,7 +81,6 @@ export async function refreshDetachedSnapshot(
  * a detached HEAD. Reads on a detached HEAD that no single branch points at
  * attach a freshly compiled read-only snapshot of the checkout.
  */
-// implements REQ-branch-store-recovery-v4
 export async function resolveOperationAttachment(
   workspaceRoot: string,
   spec: { readonly name: string; readonly effects: readonly OperationEffect[] },
@@ -115,7 +110,6 @@ export async function resolveOperationAttachment(
 }
 
 /** The envelope diagnostic for an operation answered from a snapshot. */
-// implements REQ-branch-store-recovery-v4
 export function detachedReadOnlyDiagnostic(
   attachment: BranchAttachment | undefined,
 ): DetachedReadOnlyDiagnostic | undefined {

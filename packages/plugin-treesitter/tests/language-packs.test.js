@@ -28,6 +28,12 @@ const webTreeSitter = join(pluginRoot, "node_modules", "web-tree-sitter");
 const scratch = mkdtempSync(join(tmpdir(), "kibi-lang-packs-"));
 after(() => rmSync(scratch, { recursive: true, force: true }));
 
+const catalog = JSON.parse(
+  readFileSync(join(pluginRoot, "catalog.json"), "utf8"),
+);
+const pinnedPackVersion = (pack) =>
+  catalog.languages.find((language) => language.pack === pack).packVersion;
+
 let copies = 0;
 async function pluginWith(goPack) {
   const root = join(scratch, `plugin-${copies++}`);
@@ -119,9 +125,8 @@ describe("Tree-sitter language packs", () => {
     ]) {
       const result = await symbols.analyze({ path, content });
       assert.equal(result.status, "unsupported", path);
-      assert.match(
-        JSON.stringify(result),
-        new RegExp(`${pack}@1\\.0\\.0`),
+      assert.ok(
+        JSON.stringify(result).includes(`${pack}@${pinnedPackVersion(pack)}`),
         path,
       );
     }

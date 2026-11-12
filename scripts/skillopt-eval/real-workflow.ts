@@ -68,7 +68,6 @@ export async function surface(
  * under one shared adoption lock so a described (1.2.0) candidate can be
  * validated against exactly the frontmatter its hash names.
  */
-// implements REQ-skillopt-description-candidates
 export async function campaignSurface(
   sourceRepoRoot: string,
   skill: CanonicalSkill,
@@ -242,7 +241,6 @@ async function loadSeedCandidate(
   return candidate;
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function passesDevelopmentGate(
   input: Readonly<{
@@ -264,7 +262,6 @@ export function passesDevelopmentGate(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function runRealOptimization(
   options: RealOptimizationOptions,

@@ -39,6 +39,8 @@ known_rule('rule-safety').
 known_rule('rule-verifiability').
 known_rule('query-plan-safety').
 known_rule('req-status-vocabulary').
+known_rule('retired-reason-missing').
+known_rule('retired-owner-only').
 known_rule('strict-fact-shape').
 known_rule('strict-req-fact-pairing').
 known_rule('predicate-verifiability').
@@ -99,6 +101,8 @@ rule_enforcement_class('rule-safety', canonical).
 rule_enforcement_class('rule-verifiability', canonical).
 rule_enforcement_class('query-plan-safety', canonical).
 rule_enforcement_class('req-status-vocabulary', canonical).
+rule_enforcement_class('retired-reason-missing', canonical).
+rule_enforcement_class('retired-owner-only', canonical).
 rule_enforcement_class('strict-fact-shape', canonical).
 rule_enforcement_class('strict-req-fact-pairing', advisory).
 rule_enforcement_class('predicate-verifiability', advisory).
@@ -159,6 +163,8 @@ rule_implementation('rule-safety', prolog).
 rule_implementation('rule-verifiability', prolog).
 rule_implementation('query-plan-safety', typescript).
 rule_implementation('req-status-vocabulary', prolog).
+rule_implementation('retired-reason-missing', prolog).
+rule_implementation('retired-owner-only', prolog).
 rule_implementation('strict-fact-shape', prolog).
 rule_implementation('strict-req-fact-pairing', prolog).
 rule_implementation('predicate-verifiability', prolog).
@@ -213,6 +219,8 @@ rule_predicate('logic-coverage', check_logic_coverage).
 rule_predicate('rule-safety', check_rule_safety).
 rule_predicate('rule-verifiability', check_rule_verifiability).
 rule_predicate('req-status-vocabulary', check_req_status_vocabulary).
+rule_predicate('retired-reason-missing', check_retired_reason_missing).
+rule_predicate('retired-owner-only', check_retired_owner_only).
 rule_predicate('strict-fact-shape', check_strict_fact_shape).
 rule_predicate('strict-req-fact-pairing', check_strict_req_fact_pairing).
 rule_predicate('predicate-verifiability', check_predicate_verifiability).
@@ -251,6 +259,8 @@ rule_predicate_arity('logic-coverage', 1).
 rule_predicate_arity('rule-safety', 1).
 rule_predicate_arity('rule-verifiability', 1).
 rule_predicate_arity('req-status-vocabulary', 1).
+rule_predicate_arity('retired-reason-missing', 1).
+rule_predicate_arity('retired-owner-only', 1).
 rule_predicate_arity('strict-fact-shape', 1).
 rule_predicate_arity('strict-req-fact-pairing', 1).
 rule_predicate_arity('predicate-verifiability', 1).
@@ -276,7 +286,7 @@ rule_description('symbol-traceability', 'Production symbols must directly implem
 rule_description('symbol-granularity', 'A symbol with traceability relationships must not link its source file coarsely while narrower behavioral symbols are available, unless it carries an allowed granularity_reason; the staged gate\'s symbol_granularity_violation evaluated KB-wide').
 rule_description('symbol-coordinates-missing', 'Advisory: an active symbol names a source file that exists, but Kibi could not place it there (the declaration was not found, the file is unreadable to the analyzer, or a declared plugin or grammar pack is missing), so its link is checked against no code').
 rule_description('no-dangling-refs', 'All relationship targets must exist in the KB').
-rule_description('source-relationship-parity', 'Authored Markdown and relationship-shard edges must exactly match the compiled KB').
+rule_description('source-relationship-parity', 'Authored Markdown and relationship-shard edges must exactly match the compiled KB, and authored sources must declare each entity id once').
 rule_description('branch-store-not-compiled', 'The current branch\'s KB store must be compiled from the authored .kb/ sources; a missing or empty store is reported once, naming kibi sync, instead of every store-backed rule reading an empty KB').
 rule_description('source-path-dangling', 'An authored entity\'s source field must name an existing workspace path (a #anchor suffix is ignored), an existing entity id, or an http(s) URL; a missing source is allowed').
 rule_description('no-cycles', 'No circular dependency chains in requirements').
@@ -294,7 +304,9 @@ rule_description('logic-coverage', 'Require every explicitly declared atomic req
 rule_description('rule-safety', 'Stored Logic IR rules use only the typed, bounded, stratified vocabulary').
 rule_description('rule-verifiability', 'Requirement rule links resolve to safe rules and registered rule schemas').
 rule_description('query-plan-safety', 'Detect Prolog validation clauses that place negation before generator calls').
-rule_description('req-status-vocabulary', 'Requirement statuses must use the canonical vocabulary (open, in_progress, closed; legacy: active, approved); ADR statuses such as accepted silently fall out of the proof ladder').
+rule_description('req-status-vocabulary', 'Requirement statuses must use the canonical vocabulary (open, in_progress, closed, retired; legacy: active, approved); ADR statuses such as accepted silently fall out of the proof ladder').
+rule_description('retired-reason-missing', 'A requirement with status retired must state retired_reason: why the behavior it stated no longer exists').
+rule_description('retired-owner-only', 'A current fact, scenario or test whose every owning requirement is retired describes behavior that no longer exists; relink it to the current owner or archive it').
 rule_description('strict-fact-shape', 'Detect malformed strict facts (facts with fact_kind that are missing required fields)').
 rule_description('strict-req-fact-pairing', 'Detect requirements with incomplete strict subject/property fact pairing for contradiction-safe semantics').
 rule_description('predicate-verifiability', 'Detect requires_predicate links that do not target ground fact_kind: predicate facts').
@@ -312,7 +324,7 @@ rule_description('exception-unapproved', 'Advisory: a current exception requirem
 rule_description('exception-approval-self-attested', 'Advisory: an agent-authored exception records approved_by but no human corroborated it (origin.approved_by or approval_ref is missing), so a human should confirm the approval').
 rule_description('agent-requirement-unapproved', 'Informational: current requirements authored by an agent (origin.kind agent) that no human has approved (origin.approved_by), listed up to 25 per check').
 rule_description('requirement-rationale-missing', 'Advisory: a current requirement authored by a human or an agent (origin.kind human or agent) states no rationale: no rationale field, no Rationale or Why section in its body, and no link to an ADR; listed up to 25 per check plus one summary finding').
-rule_description('symbol-owner-superseded', 'Advisory: a symbol whose every implements target is superseded or deprecated has no current owning requirement; listed up to 25 per check plus one summary finding').
+rule_description('symbol-owner-superseded', 'Advisory: a symbol whose every implements target is superseded, deprecated or retired has no current owning requirement; listed up to 25 per check plus one summary finding').
 rule_description('adr-unlinked', 'Advisory: an accepted ADR that no requirement or other ADR is linked with (relates_to, supersedes or any typed edge, in either direction)').
 rule_description('adr-proposed', 'Informational: an ADR that is still proposed and not superseded, so nobody accepted or withdrew the decision').
 rule_description('predicate-schema-conformance', 'Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants').

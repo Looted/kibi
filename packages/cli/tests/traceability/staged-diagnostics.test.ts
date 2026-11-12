@@ -1,13 +1,5 @@
-// implements REQ-014
 import { afterEach, describe, expect, test } from "bun:test";
-import {
-  KIBI_NO_IMPACT_DECLARATION,
-  type KibiImpactEvidence,
-} from "../../src/traceability/evidence-model.js";
-import {
-  collectStagedKibiDiagnostics,
-  createMissingOverrideRationaleDiagnostic,
-} from "../../src/traceability/staged-diagnostics.js";
+import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
@@ -17,8 +9,8 @@ afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;
 });
 
-describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rendering", () => {
-  test("names the symbols manifest and returns early for empty overrides", () => {
+describe("collectStagedKibiDiagnostics symbols_manifest_stale rendering", () => {
+  test("names the symbols manifest", () => {
     restores.push(isolateKibiEnv());
     const derived = collectStagedKibiDiagnostics(
       {
@@ -36,41 +28,6 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale and override rende
       true,
     );
     expect(derived[0]?.files[0]).toBe("docs/symbols.yaml");
-
-    const emptyOverride: KibiImpactEvidence = {
-      sourceChanges: [],
-      symbolsManifest: {
-        path: ".kb/symbols.yaml",
-        state: "not_required",
-        sourcePaths: [],
-      },
-      mode: {
-        kind: "no_impact_override",
-        override: {
-          declaration: KIBI_NO_IMPACT_DECLARATION,
-          path: ".kb/facts/FACT-none.md",
-          sourcePaths: [],
-          reason: "false_positive",
-          rationale: "not needed",
-        },
-      },
-    };
-    expect(collectStagedKibiDiagnostics(emptyOverride)).toEqual([]);
-  });
-
-  test("rejects override-rationale diagnostics without a no-impact override", () => {
-    restores.push(isolateKibiEnv());
-    expect(() =>
-      createMissingOverrideRationaleDiagnostic({
-        sourceChanges: [],
-        symbolsManifest: {
-          path: ".kb/symbols.yaml",
-          state: "not_required",
-          sourcePaths: [],
-        },
-        mode: { kind: "missing" },
-      }),
-    ).toThrow(/no-impact override/);
   });
 
   test("names uncovered symbols in the Detail lines and author-first suggestion", () => {

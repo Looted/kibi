@@ -6,8 +6,6 @@ import { pathToFileURL } from "node:url";
 import { loadPluginPackage } from "../../src/plugins/load-plugin.js";
 import type { ResolvedProjectPackage } from "../../src/plugins/resolve-package.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
-
 function resolved(version?: unknown): ResolvedProjectPackage {
   return {
     packageName: "demo-plugin",

@@ -26,7 +26,6 @@
  */
 
 /** How an entity entered the knowledge base. */
-// implements REQ-kibi-entity-origin
 export const ENTITY_ORIGIN_KINDS = [
   "human",
   "agent",
@@ -34,10 +33,8 @@ export const ENTITY_ORIGIN_KINDS = [
   "import",
 ] as const;
 
-// implements REQ-kibi-entity-origin
 export type EntityOriginKind = (typeof ENTITY_ORIGIN_KINDS)[number];
 
-// implements REQ-kibi-entity-origin
 export type EntityOrigin = {
   /** human | agent | migration | import */
   kind: EntityOriginKind;
@@ -50,14 +47,12 @@ export type EntityOrigin = {
 };
 
 /** `ref` recorded on entities backfilled by the schema v5 -> v6 migration. */
-// implements REQ-kibi-entity-origin
 export const SCHEMA6_MIGRATION_ORIGIN_REF = "kibi migrate v5->v6";
 
 const ISO_TIMESTAMP_PATTERN =
   "^\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?(?:Z|[+-]\\d{2}:?\\d{2})?)?$";
 
 /** JSON Schema shared by the entity schema and the kb_upsert input schema. */
-// implements REQ-kibi-entity-origin
 export const ENTITY_ORIGIN_SCHEMA = {
   type: "object",
   required: ["kind"],
@@ -106,7 +101,6 @@ function nonEmptyText(value: unknown): string | undefined {
  * `recorded_at` into a Date; it is stored as its ISO-8601 string. Returns the
  * reason when the mapping is not a valid origin.
  */
-// implements REQ-kibi-entity-origin, REQ-007
 export function normalizeEntityOrigin(
   value: unknown,
 ): { origin: EntityOrigin } | { error: string } {
@@ -121,10 +115,7 @@ export function normalizeEntityOrigin(
     };
   }
   const kind = value.kind;
-  if (
-    typeof kind !== "string" ||
-    !(ENTITY_ORIGIN_KINDS as readonly string[]).includes(kind)
-  ) {
+  if (!(ENTITY_ORIGIN_KINDS as readonly unknown[]).includes(kind)) {
     return {
       error: `origin.kind must be one of ${ENTITY_ORIGIN_KINDS.join(", ")}`,
     };
@@ -145,13 +136,11 @@ export function normalizeEntityOrigin(
           ? undefined
           : value.recorded_at.toISOString()
         : nonEmptyText(value.recorded_at);
-    if (
-      recordedAt === undefined ||
-      !new RegExp(ISO_TIMESTAMP_PATTERN).test(recordedAt)
-    ) {
+    // A missing value reads as "undefined", which is no timestamp.
+    if (!new RegExp(ISO_TIMESTAMP_PATTERN).test(String(recordedAt))) {
       return { error: "origin.recorded_at must be an ISO-8601 timestamp" };
     }
-    origin.recorded_at = recordedAt;
+    origin.recorded_at = recordedAt as string;
   }
   return { origin };
 }
@@ -160,15 +149,14 @@ export function normalizeEntityOrigin(
  * Read an origin from a compiled entity row: an object at the public
  * boundary, or the JSON string Prolog stores. Malformed values read as absent.
  */
-// implements REQ-kibi-entity-origin
 export function readEntityOrigin(value: unknown): EntityOrigin | null {
   let candidate = value;
-  if (typeof candidate === "string") {
-    try {
-      candidate = JSON.parse(candidate) as unknown;
-    } catch {
-      return null;
-    }
+  try {
+    // JSON.parse stringifies a non-string first: an object fails to parse
+    // and stays as it is, and a primitive is no origin mapping either way.
+    candidate = JSON.parse(value as string) as unknown;
+  } catch {
+    // A non-JSON string stays a string, which is no origin mapping.
   }
   const normalized = normalizeEntityOrigin(candidate);
   return "origin" in normalized ? normalized.origin : null;

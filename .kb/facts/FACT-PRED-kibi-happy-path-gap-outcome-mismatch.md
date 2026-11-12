@@ -3,6 +3,7 @@ title: kibi check reports a rejection scenario whose assumptions the requirement
 status: active
 fact_kind: predicate
 predicate_name: check_rule_policy
+predicate_namespace: kibi.check
 predicate_args:
   - scenario_outcome_mismatch
   - rejection_scenario_whose_assumptions_requirements_permit

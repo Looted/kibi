@@ -20,7 +20,10 @@ import {
   loadEntities,
   loadEntitiesPaged,
 } from "../../public/operations/discovery-entities.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import type {
+  FilesystemPort,
+  OperationContext,
+} from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
 import { proofReceiptHistoryErrors } from "../../public/proof-receipt.js";
 import { projectEntityProperties } from "../mutation/entity-projection.js";
@@ -37,7 +40,6 @@ import {
 } from "./receipt-compaction.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type CompactReceiptsArgs = Readonly<{
   /** Compact a single test entity only. */
   testId?: string;
@@ -45,7 +47,6 @@ export type CompactReceiptsArgs = Readonly<{
   dryRun?: boolean;
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type CompactReceiptsTestResult = Readonly<{
   testId: string;
   before: number;
@@ -53,7 +54,6 @@ export type CompactReceiptsTestResult = Readonly<{
   removed: number;
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type CompactReceiptsResult = Readonly<{
   policy: typeof PROOF_RECEIPT_COMPACTION_POLICY;
   snapshot: string;
@@ -64,12 +64,13 @@ export type CompactReceiptsResult = Readonly<{
 }>;
 
 function receiptRecords(value: unknown): Readonly<Record<string, unknown>>[] {
-  return Array.isArray(value)
-    ? value.filter(
-        (entry): entry is Readonly<Record<string, unknown>> =>
-          typeof entry === "object" && entry !== null && !Array.isArray(entry),
-      )
-    : [];
+  // A missing history flattens to [undefined], which the filter drops.
+  return [value]
+    .flat()
+    .filter(
+      (entry): entry is Readonly<Record<string, unknown>> =>
+        typeof entry === "object" && entry !== null && !Array.isArray(entry),
+    );
 }
 
 /**
@@ -79,7 +80,6 @@ function receiptRecords(value: unknown): Readonly<Record<string, unknown>>[] {
  * the receipt-stripped document (an input of the per-contract binding) and
  * therefore every receipt's freshness are unchanged by the rewrite.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function rewriteReceiptHistory(
   test: Readonly<Record<string, unknown>>,
   nextReceipts: readonly Readonly<Record<string, unknown>>[],
@@ -87,22 +87,26 @@ export async function rewriteReceiptHistory(
 ): Promise<void> {
   const testId = String(test.id);
   let sourceDocumentOverride: string | undefined;
-  const source = typeof test.source === "string" ? test.source : "";
-  if (context.fs && /\.(md|mdx)$/i.test(source)) {
+  // RegExp#test coerces a non-string source; one that still ends in .md (an
+  // array, say) is rejected by resolveContainedSourcePath, and a missing
+  // filesystem fails the read. Both throws land in the catch below, which
+  // falls back to the canonical render exactly like a non-markdown source.
+  const source = test.source as string;
+  if (/\.(md|mdx)$/i.test(source)) {
     try {
       const absolute = resolveContainedSourcePath(
         context.workspaceRoot,
         source,
       );
-      const before = await context.fs.readFile(absolute);
+      const before = await (context.fs as FilesystemPort).readFile(absolute);
       sourceDocumentOverride =
         patchReceiptsIntoDocument(before, nextReceipts) ?? undefined;
     } catch {
-      sourceDocumentOverride = undefined;
+      // Unreadable or unpatchable document: keep the canonical render.
     }
   }
+  // The spread below replaces any stale proof_receipts property.
   const properties = projectEntityProperties(test);
-  properties.proof_receipts = undefined;
   await executeUpsert(
     {
       type: "test",
@@ -127,7 +131,6 @@ export async function rewriteReceiptHistory(
  * are not structurally valid are reported and left untouched, because an
  * invalid history decides `invalid` and must stay visible.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function executeCompactReceipts(
   args: CompactReceiptsArgs,
   context: OperationContext,

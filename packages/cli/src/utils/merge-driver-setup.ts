@@ -24,7 +24,6 @@ import path from "node:path";
  * The command that runs the project's local kibi, chosen from its lockfile so
  * a pnpm, Yarn or Bun repository is not told to use npm.
  */
-// implements REQ-cli-doctor
 export function localKibiCommand(cwd: string): string {
   const has = (file: string) => existsSync(path.join(cwd, file));
   if (has("pnpm-lock.yaml")) return "pnpm exec kibi";
@@ -33,16 +32,39 @@ export function localKibiCommand(cwd: string): string {
   return "npm exec --no -- kibi";
 }
 
-/** How to route the authored manifests to `kibi merge-driver`. */
-// implements REQ-cli-doctor
-export function mergeDriverSetup(cwd?: string): string {
+/** The gap {@link manifestMergeDriverGaps} reports for a missing attribute. */
+export const MERGE_ATTRIBUTE_GAP =
+  ".kb/symbols.yaml is not routed to merge=kibi";
+
+/** The gap {@link manifestMergeDriverGaps} reports for an unset driver. */
+export const MERGE_DRIVER_GAP = "merge.kibi.driver is not set";
+
+/**
+ * How to route the authored manifests to `kibi merge-driver`. Given the
+ * gaps {@link manifestMergeDriverGaps} found, it names only the missing
+ * steps, so a repository whose `.gitattributes` already routes the manifests
+ * is not told to add them again.
+ */
+export function mergeDriverSetup(
+  cwd?: string,
+  gaps: readonly string[] = [MERGE_ATTRIBUTE_GAP, MERGE_DRIVER_GAP],
+): string {
   const command =
     cwd === undefined ? "npm exec --no -- kibi" : localKibiCommand(cwd);
-  return `Add to .gitattributes: ".kb/symbols.yaml merge=kibi" and ".kb/relationships/*.yaml merge=kibi"; then run: git config merge.kibi.driver "${command} merge-driver %O %A %B" (see docs/cli-reference.md#kibi-merge-driver-base-current-other).`;
+  const attribute = gaps.includes(MERGE_ATTRIBUTE_GAP)
+    ? 'Add to .gitattributes: ".kb/symbols.yaml merge=kibi" and ".kb/relationships/*.yaml merge=kibi"'
+    : "";
+  const driver = gaps.includes(MERGE_DRIVER_GAP)
+    ? `git config merge.kibi.driver "${command} merge-driver %O %A %B"`
+    : "";
+  const steps =
+    attribute && driver
+      ? `${attribute}; then run: ${driver}`
+      : attribute || `Run: ${driver}`;
+  return `${steps} (see docs/cli-reference.md#kibi-merge-driver-base-current-other).`;
 }
 
 /** The npm form of {@link mergeDriverSetup}. */
-// implements REQ-cli-doctor
 export const MERGE_DRIVER_SETUP = mergeDriverSetup();
 
 /** Trimmed stdout of a git command, or "" when it fails. */
@@ -80,7 +102,6 @@ function hasSymbolRecords(cwd: string): boolean {
  * when both are set, and null outside a Git work tree or while the
  * manifest holds no symbol records (nothing to conflict on yet).
  */
-// implements REQ-cli-doctor
 export function manifestMergeDriverGaps(cwd: string): string[] | null {
   if (gitOutput(cwd, ["rev-parse", "--is-inside-work-tree"]) !== "true") {
     return null;
@@ -90,7 +111,7 @@ export function manifestMergeDriverGaps(cwd: string): string[] | null {
   const routed = attribute.endsWith(": merge: kibi");
   const driver = gitOutput(cwd, ["config", "--get", "merge.kibi.driver"]);
   return [
-    ...(routed ? [] : [".kb/symbols.yaml is not routed to merge=kibi"]),
-    ...(driver ? [] : ["merge.kibi.driver is not set"]),
+    ...(routed ? [] : [MERGE_ATTRIBUTE_GAP]),
+    ...(driver ? [] : [MERGE_DRIVER_GAP]),
   ];
 }

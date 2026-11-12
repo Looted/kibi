@@ -1,4 +1,3 @@
-// implements REQ-cli-doctor
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
 import * as fs from "node:fs";

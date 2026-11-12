@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
 import type { ChildProcess } from "node:child_process";
-// implements REQ-core-prolog-process-management
 import { EventEmitter } from "node:events";
 import * as fs from "node:fs";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -74,6 +73,8 @@ type FakeChild = EventEmitter & {
   killed: boolean;
   kill: (signal?: NodeJS.Signals) => boolean;
 };
+
+const STDERR_FRAME_END = "__KIBI_QUERY_STDERR_END__\n";
 
 function asSpawn(impl: () => FakeChild | never): typeof childProcess.spawn {
   return impl as unknown as typeof childProcess.spawn;
@@ -641,6 +642,7 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     let queryWrites = 0;
     stdin().write = (chunk: string) => {
       queryWrites += 1;
+      last().stderr?.emit("data", Buffer.from(STDERR_FRAME_END));
       last().stdout?.emit(
         "data",
         Buffer.from("X = 1.\n__KIBI_QUERY_FRAME_END__\ntrue.\n\n"),
@@ -686,6 +688,7 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     const writes: string[] = [];
     stdin().write = (chunk: string) => {
       writes.push(String(chunk));
+      last().stderr?.emit("data", Buffer.from(STDERR_FRAME_END));
       last().stdout?.emit(
         "data",
         Buffer.from("__KIBI_QUERY_FRAME_END__\ntrue.\n\n"),
@@ -729,6 +732,7 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     stdin().write = () => {
       // SWI writes the marker, then answers the writeln/1 goal separately.
       last().stdout?.emit("data", Buffer.from("X = 1.\n\n"));
+      last().stderr?.emit("data", Buffer.from(STDERR_FRAME_END));
       last().stdout?.emit("data", Buffer.from("__KIBI_QUERY_FRAME_END__\n"));
       return true;
     };
@@ -746,6 +750,64 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     const result = await pending;
     expect(result.success).toBe(true);
     expect(result.bindings.X).toBe("1");
+    await prolog.terminate();
+  });
+
+  test("waits for the stderr frame end so late diagnostics still classify the answer", async () => {
+    const restoreEnvFn = isolateKibiEnv();
+    restores.push(restoreEnvFn);
+    const children: FakeChild[] = [];
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const created = fakeChild({ echoTrue: true });
+        children.push(created);
+        return created;
+      }),
+    );
+    restores.push(() => spawn.mockRestore());
+    const last = (): FakeChild => {
+      const child = children.at(-1);
+      if (child === undefined) throw new Error("spawn was not called");
+      return child;
+    };
+    const prolog = new PrologProcess({
+      swiplPath: "/usr/bin/env",
+      oneShot: false,
+      timeout: 2_000,
+    });
+    await prolog.start();
+    const stdin = last().stdin;
+    if (!stdin) throw new Error("spawned Prolog child has no stdin");
+    let written = "";
+    stdin.write = (chunk: string) => {
+      written += String(chunk);
+      // The stdout pipe is read before the stderr pipe in this turn.
+      last().stdout?.emit(
+        "data",
+        Buffer.from("false.\n\n__KIBI_QUERY_FRAME_END__\ntrue.\n\n"),
+      );
+      return true;
+    };
+    let settled = false;
+    const pending = prolog.query("atom_length(X, _)").then((result) => {
+      settled = true;
+      return result;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(settled).toBe(false);
+    expect(written).toContain(
+      `writeln(user_error, '__KIBI_QUERY_STDERR_END__')`,
+    );
+    last().stderr?.emit(
+      "data",
+      Buffer.from(
+        `ERROR: Arguments are not sufficiently instantiated\n${STDERR_FRAME_END}`,
+      ),
+    );
+    const result = await pending;
+    expect(result.success).toBe(false);
+    expect(result.error).not.toContain("__KIBI_QUERY_STDERR_END__");
+    expect(result.error).not.toBe("Query failed");
     await prolog.terminate();
   });
 });

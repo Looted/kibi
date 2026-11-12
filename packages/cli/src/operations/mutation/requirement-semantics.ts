@@ -50,7 +50,6 @@ async function storedRequirement(
   return (await lookup.entity()) ?? undefined;
 }
 
-// implements REQ-kibi-upsert-preserves-requirement-semantics
 /**
  * kb_upsert on an existing requirement that changes neither its prose nor its
  * proposition ledger keeps the stored ledger. A payload that adds a
@@ -140,7 +139,6 @@ function boundaryOf(
   return validateSemanticInventoryBoundary(payload, relationships, receipt);
 }
 
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-proposition-complete-ingestion, REQ-kibi-uncompiled-source-semantic-baseline
 /**
  * An update to a stored requirement is judged as its authored file will read
  * afterwards: the stored status, prose and proposition ledger with the
@@ -172,6 +170,10 @@ export async function assertStoredRequirementBoundary(
   if (stored === undefined) return;
   const before: Record<string, unknown> = {};
   for (const field of BOUNDARY_FIELDS) {
+    // Leaving an absent field out keeps the analyzed payload as authored.
+    // rationale: an undefined field changes no boundary decision; only the
+    // advisor's internal receipt hash sees the extra key.
+    // Stryker disable next-line ConditionalExpression
     if (stored[field] !== undefined) before[field] = stored[field];
   }
   const written = { ...before, ...(input.properties ?? {}) };

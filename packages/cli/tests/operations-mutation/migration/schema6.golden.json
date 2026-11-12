@@ -1,0 +1,3578 @@
+{
+  "every planner reports work on a schema 4 knowledge base": {
+    "actions": [
+      {
+        "id": "polarity-value-backfill",
+        "code": "polarity_value_backfill",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["FACT-P1", "FACT-P2"],
+        "affectedFiles": [".kb/facts/FACT-P1.md", ".kb/facts/FACT-P2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "strict-fact-shape",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "count": 2,
+          "encoding": {
+            "operator": "eq",
+            "value_type": "bool",
+            "value_bool": true
+          },
+          "preserves": "IDs, polarity and authored body"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "entity-type-backfill",
+        "code": "entity_type_backfill",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-T1", "SCN-T1"],
+        "affectedFiles": [".kb/req/REQ-T1.md", ".kb/scenario/SCN-T1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "entitiesWithoutType": 0
+          }
+        ],
+        "evidence": {
+          "reason": "These entity files take their type from the folder. Every Kibi write states type in front matter, so the first kb_upsert on one would add a type line the change did not ask for. Each gets the folder-implied type as its last front matter key, the type kibi sync already reads.",
+          "count": 2,
+          "byType": {
+            "req": 1,
+            "scenario": 1
+          },
+          "skipped": [
+            {
+              "path": ".kb/x.md",
+              "reason": "odd"
+            }
+          ],
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "semantic-text-pin",
+        "code": "semantic_text_pin",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-S1"],
+        "affectedFiles": [".kb/req/REQ-S1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "requirementsWithoutSemanticText": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 8 stops reading context sections (Context, Rationale, Why, Background, Source, Notes, Evidence) as part of a requirement's meaning. Requirements that never stated semantic_text get the value the old derivation produced, so claim spans and hashes do not move.",
+          "count": 1,
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "context-missing-tag",
+        "code": "context_missing_tag",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["ADR-C1", "REQ-C1"],
+        "affectedFiles": [".kb/adr/ADR-C1.md", ".kb/req/REQ-C1.md"],
+        "dependsOn": ["semantic-text-pin"],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "entity-context-missing",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 8 blocks current requirements, scenarios, tests, ADRs and observation facts whose body states no context. Existing ones are tagged review:context-missing (acknowledged legacy, counted by entity-context-acknowledged); no prose is written and no reason is invented.",
+          "count": 2,
+          "byType": {
+            "adr": 1,
+            "req": 1
+          },
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "supersedes-reason-acknowledge",
+        "code": "supersedes_reason_acknowledge",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["ADR-U1", "REQ-U1"],
+        "affectedFiles": [".kb/manifest.json"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "supersedes-reason-missing",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 9 blocks a current requirement or ADR that supersedes another without a 'Why this changed' section. Existing ones are acknowledged in the manifest (counted by supersedes-reason-acknowledged); no reason is invented.",
+          "count": 2,
+          "byType": {
+            "adr": 1,
+            "req": 1
+          },
+          "preserves": "every authored source file"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "firm-supersede-acknowledge",
+        "code": "firm_supersede_acknowledge",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["ADR-F1", "REQ-F2"],
+        "affectedFiles": [".kb/manifest.json"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "decision-firm-superseded",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 10 reads a requirement or ADR without firmness as firm unless an agent wrote it, and blocks a replacement of a firm decision that is not itself firm. Supersedes recorded before that are acknowledged in the manifest; no firmness is written.",
+          "count": 3,
+          "edges": ["REQ-F2 -> REQ-F1", "REQ-F2 -> REQ-F0", "ADR-F1 -> ADR-F0"],
+          "preserves": "every authored source file"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "evidence-floor-pin",
+        "code": "evidence_floor_pin",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-E1"],
+        "affectedFiles": [".kb/req/REQ-E1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "evidence-floor",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 11 fails a current requirement whose evidence is below its floor, and a firm requirement without required_evidence needs tested evidence. These firm requirements are below tested (judged by the evidence ladder on the synced store when one could be read, else by their latest end-to-end receipt), so each records required_evidence: asserted in its front matter, where a reviewer can raise it once a proof exists.",
+          "count": 1,
+          "skipped": [
+            {
+              "id": "REQ-E2",
+              "path": "p",
+              "reason": "r"
+            }
+          ],
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "proof-contract-claims-pin",
+        "code": "proof_contract_claims_pin",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["TEST-K1"],
+        "affectedFiles": [".kb/test/TEST-K1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "reason": "Schema 12 requires every certificate-kind proof contract to name the claims it proves. Each of these tests reaches exactly one claim its proof kind can derive an obligation for, so the migration writes it to proof_contract.proves. The contract changes, so run kibi prove for these tests afterwards.",
+          "count": 1,
+          "skipped": [
+            {
+              "id": "TEST-K2",
+              "path": "p",
+              "reason": "r"
+            }
+          ],
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "proof-contract-claims-review-TEST-R1",
+        "code": "proof_contract_claims_review",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "TEST-R1 (.kb/tests/TEST-R1.md) has a regex proof contract, but its test reaches no modeled claim through a scenario. Link the test to the scenario of the requirement it proves, then add proof_contract.proves with the claim keys its certificate establishes and run kibi prove --test TEST-R1."
+        },
+        "affectedEntityIds": ["TEST-R1"],
+        "affectedFiles": [".kb/tests/TEST-R1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "proof-contract-claims",
+            "entityId": "TEST-R1",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "kind": "regex",
+          "candidates": []
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-REQ-SAFE",
+        "code": "semantic_inventory_rederive",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-SAFE"],
+        "affectedFiles": [".kb/requirements/REQ-SAFE.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-SAFE",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The stored semantic inventory no longer matches the current semantic advisor, so kibi sync rejects this requirement.",
+          "ingestionErrors": ["REQ-SAFE drifted"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contractHash": "hash-REQ-SAFE",
+          "rule": "Claims whose claim_key and claim_text still match keep their status and grounding; new or changed claims are unresolved, never modeled."
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-review-REQ-DROP",
+        "code": "semantic_inventory_review",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-DROP (.kb/requirements/REQ-DROP.md) no longer matches the current semantic advisor and cannot be re-derived automatically: REQ-DROP grounding is orphaned; second reason. Fix it in .kb/requirements/REQ-DROP.md itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. Or approve semantic-inventory-rederive-drop-grounding-REQ-DROP, which writes that contract and removes exactly the listed orphaned grounding links. To see how the advisor reads the prose, run `kibi model --input -` with {\"mode\":\"analyze\",\"type\":\"req\",\"id\":\"REQ-DROP\",\"text\":<the requirement's semantic_text, or its statement when it has none>}."
+        },
+        "affectedEntityIds": ["REQ-DROP"],
+        "affectedFiles": [".kb/requirements/REQ-DROP.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "ingestionErrors": ["REQ-DROP drifted"],
+          "reasons": ["REQ-DROP grounding is orphaned", "second reason"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-DROP"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-drop-grounding-REQ-DROP",
+        "code": "semantic_inventory_rederive_drop_grounding",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "semantic-inventory-rederive-drop-grounding-REQ-DROP"
+          ]
+        },
+        "affectedEntityIds": ["REQ-DROP"],
+        "affectedFiles": [".kb/requirements/REQ-DROP.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-DROP",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Re-derive the semantic inventory of REQ-DROP and drop the 1 grounding link(s) that no longer ground a modeled claim, so kibi sync accepts it. The modeled logic those links carried is removed from the requirement (the facts themselves stay); re-ground the claims later with kibi model if they still matter.",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action semantic-inventory-rederive-drop-grounding-REQ-DROP",
+          "droppedGrounding": [
+            {
+              "type": "requires_predicate",
+              "target": "FACT-1",
+              "claimKey": "CLAIM-1"
+            }
+          ],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-DROP",
+          "alternativeTo": "semantic-inventory-review-REQ-DROP"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-review-REQ-HAND",
+        "code": "semantic_inventory_review",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-HAND (.kb/requirements/REQ-HAND.md) no longer matches the current semantic advisor and cannot be re-derived automatically: REQ-HAND grounding is orphaned; second reason. Fix it in .kb/requirements/REQ-HAND.md itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. To see how the advisor reads the prose, run `kibi model --input -` with {\"mode\":\"analyze\",\"type\":\"req\",\"id\":\"REQ-HAND\",\"text\":<the requirement's semantic_text, or its statement when it has none>}."
+        },
+        "affectedEntityIds": ["REQ-HAND"],
+        "affectedFiles": [".kb/requirements/REQ-HAND.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "ingestionErrors": ["REQ-HAND drifted"],
+          "reasons": ["REQ-HAND grounding is orphaned", "second reason"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-HAND"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-delivered-map",
+        "code": "req_status_delivered_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-D1", "REQ-D2"],
+        "affectedFiles": [
+          ".kb/requirements/REQ-D1.md",
+          ".kb/requirements/REQ-D2.md"
+        ],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Delivery statuses are outside the entity schema, so kibi sync cannot compile these requirements and every store-backed tool misses them. Each becomes status closed with the tag implemented, which Kibi reads as a delivered requirement that still owes coverage; only the status line and the tags change.",
+          "count": 2,
+          "mappings": [
+            {
+              "requirementId": "REQ-D1",
+              "path": ".kb/requirements/REQ-D1.md",
+              "from": "implemented",
+              "to": "closed",
+              "tag": "implemented"
+            },
+            {
+              "requirementId": "REQ-D2",
+              "path": ".kb/requirements/REQ-D2.md",
+              "from": "done",
+              "to": "closed",
+              "tag": "implemented"
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M1",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M1"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M1"],
+        "affectedFiles": [".kb/requirements/REQ-M1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "open",
+          "mapping": "accepted -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M1",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M1 drifted"],
+            "safe": true,
+            "reasons": [],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M1",
+            "orphanedGrounding": [],
+            "rederiveAction": "semantic-inventory-rederive-REQ-M1"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-REQ-M1",
+        "code": "semantic_inventory_rederive",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M1",
+            "--approved-action",
+            "semantic-inventory-rederive-REQ-M1"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M1"],
+        "affectedFiles": [".kb/requirements/REQ-M1.md"],
+        "dependsOn": ["req-status-vocabulary-map-REQ-M1"],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-M1",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The stored semantic inventory no longer matches the current semantic advisor, so kibi sync rejects this requirement.",
+          "ingestionErrors": ["REQ-M1 drifted"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contractHash": "hash-REQ-M1",
+          "rule": "Claims whose claim_key and claim_text still match keep their status and grounding; new or changed claims are unresolved, never modeled.",
+          "afterStatus": "open",
+          "note": "This drift shows once the requirement has status open; approve it together with req-status-vocabulary-map-REQ-M1."
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M2",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M2"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M2"],
+        "affectedFiles": [".kb/requirements/REQ-M2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "open",
+          "mapping": "accepted -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M2",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M2 drifted"],
+            "safe": false,
+            "reasons": ["REQ-M2 grounding is orphaned", "second reason"],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M2",
+            "orphanedGrounding": [
+              {
+                "type": "requires_predicate",
+                "target": "FACT-1",
+                "claimKey": "CLAIM-1",
+                "inFrontMatter": true
+              }
+            ],
+            "rederiveAction": "semantic-inventory-rederive-drop-grounding-REQ-M2"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-drop-grounding-REQ-M2",
+        "code": "semantic_inventory_rederive_drop_grounding",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M2",
+            "--approved-action",
+            "semantic-inventory-rederive-drop-grounding-REQ-M2"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M2"],
+        "affectedFiles": [".kb/requirements/REQ-M2.md"],
+        "dependsOn": ["req-status-vocabulary-map-REQ-M2"],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-M2",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Re-derive the semantic inventory of REQ-M2 and drop the 1 grounding link(s) that no longer ground a modeled claim, so kibi sync accepts it. The modeled logic those links carried is removed from the requirement (the facts themselves stay); re-ground the claims later with kibi model if they still matter.",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M2 --approved-action semantic-inventory-rederive-drop-grounding-REQ-M2",
+          "afterStatus": "open",
+          "droppedGrounding": [
+            {
+              "type": "requires_predicate",
+              "target": "FACT-1",
+              "claimKey": "CLAIM-1"
+            }
+          ],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-M2"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M3",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M3"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M3"],
+        "affectedFiles": [".kb/requirements/REQ-M3.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "closed",
+          "mapping": "accepted -> closed",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M3",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M3 drifted"],
+            "safe": false,
+            "reasons": ["REQ-M3 grounding is orphaned", "second reason"],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M3",
+            "orphanedGrounding": [],
+            "note": "After the mapping, kibi sync rejects this requirement until its inventory is fixed by hand; rerun kibi migrate for the semantic_inventory_review action."
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M4",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M4"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M4"],
+        "affectedFiles": [".kb/requirements/REQ-M4.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status proposed is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "proposed",
+          "suggestedStatus": "open",
+          "mapping": "proposed -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M4",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M5",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M5"],
+        "affectedFiles": [".kb/requirements/REQ-M5.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status superseded is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "superseded",
+          "suggestedStatus": null,
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M6",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M6"],
+        "affectedFiles": [".kb/requirements/REQ-M6.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status weird is outside the entity schema, so kibi sync cannot compile the requirement at all.",
+          "status": "weird",
+          "suggestedStatus": null,
+          "extractionError": "status is not allowed",
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M7",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M7"],
+        "affectedFiles": [".kb/requirements/REQ-M7.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status draft is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "draft",
+          "suggestedStatus": null,
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M7 drifted"],
+            "safe": true,
+            "reasons": [],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M7",
+            "orphanedGrounding": [],
+            "rederiveAction": "semantic-inventory-rederive-REQ-M7"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "entity-origin-backfill",
+        "code": "entity_origin_backfill",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": [],
+        "affectedFiles": [".kb/"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "entitiesWithoutOrigin": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 6 records who authored each entity. Entities written before it get origin {kind: migration, ref: 'kibi migrate v5->v6', recorded_at}; the frontmatter is otherwise unchanged.",
+          "count": 3,
+          "byType": {
+            "req": 2,
+            "unknown": 1
+          },
+          "entityIds": ["REQ-O1", "REQ-O2", "X-O3"],
+          "skipped": [
+            {
+              "path": "p",
+              "reason": "r"
+            }
+          ],
+          "note": "Knowledge the schema upgrade moves into .kb/ is stamped when it moves."
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-exception-unapproved-REQ-EX1",
+        "code": "review_exception_unapproved",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-EX1 exempts REQ-BASE-A, REQ-BASE-B but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against REQ-BASE-A, REQ-BASE-B and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert REQ-EX1 with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: REQ-EX1, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+        },
+        "affectedEntityIds": ["REQ-BASE-A", "REQ-BASE-B", "REQ-EX1"],
+        "affectedFiles": [".kb/requirements/REQ-EX1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "exceptionId": "REQ-EX1",
+          "exempts": ["REQ-BASE-A", "REQ-BASE-B"]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-exception-unapproved-REQ-EX2",
+        "code": "review_exception_unapproved",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-EX2 exempts REQ-BASE-A but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against REQ-BASE-A and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert REQ-EX2 with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: REQ-EX2, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+        },
+        "affectedEntityIds": ["REQ-BASE-A", "REQ-EX2"],
+        "affectedFiles": [".kb/requirements/REQ-EX2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "exceptionId": "REQ-EX2",
+          "exempts": ["REQ-BASE-A"]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-exception-unapproved-REQ-EX5",
+        "code": "review_exception_unapproved",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-EX5 exempts REQ-BASE-C but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against REQ-BASE-C and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert REQ-EX5 with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: REQ-EX5, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+        },
+        "affectedEntityIds": ["REQ-BASE-C", "REQ-EX5"],
+        "affectedFiles": [".kb/requirements/REQ-EX5.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "exceptionId": "REQ-EX5",
+          "exempts": ["REQ-BASE-C"]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "close-superseded-requirements",
+        "code": "close_superseded_requirements",
+        "category": "quality",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-CL2"],
+        "affectedFiles": [".kb/requirements/REQ-CL2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "superseded-requirement-open",
+            "violations": 0
+          }
+        ],
+        "evidence": {
+          "reason": "A requirement another requirement supersedes is retired and must be closed (superseded-requirement-open). Each listed requirement gets status: closed; the rest of its file is unchanged.",
+          "count": 1,
+          "requirements": [
+            {
+              "id": "REQ-CL2",
+              "status": "open",
+              "supersededBy": ["REQ-N2"]
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-supersession-cycle-REQ-Y1-REQ-Y2",
+        "code": "review_supersession_cycle",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "Supersession cycle between REQ-Y1 and REQ-Y2 (REQ-Y1 supersedes REQ-Y2; REQ-Y2 supersedes REQ-Y1): none of them is current, so kibi migrate closes none of them. Decide which requirement states current intent, delete the supersedes link that points at it (kb_delete relationships [{type: supersedes, from: <other>, to: <current>}]), then set status: closed on the requirements it replaces."
+        },
+        "affectedEntityIds": ["REQ-Y1", "REQ-Y2"],
+        "affectedFiles": [".kb/requirements/REQ-Y1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "cycle": ["REQ-Y1", "REQ-Y2"],
+          "edges": [["REQ-Y1", "REQ-Y2"], ["REQ-Y2", "REQ-Y1"]]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "review-text-ref-dangling-REQ-R1",
+        "code": "review_source_path_dangling",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-R1 has text_ref 'docs/a.md' in .kb/requirements/REQ-R1.md, a file path that does not exist (multi-line). A person edits the frontmatter by hand: replace the whole field with the single line 'text_ref: .kb/docs/a.md'. Then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-R1"],
+        "affectedFiles": [".kb/requirements/REQ-R1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "entityId": "REQ-R1",
+          "field": "text_ref",
+          "text_ref": "docs/a.md",
+          "refused": "multi-line",
+          "rewrite": ".kb/docs/a.md"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-source-path-dangling-REQ-R2",
+        "code": "review_source_path_dangling",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-R2 has source 'gone.md' in .kb/requirements/REQ-R2.md, which kibi migrate would repair automatically but cannot edit safely (spans lines). The compiled source is always the entity's own file; Kibi ignores the authored field when compiling and never writes it. A person edits the frontmatter by hand: delete the whole field, every line of it. Then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-R2"],
+        "affectedFiles": [".kb/requirements/REQ-R2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "entityId": "REQ-R2",
+          "source": "gone.md",
+          "refused": "spans lines"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "source-path-rewrite",
+        "code": "source_path_rewrite",
+        "category": "quality",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-R3"],
+        "affectedFiles": [".kb/requirements/REQ-R3.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "source-path-dangling",
+            "violations": 0
+          },
+          {
+            "selfReferencingSources": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The authored source field is dead data: the compiled source is always the entity's own file, and Kibi ignores the field when compiling and never writes it. Each rewrite points a knowledge file named by its pre-canonical path (under documentation/, or relative to the knowledge root) at the same file under .kb/; a rewrite with field text_ref does the same for a text_ref evidence path. Each removal deletes a source value that names the entity's own file (reason self) or nothing Kibi can map (reason dangling). Only the rewritten or removed line changes.",
+          "count": 1,
+          "rewrites": [
+            {
+              "entityId": "REQ-R3",
+              "file": ".kb/requirements/REQ-R3.md",
+              "from": "requirements/REQ-R3.md",
+              "to": ".kb/requirements/REQ-R3.md"
+            }
+          ],
+          "removals": []
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "symbol-legacy-link-mark",
+        "code": "symbol_legacy_link_mark",
+        "category": "symbol",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["SYM-1"],
+        "affectedFiles": [".kb/symbol-coordinates.yaml", ".kb/symbols.yaml"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "symbol_granularity_violation",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "These symbols link a source file coarsely while it declares narrower behavioral symbols, so the staged check (kibi check --staged) blocks the next commit that touches them. Each gets granularity_reason: legacy-link (accepted legacy granularity); no link moves and no other field changes.",
+          "count": 1,
+          "manifestHash": "abc",
+          "symbols": [
+            {
+              "id": "SYM-1",
+              "file": "src/a.ts"
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      }
+    ],
+    "sourceRewriteActionIds": [
+      "polarity-value-backfill",
+      "entity-type-backfill",
+      "semantic-text-pin",
+      "context-missing-tag",
+      "supersedes-reason-acknowledge",
+      "firm-supersede-acknowledge",
+      "evidence-floor-pin",
+      "proof-contract-claims-pin",
+      "semantic-inventory-rederive-REQ-SAFE",
+      "req-status-delivered-map",
+      "entity-origin-backfill",
+      "close-superseded-requirements",
+      "source-path-rewrite",
+      "symbol-legacy-link-mark"
+    ],
+    "diagnostics": [
+      "2 requirement inventory(ies) need a manual fix before kibi sync succeeds; see the semantic_inventory_review actions."
+    ]
+  },
+  "an unknown schema version plans every step": {
+    "actions": [
+      {
+        "id": "polarity-value-backfill",
+        "code": "polarity_value_backfill",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["FACT-P1", "FACT-P2"],
+        "affectedFiles": [".kb/facts/FACT-P1.md", ".kb/facts/FACT-P2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "strict-fact-shape",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "count": 2,
+          "encoding": {
+            "operator": "eq",
+            "value_type": "bool",
+            "value_bool": true
+          },
+          "preserves": "IDs, polarity and authored body"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "entity-type-backfill",
+        "code": "entity_type_backfill",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-T1", "SCN-T1"],
+        "affectedFiles": [".kb/req/REQ-T1.md", ".kb/scenario/SCN-T1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "entitiesWithoutType": 0
+          }
+        ],
+        "evidence": {
+          "reason": "These entity files take their type from the folder. Every Kibi write states type in front matter, so the first kb_upsert on one would add a type line the change did not ask for. Each gets the folder-implied type as its last front matter key, the type kibi sync already reads.",
+          "count": 2,
+          "byType": {
+            "req": 1,
+            "scenario": 1
+          },
+          "skipped": [
+            {
+              "path": ".kb/x.md",
+              "reason": "odd"
+            }
+          ],
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "semantic-text-pin",
+        "code": "semantic_text_pin",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-S1"],
+        "affectedFiles": [".kb/req/REQ-S1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "requirementsWithoutSemanticText": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 8 stops reading context sections (Context, Rationale, Why, Background, Source, Notes, Evidence) as part of a requirement's meaning. Requirements that never stated semantic_text get the value the old derivation produced, so claim spans and hashes do not move.",
+          "count": 1,
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "context-missing-tag",
+        "code": "context_missing_tag",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["ADR-C1", "REQ-C1"],
+        "affectedFiles": [".kb/adr/ADR-C1.md", ".kb/req/REQ-C1.md"],
+        "dependsOn": ["semantic-text-pin"],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "entity-context-missing",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 8 blocks current requirements, scenarios, tests, ADRs and observation facts whose body states no context. Existing ones are tagged review:context-missing (acknowledged legacy, counted by entity-context-acknowledged); no prose is written and no reason is invented.",
+          "count": 2,
+          "byType": {
+            "adr": 1,
+            "req": 1
+          },
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "supersedes-reason-acknowledge",
+        "code": "supersedes_reason_acknowledge",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["ADR-U1", "REQ-U1"],
+        "affectedFiles": [".kb/manifest.json"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "supersedes-reason-missing",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 9 blocks a current requirement or ADR that supersedes another without a 'Why this changed' section. Existing ones are acknowledged in the manifest (counted by supersedes-reason-acknowledged); no reason is invented.",
+          "count": 2,
+          "byType": {
+            "adr": 1,
+            "req": 1
+          },
+          "preserves": "every authored source file"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "firm-supersede-acknowledge",
+        "code": "firm_supersede_acknowledge",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["ADR-F1", "REQ-F2"],
+        "affectedFiles": [".kb/manifest.json"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "decision-firm-superseded",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 10 reads a requirement or ADR without firmness as firm unless an agent wrote it, and blocks a replacement of a firm decision that is not itself firm. Supersedes recorded before that are acknowledged in the manifest; no firmness is written.",
+          "count": 3,
+          "edges": ["REQ-F2 -> REQ-F1", "REQ-F2 -> REQ-F0", "ADR-F1 -> ADR-F0"],
+          "preserves": "every authored source file"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "evidence-floor-pin",
+        "code": "evidence_floor_pin",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-E1"],
+        "affectedFiles": [".kb/req/REQ-E1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "evidence-floor",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 11 fails a current requirement whose evidence is below its floor, and a firm requirement without required_evidence needs tested evidence. These firm requirements are below tested (judged by the evidence ladder on the synced store when one could be read, else by their latest end-to-end receipt), so each records required_evidence: asserted in its front matter, where a reviewer can raise it once a proof exists.",
+          "count": 1,
+          "skipped": [
+            {
+              "id": "REQ-E2",
+              "path": "p",
+              "reason": "r"
+            }
+          ],
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "proof-contract-claims-pin",
+        "code": "proof_contract_claims_pin",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["TEST-K1"],
+        "affectedFiles": [".kb/test/TEST-K1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "reason": "Schema 12 requires every certificate-kind proof contract to name the claims it proves. Each of these tests reaches exactly one claim its proof kind can derive an obligation for, so the migration writes it to proof_contract.proves. The contract changes, so run kibi prove for these tests afterwards.",
+          "count": 1,
+          "skipped": [
+            {
+              "id": "TEST-K2",
+              "path": "p",
+              "reason": "r"
+            }
+          ],
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "proof-contract-claims-review-TEST-R1",
+        "code": "proof_contract_claims_review",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "TEST-R1 (.kb/tests/TEST-R1.md) has a regex proof contract, but its test reaches no modeled claim through a scenario. Link the test to the scenario of the requirement it proves, then add proof_contract.proves with the claim keys its certificate establishes and run kibi prove --test TEST-R1."
+        },
+        "affectedEntityIds": ["TEST-R1"],
+        "affectedFiles": [".kb/tests/TEST-R1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "proof-contract-claims",
+            "entityId": "TEST-R1",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "kind": "regex",
+          "candidates": []
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-REQ-SAFE",
+        "code": "semantic_inventory_rederive",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-SAFE"],
+        "affectedFiles": [".kb/requirements/REQ-SAFE.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-SAFE",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The stored semantic inventory no longer matches the current semantic advisor, so kibi sync rejects this requirement.",
+          "ingestionErrors": ["REQ-SAFE drifted"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contractHash": "hash-REQ-SAFE",
+          "rule": "Claims whose claim_key and claim_text still match keep their status and grounding; new or changed claims are unresolved, never modeled."
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-review-REQ-DROP",
+        "code": "semantic_inventory_review",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-DROP (.kb/requirements/REQ-DROP.md) no longer matches the current semantic advisor and cannot be re-derived automatically: REQ-DROP grounding is orphaned; second reason. Fix it in .kb/requirements/REQ-DROP.md itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. Or approve semantic-inventory-rederive-drop-grounding-REQ-DROP, which writes that contract and removes exactly the listed orphaned grounding links. To see how the advisor reads the prose, run `kibi model --input -` with {\"mode\":\"analyze\",\"type\":\"req\",\"id\":\"REQ-DROP\",\"text\":<the requirement's semantic_text, or its statement when it has none>}."
+        },
+        "affectedEntityIds": ["REQ-DROP"],
+        "affectedFiles": [".kb/requirements/REQ-DROP.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "ingestionErrors": ["REQ-DROP drifted"],
+          "reasons": ["REQ-DROP grounding is orphaned", "second reason"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-DROP"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-drop-grounding-REQ-DROP",
+        "code": "semantic_inventory_rederive_drop_grounding",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "semantic-inventory-rederive-drop-grounding-REQ-DROP"
+          ]
+        },
+        "affectedEntityIds": ["REQ-DROP"],
+        "affectedFiles": [".kb/requirements/REQ-DROP.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-DROP",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Re-derive the semantic inventory of REQ-DROP and drop the 1 grounding link(s) that no longer ground a modeled claim, so kibi sync accepts it. The modeled logic those links carried is removed from the requirement (the facts themselves stay); re-ground the claims later with kibi model if they still matter.",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action semantic-inventory-rederive-drop-grounding-REQ-DROP",
+          "droppedGrounding": [
+            {
+              "type": "requires_predicate",
+              "target": "FACT-1",
+              "claimKey": "CLAIM-1"
+            }
+          ],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-DROP",
+          "alternativeTo": "semantic-inventory-review-REQ-DROP"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-review-REQ-HAND",
+        "code": "semantic_inventory_review",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-HAND (.kb/requirements/REQ-HAND.md) no longer matches the current semantic advisor and cannot be re-derived automatically: REQ-HAND grounding is orphaned; second reason. Fix it in .kb/requirements/REQ-HAND.md itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. To see how the advisor reads the prose, run `kibi model --input -` with {\"mode\":\"analyze\",\"type\":\"req\",\"id\":\"REQ-HAND\",\"text\":<the requirement's semantic_text, or its statement when it has none>}."
+        },
+        "affectedEntityIds": ["REQ-HAND"],
+        "affectedFiles": [".kb/requirements/REQ-HAND.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "ingestionErrors": ["REQ-HAND drifted"],
+          "reasons": ["REQ-HAND grounding is orphaned", "second reason"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-HAND"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-delivered-map",
+        "code": "req_status_delivered_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-D1", "REQ-D2"],
+        "affectedFiles": [
+          ".kb/requirements/REQ-D1.md",
+          ".kb/requirements/REQ-D2.md"
+        ],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Delivery statuses are outside the entity schema, so kibi sync cannot compile these requirements and every store-backed tool misses them. Each becomes status closed with the tag implemented, which Kibi reads as a delivered requirement that still owes coverage; only the status line and the tags change.",
+          "count": 2,
+          "mappings": [
+            {
+              "requirementId": "REQ-D1",
+              "path": ".kb/requirements/REQ-D1.md",
+              "from": "implemented",
+              "to": "closed",
+              "tag": "implemented"
+            },
+            {
+              "requirementId": "REQ-D2",
+              "path": ".kb/requirements/REQ-D2.md",
+              "from": "done",
+              "to": "closed",
+              "tag": "implemented"
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M1",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M1"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M1"],
+        "affectedFiles": [".kb/requirements/REQ-M1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "open",
+          "mapping": "accepted -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M1",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M1 drifted"],
+            "safe": true,
+            "reasons": [],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M1",
+            "orphanedGrounding": [],
+            "rederiveAction": "semantic-inventory-rederive-REQ-M1"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-REQ-M1",
+        "code": "semantic_inventory_rederive",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M1",
+            "--approved-action",
+            "semantic-inventory-rederive-REQ-M1"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M1"],
+        "affectedFiles": [".kb/requirements/REQ-M1.md"],
+        "dependsOn": ["req-status-vocabulary-map-REQ-M1"],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-M1",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The stored semantic inventory no longer matches the current semantic advisor, so kibi sync rejects this requirement.",
+          "ingestionErrors": ["REQ-M1 drifted"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contractHash": "hash-REQ-M1",
+          "rule": "Claims whose claim_key and claim_text still match keep their status and grounding; new or changed claims are unresolved, never modeled.",
+          "afterStatus": "open",
+          "note": "This drift shows once the requirement has status open; approve it together with req-status-vocabulary-map-REQ-M1."
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M2",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M2"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M2"],
+        "affectedFiles": [".kb/requirements/REQ-M2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "open",
+          "mapping": "accepted -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M2",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M2 drifted"],
+            "safe": false,
+            "reasons": ["REQ-M2 grounding is orphaned", "second reason"],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M2",
+            "orphanedGrounding": [
+              {
+                "type": "requires_predicate",
+                "target": "FACT-1",
+                "claimKey": "CLAIM-1",
+                "inFrontMatter": true
+              }
+            ],
+            "rederiveAction": "semantic-inventory-rederive-drop-grounding-REQ-M2"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-drop-grounding-REQ-M2",
+        "code": "semantic_inventory_rederive_drop_grounding",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M2",
+            "--approved-action",
+            "semantic-inventory-rederive-drop-grounding-REQ-M2"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M2"],
+        "affectedFiles": [".kb/requirements/REQ-M2.md"],
+        "dependsOn": ["req-status-vocabulary-map-REQ-M2"],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-M2",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Re-derive the semantic inventory of REQ-M2 and drop the 1 grounding link(s) that no longer ground a modeled claim, so kibi sync accepts it. The modeled logic those links carried is removed from the requirement (the facts themselves stay); re-ground the claims later with kibi model if they still matter.",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M2 --approved-action semantic-inventory-rederive-drop-grounding-REQ-M2",
+          "afterStatus": "open",
+          "droppedGrounding": [
+            {
+              "type": "requires_predicate",
+              "target": "FACT-1",
+              "claimKey": "CLAIM-1"
+            }
+          ],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-M2"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M3",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M3"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M3"],
+        "affectedFiles": [".kb/requirements/REQ-M3.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "closed",
+          "mapping": "accepted -> closed",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M3",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M3 drifted"],
+            "safe": false,
+            "reasons": ["REQ-M3 grounding is orphaned", "second reason"],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M3",
+            "orphanedGrounding": [],
+            "note": "After the mapping, kibi sync rejects this requirement until its inventory is fixed by hand; rerun kibi migrate for the semantic_inventory_review action."
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M4",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M4"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M4"],
+        "affectedFiles": [".kb/requirements/REQ-M4.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status proposed is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "proposed",
+          "suggestedStatus": "open",
+          "mapping": "proposed -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M4",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M5",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M5"],
+        "affectedFiles": [".kb/requirements/REQ-M5.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status superseded is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "superseded",
+          "suggestedStatus": null,
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M6",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M6"],
+        "affectedFiles": [".kb/requirements/REQ-M6.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status weird is outside the entity schema, so kibi sync cannot compile the requirement at all.",
+          "status": "weird",
+          "suggestedStatus": null,
+          "extractionError": "status is not allowed",
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M7",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M7"],
+        "affectedFiles": [".kb/requirements/REQ-M7.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status draft is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "draft",
+          "suggestedStatus": null,
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M7 drifted"],
+            "safe": true,
+            "reasons": [],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M7",
+            "orphanedGrounding": [],
+            "rederiveAction": "semantic-inventory-rederive-REQ-M7"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "entity-origin-backfill",
+        "code": "entity_origin_backfill",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": [],
+        "affectedFiles": [".kb/"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "entitiesWithoutOrigin": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Schema 6 records who authored each entity. Entities written before it get origin {kind: migration, ref: 'kibi migrate v5->v6', recorded_at}; the frontmatter is otherwise unchanged.",
+          "count": 3,
+          "byType": {
+            "req": 2,
+            "unknown": 1
+          },
+          "entityIds": ["REQ-O1", "REQ-O2", "X-O3"],
+          "skipped": [
+            {
+              "path": "p",
+              "reason": "r"
+            }
+          ],
+          "note": "Knowledge the schema upgrade moves into .kb/ is stamped when it moves."
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-exception-unapproved-REQ-EX1",
+        "code": "review_exception_unapproved",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-EX1 exempts REQ-BASE-A, REQ-BASE-B but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against REQ-BASE-A, REQ-BASE-B and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert REQ-EX1 with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: REQ-EX1, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+        },
+        "affectedEntityIds": ["REQ-BASE-A", "REQ-BASE-B", "REQ-EX1"],
+        "affectedFiles": [".kb/requirements/REQ-EX1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "exceptionId": "REQ-EX1",
+          "exempts": ["REQ-BASE-A", "REQ-BASE-B"]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-exception-unapproved-REQ-EX2",
+        "code": "review_exception_unapproved",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-EX2 exempts REQ-BASE-A but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against REQ-BASE-A and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert REQ-EX2 with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: REQ-EX2, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+        },
+        "affectedEntityIds": ["REQ-BASE-A", "REQ-EX2"],
+        "affectedFiles": [".kb/requirements/REQ-EX2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "exceptionId": "REQ-EX2",
+          "exempts": ["REQ-BASE-A"]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-exception-unapproved-REQ-EX5",
+        "code": "review_exception_unapproved",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-EX5 exempts REQ-BASE-C but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against REQ-BASE-C and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert REQ-EX5 with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: REQ-EX5, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+        },
+        "affectedEntityIds": ["REQ-BASE-C", "REQ-EX5"],
+        "affectedFiles": [".kb/requirements/REQ-EX5.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "exceptionId": "REQ-EX5",
+          "exempts": ["REQ-BASE-C"]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "close-superseded-requirements",
+        "code": "close_superseded_requirements",
+        "category": "quality",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-CL2"],
+        "affectedFiles": [".kb/requirements/REQ-CL2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "superseded-requirement-open",
+            "violations": 0
+          }
+        ],
+        "evidence": {
+          "reason": "A requirement another requirement supersedes is retired and must be closed (superseded-requirement-open). Each listed requirement gets status: closed; the rest of its file is unchanged.",
+          "count": 1,
+          "requirements": [
+            {
+              "id": "REQ-CL2",
+              "status": "open",
+              "supersededBy": ["REQ-N2"]
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-supersession-cycle-REQ-Y1-REQ-Y2",
+        "code": "review_supersession_cycle",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "Supersession cycle between REQ-Y1 and REQ-Y2 (REQ-Y1 supersedes REQ-Y2; REQ-Y2 supersedes REQ-Y1): none of them is current, so kibi migrate closes none of them. Decide which requirement states current intent, delete the supersedes link that points at it (kb_delete relationships [{type: supersedes, from: <other>, to: <current>}]), then set status: closed on the requirements it replaces."
+        },
+        "affectedEntityIds": ["REQ-Y1", "REQ-Y2"],
+        "affectedFiles": [".kb/requirements/REQ-Y1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "cycle": ["REQ-Y1", "REQ-Y2"],
+          "edges": [["REQ-Y1", "REQ-Y2"], ["REQ-Y2", "REQ-Y1"]]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "review-text-ref-dangling-REQ-R1",
+        "code": "review_source_path_dangling",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-R1 has text_ref 'docs/a.md' in .kb/requirements/REQ-R1.md, a file path that does not exist (multi-line). A person edits the frontmatter by hand: replace the whole field with the single line 'text_ref: .kb/docs/a.md'. Then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-R1"],
+        "affectedFiles": [".kb/requirements/REQ-R1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "entityId": "REQ-R1",
+          "field": "text_ref",
+          "text_ref": "docs/a.md",
+          "refused": "multi-line",
+          "rewrite": ".kb/docs/a.md"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-source-path-dangling-REQ-R2",
+        "code": "review_source_path_dangling",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-R2 has source 'gone.md' in .kb/requirements/REQ-R2.md, which kibi migrate would repair automatically but cannot edit safely (spans lines). The compiled source is always the entity's own file; Kibi ignores the authored field when compiling and never writes it. A person edits the frontmatter by hand: delete the whole field, every line of it. Then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-R2"],
+        "affectedFiles": [".kb/requirements/REQ-R2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "entityId": "REQ-R2",
+          "source": "gone.md",
+          "refused": "spans lines"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "source-path-rewrite",
+        "code": "source_path_rewrite",
+        "category": "quality",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-R3"],
+        "affectedFiles": [".kb/requirements/REQ-R3.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "source-path-dangling",
+            "violations": 0
+          },
+          {
+            "selfReferencingSources": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The authored source field is dead data: the compiled source is always the entity's own file, and Kibi ignores the field when compiling and never writes it. Each rewrite points a knowledge file named by its pre-canonical path (under documentation/, or relative to the knowledge root) at the same file under .kb/; a rewrite with field text_ref does the same for a text_ref evidence path. Each removal deletes a source value that names the entity's own file (reason self) or nothing Kibi can map (reason dangling). Only the rewritten or removed line changes.",
+          "count": 1,
+          "rewrites": [
+            {
+              "entityId": "REQ-R3",
+              "file": ".kb/requirements/REQ-R3.md",
+              "from": "requirements/REQ-R3.md",
+              "to": ".kb/requirements/REQ-R3.md"
+            }
+          ],
+          "removals": []
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "symbol-legacy-link-mark",
+        "code": "symbol_legacy_link_mark",
+        "category": "symbol",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["SYM-1"],
+        "affectedFiles": [".kb/symbol-coordinates.yaml", ".kb/symbols.yaml"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "symbol_granularity_violation",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "These symbols link a source file coarsely while it declares narrower behavioral symbols, so the staged check (kibi check --staged) blocks the next commit that touches them. Each gets granularity_reason: legacy-link (accepted legacy granularity); no link moves and no other field changes.",
+          "count": 1,
+          "manifestHash": "abc",
+          "symbols": [
+            {
+              "id": "SYM-1",
+              "file": "src/a.ts"
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      }
+    ],
+    "sourceRewriteActionIds": [
+      "polarity-value-backfill",
+      "entity-type-backfill",
+      "semantic-text-pin",
+      "context-missing-tag",
+      "supersedes-reason-acknowledge",
+      "firm-supersede-acknowledge",
+      "evidence-floor-pin",
+      "proof-contract-claims-pin",
+      "semantic-inventory-rederive-REQ-SAFE",
+      "req-status-delivered-map",
+      "entity-origin-backfill",
+      "close-superseded-requirements",
+      "source-path-rewrite",
+      "symbol-legacy-link-mark"
+    ],
+    "diagnostics": [
+      "2 requirement inventory(ies) need a manual fix before kibi sync succeeds; see the semantic_inventory_review actions."
+    ]
+  },
+  "a current knowledge base plans only the version-independent repairs": {
+    "actions": [
+      {
+        "id": "polarity-value-backfill",
+        "code": "polarity_value_backfill",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["FACT-P1", "FACT-P2"],
+        "affectedFiles": [".kb/facts/FACT-P1.md", ".kb/facts/FACT-P2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "strict-fact-shape",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "count": 2,
+          "encoding": {
+            "operator": "eq",
+            "value_type": "bool",
+            "value_bool": true
+          },
+          "preserves": "IDs, polarity and authored body"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "entity-type-backfill",
+        "code": "entity_type_backfill",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-T1", "SCN-T1"],
+        "affectedFiles": [".kb/req/REQ-T1.md", ".kb/scenario/SCN-T1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "entitiesWithoutType": 0
+          }
+        ],
+        "evidence": {
+          "reason": "These entity files take their type from the folder. Every Kibi write states type in front matter, so the first kb_upsert on one would add a type line the change did not ask for. Each gets the folder-implied type as its last front matter key, the type kibi sync already reads.",
+          "count": 2,
+          "byType": {
+            "req": 1,
+            "scenario": 1
+          },
+          "skipped": [
+            {
+              "path": ".kb/x.md",
+              "reason": "odd"
+            }
+          ],
+          "preserves": "every other front matter key and the body bytes"
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-REQ-SAFE",
+        "code": "semantic_inventory_rederive",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-SAFE"],
+        "affectedFiles": [".kb/requirements/REQ-SAFE.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-SAFE",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The stored semantic inventory no longer matches the current semantic advisor, so kibi sync rejects this requirement.",
+          "ingestionErrors": ["REQ-SAFE drifted"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contractHash": "hash-REQ-SAFE",
+          "rule": "Claims whose claim_key and claim_text still match keep their status and grounding; new or changed claims are unresolved, never modeled."
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-review-REQ-DROP",
+        "code": "semantic_inventory_review",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-DROP (.kb/requirements/REQ-DROP.md) no longer matches the current semantic advisor and cannot be re-derived automatically: REQ-DROP grounding is orphaned; second reason. Fix it in .kb/requirements/REQ-DROP.md itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. Or approve semantic-inventory-rederive-drop-grounding-REQ-DROP, which writes that contract and removes exactly the listed orphaned grounding links. To see how the advisor reads the prose, run `kibi model --input -` with {\"mode\":\"analyze\",\"type\":\"req\",\"id\":\"REQ-DROP\",\"text\":<the requirement's semantic_text, or its statement when it has none>}."
+        },
+        "affectedEntityIds": ["REQ-DROP"],
+        "affectedFiles": [".kb/requirements/REQ-DROP.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "ingestionErrors": ["REQ-DROP drifted"],
+          "reasons": ["REQ-DROP grounding is orphaned", "second reason"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-DROP"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-drop-grounding-REQ-DROP",
+        "code": "semantic_inventory_rederive_drop_grounding",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "semantic-inventory-rederive-drop-grounding-REQ-DROP"
+          ]
+        },
+        "affectedEntityIds": ["REQ-DROP"],
+        "affectedFiles": [".kb/requirements/REQ-DROP.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-DROP",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Re-derive the semantic inventory of REQ-DROP and drop the 1 grounding link(s) that no longer ground a modeled claim, so kibi sync accepts it. The modeled logic those links carried is removed from the requirement (the facts themselves stay); re-ground the claims later with kibi model if they still matter.",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action semantic-inventory-rederive-drop-grounding-REQ-DROP",
+          "droppedGrounding": [
+            {
+              "type": "requires_predicate",
+              "target": "FACT-1",
+              "claimKey": "CLAIM-1"
+            }
+          ],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-DROP",
+          "alternativeTo": "semantic-inventory-review-REQ-DROP"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-review-REQ-HAND",
+        "code": "semantic_inventory_review",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-HAND (.kb/requirements/REQ-HAND.md) no longer matches the current semantic advisor and cannot be re-derived automatically: REQ-HAND grounding is orphaned; second reason. Fix it in .kb/requirements/REQ-HAND.md itself: kibi sync rejects this requirement, so store-backed tools (kb_upsert, kb_delete) cannot see it until it compiles. In its front matter, write the re-derived contract from this action's evidence.contract (semantic_inventory, logic_claims, semantic_source_hash and their version fields), then make modeled claims and requires_* links match one to one: re-ground or remove each listed grounding link, and keep a claim modeled only while a grounding fact with the same claim_key remains. Run kibi sync to confirm. To see how the advisor reads the prose, run `kibi model --input -` with {\"mode\":\"analyze\",\"type\":\"req\",\"id\":\"REQ-HAND\",\"text\":<the requirement's semantic_text, or its statement when it has none>}."
+        },
+        "affectedEntityIds": ["REQ-HAND"],
+        "affectedFiles": [".kb/requirements/REQ-HAND.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "ingestionErrors": ["REQ-HAND drifted"],
+          "reasons": ["REQ-HAND grounding is orphaned", "second reason"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-HAND"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-delivered-map",
+        "code": "req_status_delivered_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-D1", "REQ-D2"],
+        "affectedFiles": [
+          ".kb/requirements/REQ-D1.md",
+          ".kb/requirements/REQ-D2.md"
+        ],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Delivery statuses are outside the entity schema, so kibi sync cannot compile these requirements and every store-backed tool misses them. Each becomes status closed with the tag implemented, which Kibi reads as a delivered requirement that still owes coverage; only the status line and the tags change.",
+          "count": 2,
+          "mappings": [
+            {
+              "requirementId": "REQ-D1",
+              "path": ".kb/requirements/REQ-D1.md",
+              "from": "implemented",
+              "to": "closed",
+              "tag": "implemented"
+            },
+            {
+              "requirementId": "REQ-D2",
+              "path": ".kb/requirements/REQ-D2.md",
+              "from": "done",
+              "to": "closed",
+              "tag": "implemented"
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M1",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M1"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M1"],
+        "affectedFiles": [".kb/requirements/REQ-M1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "open",
+          "mapping": "accepted -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M1",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M1 drifted"],
+            "safe": true,
+            "reasons": [],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M1",
+            "orphanedGrounding": [],
+            "rederiveAction": "semantic-inventory-rederive-REQ-M1"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-REQ-M1",
+        "code": "semantic_inventory_rederive",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M1",
+            "--approved-action",
+            "semantic-inventory-rederive-REQ-M1"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M1"],
+        "affectedFiles": [".kb/requirements/REQ-M1.md"],
+        "dependsOn": ["req-status-vocabulary-map-REQ-M1"],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-M1",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The stored semantic inventory no longer matches the current semantic advisor, so kibi sync rejects this requirement.",
+          "ingestionErrors": ["REQ-M1 drifted"],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contractHash": "hash-REQ-M1",
+          "rule": "Claims whose claim_key and claim_text still match keep their status and grounding; new or changed claims are unresolved, never modeled.",
+          "afterStatus": "open",
+          "note": "This drift shows once the requirement has status open; approve it together with req-status-vocabulary-map-REQ-M1."
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M2",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M2"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M2"],
+        "affectedFiles": [".kb/requirements/REQ-M2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "open",
+          "mapping": "accepted -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M2",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M2 drifted"],
+            "safe": false,
+            "reasons": ["REQ-M2 grounding is orphaned", "second reason"],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M2",
+            "orphanedGrounding": [
+              {
+                "type": "requires_predicate",
+                "target": "FACT-1",
+                "claimKey": "CLAIM-1",
+                "inFrontMatter": true
+              }
+            ],
+            "rederiveAction": "semantic-inventory-rederive-drop-grounding-REQ-M2"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "semantic-inventory-rederive-drop-grounding-REQ-M2",
+        "code": "semantic_inventory_rederive_drop_grounding",
+        "category": "semantic",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M2",
+            "--approved-action",
+            "semantic-inventory-rederive-drop-grounding-REQ-M2"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M2"],
+        "affectedFiles": [".kb/requirements/REQ-M2.md"],
+        "dependsOn": ["req-status-vocabulary-map-REQ-M2"],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "check": "proposition-complete-ingestion",
+            "entityId": "REQ-M2",
+            "errors": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Re-derive the semantic inventory of REQ-M2 and drop the 1 grounding link(s) that no longer ground a modeled claim, so kibi sync accepts it. The modeled logic those links carried is removed from the requirement (the facts themselves stay); re-ground the claims later with kibi model if they still matter.",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M2 --approved-action semantic-inventory-rederive-drop-grounding-REQ-M2",
+          "afterStatus": "open",
+          "droppedGrounding": [
+            {
+              "type": "requires_predicate",
+              "target": "FACT-1",
+              "claimKey": "CLAIM-1"
+            }
+          ],
+          "summary": {
+            "keptModeled": 1,
+            "roleChanges": 2,
+            "newlyUnresolved": 3,
+            "droppedClaims": 4,
+            "downgradedModeled": 5
+          },
+          "changes": [
+            {
+              "claim_key": "CLAIM-NEW",
+              "change": "new_unresolved",
+              "after": {
+                "role": "normative",
+                "status": "missing"
+              }
+            }
+          ],
+          "contract": {
+            "semantic_inventory_version": "kibi.semantic-inventory.v1",
+            "semantic_source_field": "semantic_text",
+            "semantic_source_hash": "h",
+            "semantic_inventory": [],
+            "logic_claims": []
+          },
+          "contractHash": "hash-REQ-M2"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M3",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M3"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M3"],
+        "affectedFiles": [".kb/requirements/REQ-M3.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status accepted is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "accepted",
+          "suggestedStatus": "closed",
+          "mapping": "accepted -> closed",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M3",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M3 drifted"],
+            "safe": false,
+            "reasons": ["REQ-M3 grounding is orphaned", "second reason"],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M3",
+            "orphanedGrounding": [],
+            "note": "After the mapping, kibi sync rejects this requirement until its inventory is fixed by hand; rerun kibi migrate for the semantic_inventory_review action."
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M4",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": [
+            "kibi",
+            "migrate",
+            "--apply-safe",
+            "--approved-action",
+            "req-status-vocabulary-map-REQ-M4"
+          ]
+        },
+        "affectedEntityIds": ["REQ-M4"],
+        "affectedFiles": [".kb/requirements/REQ-M4.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status proposed is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "proposed",
+          "suggestedStatus": "open",
+          "mapping": "proposed -> open",
+          "approve": "kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action req-status-vocabulary-map-REQ-M4",
+          "choice": "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M5",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M5"],
+        "affectedFiles": [".kb/requirements/REQ-M5.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status superseded is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "superseded",
+          "suggestedStatus": null,
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M6",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M6"],
+        "affectedFiles": [".kb/requirements/REQ-M6.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status weird is outside the entity schema, so kibi sync cannot compile the requirement at all.",
+          "status": "weird",
+          "suggestedStatus": null,
+          "extractionError": "status is not allowed",
+          "latentDrift": null
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "req-status-vocabulary-map-REQ-M7",
+        "code": "req_status_vocabulary_map",
+        "category": "schema",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-M7"],
+        "affectedFiles": [".kb/requirements/REQ-M7.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "req-status-vocabulary",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "Status draft is ADR or lifecycle vocabulary, not a requirement status: the requirement is skipped by the proof ladder and kibi sync never validates its semantic inventory.",
+          "status": "draft",
+          "suggestedStatus": null,
+          "latentDrift": {
+            "ingestionErrors": ["REQ-M7 drifted"],
+            "safe": true,
+            "reasons": [],
+            "summary": {
+              "keptModeled": 1,
+              "roleChanges": 2,
+              "newlyUnresolved": 3,
+              "droppedClaims": 4,
+              "downgradedModeled": 5
+            },
+            "contractHash": "hash-REQ-M7",
+            "orphanedGrounding": [],
+            "rederiveAction": "semantic-inventory-rederive-REQ-M7"
+          }
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "close-superseded-requirements",
+        "code": "close_superseded_requirements",
+        "category": "quality",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-CL2"],
+        "affectedFiles": [".kb/requirements/REQ-CL2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "superseded-requirement-open",
+            "violations": 0
+          }
+        ],
+        "evidence": {
+          "reason": "A requirement another requirement supersedes is retired and must be closed (superseded-requirement-open). Each listed requirement gets status: closed; the rest of its file is unchanged.",
+          "count": 1,
+          "requirements": [
+            {
+              "id": "REQ-CL2",
+              "status": "open",
+              "supersededBy": ["REQ-N2"]
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-supersession-cycle-REQ-Y1-REQ-Y2",
+        "code": "review_supersession_cycle",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "Supersession cycle between REQ-Y1 and REQ-Y2 (REQ-Y1 supersedes REQ-Y2; REQ-Y2 supersedes REQ-Y1): none of them is current, so kibi migrate closes none of them. Decide which requirement states current intent, delete the supersedes link that points at it (kb_delete relationships [{type: supersedes, from: <other>, to: <current>}]), then set status: closed on the requirements it replaces."
+        },
+        "affectedEntityIds": ["REQ-Y1", "REQ-Y2"],
+        "affectedFiles": [".kb/requirements/REQ-Y1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "cycle": ["REQ-Y1", "REQ-Y2"],
+          "edges": [["REQ-Y1", "REQ-Y2"], ["REQ-Y2", "REQ-Y1"]]
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "deferred"]
+      },
+      {
+        "id": "review-text-ref-dangling-REQ-R1",
+        "code": "review_source_path_dangling",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-R1 has text_ref 'docs/a.md' in .kb/requirements/REQ-R1.md, a file path that does not exist (multi-line). A person edits the frontmatter by hand: replace the whole field with the single line 'text_ref: .kb/docs/a.md'. Then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-R1"],
+        "affectedFiles": [".kb/requirements/REQ-R1.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "entityId": "REQ-R1",
+          "field": "text_ref",
+          "text_ref": "docs/a.md",
+          "refused": "multi-line",
+          "rewrite": ".kb/docs/a.md"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "review-source-path-dangling-REQ-R2",
+        "code": "review_source_path_dangling",
+        "category": "quality",
+        "state": "ready",
+        "safety": "review",
+        "invocation": {
+          "kind": "review",
+          "instruction": "REQ-R2 has source 'gone.md' in .kb/requirements/REQ-R2.md, which kibi migrate would repair automatically but cannot edit safely (spans lines). The compiled source is always the entity's own file; Kibi ignores the authored field when compiling and never writes it. A person edits the frontmatter by hand: delete the whole field, every line of it. Then rerun kibi migrate."
+        },
+        "affectedEntityIds": ["REQ-R2"],
+        "affectedFiles": [".kb/requirements/REQ-R2.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [],
+        "evidence": {
+          "entityId": "REQ-R2",
+          "source": "gone.md",
+          "refused": "spans lines"
+        },
+        "autoApplicable": false,
+        "dispositionRequired": true,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "source-path-rewrite",
+        "code": "source_path_rewrite",
+        "category": "quality",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["REQ-R3"],
+        "affectedFiles": [".kb/requirements/REQ-R3.md"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "source-path-dangling",
+            "violations": 0
+          },
+          {
+            "selfReferencingSources": 0
+          }
+        ],
+        "evidence": {
+          "reason": "The authored source field is dead data: the compiled source is always the entity's own file, and Kibi ignores the field when compiling and never writes it. Each rewrite points a knowledge file named by its pre-canonical path (under documentation/, or relative to the knowledge root) at the same file under .kb/; a rewrite with field text_ref does the same for a text_ref evidence path. Each removal deletes a source value that names the entity's own file (reason self) or nothing Kibi can map (reason dangling). Only the rewritten or removed line changes.",
+          "count": 1,
+          "rewrites": [
+            {
+              "entityId": "REQ-R3",
+              "file": ".kb/requirements/REQ-R3.md",
+              "from": "requirements/REQ-R3.md",
+              "to": ".kb/requirements/REQ-R3.md"
+            }
+          ],
+          "removals": []
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      },
+      {
+        "id": "symbol-legacy-link-mark",
+        "code": "symbol_legacy_link_mark",
+        "category": "symbol",
+        "state": "ready",
+        "safety": "automatic",
+        "invocation": {
+          "kind": "cli",
+          "command_argv": ["kibi", "migrate", "--yes"]
+        },
+        "affectedEntityIds": ["SYM-1"],
+        "affectedFiles": [".kb/symbol-coordinates.yaml", ".kb/symbols.yaml"],
+        "dependsOn": [],
+        "preconditions": [],
+        "postconditions": [
+          {
+            "rule": "symbol_granularity_violation",
+            "findings": 0
+          }
+        ],
+        "evidence": {
+          "reason": "These symbols link a source file coarsely while it declares narrower behavioral symbols, so the staged check (kibi check --staged) blocks the next commit that touches them. Each gets granularity_reason: legacy-link (accepted legacy granularity); no link moves and no other field changes.",
+          "count": 1,
+          "manifestHash": "abc",
+          "symbols": [
+            {
+              "id": "SYM-1",
+              "file": "src/a.ts"
+            }
+          ]
+        },
+        "autoApplicable": true,
+        "dispositionRequired": false,
+        "allowedDispositions": ["fixed", "accepted", "deferred"]
+      }
+    ],
+    "sourceRewriteActionIds": [
+      "polarity-value-backfill",
+      "entity-type-backfill",
+      "semantic-inventory-rederive-REQ-SAFE",
+      "req-status-delivered-map",
+      "close-superseded-requirements",
+      "source-path-rewrite",
+      "symbol-legacy-link-mark"
+    ],
+    "diagnostics": [
+      "2 requirement inventory(ies) need a manual fix before kibi sync succeeds; see the semantic_inventory_review actions."
+    ]
+  },
+  "nothing to repair": {
+    "actions": [],
+    "sourceRewriteActionIds": [],
+    "diagnostics": []
+  }
+}

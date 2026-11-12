@@ -20,8 +20,6 @@ import {
 } from "../../../src/public/operations/schema6-check-actions.js";
 import { SOURCE_PATH_DANGLING_RULE } from "../../../src/public/operations/source-path-dangling.js";
 
-// implements REQ-kibi-lifecycle-check-codes
-
 /**
  * The codes kb_check gives the lifecycle findings and repair actions it reports.
  * Kibi reads every constant itself at ingest, so the certificate is checked against the code.

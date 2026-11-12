@@ -7,33 +7,12 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: covered_by
-    from: SYM-core-requirement-proof-context
-    to: TEST-kibi-conservative-requirement-proof
-    created_at: 2026-08-16T18:51:34.266Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-25e63f512c86
-  - type: implements
-    from: SYM-kibi-launcher-predicate-rules
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T08:28:31.441Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-49ad3ce6fa6b
-  - type: covered_by
     from: SYM-kibi-launcher-predicate-rules
     to: TEST-kibi-predicate-suggestion-relevance-v1
     created_at: 2026-08-21T08:28:31.460Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a46781689c99
-  - type: implements
-    from: 20446b29996b593e
-    to: REQ-kibi-predicate-suggestion-relevance-v1
-    created_at: 2026-08-21T10:54:17.354Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1fb237a31b0a
   - type: covered_by
     from: 20446b29996b593e
     to: TEST-kibi-predicate-suggestion-relevance-v1
@@ -42,110 +21,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8e95841e9cf4
   - type: covered_by
-    from: SYM-createTsMorphSourceAnalysisProvider
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-28T13:17:31.783Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2318a61bfae7
-  - type: covered_by
-    from: SYM-createTsMorphSourceAnalysisProvider
-    to: TEST-cli-sync-discovery-readme-ignore
-    created_at: 2026-09-05T15:25:02.758Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-34195a47eee8
-  - type: covered_by
     from: SYM-cursor-adapterKind
     to: TEST-cursor-kibi-plugin-v1
     created_at: 2026-09-05T15:37:57.549Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b95e04bff4f
-  - type: covered_by
-    from: SYM-getWorkspaceFolderUri
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:27:52.809Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b2f87af0eb44
-  - type: implements
-    from: SYM-cli-SagaStep
-    to: REQ-014
-    created_at: 2026-09-07T11:46:37.072Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ae2c469c87c5
-  - type: covered_by
-    from: SYM-cli-SagaStep
-    to: TEST-mcp-upsert-coverage
-    created_at: 2026-09-09T03:34:30.349Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aaa86b31dfa4
-  - type: covered_by
-    from: SYM-cli-SagaStep
-    to: TEST-011
-    created_at: 2026-09-09T06:03:19.126Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ebacea31b4d6
-  - type: implements
-    from: SYM-staged-file-coverage-record
-    to: REQ-AUTO-941B0CE68BAF3331
-    created_at: 2026-09-14T14:43:33.130Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-341a2305a576
-  - type: covered_by
-    from: SYM-staged-file-coverage-record
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-14T14:43:33.140Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b02dc745fe4e
-  - type: implements
-    from: SYM-zcode-proof-buildProofResults
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-09-17T08:50:32.958Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-899ccaba46cc
-  - type: covered_by
-    from: SYM-zcode-proof-buildProofResults
-    to: TEST-zcode-kibi-plugin-v1
-    created_at: 2026-09-17T08:50:32.967Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f0d809844454
-  - type: implements
-    from: SYM-core-requirement-proof-context
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-09-18T07:10:50.980Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-22bf3e8c352b
-  - type: covered_by
-    from: SYM-core-requirement-proof-context
-    to: TEST-e2e-coverage-proof-status
-    created_at: 2026-09-18T07:10:50.986Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e34b5faecfca
-  - type: covered_by
-    from: SYM-getWorkspaceFolderUri
-    to: TEST-e2e-vscode-extension-lifecycle
-    created_at: 2026-09-19T19:32:20.614Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a71f52ac9666
-  - type: covered_by
-    from: SYM-cap-plugin-predicateschemadefinition-2bf0cc70
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:45:10.328Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d78e175a66d8
   - type: validates
     from: TEST-kibi-domain-redundancy
     to: SCEN-kibi-domain-redundancy
@@ -314,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b493cbc82f06
-  - type: implements
-    from: SYM-setup-choices-write-setup-choices
-    to: REQ-kibi-fresh-clone-setup
-    created_at: 2026-11-03T15:53:36.472Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b29a98875e78
   - type: covered_by
     from: SYM-setup-choices-write-setup-choices
     to: TEST-kibi-fresh-clone-setup
@@ -328,3 +202,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-605e726b1d77
+  - type: constrains
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-pipeline-subject
+    created_at: 2026-11-10T09:24:56.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0e7ccedc713
+  - type: requires_property
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-refuses-system-swipl-on-clean-runner
+    created_at: 2026-11-10T09:24:56.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79740f661c3b
+  - type: requires_property
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-sets-home-and-clears-loader-overrides
+    created_at: 2026-11-10T09:24:56.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c40672f1933
+  - type: requires_property
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-requests-full-library-and-arithmetic-and-mtime-smoke
+    created_at: 2026-11-10T09:24:56.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c8d03cd3c0c
+  - type: requires_property
+    from: REQ-prolog-clean-consumer-smoke
+    to: FACT-prolog-build-propagates-smoke-command-failure
+    created_at: 2026-11-10T09:24:56.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-619cf3e83730
+  - type: specified_by
+    from: REQ-prolog-clean-consumer-smoke
+    to: SCEN-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:24:56.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-333090b07001
+  - type: specified_by
+    from: REQ-prolog-clean-consumer-smoke
+    to: SCEN-CASE-prolog-build-pipeline-validation-NINETEEN-LIBRARIES
+    created_at: 2026-11-10T09:24:56.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f867e503e2f
+  - type: specified_by
+    from: REQ-prolog-clean-consumer-smoke
+    to: SCEN-CASE-prolog-build-pipeline-validation-SEVENTEEN-LIBRARIES
+    created_at: 2026-11-10T09:24:56.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb3fb837d728
+  - type: verified_by
+    from: REQ-prolog-clean-consumer-smoke
+    to: TEST-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:24:56.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e694998d9dd7
+  - type: supersedes
+    from: REQ-prolog-clean-consumer-smoke
+    to: REQ-prolog-build-pipeline-validation
+    created_at: 2026-11-10T09:24:56.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-442e560967eb

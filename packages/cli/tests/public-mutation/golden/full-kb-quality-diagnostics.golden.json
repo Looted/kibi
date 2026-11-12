@@ -1,0 +1,127 @@
+[
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "REQ-a",
+    "source": ".kb/REQ-a.md",
+    "files": [".kb/REQ-a.md"],
+    "message": "Requirement REQ-a (REQ-a title) has unit_only coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Keep unit coverage where appropriate; add or link a passing end-to-end or scenario-backed test when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "REQ-a",
+      "title": "REQ-a title",
+      "source": ".kb/REQ-a.md",
+      "coverageDepth": "unit_only",
+      "directTests": ["TEST-unit"],
+      "scenarioTests": [],
+      "testStatuses": ["passing"],
+      "verificationScopes": ["unit"]
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "REQ-b",
+    "source": ".kb/REQ-b.md",
+    "files": [".kb/REQ-b.md"],
+    "message": "Requirement REQ-b (REQ-b title) has no_test_evidence coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "REQ-b",
+      "title": "REQ-b title",
+      "source": ".kb/REQ-b.md",
+      "coverageDepth": "no_test_evidence",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": []
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "REQ-c",
+    "source": ".kb/REQ-c.md",
+    "files": [".kb/REQ-c.md"],
+    "message": "Requirement REQ-c (REQ-c title) has no_test_evidence coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "REQ-c",
+      "title": "REQ-c title",
+      "source": ".kb/REQ-c.md",
+      "coverageDepth": "no_test_evidence",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": []
+    }
+  },
+  {
+    "id": "coverage_depth_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "REQ-d",
+    "source": ".kb/REQ-d.md",
+    "files": [".kb/REQ-d.md"],
+    "message": "Requirement REQ-d (REQ-d title) has no_test_evidence coverage depth and may need stronger behavior-level evidence.",
+    "suggestion": "Add or link passing tests, preferably end-to-end or scenario-backed when this behavior warrants e2e confidence.",
+    "evidence": {
+      "requirementId": "REQ-d",
+      "title": "REQ-d title",
+      "source": ".kb/REQ-d.md",
+      "coverageDepth": "no_test_evidence",
+      "directTests": [],
+      "scenarioTests": [],
+      "testStatuses": [],
+      "verificationScopes": []
+    }
+  },
+  {
+    "id": "coarse_anchor_only_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "coverage",
+    "entityId": "REQ-d",
+    "source": ".kb/REQ-d.md",
+    "files": [".kb/REQ-d.md"],
+    "message": "Requirement REQ-d (REQ-d title) is implemented only by whole-file anchors, so its coverage says a test touches those files, not the code behind the claim.",
+    "suggestion": "Link the functions, methods or types that implement the requirement with implements (and covered_by to their tests); keep the file anchor only for genuinely module-level behavior.",
+    "evidence": {
+      "requirementId": "REQ-d",
+      "title": "REQ-d title",
+      "symbols": [
+        {
+          "id": "SYM-file",
+          "granularityReason": "module-level-behavior"
+        }
+      ]
+    }
+  },
+  {
+    "id": "multi_requirement_symbol_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "symbol",
+    "entityId": "SYM-many",
+    "source": ".kb/SYM-many.md",
+    "files": [".kb/SYM-many.md", "src/many.ts"],
+    "docs": ["docs/symbol-traceability-taxonomy.md"],
+    "message": "Symbol SYM-many implements 3 requirements, above the 2 target review threshold.",
+    "suggestion": "Review whether this symbol owns multiple unrelated behaviors; move relationships to narrower behavioral symbols or add a valid granularity_reason when broad ownership is intentional.",
+    "evidence": {
+      "targetIds": ["REQ-a", "REQ-b", "REQ-c"],
+      "targetCount": 3,
+      "threshold": 2,
+      "symbolKind": "unknown",
+      "symbolRole": "behavioral",
+      "sourceFile": "src/many.ts"
+    }
+  }
+]

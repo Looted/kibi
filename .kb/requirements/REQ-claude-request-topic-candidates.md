@@ -31,6 +31,7 @@ logic_claims:
   - CLAIM-A8082CB756DADF55
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-14T16:57:45.254Z'
 id: REQ-claude-request-topic-candidates
 type: req

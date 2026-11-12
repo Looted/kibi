@@ -84,7 +84,6 @@ export function strictPlan(
  * Attach an authored body to an upsert step so the entity document carries
  * more than its front matter.
  */
-// implements REQ-kb-entity-body-context
 export function withDocumentBody(
   step: Readonly<Record<string, unknown>>,
   body: string,
@@ -100,14 +99,14 @@ export function withDocumentBody(
  * stands behind it), as `kibi migrate` sets for untested firm requirements;
  * a freshly bootstrapped knowledge base passes `kibi check`.
  */
-// implements REQ-kb-decision-firmness
 export function asImportedRule(
   step: Readonly<Record<string, unknown>>,
   ref: string,
 ): Readonly<Record<string, unknown>> {
+  // Spreading null adds nothing, so only non-objects need the fallback.
   const properties =
-    step.properties !== null && typeof step.properties === "object"
-      ? (step.properties as Record<string, unknown>)
+    typeof step.properties === "object"
+      ? (step.properties as Record<string, unknown> | null)
       : {};
   return {
     ...step,
@@ -125,7 +124,6 @@ export function asImportedRule(
  * stated in the source, so the sentence records provenance instead of
  * inventing one; later schema versions and reviewers keep the origin.
  */
-// implements REQ-kb-entity-body-context
 export function bootstrapProvenance(
   provider: string,
   location: string,
@@ -135,7 +133,6 @@ export function bootstrapProvenance(
 }
 
 /** Body for a non-requirement entity: its title, then its provenance. */
-// implements REQ-kb-entity-body-context
 export function provenanceBody(title: string, provenance: string): string {
   return `${title.trim()}\n\n${provenance}\n`;
 }
@@ -144,7 +141,6 @@ export function provenanceBody(title: string, provenance: string): string {
  * Body for a provenance stub: the title, the provenance, and a sentence that
  * says the entry is a stub so a reader never mistakes it for a claim.
  */
-// implements REQ-bootstrap-provenance-stubs
 export function provenanceStubBody(title: string, provenance: string): string {
   return `${title.trim()}\n\n${provenance} This entry is a provenance stub: the provider found the source but no claim about it, so it is tagged bootstrap:provenance-stub, ranked after every other search match and not counted as knowledge by gap or coverage reports.\n`;
 }
@@ -153,7 +149,6 @@ export function provenanceStubBody(title: string, provenance: string): string {
  * Body for a requirement found in prose: the statement, the provenance as
  * its Context and the quoted statement with its location as its Source.
  */
-// implements REQ-kb-entity-body-context
 export function provenanceRequirementBody(
   statement: string,
   provenance: string,

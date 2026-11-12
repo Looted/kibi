@@ -1,3 +1,4 @@
+import { KB_DEPENDENCY_INPUT_SCHEMA } from "../../../dependencies/kb-dependency-scope.js";
 import { confirmMetaFreshness } from "../../../utils/content-freshness.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
@@ -42,7 +43,6 @@ const ENTITY_TYPE_SET: ReadonlySet<string> = new Set(ENTITY_TYPES);
  * branch name); meta.branch carries the branch name, as kb_status does, and
  * the key moves to meta.branchStoreKey.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function withBranchName<
   T extends { readonly meta?: Readonly<Record<string, unknown>> },
 >(payload: T, context: Pick<OperationContext, "branchAttachment">): T {
@@ -206,6 +206,7 @@ export const findGapsSpec = {
   businessInputSchema: {
     type: "object",
     properties: {
+      kb: KB_DEPENDENCY_INPUT_SCHEMA,
       type: {
         type: "string",
         enum: ENTITY_TYPES,
@@ -258,19 +259,29 @@ export const findGapsSpec = {
  * KIBI_PROOF_BINDING_MODE=strict-snapshot opts out (receipts then match only
  * against the whole-workspace snapshot they were produced on).
  */
-// implements REQ-kibi-verification-evidence-contract
+/** Reserved key of the bindings dict that carries current fingerprint components. */
+export const FINGERPRINT_COMPONENTS_BINDING_KEY = "$fingerprint_components";
+
 export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
   return process.env.KIBI_PROOF_BINDING_MODE?.trim() === "strict-snapshot"
     ? "strict_snapshot"
     : "per_contract";
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export async function perContractTestBindings(
   context: OperationContext,
 ): Promise<string | null> {
   if (currentProofBindingMode() !== "per_contract") return null;
   const { loadEntities } = await import("../discovery-entities.js");
+  const { currentFingerprintComponents } = await import(
+    "../../../operations/proof/current-fingerprint.js"
+  );
+  const { loadProofIntegrations } = await import(
+    "../../../proof/integrations.js"
+  );
+  const { FINGERPRINT_COMPONENT_NAMES } = await import(
+    "../../proof-fingerprint.js"
+  );
   const { currentReceiptBindingHashes, loadCoveredBySymbolsByTest } =
     await import("../../../operations/proof/code-scope.js");
   // Only the contract, scoped code, and authored source feed the binding
@@ -292,16 +303,33 @@ export async function perContractTestBindings(
     ? await loadCoveredBySymbolsByTest(requireProlog(context))
     : new Map<string, readonly string[]>();
   const entries: string[] = [];
+  const fingerprintEntries: string[] = [];
+  const integrations = loadProofIntegrations(context.workspaceRoot);
   const fs = context.fs;
   for (const test of tests) {
     const testId = typeof test.id === "string" ? test.id : "";
-    if (testId === "" || fs === undefined) continue;
+    if (testId === "") continue;
     // The same computation ingest uses to write binding_hash. Unreadable or
-    // non-markdown documents keep strict snapshot semantics for that test.
+    // non-markdown documents keep strict snapshot semantics for that test;
+    // without fs every read fails, so no test is bound.
+    // The execution fingerprint a receipt must have been proven under; a test
+    // without a resolvable one keeps the receipt's other freshness checks.
+    const components = integrations.available
+      ? currentFingerprintComponents(test, integrations.integrations)
+      : undefined;
+    if (components !== undefined) {
+      const parts = FINGERPRINT_COMPONENT_NAMES.map(
+        (name) => `${name}: ${toPrologAtom(components[name])}`,
+      );
+      fingerprintEntries.push(`${toPrologAtom(testId)}: _{${parts.join(", ")}}`);
+    }
     const bindings = await currentReceiptBindingHashes({
       workspaceRoot: context.workspaceRoot,
-      readFile: (absolute) => fs.readFile(absolute),
+      readFile: (absolute) =>
+        (fs as NonNullable<OperationContext["fs"]>).readFile(absolute),
       test,
+      // rationale: an unknown symbol id adds nothing to the code scope
+      // Stryker disable next-line ArrayDeclaration
       coveredBySymbols: coveredBy.get(testId) ?? [],
     });
     if (bindings !== undefined) {
@@ -313,6 +341,10 @@ export async function perContractTestBindings(
       entries.push(`${toPrologAtom(testId)}: ${value}`);
     }
   }
+  if (fingerprintEntries.length > 0)
+    entries.push(
+      `${toPrologAtom(FINGERPRINT_COMPONENTS_BINDING_KEY)}: _{${fingerprintEntries.join(", ")}}`,
+    );
   if (entries.length === 0) return null;
   return `_{${entries.join(", ")}}`;
 }
@@ -325,7 +357,6 @@ export async function perContractTestBindings(
  */
 export const COVERAGE_ROW_PAGE_SIZE = 10;
 
-// implements REQ-kibi-verification-evidence-contract
 export async function readCoveragePages(
   prolog: NonNullable<OperationContext["prolog"]>,
   goalFor: (limit: number, offset: number) => string,
@@ -339,16 +370,15 @@ export async function readCoveragePages(
       goalFor(pageLimit, pageOffset),
       "Coverage execution",
     );
-  if (limit <= COVERAGE_ROW_PAGE_SIZE) return read(limit, offset);
-  const first = await read(COVERAGE_ROW_PAGE_SIZE, offset);
+  const first = await read(Math.min(COVERAGE_ROW_PAGE_SIZE, limit), offset);
   const rows = [...first.rows];
-  let lastPageSize = first.rows.length;
-  let lastPageLimit = COVERAGE_ROW_PAGE_SIZE;
-  while (lastPageSize === lastPageLimit && rows.length < limit) {
-    lastPageLimit = Math.min(COVERAGE_ROW_PAGE_SIZE, limit - rows.length);
-    const page = await read(lastPageLimit, offset + rows.length);
+  // A short page is the last one.
+  let full = rows.length === Math.min(COVERAGE_ROW_PAGE_SIZE, limit);
+  while (full && rows.length < limit) {
+    const pageLimit = Math.min(COVERAGE_ROW_PAGE_SIZE, limit - rows.length);
+    const page = await read(pageLimit, offset + rows.length);
     rows.push(...page.rows);
-    lastPageSize = page.rows.length;
+    full = page.rows.length === pageLimit;
   }
   return { ...first, rows };
 }
@@ -433,16 +463,11 @@ export async function executeCoverage(
       evaluatedDomains: ["semantic", "proof", "symbol"],
       incompleteDomains:
         payload.meta?.scopeComplete === false ? ["coverage"] : [],
+      // An undefined plan reads as no plan.
       actions: buildActionsFromCoverage({
-        ...(repairPlan !== undefined
-          ? {
-              repairPlan: repairPlan as unknown as Readonly<
-                Record<string, unknown>
-              >,
-            }
-          : {}),
-        ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
-      }),
+        repairPlan,
+        symbolRepairPlan,
+      } as Parameters<typeof buildActionsFromCoverage>[0]),
     });
     const migrationPlan = statusPlan
       ? mergeMigrationPlans([statusPlan, coveragePlan])
@@ -498,6 +523,7 @@ export const coverageSpec = {
   businessInputSchema: {
     type: "object",
     properties: {
+      kb: KB_DEPENDENCY_INPUT_SCHEMA,
       by: {
         type: "string",
         enum: ["req", "symbol", "type"],
@@ -633,6 +659,7 @@ export const graphSpec = {
     type: "object",
     required: ["seedIds"],
     properties: {
+      kb: KB_DEPENDENCY_INPUT_SCHEMA,
       seedIds: {
         type: "array",
         items: { type: "string" },

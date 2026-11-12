@@ -26,21 +26,17 @@ const LOGICAL_RELATIONSHIPS = [
  * is limited" against "label length must be at most 200") scores about 0.13.
  * The candidate cap bounds the noise.
  */
-// implements REQ-kibi-contradiction-review-candidates
 export const REVIEW_CANDIDATE_MIN_SCORE = 0.1;
 
 /** At most this many related requirements are put up for review. */
-// implements REQ-kibi-contradiction-review-candidates
 export const MAX_REVIEW_CANDIDATES = 5;
 
 /** The longest requirement statement a review candidate quotes. */
 const MAX_STATEMENT_LENGTH = 600;
 
-// implements REQ-kibi-contradiction-review-candidates
 export type ConflictReviewVerdict = "conflict" | "no_conflict";
 
 /** The agent's judgement of one review candidate, sent back on recompile. */
-// implements REQ-kibi-contradiction-review-candidates
 export type ConflictReviewDecision = Readonly<{
   requirementId: string;
   verdict: ConflictReviewVerdict;
@@ -51,7 +47,6 @@ export type ConflictReviewDecision = Readonly<{
  * A current requirement the contradiction checker could not compare with the
  * intent, which the agent must compare itself.
  */
-// implements REQ-kibi-contradiction-review-candidates
 export type ConflictReviewCandidate = Readonly<{
   requirementId: string;
   title: string;
@@ -68,7 +63,6 @@ export type ConflictReviewCandidate = Readonly<{
 }>;
 
 /** Why the contradiction check could not decide, with the ids involved. */
-// implements REQ-kibi-contradiction-review-candidates
 export type UncheckedReason = Readonly<{
   reason: "unmodeled_target" | "unmodeled_related" | "analysis_unavailable";
   /** Claim keys for unmodeled_target, requirement ids for unmodeled_related. */
@@ -76,7 +70,6 @@ export type UncheckedReason = Readonly<{
 }>;
 
 /** One current requirement as review reads it. */
-// implements REQ-kibi-contradiction-review-candidates
 export type ReviewRequirement = Readonly<{
   id: string;
   title: string;
@@ -93,7 +86,6 @@ function text(value: unknown): string {
  * representation. Ids that are not current requirements (superseded,
  * deprecated or unknown) are left out.
  */
-// implements REQ-kibi-contradiction-review-candidates
 export async function loadReviewRequirements(
   prolog: Pick<PrologPort, "query">,
   ids: readonly string[],
@@ -106,11 +98,12 @@ export async function loadReviewRequirements(
     `findall([R,M], (member(R, [${idList}]), kb:current_req(R), (once((member(T, [${LOGICAL_RELATIONSHIPS.join(",")}]), kb_relationship(T, R, _))) -> M = modeled ; M = unmodeled)), Rows)`,
   );
   if (!result.success) return found;
+  // A successful findall binds Rows, and its template has two columns.
   const modeled = new Map(
-    parseListOfLists(result.bindings.Rows ?? "[]").map(([id, flag]) => [
-      atom(id),
-      atom(flag) === "modeled",
-    ]),
+    parseListOfLists(result.bindings.Rows as string).map((row) => {
+      const [id, flag] = row as [string, string];
+      return [atom(id), atom(flag) === "modeled"];
+    }),
   );
   const rows = await loadEntityRows(
     prolog,
@@ -130,13 +123,15 @@ export async function loadReviewRequirements(
   return found;
 }
 
-function atom(value: string | undefined): string {
-  return String(parsePrologValue(value ?? "")).replace(/^['"]|['"]$/g, "");
+function atom(value: string): string {
+  return String(parsePrologValue(value)).replace(/^['"]|['"]$/g, "");
 }
 
+// Pieces are trimmed and empty ones dropped, so one whitespace character is
+// enough to split on.
 function sentences(value: string): string[] {
   return value
-    .split(/(?<=[.!?])\s+|\n+/)
+    .split(/(?<=[.!?])\s|\n/)
     .map((sentence) => sentence.trim())
     .filter(Boolean);
 }
@@ -146,7 +141,6 @@ function sentences(value: string): string[] {
  * sharing the most intent terms, the first on a tie, the title when the
  * requirement has no prose.
  */
-// implements REQ-kibi-contradiction-review-candidates
 export function reviewSentence(
   intent: string,
   requirement: Pick<ReviewRequirement, "title" | "semanticText">,
@@ -154,7 +148,7 @@ export function reviewSentence(
   const units = sentences(requirement.semanticText);
   if (units.length === 0) return requirement.title;
   const wanted = new Set(intentTokens(intent));
-  let best = units[0] ?? requirement.title;
+  let best = units[0] as string;
   let bestShared = -1;
   for (const unit of units) {
     const shared = intentTokens(unit).filter((token) =>
@@ -174,7 +168,6 @@ function bounded(value: string): string {
     : value;
 }
 
-// implements REQ-kibi-contradiction-review-candidates
 export function reviewCandidate(
   intent: string,
   requirement: ReviewRequirement,
@@ -198,7 +191,6 @@ export function reviewCandidate(
  * resolve a conflict it found, compare the candidates still pending, or model
  * the claims Kibi could not check.
  */
-// implements REQ-kibi-contradiction-review-candidates
 export function reviewNextAction(
   candidates: readonly ConflictReviewCandidate[],
   unmodeledClaims: readonly string[],

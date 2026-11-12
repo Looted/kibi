@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-78b4ca7a27db
-  - type: implements
-    from: SYM-auto-B4EA84AAACA8
-    to: REQ-mcp-relationship-preflight
-    created_at: 2026-08-16T07:53:18.174Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7bf85b91a623
   - type: covered_by
     from: SYM-auto-B4EA84AAACA8
     to: TEST-mcp-relationship-preflight
@@ -55,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c204d5332ad8
-  - type: covered_by
-    from: SYM-KibiNoImpactOverride
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:14:30.545Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-09cfd8a4de13
   - type: covered_by
     from: SYM-cursor-freshnessReminder
     to: TEST-cursor-kibi-plugin-v1
@@ -118,20 +104,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bdc17feabbfb
-  - type: implements
-    from: SYM-package-catalog-cli-if-main
-    to: REQ-020
-    created_at: 2026-09-21T15:29:30.426Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-122f18269c34
-  - type: covered_by
-    from: SYM-package-catalog-cli-if-main
-    to: TEST-014
-    created_at: 2026-09-21T19:20:30.212Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1366bbd3530d
   - type: covered_by
     from: SYM-cap-plugin-createcapabilityregistry-24d244b0
     to: TEST-e2e-capability-plugins
@@ -139,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12ddedb2abda
-  - type: covered_by
-    from: SYM-cap-plugin-tosourceanalysisprovider-624e8fb1
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:45:59.156Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a0387f8c4c64
   - type: covered_by
     from: SYM-cap-plugin-validateontologymatchcandidate-d19f51a4
     to: TEST-e2e-capability-plugins
@@ -174,27 +139,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ab1ec581532
-  - type: implements
-    from: SYM-skillopt-transcript-ordering
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-04T12:50:33.813Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0a29057ae30c
-  - type: covered_by
-    from: SYM-skillopt-transcript-ordering
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-04T12:50:33.842Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-488bd231780b
-  - type: implements
-    from: SYM-migration-entity-type-backfill-action-id
-    to: REQ-cli-migrate-entity-type-backfill
-    created_at: 2026-10-14T21:20:56.743Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0f97c3b4d71a
   - type: covered_by
     from: SYM-migration-entity-type-backfill-action-id
     to: TEST-cli-migrated-kb-type-backfill-sync-totals
@@ -230,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e095c058421a
-  - type: implements
-    from: SYM-opencode-signoff-watch
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-22T09:26:50.562Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d78cda0d96de
   - type: covered_by
     from: SYM-opencode-signoff-watch
     to: TEST-kibi-signoff-views
@@ -244,20 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-abaddad9ccdd
-  - type: implements
-    from: SYM-cli-read-certificate-dir
-    to: REQ-kibi-code-proof-kinds
-    created_at: 2026-10-24T19:33:09.835Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9ae59d153915
-  - type: covered_by
-    from: SYM-cli-read-certificate-dir
-    to: TEST-kibi-code-proof-kinds
-    created_at: 2026-10-24T19:33:09.886Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-72c81e554acd
   - type: validates
     from: TEST-kibi-source-proof-kinds
     to: SCEN-kibi-source-proof-kinds
@@ -349,20 +272,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e8e367f742a
-  - type: implements
-    from: SYM-hook-managers-hook-snippet-format-type
-    to: REQ-git-hook-manager-integration
-    created_at: 2026-10-29T18:39:02.403Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c55026399896
-  - type: covered_by
-    from: SYM-hook-managers-hook-snippet-format-type
-    to: TEST-git-hook-manager-integration
-    created_at: 2026-10-29T18:39:02.429Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bb7853f564b0
   - type: assumes
     from: SCEN-NEG-capability-plugin-jev-fallback-v1-CLASSIFIER-DOWN
     to: FACT-NEG-capability-plugin-jev-fallback-v1-CLASSIFIER-DOWN
@@ -391,3 +300,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0aa59b91fc2e
+  - type: requires_predicate
+    from: REQ-kibi-health-report-output
+    to: FACT-PRED-FCCC8C0397F3
+    created_at: 2026-11-05T06:48:25.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bddeed56f5c3
+  - type: requires_predicate
+    from: REQ-kibi-health-report-output
+    to: FACT-PRED-81A8ED15EE8B
+    created_at: 2026-11-05T06:48:25.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76f2b7b89f0a
+  - type: specified_by
+    from: REQ-kibi-health-report-output
+    to: SCEN-kibi-html-health-report
+    created_at: 2026-11-05T06:48:25.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24a2659656c0
+  - type: specified_by
+    from: REQ-kibi-health-report-output
+    to: SCEN-NEG-kibi-html-health-report-OPEN-AFTER-FAILED-WRITE
+    created_at: 2026-11-05T06:48:25.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c52bc2e6b65b
+  - type: verified_by
+    from: REQ-kibi-health-report-output
+    to: TEST-kibi-html-health-report
+    created_at: 2026-11-05T06:48:25.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5b7bb735cfe
+  - type: supersedes
+    from: REQ-kibi-health-report-output
+    to: REQ-kibi-html-health-report
+    created_at: 2026-11-05T06:48:25.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c8e0129187f
+  - type: requires_predicate
+    from: REQ-claude-unowned-project-silence
+    to: FACT-PRED-B867B426704A
+    created_at: 2026-11-05T10:32:47.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a04c8eb57d44
+  - type: requires_predicate
+    from: REQ-claude-unowned-project-silence
+    to: FACT-PRED-2516940E9C79
+    created_at: 2026-11-05T10:32:47.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5abb5e3c08a3
+  - type: specified_by
+    from: REQ-claude-unowned-project-silence
+    to: SCEN-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:32:47.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43c1ea82edc8
+  - type: specified_by
+    from: REQ-claude-unowned-project-silence
+    to: SCEN-NEG-claude-code-kibi-plugin-v1-UNOWNED-PROJECT-TOOLS
+    created_at: 2026-11-05T10:32:47.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31af5a7481f7
+  - type: verified_by
+    from: REQ-claude-unowned-project-silence
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:32:47.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18df8bfcfbf9
+  - type: supersedes
+    from: REQ-claude-unowned-project-silence
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-11-05T10:32:47.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6ba1a7cdc72
+  - type: constrains
+    from: REQ-kibi-builtin-ontology-pack
+    to: FACT-SUBJ-kibi-builtin-ontology-pack
+    created_at: 2026-11-10T10:41:20.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11105a755d8c
+  - type: requires_property
+    from: REQ-kibi-builtin-ontology-pack
+    to: FACT-PROP-kibi-builtin-ontology-pack-c01
+    created_at: 2026-11-10T10:41:20.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d12d2c8c1ee
+  - type: specified_by
+    from: REQ-kibi-builtin-ontology-pack
+    to: SCEN-kibi-builtin-ontology-pack
+    created_at: 2026-11-10T10:41:20.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0505ab3ee5dc
+  - type: specified_by
+    from: REQ-kibi-builtin-ontology-pack
+    to: SCEN-NEG-kibi-builtin-ontology-pack-UNMATCHED-CANDIDATE
+    created_at: 2026-11-10T10:41:20.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a99650d6a61a
+  - type: relates_to
+    from: REQ-kibi-builtin-ontology-pack
+    to: REQ-capability-plugin-builtin-parity-v1
+    created_at: 2026-11-10T10:41:20.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1bdd73da97d

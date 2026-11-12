@@ -52,7 +52,6 @@ describe("repo-posture coverage", () => {
     assert.match(posture.reason, /plugin intent detected at root/);
   });
 
-  // implements REQ-opencode-smart-enforcement-v1
   test("detects root intent from AGENTS guidance mentioning kb_search", () => {
     fs.writeFileSync(
       path.join(tmpDir, "AGENTS.md"),

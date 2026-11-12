@@ -1,4 +1,3 @@
-// implements REQ-opencode-smart-enforcement-v1
 import { getFileLinkedTargetsByType } from "./file-entity-links.js";
 
 /**
@@ -9,7 +8,6 @@ import { getFileLinkedTargetsByType } from "./file-entity-links.js";
  * Supports both YAML formats: top-level array and { symbols: [...] } object.
  * This function is purely synchronous and makes no runtime KB queries.
  */
-// implements REQ-opencode-smart-enforcement-v1
 export function getSourceLinkedRequirementIds(
   worktree: string,
   editedAbsolutePath: string,

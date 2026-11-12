@@ -1,0 +1,274 @@
+{
+  "actions": [
+    {
+      "id": "review-exception-unapproved-EX",
+      "code": "review_exception_unapproved",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "EX exempts B1, B2 but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against B1, B2 and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert EX with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: EX, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+      },
+      "affectedEntityIds": ["EX", "B1", "B2"],
+      "affectedFiles": ["ex.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "exceptionId": "EX",
+        "exempts": ["B1", "B2"]
+      }
+    },
+    {
+      "id": "review-exception-unapproved-EY",
+      "code": "review_exception_unapproved",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "EY exempts  but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against  and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert EY with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: EY, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+      },
+      "affectedEntityIds": ["EY"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "exceptionId": "EY",
+        "exempts": []
+      }
+    },
+    {
+      "id": "review-exception-approval-self-attested-SA",
+      "code": "review_exception_approval_self_attested",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "message only"
+      },
+      "affectedEntityIds": ["SA", "B1"],
+      "affectedFiles": ["sa.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "diagnostic": {
+          "id": "rule.exception-approval-self-attested",
+          "entityId": "SA",
+          "message": "message only",
+          "suggestion": "",
+          "source": "sa.md",
+          "evidence": {
+            "exempts": ["B1"]
+          }
+        }
+      }
+    },
+    {
+      "id": "review-exception-approval-self-attested-SB",
+      "code": "review_exception_approval_self_attested",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "suggested"
+      },
+      "affectedEntityIds": ["SB"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "diagnostic": {
+          "id": "rule.exception-approval-self-attested",
+          "entityId": "SB",
+          "message": "ignored",
+          "suggestion": "suggested"
+        }
+      }
+    },
+    {
+      "id": "review-scenario-feasibility-unknown-SC",
+      "code": "review_scenario_feasibility_unknown",
+      "category": "semantic",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "cannot decide. add facts"
+      },
+      "affectedEntityIds": ["SC"],
+      "affectedFiles": ["sc.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "diagnostic": {
+          "id": "rule.scenario-feasibility-unknown",
+          "entityId": "SC",
+          "message": "cannot decide",
+          "suggestion": "add facts",
+          "source": "sc.md"
+        }
+      }
+    },
+    {
+      "id": "review-scenario-feasibility-unknown-SD",
+      "code": "review_scenario_feasibility_unknown",
+      "category": "semantic",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": ". "
+      },
+      "affectedEntityIds": ["SD"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "diagnostic": {
+          "id": "rule.scenario-feasibility-unknown",
+          "entityId": "SD"
+        }
+      }
+    },
+    {
+      "id": "review-adr-unlinked-ADR-1",
+      "code": "review_adr_unlinked",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "unlinked. link it"
+      },
+      "affectedEntityIds": ["ADR-1"],
+      "affectedFiles": ["adr1.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "diagnostic": {
+          "id": "rule.adr-unlinked",
+          "entityId": "ADR-1",
+          "message": "unlinked",
+          "suggestion": "link it",
+          "source": "adr1.md"
+        }
+      }
+    },
+    {
+      "id": "review-adr-proposed-ADR-2",
+      "code": "review_adr_proposed",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "proposed. "
+      },
+      "affectedEntityIds": ["ADR-2"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "diagnostic": {
+          "id": "rule.adr-proposed",
+          "entityId": "ADR-2",
+          "message": "proposed"
+        }
+      }
+    },
+    {
+      "id": "review-predicate-key-arguments-a-b-q-12",
+      "code": "review_predicate_key_arguments",
+      "category": "semantic",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Predicate a.b::q/12 declares no key_arguments, which leaves 0 opposing rule pair(s) unresolved (). "
+      },
+      "affectedEntityIds": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "predicate": "a.b::q/12",
+        "rulePairs": [],
+        "findings": ["predicate a.b::q/12 declares no key_arguments"]
+      }
+    },
+    {
+      "id": "review-predicate-key-arguments-ns-pred-2",
+      "code": "review_predicate_key_arguments",
+      "category": "semantic",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Predicate ns:pred/2 declares no key_arguments, which leaves 2 opposing rule pair(s) unresolved (R0/R1, R1/R2). declare key_arguments"
+      },
+      "affectedEntityIds": ["R0", "R1", "R2"],
+      "dispositionRequired": true,
+      "evidence": {
+        "predicate": "ns:pred/2",
+        "rulePairs": ["R0/R1", "R1/R2"],
+        "findings": [
+          "predicate ns:pred/2 declares no key_arguments (a)",
+          "predicate ns:pred/2 declares no key_arguments (b)"
+        ]
+      }
+    },
+    {
+      "id": "review-symbol-owner-superseded",
+      "code": "review_symbol_owner_superseded",
+      "category": "symbol",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "5 symbol(s) implement only superseded, deprecated or retired requirements; these 2 come first: SYM-1, SYM-2. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page."
+      },
+      "affectedEntityIds": ["SYM-1", "SYM-2"],
+      "affectedFiles": ["s1.ts", "s2.ts"],
+      "dispositionRequired": true,
+      "evidence": {
+        "symbols": [
+          {
+            "entityId": "SYM-2",
+            "evidence": {
+              "replacements": ["REQ-n"]
+            }
+          },
+          {
+            "entityId": "SYM-1",
+            "evidence": {}
+          },
+          {
+            "entityId": "SYM-1",
+            "evidence": {}
+          }
+        ],
+        "total": 5
+      }
+    },
+    {
+      "id": "review-requirement-rationale-missing",
+      "code": "review_requirement_rationale_missing",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "9 human- or agent-authored requirement(s) state no rationale; these 2 come first: REQ-r1, REQ-r2. Ask the person who stated the intent why it matters, then kb_upsert the requirement with rationale set to that answer (or link the ADR that records the decision). Rerun kb_check for the next page."
+      },
+      "affectedEntityIds": ["REQ-r1", "REQ-r2"],
+      "affectedFiles": ["p.md", "q.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "requirements": ["REQ-r1", "REQ-r2"],
+        "total": 9
+      }
+    },
+    {
+      "id": "review-agent-requirements-unapproved",
+      "code": "review_agent_requirements_unapproved",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "7 agent-authored requirement(s) have no human approval; these 2 come first: R1, R2. Have a person read each one; when it states the intended behavior, kb_upsert it with origin.approved_by set to the reviewer (keep kind: agent and the rest of origin), in the same change and pull request as the requirement, not a separate one. Rerun kb_check for the next page."
+      },
+      "affectedEntityIds": ["R1", "R2"],
+      "affectedFiles": ["r1.md", "r2.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "requirements": ["R1", "R2"],
+        "total": 7
+      }
+    }
+  ],
+  "consumed": [
+    1, 2, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24,
+    25, 26, 27, 28
+  ]
+}

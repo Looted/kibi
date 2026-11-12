@@ -24,7 +24,6 @@ import {
 import type { Violation } from "../../utils/rule-registry.js";
 
 /** An authored source field that names no path, entity or URL, or a path-shaped text_ref that names no file. */
-// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export const SOURCE_PATH_DANGLING_RULE = "source-path-dangling";
 
 function suggestion(source: SourceRepair): string {
@@ -53,7 +52,6 @@ function suggestion(source: SourceRepair): string {
  * evidence names the automatic fix (`rewrite` or `remove`) and, when the
  * edit is not safe, why (`refused`).
  */
-// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function sourcePathDanglingViolations(
   dangling: readonly SourceRepair[],
 ): Violation[] {
@@ -83,7 +81,6 @@ export function sourcePathDanglingViolations(
  * values that resolve to nothing. The compiled `source` (the entity's own
  * file) always resolves, so the check reads authored frontmatter.
  */
-// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function collectSourcePathDanglingViolations(
   workspaceRoot: string,
 ): Violation[] {

@@ -1,5 +1,42 @@
 # kibi-claude
 
+## 0.15.1
+
+### Patch Changes
+
+- 902c3d6: The Claude Code hooks now recognize Kibi MCP tool names with the shared kibi-agent-core rule that the Codex, Cursor and ZCode hooks use, so every host reads the same tool name the same way. Cursor-style `MCP:kb_*` names are now recognized too.
+- 3e0e613: Search and the edit hooks no longer treat a closed requirement as if it were current. A closed requirement may be done and still hold, so it stays findable, but it now ranks below a current requirement that matches as well, and a closed requirement that a current one supersedes is no longer offered as a candidate for a file no symbol links.
+  - `kb_search` scores a closed requirement that no current requirement supersedes at 0.75 of its match and gives the reason `demoted: closed`. The answer applies the same factor to a closed requirement reached through a matched fact, scenario or test, so it follows a current requirement reached as well in `governing`. A superseded requirement keeps its 0.5 demotion.
+  - The answer proposes the replacement of a superseded requirement only when that requirement scored at least 0.8 of the best candidate's score, so a weak match on an old requirement no longer pulls its replacement into an unrelated answer. The old requirement still names its replacement under `notGoverning`.
+  - The edit hook note (every host) and an impact `kb_check` for an unlinked file list current candidate requirements before closed ones and leave out a closed requirement that a current requirement supersedes, read from front matter links and relationship shards. kibi-agent-core exports `replacedRequirements` for this.
+
+- 0087d57: Kibi no longer reads `// implements REQ-...` comments in source code as traceability links. The symbol manifest (`.kb/symbols.yaml`) is now the only record of which requirements a symbol implements, so a comment can no longer pass `kibi check --staged` on its own, and a stale comment can no longer hide that the manifest links a symbol to something else. `kibi migrate` lists the comments left in your repository so you can move each link that still holds into the manifest and delete the comment.
+  - `kibi check --staged` takes a changed symbol's requirement links only from the manifest. Before, a leading `implements` comment replaced the manifest links of that symbol for the staged gate. The failure message no longer suggests writing a comment.
+  - The ts-morph and tree-sitter extractors no longer collect comment text. `SourceSymbolAnalysis.directiveText` in `kibi-plugin-sdk` is deprecated and ignored by every host; extractors that still send it keep validating.
+  - OpenCode's risk classifier counts a code file as traced when a manifest symbol of that file has an `implements` link, not when the file contains an `implements` comment. Cursor's post-edit guidance, the bundled skills, `AGENTS.md`-style guidance and the docs no longer recommend comments.
+  - `kibi migrate` adds one `review_inline_implements_comment` review action that lists each comment's file, line, the ids it names and `manifestLinked` (ids a manifest symbol of the same file already implements). It never edits source code.
+
+  ## Migration
+
+  This is a hard change: a commit that touches a symbol whose only requirement link was a comment now fails `kibi check --staged` with "fewer than 1 requirement link(s)".
+  1. Run `kibi migrate` (or `kibi migrate --format json`) and open the `review_inline_implements_comment` action.
+  2. For each listed comment whose `manifestLinked` does not cover every id it names, and whose code still implements that requirement, add the link with `kb_upsert` (CLI: `kibi upsert --input -`): the symbol's `title`, `sourceFile` and `implements -> REQ-...`.
+  3. Delete the comments. They have no effect any more.
+
+- 30d56b9: The file-context hint that hooks inject now points agents at `kb_query({id, includeBody:true})`, which returns the requirement's full body including why it exists. The hint previously suggested `kb_query({id})`, which returns the statement without the body.
+- 3c6809e: The `kibi-usage` skill now explains reading another repository's knowledge base: the read tools take `kb` to answer from a pinned KB dependency, a dependency is never written, and re-pinning with `kibi deps lock` is asked about first.
+- c6d1600: A `Kibi-Impact: none` line never changed the result of `kibi check --staged`, so it is no longer parsed or documented, and the `kibi_impact_override_missing_rationale` diagnostic is removed. A behavior edit is cleared only by staged evidence or by a `.kb/symbols.yaml` that covers every declaration of the file. An entity document that quotes the declaration now counts as staged evidence instead of being dropped.
+
+  Behaviour change: the diagnostic id `kibi_impact_override_missing_rationale` no longer exists. The bundled `kibi-commit-review` skill drops the audited no-impact section.
+
+- 2b7ede7: A requirement whose behavior no longer exists can now say so: set `status: retired` with a `retired_reason`. Until now `closed` meant both "done and still valid" and "retired", so a retired requirement without a successor kept being served as governing by search, hooks and every current-intent check. A retired requirement stops governing, and `kibi check` makes sure nothing current is left hanging off it. This is KB schema 14: run `kibi migrate --yes`, then review the requirements it suggests retiring.
+  - New requirement status `retired`, with the required field `retired_reason`. `kb_upsert` refuses `status: retired` without a reason. A retired requirement is out of proof scope ("requirement is retired"), listed under `notGoverning` by `kb_search`, and treated as retired by `symbol-owner-superseded` and the context check.
+  - New blocking check rule `retired-reason-missing`: a retired requirement must state why.
+  - New blocking check rule `retired-owner-only`: a current fact, scenario or test whose every owning requirement is retired must be relinked to the current owner, archived (`status: deprecated` for facts and scenarios) or deleted (tests).
+  - `kibi migrate` (KB schema 14) lists every `closed` requirement that nothing supersedes and whose own source says it was retired (its proof exemption, title, body or a `historical-status:` tag) as a `req_retired_status_suggest` review action. Approving one by id sets `status: retired` and a `retired_reason` quoting those words. Kibi never retires a requirement on its own.
+  - `kibi migrate` now suggests `retired` instead of `closed` for requirements with the legacy statuses `deprecated` and `rejected`, and `kb_upsert` lists `retired` instead of `deprecated` as a requirement status.
+  - The `kibi-usage` skill explains when to retire a requirement instead of closing it.
+
 ## 0.15.0
 
 ### Minor Changes

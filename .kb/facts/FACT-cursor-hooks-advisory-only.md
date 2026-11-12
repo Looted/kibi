@@ -11,7 +11,7 @@ value_set:
   - warning
 claim_text: kibi-cursor hooks must only emit reminders and warnings
 claim_key: CLAIM-915BBD5BF9462870
-text_ref: REQ-cursor-kibi-plugin-v1
+text_ref: REQ-cursor-hook-limits
 origin:
   kind: agent
   recorded_at: '2026-10-27T07:51:47.558Z'

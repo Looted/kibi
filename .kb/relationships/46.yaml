@@ -1,25 +1,4 @@
 relationships:
-  - id: rel-b0a0d9181991
-    type: covered_by
-    from: SYM-reqcompiler-verification-receipt
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: "2026-08-15T12:41:40.307Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-reqcompiler-verification-receipt
-    to: REQ-kibi-verification-receipts-v2
-    created_at: 2026-08-15T16:37:44.769Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f24506c2b4f4
-  - type: covered_by
-    from: SYM-reqcompiler-verification-receipt
-    to: TEST-kibi-verification-receipts-v2
-    created_at: 2026-08-15T16:37:44.773Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-684815962563
   - type: covered_by
     from: SYM-executeUpsert
     to: TEST-kibi-proposition-complete-ingestion
@@ -34,41 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7adace8c1e2
-  - type: implements
-    from: SYM-executeUpsert
-    to: REQ-kibi-proposition-complete-ingestion
-    created_at: 2026-08-22T20:27:29.804Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4cdafb05a231
-  - type: implements
-    from: SYM-executeUpsert
-    to: REQ-core-atomic-upsert-persistence
-    created_at: 2026-08-22T20:27:29.810Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c570834e49d7
-  - type: implements
-    from: SYM-executeUpsert
-    to: REQ-core-persistence
-    created_at: 2026-08-22T20:27:29.813Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a85ff7a02107
-  - type: implements
-    from: SYM-executeUpsert
-    to: REQ-core-audit-logging
-    created_at: 2026-08-22T20:27:29.818Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-841ebf925a50
-  - type: implements
-    from: SYM-executeUpsert
-    to: REQ-core-prolog-process-management
-    created_at: 2026-08-22T20:27:29.822Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-20cc1811ca9a
   - type: covered_by
     from: SYM-executeUpsert
     to: TEST-kibi-operation-interface-parity
@@ -83,20 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2476df253467
-  - type: implements
-    from: SYM-CoordinateArtifactError
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:27:34.625Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1cb1b0c956e6
-  - type: covered_by
-    from: SYM-CoordinateArtifactError
-    to: TEST-generated-coordinate-repair
-    created_at: 2026-08-23T20:27:34.651Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-574bfd2fe36c
   - type: covered_by
     from: SYM-executeUpsert
     to: TEST-001
@@ -126,20 +56,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-850d61f3b821
   - type: covered_by
-    from: SYM-cap-plugin-capabilityregistry-getprojectconfig-bd36cda5
-    to: TEST-e2e-capability-plugins
-    created_at: 2026-09-22T19:39:25.897Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9815d6281ad6
-  - type: covered_by
-    from: SYM-cap-plugin-semanticclassifierv1-2216229f
-    to: TEST-capability-plugin-protocol-v1
-    created_at: 2026-09-22T19:45:42.660Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-795bd168ae5e
-  - type: covered_by
     from: SYM-executeUpsert
     to: TEST-core-atomic-upsert-persistence
     created_at: 2026-09-26T09:56:34.526Z
@@ -153,27 +69,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c412e0013d83
-  - type: covered_by
-    from: SYM-source-analysis-v2-sourcesymbolanalysisv2-6bf5bdbd
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-26T16:58:25.080Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1bb5e676c128
-  - type: implements
-    from: SYM-source-analysis-v2-sourcesymbolanalysisv2-6bf5bdbd
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:58:25.092Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4bd670c1d2e5
   - type: validates
     from: TEST-impact-policy-stage-e-installed-e2e
-    to: REQ-impact-policy-stage-e-content-bound-review
+    to: REQ-kibi-impact-aggregate-pr-gate
     created_at: 2026-09-27T17:31:20.578Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-102242cbad22
+    id: rel-d7054ae2e5dd
+  - type: validates
+    from: TEST-impact-policy-stage-e-installed-e2e
+    to: REQ-kibi-impact-receipts-advisories-opt-in
+    created_at: 2026-09-27T17:31:20.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce3391994e11
+  - type: validates
+    from: TEST-impact-policy-stage-e-installed-e2e
+    to: REQ-kibi-impact-review-content-bound
+    created_at: 2026-09-27T17:31:20.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3716e5abead1
   - type: validates
     from: TEST-impact-policy-stage-e-installed-e2e
     to: REQ-impact-review-public-preparation
@@ -195,13 +111,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e05785b4fedc
-  - type: implements
-    from: SYM-docs-site-page-meta-pageMeta
-    to: REQ-docs-readme-published-links
-    created_at: 2026-09-29T21:45:15.316Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a8b4d3dcbcf9
   - type: implements
     from: SYM-docs-site-page-meta-pageMeta
     to: REQ-docs-site-root-pages
@@ -279,13 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0cd8e2b2a2bc
-  - type: implements
-    from: SYM-migration-plan-without-action-codes
-    to: REQ-agent-guided-migration-orchestration
-    created_at: 2026-10-13T12:58:48.334Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2e9e343f8879
   - type: covered_by
     from: SYM-migration-plan-without-action-codes
     to: TEST-agent-guided-migration-orchestration
@@ -587,3 +489,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ad024adc67f
+  - type: implements
+    from: SYM-cli-json-command-with-console-on-stderr
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-04T10:53:05.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5c0a6c75175
+  - type: covered_by
+    from: SYM-cli-json-command-with-console-on-stderr
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-04T10:53:05.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c04d528853a2

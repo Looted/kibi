@@ -13,7 +13,6 @@ export async function handleKbQuery(
   args: QueryArgs,
   context?: OperationContext,
 ): Promise<QueryResult> {
-  // implements REQ-kibi-operation-interface-parity
   // The runtime context carries the branch attachment; without it an empty
   // page from a never-compiled store cannot name the store state.
   return querySpec.execute(args, createDiscoveryContext(prolog, context));

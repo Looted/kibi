@@ -8,7 +8,7 @@ tags:
   - attribution
 claim_key: CLAIM-B2A3EA0263B6780D
 claim_text: When a command proof integration writes a complete per-test report, a failing step must fail only the tests that own it
-text_ref: .kb/requirements/REQ-kibi-fresh-verification-receipts-v2.md
+text_ref: .kb/requirements/REQ-kibi-proof-per-test-attribution.md
 fact_kind: predicate
 predicate_name: verification_receipt_rule
 predicate_args:

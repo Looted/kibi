@@ -3,6 +3,7 @@ title: The semantic advisor previews the edge cases of a strict-property suggest
 status: active
 fact_kind: predicate
 predicate_name: advisor_policy
+predicate_namespace: kibi.modeling
 predicate_args:
   - strict_property_suggestion
   - cases_preview

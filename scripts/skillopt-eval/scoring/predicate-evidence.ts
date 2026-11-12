@@ -51,7 +51,6 @@ export type PredicateCaseEvaluation = Readonly<{
  * Argument bindings compared in the snake_case form Kibi's own predicate
  * advisor uses, so `artifact digest` binds the `artifact_digest` argument.
  */
-// implements REQ-skillopt-predicate-first-requirements
 export function predicateArgsMatch(
   actual: readonly string[] | undefined,
   expected: readonly string[],

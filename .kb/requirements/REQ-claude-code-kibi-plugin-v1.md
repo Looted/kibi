@@ -1,13 +1,12 @@
 ---
 title: 'Claude Code Kibi Plugin v1: progressive-disclosure knowledge hooks'
-status: open
+status: closed
 priority: must
 tags:
   - claude-code
   - plugin
   - hooks
   - progressive-disclosure
-  - review:context-missing
 semantic_text: The kibi-claude package must remain optional. When kibi-claude is installed or enabled, it must not modify core Kibi runtime components. When the resolved project root does not own .kb/manifest.json, kibi-claude hooks must emit no output. When the resolved project root does not own .kb/manifest.json, the kibi-claude MCP endpoint must expose no tools. When the agent is about to read or edit a source file whose symbols are linked to requirements, kibi-claude hooks must add the linked requirement identifiers to the agent context. kibi-claude hooks must add at most one knowledge snippet per file per session. When a kibi-claude hook runs, it must not invoke the Kibi CLI or the Kibi engine. When a kibi-claude hook runs, it must not deny a tool call. At session stop, kibi-claude hooks must remind the agent at most once about each edited source file that lacks a later impact check. Before an edit changes code that implements a current firm requirement, a kibi-claude hook may ask the person to confirm the tool call.
 logic_claims:
   - CLAIM-94B3A133D10BFB98
@@ -109,7 +108,7 @@ id: REQ-claude-code-kibi-plugin-v1
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   approved_by: maintainer
   recorded_at: '2026-10-27T07:42:54.389Z'
 firmness: default

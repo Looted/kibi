@@ -63,7 +63,6 @@ export type ReleaseManifest = Readonly<{
 
 const RELEASE_VERSION = /^(\d{4})\.([1-9]|1[0-2])\.(0|[1-9]\d*)$/;
 
-// implements REQ-kibi-release-version
 export function currentCompatibility(): ReleaseCompatibility {
   return {
     kbSchema: {
@@ -75,7 +74,6 @@ export function currentCompatibility(): ReleaseCompatibility {
   };
 }
 
-// implements REQ-kibi-release-version
 /**
  * The release version after `previous` on `date` (UTC): the next N in the
  * same month, else `YYYY.M.0`. A previous release dated in a later month than
@@ -103,12 +101,10 @@ export function nextReleaseVersion(
   return `${year}.${month}.0`;
 }
 
-// implements REQ-kibi-release-version
 export function isReleaseVersion(value: unknown): value is string {
   return typeof value === "string" && RELEASE_VERSION.test(value);
 }
 
-// implements REQ-kibi-release-version
 export function parseReleaseManifest(raw: string): ReleaseManifest {
   const value = JSON.parse(raw) as Record<string, unknown>;
   const problems: string[] = [];
@@ -147,7 +143,6 @@ export function parseReleaseManifest(raw: string): ReleaseManifest {
   return value as unknown as ReleaseManifest;
 }
 
-// implements REQ-kibi-release-version
 export function serializeManifest(manifest: ReleaseManifest): string {
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
@@ -159,7 +154,6 @@ export type RepoIo = Readonly<{
   list: (relativeDir: string) => readonly string[];
 }>;
 
-// implements REQ-kibi-release-version
 export function fsRepo(root: string): RepoIo {
   return {
     root,
@@ -176,7 +170,6 @@ export function fsRepo(root: string): RepoIo {
   };
 }
 
-// implements REQ-kibi-release-version
 /** Publishable package versions, in catalog order. */
 export function packageVersions(repo: RepoIo): Record<string, string> {
   const versions: Record<string, string> = {};
@@ -231,7 +224,6 @@ export type PrepareResult = Readonly<{
   release?: string;
 }>;
 
-// implements REQ-kibi-release-version
 /**
  * Before `changeset version`: when changesets are pending and none bumps
  * kibi-core, add one that patch-bumps it, so the release manifest ships.
@@ -260,7 +252,6 @@ export type WriteResult = Readonly<{
   manifest: ReleaseManifest;
 }>;
 
-// implements REQ-kibi-release-version
 /**
  * After `changeset version`: when any publishable package version moved,
  * assign the next release version, write the manifest and prepend it to the
@@ -299,7 +290,6 @@ export function writeRelease(
   return { action: "released", manifest };
 }
 
-// implements REQ-kibi-release-version
 /** Problems that make the committed manifest disagree with the tree. */
 export function checkRelease(repo: RepoIo): string[] {
   const problems: string[] = [];
@@ -357,7 +347,6 @@ export function checkRelease(repo: RepoIo): string[] {
   return problems;
 }
 
-// implements REQ-kibi-release-version
 /** Markdown body for the `kibi@<release>` GitHub release. */
 export function releaseNotes(manifest: ReleaseManifest): string {
   const rows = Object.entries(manifest.packages).map(
@@ -382,7 +371,6 @@ export function releaseNotes(manifest: ReleaseManifest): string {
   ].join("\n");
 }
 
-// implements REQ-kibi-release-version
 export function releaseDate(env: NodeJS.ProcessEnv = process.env): Date {
   const override = env.KIBI_RELEASE_DATE;
   if (override === undefined || override === "") return new Date();
@@ -393,7 +381,6 @@ export function releaseDate(env: NodeJS.ProcessEnv = process.env): Date {
   return date;
 }
 
-// implements REQ-kibi-release-version
 export function main(
   argv: readonly string[],
   repo: RepoIo = fsRepo(join(import.meta.dir, "..")),

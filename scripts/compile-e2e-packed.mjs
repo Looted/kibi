@@ -16,7 +16,6 @@ import { fileURLToPath } from "node:url";
 
 const COMPLETE_MARKER = ".kibi-packed-compile-complete";
 
-// implements REQ-test-journaled-engine-harness
 export function sanitizeCacheKey(value) {
   const key = String(value ?? "")
     .trim()
@@ -25,7 +24,6 @@ export function sanitizeCacheKey(value) {
 }
 
 /** Hash the packed TypeScript inputs so a stale snapshot key cannot reuse JS. */
-// implements REQ-test-journaled-engine-harness
 export function hashPackedSources(repoRoot) {
   const packedRoot = path.join(repoRoot, "documentation/tests/e2e/packed");
   const hash = createHash("sha256");
@@ -50,7 +48,6 @@ export function hashPackedSources(repoRoot) {
   return hash.digest("hex").slice(0, 16);
 }
 
-// implements REQ-test-journaled-engine-harness
 export function packedCompileCacheArea(repoRoot, env, sourceHash) {
   const key = sanitizeCacheKey(env.KIBI_E2E_PACK_CACHE_KEY);
   if (!key || !sourceHash) return null;
@@ -70,7 +67,6 @@ export function packedCompileCacheArea(repoRoot, env, sourceHash) {
   );
 }
 
-// implements REQ-test-journaled-engine-harness
 export function packedCompilationReady(directory) {
   return (
     existsSync(path.join(directory, "helpers.js")) &&
@@ -123,7 +119,6 @@ async function compileInto(directory, repoRoot, run) {
  * directory per snapshot and source hash; later calls reuse it and do not
  * invoke tsc. Without a key, the directory is private to this call.
  */
-// implements REQ-test-journaled-engine-harness
 export async function preparePackedCompilation(options = {}) {
   const repoRoot = options.repoRoot ?? process.cwd();
   const env = options.env ?? process.env;
@@ -178,7 +173,6 @@ export async function preparePackedCompilation(options = {}) {
   }
 }
 
-// implements REQ-test-journaled-engine-harness
 export async function main() {
   const repoRoot = process.cwd();
   const prepared = await preparePackedCompilation({ repoRoot });
@@ -194,11 +188,13 @@ export async function main() {
   return prepared;
 }
 
-const invokedPath = process.argv[1];
-if (
-  invokedPath &&
-  path.resolve(invokedPath) === fileURLToPath(import.meta.url)
-) {
+/** Runs `main` when this file is the invoked script; reports failures. */
+export async function runIfInvoked(invokedPath = process.argv[1]) {
+  if (
+    !invokedPath ||
+    path.resolve(invokedPath) !== fileURLToPath(import.meta.url)
+  )
+    return;
   try {
     await main();
   } catch (error) {
@@ -208,3 +204,5 @@ if (
     process.exitCode = 1;
   }
 }
+
+await runIfInvoked();

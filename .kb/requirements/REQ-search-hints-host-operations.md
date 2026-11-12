@@ -33,7 +33,7 @@ An operation that may call an external search hints provider shall be kb_search.
 
 ## Context
 
-REQ-kibi-search-hints-host lets an external search-hints provider add advice next to a search answer, while checks, proofs and writes stay builtin-only. The operations that may call such a provider are stated here so they are proved against EXTERNAL_SEARCH_HINTS_OPERATIONS in packages/cli/src/plugins/external-allowlist.ts.
+REQ-kibi-search-hints-advisory lets an external search-hints provider add advice next to a search answer, while checks, proofs and writes stay builtin-only. The operations that may call such a provider are stated here so they are proved against EXTERNAL_SEARCH_HINTS_OPERATIONS in packages/cli/src/plugins/external-allowlist.ts.
 
 ## Source
 

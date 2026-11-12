@@ -33,7 +33,7 @@ import {
 } from "../../public/operations/entity-context.js";
 import { readKbManifest, writeKbManifest } from "../../utils/kb-manifest.js";
 import {
-  listLaneMarkdownFiles,
+  listLaneMarkdownSources,
   readText,
   sliceFrontmatter,
   withTopLevelField,
@@ -41,14 +41,11 @@ import {
 } from "./kb-sources.js";
 
 /** Schema 8: pin the checked meaning of requirements that never stated one. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const SEMANTIC_TEXT_PIN_CODE = "semantic_text_pin";
 /** Schema 8: acknowledge current entities that lack body context. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const CONTEXT_MISSING_TAG_CODE = "context_missing_tag";
 
 /** One authored file the schema 8 migration rewrites (front matter only). */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export type BodyContextTarget = Readonly<{
   id: string;
   type: string;
@@ -57,7 +54,6 @@ export type BodyContextTarget = Readonly<{
   after: string;
 }>;
 
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export type BodyContextPlan = Readonly<{
   targets: readonly BodyContextTarget[];
   /** Files Kibi cannot edit safely, with the reason. */
@@ -71,7 +67,6 @@ export type BodyContextPlan = Readonly<{
  * plus those that already carried the tag. Recorded in the manifest, which is
  * the only thing that makes the tag honored by `entity-context-missing`.
  */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function acknowledgedContextIds(plan: BodyContextPlan): string[] {
   return [
     ...new Set([
@@ -87,13 +82,11 @@ export function acknowledgedContextIds(plan: BodyContextPlan): string[] {
  * included), so claim spans and hashes do not move when the extractor stops
  * reading context sections. Read-only.
  */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function planSemanticTextPins(workspaceRoot: string): BodyContextPlan {
   const targets: BodyContextTarget[] = [];
   const skipped: { id: string; path: string; reason: string }[] = [];
-  for (const file of listLaneMarkdownFiles(workspaceRoot, ["requirements"])) {
-    const before = readText(file.absolutePath);
-    if (before === null) continue;
+  for (const file of listLaneMarkdownSources(workspaceRoot, ["requirements"])) {
+    const before = file.content;
     const entity = readAuthoredEntity(before, file.relativePath);
     if (entity === null || entity.type !== "req") continue;
     const pinned = entity.data.semantic_text;
@@ -120,30 +113,17 @@ export function planSemanticTextPins(workspaceRoot: string): BodyContextPlan {
   return { targets, skipped };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
 /**
  * Add one tag to a document's front matter, leaving every other byte
  * unchanged. Handles an absent key, a one-line flow list and a block list of
  * plain items; returns null for anything else or when the edit would not read
  * back as exactly that one added tag.
  */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function withAddedTag(content: string, tag: string): string | null {
   const slice = sliceFrontmatter(content);
   if (slice === null) return null;
-  let before: unknown;
-  try {
-    before = loadYaml(slice.text);
-  } catch {
-    return null;
-  }
-  if (!isRecord(before)) return null;
-  const existing = before.tags;
-  if (existing !== undefined && existing !== null && !Array.isArray(existing))
-    return null;
+  // Front matter that does not parse or is not a mapping, and tags that are
+  // not a list, are refused by the read-back check at the end.
   const eol = slice.eol;
   const lines = slice.text.split(/\r?\n/);
   // The text ends with a line break, so the last element is empty.
@@ -153,19 +133,21 @@ export function withAddedTag(content: string, tag: string): string | null {
   if (keyIndex < 0) {
     next = [...body, "tags:", `  - ${tag}`];
   } else {
-    const line = body[keyIndex] ?? "";
+    const line = body[keyIndex] as string;
     const rest = line.slice(line.indexOf(":") + 1).trim();
-    if (rest.startsWith("[") && rest.endsWith("]")) {
+    // A flow list followed by more text (a comment, or items on later lines)
+    // loses that text below and fails the read-back check.
+    if (rest.startsWith("[")) {
       const inner = rest.slice(1, -1).trim();
       const edited = `${line.slice(0, line.indexOf(":") + 1)} [${inner === "" ? tag : `${inner}, ${tag}`}]`;
       next = [...body.slice(0, keyIndex), edited, ...body.slice(keyIndex + 1)];
     } else if (rest === "" || rest === "null" || rest === "~") {
       let end = keyIndex + 1;
       let indent = "  ";
-      while (end < body.length) {
-        const item = /^([ \t]*)-[ \t]+\S/.exec(body[end] ?? "");
+      for (const following of body.slice(keyIndex + 1)) {
+        const item = /^([ \t]*)-[ \t]+\S/.exec(following);
         if (item === null) break;
-        if (end === keyIndex + 1) indent = item[1] ?? "";
+        if (end === keyIndex + 1) indent = item[1] as string;
         end += 1;
       }
       const head =
@@ -183,17 +165,9 @@ export function withAddedTag(content: string, tag: string): string | null {
   }
   const text = `${next.join(eol)}${eol}`;
   try {
-    const after = loadYaml(text);
-    if (!isRecord(after)) return null;
-    const { tags: beforeTags, ...beforeRest } = before;
-    const { tags: afterTags, ...afterRest } = after;
-    const expected = [...(Array.isArray(beforeTags) ? beforeTags : []), tag];
-    if (
-      !isDeepStrictEqual(afterTags, expected) ||
-      !isDeepStrictEqual(beforeRest, afterRest)
-    ) {
-      return null;
-    }
+    const before = loadYaml(slice.text) as Record<string, unknown>;
+    const tags = [...(Array.isArray(before.tags) ? before.tags : []), tag];
+    if (!isDeepStrictEqual(loadYaml(text), { ...before, tags })) return null;
   } catch {
     return null;
   }
@@ -206,7 +180,6 @@ export function withAddedTag(content: string, tag: string): string | null {
  * `review:context-missing`. No prose is written: the tag only acknowledges the
  * gap. Read-only.
  */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function planContextMissingTags(workspaceRoot: string): BodyContextPlan {
   const entities = listContextAuthoredEntities(workspaceRoot);
   const superseded = authoredSupersededIds(workspaceRoot, entities);
@@ -244,7 +217,6 @@ export function planContextMissingTags(workspaceRoot: string): BodyContextPlan {
 }
 
 /** Count targets by entity type, sorted by type. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function countByType(
   targets: readonly Pick<BodyContextTarget, "type">[],
 ): Record<string, number> {
@@ -265,13 +237,11 @@ function applyPlan(workspaceRoot: string, plan: BodyContextPlan): number {
 }
 
 /** Pin semantic_text, then return how many requirements were rewritten. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function applySemanticTextPins(workspaceRoot: string): number {
   return applyPlan(workspaceRoot, planSemanticTextPins(workspaceRoot));
 }
 
 /** Tag entities that lack context, then return how many were rewritten. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export function applyContextMissingTags(workspaceRoot: string): number {
   const plan = planContextMissingTags(workspaceRoot);
   const count = applyPlan(workspaceRoot, plan);

@@ -20,8 +20,6 @@ import {
 } from "../../src/public/proof-sources.js";
 import { prologCases } from "./prolog-cases.js";
 
-// implements REQ-kibi-source-proof-kinds
-
 const root = mkdtempSync(path.join(import.meta.dir, ".source-proof-"));
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 

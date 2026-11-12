@@ -3,7 +3,6 @@
 # checks every current requirement's evidence level against its floor.
 # Extra arguments pass through to kibi check: CI adds --fresh-evidence right
 # after `kibi prove --all`. KIBI_CLI selects another Kibi build.
-# implements REQ-kibi-local-proof-parity, REQ-ci-kb-merge-resolution
 set -eu
 
 run_proof_gate() {

@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { SEARCH_ANSWER_LIMITS } from "../../../src/search-answer.js";
 
-// implements REQ-kibi-search-answer-limits
-
 /**
  * The bounds of a kb_search answer. Kibi reads each field of SEARCH_ANSWER_LIMITS
  * itself at ingest (a dotted value_source), so the certificate is checked against the code.

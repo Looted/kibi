@@ -169,7 +169,6 @@ function cliFailure(check: string): PreflightReceipt {
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function preflightMain(argv: readonly string[]): Promise<number> {
   let options: CliOptions;
   try {

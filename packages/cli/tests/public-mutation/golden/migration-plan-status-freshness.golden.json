@@ -1,0 +1,340 @@
+[
+  [
+    {
+      "id": "branch-store-ensure",
+      "code": "missing_exact_branch_store",
+      "category": "storage",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "branch", "ensure"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": ["store"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "store": {
+          "state": "missing",
+          "path": "store"
+        }
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    },
+    {
+      "id": "schema-config-upgrade",
+      "code": "schema_version_upgrade",
+      "category": "schema",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "migrate", "--yes"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [
+        ".gitignore",
+        ".kb/",
+        ".kb/config.json",
+        ".kb/manifest.json",
+        ".kb/migrations"
+      ],
+      "dependsOn": ["branch-store-ensure"],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "configStatus": {
+          "status": "older",
+          "currentVersion": 14,
+          "latestVersion": 14,
+          "needsMigration": true,
+          "warning": null,
+          "configHash": "hash"
+        },
+        "sourceRewrites": "Not planned as separate actions: kibi migrate --yes also marks coarse symbol links legacy-link, backfills origin and repairs lifecycle findings in authored .kb/ sources. The plan lists them as their own actions once the upgrade can run automatically on the canonical .kb/ layout."
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    },
+    {
+      "id": "branch-store-compile",
+      "code": "branch_store_not_compiled",
+      "category": "storage",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "sync"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": ["store"],
+      "dependsOn": ["branch-store-ensure", "schema-config-upgrade"],
+      "preconditions": [],
+      "postconditions": [
+        {
+          "branchStore": "compiled"
+        }
+      ],
+      "evidence": {
+        "reason": {
+          "code": "branch_store_not_compiled"
+        }
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  [
+    {
+      "id": "schema-config-upgrade",
+      "code": "schema_version_upgrade",
+      "category": "schema",
+      "state": "blocked",
+      "safety": "operator",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "migrate", "--yes"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [
+        ".gitignore",
+        ".kb/",
+        ".kb/config.json",
+        ".kb/manifest.json",
+        ".kb/migrations"
+      ],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "configStatus": {
+          "status": "newer",
+          "currentVersion": 14,
+          "latestVersion": 14,
+          "needsMigration": true,
+          "warning": null,
+          "configHash": "hash"
+        },
+        "sourceRewrites": "Not planned as separate actions: kibi migrate --yes also marks coarse symbol links legacy-link, backfills origin and repairs lifecycle findings in authored .kb/ sources. The plan lists them as their own actions once the upgrade can run automatically on the canonical .kb/ layout."
+      },
+      "autoApplicable": false,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    },
+    {
+      "id": "branch-store-compile",
+      "code": "branch_store_not_compiled",
+      "category": "storage",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "sync"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [".kb/branches"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [
+        {
+          "branchStore": "compiled"
+        }
+      ],
+      "evidence": {
+        "reason": {
+          "code": "branch_store_not_compiled"
+        }
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    },
+    {
+      "id": "branch-store-recover",
+      "code": "damaged_exact_branch_store",
+      "category": "storage",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "branch", "recover", "--apply"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [".kb/branches"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "store": {
+          "state": "incomplete"
+        },
+        "backupRequired": true
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  [
+    {
+      "id": "branch-store-ensure",
+      "code": "missing_exact_branch_store",
+      "category": "storage",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "branch", "ensure"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [".kb/branches"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "store": {
+          "state": "missing"
+        }
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    },
+    {
+      "id": "schema-config-upgrade",
+      "code": "schema_version_upgrade",
+      "category": "schema",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "migrate", "--yes"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [
+        ".gitignore",
+        ".kb/",
+        ".kb/config.json",
+        ".kb/manifest.json",
+        ".kb/migrations"
+      ],
+      "dependsOn": ["branch-store-ensure"],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "configStatus": {
+          "status": "older",
+          "currentVersion": 14,
+          "latestVersion": 14,
+          "needsMigration": true,
+          "warning": null,
+          "configHash": "hash"
+        },
+        "sourceRewrites": "Not planned as separate actions: kibi migrate --yes also marks coarse symbol links legacy-link, backfills origin and repairs lifecycle findings in authored .kb/ sources. The plan lists them as their own actions once the upgrade can run automatically on the canonical .kb/ layout."
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    },
+    {
+      "id": "freshness-resync",
+      "code": "freshness_resync",
+      "category": "freshness",
+      "state": "ready",
+      "safety": "automatic",
+      "invocation": {
+        "kind": "cli",
+        "command_argv": ["kibi", "sync"]
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": ["a.md", "b.md"],
+      "dependsOn": ["branch-store-ensure", "schema-config-upgrade"],
+      "preconditions": [],
+      "postconditions": [
+        {
+          "syncState": "fresh"
+        }
+      ],
+      "evidence": {
+        "reasons": [
+          {
+            "code": "knowledge_source_newer",
+            "path": "b.md"
+          },
+          {
+            "code": "documentation_source_newer",
+            "path": "a.md"
+          },
+          {
+            "code": "compiler_changed"
+          },
+          {
+            "code": "indexed_source_newer",
+            "path": "a.md"
+          }
+        ]
+      },
+      "autoApplicable": true,
+      "dispositionRequired": false,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ],
+  [
+    {
+      "id": "freshness-stale_source-",
+      "code": "stale_source",
+      "category": "freshness",
+      "state": "ready",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Refresh or reconcile the stale source, then run kibi sync and read back status."
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": [],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "reason": {
+          "code": 5
+        }
+      },
+      "autoApplicable": false,
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    },
+    {
+      "id": "freshness-symbol_drift-s.ts",
+      "code": "symbol_drift",
+      "category": "freshness",
+      "state": "ready",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "Fix it."
+      },
+      "affectedEntityIds": [],
+      "affectedFiles": ["s.ts"],
+      "dependsOn": [],
+      "preconditions": [],
+      "postconditions": [],
+      "evidence": {
+        "reason": {
+          "code": "symbol_drift",
+          "path": "s.ts",
+          "remediation": "Fix it."
+        }
+      },
+      "autoApplicable": false,
+      "dispositionRequired": true,
+      "allowedDispositions": ["fixed", "accepted", "deferred"]
+    }
+  ]
+]

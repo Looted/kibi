@@ -41,6 +41,7 @@ import { PrologProcess } from "../prolog.js";
 import {
   escapeAtom,
   normalizeEntityId,
+  parseAtomList,
   parseTriples,
   parseViolationRows,
 } from "../prolog/codec.js";
@@ -53,11 +54,11 @@ import {
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
+import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
-  KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
@@ -93,7 +94,6 @@ import {
 import {
   classifyKibiImpactEvidence,
   isBehaviorSourceEdit,
-  parseKibiImpactOverride,
 } from "../traceability/staged-impact-contract.js";
 import {
   stagedInventoryDriftViolations,
@@ -146,11 +146,10 @@ function getMatchGroup(
   match: RegExpMatchArray | null,
   index = 1,
 ): string | null {
-  const value = match?.[index];
-  return typeof value === "string" ? value : null;
+  return match?.[index] ?? null;
 }
 
-function buildManifestLookup(
+export function buildManifestLookup(
   stagedFiles: StagedFile[],
   snapshotEntities: readonly ExtractionResult[],
 ): {
@@ -165,10 +164,8 @@ function buildManifestLookup(
   const stagedAuthoredSymbolResults: ExtractionResult[] = [];
 
   const makeLookupKey = (entry: ExtractionResult): string => {
-    if (typeof entry.entity.id === "string" && entry.entity.id.length > 0) {
-      return `id:${entry.entity.id}`;
-    }
-    return `fallback:${entry.sourceFile ?? entry.entity.source ?? ""}\u0000${entry.entity.title}`;
+    if (entry.entity.id) return `id:${entry.entity.id}`;
+    return `fallback:${entry.sourceFile ?? entry.entity.source}\u0000${entry.entity.title}`;
   };
 
   const authoredSymbolIndexByKey = new Map<string, number>();
@@ -224,7 +221,7 @@ function buildManifestLookup(
   }
 
   const stagedManifestFiles = stagedFiles.filter(
-    (file) =>
+    (file): file is StagedFile & { content: string } =>
       file.content !== undefined &&
       (file.path === CANONICAL_ENTITY_PATHS.symbols ||
         file.path === ".kb/symbols.yml"),
@@ -238,41 +235,21 @@ function buildManifestLookup(
 
     try {
       const entries = extractFromManifestString(
-        manifestFile.content ?? "",
+        manifestFile.content,
         manifestFile.path,
       );
       for (const entry of entries) {
-        const authoredSymbolResult = {
-          entity: entry.entity,
-          relationships: entry.relationships,
-          ...(entry.sourceFile !== undefined
-            ? { sourceFile: entry.sourceFile }
-            : {}),
-        };
-        const manifestResult = {
-          entity: entry.entity,
-          relationships: entry.relationships,
-          ...(entry.sourceFile !== undefined
-            ? { sourceFile: entry.sourceFile }
-            : {}),
-        };
-
-        upsertResult(
-          manifestResults,
-          manifestResultIndexByKey,
-          manifestResult,
-          true,
-        );
+        upsertResult(manifestResults, manifestResultIndexByKey, entry, true);
         upsertResult(
           authoredSymbolResults,
           authoredSymbolIndexByKey,
-          authoredSymbolResult,
+          entry,
           true,
         );
         upsertResult(
           stagedAuthoredSymbolResults,
           stagedAuthoredSymbolIndexByKey,
-          authoredSymbolResult,
+          entry,
         );
       }
     } catch {
@@ -299,30 +276,16 @@ const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
   "fact",
 ]);
 
-function isKibiEntityType(value: string): value is KibiEntityType {
+export function isKibiEntityType(value: string): value is KibiEntityType {
   return KIBI_ENTITY_TYPES.has(value as KibiEntityType);
 }
 
-function isTestOnlySourcePath(filePath: string): boolean {
-  return (
-    filePath.startsWith("tests/") ||
-    filePath.includes("/tests/") ||
-    filePath.endsWith(".test.ts") ||
-    filePath.endsWith(".test.tsx") ||
-    filePath.endsWith(".test.js") ||
-    filePath.endsWith(".test.jsx") ||
-    filePath.endsWith(".spec.ts") ||
-    filePath.endsWith(".spec.tsx") ||
-    filePath.endsWith(".spec.js") ||
-    filePath.endsWith(".spec.jsx")
-  );
+/** Whether a path is a test file or lies under a `tests/` folder. */
+export function isTestOnlySourcePath(filePath: string): boolean {
+  return /(^|\/)tests\/|\.(test|spec)\.[jt]sx?$/.test(filePath);
 }
 
-function getStagedDiffText(stagedFile: StagedFile): string {
-  return stagedFile.diffText ?? "";
-}
-
-function formatStagedKibiDiagnostics(
+export function formatStagedKibiDiagnostics(
   diagnostics: KibiImpactDiagnostic[],
 ): string {
   return diagnostics
@@ -345,7 +308,7 @@ function formatStagedKibiDiagnostics(
     .join("\n\n");
 }
 
-function formatQualityDiagnostics(
+export function formatQualityDiagnostics(
   diagnostics: readonly QualityDiagnostic[],
 ): string {
   if (diagnostics.length === 0) {
@@ -373,9 +336,10 @@ function formatQualityDiagnostics(
   return `Quality diagnostics (${diagnostics.length}):\n${details.join("\n\n")}`;
 }
 
-function printStructuredCheckResult(input: {
+export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
+  migrationPlan?: MigrationPlan;
 }): void {
   console.log(
     JSON.stringify({
@@ -384,12 +348,16 @@ function printStructuredCheckResult(input: {
         count: input.violations.length,
         diagnostics: [],
         qualityDiagnostics: input.qualityDiagnostics,
+        // The same migration plan kb_check returns, so the CLI and MCP agree.
+        ...(input.migrationPlan !== undefined
+          ? { migrationPlan: input.migrationPlan }
+          : {}),
       },
     }),
   );
 }
 
-function formatStagedCoverage(result: StagedFileCoverageResult): string {
+export function formatStagedCoverage(result: StagedFileCoverageResult): string {
   const counts = {
     symbol: result.files.filter((file) => file.analysisDepth === "symbol")
       .length,
@@ -426,7 +394,7 @@ function formatStagedCoverage(result: StagedFileCoverageResult): string {
   return lines.join("\n");
 }
 
-function printStagedResult(input: {
+export function printStagedResult(input: {
   format: "text" | "json" | undefined;
   coverage: StagedFileCoverageResult | null;
   violations?: readonly unknown[];
@@ -459,7 +427,7 @@ function printStagedResult(input: {
   if (input.operationalError) console.error(input.operationalError);
 }
 
-function clearResolvedImpactReviewAdvisories(
+export function clearResolvedImpactReviewAdvisories(
   coverage: StagedFileCoverageResult,
 ): void {
   const transport = coverage.files.find(
@@ -490,7 +458,7 @@ function clearResolvedImpactReviewAdvisories(
   });
 }
 
-function noValidatedSymbolsMessage(
+export function noValidatedSymbolsMessage(
   sourceAnalysis: ReadonlyMap<string, SourceChangeAnalysis>,
 ): string {
   const partialFiles = [...sourceAnalysis.values()].flatMap((analysis) => {
@@ -509,24 +477,19 @@ function noValidatedSymbolsMessage(
   return "No exported symbols or staged entities found in staged files.";
 }
 
-function uniqueSorted(values: Iterable<string>): string[] {
-  return Array.from(new Set(values)).sort();
-}
-
 /** The Baseline-style line naming records changed only by a migration. */
-// implements REQ-cli-migration-first-commit
-function migrationOnlyNote(entityIds: readonly string[]): string {
+export function migrationOnlyNote(entityIds: readonly string[]): string {
   const shown = entityIds.slice(0, 5).join(", ");
   const more = entityIds.length > 5 ? ` and ${entityIds.length - 5} more` : "";
   return `Migration commit: ${entityIds.length} symbol record(s) changed only by kibi migrate (legacy-link marks, review:context-missing tags) are not judged as changed by this commit: ${shown}${more}. Run kibi check for the full report.`;
 }
 
-function hasYamlFrontmatter(content: string): boolean {
+export function hasYamlFrontmatter(content: string): boolean {
   const trimmed = content.trimStart();
-  return trimmed.startsWith("---") && trimmed.slice(3).includes("\n---");
+  return trimmed.startsWith("---") && trimmed.includes("\n---");
 }
 
-function buildStagedKibiImpactEvidence(options: {
+export function buildStagedKibiImpactEvidence(options: {
   stagedFiles: StagedFile[];
   sourceFiles: StagedFile[];
   markdownFiles: StagedFile[];
@@ -555,7 +518,7 @@ function buildStagedKibiImpactEvidence(options: {
       !isTestOnlySourcePath(file.path) &&
       isBehaviorSourceEdit({
         path: file.path,
-        diffText: getStagedDiffText(file),
+        diffText: file.diffText ?? "",
         intersectsBehaviorBearingSymbol: symbolsForFile.length > 0,
         knownUserFacingSurface: false,
       });
@@ -571,7 +534,6 @@ function buildStagedKibiImpactEvidence(options: {
   const behaviorSourcePaths = sourceChanges
     .filter((change) => change.kind === "behavior_source_edit")
     .map((change) => change.path);
-  const allSourcePaths = sourceChanges.map((change) => change.path);
   const behaviorSourceFiles = sourceFiles.filter((file) =>
     behaviorSourcePaths.includes(file.path),
   );
@@ -598,22 +560,11 @@ function buildStagedKibiImpactEvidence(options: {
     KibiImpactEvidence["mode"],
     { kind: "kb_changes" }
   >["kbArtifacts"][number];
-  type NoImpactOverride = Extract<
-    KibiImpactEvidence["mode"],
-    { kind: "no_impact_override" }
-  >["override"];
 
   const resolvedKbArtifacts: KbArtifact[] = [];
-  let override: NoImpactOverride | null = null;
 
   for (const file of markdownFiles) {
-    const parsedOverride = parseKibiImpactOverride(file.content ?? "");
-    const evidenceKind = classifyKibiImpactEvidence({
-      filePath: file.path,
-      extractionOutputChanged: false,
-      overrideDeclared: parsedOverride.declared,
-      overrideRationale: parsedOverride.rationale,
-    });
+    const evidenceKind = classifyKibiImpactEvidence({ filePath: file.path });
 
     if (evidenceKind === "entity_markdown") {
       const result = markdownResultsByPath.get(file.path);
@@ -626,20 +577,7 @@ function buildStagedKibiImpactEvidence(options: {
           sourcePaths: [...behaviorSourcePaths],
         });
       }
-      continue;
     }
-
-    if (!parsedOverride.declared || override !== null) {
-      continue;
-    }
-
-    override = {
-      declaration: KIBI_NO_IMPACT_DECLARATION,
-      path: file.path,
-      sourcePaths: [...allSourcePaths],
-      reason: "non_behavioral_source_edit",
-      rationale: parsedOverride.rationale ?? "",
-    };
   }
 
   if (stagedAuthoredSymbolsEvidence.changedEntityIds.length > 0) {
@@ -648,9 +586,13 @@ function buildStagedKibiImpactEvidence(options: {
       path: stagedAuthoredSymbolsEvidence.path,
       entityTypes: ["symbol"],
       entityIds: stagedAuthoredSymbolsEvidence.changedEntityIds,
-      sourcePaths: uniqueSorted(
-        stagedAuthoredSymbolsEvidence.entries.map((entry) => entry.sourcePath),
-      ),
+      sourcePaths: [
+        ...new Set(
+          stagedAuthoredSymbolsEvidence.entries.map(
+            (entry) => entry.sourcePath,
+          ),
+        ),
+      ].sort(),
     });
   }
 
@@ -667,9 +609,7 @@ function buildStagedKibiImpactEvidence(options: {
     mode:
       resolvedKbArtifacts.length > 0
         ? { kind: "kb_changes", kbArtifacts: resolvedKbArtifacts }
-        : override
-          ? { kind: "no_impact_override", override }
-          : { kind: "missing" },
+        : { kind: "missing" },
   };
 }
 
@@ -684,39 +624,40 @@ export function requireActiveProlog<E, P>(
   return activeProlog as NonNullable<E | P>;
 }
 
-// implements REQ-006
+/**
+ * Resolve the branch a check reads, refreshing a detached snapshot and
+ * compiling a store nothing compiled yet, and return its KB branch.
+ */
+async function attachReadBranch(workspaceRoot: string): Promise<string> {
+  const attachment = resolveReadBranchAttachment(workspaceRoot);
+  if ("error" in attachment) throw new Error(attachment.error);
+  if (attachment.readOnly !== undefined) {
+    // Check reads only: a detached HEAD checks its read-only snapshot.
+    console.warn(`[KIBI] ${attachment.readOnly.notice}`);
+    await refreshDetachedSnapshot(workspaceRoot, attachment);
+  }
+  if (attachment.migrationRequired) {
+    console.warn(
+      `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
+    );
+  }
+  // A fresh clone's first commit must not fail on a store nothing compiled.
+  await ensureBranchStoreCompiled(workspaceRoot, attachment, {
+    name: "kb_check",
+  });
+  return attachment.kbBranch;
+}
+
 export async function checkCommand(
   options: CheckOptions,
 ): Promise<{ exitCode: number }> {
   let prolog: PrologProcess | null = null;
   let engine: EngineClient | null = null;
-  let attached = false;
-  let resolvedBranch = "";
   try {
-    let resolvedKbPath = "";
-    if (options.kbPath) {
-      resolvedKbPath = options.kbPath;
-    } else {
-      const attachment = resolveReadBranchAttachment(process.cwd());
-      if ("error" in attachment) throw new Error(attachment.error);
-      resolvedBranch = attachment.kbBranch;
-      if (attachment.readOnly !== undefined) {
-        // Check reads only: a detached HEAD checks its read-only snapshot.
-        console.warn(`[KIBI] ${attachment.readOnly.notice}`);
-        await refreshDetachedSnapshot(process.cwd(), attachment);
-      }
-      if (attachment.migrationRequired) {
-        console.warn(
-          `Warning: reading legacy KB attachment ${attachment.gitBranch} -> ${attachment.kbBranch}; migrate before writes or sync.`,
-        );
-      }
-      // A fresh clone's first commit must not fail on a store nothing compiled.
-      // implements REQ-kibi-fresh-clone-setup
-      await ensureBranchStoreCompiled(process.cwd(), attachment, {
-        name: "kb_check",
-      });
-      resolvedKbPath = attachment.storePath;
-    }
+    // An explicit store is read as given; otherwise the attached branch.
+    const store: { kbPath: string } | { branch: string } = options.kbPath
+      ? { kbPath: options.kbPath }
+      : { branch: await attachReadBranch(process.cwd()) };
 
     if (options.staged) {
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;
@@ -792,21 +733,16 @@ export async function checkCommand(
               `Partial source analysis: staged line(s) ${review.lines.map((range) => (range.startLine === range.endLine ? `${range.startLine}` : `${range.startLine}-${range.endLine}`)).join(", ")} of ${review.path} fall outside every declaration the analyzer placed (${review.detail}); review that change at file level.`,
           ),
         ].filter((note): note is string => note !== undefined);
-        const printNotedResult = (
-          input: Parameters<typeof printStagedResult>[0],
-        ): void => {
-          printStagedResult(
-            baselineNotes.length === 0
-              ? input
-              : {
-                  ...input,
-                  messages: [...baselineNotes, ...(input.messages ?? [])],
-                },
-          );
+        type NotedResult = Parameters<typeof printStagedResult>[0] & {
+          messages: readonly string[];
         };
-        const printSnapshotResult = (
-          input: Parameters<typeof printStagedResult>[0],
-        ): void => {
+        const printNotedResult = (input: NotedResult): void => {
+          printStagedResult({
+            ...input,
+            messages: [...baselineNotes, ...input.messages],
+          });
+        };
+        const printSnapshotResult = (input: NotedResult): void => {
           snapshot.assertUnchanged();
           printNotedResult(input);
         };
@@ -851,9 +787,9 @@ export async function checkCommand(
         // committed side never blocks, and an after-side local gap blocks only
         // where it overlaps the staged lines. With a policy, the impact review
         // evaluates the same obligations and accepts reviewed partial gaps.
-        if (!impactPolicyEnabled)
+        if (!impactPolicyEnabled) {
           assertSourceAnalysisGate(stagedInventory, sourceAnalysis);
-        if (impactPolicyEnabled) {
+        } else {
           const impactEvaluation = evaluateImpactReview(snapshot, {
             providerSetFingerprint: fingerprintMaintenanceSourceSet(
               process.cwd(),
@@ -866,9 +802,7 @@ export async function checkCommand(
             throw new Error(
               `Staged impact review failed:\n${impactEvaluation.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n")}`,
             );
-          if (stagedCoverage) {
-            clearResolvedImpactReviewAdvisories(stagedCoverage);
-          }
+          clearResolvedImpactReviewAdvisories(stagedCoverage);
         }
         const stagedFiles = supportedStagedFiles(stagedInventory);
         if (stagedInventory.length === 0) {
@@ -952,7 +886,6 @@ export async function checkCommand(
             return { exitCode: options.dryRun ? 0 : 1 };
           }
         }
-        // implements REQ-cli-staged-entity-context
         // An entity document the commit adds or edits must carry the body
         // context full `kibi check` requires; debt already at the base, or
         // acknowledged by the migration, does not block.
@@ -990,7 +923,6 @@ export async function checkCommand(
           });
           return { exitCode: options.dryRun ? 0 : 1 };
         }
-        // implements REQ-kibi-proposition-complete-ingestion
         // A body edit to a requirement that pins semantic_text must restate
         // it; otherwise its claims and proofs keep the old wording.
         const statementDrift = stagedStatementDriftViolations({
@@ -1033,10 +965,9 @@ export async function checkCommand(
         // Symbols of a generated file the KB does not reference need no
         // requirement link: the generator owns them. Linked ones stay checked.
         const manifestSourceFiles = new Set(
-          authoredSymbolResults.flatMap((result) => {
-            const sourceFile = result.sourceFile || result.entity.source;
-            return sourceFile ? [sourceFile] : [];
-          }),
+          authoredSymbolResults.map(
+            (result) => result.sourceFile || result.entity.source,
+          ),
         );
         const generatedSkipped: string[] = [];
         for (const f of sourceFiles) {
@@ -1069,9 +1000,7 @@ export async function checkCommand(
             if (exempt && checked.length < symbols.length)
               generatedSkipped.push(f.path);
             symbolsByFile.set(f.path, checked);
-            if (checked?.length) {
-              allSymbols.push(...checked);
-            }
+            allSymbols.push(...checked);
           } catch (e) {
             const message = `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`;
             throw new Error(message);
@@ -1084,8 +1013,8 @@ export async function checkCommand(
           );
         const markdownResultsByPath = new Map<string, ExtractionResult>();
         for (const file of markdownFiles) {
-          const content = file.content ?? "";
-          if (hasYamlFrontmatter(content)) {
+          const content = file.content;
+          if (content !== undefined && hasYamlFrontmatter(content)) {
             markdownResultsByPath.set(
               file.path,
               extractFromMarkdownString(content, file.path),
@@ -1093,13 +1022,11 @@ export async function checkCommand(
           }
         }
 
-        const stagedSourceFilePaths = new Set(
+        const stagedSourcePaths = new Set<string | undefined>(
           sourceFiles.map((file) => file.path),
         );
-        const scopedManifestResults = manifestResults.filter(
-          (result) =>
-            result.sourceFile !== undefined &&
-            stagedSourceFilePaths.has(result.sourceFile),
+        const scopedManifestResults = manifestResults.filter((result) =>
+          stagedSourcePaths.has(result.sourceFile),
         );
         const stagedEntityResults: ExtractionResult[] = [
           ...scopedManifestResults,
@@ -1161,12 +1088,10 @@ export async function checkCommand(
                 .flatMap((artifact) => artifact.entityIds)
             : [],
         );
-        const stagedSourcePaths = new Set(sourceFiles.map((file) => file.path));
         const activeGranularityResults = authoredSymbolResults.filter(
           (result) =>
             activeStagedSymbolEntityIds.has(result.entity.id) ||
-            (result.sourceFile !== undefined &&
-              stagedSourcePaths.has(result.sourceFile)),
+            stagedSourcePaths.has(result.sourceFile),
         );
         const snapshotSymbolsByFile = new Map<
           string,
@@ -1260,7 +1185,7 @@ export async function checkCommand(
 
           const overlayFacts = createOverlayFacts(allSymbols);
           const fs = await import("node:fs/promises");
-          await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
+          await fs.writeFile(tempCtx.overlayPath, overlayFacts);
           await fs.cp(
             tempCtx.overlayPath,
             path.join(tempCtx.kbPath, "changed_symbols.pl"),
@@ -1353,8 +1278,9 @@ export async function checkCommand(
       } catch (err) {
         const message = `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`;
         if (tempCtx) {
+          const { tempDir } = tempCtx;
           try {
-            await cleanupTempKb(tempCtx.tempDir);
+            await cleanupTempKb(tempDir);
           } catch {
             // best-effort: temp directory may already be cleaned up
           }
@@ -1371,10 +1297,10 @@ export async function checkCommand(
     // The active branch is hosted by the journaled engine. Keep the explicit
     // --kb-path escape hatch on the one-shot path for alternate/staged stores,
     // but never compete with the branch daemon for its RDF lock.
-    if (options.kbPath === undefined) {
+    if ("branch" in store) {
       engine = new EngineClient({
         workspaceRoot: process.cwd(),
-        branch: resolvedBranch,
+        branch: store.branch,
         timeout: 120_000,
       });
       await engine.start();
@@ -1382,7 +1308,7 @@ export async function checkCommand(
       prolog = new PrologProcess({ timeout: 120000 });
       await prolog.start();
 
-      const kbPathEscaped = escapeAtom(resolvedKbPath);
+      const kbPathEscaped = escapeAtom(store.kbPath);
       const attachResult = await prolog.query(`kb_attach('${kbPathEscaped}')`);
 
       if (!attachResult.success) {
@@ -1390,7 +1316,6 @@ export async function checkCommand(
         console.error(`Error: Failed to attach KB: ${attachResult.error}`);
         return { exitCode: 1 };
       }
-      attached = true;
     }
 
     const activeProlog = requireActiveProlog<EngineClient, PrologProcess>(
@@ -1428,14 +1353,19 @@ export async function checkCommand(
       {
         collectFullQualityDiagnosticsForExplicitRules: true,
         // The engine reads the branch store; an explicit --kb-path does not.
-        branchStoreAttached: options.kbPath === undefined,
+        branchStoreAttached: "branch" in store,
       },
     );
     const violations = result.structuredContent?.violations ?? [];
     const qualityDiagnostics =
       result.structuredContent?.qualityDiagnostics ?? [];
     if (options.format === "json") {
-      printStructuredCheckResult({ violations, qualityDiagnostics });
+      const migrationPlan = result.structuredContent?.migrationPlan;
+      printStructuredCheckResult({
+        violations,
+        qualityDiagnostics,
+        ...(migrationPlan !== undefined ? { migrationPlan } : {}),
+      });
       return { exitCode: violations.length === 0 ? 0 : 1 };
     }
     const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);
@@ -1494,19 +1424,9 @@ export async function checkMustPriorityCoverage(
   const mustReqs = await findMustPriorityReqs(prolog);
 
   for (const reqId of mustReqs) {
-    const entityResult = await prolog.query(
-      `kb_entity('${reqId}', req, Props)`,
+    const source = entitySource(
+      await prolog.query(`kb_entity('${reqId}', req, Props)`),
     );
-
-    let source = "";
-    if (entityResult.success && entityResult.bindings.Props) {
-      const propsStr = entityResult.bindings.Props;
-      const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      const sourceValue = getMatchGroup(sourceMatch);
-      if (sourceValue) {
-        source = sourceValue;
-      }
-    }
 
     const scenarioResult = await prolog.query(
       `kb_relationship(specified_by, '${reqId}', ScenarioId)`,
@@ -1542,26 +1462,51 @@ export async function checkMustPriorityCoverage(
   return violations;
 }
 
-// implements REQ-cli-check
+type PrologAnswer = Awaited<ReturnType<PrologProcess["query"]>>;
+
+const SOURCE_PROPERTY = /source\s*=\s*\^\^?\("([^"]+)"/;
+
+/** The source path in an answer's Props binding, or "" when it has none. */
+function entitySource(answer: PrologAnswer): string {
+  if (!answer.success) return "";
+  return (
+    getMatchGroup(answer.bindings.Props?.match(SOURCE_PROPERTY) ?? null) ?? ""
+  );
+}
+
+/** The Prolog list an answer bound to `name`, if it bound one. */
+function boundList(answer: PrologAnswer, name: string): string | undefined {
+  const value = answer.success ? answer.bindings[name] : undefined;
+  return value?.startsWith("[") ? value : undefined;
+}
+
+/** The atoms an answer bound to `name`. */
+function boundAtoms(answer: PrologAnswer, name: string): string[] {
+  const list = boundList(answer, name);
+  return list ? parseAtomList(list) : [];
+}
+
+const PAIR_ROW = /\[[^,[\]]+,[^\]]+\]/g;
+
+/** The two-atom rows an answer bound to `name`, skipping other rows. */
+function boundPairs(
+  answer: PrologAnswer,
+  name: string,
+): Array<[string, string]> {
+  const list = boundList(answer, name);
+  if (!list) return [];
+  return Array.from(
+    list.matchAll(PAIR_ROW),
+    ([row]) => parseAtomList(row) as [string, string],
+  );
+}
+
 // covered_by TEST-004
 export async function findMustPriorityReqs(
   prolog: PrologProcess,
 ): Promise<string[]> {
   const query = `findall(Id, (kb_entity(Id, req, Props), memberchk(priority=P, Props), (P = ^^("must", _) ; P = "must" ; P = 'must' ; (atom(P), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")))), Ids)`;
-  const result = await prolog.query(query);
-
-  if (!result.success || !result.bindings.Ids) {
-    return [];
-  }
-
-  const idsStr = result.bindings.Ids;
-  const match = idsStr.match(/\[(.*)\]/);
-  const content = getMatchGroup(match)?.trim();
-  if (!content) {
-    return [];
-  }
-
-  return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
+  return boundAtoms(await prolog.query(query), "Ids");
 }
 
 export async function getAllEntityIds(
@@ -1570,22 +1515,8 @@ export async function getAllEntityIds(
 ): Promise<string[]> {
   const typeFilter = type ? `, Type = ${type}` : "";
   const query = `findall(Id, (kb_entity(Id, Type, _)${typeFilter}), Ids)`;
-  const result = await prolog.query(query);
-
-  if (!result.success || !result.bindings.Ids) {
-    return [];
-  }
-
-  const idsStr = result.bindings.Ids;
-  const match = idsStr.match(/\[(.*)\]/);
-  const content = getMatchGroup(match)?.trim();
-  if (!content) {
-    return [];
-  }
-
-  return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
+  return boundAtoms(await prolog.query(query), "Ids");
 }
-// implements REQ-cli-check
 export async function checkNoDanglingRefs(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
@@ -1607,56 +1538,32 @@ export async function checkNoDanglingRefs(
     "relates_to",
   ];
 
-  const allRels: Array<{ from: string; to: string }> = [];
+  const allRels: Array<[string, string]> = [];
 
   for (const relType of relTypes) {
     const relsResult = await prolog.query(
       `findall([From,To], kb_relationship(${relType}, From, To), Rels)`,
     );
-
-    if (relsResult.success && relsResult.bindings.Rels) {
-      const relsStr = relsResult.bindings.Rels;
-      const match = relsStr.match(/\[(.*)\]/);
-      const content = getMatchGroup(match)?.trim();
-      if (content) {
-        const relMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
-        for (const relMatch of relMatches) {
-          const fromValue = getMatchGroup(relMatch);
-          const toValue = getMatchGroup(relMatch, 2);
-          if (!fromValue || !toValue) continue;
-
-          const fromId = fromValue.trim().replace(/^'|'$/g, "");
-          const toId = toValue.trim().replace(/^'|'$/g, "");
-          allRels.push({ from: fromId, to: toId });
-        }
-      }
-    }
+    allRels.push(...boundPairs(relsResult, "Rels"));
   }
 
   // Check all collected relationships for dangling refs
   for (const rel of allRels) {
-    if (!allEntityIds.has(rel.from)) {
-      violations.push({
-        rule: "no-dangling-refs",
-        entityId: rel.from,
-        description: `Relationship references non-existent entity: ${rel.from}`,
-        suggestion: "Remove relationship or create missing entity",
-      });
-    }
-    if (!allEntityIds.has(rel.to)) {
-      violations.push({
-        rule: "no-dangling-refs",
-        entityId: rel.to,
-        description: `Relationship references non-existent entity: ${rel.to}`,
-        suggestion: "Remove relationship or create missing entity",
-      });
+    for (const entityId of rel) {
+      if (!allEntityIds.has(entityId)) {
+        violations.push({
+          rule: "no-dangling-refs",
+          entityId,
+          description: `Relationship references non-existent entity: ${entityId}`,
+          suggestion: "Remove relationship or create missing entity",
+        });
+      }
     }
   }
 
   return violations;
 }
 
-// implements REQ-cli-check
 // covered_by TEST-cli-check-integrity
 export async function checkNoCycles(
   prolog: PrologProcess,
@@ -1667,34 +1574,11 @@ export async function checkNoCycles(
     "findall([From,To], kb_relationship(depends_on, From, To), Deps)",
   );
 
-  if (!depsResult.success || !depsResult.bindings.Deps) {
-    return violations;
-  }
-
-  const depsStr = depsResult.bindings.Deps;
-  const match = depsStr.match(/\[(.*)\]/);
-  const content = getMatchGroup(match)?.trim();
-  if (!content) {
-    return violations;
-  }
-
   const graph = new Map<string, string[]>();
-  const depMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
-
-  for (const depMatch of depMatches) {
-    const fromValue = getMatchGroup(depMatch);
-    const toValue = getMatchGroup(depMatch, 2);
-    if (!fromValue || !toValue) continue;
-
-    const from = fromValue.trim().replace(/^'|'$/g, "");
-    const to = toValue.trim().replace(/^'|'$/g, "");
-    if (!graph.has(from)) {
-      graph.set(from, []);
-    }
-    const fromList = graph.get(from);
-    if (fromList) {
-      fromList.push(to);
-    }
+  for (const [from, to] of boundPairs(depsResult, "Deps")) {
+    const neighbors = graph.get(from);
+    if (neighbors) neighbors.push(to);
+    else graph.set(from, [to]);
   }
 
   const visited = new Set<string>();
@@ -1720,41 +1604,28 @@ export async function checkNoCycles(
     return null;
   }
 
+  // A search from a node an earlier search finished finds no new cycle.
   for (const node of graph.keys()) {
-    if (!visited.has(node)) {
-      const cyclePath = hasCycleDFS(node, []);
-      if (cyclePath) {
-        const cycleEntityId = cyclePath[0];
-        if (!cycleEntityId) {
-          continue;
-        }
-
-        const cycleWithSources: string[] = [];
-        for (const entityId of cyclePath) {
-          const entityResult = await prolog.query(
-            `kb_entity('${entityId}', _, Props)`,
-          );
-          let sourceName = entityId;
-          if (entityResult.success && entityResult.bindings.Props) {
-            const propsStr = entityResult.bindings.Props;
-            const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-            const sourceValue = getMatchGroup(sourceMatch);
-            if (sourceValue) {
-              sourceName = path.basename(sourceValue, ".md");
-            }
-          }
-          cycleWithSources.push(sourceName);
-        }
-
-        violations.push({
-          rule: "no-cycles",
-          entityId: cycleEntityId,
-          description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
-          suggestion:
-            "Break cycle by removing one of the depends_on relationships",
-        });
-        break; // Report only first cycle found
+    const cyclePath = hasCycleDFS(node, []);
+    if (cyclePath) {
+      const cycleWithSources: string[] = [];
+      for (const entityId of cyclePath) {
+        const sourceValue = entitySource(
+          await prolog.query(`kb_entity('${entityId}', _, Props)`),
+        );
+        cycleWithSources.push(
+          sourceValue ? path.basename(sourceValue, ".md") : entityId,
+        );
       }
+
+      violations.push({
+        rule: "no-cycles",
+        entityId: node,
+        description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
+        suggestion:
+          "Break cycle by removing one of the depends_on relationships",
+      });
+      break; // Report only first cycle found
     }
   }
 
@@ -1780,16 +1651,9 @@ export async function checkRequiredFields(
     const result = await prolog.query(`kb_entity('${entityId}', Type, Props)`);
 
     if (result.success && result.bindings.Props) {
-      const propsStr = result.bindings.Props;
-      const propKeys = new Set<string>();
-
-      const keyMatches = propsStr.matchAll(/(\w+)\s*=/g);
-      for (const match of keyMatches) {
-        const key = getMatchGroup(match);
-        if (key) {
-          propKeys.add(key);
-        }
-      }
+      const propKeys = new Set(
+        Array.from(result.bindings.Props.matchAll(/(\w+)\s*=/g), (m) => m[1]),
+      );
 
       for (const field of required) {
         if (!propKeys.has(field)) {
@@ -1813,38 +1677,15 @@ export async function checkDeprecatedAdrs(
   const violations: Violation[] = [];
 
   // Use Prolog predicate to find deprecated ADRs without successors
-  const result = await prolog.query(
-    "setof(Id, deprecated_no_successor(Id), Ids)",
+  const adrIds = boundAtoms(
+    await prolog.query("setof(Id, deprecated_no_successor(Id), Ids)"),
+    "Ids",
   );
 
-  if (!result.success || !result.bindings.Ids) {
-    return violations;
-  }
-
-  const idsStr = result.bindings.Ids;
-  const match = idsStr.match(/\[(.*)\]/);
-  const content = getMatchGroup(match)?.trim();
-  if (!content) {
-    return violations;
-  }
-
-  const adrIds = content
-    .split(",")
-    .map((id) => id.trim().replace(/^'|'$/g, ""));
-
   for (const adrId of adrIds) {
-    const entityResult = await prolog.query(
-      `kb_entity('${adrId}', adr, Props)`,
+    const source = entitySource(
+      await prolog.query(`kb_entity('${adrId}', adr, Props)`),
     );
-    let source = "";
-    if (entityResult.success && entityResult.bindings.Props) {
-      const propsStr = entityResult.bindings.Props;
-      const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      const sourceValue = getMatchGroup(sourceMatch);
-      if (sourceValue) {
-        source = sourceValue;
-      }
-    }
 
     violations.push({
       rule: "deprecated-adr-no-successor",
@@ -1889,77 +1730,35 @@ export async function checkDomainContradictions(
   return violations;
 }
 
+/** The violation/5 rows a `checks:` predicate yields. */
+async function strictViolations(
+  prolog: PrologProcess,
+  predicate: string,
+): Promise<Violation[]> {
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
+      checks:${predicate}(violation(Rule, EntityId, Desc, Sugg, Src)),
+      Violations)`,
+  );
+  return result.success
+    ? parseViolationRows(`${result.bindings.Violations}`)
+    : [];
+}
+
 export async function checkStrictFactShape(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const result = await prolog.query(
-    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
-      checks:strict_fact_shape_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
-      Violations)`,
-  );
-
-  if (!result.success || !result.bindings.Violations) {
-    return violations;
-  }
-
-  const violationsStr = result.bindings.Violations as string;
-  if (violationsStr && violationsStr !== "[]") {
-    for (const v of parseViolationRows(violationsStr)) {
-      violations.push(v);
-    }
-  }
-
-  return violations;
+  return strictViolations(prolog, "strict_fact_shape_violation");
 }
 
 export async function checkStrictReqFactPairing(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const result = await prolog.query(
-    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
-      checks:strict_req_fact_pairing_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
-      Violations)`,
-  );
-
-  if (!result.success || !result.bindings.Violations) {
-    return violations;
-  }
-
-  const violationsStr = result.bindings.Violations as string;
-  if (violationsStr && violationsStr !== "[]") {
-    for (const v of parseViolationRows(violationsStr)) {
-      violations.push(v);
-    }
-  }
-
-  return violations;
+  return strictViolations(prolog, "strict_req_fact_pairing_violation");
 }
 
 export async function checkStrictReadiness(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const result = await prolog.query(
-    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
-      checks:strict_readiness_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
-      Violations)`,
-  );
-
-  if (!result.success || !result.bindings.Violations) {
-    return violations;
-  }
-
-  const violationsStr = result.bindings.Violations as string;
-  if (violationsStr && violationsStr !== "[]") {
-    for (const v of parseViolationRows(violationsStr)) {
-      violations.push(v);
-    }
-  }
-
-  return violations;
+  return strictViolations(prolog, "strict_readiness_violation");
 }

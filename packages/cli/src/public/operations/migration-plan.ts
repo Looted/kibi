@@ -125,7 +125,6 @@ function stableValue(value: unknown, root = true): unknown {
   );
 }
 
-// implements REQ-agent-guided-migration-orchestration
 export function migrationPlanHash(value: unknown): string {
   return createHash("sha256")
     .update(JSON.stringify(stableValue(value)))
@@ -181,19 +180,20 @@ function dependencyOrder(
   }
   const ordered: MigrationAction[] = [];
   const ready = actions
-    .filter((action) => (remaining.get(action.id)?.size ?? 0) === 0)
+    .filter((action) => (remaining.get(action.id) as Set<string>).size === 0)
     .sort(actionSort)
     .map((action) => action.id);
-  const queued = new Set(ready);
   const compareReady = (left: string, right: string): number =>
     compareReadyActionIds(left, right, byId);
-  // `ready` stays sorted; a freed action is inserted after its equals, where
-  // a stable sort of the pushed list would have put it.
+  // `ready` stays sorted; a freed action is inserted where a sort of the
+  // pushed list would have put it.
   const enqueue = (id: string, head: number): void => {
     let low = head;
     let high = ready.length;
     while (low < high) {
       const middle = (low + high) >>> 1;
+      // rationale: ids are unique, so the comparator never returns 0 here.
+      // Stryker disable next-line EqualityOperator
       if (compareReady(ready[middle] as string, id) <= 0) low = middle + 1;
       else high = middle;
     }
@@ -203,30 +203,22 @@ function dependencyOrder(
   while (head < ready.length) {
     const id = ready[head] as string;
     head += 1;
-    queued.delete(id);
     // Only ids of `actions` are ever queued or listed as dependents.
     const action = byId.get(id) as MigrationAction;
     ordered.push(action);
     for (const candidateId of dependents.get(id) ?? []) {
+      // Each dependency is listed once per dependent and emitted once, so
+      // the last one deleted frees the dependent exactly once.
       const dependencies = remaining.get(candidateId) as Set<string>;
-      if (
-        !dependencies.delete(id) ||
-        dependencies.size !== 0 ||
-        queued.has(candidateId)
-      ) {
-        continue;
-      }
-      queued.add(candidateId);
-      enqueue(candidateId, head);
+      dependencies.delete(id);
+      if (dependencies.size === 0) enqueue(candidateId, head);
     }
   }
   // Preserve cyclic/missing-dependency actions in canonical order; validation will block them.
-  if (ordered.length !== actions.length) {
-    const emitted = new Set(ordered.map((action) => action.id));
-    ordered.push(
-      ...actions.filter((action) => !emitted.has(action.id)).sort(actionSort),
-    );
-  }
+  const emitted = new Set(ordered.map((action) => action.id));
+  ordered.push(
+    ...actions.filter((action) => !emitted.has(action.id)).sort(actionSort),
+  );
   return ordered;
 }
 
@@ -251,7 +243,6 @@ function summarize(actions: readonly MigrationAction[]) {
   };
 }
 
-// implements REQ-agent-guided-migration-orchestration
 export function buildMigrationPlan(input: PlanInput = {}): MigrationPlan {
   // An id names one action, as in a merged plan: a later definition of the
   // same id replaces the earlier one instead of being ordered twice.
@@ -260,7 +251,7 @@ export function buildMigrationPlan(input: PlanInput = {}): MigrationPlan {
       (input.actions ?? []).map((action) => [action.id, action]),
     ).values(),
   ];
-  const actions = dependencyOrder(uniqueActions.sort(actionSort));
+  const actions = dependencyOrder(uniqueActions);
   const evaluatedDomains = uniqueSorted(input.evaluatedDomains);
   const incompleteDomains = uniqueSorted(input.incompleteDomains);
   const expected = {
@@ -302,7 +293,6 @@ export function buildMigrationPlan(input: PlanInput = {}): MigrationPlan {
 export function mergeMigrationPlans(
   plans: readonly MigrationPlan[],
 ): MigrationPlan {
-  if (plans.length === 0) return buildMigrationPlan();
   const first = plans[0];
   if (first === undefined) return buildMigrationPlan();
   const actions = new Map<string, MigrationAction>();
@@ -373,7 +363,6 @@ export type MigrationPlanDigest = Readonly<{
  * plan comes from status, check and coverage, so a response stays small even
  * when hundreds of actions remain.
  */
-// implements REQ-agent-guided-migration-orchestration
 export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
   const groups = new Map<
     string,
@@ -446,7 +435,6 @@ export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
  * The same plan without the actions whose code another planner owns, e.g.
  * lifecycle repairs `kibi migrate` plans from authored sources.
  */
-// implements REQ-agent-guided-migration-orchestration
 export function withoutActionCodes(
   plan: MigrationPlan,
   codes: ReadonlySet<string>,
@@ -500,14 +488,16 @@ export function migrationAction(
  * automatic action carrying the exact kb_upsert input, so it is reviewable in
  * the plan and replayable through either surface.
  */
-// implements REQ-kibi-predicate-vocabulary-migration
 function predicateSchemaAlignmentAction(
   diagnostic: Readonly<Record<string, unknown>>,
 ): MigrationAction | null {
   if (diagnostic.id !== "rule.predicate-schema-conformance") return null;
-  const evidence = isRecord(diagnostic.evidence) ? diagnostic.evidence : null;
-  const repair =
-    evidence !== null && isRecord(evidence.repair) ? evidence.repair : null;
+  const evidence: Readonly<Record<string, unknown>> = isRecord(
+    diagnostic.evidence,
+  )
+    ? diagnostic.evidence
+    : {};
+  const repair = isRecord(evidence.repair) ? evidence.repair : null;
   if (
     repair === null ||
     repair.type !== "fact" ||
@@ -534,10 +524,10 @@ function predicateSchemaAlignmentAction(
       },
     ],
     evidence: {
-      issue: evidence?.issue,
-      namespace: evidence?.namespace,
-      alignment: evidence?.alignment,
-      rewrites: evidence?.rewrites,
+      issue: evidence.issue,
+      namespace: evidence.namespace,
+      alignment: evidence.alignment,
+      rewrites: evidence.rewrites,
     },
   });
 }
@@ -555,7 +545,6 @@ export const UNTRACKED_KNOWLEDGE_SOURCES_CODE = "untracked_knowledge_sources";
  * that can be thousands of relationships, so they become one review action
  * naming the files instead of one per relationship.
  */
-// implements REQ-agent-guided-migration-orchestration, REQ-kibi-source-relationship-parity
 function untrackedSourceActionFromViolations(
   violations: readonly Readonly<Record<string, unknown>>[],
 ): { action: MigrationAction; consumed: ReadonlySet<number> } | null {
@@ -605,17 +594,17 @@ function untrackedSourceActionFromViolations(
   };
 }
 
-// implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration, REQ-cli-schema-migration
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
   qualityDiagnostics?: readonly Readonly<Record<string, unknown>>[];
 }): MigrationAction[] {
   const actions: MigrationAction[] = [];
-  const lifecycle = lifecycleActionsFromViolations(input.violations ?? []);
+  const violations = input.violations ?? [];
+  const lifecycle = lifecycleActionsFromViolations(violations);
   actions.push(...lifecycle.actions.map(migrationAction));
-  const untracked = untrackedSourceActionFromViolations(input.violations ?? []);
+  const untracked = untrackedSourceActionFromViolations(violations);
   if (untracked !== null) actions.push(untracked.action);
-  for (const [index, violation] of (input.violations ?? []).entries()) {
+  for (const [index, violation] of violations.entries()) {
     if (lifecycle.consumed.has(index)) continue;
     if (untracked?.consumed.has(index)) continue;
     const rule = typeof violation.rule === "string" ? violation.rule : "check";
@@ -640,11 +629,10 @@ export function buildActionsFromCheck(input: {
       }),
     );
   }
-  const reviews = schema6ReviewActionsFromCheck(input.qualityDiagnostics ?? []);
+  const qualityDiagnostics = input.qualityDiagnostics ?? [];
+  const reviews = schema6ReviewActionsFromCheck(qualityDiagnostics);
   actions.push(...reviews.actions.map(migrationAction));
-  for (const [index, diagnostic] of (
-    input.qualityDiagnostics ?? []
-  ).entries()) {
+  for (const [index, diagnostic] of qualityDiagnostics.entries()) {
     if (reviews.consumed.has(index)) continue;
     const id = typeof diagnostic.id === "string" ? diagnostic.id : "quality";
     const entityId =
@@ -653,7 +641,6 @@ export function buildActionsFromCheck(input: {
       typeof diagnostic.suggestion === "string"
         ? diagnostic.suggestion
         : "Review this quality diagnostic.";
-    const blocking = diagnostic.blocking === true;
     const predicateRepair = predicateSchemaAlignmentAction(diagnostic);
     if (predicateRepair !== null) {
       actions.push(predicateRepair);
@@ -664,7 +651,7 @@ export function buildActionsFromCheck(input: {
         id: `diagnostic-${id}-${entityId || "workspace"}-${index + 1}`,
         code: `quality_${id}`,
         category: "quality",
-        safety: blocking ? "review" : "review",
+        safety: "review",
         invocation: { kind: "review", instruction: suggestion },
         affectedEntityIds: entityId ? [entityId] : [],
         affectedFiles: Array.isArray(diagnostic.files)
@@ -787,17 +774,14 @@ export function readMigrationConfigStatus(
 ): MigrationConfigStatus {
   const status = readKbManifestStatus(workspaceRoot);
   if (status.state === "ok") {
+    const manifestStatus = getSchemaVersionStatus({
+      schemaVersion: status.manifest.schemaVersion,
+    });
     return {
-      status: getSchemaVersionStatus({
-        schemaVersion: status.manifest.schemaVersion,
-      }).status,
+      status: manifestStatus.status,
       currentVersion: status.manifest.schemaVersion,
-      latestVersion: getSchemaVersionStatus({
-        schemaVersion: status.manifest.schemaVersion,
-      }).latestVersion,
-      needsMigration: getSchemaVersionStatus({
-        schemaVersion: status.manifest.schemaVersion,
-      }).needsMigration,
+      latestVersion: manifestStatus.latestVersion,
+      needsMigration: manifestStatus.needsMigration,
       warning: null,
       configHash: status.manifestHash,
     };
@@ -812,7 +796,6 @@ export function readMigrationConfigStatus(
     ...schemaStatus,
     currentVersion: normalizeSchemaVersion(legacySchemaVersion),
     configHash: null,
-    // implements REQ-legacy-kb-first-step-migrate
     // A legacy KB is migrated, never initialized: name the step kb_status's
     // bootstrap.nextAction and kibi doctor name.
     warning:
@@ -834,20 +817,19 @@ function readLegacySchemaVersion(
   const legacyPath = path.join(workspaceRoot, ".kb", "config.json");
   if (!existsSync(legacyPath)) return null;
   try {
-    const parsed = JSON.parse(readFileSync(legacyPath, "utf8")) as {
+    const parsed = JSON.parse(String(readFileSync(legacyPath))) as {
       schemaVersion?: number | string;
     };
     return parsed.schemaVersion ?? null;
   } catch {
-    return "";
+    // A recorded but unreadable version: reported as invalid.
+    return Number.NaN;
   }
 }
 
-// implements REQ-agent-guided-migration-orchestration
 /** Migration action code of the automatic recompile of changed sources. */
 export const FRESHNESS_RESYNC = "freshness_resync";
 
-// implements REQ-cli-status-pre-first-sync
 /**
  * Stale reasons one `kibi sync` clears: sources whose content changed since
  * the last compilation, and a store compiled under another compiler contract
@@ -933,16 +915,17 @@ export function buildActionsFromStatus(input: {
   }
 
   const storeState = typeof store?.state === "string" ? store.state : null;
+  const storePath =
+    typeof store?.path === "string" ? store.path : ".kb/branches";
   // Legacy storage is evaluated whether or not the legacy config survives:
   // legacy copies left beside a migrated .kb/ (moved, identical or stale)
   // are the same finding 'kibi doctor' and 'kibi migrate' report.
-  // implements REQ-cli-schema-migration
   const legacyStorage = planLegacyStorageMigration(input.workspaceRoot);
   const legacyStorageMigrationRequired =
     legacyConfigExists(input.workspaceRoot) ||
     legacyStorage.moves.length > 0 ||
-    legacyStorage.removals.length > 0 ||
-    legacyStorage.blockers.length > 0;
+    // Every blocker comes with a legacy config or a pending move.
+    legacyStorage.removals.length > 0;
   // A legacy cutover that cannot move its files (a destination already
   // exists, a malformed config) is an operator decision, not an automatic
   // step that fails when applied and takes the compile with it.
@@ -955,9 +938,7 @@ export function buildActionsFromStatus(input: {
         category: "storage",
         safety: "automatic",
         invocation: { kind: "cli", command_argv: ["kibi", "branch", "ensure"] },
-        affectedFiles: [
-          typeof store?.path === "string" ? store.path : ".kb/branches",
-        ],
+        affectedFiles: [storePath],
         evidence: { store },
         autoApplicable: true,
       }),
@@ -973,9 +954,7 @@ export function buildActionsFromStatus(input: {
           kind: "cli",
           command_argv: ["kibi", "branch", "recover", "--apply"],
         },
-        affectedFiles: [
-          typeof store?.path === "string" ? store.path : ".kb/branches",
-        ],
+        affectedFiles: [storePath],
         evidence: { store, backupRequired: true },
         autoApplicable: true,
       }),
@@ -985,7 +964,6 @@ export function buildActionsFromStatus(input: {
   if (configStatus.needsMigration || legacyStorageMigrationRequired) {
     const operatorOnly =
       configStatus.status === "newer" || legacyStorageBlocked;
-    // implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
     // The source rewrites the migrate run performs (legacy-link marks, origin
     // backfill, lifecycle repairs, ...) are planned as their own actions with
     // their own files, and the upgrade waits on them, so approving it means
@@ -1058,12 +1036,12 @@ export function buildActionsFromStatus(input: {
     );
   }
 
-  // implements REQ-cli-status-pre-first-sync
   // A branch store that was never compiled while .kb/ holds authored sources
   // is fixed only by compiling it: `kibi branch ensure` alone leaves an empty
   // manifest. The compile step runs after the store exists and after any
   // schema migration, so it compiles the migrated sources.
-  const uncompiled = (input.staleReasons ?? []).find(
+  const staleReasons = input.staleReasons ?? [];
+  const uncompiled = staleReasons.find(
     (reason) => reason.code === BRANCH_STORE_NOT_COMPILED,
   );
   if (uncompiled !== undefined) {
@@ -1074,9 +1052,7 @@ export function buildActionsFromStatus(input: {
         category: "storage",
         safety: "automatic",
         invocation: { kind: "cli", command_argv: ["kibi", "sync"] },
-        affectedFiles: [
-          typeof store?.path === "string" ? store.path : ".kb/branches",
-        ],
+        affectedFiles: [storePath],
         evidence: { reason: uncompiled },
         // A blocked schema step waits on an operator; the compile still runs
         // from the .kb/ sources Kibi already reads.
@@ -1094,15 +1070,13 @@ export function buildActionsFromStatus(input: {
     );
   }
 
-  // implements REQ-cli-status-pre-first-sync
   // Sources whose content changed since the last compilation (kb_status has
   // already dropped mtime-only reasons) are fixed by recompiling them: one
   // automatic `kibi sync`, not a review per file. A store compiled under
   // another compiler contract is fixed by the same sync. An uncompiled store
   // is compiled by the step above, which also covers these reasons.
-  const resyncReasons = (input.staleReasons ?? []).filter(
-    (reason) =>
-      typeof reason.code === "string" && RESYNC_REASON_CODES.has(reason.code),
+  const resyncReasons = staleReasons.filter((reason) =>
+    RESYNC_REASON_CODES.has(reason.code as string),
   );
   if (resyncReasons.length > 0 && uncompiled === undefined) {
     actions.push(
@@ -1112,13 +1086,10 @@ export function buildActionsFromStatus(input: {
         category: "freshness",
         safety: "automatic",
         invocation: { kind: "cli", command_argv: ["kibi", "sync"] },
-        affectedFiles: [
-          ...new Set(
-            resyncReasons.flatMap((reason) =>
-              typeof reason.path === "string" ? [reason.path] : [],
-            ),
-          ),
-        ].sort(),
+        // migrationAction dedupes and sorts the files.
+        affectedFiles: resyncReasons.flatMap((reason) =>
+          typeof reason.path === "string" ? [reason.path] : [],
+        ),
         evidence: { reasons: resyncReasons },
         dependsOn: actions
           .map((action) => action.id)
@@ -1132,7 +1103,7 @@ export function buildActionsFromStatus(input: {
     );
   }
 
-  for (const reason of input.staleReasons ?? []) {
+  for (const reason of staleReasons) {
     const code = typeof reason.code === "string" ? reason.code : "stale_source";
     // Planned above as an automatic compile step, not a review.
     if (code === BRANCH_STORE_NOT_COMPILED) continue;

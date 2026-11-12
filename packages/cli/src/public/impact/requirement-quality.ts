@@ -193,18 +193,35 @@ function exceedsBroadThreshold(fanout: RequirementFanout): boolean {
 }
 
 function isUmbrellaRequirement(result: ExtractionResult): boolean {
-  const tags = result.entity.tags ?? [];
-  return tags.some((tag) => tag === "umbrella" || tag === "epic");
+  return (
+    result.entity.tags?.some((tag) => tag === "umbrella" || tag === "epic") ===
+    true
+  );
 }
 
-function createBroadRequirementDiagnostics(
+export function createBroadRequirementDiagnostics(
   results: readonly ExtractionResult[],
 ): readonly KibiImpactDiagnostic[] {
   const typesByEntityId = entityTypeById(results);
   const index = fanoutIndex(results);
+  // A closed or superseded requirement's dependency links are history, so a
+  // known requirement that is not current never counts as a dependent.
+  const pastRequirementIds = new Set(
+    results
+      .filter(
+        (result) => isRequirement(result) && !isCurrentRequirement(result),
+      )
+      .map((result) => result.entity.id),
+  );
   return results.flatMap((result) => {
     if (!isCurrentRequirement(result)) return [];
-    const fanout = collectFanout(result.entity.id, index, typesByEntityId);
+    const collected = collectFanout(result.entity.id, index, typesByEntityId);
+    const fanout: RequirementFanout = {
+      ...collected,
+      dependentRequirementIds: collected.dependentRequirementIds.filter(
+        (id) => !pastRequirementIds.has(id),
+      ),
+    };
     if (!exceedsBroadThreshold(fanout)) return [];
     if (isUmbrellaRequirement(result)) return [];
 
@@ -261,7 +278,7 @@ function createRequirementStatusDiagnostics(
         docs: ["docs/entity-schema.md"],
         message: `Requirement ${result.entity.id} uses test-like status ${result.entity.status}.`,
         suggestion:
-          "Use requirement lifecycle statuses such as open, in_progress, active, accepted, closed, deprecated, or superseded; keep passing/failing statuses on test entities.",
+          "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
         evidence: { status: result.entity.status },
       },
     ];

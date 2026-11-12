@@ -1,4 +1,3 @@
-// implements REQ-cli-staged-impact-enforcement
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   hasMeaningfulSourceDiff,

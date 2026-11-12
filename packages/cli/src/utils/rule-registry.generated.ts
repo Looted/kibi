@@ -7,7 +7,6 @@
  * JSON source and regenerate.
  */
 
-// implements REQ-006
 export const GENERATED_RULES = [
   {
     name: "must-priority-coverage",
@@ -54,7 +53,7 @@ export const GENERATED_RULES = [
   {
     name: "source-relationship-parity",
     description:
-      "Authored Markdown and relationship-shard edges must exactly match the compiled KB",
+      "Authored Markdown and relationship-shard edges must exactly match the compiled KB, and authored sources must declare each entity id once",
     enforcementClass: "canonical",
     category: "integrity",
   },
@@ -178,7 +177,21 @@ export const GENERATED_RULES = [
   {
     name: "req-status-vocabulary",
     description:
-      "Requirement statuses must use the canonical vocabulary (open, in_progress, closed; legacy: active, approved); ADR statuses such as accepted silently fall out of the proof ladder",
+      "Requirement statuses must use the canonical vocabulary (open, in_progress, closed, retired; legacy: active, approved); ADR statuses such as accepted silently fall out of the proof ladder",
+    enforcementClass: "canonical",
+    category: "lifecycle",
+  },
+  {
+    name: "retired-reason-missing",
+    description:
+      "A requirement with status retired must state retired_reason: why the behavior it stated no longer exists",
+    enforcementClass: "canonical",
+    category: "lifecycle",
+  },
+  {
+    name: "retired-owner-only",
+    description:
+      "A current fact, scenario or test whose every owning requirement is retired describes behavior that no longer exists; relink it to the current owner or archive it",
     enforcementClass: "canonical",
     category: "lifecycle",
   },
@@ -307,7 +320,7 @@ export const GENERATED_RULES = [
   {
     name: "symbol-owner-superseded",
     description:
-      "Advisory: a symbol whose every implements target is superseded or deprecated has no current owning requirement; listed up to 25 per check plus one summary finding",
+      "Advisory: a symbol whose every implements target is superseded, deprecated or retired has no current owning requirement; listed up to 25 per check plus one summary finding",
     enforcementClass: "advisory",
     category: "traceability",
   },

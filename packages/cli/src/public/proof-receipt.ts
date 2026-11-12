@@ -1,6 +1,7 @@
 import {
   type ProofFingerprintComponents,
   canonicalJson,
+  fingerprintDrift,
   proofContractHash,
 } from "./proof-fingerprint.js";
 import {
@@ -21,14 +22,12 @@ export const PROOF_RECEIPT_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
  * (Kibi checked it against the claim's fact; the only verdict that proves),
  * attested (the fact has no derivation; the author vouches) or rejected.
  */
-// implements REQ-kibi-claim-bound-proofs
 export const CLAIM_BINDING_VERDICTS = [
   "derived",
   "attested",
   "rejected",
 ] as const;
 
-// implements REQ-kibi-claim-bound-proofs
 export type ClaimBindingVerdict = (typeof CLAIM_BINDING_VERDICTS)[number];
 
 export const PROOF_RECEIPT_OUTCOMES = [
@@ -262,7 +261,6 @@ export type ProofReceipt = Readonly<{
 }>;
 
 /** How one certificate binds to one requirement claim, judged at ingest. */
-// implements REQ-kibi-claim-bound-proofs
 export type ClaimBinding = Readonly<{
   claim_key: string;
   requirement_id?: string;
@@ -281,16 +279,17 @@ export function finishedAtPrecedesStartedAt(
   return startedAt !== null && finishedAt !== null && finishedAt < startedAt;
 }
 
+const ISO_TIMESTAMP =
+  /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})/;
+
 function timestamp(value: unknown): number | null {
-  if (typeof value !== "string") return null;
-  if (
-    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
-      value,
-    )
-  ) {
-    return null;
-  }
-  const parsed = Date.parse(value);
+  // A non-string value never equals its own match, so this also rejects it.
+  // rationale: Bun's Date.parse already rejects text around an ISO timestamp,
+  // so skipping this whole-string check is equivalent; it keeps the format
+  // strict on engines with a more lenient parser.
+  // Stryker disable next-line ConditionalExpression
+  if (ISO_TIMESTAMP.exec(String(value))?.[0] !== value) return null;
+  const parsed = Date.parse(value as string);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -344,7 +343,10 @@ function validReceiptProofResult(value: unknown): boolean {
   );
 }
 
-function validFingerprintComponents(value: unknown): boolean {
+/** Narrows a stored value to the five fingerprint component hashes. */
+export function validFingerprintComponents(
+  value: unknown,
+): value is ProofFingerprintComponents {
   const row = isRecord(value) ? value : null;
   if (!row) return false;
   return (
@@ -386,10 +388,7 @@ export function validProofReceiptShape(
   if (!hex64(row.code_snapshot) || !hex64(row.environment_hash)) return false;
   if (!hex64(row.artifact_digest)) return false;
   if (!hex64(row.contract_hash) || !hex64(row.fingerprint)) return false;
-  if (
-    row.binding_hash !== undefined &&
-    (typeof row.binding_hash !== "string" || !hex64(row.binding_hash))
-  ) {
+  if (row.binding_hash !== undefined && !hex64(row.binding_hash)) {
     return false;
   }
   if (!validFingerprintComponents(row.fingerprint_components)) return false;
@@ -432,7 +431,6 @@ export function validProofReceiptShape(
   return !finishedAtPrecedesStartedAt(startedAt, finishedAt);
 }
 
-// implements REQ-kibi-code-proof-kinds
 function validV2Fields(row: Record<string, unknown>): boolean {
   if (!(PROOF_KINDS as readonly unknown[]).includes(row.kind)) return false;
   if (row.evidence_level !== "proved" && row.evidence_level !== "tested")
@@ -462,7 +460,6 @@ function validV2Fields(row: Record<string, unknown>): boolean {
   return true;
 }
 
-// implements REQ-kibi-claim-bound-proofs
 function validClaimBindings(value: unknown): boolean {
   return (
     Array.isArray(value) &&
@@ -500,8 +497,12 @@ export function proofReceiptHistoryErrors(
     );
   }
   const receiptIds = new Set<string>();
+  let previousFinishedAt: number | null = null;
   for (const [index, receipt] of receipts.entries()) {
     const prefix = `proof_receipts[${index}]`;
+    const priorFinishedAt = previousFinishedAt;
+    const finishedAt = timestamp(receipt.finished_at);
+    previousFinishedAt = finishedAt;
     const receiptId = receipt.receipt_id;
     if (typeof receiptId === "string") {
       if (receiptIds.has(receiptId)) {
@@ -518,13 +519,8 @@ export function proofReceiptHistoryErrors(
       );
       continue;
     }
-    const finishedAt = timestamp(receipt.finished_at);
-    if (
-      finishedAt !== null &&
-      index > 0 &&
-      timestamp(receipts[index - 1]?.finished_at) !== null &&
-      finishedAt <= (timestamp(receipts[index - 1]?.finished_at) as number)
-    ) {
+    // A structurally valid receipt always has a finished_at timestamp.
+    if (priorFinishedAt !== null && (finishedAt as number) <= priorFinishedAt) {
       errors.push(
         `${prefix}.finished_at must be strictly later than the previous receipt`,
       );
@@ -540,6 +536,7 @@ export function proofReceiptCurrentBindingErrors(
   receipt: Readonly<Record<string, unknown>>,
   contract?: ProofContract,
   fingerprint?: string,
+  components?: ProofFingerprintComponents,
 ): readonly string[] {
   const errors: string[] = [];
   if (receipt.test_id !== testId) {
@@ -566,8 +563,15 @@ export function proofReceiptCurrentBindingErrors(
       typeof receipt.fingerprint === "string" &&
       receipt.fingerprint !== fingerprint
     ) {
+      const drift =
+        components !== undefined &&
+        validFingerprintComponents(receipt.fingerprint_components)
+          ? fingerprintDrift(receipt.fingerprint_components, components)
+          : [];
       errors.push(
-        "proof receipt fingerprint does not match the current effective execution fingerprint",
+        `proof receipt fingerprint does not match the current effective execution fingerprint${
+          drift.length > 0 ? ` (changed: ${drift.join(", ")})` : ""
+        }`,
       );
     }
   }

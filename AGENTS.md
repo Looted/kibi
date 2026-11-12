@@ -65,7 +65,7 @@ Graph coverage is useful for discovery but is **not semantic proof**.
 
 ## Symbol Traceability
 
-- New or modified symbols must trace to at least one requirement. For test/e2e code prefer the symbol manifest + `executable_for`; inline `// implements REQ-<area>-<behavior>` is acceptable for quick changes.
+- New or modified symbols must trace to at least one requirement through their `.kb/symbols.yaml` entry: `implements` for production code, `executable_for` for test/e2e code. Code comments are never a traceability link; do not add `// implements` comments.
 - `.kb/symbol-coordinates.yaml` is a gitignored cache that every `kibi sync` derives; never commit it. Commit `.kb/symbols.yaml` changes (new, renamed or removed logical symbols) with the code.
 
 ## README and Landing Page
@@ -84,6 +84,7 @@ Applies to publishable packages (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-open
 - Use Conventional Commits. Never `npm publish` manually.
 - `bun run version-packages` runs on `develop`; never merge `master` back into `develop`. It also assigns the Kibi release version (`YYYY.M.N`), patch-bumps `kibi-core` when nothing else does, and rewrites `packages/core/release.json` and `releases/history.json`. Never edit package versions or those files by hand; `bun run release:check` fails on drift.
 - Compatibility work keys off the compatibility versions in the release manifest (KB schema, operation protocol, plugin API), not package versions.
+- **Release notes advertise the release.** The develop→master release PR and the `kibi@YYYY.M.N` GitHub release describe what a user gets in plain language, not a package table or a copy of the changesets. Group by "New", "Behaviour changes" (anything that can refuse something that used to pass, or needs `kibi migrate` / `kibi init` again), and "Fixes". Write one or two sentences per item about what the user notices and what to do. Fold internal refactors and test-only changes into one line at the end. Mention every new or renamed command, option, check rule and default. Keep it accurate: no claim the code doesn't back.
 - After version or wiring changes used for dogfooding, run `bun run build` (and `bun run sync:cursor-dogfood` for Cursor).
 
 ## Quality Bar

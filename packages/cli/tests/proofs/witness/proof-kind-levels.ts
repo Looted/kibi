@@ -3,8 +3,6 @@ import type {
   ProofKind,
 } from "../../../src/public/proof-protocol.js";
 
-// implements REQ-kibi-code-proof-kinds
-
 /**
  * The evidence level each proof kind supports. The type checker rejects this
  * file when PROOF_KINDS gains a member that is not listed here, so the map

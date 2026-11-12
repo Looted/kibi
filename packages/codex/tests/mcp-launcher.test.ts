@@ -1,4 +1,3 @@
-// implements REQ-codex-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";

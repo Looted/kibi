@@ -9,8 +9,6 @@ import {
   amendsRootCommit,
 } from "../../src/traceability/commit-amend.js";
 
-// implements REQ-kibi-proposition-complete-ingestion
-
 const roots: string[] = [];
 const children: ChildProcess[] = [];
 afterEach(() => {

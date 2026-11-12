@@ -36,7 +36,6 @@ type LcovRecord = {
   readonly lines: Map<number, LineCoverage>;
 };
 
-// implements REQ-014
 // covered_by TEST-scripts-finalize-lcov
 export type LcovMergeResult = Readonly<{
   lcov: string;
@@ -264,7 +263,6 @@ function renderRecord(record: LcovRecord): string {
   ].join("\n");
 }
 
-// implements REQ-014
 export function mergeLcovContents(contents: readonly string[]): string {
   return mergeLcovContentsWithDiagnostics(contents).lcov;
 }

@@ -3,12 +3,15 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { runEngineDaemon } from "./engine.js";
+import {
+  engineSidecarPath,
+  engineStartDiagnostic,
+  runEngineDaemon,
+} from "./engine.js";
 
 // Node 22.14 and earlier do not set `import.meta.main`. The journaled engine
 // client always hosts this file with `node`, so the entry check must work
 // without Bun-only metadata.
-// implements REQ-core-journaled-engine-persistence
 export function isEngineDaemonEntrypoint(
   argv: readonly string[] = process.argv,
   moduleUrl: string = import.meta.url,
@@ -19,7 +22,7 @@ export function isEngineDaemonEntrypoint(
     return moduleUrl === import.meta.url;
   }
   const entry = argv[1];
-  if (typeof entry !== "string" || entry.length === 0) return false;
+  if (!entry) return false;
   try {
     return moduleUrl === pathToFileURL(path.resolve(entry)).href;
   } catch {
@@ -36,7 +39,6 @@ function requiredArg(args: readonly string[], name: string): string {
   return value;
 }
 
-// implements REQ-core-journaled-engine-persistence
 export async function runEngineDaemonCli(
   args: readonly string[] = process.argv.slice(2),
 ): Promise<void> {
@@ -53,7 +55,13 @@ export async function runEngineDaemonCli(
     const socketPath = socketIndex >= 0 ? args[socketIndex + 1] : undefined;
     if (socketPath) {
       try {
-        writeFileSync(`${socketPath}.error`, `${message}\n`, { mode: 0o600 });
+        writeFileSync(
+          engineSidecarPath(socketPath, ".error"),
+          engineStartDiagnostic(error),
+          {
+            mode: 0o600,
+          },
+        );
       } catch {
         // Preserve the process exit code even if the diagnostic path is gone.
       }

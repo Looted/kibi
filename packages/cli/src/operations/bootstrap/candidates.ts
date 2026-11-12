@@ -27,18 +27,12 @@ function typedCandidates(
   item: BootstrapEvidence,
   existingIds: ReadonlySet<string>,
 ): Candidate[] {
+  // Discovery reads the text of every file it lists.
+  const content = item.content as string;
   const results =
     item.kind === "symbol_manifest"
-      ? extractFromManifestString(
-          item.content ?? "",
-          item.relativePath ?? item.label,
-        )
-      : [
-          extractFromMarkdownString(
-            item.content ?? "",
-            item.relativePath ?? item.label,
-          ),
-        ];
+      ? extractFromManifestString(content, item.relativePath ?? item.label)
+      : [extractFromMarkdownString(content, item.relativePath ?? item.label)];
   return results.flatMap(({ entity, relationships }) => {
     if (existingIds.has(entity.id)) return [];
     const sourceKind =
@@ -75,7 +69,6 @@ function typedCandidates(
  * `bootstrap:provenance-stub` instead of an observation that search, gap and
  * coverage reports would otherwise read as knowledge.
  */
-// implements REQ-bootstrap-provenance-stubs
 export function providerClaim(item: BootstrapEvidence): string | undefined {
   const claim =
     typeof item.data.claim === "string" ? item.data.claim.trim() : "";
@@ -83,17 +76,15 @@ export function providerClaim(item: BootstrapEvidence): string | undefined {
 }
 
 /** Whether a planned candidate writes a provenance stub. */
-// implements REQ-bootstrap-provenance-stubs
 export function isProvenanceStubCandidate(candidate: Candidate): boolean {
   return candidate.applyPlan.some((payload) => {
-    const properties = payload.properties;
-    if (properties === null || typeof properties !== "object") return false;
-    const tags = (properties as Readonly<Record<string, unknown>>).tags;
+    // Scalar properties have no tags field, so only null needs care.
+    const tags = (payload.properties as { tags?: unknown } | null | undefined)
+      ?.tags;
     return Array.isArray(tags) && tags.includes(PROVENANCE_STUB_TAG);
   });
 }
 
-// implements REQ-bootstrap-provenance-stubs
 function providerCandidate(
   item: BootstrapEvidence,
   existingIds: ReadonlySet<string>,
@@ -112,7 +103,7 @@ function providerCandidate(
   const confidence =
     typeof item.data.confidence === "number" ? item.data.confidence : 0.8;
   const id =
-    `FACT-GEN-${slug(`${item.kind}-${relativePath}`, 64) || "evidence"}`.toUpperCase();
+    `FACT-GEN-${slug(`${item.kind}-${relativePath}`, 64)}`.toUpperCase();
   if (confidence < minConfidence || existingIds.has(id)) return [];
   const symbolTitle =
     item.kind === "source_symbols" && /\.(?:[cm]?[jt]sx?)$/i.test(relativePath)
@@ -169,8 +160,6 @@ function providerCandidate(
   ];
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function buildBootstrapCandidates(
   evidence: readonly BootstrapEvidence[],
   existingIds: ReadonlySet<string>,
@@ -187,7 +176,8 @@ export function buildBootstrapCandidates(
       try {
         candidates.push(...typedCandidates(item, existingIds));
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        // The extractors throw only Error.
+        const message = (error as Error).message;
         const sourcePath = item.relativePath ?? item.label;
         diagnostics.push(
           `Bootstrap extraction failed at ${sourcePath}: ${message}`,

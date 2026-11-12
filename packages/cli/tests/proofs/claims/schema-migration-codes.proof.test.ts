@@ -15,8 +15,6 @@ import {
 } from "../../../src/operations/migration/schema6.js";
 import { POLARITY_VALUE_BACKFILL_CODE } from "../../../src/operations/migration/polarity-values.js";
 
-// implements REQ-cli-schema-migration-codes
-
 /**
  * The action ids and codes kibi migrate reports for its schema steps. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

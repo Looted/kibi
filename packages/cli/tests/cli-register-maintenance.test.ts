@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, test } from "bun:test";
 import { registerMaintenanceCommands } from "../src/cli-register-maintenance.js";
 import * as branch from "../src/commands/branch.js";

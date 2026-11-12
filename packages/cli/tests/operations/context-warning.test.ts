@@ -7,8 +7,6 @@ import {
   upsertDocumentBody,
 } from "../../src/operations/mutation/context-warning";
 
-// implements REQ-kb-entity-body-context
-
 const roots: string[] = [];
 const REASON =
   "Support asked for this after the outage because customers could not tell which export was retained and for how long.";

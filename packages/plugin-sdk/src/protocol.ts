@@ -2,38 +2,27 @@
  * Kibi capability-plugin protocol constants and top-level plugin shape.
  */
 
-// implements REQ-capability-plugin-protocol-v1
 export const KIBI_PLUGIN_API_VERSION = "kibi.plugin.v1" as const;
-// implements REQ-capability-plugin-protocol-v1
 export type KibiPluginApiVersion = typeof KIBI_PLUGIN_API_VERSION;
 
-// implements REQ-capability-plugin-protocol-v1
 export const SEMANTIC_CLASSIFIER_CAPABILITY_ID =
   "kibi.semantic-classifier.v1" as const;
-// implements REQ-capability-plugin-protocol-v1
 export const ONTOLOGY_PACK_CAPABILITY_ID = "kibi.ontology-pack.v1" as const;
-// implements REQ-capability-plugin-protocol-v1
 export const SYMBOL_EXTRACTOR_CAPABILITY_ID =
   "kibi.symbol-extractor.v1" as const;
-// implements REQ-capability-plugin-protocol-v1
 export const SYMBOL_EXTRACTOR_V2_CAPABILITY_ID =
   "kibi.symbol-extractor.v2" as const;
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export const VOCABULARY_ALIGNMENT_CAPABILITY_ID =
   "kibi.vocabulary-alignment.v1" as const;
 
-// implements REQ-capability-check-policy
 export const CHECK_POLICY_CAPABILITY_ID = "kibi.check-policy.v1" as const;
 
-// implements REQ-capability-search-hints-v1
 export const SEARCH_HINTS_CAPABILITY_ID = "kibi.search-hints.v1" as const;
 
-// implements REQ-kibi-tree-sitter-references
 export const REFERENCE_EXTRACTOR_CAPABILITY_ID =
   "kibi.reference-extractor.v1" as const;
 
-// implements REQ-capability-plugin-protocol-v1
 export type CapabilityId =
   | typeof SEMANTIC_CLASSIFIER_CAPABILITY_ID
   | typeof ONTOLOGY_PACK_CAPABILITY_ID
@@ -44,19 +33,15 @@ export type CapabilityId =
   | typeof SEARCH_HINTS_CAPABILITY_ID
   | typeof REFERENCE_EXTRACTOR_CAPABILITY_ID;
 
-// implements REQ-capability-plugin-protocol-v1
 export const PLUGIN_MODES = ["replace", "augment", "shadow"] as const;
-// implements REQ-capability-plugin-protocol-v1
 export type PluginMode = (typeof PLUGIN_MODES)[number];
 
-// implements REQ-capability-plugin-protocol-v1
 export interface PluginPermissions {
   readonly network: boolean;
   readonly secrets: readonly string[];
   readonly metered: boolean;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface PluginProviderStamp {
   readonly pluginId: string;
   readonly pluginVersion: string;
@@ -81,7 +66,6 @@ import type {
 } from "./capabilities/symbol-extractor.js";
 import type { VocabularyAlignmentV1 } from "./capabilities/vocabulary-alignment.js";
 
-// implements REQ-capability-plugin-protocol-v1
 export interface KibiPluginCapabilities {
   readonly semanticClassifier?: SemanticClassifierV1;
   readonly ontologyPack?: OntologyPackV1;
@@ -97,7 +81,6 @@ export interface KibiPluginCapabilities {
   readonly referenceExtractor?: ReferenceExtractorV1;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface KibiPluginV1 {
   readonly apiVersion: KibiPluginApiVersion;
   readonly id: string;
@@ -106,12 +89,10 @@ export interface KibiPluginV1 {
   readonly capabilities: KibiPluginCapabilities;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export type ProjectPluginCapabilityConfig = Readonly<{
   mode: PluginMode;
 }>;
 
-// implements REQ-capability-plugin-protocol-v1
 export type ProjectPluginEntry = Readonly<{
   package: string;
   capabilities: Readonly<
@@ -119,7 +100,6 @@ export type ProjectPluginEntry = Readonly<{
   >;
 }>;
 
-// implements REQ-capability-plugin-protocol-v1
 export type ProjectKibiConfig = Readonly<{
   plugins?: readonly ProjectPluginEntry[];
   /** Plugins the project declined when bootstrap offered them. */

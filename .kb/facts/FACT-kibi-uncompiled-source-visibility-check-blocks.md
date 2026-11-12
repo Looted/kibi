@@ -10,7 +10,7 @@ value_int: 0
 canonical_key: kibi.sync.uncompiled_sources:unextractable_sources_without_blocking_violation:eq:0
 claim_key: CLAIM-D1ECF79429CD6E71
 claim_text: The kb_check operation must report a blocking violation that names each authored source kibi sync cannot extract and its extraction error
-text_ref: REQ-kibi-uncompiled-source-visibility
+text_ref: REQ-kibi-uncompiled-source-reported
 tags:
   - strict-modeling
   - lane:strict

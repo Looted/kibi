@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { MAX_NAMING_BINDING_WORDS } from "../../../src/operations/modeling/predicate-bindings.js";
 
-// implements REQ-model-predicates-binding-word-limit
-
 /**
  * The longest participant value predicate modeling keeps bound. Kibi reads
  * MAX_NAMING_BINDING_WORDS itself at ingest (value_source), so the certificate is

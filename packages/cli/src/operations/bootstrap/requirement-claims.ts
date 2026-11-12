@@ -7,10 +7,9 @@ import {
 } from "../../utils/strict-modeling.js";
 import type { Candidate } from "./types.js";
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function normalizeClaimStatement(statement: string): string {
   return statement
-    .replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "")
+    .replace(/^\s*(?:[-*+]|\d+[.)])\s/, "")
     .replace(/^\s*\[(?: |x)\]\s*/i, "")
     .trim();
 }
@@ -23,30 +22,28 @@ export function claimFor(
 ): SemanticClaim | null {
   const cleaned = normalizeClaimStatement(statement);
   if (cleaned.endsWith("?")) return null;
-  const normalized = /^(?:must|shall|should)\s+/i.test(cleaned)
+  const normalized = /^(?:must|shall|should)\s/i.test(cleaned)
     ? `System ${cleaned}`
     : cleaned;
   const retention = normalized.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+retained\s+for\s+(?<value>\d+)\s+(?<unit>day|days|month|months|year|years)\.?$/i,
   );
-  if (
-    retention?.groups?.subject &&
-    retention.groups.value &&
-    retention.groups.unit
-  ) {
-    const unit = retention.groups.unit.toLowerCase().startsWith("day")
+  if (retention) {
+    const groups = retention.groups as Record<
+      "subject" | "value" | "unit",
+      string
+    >;
+    const unit = groups.unit.toLowerCase().startsWith("day")
       ? "Days"
-      : retention.groups.unit.toLowerCase().startsWith("month")
+      : groups.unit.toLowerCase().startsWith("month")
         ? "Months"
         : "Years";
     return {
       source,
-      subjectKey: retention.groups.subject
-        .replace(/^(the|a|an)\s+/i, "")
-        .trim(),
+      subjectKey: groups.subject.replace(/^(the|a|an)\s+/i, ""),
       propertyKey: `Retention ${unit}`,
       operator: "eq",
-      value: Number(retention.groups.value),
+      value: Number(groups.value),
       confidence,
       provenance,
     };
@@ -54,27 +51,31 @@ export function claimFor(
   const state = normalized.match(
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?<value>enabled|disabled)\.?$/i,
   );
-  if (state?.groups?.subject && state.groups.value) {
+  if (state) {
+    const groups = state.groups as Record<"subject" | "value", string>;
     return {
       source,
-      subjectKey: state.groups.subject.trim(),
+      subjectKey: groups.subject,
       propertyKey: "enabled",
       operator: "bool",
-      value: state.groups.value.toLowerCase() === "enabled",
+      value: groups.value.toLowerCase() === "enabled",
       confidence,
       provenance,
     };
   }
   const polarity = normalized.match(
-    /^(?<subject>.+?)\s+(?:must|shall|should)\s+(?<negative>not\s+)?(?<predicate>.+?)\.?$/i,
+    /^(?<subject>.+?)\s+(?:must|shall|should)\s+(?<negative>not\s)?(?<predicate>.+?)\.?$/i,
   );
-  if (!polarity?.groups?.subject || !polarity.groups.predicate) return null;
+  if (!polarity) return null;
+  const groups = polarity.groups as Record<"subject" | "predicate", string> & {
+    negative?: string;
+  };
   return {
     source,
-    subjectKey: polarity.groups.subject.trim(),
-    propertyKey: polarity.groups.predicate.trim(),
+    subjectKey: groups.subject,
+    propertyKey: groups.predicate.trim(),
     operator: "polarity",
-    value: polarity.groups.negative ? "forbid" : "require",
+    value: groups.negative ? "forbid" : "require",
     confidence,
     provenance,
   };
@@ -92,10 +93,9 @@ export type SubjectKeyResolution =
 /** One lowercase snake segment, or "" when the value has no usable word. */
 function snakeSegment(value: string): string {
   return value
-    .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+    .replace(/^_|_$/g, "");
 }
 
 /** The longest aspect a bootstrap key keeps as derived. */
@@ -197,8 +197,10 @@ function fitsAspect(words: readonly string[]): boolean {
 function trimStopWords(words: readonly string[]): string[] {
   let start = 0;
   let end = words.length;
-  while (start < end && ASPECT_STOP_WORDS.has(words[start] ?? "")) start += 1;
-  while (end > start && ASPECT_STOP_WORDS.has(words[end - 1] ?? "")) end -= 1;
+  // Past either end the lookup is undefined, which stops the scan; when
+  // every word is a stop word the slice below is empty.
+  while (ASPECT_STOP_WORDS.has(words[start] as string)) start += 1;
+  while (ASPECT_STOP_WORDS.has(words[end - 1] as string)) end -= 1;
   return words.slice(start, end);
 }
 
@@ -211,17 +213,17 @@ function trimStopWords(words: readonly string[]): string[] {
  * noun phrase keeps its head noun. An aspect that already fits is returned
  * unchanged.
  */
-// implements REQ-bootstrap-claim-name-length
 export function shortenSubjectAspect(aspect: string): string {
   const words = aspect.split("_").filter(Boolean);
   if (fitsAspect(words)) return aspect;
   const boundary = words.findIndex(
     (word, index) =>
-      index > 0 &&
       ASPECT_BOUNDARY_WORDS.has(word) &&
       trimStopWords(words.slice(0, index)).length > 0,
   );
-  const head = trimStopWords(boundary < 0 ? words : words.slice(0, boundary));
+  const head = trimStopWords(
+    boundary === -1 ? words : words.slice(0, boundary),
+  );
   if (fitsAspect(head)) return head.join("_");
   // Content words only: no stop words, no -ly adverbs.
   const content = head.filter(
@@ -231,15 +233,16 @@ export function shortenSubjectAspect(aspect: string): string {
   if (fitsAspect(content)) return content.join("_");
   // The leading word (the action or state) and the closing words, where an
   // English noun phrase keeps its head noun.
-  const picked = Array.from(
-    new Set([content[0], ...content.slice(-(MAX_ASPECT_WORDS - 2))]),
-  ).filter((word): word is string => typeof word === "string");
+  // With no content word left, keep the aspect's first word.
+  if (content.length === 0)
+    return (words[0] ?? aspect).slice(0, MAX_ASPECT_CHARS);
+  const picked = [
+    ...new Set([content[0] as string, ...content.slice(2 - MAX_ASPECT_WORDS)]),
+  ];
   while (picked.length > 1 && picked.join("_").length > MAX_ASPECT_CHARS)
     picked.splice(1, 1);
-  const short = picked.join("_");
-  return short.length > 0
-    ? short.slice(0, MAX_ASPECT_CHARS).replace(/_+$/, "")
-    : (words[0] ?? aspect).slice(0, MAX_ASPECT_CHARS);
+  // A single word is the only pick that can still be too long.
+  return picked.join("_").slice(0, MAX_ASPECT_CHARS);
 }
 
 function withShortAspect(
@@ -270,13 +273,12 @@ function withShortAspect(
  * no component can be named the claim is not resolved, so the caller reports
  * it instead of writing a malformed key.
  */
-// implements REQ-bootstrap-subject-key-shape, REQ-bootstrap-claim-name-length
 export function resolveBootstrapSubjectKey(
   subject: string,
   propertyKey: string,
   component?: string,
 ): SubjectKeyResolution {
-  const stripped = subject.trim().replace(/^(?:the|a|an)\s+/i, "");
+  const stripped = subject.trim().replace(/^(?:the|a|an)\s/i, "");
   let key: string;
   try {
     key = normalizeSubjectKey(stripped);
@@ -310,7 +312,6 @@ export function resolveBootstrapSubjectKey(
  * different subjects onto one key, the later one gets a third segment from
  * its own wording (or a short digest) instead of colliding.
  */
-// implements REQ-bootstrap-claim-name-length
 export class SubjectKeyRegistry {
   private readonly owners = new Map<string, string>();
   private readonly assigned = new Map<string, string>();
@@ -324,7 +325,8 @@ export class SubjectKeyRegistry {
     const known = this.assigned.get(identity);
     if (known !== undefined) return { subjectKey: known };
     const owner = this.owners.get(resolution.subjectKey);
-    if (owner === undefined || owner === identity) {
+    // An identity that owns a key was assigned it above.
+    if (owner === undefined) {
       this.owners.set(resolution.subjectKey, identity);
       this.assigned.set(identity, resolution.subjectKey);
       return { subjectKey: resolution.subjectKey };
@@ -354,7 +356,6 @@ function digest(value: string): string {
  * Resolve a claim's subject key for a plan and describe any renaming as a
  * plan diagnostic, so the operator can pick a better name before applying.
  */
-// implements REQ-bootstrap-claim-name-length
 export function planSubjectKey(
   subject: string,
   propertyKey: string,
@@ -394,9 +395,7 @@ export function planSubjectKey(
 type PlanStep = Readonly<Record<string, unknown>>;
 
 function stepProperties(step: PlanStep): Readonly<Record<string, unknown>> {
-  return step.properties !== null && typeof step.properties === "object"
-    ? (step.properties as Record<string, unknown>)
-    : {};
+  return (step.properties ?? {}) as Record<string, unknown>;
 }
 
 function subjectStepKey(step: PlanStep): string | null {
@@ -438,17 +437,13 @@ function retargetStep(
  * key is reported as a subject-key-shared diagnostic. The result depends only
  * on the candidate order, so the plan hash stays deterministic.
  */
-// implements REQ-bootstrap-subject-fact-shared
 export function shareSubjectFacts(candidates: readonly Candidate[]): {
   readonly candidates: Candidate[];
   readonly diagnostics: string[];
 } {
-  const owners = new Map<
-    string,
-    { factId: string; candidateIndex: number; sources: string[] }
-  >();
+  const owners = new Map<string, { factId: string; sources: string[] }>();
   const renamed = new Map<string, string>();
-  candidates.forEach((candidate, candidateIndex) => {
+  for (const candidate of candidates) {
     for (const step of candidate.applyPlan) {
       const key = subjectStepKey(step);
       if (key === null) continue;
@@ -458,14 +453,14 @@ export function shareSubjectFacts(candidates: readonly Candidate[]): {
       );
       const owner = owners.get(key);
       if (owner === undefined) {
-        owners.set(key, { factId, candidateIndex, sources: [source] });
+        owners.set(key, { factId, sources: [source] });
         continue;
       }
       if (owner.factId === factId) continue;
       renamed.set(factId, owner.factId);
       if (!owner.sources.includes(source)) owner.sources.push(source);
     }
-  });
+  }
   if (renamed.size === 0)
     return { candidates: [...candidates], diagnostics: [] };
   const shared = [...owners.entries()].filter(

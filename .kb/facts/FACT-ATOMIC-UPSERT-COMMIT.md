@@ -1,7 +1,7 @@
 ---
 id: FACT-ATOMIC-UPSERT-COMMIT
 title: Upsert commits all mutation stages under one branch lock
-status: active
+status: archived
 created_at: 2026-08-11T00:00:00Z
 updated_at: 2026-08-11T00:00:00Z
 tags: [lane:ontology, persistence, upsert, concurrency]

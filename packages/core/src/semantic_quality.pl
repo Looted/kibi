@@ -62,7 +62,6 @@ markdown_entity_type(fact).
 % Canonical, comparable term for one ground fact. Property values are compared
 % after unit canonicalization (30 min and 1800 s share a signature); unknown
 % units stay distinct.
-% implements REQ-kibi-unit-canonicalization, REQ-kibi-domain-redundancy
 logical_ground_signature(FactId, predicate(Namespace, Name, Args, Polarity)) :-
     % mutalog-disable-next-line cut_insert: the clauses read distinct fact kinds
     kb:predicate_fact(FactId, Namespace, Name, Args, Polarity).
@@ -100,7 +99,6 @@ logical_ground_signature(FactId, rule(SemanticKey)) :-
 % frontmatter id. Purely numeric IDs are reported by the host at creation
 % boundaries (kb_upsert, staged new files) because the compiled KB cannot
 % distinguish a grandfathered legacy entity from a new one.
-% implements REQ-kibi-entity-id-style
 check_entity_id_style(Violations) :-
     findall(Violation, entity_id_style_violation(Violation), Violations0),
     sort(Violations0, Violations).
@@ -137,7 +135,6 @@ markdown_source_stem(SourceText, Stem) :-
 % (same signature, therefore same polarity/modality) or link the very same
 % ground fact. Pairs related by supersedes or restates (either direction) are
 % intentional and exempt.
-% implements REQ-kibi-domain-redundancy
 check_domain_redundancy(Violations) :-
     check_domain_redundancy_witnesses(Witnesses),
     maplist(redundancy_witness_violation, Witnesses, Violations).
@@ -259,7 +256,6 @@ redundancy_witness_violation(Witness, violation(
 % Same subject and property, comparable numeric operators, one bound strictly
 % implies the other (lte 30 implies lte 60). Reported as "implied by", never as
 % a duplicate: both requirements may be intentional.
-% implements REQ-kibi-domain-redundancy
 check_domain_implication(Violations) :-
     check_domain_implication_witnesses(Witnesses),
     maplist(implication_witness_violation, Witnesses, Violations).
@@ -371,7 +367,6 @@ implication_witness_violation(Witness, violation(
 % property differently) are distinct claims, which domain-contradictions and
 % domain-implication compare.  Each group is reported once, on its first fact
 % id.
-% implements REQ-kibi-subject-vocabulary
 check_subject_key_identity(Violations) :-
     findall(Segment-ReqId, requirement_subject_segment(ReqId, Segment), SegmentPairs0),
     keysort(SegmentPairs0, SegmentPairs),
@@ -468,7 +463,6 @@ duplicate_property_fact_violations(Violations) :-
 % The polarity of a property_value fact; an absent polarity means require.
 % `forbid` states the opposite claim of `require` on the same tuple, so the
 % two never count as one claim minted twice.
-% implements REQ-kibi-subject-vocabulary
 property_value_polarity(Props, Polarity) :-
     (   memberchk(polarity=Raw, Props),
         normalize_term_atom(Raw, Polarity0),
@@ -483,7 +477,6 @@ property_value_polarity(Props, Polarity) :-
 % links it. A fact linked only by superseded or deprecated requirements is
 % history kept for the append-only supersedes chain, not a live duplicate.
 % `closed` means done, not retired, so a closed requirement still counts.
-% implements REQ-kibi-subject-vocabulary
 identity_live_fact(FactId) :-
     findall(
         ReqId,
@@ -597,7 +590,6 @@ sort_group_values(Key-Values0, Key-Values) :-
 % Subject keys follow one convention: dotted `component.aspect[.sub]` with at
 % least two segments, each a lowercase snake identifier ([a-z][a-z0-9]* joined
 % by single underscores).
-% implements REQ-kibi-subject-vocabulary
 check_subject_key_shape(Violations) :-
     findall(Violation, subject_key_shape_violation(Violation), Violations0),
     sort(Violations0, Violations).
@@ -671,7 +663,6 @@ valid_subject_word(Word) :-
 % being written into atoms, so paraphrases produce different terms and no
 % cross-requirement comparison can fire. Schemas with fewer facts than the
 % configured minimum are skipped so small vocabularies are not noise.
-% implements REQ-kibi-ontology-quality
 check_ontology_quality(Violations) :-
     ontology_quality_settings(Threshold, MinFacts),
     findall(key(Namespace, Name, Arity)-Args, ontology_predicate_args(Namespace, Name, Arity, Args), Keyed0),
@@ -818,7 +809,6 @@ position_evidence(ArgumentNames, stats(Position, Distinct, Singletons), _{
 % Existing subject facts with the titles of the current requirements that
 % constrain them. The host ranks these deterministically (and optionally via a
 % vocabulary-alignment plugin) so new clauses reuse an existing subject.
-% implements REQ-kibi-subject-vocabulary
 subject_vocabulary_json(Json) :-
     findall(Segment-ReqId, requirement_subject_segment(ReqId, Segment), SegmentPairs0),
     keysort(SegmentPairs0, SegmentPairs),
@@ -857,7 +847,6 @@ subject_vocabulary_entry(Segments, _{
 % signature text and the current requirements that ground them. Used by the
 % host to surface possible paraphrase duplicates (different signatures, same
 % subject) for review; it never decides equivalence.
-% implements REQ-kibi-subject-vocabulary
 subject_claims_json(SubjectKeys0, Json) :-
     maplist(normalize_term_atom, SubjectKeys0, SubjectKeys1),
     sort(SubjectKeys1, SubjectKeys),

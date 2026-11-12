@@ -1,4 +1,3 @@
-// implements REQ-skillopt-predicate-first-requirements
 import { afterEach, describe, expect, test } from "bun:test";
 import { PREDICATE_CASES } from "../fixtures/predicate-case-data";
 import {
@@ -32,6 +31,17 @@ describe("predicate-cases remaining lookup and invariant failures", () => {
       cases[1] = { ...second, semanticClass: first.semanticClass };
       expect(() => assertDistinctSemanticClasses()).toThrow(
         /predicate cases must be semantically distinct/,
+      );
+      cases.splice(0, cases.length, ...original);
+      const trainIndex = cases.findIndex(
+        (entry) =>
+          entry.family === "fact-predicate-modeling" && entry.split === "train",
+      );
+      const train = cases[trainIndex];
+      if (train === undefined) throw new Error("no train predicate case");
+      cases[trainIndex] = { ...train, split: "development" };
+      expect(() => assertDistinctSemanticClasses()).toThrow(
+        "expected 2 fact-predicate-modeling train predicate cases, got 1",
       );
       cases.splice(0, cases.length, ...original.slice(0, 6));
       expect(() => assertDistinctSemanticClasses()).toThrow(

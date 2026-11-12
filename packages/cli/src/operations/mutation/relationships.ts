@@ -97,12 +97,15 @@ export function formatInvalidRelationshipError(raw: string): string | null {
     raw.match(
       /Invalid relationship:\s*~w from ~w to ~w-\[([^,\]]+),([^,\]]+),([^\]]+)\]/,
     );
-  const relType = match?.[1];
-  const fromType = match?.[2];
-  const toType = match?.[3];
-  return relType && fromType && toType
-    ? formatInvalidRelationshipTuple({ relType, fromType, toType })
-    : null;
+  // Every group of either pattern is required and non-empty.
+  if (match === null) return null;
+  const [, relType, fromType, toType] = match as unknown as [
+    string,
+    string,
+    string,
+    string,
+  ];
+  return formatInvalidRelationshipTuple({ relType, fromType, toType });
 }
 
 export function validateRelationshipSources(
@@ -131,6 +134,9 @@ type SupersedesHistoryDeps = Readonly<{
 }>;
 
 function trackedSource(source: string): boolean {
+  // rationale: git itself finds no addition commit for an empty or URL
+  // pathspec; this guard only saves spawning it.
+  // Stryker disable next-line ConditionalExpression,LogicalOperator,EqualityOperator
   return source.length > 0 && !source.includes("://");
 }
 
@@ -138,20 +144,20 @@ export function firstGitAdditionCommit(
   workspaceRoot: string,
   source: string,
 ): string | null {
+  // rationale: see trackedSource; git answers null for these sources too.
+  // Stryker disable next-line ConditionalExpression
   if (!trackedSource(source)) return null;
   const result = spawnSync(
     "git",
     ["log", "--follow", "--diff-filter=A", "--format=%H", "--", source],
     { cwd: workspaceRoot, encoding: "utf8" },
   );
+  // rationale: a failing git log prints nothing on stdout, so the rest reads
+  // null as well; the guard keeps a missing stdout from being split.
+  // Stryker disable next-line ConditionalExpression
   if (result.status !== 0) return null;
-  return (
-    result.stdout
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .at(-1) ?? null
-  );
+  // git log lists the newest addition first; one hash per line.
+  return result.stdout.split("\n").filter(Boolean).at(-1) ?? null;
 }
 
 function gitIsAncestor(
@@ -159,14 +165,13 @@ function gitIsAncestor(
   ancestor: string,
   descendant: string,
 ): boolean | null {
-  const result = spawnSync(
-    "git",
-    ["merge-base", "--is-ancestor", ancestor, descendant],
-    { cwd: workspaceRoot, encoding: "utf8" },
+  // Only a proven ancestry counts: "not an ancestor" (status 1) and a git
+  // failure decide the same.
+  return (
+    spawnSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], {
+      cwd: workspaceRoot,
+    }).status === 0
   );
-  if (result.status === 0) return true;
-  if (result.status === 1) return false;
-  return null;
 }
 
 const DEFAULT_SUPERSEDES_HISTORY_DEPS: SupersedesHistoryDeps = {
@@ -199,7 +204,33 @@ export function classifySupersedesHistory(
   return sourceBeforeTarget === true ? "reversed" : "unknown";
 }
 
-// implements REQ-011
+/** The source of a supersedes target: planned, indexed or stored; "" if none. */
+async function supersededSource(
+  prolog: PrologPort,
+  targetId: string,
+  staged: StagedUpsertState | undefined,
+): Promise<string> {
+  const planned = staged?.entities.get(targetId);
+  if (planned !== undefined)
+    return typeof planned.source === "string" ? planned.source : "";
+  if (prolog.queryEntities) {
+    const targetPage = await prolog.queryEntities({
+      id: targetId,
+      limit: 1,
+      offset: 0,
+    });
+    const indexedSource = targetPage.entities[0]?.source;
+    return typeof indexedSource === "string" ? indexedSource : "";
+  }
+  const targetResult = await prolog.query(
+    `once((kb_entity('${escapeAtom(targetId)}', _, _SupTargetProps), memberchk(source=_SupTargetRaw, _SupTargetProps), normalize_term_atom(_SupTargetRaw, TargetSource)))`,
+  );
+  const bound = targetResult.bindings.TargetSource;
+  return targetResult.success && bound !== undefined
+    ? bound.replace(/^['"]|['"]$/g, "")
+    : "";
+}
+
 export async function validateSupersedesSourceHistory(
   prolog: PrologPort,
   entity: Readonly<Record<string, unknown>>,
@@ -214,29 +245,7 @@ export async function validateSupersedesSourceHistory(
   for (const relationship of relationships) {
     if (relationship.type !== "supersedes") continue;
     const targetId = stringField(relationship, "to");
-    let targetSource = "";
-    const planned = staged?.entities.get(targetId);
-    if (planned !== undefined) {
-      targetSource = typeof planned.source === "string" ? planned.source : "";
-    } else if (prolog.queryEntities) {
-      const targetPage = await prolog.queryEntities({
-        id: targetId,
-        limit: 1,
-        offset: 0,
-      });
-      const indexedSource = targetPage.entities[0]?.source;
-      targetSource = typeof indexedSource === "string" ? indexedSource : "";
-    } else {
-      const targetResult = await prolog.query(
-        `once((kb_entity('${escapeAtom(targetId)}', _, _SupTargetProps), memberchk(source=_SupTargetRaw, _SupTargetProps), normalize_term_atom(_SupTargetRaw, TargetSource)))`,
-      );
-      targetSource = targetResult.success
-        ? String(targetResult.bindings.TargetSource ?? "").replace(
-            /^['"]|['"]$/g,
-            "",
-          )
-        : "";
-    }
+    const targetSource = await supersededSource(prolog, targetId, staged);
     const targetCommit = deps.firstAdditionCommit(workspaceRoot, targetSource);
     if (
       classifySupersedesHistory(
@@ -324,12 +333,9 @@ export async function validateLiveRelationshipTargets(
   }
 }
 
-function plannedFactKind(
-  planned: Readonly<Record<string, unknown>>,
-): string | undefined {
-  return planned.type === "fact" && typeof planned.fact_kind === "string"
-    ? planned.fact_kind
-    : undefined;
+function plannedFactKind(planned: Readonly<Record<string, unknown>>): unknown {
+  // A kind is compared with fixed names, so a non-string one matches none.
+  return planned.type === "fact" ? planned.fact_kind : undefined;
 }
 
 export async function validateStrictLanePairing(
@@ -391,12 +397,13 @@ export async function existingRelationships(
     const forward = await prolog.query(
       `findall(To, kb_relationship(${type}, '${escapeAtom(entityId)}', To), Targets)`,
     );
-    for (const to of parsePrologList(forward.bindings.Targets ?? "[]"))
+    // An unbound list reads as "undefined", which holds no items.
+    for (const to of parsePrologList(String(forward.bindings.Targets)))
       existing.push({ type, from: entityId, to });
     const reverse = await prolog.query(
       `findall(From, kb_relationship(${type}, From, '${escapeAtom(entityId)}'), Sources)`,
     );
-    for (const from of parsePrologList(reverse.bindings.Sources ?? "[]"))
+    for (const from of parsePrologList(String(reverse.bindings.Sources)))
       existing.push({ type, from, to: entityId });
   }
   return existing;

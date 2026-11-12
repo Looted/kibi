@@ -230,7 +230,6 @@ function sharedPackCacheComplete(area: string): boolean {
  * missing or incomplete. Runners can use this to report reuse without
  * triggering population.
  */
-// implements REQ-test-journaled-engine-harness
 export function resolveSharedPackCache(): SharedPackCacheArea | null {
   const config = sharedPackCacheConfig();
   if (!config) return null;
@@ -251,7 +250,6 @@ export function resolveSharedPackCache(): SharedPackCacheArea | null {
  * loser keeps using its own staging paths (still valid, reclaimed at exit).
  * Exported so runners and tests can drive the staging protocol directly.
  */
-// implements REQ-test-journaled-engine-harness
 export function claimSharedPackCache(): SharedPackCachePlan {
   const config = sharedPackCacheConfig();
   if (!config) return { reusable: false, area: "", scratch: null };
@@ -288,7 +286,6 @@ const SHARED_PACK_LOCK_POLL_MS = 500;
  * Returns the release function when this process must populate the cache, or
  * null when the cache is disabled, already complete, or the wait ran out.
  */
-// implements REQ-test-journaled-engine-harness
 export async function awaitSharedPackCacheTurn(
   waitMs = SHARED_PACK_LOCK_WAIT_MS,
 ): Promise<(() => void) | null> {
@@ -330,7 +327,6 @@ export async function awaitSharedPackCacheTurn(
  * or null when a sibling published first (the staging tree remains complete
  * and owned by this process). Exported alongside claimSharedPackCache.
  */
-// implements REQ-test-journaled-engine-harness
 export function publishSharedPackCache(plan: SharedPackCachePlan): {
   prefix: string;
   tarballsRoot: string;
@@ -364,7 +360,6 @@ let stagingPackDestination: string | null = null;
 // worker-local fallback installation. Ensure those paths are reclaimed when
 // the isolated Node test worker exits, even though only the parent runner owns
 // suite-level cleanup.
-// implements REQ-test-journaled-engine-harness
 process.once("exit", cleanupSharedPackedInstallation);
 
 function resolveNpmBinary(): string {
@@ -463,7 +458,6 @@ function resolveGitBinary(): string {
  * applied. Explicit Kibi and ambient npm cache settings are never owned by
  * this helper; the final fallback is the only cache path we clean up.
  */
-// implements REQ-test-journaled-engine-harness
 export function resolveSharedNpmCache(): SharedNpmCacheResolution {
   const configuredCache =
     process.env.KIBI_E2E_NPM_CACHE?.trim() ||
@@ -739,7 +733,6 @@ export interface SharedPackedEnvironment {
 // tarball source to every isolated test-file process. Individual test
 // invocation remains supported by the module-level bootstrap at the end of
 // this file.
-// implements REQ-test-journaled-engine-harness
 export async function prepareSharedPackedEnvironment(): Promise<SharedPackedEnvironment> {
   return bootstrapSharedInstall(resolvePackSource());
 }
@@ -789,7 +782,6 @@ export interface Tarballs extends Record<LanguagePackDir, string> {
  * `file:` specs of the grammar packs a test installs next to
  * kibi-plugin-treesitter; every pack when none are named.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function languagePackSpecs(
   tarballs: Tarballs,
   packs: readonly LanguagePackDir[] = languagePackDirs,
@@ -1248,7 +1240,6 @@ function isProcessRunning(pid: number): boolean {
 
 // Sandbox runtime directories contain only engines created by that sandbox,
 // making their PID files safe exact targets for deterministic teardown.
-// implements REQ-test-journaled-engine-harness
 export async function stopRuntimeEngines(
   runtimeDir: string,
   timeoutMs = 5_000,

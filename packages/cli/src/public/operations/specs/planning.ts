@@ -30,7 +30,6 @@ export {
 } from "../../../operations/planning/apply-plan.js";
 export { executeCompileIntent } from "../../../operations/planning/compile-intent.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const compileIntentSpec = {
   name: "kb_compile_intent",
   cliName: "compile-intent",
@@ -221,7 +220,6 @@ export const compileIntentSpec = {
   execute: executeCompileIntent,
 } as const satisfies OperationSpec<CompileIntentArgs, CompilePlanV1>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const applyPlanSpec = {
   name: "kb_apply_plan",
   cliName: "apply-plan",

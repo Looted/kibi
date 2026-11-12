@@ -447,7 +447,6 @@ function calleeMatches(name: string, callee: string): boolean {
 }
 
 /** Read one extract of a parsed PHP file. */
-// implements REQ-kibi-tree-sitter-script-references
 export function phpReferences(
   root: Node,
   extract: PhpExtract,

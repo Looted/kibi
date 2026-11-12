@@ -1,0 +1,96 @@
+[
+  {
+    "id": "requirement_status_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "status",
+    "entityId": "REQ-passing",
+    "source": ".kb/req/REQ-passing.md",
+    "files": [".kb/req/REQ-passing.md"],
+    "docs": ["docs/entity-schema.md"],
+    "message": "Requirement REQ-passing uses test-like status passing.",
+    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
+    "evidence": {
+      "status": "passing"
+    }
+  },
+  {
+    "id": "requirement_status_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "status",
+    "entityId": "REQ-failing",
+    "source": ".kb/req/REQ-failing.md",
+    "files": [".kb/req/REQ-failing.md"],
+    "docs": ["docs/entity-schema.md"],
+    "message": "Requirement REQ-failing uses test-like status failing.",
+    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
+    "evidence": {
+      "status": "failing"
+    }
+  },
+  {
+    "id": "requirement_status_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "status",
+    "entityId": "REQ-skipped",
+    "source": ".kb/req/REQ-skipped.md",
+    "files": [".kb/req/REQ-skipped.md"],
+    "docs": ["docs/entity-schema.md"],
+    "message": "Requirement REQ-skipped uses test-like status skipped.",
+    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
+    "evidence": {
+      "status": "skipped"
+    }
+  },
+  {
+    "id": "requirement_status_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "status",
+    "entityId": "REQ-pending",
+    "source": ".kb/req/REQ-pending.md",
+    "files": [".kb/req/REQ-pending.md"],
+    "docs": ["docs/entity-schema.md"],
+    "message": "Requirement REQ-pending uses test-like status pending.",
+    "suggestion": "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
+    "evidence": {
+      "status": "pending"
+    }
+  },
+  {
+    "id": "logical_coverage_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "fact",
+    "entityId": "REQ-none",
+    "source": ".kb/req/REQ-none.md",
+    "files": [".kb/req/REQ-none.md"],
+    "docs": ["docs/modeling-cheatsheet.md", "docs/error-reference.md"],
+    "message": "Current requirement REQ-none has no atomic logic_claims manifest, so prose and existing fact links cannot prove complete logical coverage.",
+    "suggestion": "Call kb_model with mode analyze on the complete requirement prose and atomic clauses, ground each returned claim key through kb_model (mode requirement or predicates), and persist all keys in logic_claims.",
+    "evidence": {
+      "strictRelationshipTypes": [
+        "constrains",
+        "requires_predicate",
+        "requires_property"
+      ]
+    }
+  },
+  {
+    "id": "logical_coverage_review",
+    "severity": "review",
+    "blocking": false,
+    "category": "fact",
+    "entityId": "REQ-empty",
+    "source": ".kb/req/REQ-empty.md",
+    "files": [".kb/req/REQ-empty.md"],
+    "docs": ["docs/modeling-cheatsheet.md", "docs/error-reference.md"],
+    "message": "Current requirement REQ-empty has no atomic logic_claims manifest, so prose and existing fact links cannot prove complete logical coverage.",
+    "suggestion": "Call kb_model with mode analyze on the complete requirement prose and atomic clauses, ground each returned claim key through kb_model (mode requirement or predicates), and persist all keys in logic_claims.",
+    "evidence": {
+      "strictRelationshipTypes": []
+    }
+  }
+]

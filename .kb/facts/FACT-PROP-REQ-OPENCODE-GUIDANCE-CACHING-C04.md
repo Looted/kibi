@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_04_the_opencode_plugin_must_invalidate_its_guidance_cache_when_
+property_key: cache_invalidated_on_posture_change
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_guidance_caching.clause_04_the_opencode_plugin_must_invalidate_its_guidance_cache_when_.eq.true
+canonical_key: req.req_opencode_guidance_caching.cache_invalidated_on_posture_change.eq.true
 claim_key: CLAIM-E7B129CC05192C7A
 claim_text: The OpenCode plugin must invalidate its guidance cache when .kb/manifest.json or the workspace posture changes
 origin:

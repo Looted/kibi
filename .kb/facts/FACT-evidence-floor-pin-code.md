@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.migration.pin_codes
 claim_key: CLAIM-9EFFBF69BC9516AC
 claim_text: The evidence floor pin code shall be evidence_floor_pin
-text_ref: REQ-cli-migration-pin-codes
+text_ref: REQ-cli-migration-proof-codes
 property_key: floor_pin_code
 operator: eq
 value_type: string

@@ -66,17 +66,11 @@ function exactSpanText(
   source: string,
   span: Readonly<Record<string, unknown>>,
 ): string | null {
-  const start = span.start;
-  const end = span.end;
-  if (
-    typeof start !== "number" ||
-    typeof end !== "number" ||
-    !Number.isInteger(start) ||
-    !Number.isInteger(end) ||
-    start < 0 ||
-    end <= start
-  )
-    return null;
+  // Number.isInteger also refuses anything that is not a number.
+  if (!Number.isInteger(span.start) || !Number.isInteger(span.end)) return null;
+  const start = span.start as number;
+  const end = span.end as number;
+  if (start < 0 || end <= start) return null;
   const bytes = Buffer.from(source, "utf8");
   if (end > bytes.length) return null;
   return bytes.subarray(start, end).toString("utf8");
@@ -88,7 +82,6 @@ function exactSpanText(
  * try: the rule is `semantic_text` when set, else `text_ref`, else `title`,
  * and a declared field among those three is honored as given.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 function semanticSourceDerivation(
   properties: Readonly<Record<string, unknown>>,
   field: string,
@@ -110,7 +103,6 @@ function propositionIsAssertive(proposition: SemanticProposition): boolean {
   return !CONTEXT_ROLES.has(proposition.role);
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
 export function validateSemanticInventoryBoundary(
   payload: Payload,
   relationships: readonly SemanticRelationship[],
@@ -262,7 +254,6 @@ export function validateSemanticInventoryBoundary(
  * status the payload already gave the same claim key; otherwise it carries
  * the advisor's status (an ambiguity or ontology gap stays explicit).
  */
-// implements REQ-kb-upsert-ledger-contract-in-error
 export function semanticInventoryContract(
   payload: Payload,
   receipt: SemanticAdvisorReceipt,
@@ -291,7 +282,6 @@ export function semanticInventoryContract(
   };
 }
 
-// implements REQ-kibi-proposition-complete-ingestion, REQ-kb-upsert-ledger-contract-in-error
 export function assertSemanticInventoryBoundary(
   payload: Payload,
   relationships: readonly SemanticRelationship[],
@@ -373,7 +363,6 @@ function groundingClaimKeyError(
  * keys they still declare lets the agent see the drift and pick the remedy
  * without diffing the KB by hand.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 function claimKeyMismatchDetail(
   modeledClaimKeys: readonly string[],
   grounded: readonly (readonly [target: string, claimKey: string])[],
@@ -402,7 +391,6 @@ function claimKeyMismatchDetail(
  * null when it passes or when a target is outside the plan (the write-time
  * check reads that target from the KB).
  */
-// implements REQ-kibi-proposition-complete-ingestion, REQ-bootstrap-intent-claim-accounting
 export function stagedLogicalGroundingError(
   payload: Payload,
   relationships: readonly SemanticRelationship[],
@@ -419,7 +407,31 @@ export function stagedLogicalGroundingError(
   return groundingClaimKeyError(modeledClaimKeys, grounded);
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
+async function storedClaimKey(
+  prolog: PrologPort,
+  target: string,
+): Promise<string> {
+  const result = await prolog.query(
+    `once((kb_entity('${escapeAtom(target)}', fact, _SemanticGroundProps), memberchk(claim_key=_SemanticGroundRaw, _SemanticGroundProps), normalize_term_atom(_SemanticGroundRaw, ClaimKey)))`,
+  );
+  const claimKey = result.success
+    ? stringValue(result.bindings.ClaimKey).replace(/^['"]|['"]$/g, "")
+    : "";
+  // A target that is not stored yet is a skipped plan step, not a fact
+  // missing its key: say which step to run first.
+  if (
+    !claimKey &&
+    !(await prolog.query(`once(kb_entity('${escapeAtom(target)}', _, _))`))
+      .success
+  )
+    throw new KbRejection(
+      "INCOMPLETE_PROPOSITIONS",
+      missingGroundingFactError(target),
+      [{ rule: "grounding_fact_missing", field: "relationships.*.to" }],
+    );
+  return claimKey;
+}
+
 export async function assertLogicalGroundingClaimKeys(
   prolog: PrologPort,
   payload: Payload,
@@ -434,30 +446,10 @@ export async function assertLogicalGroundingClaimKeys(
   for (const target of groundingTargets(payload, relationships)) {
     // A grounding fact an earlier plan step writes is read from that write.
     const planned = staged?.entities.get(target);
-    let claimKey = "";
-    if (planned !== undefined) {
-      claimKey = plannedClaimKey(planned);
-    } else {
-      const result = await prolog.query(
-        `once((kb_entity('${escapeAtom(target)}', fact, _SemanticGroundProps), memberchk(claim_key=_SemanticGroundRaw, _SemanticGroundProps), normalize_term_atom(_SemanticGroundRaw, ClaimKey)))`,
-      );
-      claimKey = result.success
-        ? stringValue(result.bindings.ClaimKey).replace(/^['"]|['"]$/g, "")
-        : "";
-      // implements REQ-kibi-symbol-link-guidance
-      // A target that is not stored yet is a skipped plan step, not a fact
-      // missing its key: say which step to run first.
-      if (
-        !claimKey &&
-        !(await prolog.query(`once(kb_entity('${escapeAtom(target)}', _, _))`))
-          .success
-      )
-        throw new KbRejection(
-          "INCOMPLETE_PROPOSITIONS",
-          missingGroundingFactError(target),
-          [{ rule: "grounding_fact_missing", field: "relationships.*.to" }],
-        );
-    }
+    const claimKey =
+      planned === undefined
+        ? await storedClaimKey(prolog, target)
+        : plannedClaimKey(planned);
     grounded.push([target, claimKey]);
     // The first target without a claim_key is reported; later reads are moot.
     if (!claimKey) break;
@@ -517,7 +509,6 @@ const INVENTORY_ERROR_RULES: readonly (readonly [RegExp, string, string])[] = [
   [/^modeled semantic_inventory entries/, "grounding_count", "relationships"],
 ];
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * The inventory errors as rejection issues for anonymous telemetry. A
  * payload that sent no inventory at all is one issue, `inventory_missing`:

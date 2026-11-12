@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { Command } from "commander";
 import * as jsonCommand from "../src/cli-json-command.js";

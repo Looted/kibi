@@ -14,6 +14,7 @@ logic_claims:
   - CLAIM-0A2FEF2046303DC2
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-11-04T05:40:00.000Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

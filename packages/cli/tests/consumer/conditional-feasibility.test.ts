@@ -1,4 +1,3 @@
-// implements REQ-kibi-scenario-feasibility-v2, REQ-kibi-conditional-requirement-authoring, REQ-kibi-truthful-consistency
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

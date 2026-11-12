@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { RELATIONSHIP_TYPES } from "../../../src/operations/mutation/relationships.js";
 
-// implements REQ-kibi-relationship-type-vocabulary
-
 /**
  * The relationship types kb_upsert accepts. Kibi reads RELATIONSHIP_TYPES itself at
  * ingest (domain_source), so the certificate is checked against the list in code.

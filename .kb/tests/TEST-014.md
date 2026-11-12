@@ -11,7 +11,9 @@ tags:
   - verification
 links:
   - type: validates
-    target: REQ-020
+    target: REQ-kibi-release-master-publishes-only
+  - type: validates
+    target: REQ-kibi-release-versioning-on-develop
   - type: validates
     target: SCEN-release-automation
   - ADR-014
@@ -22,7 +24,7 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-014
+    - symbol_id: SYM-e2e-release-package-contract
       target: default
   success_policy: all_required_first_attempt
 type: test

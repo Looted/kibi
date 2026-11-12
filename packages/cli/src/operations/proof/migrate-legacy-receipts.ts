@@ -26,16 +26,12 @@ import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
 import { removeFrontmatterBlock } from "./receipt-document.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type MigrateLegacyReceiptsArgs = Readonly<{
   /** Migrate a single test entity only. */
-  // implements REQ-kibi-verification-evidence-contract
   testId?: string;
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type MigrateLegacyReceiptsResult = Readonly<{
-  // implements REQ-kibi-verification-evidence-contract
   migrated: number;
   tests: readonly { readonly testId: string }[];
 }>;
@@ -51,7 +47,6 @@ export type MigrateLegacyReceiptsResult = Readonly<{
  * the authored document and the compiled entity — one block splice, no
  * canonical re-render.
  */
-// implements REQ-kibi-verification-evidence-contract
 export async function executeMigrateLegacyReceipts(
   args: MigrateLegacyReceiptsArgs,
   context: OperationContext,
@@ -91,9 +86,8 @@ export async function executeMigrateLegacyReceipts(
     if (!hasProofContract) continue;
 
     const source = typeof test.source === "string" ? test.source : "";
-    const patchableSource =
-      source !== "" && /\.(md|mdx)$/i.test(source) && context.fs !== undefined;
-    if (!patchableSource) {
+    // The guard above already proved a filesystem, and "" never ends in .md.
+    if (!/\.(md|mdx)$/i.test(source)) {
       if (hasCompiledLegacy) {
         throw new Error(
           `Legacy receipt migration failed for ${testId}: test source '${source || "unknown"}' is not an authored markdown document`,

@@ -1,0 +1,162 @@
+{
+  "sync": {
+    "id": "migration-sync",
+    "code": "migration_sync",
+    "category": "freshness",
+    "safety": "automatic",
+    "autoApplicable": true,
+    "invocation": {
+      "kind": "cli",
+      "command_argv": ["kibi", "sync"]
+    },
+    "dependsOn": ["a", "b"],
+    "affectedFiles": [".kb/branches"],
+    "postconditions": [
+      {
+        "syncState": "fresh"
+      }
+    ],
+    "evidence": {
+      "reason": "Earlier migration actions rewrite authored sources; recompile them so status, check and coverage read the migrated KB."
+    }
+  },
+  "cycle": {
+    "id": "review-supersession-cycle-A-x-B",
+    "code": "review_supersession_cycle",
+    "category": "quality",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Supersession cycle between A..x and B (A..x supersedes B): none of them is current, so kibi migrate closes none of them. Decide which requirement states current intent, delete the supersedes link that points at it (kb_delete relationships [{type: supersedes, from: <other>, to: <current>}]), then set status: closed on the requirements it replaces."
+    },
+    "affectedEntityIds": ["A..x", "B"],
+    "affectedFiles": ["f.md"],
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "deferred"],
+    "evidence": {
+      "cycle": ["A..x", "B"],
+      "edges": [["A..x", "B"]]
+    }
+  },
+  "review": [
+    {
+      "id": "review-source-path-dangling-S-1",
+      "code": "review_source_path_dangling",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "S 1 has source 'v', which kibi migrate would repair automatically but cannot edit safely (the edit would not read back as exactly that change). The compiled source is always the entity's own file; Kibi ignores the authored field when compiling and never writes it. A person edits the frontmatter by hand: delete the whole field, every line of it. Then rerun kibi migrate."
+      },
+      "affectedEntityIds": ["S 1"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "entityId": "S 1",
+        "source": "v"
+      }
+    },
+    {
+      "id": "review-source-path-dangling-S2",
+      "code": "review_source_path_dangling",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "S2 has source '{\"a\":1}' in s.md, which kibi migrate would repair automatically but cannot edit safely (why). The compiled source is always the entity's own file; Kibi ignores the authored field when compiling and never writes it. A person edits the frontmatter by hand: replace the whole field with the single line 'source: .kb/s.md'. Then rerun kibi migrate."
+      },
+      "affectedEntityIds": ["S2"],
+      "affectedFiles": ["s.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "entityId": "S2",
+        "source": {
+          "a": 1
+        },
+        "refused": "why",
+        "rewrite": ".kb/s.md"
+      }
+    },
+    {
+      "id": "review-text-ref-dangling-T-1",
+      "code": "review_source_path_dangling",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "T 1 has text_ref 't', a file path that does not exist (the edit would not read back as exactly that change). A person edits the frontmatter by hand: point text_ref at the evidence file's current path, or delete the field when that evidence is gone. Then rerun kibi migrate."
+      },
+      "affectedEntityIds": ["T 1"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "entityId": "T 1",
+        "field": "text_ref",
+        "text_ref": "t"
+      }
+    },
+    {
+      "id": "review-text-ref-dangling-T2",
+      "code": "review_source_path_dangling",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "T2 has text_ref '3' in t.md, a file path that does not exist (why). A person edits the frontmatter by hand: replace the whole field with the single line 'text_ref: e.md'. Then rerun kibi migrate."
+      },
+      "affectedEntityIds": ["T2"],
+      "affectedFiles": ["t.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "entityId": "T2",
+        "field": "text_ref",
+        "text_ref": 3,
+        "refused": "why",
+        "rewrite": "e.md"
+      }
+    }
+  ],
+  "exception": [
+    {
+      "id": "review-exception-unapproved-EX",
+      "code": "review_exception_unapproved",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "EX exempts B1, B2 but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against B1, B2 and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert EX with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: EX, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+      },
+      "affectedEntityIds": ["EX", "B1", "B2"],
+      "affectedFiles": ["ex.md"],
+      "dispositionRequired": true,
+      "evidence": {
+        "exceptionId": "EX",
+        "exempts": ["B1", "B2"]
+      }
+    },
+    {
+      "id": "review-exception-unapproved-EY",
+      "code": "review_exception_unapproved",
+      "category": "quality",
+      "safety": "review",
+      "invocation": {
+        "kind": "review",
+        "instruction": "EY exempts  but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against  and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert EY with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: EY, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+      },
+      "affectedEntityIds": ["EY"],
+      "affectedFiles": [],
+      "dispositionRequired": true,
+      "evidence": {
+        "exceptionId": "EY",
+        "exempts": []
+      }
+    }
+  ],
+  "codes": [
+    "close_superseded_requirements",
+    "review_supersession_cycle",
+    "source_path_rewrite",
+    "review_source_path_dangling",
+    "migration_sync"
+  ]
+}

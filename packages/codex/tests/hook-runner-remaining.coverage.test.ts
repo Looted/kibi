@@ -1,4 +1,3 @@
-// implements REQ-codex-kibi-hooks
 import { afterEach, describe, expect, test } from "bun:test";
 import { runHookCliIfMain } from "../src/hook-runner.js";
 

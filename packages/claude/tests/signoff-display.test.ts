@@ -38,7 +38,6 @@ function displayed(output: string): string | undefined {
 }
 
 describe("signoff display hook", () => {
-  // implements REQ-kibi-signoff-views
   test("drops kibi-signoff and kibi-questions fence lines so the Markdown renders", () => {
     expect(
       unwrapSignoffFences(

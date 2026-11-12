@@ -1,6 +1,6 @@
 ---
 title: Consumer CLI derives symbol coordinates locally and keeps them out of commits
-status: active
+status: passing
 priority: must
 tags:
   - symbols

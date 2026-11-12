@@ -1,25 +1,4 @@
 relationships:
-  - id: rel-5ebaca3f62d7
-    type: covered_by
-    from: SYM-kibi-cli-src-intent-search-ts-intentsearchfacetname
-    to: TEST-kibi-intent-aware-source-discovery
-    created_at: "2026-08-16T19:46:36.837Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-cli-engine-client-invalidate-cache
-    to: TEST-core-journaled-engine-lifecycle
-    created_at: 2026-08-16T19:47:37.121Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-51916b73d5ad
-  - type: implements
-    from: SYM-parseCoordinateArtifact
-    to: REQ-generated-coordinate-persistence
-    created_at: 2026-08-23T20:41:36.799Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8d538e4bfa4f
   - type: covered_by
     from: SYM-parseCoordinateArtifact
     to: TEST-generated-coordinate-repair
@@ -35,20 +14,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-55ca1a6c7e63
   - type: covered_by
-    from: SYM-KibiImpactKbArtifact
-    to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-05T15:13:53.829Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-32009f9ba084
-  - type: covered_by
-    from: SYM-cli-engine-client-invalidate-cache
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:28:47.834Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a6c5267f7345
-  - type: covered_by
     from: SYM-mcp-analyzeKbCheckImpact
     to: TEST-mcp-tool-check-coverage
     created_at: 2026-09-05T17:49:06.648Z
@@ -62,20 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d08319c41f34
-  - type: implements
-    from: SYM-package-catalog-pack-all-dirs
-    to: REQ-020
-    created_at: 2026-09-21T15:28:11.998Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-189bc804aa45
-  - type: covered_by
-    from: SYM-package-catalog-pack-all-dirs
-    to: TEST-014
-    created_at: 2026-09-21T19:29:21.627Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8869c1c600b1
   - type: implements
     from: SYM-core-check-subject-key-identity
     to: REQ-kibi-subject-vocabulary
@@ -167,20 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce98eb8efa00
-  - type: implements
-    from: SYM-skillopt-runtime-case-signals-casesignalcontext-904a60d2
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:14.531Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-766db109c0ec
-  - type: covered_by
-    from: SYM-skillopt-runtime-case-signals-casesignalcontext-904a60d2
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:25:14.541Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b5531488a654
   - type: implements
     from: SYM-agent-core-snippets-createentitysummarizer
     to: REQ-agent-core-edit-snippets

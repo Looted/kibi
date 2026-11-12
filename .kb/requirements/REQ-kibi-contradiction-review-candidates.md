@@ -24,6 +24,7 @@ logic_claims:
   - CLAIM-187C4A7FE60430CF
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-15T16:05:19.640Z'
 id: REQ-kibi-contradiction-review-candidates
 type: req

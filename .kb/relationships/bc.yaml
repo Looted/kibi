@@ -21,68 +21,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-90f81ef3254c
   - type: covered_by
-    from: SYM-ReservedPredicateMatrix
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:10:01.624Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ce8ba1b4c2e4
-  - type: covered_by
     from: SYM-skillopt-predicate-freeze-materialization
     to: TEST-skillopt-predicate-first-requirements
     created_at: 2026-09-05T18:20:31.053Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5db73356e94
-  - type: implements
-    from: SYM-ReservedPredicateMatrix
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:36:52.941Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d966aea233c9
-  - type: implements
-    from: SYM-run-unit-coverage-shardLabelsFromArgv
-    to: REQ-014
-    created_at: 2026-09-21T12:26:46.725Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8c9b3c38e4a4
-  - type: covered_by
-    from: SYM-run-unit-coverage-shardLabelsFromArgv
-    to: TEST-scripts-unit-coverage-runner
-    created_at: 2026-09-21T12:26:46.733Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f0fd6e503a2
-  - type: covered_by
-    from: SYM-run-unit-coverage-shardLabelsFromArgv
-    to: TEST-e2e-coverage-pipeline
-    created_at: 2026-09-21T19:14:13.556Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7fa92a40ca2d
-  - type: implements
-    from: SYM-CI-PROOF-REUSE-TYPE
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-25T12:17:46.408Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9e6da92b8fb4
-  - type: covered_by
-    from: SYM-CI-PROOF-REUSE-TYPE
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-25T12:27:53.379Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f49283d7f6f5
-  - type: implements
-    from: SYM-claude-fileKnowledgeSnippet
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:25:42.826Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-49d67bbf1d96
   - type: covered_by
     from: SYM-claude-fileKnowledgeSnippet
     to: TEST-claude-code-kibi-plugin-v1
@@ -111,20 +55,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f39190b55e5
-  - type: implements
-    from: SYM-skillopt-answer-verdicts
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-04T12:50:01.862Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3003240e6353
-  - type: covered_by
-    from: SYM-skillopt-answer-verdicts
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-04T12:50:01.879Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-120e18810ad9
   - type: implements
     from: SYM-skillopt-campaign-candidate-surface
     to: REQ-skillopt-description-candidates
@@ -183,13 +113,6 @@ relationships:
     id: rel-28a7c1993295
   - type: requires_predicate
     from: REQ-kibi-dimension-gap
-    to: FACT-PRED-kibi-dimension-gap-tested
-    created_at: 2026-10-30T12:06:39.982Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-56da2613820e
-  - type: requires_predicate
-    from: REQ-kibi-dimension-gap
     to: FACT-PRED-kibi-dimension-gap-waiver
     created_at: 2026-10-30T12:06:40.025Z
     created_by: kibi/upsert
@@ -244,3 +167,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0fa726657485
+  - type: requires_property
+    from: REQ-kibi-dimension-gap
+    to: FACT-kibi-dimension-gap-verdict-only-not-tested
+    created_at: 2026-11-04T16:55:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fad6476eedb
+  - type: constrains
+    from: REQ-kibi-dimension-gap
+    to: FACT-SUBJ-kibi-proof-gate-dimension
+    created_at: 2026-11-04T17:05:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7b177a94842
+  - type: constrains
+    from: REQ-kibi-staged-overlay-kb
+    to: FACT-SUBJ-kibi-staged-overlay-kb
+    created_at: 2026-11-10T11:09:10.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4f5a61b4904
+  - type: requires_property
+    from: REQ-kibi-staged-overlay-kb
+    to: FACT-PROP-kibi-staged-overlay-kb-c01
+    created_at: 2026-11-10T11:09:10.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a05cc956181
+  - type: specified_by
+    from: REQ-kibi-staged-overlay-kb
+    to: SCEN-kibi-staged-overlay-kb
+    created_at: 2026-11-10T11:09:10.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5416330733d9
+  - type: specified_by
+    from: REQ-kibi-staged-overlay-kb
+    to: SCEN-NEG-kibi-staged-overlay-kb-BRANCH-STORE-WRITE
+    created_at: 2026-11-10T11:09:10.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64cf3fd111f8
+  - type: relates_to
+    from: REQ-kibi-staged-overlay-kb
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-11-10T11:09:10.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f8eb336e8e9

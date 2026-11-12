@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { EXTERNAL_SEARCH_HINTS_OPERATIONS } from "../../../src/plugins/external-allowlist.js";
 
-// implements REQ-search-hints-host-operations
-
 /**
  * The operations that may call an external search-hints provider. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

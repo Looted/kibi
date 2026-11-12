@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
 import { EventEmitter } from "node:events";

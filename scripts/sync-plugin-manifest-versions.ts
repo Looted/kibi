@@ -53,7 +53,6 @@ interface PackageSyncPlan {
   readonly analyzerMetadata?: AnalyzerMetadataPlan;
 }
 
-// implements REQ-020
 export interface PluginManifestSyncResult {
   readonly packageName: string;
   readonly packageVersion: string;
@@ -589,7 +588,20 @@ async function preparePackageSync(
   };
 }
 
-// implements REQ-020
+/** Set each `packVersion` to the version of the workspace pack it names. */
+export function syncCatalogPackVersions(
+  catalogRaw: string,
+  packageVersions: ReadonlyMap<string, string>,
+): string {
+  return catalogRaw.replace(
+    /("pack":\s*"([^"]+)",\s*"packVersion":\s*")([^"]*)"/g,
+    (match, prefix: string, pack: string) => {
+      const version = packageVersions.get(pack);
+      return version === undefined ? match : `${prefix}${version}"`;
+    },
+  );
+}
+
 export async function syncPluginManifestVersions(
   workspaceRoot: string,
 ): Promise<PluginManifestSyncResult[]> {
@@ -600,6 +612,18 @@ export async function syncPluginManifestVersions(
   for (const packageDir of packageDirs) {
     preparedPackages.push(await preparePackageSync(packageDir));
   }
+
+  // The catalog pins each language pack at its exact version, so a pack
+  // release moves the pin with it.
+  const packageVersions = new Map(
+    preparedPackages.map(
+      (prepared) =>
+        [
+          prepared.packageManifest.name,
+          prepared.packageManifest.version,
+        ] as const,
+    ),
+  );
 
   const results: PluginManifestSyncResult[] = [];
   for (const prepared of preparedPackages) {
@@ -619,7 +643,10 @@ export async function syncPluginManifestVersions(
     if (prepared.analyzerMetadata) {
       await writeFile(
         prepared.analyzerMetadata.catalogPath,
-        prepared.analyzerMetadata.updatedCatalogRaw,
+        syncCatalogPackVersions(
+          prepared.analyzerMetadata.updatedCatalogRaw,
+          packageVersions,
+        ),
         "utf8",
       );
       await writeFile(

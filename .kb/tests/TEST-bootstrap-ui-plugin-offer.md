@@ -1,6 +1,6 @@
 ---
 title: Bootstrap plugin offer tests
-status: active
+status: passing
 tags:
   - bootstrap
   - plugins

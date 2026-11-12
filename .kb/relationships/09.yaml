@@ -29,11 +29,18 @@ relationships:
     id: rel-df6274adef35
   - type: validates
     from: TEST-core-journaled-engine-lifecycle
-    to: REQ-core-journaled-engine-persistence
+    to: REQ-kibi-engine-durable-transactions
     created_at: 2026-08-16T19:42:18.518Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-feb14db434fb
+    id: rel-60e8e79969d4
+  - type: validates
+    from: TEST-core-journaled-engine-lifecycle
+    to: REQ-kibi-engine-single-writer-protocol
+    created_at: 2026-08-16T19:42:18.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04a555f9d7b7
   - type: covered_by
     from: SYM-auto-25857E663F0E
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -62,27 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a04d691ac319
-  - type: implements
-    from: SYM-SendToastResult
-    to: REQ-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:55:13.046Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-34b2881a76ce
-  - type: covered_by
-    from: SYM-SendToastResult
-    to: TEST-opencode-kibi-plugin-v1
-    created_at: 2026-08-22T20:55:13.061Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-25325b65761e
-  - type: covered_by
-    from: SYM-SendToastResult
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-22T20:55:13.066Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2609b49d7b71
   - type: covered_by
     from: SYM-mcp-runAggregatedChecks
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -99,7 +85,7 @@ relationships:
     id: rel-2ad9033ffd5d
   - type: constrains
     from: REQ-opencode-background-sync
-    to: FACT-SUBJ-REQ-OPENCODE-BACKGROUND-SYNC
+    to: FACT-SUBJ-OPENCODE-PLUGIN
     created_at: 2026-09-05T14:13:36.287Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
@@ -126,20 +112,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-36b4479a911a
   - type: implements
-    from: SYM-quality-inventory-d5886bc36c56
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-14T20:30:37.310Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-23d98909ef4f
-  - type: covered_by
-    from: SYM-quality-inventory-d5886bc36c56
-    to: TEST-proof-maintenance-roundtrip
-    created_at: 2026-09-14T20:30:37.325Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c77b015e53cc
-  - type: implements
     from: SYM-checkStrictFactShape
     to: REQ-cli-check
     created_at: 2026-09-15T07:39:15.409Z
@@ -153,13 +125,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7eaa25cef20
-  - type: covered_by
-    from: SYM-quality-inventory-d5886bc36c56
-    to: TEST-e2e-proof-maintenance-ops
-    created_at: 2026-09-19T19:21:14.760Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-dca13ca50867
   - type: covered_by
     from: SYM-skillopt-parse-supervisor-parent
     to: TEST-e2e-skillopt-trust-boundaries
@@ -217,20 +182,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e9fc51cc0b86
   - type: implements
-    from: SYM-prolog-swipl-libraryprobe-src
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:35:55.261Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-58b4ed0a4060
-  - type: covered_by
-    from: SYM-prolog-swipl-libraryprobe-src
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:35:55.279Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1c0313aab821
-  - type: implements
     from: SYM-cli-requirement-statements-create
     to: REQ-kb-check-unverified-requirement-statements
     created_at: 2026-10-14T16:34:23.889Z
@@ -244,13 +195,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea3b04efd825
-  - type: implements
-    from: SYM-skillopt-first-missing-required-call
-    to: REQ-skillopt-host-neutral-optimization
-    created_at: 2026-10-21T10:54:24.761Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4070c02ecc4f
   - type: covered_by
     from: SYM-skillopt-first-missing-required-call
     to: TEST-e2e-skillopt-host-neutral-optimization
@@ -258,20 +202,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-154e14e50704
-  - type: implements
-    from: SYM-cli-signoff-awaits-approval
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:44:48.472Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b77e5563e1b4
-  - type: covered_by
-    from: SYM-cli-signoff-awaits-approval
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-23T10:44:48.496Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5a218873f52d
   - type: implements
     from: SYM-const-entity-context-rules
     to: REQ-kb-entity-context-rule-ids
@@ -447,13 +377,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a30940ff367b
-  - type: implements
-    from: SYM-code-runner-run-code-evaluator
-    to: REQ-kibi-non-numeric-proof-kinds
-    created_at: 2026-10-31T08:36:00.518Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-97d35e552672
   - type: covered_by
     from: SYM-code-runner-run-code-evaluator
     to: TEST-kibi-non-numeric-proof-kinds
@@ -496,3 +419,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1103f84544e
+  - type: covered_by
+    from: SYM-checkStrictFactShape
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:26:23.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4703395198bd
+  - type: constrains
+    from: REQ-skillopt-harness-selection
+    to: FACT-subject-skillopt-harness-selection
+    created_at: 2026-11-10T09:53:07.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0b3da4d3c40
+  - type: requires_property
+    from: REQ-skillopt-harness-selection
+    to: FACT-prop-skillopt-harness-selection-c01
+    created_at: 2026-11-10T09:53:07.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef9ed0975451
+  - type: requires_property
+    from: REQ-skillopt-harness-selection
+    to: FACT-prop-skillopt-harness-selection-c02
+    created_at: 2026-11-10T09:53:07.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70bc6bef8ea0
+  - type: requires_property
+    from: REQ-skillopt-harness-selection
+    to: FACT-prop-skillopt-harness-selection-c03
+    created_at: 2026-11-10T09:53:07.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4a564b1a439
+  - type: requires_property
+    from: REQ-skillopt-harness-selection
+    to: FACT-prop-skillopt-harness-selection-c04
+    created_at: 2026-11-10T09:53:07.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d69aa1838204
+  - type: specified_by
+    from: REQ-skillopt-harness-selection
+    to: SCEN-skillopt-claude-code-host
+    created_at: 2026-11-10T09:53:07.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42b917c2c960
+  - type: specified_by
+    from: REQ-skillopt-harness-selection
+    to: SCEN-NEG-skillopt-operator-selected-harness-UNKNOWN-HARNESS
+    created_at: 2026-11-10T09:53:08.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c161e79d99f5
+  - type: verified_by
+    from: REQ-skillopt-harness-selection
+    to: TEST-e2e-skillopt-claude-code-host
+    created_at: 2026-11-10T09:53:08.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58890191ce17
+  - type: supersedes
+    from: REQ-skillopt-harness-selection
+    to: REQ-skillopt-operator-selected-harness
+    created_at: 2026-11-10T09:53:08.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc6206546bf3

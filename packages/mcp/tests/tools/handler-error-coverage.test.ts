@@ -1,4 +1,3 @@
-// implements REQ-001
 import { describe, expect, spyOn, test } from "bun:test";
 import { skillsListSpec, skillsLoadSpec } from "kibi-runtime";
 

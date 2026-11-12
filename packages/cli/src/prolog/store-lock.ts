@@ -40,7 +40,6 @@ import type { PrologErrorRecord, PrologStoreLockOwner } from "./error-terms.js";
  * worktree then self-heals on the next attach instead of wedging the store
  * behind an opaque "Access denied or KB locked".
  */
-// implements REQ-core-journaled-engine-persistence
 
 /** The Linux boot id read through `read`; null on other platforms. */
 export function readBootId(
@@ -123,7 +122,6 @@ export function processInfo(
  * SWI-Prolog child; its parent (the daemon, or another Kibi process hosting
  * the session) is what a user ends or stops.
  */
-// implements REQ-core-journaled-engine-persistence
 export function lockHolderProcess(
   pid: number,
   info: ProcessInfo | null = processInfo(pid),
@@ -142,7 +140,6 @@ export function lockHolderProcess(
 }
 
 /** "pid N", naming the owning Kibi process when N is its SWI-Prolog child. */
-// implements REQ-core-journaled-engine-persistence
 export function describeLockHolderPid(pid: number): string {
   const holder = lockHolderProcess(pid);
   return holder.prologPid === undefined
@@ -173,7 +170,6 @@ export function classifyStoreLockHolder(
  * Shared by the janitor sweep and the status stale-reason surfacing so both
  * classify the same evidence with the same boot-id-aware semantics.
  */
-// implements REQ-core-journaled-engine-persistence
 export function readStoreLockOwner(
   storePath: string,
 ): { owner: PrologStoreLockOwner; journalPath: string } | null {
@@ -241,7 +237,6 @@ export type StoreLockTakeoverRecord = Readonly<{
  * Record that a stale branch-store lock is about to be broken. Best effort:
  * the record is diagnostic and must never block the takeover itself.
  */
-// implements REQ-core-journaled-engine-persistence
 export function recordStoreLockTakeover(
   storePath: string,
   brokenPid: number | null,
@@ -260,7 +255,6 @@ export function recordStoreLockTakeover(
 }
 
 /** The last takeover record of a branch store, or null when none is readable. */
-// implements REQ-core-journaled-engine-persistence
 export function readStoreLockTakeover(
   storePath: string,
 ): StoreLockTakeoverRecord | null {
@@ -284,7 +278,6 @@ export function readStoreLockTakeover(
 }
 
 /** The holder pid an rdf_persistency `lock` file records, or null. */
-// implements REQ-core-journaled-engine-persistence
 export function readRdfLockPid(lockPath: string): number | null {
   try {
     // A file without a pid throws on the null match and reads as no pid.
@@ -314,7 +307,6 @@ export function readRdfLockPid(lockPath: string): number | null {
  * unless that holder is provably dead; callers run it only after a
  * successful attach, which proves the holder no longer held the lock.
  */
-// implements REQ-core-journaled-engine-persistence
 export function noteDeadHolderBeforeAttach(kbPath: string): () => void {
   const lockPath = join(kbPath, "rdf", "lock");
   if (!existsSync(lockPath)) return () => undefined;
@@ -398,7 +390,6 @@ export function owningWorkspaceRoot(storePath: string): string | null {
  * recorded path that is this very directory (a bind mount) is not another
  * workspace. Each of those returns null.
  */
-// implements REQ-core-journaled-engine-persistence
 export function foreignStoreLockJournalRoot(
   owner: PrologStoreLockOwner | null,
   storePath: string | undefined,
@@ -428,7 +419,6 @@ export function foreignStoreLockJournalRoot(
  * workspace; live or unknown holders are surfaced so the operator can close
  * the real session.
  */
-// implements REQ-core-journaled-engine-persistence
 export function decideStoreLockTakeover(
   owner: PrologStoreLockOwner | null,
   options: { readonly storePath?: string } = {},
@@ -472,7 +462,6 @@ export interface StoreLockRetryContext {
  * holders are surfaced with the holder identity and remediation. Shared by
  * the CLI runtime and the engine daemon attach paths.
  */
-// implements REQ-core-journaled-engine-persistence
 export async function retryAttachAfterBreakingStaleLock(
   prolog: StoreLockRetryContext,
   kbPath: string,

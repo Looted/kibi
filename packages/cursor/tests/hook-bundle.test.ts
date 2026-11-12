@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";

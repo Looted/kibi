@@ -40,7 +40,6 @@ export const VALID_ENTITY_TYPES = [
   "fact",
 ] as const;
 
-// implements REQ-002, REQ-013
 export function validateEntityType(type?: string): void {
   if (type && !VALID_ENTITY_TYPES.some((candidate) => candidate === type)) {
     throw new Error(
@@ -56,7 +55,6 @@ export function validateEntityType(type?: string): void {
  */
 export const PROOF_CONTRACT_PAGE_SIZE = 100;
 
-// implements REQ-002, REQ-013
 export function buildEntityGoal(input: EntityQueryInput): string {
   const { type, id, tags, sourceFile } = input;
   if (type === "test" && input.projection === "proof_contract") {
@@ -108,7 +106,6 @@ export function buildEntityGoal(input: EntityQueryInput): string {
  */
 const FULL_ENTITY_PAGE_SIZE = 25;
 
-// implements REQ-002, REQ-013
 export async function loadEntitiesPaged(
   prolog: Pick<PrologPort, "query">,
   type: (typeof VALID_ENTITY_TYPES)[number],
@@ -126,7 +123,6 @@ export async function loadEntitiesPaged(
   return dedupeEntities(entities);
 }
 
-// implements REQ-002, REQ-013
 export async function loadEntities(
   prolog: Pick<PrologPort, "query">,
   input: EntityQueryInput,
@@ -181,7 +177,6 @@ export async function loadEntities(
   return dedupeEntities(entities);
 }
 
-// implements REQ-002
 export function paginateResults<T>(
   results: readonly T[],
   limit = 100,
@@ -196,14 +191,12 @@ export function paginateResults<T>(
  * fixes the observed large-KB output overflow; it is a practical bound, not
  * a byte-size guarantee for arbitrarily large individual entity payloads.
  */
-// implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
 export const SEARCH_CANDIDATE_PAGE_SIZE = 500;
 
 function isPrologOutputOverflow(error: unknown): boolean {
   return error instanceof Error && error.message.includes("ENOBUFS");
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
 export async function loadSearchCandidates(
   prolog: Pick<PrologPort, "searchEntities"> &
     Partial<Pick<PrologPort, "query">>,
@@ -239,7 +232,6 @@ export async function loadSearchCandidates(
  * bounded by `maxCandidates`. For semantic discovery that has no lexical
  * token to pre-filter candidates, and for source-located search.
  */
-// implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
 export async function listSearchCandidates(
   prolog: Pick<PrologPort, "query">,
   input: {
@@ -262,6 +254,8 @@ export async function listSearchCandidates(
         "Search candidate listing failed",
         signal,
       ),
+    // rationale: the listing goal reads no query text
+    // Stryker disable next-line StringLiteral
     { query: "", maxCandidates: input.maxCandidates },
   );
 }
@@ -294,7 +288,8 @@ async function readCandidatePages(
       // kept for the rest of the scan. Only a single row that overflows on its
       // own is a real failure.
       if (pageSize > 1 && isPrologOutputOverflow(error)) {
-        pageSize = Math.max(1, Math.floor(pageSize / 2));
+        // A page size above one halves to at least one.
+        pageSize = Math.floor(pageSize / 2);
         continue;
       }
       throw error;
@@ -349,7 +344,6 @@ async function readRowsAndCount(
  */
 export const ENTITY_QUERY_CHUNK_SIZE = 25;
 
-// implements REQ-kibi-operation-interface-parity
 export async function queryEntityChunks(
   readChunk: (
     input: PrologEntityQueryInput,
@@ -372,13 +366,12 @@ export async function queryEntityChunks(
     if (first) count = chunk.count;
     first = false;
     entities.push(...chunk.entities);
-    if (chunk.entities.length < chunkLimit || chunkLimit === 0) break;
+    if (chunk.entities.length < chunkLimit) break;
   }
   return { entities, count };
 }
 
 /** Bounded `kb_query_entities` paging for ports without the engine method. */
-// implements REQ-kibi-operation-interface-parity
 export function queryEntitiesViaQuery(
   prolog: Pick<PrologPort, "query">,
   input: PrologEntityQueryInput,
@@ -400,7 +393,6 @@ export function queryEntitiesViaQuery(
 }
 
 /** Every entity id, without materializing entity properties. */
-// implements REQ-002
 export async function loadEntityIds(
   prolog: Pick<PrologPort, "query">,
 ): Promise<string[]> {
@@ -410,8 +402,10 @@ export async function loadEntityIds(
       `Entity id enumeration failed: ${result.error ?? "Unknown error"}`,
     );
   }
-  return parseAtomList(result.bindings.Ids ?? "[]").map(normalizeEntityId);
+  return parseAtomList(result.bindings.Ids ?? "").map(normalizeEntityId);
 }
+
+type RequirementText = { id: string; title: string; semanticText: string };
 
 /**
  * Id, title and semantic text of every current requirement (open,
@@ -419,34 +413,36 @@ export async function loadEntityIds(
  * in id order. Projected rows only: semantic inventories and other large
  * properties stay in the store.
  */
-// implements REQ-bootstrap-claim-restatement
 export async function loadCurrentRequirementTexts(
   prolog: Pick<PrologPort, "query">,
-): Promise<{ id: string; title: string; semanticText: string }[]> {
+): Promise<RequirementText[]> {
   const result = await prolog.query("findall(R, kb:current_req(R), Ids)");
   if (!result.success) {
     throw new Error(
       `Current requirement enumeration failed: ${result.error ?? "Unknown error"}`,
     );
   }
-  const ids = parseAtomList(result.bindings.Ids ?? "[]").map(normalizeEntityId);
+  const ids = parseAtomList(result.bindings.Ids ?? "").map(normalizeEntityId);
   const rows = await loadEntityRows(prolog, ids, [
     "id",
     "title",
     "semantic_text",
   ]);
-  return rows
-    .filter((row) => row.type === "req")
-    .map((row) => ({
-      id: String(row.id ?? ""),
-      title: typeof row.title === "string" ? row.title : "",
-      semanticText:
-        typeof row.semantic_text === "string" ? row.semantic_text : "",
-    }))
-    .filter((row) => row.id !== "")
-    .sort((left, right) =>
-      left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
-    );
+  // Rows are unique by id once other types are left out.
+  const byId = new Map(
+    rows
+      .filter((row) => row.type === "req")
+      // Every parsed row of a type carries its id.
+      .map((row) => ({
+        id: row.id as string,
+        title: typeof row.title === "string" ? row.title : "",
+        semanticText:
+          typeof row.semantic_text === "string" ? row.semantic_text : "",
+      }))
+      .filter((row) => row.id !== "")
+      .map((row) => [row.id, row] as const),
+  );
+  return [...byId.keys()].sort().map((id) => byId.get(id) as RequirementText);
 }
 
 /**
@@ -455,7 +451,6 @@ export async function loadCurrentRequirementTexts(
  * (receipt histories, proof contracts, semantic inventories, rule IR) are
  * left in the store, as for search candidate rows.
  */
-// implements REQ-kibi-search-answer-layer-v2
 export const ENTITY_ROW_KEYS = [
   "id",
   "title",
@@ -483,10 +478,8 @@ export const ENTITY_ROW_KEYS = [
 ] as const;
 
 /** Upper bound on ids per batched row query, so one answer stays bounded. */
-// implements REQ-kibi-search-answer-layer-v2
 export const ENTITY_ROW_BATCH_LIMIT = 200;
 
-// implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer-v2
 export function entityRowsGoal(
   ids: readonly string[],
   keys: readonly string[] = ENTITY_ROW_KEYS,
@@ -500,7 +493,6 @@ export function entityRowsGoal(
  * Projected rows for several entities in one Prolog query, in place of one
  * `loadEntities({ id })` round trip per entity. Unknown ids are skipped.
  */
-// implements REQ-mcp-search-discovery, REQ-kibi-search-answer-layer-v2
 export async function loadEntityRows(
   prolog: Pick<PrologPort, "query">,
   ids: readonly string[],
@@ -515,7 +507,8 @@ export async function loadEntityRows(
       throw new Error(result.error || "Entity row query failed");
     }
     rows.push(
-      ...parseListOfLists(result.bindings.Results ?? "[]").map(
+      // A missing binding reads as text that holds no rows.
+      ...parseListOfLists(String(result.bindings.Results)).map(
         parseEntityFromList,
       ),
     );
@@ -528,7 +521,6 @@ export async function loadEntityRows(
  * query per entity. Used only for the final result page when a caller asks
  * for full entity bodies.
  */
-// implements REQ-mcp-search-discovery
 export async function reloadFullEntities<
   TMatch extends { readonly entity: Record<string, unknown> },
 >(
@@ -550,13 +542,12 @@ export async function reloadFullEntities<
   return reloaded;
 }
 
-// implements REQ-002
 export function dedupeEntities(
   entities: readonly Record<string, unknown>[],
 ): Record<string, unknown>[] {
   const seen = new Set<string>();
   return entities.filter((entity) => {
-    const key = `${String(entity.type ?? "")}::${String(entity.id ?? "")}`;
+    const key = JSON.stringify([entity.type, entity.id]);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

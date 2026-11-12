@@ -1,4 +1,3 @@
-// implements REQ-vscode-traceability
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";

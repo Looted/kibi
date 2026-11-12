@@ -42,7 +42,6 @@ const run: CanaryRunner = (argv, cwd, env, timeoutMs, stdin) =>
  * a real brokered MCP startup probe. No model call. `bwrap` is reported
  * false because the Claude host relies on permission rules, not an OS sandbox.
  */
-// implements REQ-skillopt-claude-code-host
 export async function runClaudeCodePreflight(
   config: PreflightConfig,
 ): Promise<PreflightReceipt> {
@@ -118,7 +117,6 @@ export async function runClaudeCodePreflight(
   }
 }
 
-// implements REQ-skillopt-claude-code-host
 export async function runClaudeCodeCanary(
   options: CapabilityCanaryOptions,
 ): Promise<CapabilityCanaryReceipt> {
@@ -179,7 +177,6 @@ export async function runClaudeCodeCanary(
  * there, including the `revise` optimizer step. Registered in
  * `runtime/skillopt-host-registry.ts`.
  */
-// implements REQ-skillopt-claude-code-host
 export function claudeCodeCampaignDependencies(
   env: NodeJS.ProcessEnv = process.env,
 ): Partial<CampaignDependencies> {

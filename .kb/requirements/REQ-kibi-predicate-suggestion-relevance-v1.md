@@ -1,6 +1,6 @@
 ---
 title: Predicate Suggestions Gate Semantic Relevance Before Binding
-status: open
+status: closed
 priority: must
 tags:
   - kibi
@@ -9,7 +9,6 @@ tags:
   - predicates
   - relevance
   - abstention
-  - review:context-missing
 semantic_text: The predicate suggester shall reject semantically unrelated schemas even when all of their arguments can be populated. Candidate selection shall evaluate semantic applicability before argument binding can make a candidate recommendable. A candidate shall be recommended only when usage guidance and required semantic cues match, prohibited cues are absent, every argument is explicitly reviewed or high-confidence extracted, and applicability exceeds the relevance threshold. A relevant candidate with incomplete arguments shall return provide_argument_bindings. When no fitting schema exists for a clause, the suggester shall return record_ontology_gap. When the leading eligible candidates fall within the deterministic weak-candidate margin, the suggester shall abstain instead of applying either candidate. For a genuine ontology gap, recommendedPredicateSchema shall be a deterministic non-null draft containing a predicate name, ordered argument names and types, candidate bindings, unresolved bindings, rationale, and reuse scope. Modal-free validity, rejection, prohibition, required-outcome, and failure-policy assertions shall be classified as normative. Conjunctions in the source prose shall preserve each atomic proposition in the semantic inventory. The output shall expose eligibility, rejection_reasons, binding_provenance, applicability_score, and score components without treating generic inferred values as reviewed bindings.
 semantic_clauses:
   - The predicate suggester shall reject semantically unrelated schemas even when all of their arguments can be populated.
@@ -111,7 +110,7 @@ id: REQ-kibi-predicate-suggestion-relevance-v1
 type: req
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok"'
   approved_by: maintainer
   recorded_at: '2026-10-27T08:04:54.717Z'
 firmness: default

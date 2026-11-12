@@ -12,8 +12,6 @@ import path from "node:path";
 import { load as loadYaml } from "js-yaml";
 import { spawnSync } from "../helpers/isolated-env.js";
 
-// implements REQ-cli-migrate-legacy-requirement-status, REQ-kibi-uncompiled-source-visibility
-
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 240_000;
 

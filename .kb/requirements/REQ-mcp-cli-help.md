@@ -8,7 +8,6 @@ tags:
   - mcp
   - cli
   - help
-  - review:context-missing
 links:
   - type: depends_on
     target: REQ-002
@@ -16,18 +15,16 @@ links:
     target: SCEN-mcp-cli-help
   - type: verified_by
     target: TEST-mcp-cli-help
-semantic_text: The `kibi-mcp` binary must support standard CLI help flags (`--help`, `-h`) and exit immediately with human-readable help text. It must NOT start the MCP stdio server or wait for input when help is requested. This allows users and system administrators to verify the binary installation and inspect usage information without needing an MCP client.
+semantic_text: The `kibi-mcp` binary must support standard CLI help flags (`--help`, `-h`) and exit immediately with human-readable help text. It must NOT start the MCP stdio server or wait for input when help is requested.
 logic_claims:
   - CLAIM-2074E284C8719F99
   - CLAIM-6448FEFEA50A7DCD
-  - CLAIM-4A83CC5BE9D362E1
 semantic_clauses:
   - The `kibi-mcp` binary must support standard CLI help flags (`--help`, `-h`) and exit immediately with human-readable help text
   - It must NOT start the MCP stdio server or wait for input when help is requested
-  - This allows users and system administrators to verify the binary installation and inspect usage information without needing an MCP client
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 2e7f02c420fc1bd78fecfe4f227934402d936aeb1ef5892670f4959a3cda36a3
+semantic_source_hash: a4b4180328f6bef0c5a4c25a73d6414ea20113d9b04028138ece18da0b157476
 semantic_inventory:
   - claim_key: CLAIM-2074E284C8719F99
     claim_text: The `kibi-mcp` binary must support standard CLI help flags (`--help`, `-h`) and exit immediately with human-readable help text
@@ -43,13 +40,6 @@ semantic_inventory:
     span:
       start: 128
       end: 207
-  - claim_key: CLAIM-4A83CC5BE9D362E1
-    claim_text: This allows users and system administrators to verify the binary installation and inspect usage information without needing an MCP client
-    role: descriptive
-    status: modeled
-    span:
-      start: 209
-      end: 346
 type: req
 origin:
   kind: migration
@@ -57,6 +47,10 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
+rationale: Lets users and system administrators verify the binary installation and inspect usage information without an MCP client.
 ---
 
 The `kibi-mcp` binary must support standard CLI help flags (`--help`, `-h`) and exit immediately with human-readable help text. It must NOT start the MCP stdio server or wait for input when help is requested. This allows users and system administrators to verify the binary installation and inspect usage information without needing an MCP client.
+
+## Rationale
+Lets users and system administrators verify the binary installation and inspect usage information without an MCP client.

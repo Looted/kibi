@@ -1,0 +1,24 @@
+[
+  {
+    "rule": "decision-firm-edited",
+    "entityId": "REQ-a",
+    "description": "REQ-a is a firm decision whose statement changed since HEAD without citing new human words",
+    "suggestion": "Ask the person who stated it. If they agree, either write the change with origin.ref or approval_ref pointing at their words, or supersede it with a new firmness: firm decision that cites them; otherwise leave it and propose the change. To undo the edit, restore .kb/requirements/REQ-a.md from HEAD",
+    "source": ".kb/requirements/REQ-a.md",
+    "evidence": {
+      "type": "req",
+      "changed": ["statement"]
+    }
+  },
+  {
+    "rule": "decision-firm-edited",
+    "entityId": "REQ-z",
+    "description": "REQ-z is a firm decision whose title, statement changed since HEAD without citing new human words",
+    "suggestion": "Ask the person who stated it. If they agree, either write the change with origin.ref or approval_ref pointing at their words, or supersede it with a new firmness: firm decision that cites them; otherwise leave it and propose the change. To undo the edit, restore .kb/requirements/REQ-z.md from HEAD",
+    "source": ".kb/requirements/REQ-z.md",
+    "evidence": {
+      "type": "req",
+      "changed": ["title", "statement"]
+    }
+  }
+]

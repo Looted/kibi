@@ -1,6 +1,6 @@
 ---
 title: MCP oneOf guard input validation tests
-status: active
+status: passing
 priority: must
 tags:
   - mcp

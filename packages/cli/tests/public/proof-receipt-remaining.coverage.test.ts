@@ -1,4 +1,3 @@
-// implements REQ-kibi-verification-evidence-contract
 import { afterEach, describe, expect, test } from "bun:test";
 import { proofContractHash } from "../../src/public/proof-fingerprint.js";
 import {

@@ -1,6 +1,6 @@
 ---
 title: Long-running bootstrap apply progress, async and recovery tests
-status: active
+status: passing
 priority: must
 tags:
   - bootstrap

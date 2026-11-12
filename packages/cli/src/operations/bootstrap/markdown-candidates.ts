@@ -58,19 +58,20 @@ function headingSignals(
 
 function genericHeadingCandidate(
   item: BootstrapEvidence,
+  relativePath: string,
   heading: string,
   line: number,
   existingIds: ReadonlySet<string>,
   minConfidence: number,
 ): Candidate | null {
-  const relativePath = item.relativePath ?? item.label;
   const type = /\badr\b|architectur.*decision/i.test(heading)
     ? "adr"
     : /\b(observations?|facts?|notes?)\b/i.test(heading)
       ? "fact"
       : null;
-  const confidence = type === "adr" ? 0.9 : type === "fact" ? 0.8 : 0;
-  if (!type || confidence < minConfidence) return null;
+  if (!type) return null;
+  const confidence = type === "adr" ? 0.9 : 0.8;
+  if (confidence < minConfidence) return null;
   const id =
     `${type === "adr" ? "ADR" : "FACT"}-GEN-${slug(heading, 60) || slug(path.basename(relativePath))}`.toUpperCase();
   if (existingIds.has(id)) return null;
@@ -90,8 +91,9 @@ function genericHeadingCandidate(
     sourceKind: "generic_markdown",
     sourcePath: item.absolutePath ?? relativePath,
     confidence,
-    confidenceBand:
-      confidence >= 0.95 ? "high" : confidence >= 0.8 ? "medium" : "low",
+    // A heading candidate is never high: an ADR (0.9) and a fact (0.8) both
+    // fall short of the 0.95 a heading needs to read as high.
+    confidenceBand: "medium",
     evidence: [`generic_heading:${relativePath}#L${line}`],
     relationships: [],
     applyPlan: [
@@ -139,14 +141,12 @@ const GENERIC_DOCUMENT_NAMES = new Set([
  * generic name such as README.md, its directory (packages/recorder/README.md
  * covers recorder). A root README names no component.
  */
-// implements REQ-bootstrap-subject-key-shape
 export function markdownComponentHint(
   relativePath: string,
 ): string | undefined {
-  const segments = relativePath
-    .split(/[\\/]+/)
-    .filter((segment) => segment.length > 0);
-  const stem = (segments.pop() ?? "").replace(/\.[^.]*$/, "");
+  // An empty segment ("a//b") starts with no letter, so it is skipped below.
+  const segments = relativePath.split(/[\\/]/);
+  const stem = (segments.pop() as string).replace(/\.[^.]*$/, "");
   for (const name of [stem, ...segments.reverse()]) {
     const normalized = name.toLowerCase().replace(/^[._-]+/, "");
     if (!/^[a-z]/.test(normalized)) continue;
@@ -158,6 +158,7 @@ export function markdownComponentHint(
 
 function requirementCandidate(
   item: BootstrapEvidence,
+  relativePath: string,
   statement: string,
   line: number,
   heading: string | undefined,
@@ -167,7 +168,6 @@ function requirementCandidate(
   subjectKeys: SubjectKeyRegistry | undefined,
   diagnostics: string[],
 ): Candidate | null {
-  const relativePath = item.relativePath ?? item.label;
   const base = /\bshall\b/i.test(statement)
     ? 0.86
     : /\bmust\b/i.test(statement)
@@ -245,7 +245,6 @@ function requirementCandidate(
   };
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function markdownCandidates(
   item: BootstrapEvidence,
   existingIds: ReadonlySet<string>,
@@ -259,18 +258,23 @@ export function markdownCandidates(
   let heading: string | undefined;
   let headingLine = 0;
   let fenced = false;
-  for (const [index, line] of (item.content ?? "").split(/\r?\n/).entries()) {
+  // rationale: placeholder text has no heading, fence or modal verb, so it
+  // reads like a document without content.
+  // Stryker disable next-line StringLiteral
+  const content = item.content ?? "";
+  for (const [index, line] of content.split(/\r?\n/).entries()) {
     if (/^\s*(```|~~~)/.test(line)) {
       fenced = !fenced;
       continue;
     }
     if (fenced) continue;
-    const match = line.match(/^\s*#+\s*(.+)$/);
+    const match = line.match(/^\s*#+\s*(.+)/);
     if (match?.[1]) {
       heading = match[1].trim();
       headingLine = index + 1;
       const candidate = genericHeadingCandidate(
         item,
+        relativePath,
         heading,
         headingLine,
         existingIds,
@@ -292,6 +296,7 @@ export function markdownCandidates(
     try {
       const candidate = requirementCandidate(
         item,
+        relativePath,
         statement,
         index + 1,
         heading,

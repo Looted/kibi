@@ -15,11 +15,11 @@ import { publicCapabilityStamp } from "../../plugins/compose-semantic-classifier
 import { parseTriples } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
-import { readAuthoredEntity } from "../../public/operations/entity-context.js";
-import type {
-  OperationContext,
-  WorkspaceSnapshot,
-} from "../../public/operations/runtime-types.js";
+import {
+  type AuthoredEntity,
+  readAuthoredEntity,
+} from "../../public/operations/entity-context.js";
+import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { firstSentence } from "../../utils/first-sentence.js";
 import { buildWhatIfAnalysisGoal } from "../mutation/contradictions.js";
 import { canonicalSourcePath } from "../mutation/source-authoring.js";
@@ -48,10 +48,8 @@ import {
   reviewNextAction,
 } from "./conflict-review.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const COMPILE_PLAN_VERSION = "kibi.compile-plan.v1" as const;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type CompileIntentArgs = Readonly<{
   intent: string;
   mode: "create" | "update";
@@ -80,14 +78,12 @@ export type CompileIntentArgs = Readonly<{
   conflictReviews?: readonly ConflictReviewDecision[];
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ScenarioDraft = Readonly<{
   id?: string;
   title: string;
   body: string;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TestDraft = Readonly<{
   id?: string;
   title: string;
@@ -98,13 +94,11 @@ export type TestDraft = Readonly<{
   verificationPerspective?: "internal" | "consumer";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type ProposalDecision = Readonly<{
   proposalId: string;
   decision: "accept" | "reject";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 /**
  * One witness from the staged what-if analysis. The engine's full evidence
  * (sides, facts, scenario, comparison) is kept alongside these normalized
@@ -121,7 +115,6 @@ export type {
 } from "./conflict-review.js";
 export { isBlockingWitness, parseWhatIfAnalysis } from "../mutation/what-if.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type TraceabilityProposal = Readonly<{
   proposalId: string;
   candidateId: string;
@@ -132,10 +125,8 @@ export type TraceabilityProposal = Readonly<{
   decision: "pending" | "accept" | "reject";
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type PlanStep = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function compilePlanHash(
   plan: Readonly<Record<string, unknown>>,
 ): string {
@@ -143,7 +134,6 @@ export function compilePlanHash(
   return hash(body);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type CompilePlanV1 = Readonly<{
   version: typeof COMPILE_PLAN_VERSION;
   planHash: string;
@@ -278,7 +268,7 @@ function slug(value: string): string {
   const result = value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
+    .replace(/^-|-$/g, "")
     .slice(0, 42);
   return result || "intent";
 }
@@ -353,11 +343,7 @@ function mergeSteps(steps: readonly PlanStep[]): PlanStep[] {
       merged.set(key, {
         ...step,
         ...(Array.isArray(step.relationships)
-          ? {
-              relationships: mergeRelationships(
-                step.relationships.filter(isRecord),
-              ),
-            }
+          ? { relationships: mergeRelationships(relationshipRows(step)) }
           : {}),
       });
       continue;
@@ -367,12 +353,8 @@ function mergeSteps(steps: readonly PlanStep[]): PlanStep[] {
       ...(isRecord(step.properties) ? step.properties : {}),
     };
     const relationships = mergeRelationships([
-      ...(Array.isArray(previous.relationships)
-        ? previous.relationships.filter(isRecord)
-        : []),
-      ...(Array.isArray(step.relationships)
-        ? step.relationships.filter(isRecord)
-        : []),
+      ...relationshipRows(previous),
+      ...relationshipRows(step),
     ]);
     merged.set(key, { ...previous, ...step, properties, relationships });
   }
@@ -391,7 +373,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-// implements REQ-kibi-truthful-consistency
+/** The record relationships of a step; none when it lists none. */
+function relationshipRows(step: PlanStep): Record<string, unknown>[] {
+  return Array.isArray(step.relationships)
+    ? step.relationships.filter(isRecord)
+    : [];
+}
+
 // Each advisor suggestion carries an inventory in which only its own clause is
 // modeled, so merging suggestion steps left the requirement with whichever
 // inventory came last (or none). The compiled plan already knows every
@@ -428,7 +416,9 @@ function withRequirementInventory(
       ...step,
       properties: {
         ...properties,
-        logic_claims: logicClaims,
+        // The schema rejects an empty list: prose with only context claims
+        // declares none.
+        ...(logicClaims.length > 0 ? { logic_claims: logicClaims } : {}),
         semantic_clauses: propositions.map((proposition) => proposition.text),
         semantic_inventory_version: receipt.inventory_contract.version,
         semantic_source_field: receipt.inventory_contract.source_field,
@@ -485,7 +475,8 @@ function sourceFilesFor(
 ): string[] {
   return Array.from(
     new Set(
-      (locations ?? []).map((location) => location.path.trim()).filter(Boolean),
+      // Validated: every path is non-empty.
+      (locations ?? []).map((location) => location.path.trim()),
     ),
   ).sort();
 }
@@ -497,13 +488,12 @@ async function sourceHashes(
   const hashes: Record<string, string | null> = {};
   for (const relative of sourceFilesFor(locations)) {
     try {
-      const contents = context.fs
-        ? await context.fs.readFile(path.join(context.workspaceRoot, relative))
-        : null;
-      hashes[relative] =
-        contents === null
-          ? null
-          : createHash("sha256").update(contents).digest("hex");
+      // Without a filesystem port the read throws, like a missing file.
+      const fs = context.fs as NonNullable<OperationContext["fs"]>;
+      const contents = await fs.readFile(
+        path.join(context.workspaceRoot, relative),
+      );
+      hashes[relative] = createHash("sha256").update(contents).digest("hex");
     } catch {
       hashes[relative] = null;
     }
@@ -518,14 +508,13 @@ async function sourceHashes(
 function requirementDocumentPath(
   locations: readonly SourceLocation[] | undefined,
 ): string | undefined {
-  const explicit = locations?.[0]?.path?.trim().replaceAll("\\", "/");
+  const explicit = locations?.[0]?.path.trim().replaceAll("\\", "/");
   if (!explicit || !/\.(?:md|mdx)$/i.test(explicit)) return undefined;
   // Kibi owns the .kb layout: entities there live at their canonical path.
-  if (explicit === ".kb" || explicit.startsWith(".kb/")) return undefined;
+  if (explicit.startsWith(".kb/")) return undefined;
   return explicit;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 /**
  * Name the authored document every entity step writes, as `kb_upsert` would
  * choose it: the entity's existing authored document, else its canonical
@@ -544,7 +533,11 @@ async function withDocumentTargets(
   context: OperationContext,
   prolog: NonNullable<OperationContext["prolog"]>,
   steps: readonly PlanStep[],
-  requirement: Readonly<{ id: string; body?: string; path?: string }>,
+  requirement: Readonly<{
+    id: string;
+    body?: string | undefined;
+    path?: string | undefined;
+  }>,
   now: Date,
 ): Promise<PlanStep[]> {
   if (!context.fs) return [...steps];
@@ -558,15 +551,13 @@ async function withDocumentTargets(
       continue;
     }
     const stepDocument = isRecord(step.document) ? step.document : {};
-    const document: { path?: string; body?: string } =
+    const document: { path?: string | undefined; body?: string } =
       type === "req" && id === requirement.id
         ? {
             ...(requirement.body !== undefined
               ? { body: requirement.body }
               : {}),
-            ...(requirement.path !== undefined
-              ? { path: requirement.path }
-              : {}),
+            path: requirement.path,
           }
         : typeof stepDocument.body === "string"
           ? { body: stepDocument.body.replace(/\n*$/, "\n") }
@@ -575,17 +566,16 @@ async function withDocumentTargets(
       type,
       id,
       properties,
-      relationships: (Array.isArray(step.relationships)
-        ? step.relationships.filter(isRecord)
-        : []) as RelationshipInput[],
-      document,
+      relationships: relationshipRows(step) as RelationshipInput[],
+      // An undefined path reads as none.
+      document: document as NonNullable<UpsertInput["document"]>,
     };
     // An invalid entity or an unwritable document would fail the apply.
     const { entity } = validateUpsertInput(input, now);
-    const [existing] =
+    const existing =
       document.path === undefined
-        ? await loadEntities(prolog, { id, type })
-        : [];
+        ? (await loadEntities(prolog, { id, type }))[0]
+        : undefined;
     targeted.push({
       ...step,
       document: {
@@ -602,31 +592,28 @@ async function existingRequirementBody(
   context: OperationContext,
   source: string,
 ): Promise<string | undefined> {
-  if (!context.fs || !source.endsWith(".md")) return undefined;
+  if (!source.endsWith(".md")) return undefined;
+  let body: string | undefined;
   try {
-    const raw = await context.fs.readFile(
-      path.join(context.workspaceRoot, source),
-    );
-    return readAuthoredEntity(String(raw), source)?.body ?? undefined;
+    // Without a filesystem port, or a readable entity, there is no body.
+    const fs = context.fs as NonNullable<OperationContext["fs"]>;
+    const raw = await fs.readFile(path.join(context.workspaceRoot, source));
+    body = (readAuthoredEntity(String(raw), source) as AuthoredEntity).body;
   } catch {
-    return undefined;
+    // An unreadable document has no body to revise.
   }
+  return body;
 }
 
 function generatedRequirementId(intent: string): string {
   return `REQ-${slug(intent)}-${shortHash(intent).toUpperCase()}`;
 }
 
-// implements REQ-kibi-truthful-consistency
 /** Rolled-back staging goal for a plan's steps (see what_if_analysis/2). */
 export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
   return buildWhatIfAnalysisGoal(
     steps.map((step) => {
-      const relationships = (
-        Array.isArray(step.relationships)
-          ? step.relationships.filter(isRecord)
-          : []
-      ).map((relationship) => ({
+      const relationships = relationshipRows(step).map((relationship) => ({
         type: text(relationship.type),
         from: text(relationship.from),
         to: text(relationship.to),
@@ -658,7 +645,6 @@ export function planWhatIfGoal(steps: readonly PlanStep[], now: Date): string {
   );
 }
 
-// implements REQ-kibi-truthful-consistency
 // Check the KB as it would be after this plan, not the KB as it is: stage every
 // planned step in a rolled-back transaction and compare its contradiction and
 // scenario-feasibility witnesses with the current KB's. Any witness the plan
@@ -686,8 +672,8 @@ async function contradictionAnalysis(
   } catch {
     return unavailable;
   }
+  // A failed query binds no JSON, so it reads as unavailable too.
   const result = await prolog.query(goal);
-  if (!result.success) return unavailable;
   const analysis = parseWhatIfAnalysis(result.bindings.JsonString);
   if (analysis === null) return unavailable;
   const witnesses = [
@@ -710,7 +696,6 @@ async function contradictionAnalysis(
   };
 }
 
-// implements REQ-kibi-contradiction-review-candidates
 // No witness is not the same as no conflict: the checker compares only what
 // has a logical model. When a target proposition is unmodeled, or a related
 // current requirement from discovery has no logic of its own, the outcome
@@ -764,8 +749,9 @@ async function withConflictReview(
     ...scores.keys(),
     ...[...decisions.keys()].filter((id) => id !== input.requirementId),
   ]);
+  // The target is never loaded as a related requirement.
   for (const id of decisions.keys()) {
-    if (id === input.requirementId || !requirements.has(id))
+    if (!requirements.has(id))
       diagnostics.push(
         `conflictReviews names ${id}, which is not a current requirement other than the target; its verdict was ignored.`,
       );
@@ -792,7 +778,7 @@ async function withConflictReview(
   // agent may know a conflict the search missed.
   for (const [id, decision] of decisions) {
     const requirement = requirements.get(id);
-    if (!requirement || scores.has(id) || id === input.requirementId) continue;
+    if (!requirement || scores.has(id)) continue;
     candidates.push(reviewCandidate(input.intent, requirement, 0, decision));
   }
   const pending = candidates.filter(
@@ -804,11 +790,11 @@ async function withConflictReview(
   const reasons: UncheckedReason[] = [...(analysis.reasons ?? [])];
   if (unmodeledClaims.length > 0)
     reasons.push({ reason: "unmodeled_target", ids: unmodeledClaims });
-  const pendingUnmodeled = pending.filter((candidate) => !candidate.modeled);
-  if (unmodeledClaims.length === 0 && pendingUnmodeled.length > 0)
+  // With a modeled target only unmodeled requirements are left pending.
+  if (unmodeledClaims.length === 0 && pending.length > 0)
     reasons.push({
       reason: "unmodeled_related",
-      ids: pendingUnmodeled.map((candidate) => candidate.requirementId),
+      ids: pending.map((candidate) => candidate.requirementId),
     });
   const outcome: CompilePlanV1["contradictionAnalysis"]["outcome"] =
     analysis.outcome === "conflict" || declaredConflicts.length > 0
@@ -824,10 +810,8 @@ async function withConflictReview(
     diagnostics.push(
       `Contradiction check incomplete: Kibi could not compare this intent logically with current requirement ${pending.map((candidate) => candidate.requirementId).join(", ")}. Compare them (contradictionAnalysis.reviewCandidates) and send your verdicts in conflictReviews.`,
     );
-  const nextAction =
-    outcome === "no_conflict"
-      ? undefined
-      : reviewNextAction(candidates, unmodeledClaims);
+  // Nothing is left to do when there is no conflict.
+  const nextAction = reviewNextAction(candidates, unmodeledClaims);
   return {
     analysis: {
       ...analysis,
@@ -843,10 +827,11 @@ async function withConflictReview(
 function proposalFor(
   requirementId: string,
   match: IntentSearchMatch,
-): TraceabilityProposal | null {
+): Omit<TraceabilityProposal, "decision"> | null {
   const candidateId = text(match.entity.id);
   const candidateType = text(match.entity.type);
-  if (!candidateId || candidateType === "req") return null;
+  // A requirement match, like any other type, links nothing.
+  if (!candidateId) return null;
   const relationship =
     candidateType === "scenario"
       ? { from: requirementId, to: candidateId, type: "specified_by" }
@@ -865,82 +850,61 @@ function proposalFor(
     relationship,
     confidence: match.score,
     evidence: match.reasons,
-    decision: "pending",
   };
 }
 
+/**
+ * Add each accepted proposal's relationship to the step of its source
+ * entity, as a relationship-only step that merging folds into it.
+ */
 function applyAcceptedProposals(
   steps: readonly PlanStep[],
   proposals: readonly TraceabilityProposal[],
 ): PlanStep[] {
-  const accepted = proposals.filter(
-    (proposal) => proposal.decision === "accept",
-  );
-  if (accepted.length === 0) return [...steps];
-  const byId = new Map<string, Record<string, unknown>>(
-    steps.map((step) => [text(step.id), { ...step }]),
-  );
-  for (const proposal of accepted) {
-    const targetId = proposal.relationship.from;
-    const existing = byId.get(targetId);
-    if (!existing) continue;
-    const relationships = mergeRelationships([
-      ...(Array.isArray(existing.relationships)
-        ? existing.relationships.filter(isRecord)
-        : []),
-      proposal.relationship,
-    ]);
-    byId.set(targetId, { ...existing, relationships });
-  }
-  return mergeSteps([...byId.values()]);
+  const types = new Map(steps.map((step) => [text(step.id), step.type]));
+  return mergeSteps([
+    ...steps,
+    // A proposal from an entity without a step has no type, and merging
+    // drops it.
+    ...proposals
+      .filter((proposal) => proposal.decision === "accept")
+      .map((proposal) => ({
+        type: types.get(proposal.relationship.from),
+        id: proposal.relationship.from,
+        properties: {},
+        relationships: [proposal.relationship],
+      })),
+  ]);
 }
 
 function draftId(prefix: string, title: string, index: number): string {
   return `${prefix}-${slug(title)}-${shortHash(`${title}\0${index}`).toUpperCase()}`;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 function draftSteps(
   requirementId: string,
   scenarios: readonly ScenarioDraft[],
   tests: readonly TestDraft[],
 ): { steps: PlanStep[]; diagnostics: string[] } {
   const diagnostics: string[] = [];
-  const steps: PlanStep[] = [];
-  const testSteps: PlanStep[] = [];
-  const scenarioIds: string[] = [];
   // verified_by runs scenario -> test, and an upsert step may only carry
   // relationships from its own entity, so each scenario step carries the
   // links to its tests and the tests are written before it.
   const scenarioTests = new Map<string, string[]>();
-  const linkedScenarioIds = new Set<string>();
   const duplicateScenarioIds = new Set<string>();
   const testIds = new Set<string>();
-  scenarios.forEach((scenario, index) => {
+  const scenarioIds = scenarios.map((scenario, index) => {
     const id = text(scenario.id) || draftId("SCEN", scenario.title, index);
-    if (scenarioIds.includes(id)) {
+    if (scenarioTests.has(id)) {
       duplicateScenarioIds.add(id);
       diagnostics.push(
         `unresolved duplicate scenario draft ID ${id}; scenario associations are ambiguous.`,
       );
     }
-    scenarioIds.push(id);
-    // The draft prose is document body, not an entity property: the entity
-    // schema has no `body`, so carrying it in properties made every staged
-    // what-if check and every apply of a plan with drafts fail validation.
-    steps.push({
-      type: "scenario",
-      id,
-      properties: {
-        title: scenario.title.trim(),
-        status: "draft",
-        source: "mcp://kibi/compile-intent",
-      },
-      document: { body: scenario.body.trim() },
-      relationships: [],
-    });
+    scenarioTests.set(id, []);
+    return id;
   });
-  tests.forEach((test, index) => {
+  const testSteps: PlanStep[] = tests.map((test, index) => {
     const id = text(test.id) || draftId("TEST", test.title, index);
     if (testIds.has(id)) {
       diagnostics.push(
@@ -949,13 +913,11 @@ function draftSteps(
     }
     testIds.add(id);
     const requestedScenarioIds = test.scenarioIds?.map(text) ?? null;
-    const soleScenarioId =
-      scenarioIds.length === 1 ? scenarioIds[0] : undefined;
     const associatedScenarioIds =
       requestedScenarioIds !== null
         ? Array.from(new Set(requestedScenarioIds.filter(Boolean)))
-        : soleScenarioId !== undefined
-          ? [soleScenarioId]
+        : scenarioIds.length === 1
+          ? scenarioIds
           : [];
     if (scenarioIds.length === 0) {
       diagnostics.push(
@@ -965,44 +927,29 @@ function draftSteps(
       diagnostics.push(
         `unresolved test draft ${id} must declare scenarioIds when multiple scenario drafts exist; positional association is not supported.`,
       );
-    } else if (
-      requestedScenarioIds !== null &&
-      associatedScenarioIds.length === 0
-    ) {
+    } else if (associatedScenarioIds.length === 0) {
       diagnostics.push(
         `unresolved test draft ${id} must reference at least one scenario ID in scenarioIds.`,
       );
     }
+    // A blank or repeated id leaves fewer associations than ids.
     if (
       requestedScenarioIds !== null &&
-      (requestedScenarioIds.some((scenarioId) => !scenarioId) ||
-        requestedScenarioIds.filter(Boolean).length !==
-          associatedScenarioIds.length)
+      requestedScenarioIds.length !== associatedScenarioIds.length
     ) {
       diagnostics.push(
         `unresolved test draft ${id} repeats or omits scenario IDs; associations must be unique and non-empty.`,
       );
     }
-    const validScenarioIds = associatedScenarioIds.filter(
-      (scenarioId) =>
-        scenarioIds.includes(scenarioId) &&
-        !duplicateScenarioIds.has(scenarioId),
-    );
     for (const scenarioId of associatedScenarioIds) {
-      if (!scenarioIds.includes(scenarioId)) {
+      const linked = scenarioTests.get(scenarioId);
+      if (linked === undefined) {
         diagnostics.push(
           `unresolved test draft ${id} references unknown scenario ID ${scenarioId}.`,
         );
-      }
+      } else if (!duplicateScenarioIds.has(scenarioId)) linked.push(id);
     }
-    for (const scenarioId of validScenarioIds) {
-      linkedScenarioIds.add(scenarioId);
-      scenarioTests.set(scenarioId, [
-        ...(scenarioTests.get(scenarioId) ?? []),
-        id,
-      ]);
-    }
-    testSteps.push({
+    return {
       type: "test",
       id,
       properties: {
@@ -1013,41 +960,56 @@ function draftSteps(
         verification_perspective: test.verificationPerspective ?? "internal",
       },
       document: { body: test.body.trim() },
+      // rationale: merging drops a placeholder relationship that is not a record.
+      // Stryker disable next-line ArrayDeclaration
       relationships: [],
-    });
+    };
   });
-  const scenarioSteps = steps.map((step) => ({
-    ...step,
-    relationships: (scenarioTests.get(text(step.id)) ?? []).map((to) => ({
-      type: "verified_by",
-      from: text(step.id),
-      to,
-    })),
-  }));
-  steps.splice(0, steps.length, ...testSteps, ...scenarioSteps);
+  // The draft prose is document body, not an entity property: the entity
+  // schema has no `body`, so carrying it in properties made every staged
+  // what-if check and every apply of a plan with drafts fail validation.
+  const scenarioSteps: PlanStep[] = scenarios.map((scenario, index) => {
+    const id = scenarioIds[index] as string;
+    return {
+      type: "scenario",
+      id,
+      properties: {
+        title: scenario.title.trim(),
+        status: "draft",
+        source: "mcp://kibi/compile-intent",
+      },
+      document: { body: scenario.body.trim() },
+      relationships: (scenarioTests.get(id) as string[]).map((to) => ({
+        type: "verified_by",
+        from: id,
+        to,
+      })),
+    };
+  });
   for (const scenarioId of scenarioIds) {
-    if (!linkedScenarioIds.has(scenarioId)) {
+    if ((scenarioTests.get(scenarioId) as string[]).length === 0) {
       diagnostics.push(
         `unresolved scenario draft ${scenarioId} has no test draft; add a test with scenarioIds to establish executable coverage.`,
       );
     }
   }
-  if (scenarioIds.length > 0) {
-    steps.push({
-      type: "req",
-      id: requirementId,
-      properties: {},
-      relationships: scenarioIds.map((id) => ({
-        type: "specified_by",
-        from: requirementId,
-        to: id,
-      })),
-    });
-  }
-  return { steps, diagnostics };
+  // Merging folds this relationship-only step into the requirement step.
+  const requirementStep = {
+    type: "req",
+    id: requirementId,
+    properties: {},
+    relationships: scenarioIds.map((id) => ({
+      type: "specified_by",
+      from: requirementId,
+      to: id,
+    })),
+  };
+  return {
+    steps: [...testSteps, ...scenarioSteps, requirementStep],
+    diagnostics,
+  };
 }
 
-// implements REQ-model-what-if-planned-facts
 export type GroundingPlanInput = Readonly<{
   requirementId: string;
   claimKey: string;
@@ -1056,7 +1018,6 @@ export type GroundingPlanInput = Readonly<{
   steps: readonly PlanStep[];
 }>;
 
-// implements REQ-model-what-if-planned-facts
 /**
  * A hash-bound compile plan for a grounding kb_model planned: the predicate
  * fact and the requirement upsert that links it, validated and applied
@@ -1122,7 +1083,7 @@ export async function compileGroundingPlan(
         {
           claimKey: input.claimKey,
           text: input.text,
-          span: { start: 0, end: Buffer.byteLength(input.text, "utf8") },
+          span: { start: 0, end: Buffer.byteLength(input.text) },
           disposition: "predicate" as const,
           status: "modeled" as const,
           origin: "deterministic" as const,
@@ -1138,7 +1099,6 @@ export async function compileGroundingPlan(
   return { ...planBody, planHash: compilePlanHash(planBody) };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export async function executeCompileIntent(
   args: CompileIntentArgs,
   context: OperationContext,
@@ -1155,20 +1115,7 @@ export async function executeCompileIntent(
   const status = statusResult.structuredContent;
   if (!status)
     throw new Error("Compile intent failed: status query returned no payload");
-  const snapshotEvidence = status?.proofSnapshot;
-  const workspaceSnapshot: WorkspaceSnapshot = snapshotEvidence
-    ? {
-        version: "kibi.workspace-snapshot.v2",
-        hash: snapshotEvidence,
-        dirty: status?.proofSnapshotDirty ?? false,
-        fileCount: status?.proofSnapshotFileCount ?? 0,
-      }
-    : {
-        version: "kibi.workspace-snapshot.v2",
-        hash: "unknown",
-        dirty: true,
-        fileCount: 0,
-      };
+  const workspaceSnapshot = status.proofSnapshot || "unknown";
   const search = await executeIntentSearch(
     {
       query: intent,
@@ -1205,16 +1152,15 @@ export async function executeCompileIntent(
   // the content-hash ID is only a fallback when none is supplied.
   if (args.mode === "create" && !explicitId)
     requirementId = generatedRequirementId(intent);
-  if (!requirementId)
-    throw new Error("Compile intent failed: could not determine requirementId");
 
   const existing = await loadEntities(prolog, {
     id: requirementId,
     type: "req",
   });
+  const existingEntity = existing[0] ?? {};
   if (args.mode === "create" && existing.length > 0) {
     const existingText =
-      text(existing[0]?.semantic_text) || text(existing[0]?.title);
+      text(existingEntity.semantic_text) || text(existingEntity.title);
     if (existingText !== intent)
       diagnostics.push(
         `Generated requirement ID ${requirementId} already exists with different content; create is blocked.`,
@@ -1230,7 +1176,6 @@ export async function executeCompileIntent(
       `Requirement ${requirementId} was not found in the current KB snapshot.`,
     );
 
-  const existingEntity = existing[0] ?? {};
   const title =
     text(args.title) ||
     text(existingEntity.title) ||
@@ -1371,23 +1316,28 @@ export async function executeCompileIntent(
         source,
         semantic_text: intent,
       },
+      // rationale: merging drops a placeholder relationship that is not a record.
+      // Stryker disable next-line ArrayDeclaration
       relationships: [],
     },
-    ...executableSuggestions.flatMap((suggestion) => [
-      ...suggestion.applyPlan,
-      ...(suggestion.kind === "predicate" || suggestion.kind === "rule"
-        ? suggestion.relationshipPlan?.relationship
-          ? [
-              {
-                type: "req",
-                id: requirementId,
-                properties: {},
-                relationships: [suggestion.relationshipPlan.relationship],
-              },
-            ]
-          : []
-        : []),
-    ]),
+    ...executableSuggestions.flatMap((suggestion) => {
+      // A strict property has no relationship plan; a predicate or rule
+      // may have none.
+      const relationship = (
+        suggestion as { relationshipPlan?: Readonly<Record<string, unknown>> }
+      ).relationshipPlan?.relationship;
+      return relationship
+        ? [
+            ...suggestion.applyPlan,
+            {
+              type: "req",
+              id: requirementId,
+              properties: {},
+              relationships: [relationship],
+            },
+          ]
+        : suggestion.applyPlan;
+    }),
   ]);
   const stepsWithInventory = withRequirementInventory(
     steps,
@@ -1401,18 +1351,14 @@ export async function executeCompileIntent(
     args.testDrafts ?? [],
   );
   diagnostics.push(...drafts.diagnostics);
-  const proposalDecisions = new Map(
-    (args.proposalDecisions ?? []).map((decision) => [
-      decision.proposalId,
-      decision.decision,
-    ]),
-  );
   const proposals: TraceabilityProposal[] = search.matches
     .slice(0, 10)
     .flatMap((match) => {
       const proposal = proposalFor(requirementId, match);
       if (!proposal) return [];
-      const decision = proposalDecisions.get(proposal.proposalId);
+      const decision = args.proposalDecisions?.find(
+        (candidate) => candidate.proposalId === proposal.proposalId,
+      )?.decision;
       return [
         {
           ...proposal,
@@ -1455,13 +1401,14 @@ export async function executeCompileIntent(
     requirementId,
     propositions,
     matches: search.matches,
+    // rationale: a placeholder verdict names no requirement, so it is skipped.
+    // Stryker disable next-line ArrayDeclaration
     decisions: args.conflictReviews ?? [],
   });
   const contradictions = reviewed.analysis;
   diagnostics.push(...reviewed.diagnostics);
+  // Only a create over an existing id says so.
   if (
-    args.mode === "create" &&
-    existing.length > 0 &&
     diagnostics.some((entry) =>
       entry.includes("already exists with different content"),
     )
@@ -1528,13 +1475,7 @@ export async function executeCompileIntent(
         context,
         prolog,
         stepsWithAcceptedProposals,
-        {
-          id: requirementId,
-          ...(requirementBody !== undefined ? { body: requirementBody } : {}),
-          ...(requirementDocument !== undefined
-            ? { path: requirementDocument }
-            : {}),
-        },
+        { id: requirementId, body: requirementBody, path: requirementDocument },
         context.clock(),
       );
     } catch (error) {
@@ -1550,7 +1491,7 @@ export async function executeCompileIntent(
     expected: {
       branch: status.branch,
       kbSnapshotId: status.snapshotId,
-      workspaceSnapshot: workspaceSnapshot.hash,
+      workspaceSnapshot,
       sourceHashes: sourceHashMap,
     },
     target: { mode: args.mode, requirementId, selectionReason },

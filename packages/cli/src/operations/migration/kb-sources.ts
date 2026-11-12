@@ -19,7 +19,6 @@
 import { createHash } from "node:crypto";
 import {
   type Dirent,
-  existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -37,7 +36,6 @@ import {
 import { republishPendingSourceReceipt } from "../mutation/source-authoring.js";
 
 /** One authored Markdown entity file under a canonical `.kb/<lane>/`. */
-// implements REQ-cli-schema-migration
 export type LaneMarkdownFile = Readonly<{
   lane: EntityLane;
   absolutePath: string;
@@ -45,29 +43,38 @@ export type LaneMarkdownFile = Readonly<{
   relativePath: string;
 }>;
 
-function walkMarkdown(directory: string, files: string[]): void {
+/**
+ * Collect the `/`-separated workspace-relative paths of Markdown entity files
+ * under `relative`. A missing or unreadable directory holds none.
+ */
+function walkMarkdown(
+  workspaceRoot: string,
+  relative: string,
+  files: string[],
+): void {
   let entries: Dirent[];
   try {
-    entries = readdirSync(directory, { withFileTypes: true, encoding: "utf8" });
+    entries = readdirSync(path.join(workspaceRoot, relative), {
+      withFileTypes: true,
+    });
   } catch {
     return;
   }
   for (const entry of entries) {
-    const absolute = path.join(directory, entry.name);
+    const child = `${relative}/${entry.name}`;
     if (entry.isDirectory()) {
-      walkMarkdown(absolute, files);
+      walkMarkdown(workspaceRoot, child, files);
     } else if (
       entry.isFile() &&
       entry.name.endsWith(".md") &&
       entry.name !== "README.md"
     ) {
-      files.push(absolute);
+      files.push(child);
     }
   }
 }
 
 /** Every authored Markdown entity file in the canonical lanes, sorted. */
-// implements REQ-cli-schema-migration
 export function listLaneMarkdownFiles(
   workspaceRoot: string,
   lanes: readonly EntityLane[] = ENTITY_LANES,
@@ -75,24 +82,40 @@ export function listLaneMarkdownFiles(
   const result: LaneMarkdownFile[] = [];
   for (const lane of lanes) {
     const files: string[] = [];
-    const laneRoot = path.join(workspaceRoot, KB_PATHS.lanes[lane]);
-    if (!existsSync(laneRoot)) continue;
-    walkMarkdown(laneRoot, files);
-    for (const absolutePath of files.sort()) {
+    walkMarkdown(workspaceRoot, KB_PATHS.lanes[lane], files);
+    for (const relativePath of files.sort()) {
       result.push({
         lane,
-        absolutePath,
-        relativePath: path
-          .relative(workspaceRoot, absolutePath)
-          .replaceAll(path.sep, "/"),
+        absolutePath: path.join(workspaceRoot, relativePath),
+        relativePath,
       });
     }
   }
   return result;
 }
 
+/** A lane Markdown file with its text. */
+export type LaneMarkdownSource = LaneMarkdownFile &
+  Readonly<{ content: string }>;
+
+/**
+ * Every authored Markdown entity file in the canonical lanes with its text,
+ * sorted. A file that can no longer be read is skipped.
+ */
+export function listLaneMarkdownSources(
+  workspaceRoot: string,
+  lanes: readonly EntityLane[] = ENTITY_LANES,
+): LaneMarkdownSource[] {
+  return listLaneMarkdownFiles(workspaceRoot, lanes).flatMap((file) => {
+    const content = readText(file.absolutePath);
+    // rationale: the listed files are regular files, so a read only fails when
+    // a file vanishes between listing and reading; no test can time that.
+    // Stryker disable next-line ConditionalExpression,ArrayDeclaration
+    return content === null ? [] : [{ ...file, content }];
+  });
+}
+
 /** A Markdown document split around its YAML frontmatter. */
-// implements REQ-cli-schema-migration
 export type FrontmatterSlice = Readonly<{
   /** Everything up to and including the opening `---` line. */
   prefix: string;
@@ -110,7 +133,6 @@ export type FrontmatterSlice = Readonly<{
  * in a quoted scalar, never ends the frontmatter. Returns null when there is
  * no such opening and closing pair.
  */
-// implements REQ-cli-schema-migration
 export function sliceFrontmatter(content: string): FrontmatterSlice | null {
   const leading = content.length - content.trimStart().length;
   const open = /^---[ \t]*\r?\n/.exec(content.slice(leading));
@@ -128,10 +150,6 @@ export function sliceFrontmatter(content: string): FrontmatterSlice | null {
   };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
 function topLevelFieldPattern(key: string): RegExp {
   return new RegExp(`^${key}[ \\t]*:[^\\r\\n]*`, "m");
 }
@@ -139,25 +157,25 @@ function topLevelFieldPattern(key: string): RegExp {
 /**
  * The value of one top-level frontmatter key, read from its own line without
  * parsing the whole document (test files carry large receipt histories).
- * Falls back to a full parse when the value spans several lines. Returns
+ * Falls back to a full parse when the value spans several lines: indented
+ * lines, or a block sequence written at the key's own indentation. Returns
  * `undefined` when the key is absent or the frontmatter does not parse.
  */
-// implements REQ-cli-schema-migration
 export function readTopLevelField(frontmatter: string, key: string): unknown {
   const match = topLevelFieldPattern(key).exec(frontmatter);
   if (match === null) return undefined;
   const after = frontmatter.slice(match.index + match[0].length);
-  const continues = /^\r?\n[ \t]+\S/.test(after);
+  const continues = /^\r?\n(?:[ \t]+\S|-[ \t\r\n])/.test(after);
   try {
-    if (!continues) {
-      const parsed = loadYaml(match[0]);
-      if (isRecord(parsed)) return parsed[key];
-    }
-    const parsed = loadYaml(frontmatter);
-    return isRecord(parsed) ? parsed[key] : undefined;
+    // A line whose colon is not a separator reads as a string, which has no
+    // such field; null or empty front matter throws and reads as undefined.
+    return (
+      loadYaml(continues ? frontmatter : match[0]) as Record<string, unknown>
+    )[key];
   } catch {
-    return undefined;
+    // The front matter does not parse.
   }
+  return undefined;
 }
 
 /**
@@ -172,15 +190,19 @@ function doubleQuotedScalar(value: string): string {
   );
 }
 
-function scalarLine(key: string, value: string, previous: string): string {
+/**
+ * The line for `key: value`, in the quote style of the authored value `raw`
+ * (absent for a new key). It never holds a line break or a run of three
+ * dashes, so it cannot move the closing `---` of the frontmatter.
+ */
+function scalarLine(key: string, value: string, raw?: string): string {
   const quoted = `${key}: ${doubleQuotedScalar(value)}`;
-  if (value.includes("---")) return quoted;
-  const raw = previous.slice(previous.indexOf(":") + 1).trim();
-  if (raw.startsWith('"')) return quoted;
-  if (raw.startsWith("'")) return `${key}: '${value.replaceAll("'", "''")}'`;
+  if (value.includes("---") || raw?.startsWith('"')) return quoted;
+  if (raw?.startsWith("'")) return `${key}: '${value.replaceAll("'", "''")}'`;
   try {
-    const plain = loadYaml(`${key}: ${value}`);
-    if (isRecord(plain) && plain[key] === value) return `${key}: ${value}`;
+    // `key: ` followed by text reads as a mapping or does not parse.
+    const plain = loadYaml(`${key}: ${value}`) as Record<string, unknown>;
+    if (plain[key] === value) return `${key}: ${value}`;
   } catch {
     // Fall through to a quoted scalar.
   }
@@ -188,25 +210,12 @@ function scalarLine(key: string, value: string, previous: string): string {
 }
 
 /**
- * Whether `document` splits at the same closing delimiter, with the body of
- * `original` unchanged. The frontmatter it then holds is the text the caller
- * just parsed: scalarLine never writes a run of three dashes, so the edit adds
- * no `---` a reader splitting on any `---` would cut on.
- */
-function splitsLike(document: string, original: FrontmatterSlice): boolean {
-  const slice = sliceFrontmatter(document);
-  return slice !== null && slice.suffix === original.suffix;
-}
-
-/**
  * Set one top-level scalar frontmatter key, leaving every other byte of the
  * document unchanged: the key's line is replaced in place, or appended as the
- * last frontmatter key when absent. Returns null when the key spans several
- * lines or the edit would not read back as exactly that change: the written
- * document is split and parsed again and must yield the same frontmatter and
- * the same body.
+ * last frontmatter key when absent. Returns null when the edit would not read
+ * back as exactly that change (for example when the value spans several
+ * lines, or the frontmatter is not a mapping).
  */
-// implements REQ-cli-schema-migration
 export function withTopLevelField(
   content: string,
   key: string,
@@ -215,44 +224,35 @@ export function withTopLevelField(
   const slice = sliceFrontmatter(content);
   if (slice === null) return null;
   const match = topLevelFieldPattern(key).exec(slice.text);
-  let text: string;
-  if (match === null) {
-    text = `${slice.text}${scalarLine(key, value, "")}${slice.eol}`;
-  } else {
-    const after = slice.text.slice(match.index + match[0].length);
-    if (/^\r?\n[ \t]+\S/.test(after)) return null;
-    text = `${slice.text.slice(0, match.index)}${scalarLine(key, value, match[0])}${after}`;
-  }
+  const text =
+    match === null
+      ? `${slice.text}${scalarLine(key, value)}${slice.eol}`
+      : `${slice.text.slice(0, match.index)}${scalarLine(
+          key,
+          value,
+          match[0].slice(match[0].indexOf(":") + 1).trim(),
+        )}${slice.text.slice(match.index + match[0].length)}`;
   try {
-    const before = loadYaml(slice.text);
-    const next = loadYaml(text);
-    if (!isRecord(before) || !isRecord(next) || next[key] !== value) {
+    // Empty front matter reads as undefined and throws here.
+    const { [key]: _previous, ...rest } = loadYaml(slice.text) as Record<
+      string,
+      unknown
+    >;
+    if (!isDeepStrictEqual(loadYaml(text), { ...rest, [key]: value }))
       return null;
-    }
-    const { [key]: _beforeValue, ...beforeRest } = before;
-    const { [key]: _nextValue, ...nextRest } = next;
-    if (!isDeepStrictEqual(beforeRest, nextRest)) return null;
-    const document = `${slice.prefix}${text}${slice.suffix}`;
-    return splitsLike(document, slice) ? document : null;
   } catch {
     return null;
   }
-}
-
-function frontmatterRecord(text: string): Record<string, unknown> | null {
-  const parsed = loadYaml(text);
-  if (parsed === undefined || parsed === null) return {};
-  return isRecord(parsed) ? parsed : null;
+  return `${slice.prefix}${text}${slice.suffix}`;
 }
 
 /**
  * Remove one top-level scalar frontmatter key, leaving every other byte of
  * the document unchanged: only the key's line and its line break go. Returns
- * the content unchanged when the key is absent. Returns null when the key
- * spans several lines or the edit would not read back as exactly that
- * change (the key gone, every other key parsing identically).
+ * the content unchanged when the key is absent. Returns null when the edit
+ * would not read back as exactly that change (the key gone, every other key
+ * parsing identically), or the frontmatter is not a mapping.
  */
-// implements REQ-kibi-schema6-migration
 export function withoutTopLevelField(
   content: string,
   key: string,
@@ -260,24 +260,25 @@ export function withoutTopLevelField(
   const slice = sliceFrontmatter(content);
   if (slice === null) return null;
   const match = topLevelFieldPattern(key).exec(slice.text);
-  let text = slice.text;
-  if (match !== null) {
-    const after = slice.text.slice(match.index + match[0].length);
-    if (/^\r?\n[ \t]+\S/.test(after)) return null;
-    text = `${slice.text.slice(0, match.index)}${after.replace(/^\r?\n/, "")}`;
-  }
+  // The match stops before its line break, which goes with it.
+  const text =
+    match === null
+      ? slice.text
+      : `${slice.text.slice(0, match.index)}${slice.text
+          .slice(match.index + match[0].length)
+          .replace(/\r?\n/, "")}`;
   try {
-    const before = frontmatterRecord(slice.text);
-    const next = frontmatterRecord(text);
-    if (before === null || next === null || Object.hasOwn(next, key)) {
-      return null;
-    }
-    const { [key]: _beforeValue, ...beforeRest } = before;
-    if (!isDeepStrictEqual(beforeRest, next)) return null;
+    // Empty front matter reads as null; front matter that is not a mapping
+    // never equals the rest of one.
+    const { [key]: _removed, ...rest } = (loadYaml(slice.text) ?? {}) as Record<
+      string,
+      unknown
+    >;
+    if (!isDeepStrictEqual(loadYaml(text) ?? {}, rest)) return null;
   } catch {
     return null;
   }
-  return match === null ? content : `${slice.prefix}${text}${slice.suffix}`;
+  return `${slice.prefix}${text}${slice.suffix}`;
 }
 
 const KB_ROOT_DIRNAME = ".kb";
@@ -287,18 +288,17 @@ const KB_ROOT_DIRNAME = ".kb";
  * `.kb/` source also rebinds its pending-source receipt, so the next sync
  * reads the rewritten file instead of refusing it as hash drift.
  */
-// implements REQ-cli-schema-migration
 export function writeFileAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.kibi-migrate-${process.pid}-${Date.now()}`;
-  writeFileSync(tempPath, content, "utf8");
+  writeFileSync(tempPath, content);
   renameSync(tempPath, filePath);
   const source = kbSourceLocation(filePath);
   if (source === null) return;
   republishPendingSourceReceipt(
     source.workspaceRoot,
     source.relativePath,
-    createHash("sha256").update(content, "utf8").digest("hex"),
+    createHash("sha256").update(content).digest("hex"),
   );
 }
 
@@ -312,15 +312,17 @@ function kbSourceLocation(
   const absolute = path.resolve(filePath);
   const segments = absolute.split(path.sep);
   const index = segments.lastIndexOf(KB_ROOT_DIRNAME);
-  if (index <= 0) return null;
-  const workspaceRoot = segments.slice(0, index).join(path.sep) || path.sep;
+  if (index === -1) return null;
+  // The parent of the `.kb` directory, which is `/` for `/.kb`.
+  const workspaceRoot = path.dirname(
+    segments.slice(0, index + 1).join(path.sep),
+  );
   return {
     workspaceRoot,
     relativePath: segments.slice(index).join("/"),
   };
 }
 
-// implements REQ-cli-schema-migration
 export function readText(filePath: string): string | null {
   try {
     return readFileSync(filePath, "utf8");

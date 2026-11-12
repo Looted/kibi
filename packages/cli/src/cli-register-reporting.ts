@@ -3,13 +3,16 @@ import { withExitCode } from "./cli-command.js";
 import type { JsonInvocation } from "./cli-json-command.js";
 import { getCliOperationMetadata } from "./cli-operation-metadata.js";
 import type { checkCommand } from "./commands/check.js";
+import {
+  KB_OPTION_DESCRIPTION,
+  applyKbOption,
+} from "./dependencies/kb-dependency-cli.js";
 
 async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   const executor = await import("./cli-json-command.js");
   await executor.runJsonInvocation(invocation);
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function registerReportingCommands(program: Command): void {
   program
     .command("check-generated")
@@ -47,7 +50,9 @@ export function registerReportingCommands(program: Command): void {
     .option("--limit <n>", "Limit results", "100")
     .option("--offset <n>", "Skip results", "0")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (type, options, command: Command) => {
+      if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
           operationName: "kb_find_gaps",
@@ -158,7 +163,9 @@ export function registerReportingCommands(program: Command): void {
       false,
     )
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (options, command: Command) => {
+      if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
           operationName: "kb_coverage",
@@ -186,7 +193,9 @@ export function registerReportingCommands(program: Command): void {
     .option("--max-nodes <n>", "Maximum node count", "200")
     .option("--max-edges <n>", "Maximum edge count", "500")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (options, command: Command) => {
+      if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
           operationName: "kb_graph",
@@ -246,7 +255,6 @@ export function registerReportingCommands(program: Command): void {
             });
             return undefined;
           }
-          // implements REQ-kibi-kb-certificates
           if (options.certificates !== undefined) {
             if (
               options.writeCertificates !== undefined ||

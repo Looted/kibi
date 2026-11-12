@@ -34,6 +34,7 @@ semantic_inventory:
       end: 203
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-08T15:34:58.375Z'
 id: REQ-model-predicates-closed-vocabularies
 type: req

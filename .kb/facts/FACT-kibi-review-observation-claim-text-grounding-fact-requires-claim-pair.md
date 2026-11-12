@@ -1,6 +1,6 @@
 ---
 title: Kibi must reject any other fact that carries claim_text without claim_key
-status: active
+status: archived
 text_ref: REQ-kibi-review-observation-claim-text
 tags:
   - strict-modeling

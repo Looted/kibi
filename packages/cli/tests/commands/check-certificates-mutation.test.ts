@@ -1,4 +1,3 @@
-// implements REQ-kibi-kb-certificates
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import path from "node:path";

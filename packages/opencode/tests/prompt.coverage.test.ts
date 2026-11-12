@@ -89,7 +89,6 @@ describe("prompt coverage", () => {
     assert.equal(postureGuidance(invalidPosture), null);
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("uses generic comment routing guidance for scenario suggestions", () => {
     const prompt = buildPrompt({
       recentEdits: [{ path: "src/flow.py", kind: "code" }],

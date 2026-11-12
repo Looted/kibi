@@ -16,6 +16,7 @@ import {
   questionPaths,
   validateIntentSearchInput,
 } from "../../intent-search.js";
+import type { NegativePathMarker } from "../../negative-path-facts.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
 import { type SearchAnswer, buildSearchAnswer } from "../../search-answer.js";
@@ -220,7 +221,6 @@ export type SearchBranchStoreNotice = {
  * the authored requirements, so search reports the store state itself (the
  * same reason kb_status and kb_check use) instead of a bare "no results".
  */
-// implements REQ-cli-status-pre-first-sync, REQ-mcp-search-discovery
 function uncompiledSearchNotice(
   context: OperationContext,
 ): SearchBranchStoreNotice | null {
@@ -305,8 +305,8 @@ function requireProlog(context: OperationContext): PrologPort {
 }
 
 function isStatusPayload(value: unknown): value is StatusPayload {
-  if (value === null || typeof value !== "object") return false;
-  const record = Object.fromEntries(Object.entries(value));
+  // Object() boxes a primitive and makes null and undefined an empty record.
+  const record = Object.fromEntries(Object.entries(Object(value)));
   return (
     typeof record.branch === "string" &&
     typeof record.snapshotId === "string" &&
@@ -332,7 +332,7 @@ function requireEnum<T extends string>(
   field: string,
   allowed: readonly T[],
 ): T {
-  if (typeof value !== "string" || !allowed.includes(value as T)) {
+  if (!allowed.includes(value as T)) {
     throw new Error(`${field} must be one of: ${allowed.join(", ")}.`);
   }
   return value as T;
@@ -343,7 +343,6 @@ function requireEnum<T extends string>(
  * entries are resolved against the predicate's declared argument names in
  * Prolog; positional `args` use `null` as a wildcard.
  */
-// implements REQ-kibi-query-fact-filters
 function predicateArgSpec(input: QueryInput): string {
   if (input.where !== undefined && input.args !== undefined) {
     throw new Error(
@@ -401,7 +400,6 @@ function callText(args: Record<string, unknown>): string {
  * Every typed answer names the exact call that makes sense next, so an
  * agent never has to guess the follow-up from the shape of the data.
  */
-// implements REQ-kibi-query-fact-filters
 function factQueryNext(
   input: QueryInput,
   response: FactQueryResponse,
@@ -417,15 +415,14 @@ function factQueryNext(
           why: "full fact text and relationships of one row",
         });
       }
+      // The call text is JSON, which leaves out the filters not given.
       const filters = {
         predicate: input.predicate,
-        ...(input.namespace !== undefined
-          ? { namespace: input.namespace }
-          : {}),
-        ...(input.where !== undefined ? { where: input.where } : {}),
-        ...(input.args !== undefined ? { args: input.args } : {}),
-        ...(input.polarity !== undefined ? { polarity: input.polarity } : {}),
-        ...(input.scope !== undefined ? { scope: input.scope } : {}),
+        namespace: input.namespace,
+        where: input.where,
+        args: input.args,
+        polarity: input.polarity,
+        scope: input.scope,
       };
       const names = Array.isArray(
         (response.schema as { argumentNames?: unknown } | null)?.argumentNames,
@@ -436,14 +433,26 @@ function factQueryNext(
             (name): name is string => typeof name === "string",
           )
         : [];
-      const bound = new Set(Object.keys(input.where ?? {}));
+      // Positional args name the same arguments as where, by schema position.
+      const requested: Record<string, string> = {
+        ...Object.fromEntries(
+          names.flatMap((name, index) => {
+            const value = input.args?.[index];
+            return typeof value === "string" && value !== "*"
+              ? [[name, value]]
+              : [];
+          }),
+        ),
+        ...input.where,
+      };
+      const bound = new Set(Object.keys(requested));
       const free = names.filter((name) => !bound.has(name));
       if (
         input.distinct === undefined &&
         response.count > 0 &&
         free.length > 0
       ) {
-        const argument = free[free.length - 1] ?? free[0];
+        const argument = free[free.length - 1] as string;
         next.push({
           call: callText({ ...filters, distinct: argument }),
           why: `count the distinct values of '${argument}' across these facts`,
@@ -452,21 +461,22 @@ function factQueryNext(
       if (
         response.count === 0 &&
         response.suggestions &&
-        typeof response.suggestions === "object" &&
-        (response.warnings ?? []).length === 0
+        // The executor passes the warnings as a list.
+        (response.warnings as readonly string[]).length === 0
       ) {
         // Suggest a correction only for an argument whose requested value
         // does not exist; a key whose value exists is not the cause.
         for (const [key, values] of Object.entries(response.suggestions)) {
           if (!Array.isArray(values)) continue;
-          const requested = input.where?.[key];
-          if (requested !== undefined && values.includes(requested)) continue;
+          if (values.includes(requested[key])) continue;
           const value = values[0];
           if (typeof value === "string") {
             next.push({
+              // kb_query takes where or args, never both.
               call: callText({
                 ...filters,
-                where: { ...(input.where ?? {}), [key]: value },
+                args: undefined,
+                where: { ...requested, [key]: value },
               }),
               why: `'${key}' has no fact with that value; '${value}' is one that exists`,
             });
@@ -572,7 +582,6 @@ function factRowSummary(row: Record<string, unknown>): string {
  * Typed fact questions run as validated Prolog goals in the discovery module;
  * the executor never forwards caller-written Prolog.
  */
-// implements REQ-kibi-query-fact-filters
 async function executeFactQuery(
   input: QueryInput,
   context: OperationContext,
@@ -685,7 +694,7 @@ async function executeFactQuery(
       ? { suggestions: response.suggestions }
       : {}),
     warnings,
-    next: factQueryNext(input, { ...response, rows, count }),
+    next: factQueryNext(input, { ...response, rows, count, warnings }),
   };
   const subject =
     response.mode === "predicate"
@@ -720,7 +729,6 @@ export async function executeQuery(
   input: QueryInput,
   context: OperationContext,
 ): Promise<OperationResult<QueryPayload>> {
-  // implements REQ-kibi-operation-interface-parity
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = input;
   try {
     validateEntityType(type);
@@ -752,16 +760,13 @@ export async function executeQuery(
     // A requirement or ADR without authored firmness reads as its origin
     // implies (`default` when an agent wrote it, else `firm`); the row says
     // so, so a reader never has to know the rule.
-    // implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
     const paginated = indexedPage.entities.map((entity) => {
       const firmness = effectiveFirmness(
         entity.type,
         entity.firmness,
         entity.origin,
       );
-      return firmness === undefined || entity.firmness === firmness
-        ? entity
-        : { ...entity, firmness };
+      return entity.firmness === firmness ? entity : { ...entity, firmness };
     });
     // An empty page from a never-compiled store says nothing about the
     // authored entities, so the answer names the store state.
@@ -780,9 +785,10 @@ export async function executeQuery(
             })
             .join(", ")}`;
     const body =
-      input.includeBody === true && id !== undefined
+      input.includeBody === true
         ? await readQueryBody(
-            id,
+            // includeBody without an id was refused above.
+            id as string,
             paginated.find((entity) => entity.id === id),
             context,
           )
@@ -806,14 +812,13 @@ export async function executeQuery(
 
 // The body is read from the entity's authored document inside the
 // workspace, the same file kb_upsert rewrites; nothing outside it is read.
-// implements REQ-kibi-operation-interface-parity
 async function readQueryBody(
   id: string,
   entity: Readonly<Record<string, unknown>> | undefined,
   context: OperationContext,
 ): Promise<QueryBody> {
-  const source = typeof entity?.source === "string" ? entity.source : "";
-  const relative = source.split("#", 1)[0]?.trim() ?? "";
+  if (typeof entity?.source !== "string") return { id, path: null, text: null };
+  const relative = (entity.source.split("#", 1)[0] as string).trim();
   const root = path.resolve(context.workspaceRoot);
   const resolved = path.resolve(root, relative);
   if (!relative.endsWith(".md") || !resolved.startsWith(root + path.sep)) {
@@ -825,13 +830,13 @@ async function readQueryBody(
     raw = String(
       context.fs
         ? await context.fs.readFile(resolved)
-        : await readFile(resolved, "utf8"),
+        : await readFile(resolved),
     );
   } catch {
     return { id, path: bodyPath, text: null };
   }
   const authored = readAuthoredEntity(raw, bodyPath)?.body;
-  if (authored === undefined || authored === null) {
+  if (authored === undefined) {
     return { id, path: bodyPath, text: null };
   }
   return authored.length > QUERY_BODY_MAX_CHARS
@@ -927,7 +932,6 @@ function questionPathHint(
  * plugin runtime, or a registry that fails to load, gives no hints rather than
  * failing the search.
  */
-// implements REQ-kibi-search-hints-host
 async function searchHintsFor(
   context: OperationContext,
   options: Omit<
@@ -967,11 +971,22 @@ async function searchHintsFor(
   });
 }
 
+/**
+ * A top match as the text digest names it. A negative-path fact describes a
+ * situation that must not happen, so the digest says so beside its id.
+ */
+function topMatchLabel(match: {
+  readonly entity: Record<string, unknown>;
+  readonly negativePath?: NegativePathMarker;
+}): string {
+  const id = String(match.entity.id ?? "");
+  return match.negativePath === undefined ? id : `${id} (forbidden situation)`;
+}
+
 export async function executeSearch(
   input: SearchInput,
   context: OperationContext,
 ): Promise<OperationResult<SearchPayload>> {
-  // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
   const {
     query,
     type,
@@ -981,7 +996,7 @@ export async function executeSearch(
     semanticFacets,
     sourceLocations,
     minScore,
-    fields = "summary",
+    fields,
     answer,
     hints: hintsWanted = true,
   } = input;
@@ -1068,7 +1083,7 @@ export async function executeSearch(
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
           : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'${intentResult.analysis.ambiguous ? " (top matches are close; confirm before relying on one)" : ""}. Top: ${paginated
               .slice(0, 5)
-              .map((match) => String(match.entity.id ?? ""))
+              .map((match) => topMatchLabel(match))
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
@@ -1137,7 +1152,6 @@ export async function executeStatus(
   _input: StatusInput,
   context: OperationContext,
 ): Promise<OperationResult<StatusPayload>> {
-  // implements REQ-kibi-operation-interface-parity, REQ-cli-status-pre-first-sync
   try {
     const attachment =
       context.branchAttachment ??
@@ -1166,7 +1180,6 @@ export async function executeStatus(
         lastSyncSource: "unavailable",
         staleReasons: [],
         staleReasonCount: 0,
-        staleReasonsTruncated: false,
       };
     } else
       try {
@@ -1221,13 +1234,11 @@ export async function executeStatus(
           lastSyncSource: "unavailable",
           staleReasons: [],
           staleReasonCount: 0,
-          staleReasonsTruncated: false,
         };
       } finally {
         await ownedEngine?.terminate();
       }
     const snapshotEvidence = await readWorkspaceSnapshot(context);
-    // implements REQ-cli-status-pre-first-sync
     // Prolog compares file times only. A fresh clone or a checkout rewrites
     // every mtime without changing a byte, so confirm each "newer" source
     // against the content hashes the last compilation recorded.
@@ -1246,7 +1257,6 @@ export async function executeStatus(
     ) {
       payload = { ...payload, syncState: "fresh", dirty: false };
     }
-    // implements REQ-cli-status-pre-first-sync
     // A missing or empty store beside authored sources gets the one reason
     // whose remediation works (kibi sync); `kibi branch ensure` alone would
     // leave the store empty.
@@ -1258,30 +1268,28 @@ export async function executeStatus(
       ) ?? branchStoreReason(store);
     const storeUncompiled = storeReason?.code === BRANCH_STORE_NOT_COMPILED;
     const lockReason = storeLockJournalReason(store.path);
-    // implements REQ-core-journaled-engine-persistence
     // A stale-lock takeover heals itself; report it without making the KB stale.
     const takeoverNotice = storeLockTakeoverReason(store.path);
     const compilerReason = compilerFingerprintReason(store.path);
-    // implements REQ-kibi-uncompiled-source-visibility
     // A source the last sync could not extract is missing from the store
     // even when every compiled file is current.
     const extractionReasons =
       store.state === "healthy"
         ? sourceExtractionFailureReasons(context.workspaceRoot, store.path)
         : [];
+    // A status the engine could not give always carries its code and detail.
     const engineReason = engineStatus
       ? {
-          code: engineStatus.errorCode ?? "engine_status_unavailable",
+          code: engineStatus.errorCode as string,
           path: store.path,
           entityIds: [],
-          detail:
-            engineStatus.detail ??
-            "The branch store is structurally readable but the engine status response is unavailable.",
-          // implements REQ-prolog-doctor-runtime-report
+          detail: engineStatus.detail as string,
           // A missing or unusable SWI-Prolog is not fixed by restarting the
           // engine; point at the diagnostic that reports the resolution.
           remediation: {
-            command_argv: engineStatus.errorCode?.startsWith("swipl_")
+            command_argv: (engineStatus.errorCode as string).startsWith(
+              "swipl_",
+            )
               ? ["kibi", "doctor"]
               : ["kibi", "engine", "stop"],
             applyRequired: false,
@@ -1338,7 +1346,6 @@ export async function executeStatus(
         : { proofSnapshotError: snapshotEvidence.error }),
     };
     const schemaStatus = readMigrationConfigStatus(context.workspaceRoot);
-    // implements REQ-agent-guided-migration-orchestration
     // A schema upgrade plans the source rewrites kibi migrate performs with
     // it; the planner loads only when an upgrade is due.
     const sourcePlanner = schemaStatus.needsMigration
@@ -1409,12 +1416,14 @@ export async function executeStatus(
             incompleteApplications.push({
               journalId: path.basename(journalPath, ".json"),
               state: journal.state,
-              appliedActions: (journal.results ?? []).filter(
-                (row: { outcome?: string }) => row.outcome === "applied",
-              ).length,
-              failedActions: (journal.results ?? []).filter(
-                (row: { outcome?: string }) => row.outcome === "failed",
-              ),
+              appliedActions:
+                journal.results?.filter(
+                  (row: { outcome?: string }) => row.outcome === "applied",
+                ).length ?? 0,
+              failedActions:
+                journal.results?.filter(
+                  (row: { outcome?: string }) => row.outcome === "failed",
+                ) ?? [],
               nextOperation:
                 journal.state === "rejected"
                   ? "kb_plan_bootstrap"
@@ -1443,7 +1452,6 @@ export async function executeStatus(
           bootstrapActivation.activationState === "root_active_thin" &&
           !bootstrapActivation.applyBlocked,
         reason: bootstrapActivation.reason,
-        // implements REQ-legacy-kb-first-step-migrate
         nextAction:
           bootstrapActivation.nextOperation !== undefined
             ? {
@@ -1486,7 +1494,7 @@ export async function executeStatus(
       content: [
         {
           type: "text",
-          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String(storeReason?.detail)} Run kibi sync.` : ""}${takeoverNotice ? `. Note: ${String(takeoverNotice.detail)}` : ""}`,
+          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String((storeReason as NonNullable<typeof storeReason>).detail)} Run kibi sync.` : ""}${takeoverNotice ? `. Note: ${String(takeoverNotice.detail)}` : ""}`,
         },
       ],
       structuredContent: statusWithPlan,

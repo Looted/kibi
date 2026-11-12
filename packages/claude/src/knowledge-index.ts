@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import {
   buildKnowledgeIndex as buildSharedKnowledgeIndex,
   loadKnowledgeIndex as loadSharedKnowledgeIndex,

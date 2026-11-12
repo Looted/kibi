@@ -28,7 +28,6 @@ import { withSymbolCompilerLock } from "../mutation/symbol-compiler-lock.js";
  * Bytes of the symbols manifest and its generated coordinate artifact at
  * their canonical paths; null for a file that does not exist.
  */
-// implements REQ-cli-migration-first-commit
 export type GeneratedManifestBytes = Readonly<{
   symbols: string | null;
   coordinates: string | null;
@@ -39,7 +38,6 @@ function readOrNull(filePath: string): string | null {
 }
 
 /** Snapshot taken before a migration writes, to tell what it rewrote. */
-// implements REQ-cli-migration-first-commit
 export function readGeneratedManifestBytes(
   workspaceRoot: string,
 ): GeneratedManifestBytes {
@@ -50,9 +48,13 @@ export function readGeneratedManifestBytes(
   };
 }
 
-function hasSymbols(content: string): boolean {
+function hasSymbols(content: string | null): boolean {
   try {
-    const parsed = parseYAML(content) as { symbols?: unknown } | null;
+    // js-yaml reads its input through String(), so a missing file (null)
+    // parses as a null document without symbols.
+    const parsed = parseYAML(content as string) as {
+      symbols?: unknown;
+    } | null;
     return Array.isArray(parsed?.symbols) && parsed.symbols.length > 0;
   } catch {
     // An unreadable manifest is reported by the refresh itself.
@@ -61,7 +63,6 @@ function hasSymbols(content: string): boolean {
 }
 
 /** What the post-migration coordinate refresh did. */
-// implements REQ-cli-migration-first-commit
 export type MigrationCoordinateRefresh =
   | { outcome: "skipped" }
   | { outcome: "refreshed" }
@@ -81,14 +82,12 @@ export type MigrationCoordinateRefresh =
  * migration itself is complete, and the caller tells the user to refresh by
  * hand before committing.
  */
-// implements REQ-cli-migration-first-commit
 export async function refreshCoordinatesAfterMigration(
   workspaceRoot: string,
   before?: GeneratedManifestBytes,
 ): Promise<MigrationCoordinateRefresh> {
   const after = readGeneratedManifestBytes(workspaceRoot);
-  if (after.symbols === null || !hasSymbols(after.symbols))
-    return { outcome: "skipped" };
+  if (!hasSymbols(after.symbols)) return { outcome: "skipped" };
   if (
     before !== undefined &&
     before.symbols === after.symbols &&
@@ -109,28 +108,22 @@ export async function refreshCoordinatesAfterMigration(
     // Files the migration moved are still untracked and pinned by a
     // pending-source receipt; rebind each to its refreshed bytes so the next
     // sync does not refuse it as hash drift. A file without a receipt is
-    // left alone.
+    // left alone. The refresh writes both files.
     for (const filePath of [symbolsPath, coordinatesPath]) {
-      if (!existsSync(filePath)) continue;
       republishPendingSourceReceipt(
         workspaceRoot,
         path.relative(workspaceRoot, filePath).split(path.sep).join("/"),
-        createHash("sha256")
-          .update(readFileSync(filePath, "utf8"), "utf8")
-          .digest("hex"),
+        createHash("sha256").update(readFileSync(filePath)).digest("hex"),
       );
     }
     return { outcome: "refreshed" };
   } catch (error) {
-    return {
-      outcome: "failed",
-      reason: error instanceof Error ? error.message : String(error),
-    };
+    // The YAML reader, the lock and the file system throw Errors.
+    return { outcome: "failed", reason: (error as Error).message };
   }
 }
 
 /** The line a migration prints when its coordinate refresh failed. */
-// implements REQ-cli-migration-first-commit
 export function coordinateRefreshFailureMessage(reason: string): string {
   return `Could not refresh symbol coordinates after the migration (${reason}). Run 'kibi sync --refresh-symbol-coordinates' and stage .kb/symbols.yaml before the first commit, or the pre-commit hook reports generated manifest drift.`;
 }

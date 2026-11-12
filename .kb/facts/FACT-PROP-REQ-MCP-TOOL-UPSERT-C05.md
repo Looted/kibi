@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.kb_upsert
-property_key: clause_05_the_kb_upsert_mcp_tool_must_refresh_symbol_coordinates_when_
+property_key: refreshes_symbol_coordinates
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_tool_upsert.clause_05_the_kb_upsert_mcp_tool_must_refresh_symbol_coordinates_when_.eq.true
+canonical_key: req.req_mcp_tool_upsert.refreshes_symbol_coordinates.eq.true
 claim_key: CLAIM-013472A6F74AE546
 claim_text: The kb_upsert MCP tool must refresh symbol coordinates when the upsert affects symbol linkage
 origin:

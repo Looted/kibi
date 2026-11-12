@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -110,7 +109,6 @@ type: req
     ).rejects.toThrow(/hash drift/);
   });
 
-  // implements REQ-core-atomic-upsert-persistence
   test("names how to keep a hand edit of a pending source, and staging it unblocks discovery", async () => {
     const cwd = prepared();
     mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });

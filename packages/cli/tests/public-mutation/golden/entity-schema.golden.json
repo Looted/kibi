@@ -1,0 +1,1987 @@
+{
+  "$id": "entity.schema.json",
+  "title": "Entity",
+  "type": "object",
+  "$defs": {
+    "logicTerm": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "name", "type"],
+          "properties": {
+            "kind": {
+              "const": "var"
+            },
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Z][A-Za-z0-9_]*$"
+            },
+            "type": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_:.\\/-]*$"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {
+              "const": "const"
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1
+            },
+            "type": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_:.\\/-]*$"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {
+              "const": "number"
+            },
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_:.\\/-]*$"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "value", "unit"],
+          "properties": {
+            "kind": {
+              "const": "duration"
+            },
+            "value": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["ms", "s", "m", "h", "d", "w"]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {
+              "const": "timestamp"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "start", "end"],
+          "properties": {
+            "kind": {
+              "const": "interval"
+            },
+            "start": {
+              "type": "string"
+            },
+            "end": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "logicAtom": {
+      "type": "object",
+      "required": ["kind", "name", "args"],
+      "properties": {
+        "kind": {
+          "const": "atom"
+        },
+        "namespace": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_:.\\/-]*$"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_:.\\/-]*$"
+        },
+        "args": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/logicTerm"
+          }
+        },
+        "polarity": {
+          "enum": ["positive", "negative"]
+        },
+        "closedWorld": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "logicExpression": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/logicAtom"
+        },
+        {
+          "type": "object",
+          "required": ["kind", "items"],
+          "properties": {
+            "kind": {
+              "enum": ["all", "any"]
+            },
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/logicExpression"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "item"],
+          "properties": {
+            "kind": {
+              "const": "not"
+            },
+            "item": {
+              "$ref": "#/$defs/logicAtom"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "operator", "left", "right"],
+          "properties": {
+            "kind": {
+              "const": "compare"
+            },
+            "operator": {
+              "enum": ["eq", "neq", "lt", "lte", "gt", "gte"]
+            },
+            "left": {
+              "$ref": "#/$defs/logicTerm"
+            },
+            "right": {
+              "$ref": "#/$defs/logicTerm"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "atom", "operator", "value"],
+          "properties": {
+            "kind": {
+              "const": "count"
+            },
+            "atom": {
+              "$ref": "#/$defs/logicAtom"
+            },
+            "operator": {
+              "enum": ["eq", "neq", "lt", "lte", "gt", "gte"]
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["kind", "relation", "left", "right"],
+          "properties": {
+            "kind": {
+              "const": "temporal"
+            },
+            "relation": {
+              "enum": [
+                "before",
+                "after",
+                "during",
+                "overlaps",
+                "starts",
+                "finishes"
+              ]
+            },
+            "left": {
+              "$ref": "#/$defs/logicTerm"
+            },
+            "right": {
+              "$ref": "#/$defs/logicTerm"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "logicRule": {
+      "type": "object",
+      "required": ["version", "kind", "modality"],
+      "properties": {
+        "version": {
+          "const": "kibi.logic.v1"
+        },
+        "kind": {
+          "enum": ["atom", "rule", "constraint"]
+        },
+        "modality": {
+          "enum": ["assert", "deny", "oblige", "permit", "forbid"]
+        },
+        "head": {
+          "$ref": "#/$defs/logicAtom"
+        },
+        "body": {
+          "$ref": "#/$defs/logicExpression"
+        },
+        "variables": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Za-z0-9_]*$"
+              },
+              "type": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_:.\\/-]*$"
+              },
+              "quantifier": {
+                "enum": ["forall", "exists"]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "exceptions": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/logicExpression"
+          }
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "authority": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "validFrom": {
+          "type": "string"
+        },
+        "validTo": {
+          "type": "string"
+        },
+        "ruleSchemaId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "draft",
+        "archived",
+        "deleted",
+        "approved",
+        "rejected",
+        "pending",
+        "in_progress",
+        "superseded",
+        "open",
+        "closed",
+        "deprecated",
+        "passing",
+        "failing",
+        "skipped",
+        "proposed",
+        "accepted",
+        "removed",
+        "retired"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "owner": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "text_ref": {
+      "type": "string"
+    },
+    "origin": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["human", "agent", "migration", "import"],
+          "description": "Who authored the entity: human, agent, migration (backfilled by kibi migrate) or import."
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "description": "Source reference for the authored content: URL, document path, ticket, commit or conversation id."
+        },
+        "approved_by": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "description": "The person who reviewed and approved this entity's content. Distinct from the requirement-level approved_by of an exception."
+        },
+        "recorded_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?(?:Z|[+-]\\d{2}:?\\d{2})?)?$",
+          "description": "ISO-8601 time the provenance was recorded."
+        }
+      },
+      "additionalProperties": false
+    },
+    "firmness": {
+      "type": "string",
+      "enum": ["firm", "default", "exploratory"],
+      "description": "Requirement and ADR only. How firmly the decision was made. firm: a human stated it as a rule; it needs a ref (origin.ref, or approval_ref on a requirement) to their words, and only a human may change it. default: a delegated or agent choice; a later agent may supersede it with evidence. exploratory: a flagged guess, expected to be revisited. When absent, it reads as default if an agent wrote the entity (origin.kind agent) and as firm otherwise (a person's, imported or migrated decision); set it explicitly when recording a decision."
+    },
+    "required_evidence": {
+      "type": "string",
+      "enum": ["proved", "tested", "asserted", "unverified"],
+      "description": "Requirement-only. The weakest evidence level this current requirement accepts; the evidence-floor check rule fails while its computed evidence level is lower. proved: a re-checkable certificate covers every case. tested: fresh passing E2E receipts cover every linked scenario. asserted: a person stands behind it. unverified: no floor. When absent, it is tested for a firm requirement and unverified otherwise."
+    },
+    "expects": {
+      "type": "string",
+      "enum": ["success", "rejection", "error"],
+      "description": "Scenario-only. The scenario's intended outcome. A scenario that expects success and assumes (via `assumes` facts) a value a current requirement forbids fails the scenario-feasibility check."
+    },
+    "proof_exempt": {
+      "type": "boolean",
+      "description": "Requirement-only. Marks a current requirement as intentionally outside E2E-proof scope; requires proof_exempt_reason."
+    },
+    "proof_exempt_reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Requirement-only. Required when proof_exempt is true; surfaces as the applicability reason in coverage rows."
+    },
+    "retired_reason": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Requirement-only. Required when status is retired: why the behavior no longer exists, with the date or change that retired it. A retired requirement no longer governs, and nothing current may be owned only by it."
+    },
+    "approved_by": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Requirement-only. The human who approved this exception requirement. An exception (a requirement that exempts another and is specified_by a scenario) makes that success scenario feasible only when approved_by is set."
+    },
+    "approval_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Requirement-only. Optional reference to the approval decision record (ticket, ADR or review link) for an exception requirement."
+    },
+    "failure_side_waiver": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Requirement-only. Why the requirement has no failure side to test: its claims state a capability or an output shape, so there is no input or attempt for Kibi to refuse. Waives the happy_path_only gap once failure_side_waiver_approved_by is set."
+    },
+    "failure_side_waiver_approved_by": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Requirement-only. The person who accepted failure_side_waiver. Without it the waiver is reported as awaiting approval and the gap stays open."
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent. Explanation only: it is not part of the checked meaning."
+    },
+    "exempts_claims": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^CLAIM-[A-F0-9]{16}$"
+      },
+      "description": "Requirement-only. Narrows an exception requirement to individual clauses: the claim keys (from logic_claims) of the requirement it exempts whose constraints it waives. Without it the exception waives the whole exempted requirement."
+    },
+    "semantic_text": {
+      "type": "string",
+      "description": "Requirement-only authored prose whose exact UTF-8 bytes anchor the semantic inventory without replacing text_ref evidence."
+    },
+    "logic_claims": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^CLAIM-[A-F0-9]{16}$"
+      }
+    },
+    "semantic_clauses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "semantic_inventory_version": {
+      "type": "string",
+      "const": "kibi.semantic-inventory.v1"
+    },
+    "semantic_source_field": {
+      "type": "string",
+      "enum": ["semantic_text", "text_ref", "title"]
+    },
+    "semantic_source_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "semantic_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim_key", "claim_text", "role", "status", "span"],
+        "properties": {
+          "claim_key": {
+            "type": "string",
+            "pattern": "^CLAIM-[A-F0-9]{16}$"
+          },
+          "claim_text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "normative",
+              "definition",
+              "descriptive",
+              "condition",
+              "exception",
+              "rationale",
+              "example",
+              "subjective"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "modeled",
+              "ambiguous",
+              "ontology_gap",
+              "nonlogical",
+              "missing"
+            ]
+          },
+          "span": {
+            "type": "object",
+            "required": ["start", "end"],
+            "properties": {
+              "start": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "end": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          },
+          "semantic_key": {
+            "type": "string"
+          },
+          "payload_hash": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "dimension": {
+            "type": "object",
+            "required": ["quantifier", "rewrites"],
+            "properties": {
+              "quantifier": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rewrites": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["bound", "rule", "count", "set"]
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "sourceFile": {
+      "type": "string"
+    },
+    "granularity_reason": {
+      "type": "string",
+      "enum": [
+        "config-artifact",
+        "module-level-behavior",
+        "extractor-miss",
+        "legacy-link",
+        "test-suite"
+      ]
+    },
+    "symbol_role": {
+      "type": "string",
+      "enum": [
+        "behavioral",
+        "structural",
+        "type-shape",
+        "config",
+        "module",
+        "unknown"
+      ]
+    },
+    "verification_scope": {
+      "type": "string",
+      "enum": ["unit", "integration", "end_to_end"]
+    },
+    "verification_perspective": {
+      "type": "string",
+      "enum": ["internal", "consumer"]
+    },
+    "proof_contract": {
+      "type": "object",
+      "description": "Semantic proof contract binding a test to explicit proof obligations executed by a configured integration.",
+      "required": [
+        "version",
+        "integration",
+        "required_proofs",
+        "success_policy"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "const": "kibi.proof-contract.v1"
+        },
+        "integration": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_proofs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "required": ["symbol_id", "target"],
+            "properties": {
+              "symbol_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "success_policy": {
+          "type": "string",
+          "enum": ["all_required_first_attempt", "own_results_first_attempt"]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "e2e",
+            "example",
+            "property",
+            "exhaustive",
+            "typecheck",
+            "arithmetic",
+            "smt",
+            "rule",
+            "state_machine",
+            "regex",
+            "source"
+          ],
+          "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic, smt, rule, state_machine and regex must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved. source reads the contract's source itself: the run may leave {version, kind: source, test_id, source} or nothing, and Kibi stores its own read as the certificate."
+        },
+        "source": {
+          "type": "object",
+          "description": "source: the project source a source proof reads. A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
+          "required": ["reader"],
+          "properties": {
+            "reader": {
+              "type": "string",
+              "enum": [
+                "json",
+                "yaml",
+                "glob",
+                "openapi",
+                "references",
+                "schema",
+                "routes",
+                "validator",
+                "prolog"
+              ]
+            }
+          },
+          "additionalProperties": true
+        },
+        "domain_source": {
+          "type": "object",
+          "description": "exhaustive and typecheck: the symbol that defines the finite domain (typecheck: also the type whose fields a required_fields fact names). state_machine: the transition table or next-state function. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
+          "required": ["symbol_id"],
+          "properties": {
+            "symbol_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "export": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name."
+            },
+            "field": {
+              "type": "string",
+              "minLength": 1,
+              "description": "exhaustive: when the export is a list of records, the field of each record that names a domain member (a catalog's name)."
+            },
+            "arg": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
+            }
+          },
+          "additionalProperties": false
+        },
+        "witness": {
+          "type": "object",
+          "description": "typecheck: the repository-relative witness file Kibi compiles (an exhaustive switch ending in never, or a mapped type over the domain).",
+          "required": ["path"],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "proves": {
+          "type": "array",
+          "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt, a rule, predicate or set fact for rule and state_machine, a string fact for regex); a claim with no such derivation is only attested and never counts as proved.",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^CLAIM-"
+          },
+          "uniqueItems": true
+        },
+        "value_source": {
+          "type": "array",
+          "description": "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself. A dotted export (POLICY.eventLimit) reads one field of an object export. An entry {source, measure: count} counts the members Kibi reads from a project source (routes, tables, environment variables).",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "symbol_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "export": {
+                "type": "string",
+                "minLength": 1
+              },
+              "arg": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
+              },
+              "source": {
+                "type": "object",
+                "description": "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
+                "required": ["reader"],
+                "properties": {
+                  "reader": {
+                    "type": "string",
+                    "enum": [
+                      "json",
+                      "yaml",
+                      "glob",
+                      "openapi",
+                      "references",
+                      "schema",
+                      "routes",
+                      "validator",
+                      "prolog"
+                    ]
+                  }
+                },
+                "additionalProperties": true
+              },
+              "measure": {
+                "type": "string",
+                "enum": ["value", "count"],
+                "description": "value (default for an export): the export is a number. count (the only measure of a source): the number of members of a list, set, map or object export, or of a source."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "predicate_source": {
+          "type": "object",
+          "description": "rule: the code function behind each predicate a claim's rule, predicate or set fact names, keyed by predicate name. Each export takes the predicate's arguments in order and returns a boolean; Kibi calls it on every combination of its argument domains.",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "required": ["symbol_id"],
+            "properties": {
+              "symbol_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "export": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The exported function's name in the symbol's source file. Without it Kibi reads the export named by the symbol's title."
+              },
+              "harness_for": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "The predicate is a test harness that decides the predicate by driving these code symbols (for example by calling the handler with each role). The symbols must be covered_by the test; a claim the harness proves is bound with scope harness."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "domains": {
+          "type": "object",
+          "description": "rule: the finite domain of each argument type, keyed by type name (an array, Set, Map or object export, or a Python list, set, dict or Enum), or {source} for the members Kibi reads from a project source (every route, every table, every environment variable). state_machine with a next-state function: the `state` and `event` domains it is called on.",
+          "minProperties": 1,
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": ["symbol_id"],
+                "properties": {
+                  "symbol_id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "export": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "arg": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "required": ["source"],
+                "properties": {
+                  "source": {
+                    "type": "object",
+                    "description": "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
+                    "required": ["reader"],
+                    "properties": {
+                      "reader": {
+                        "type": "string",
+                        "enum": [
+                          "json",
+                          "yaml",
+                          "glob",
+                          "openapi",
+                          "references",
+                          "schema",
+                          "routes",
+                          "validator",
+                          "prolog"
+                        ]
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "initial_source": {
+          "type": "object",
+          "required": ["symbol_id"],
+          "properties": {
+            "symbol_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "export": {
+              "type": "string",
+              "minLength": 1
+            },
+            "arg": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
+            }
+          },
+          "additionalProperties": false,
+          "description": "state_machine: the export holding the initial state (or states), needed for initial_states and reachable_states facts."
+        },
+        "pattern_source": {
+          "type": "object",
+          "required": ["symbol_id"],
+          "properties": {
+            "symbol_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "export": {
+              "type": "string",
+              "minLength": 1
+            },
+            "arg": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name)."
+            }
+          },
+          "additionalProperties": false,
+          "description": "regex: the export holding the code's pattern (a RegExp, or a Python re.Pattern) or string constant that a string fact is about."
+        },
+        "constraint_source": {
+          "type": "object",
+          "description": "arithmetic and smt: the typed numeric property_value facts the certificate's assumptions come from. Kibi checks the assumptions (or the query's assertions) are exactly these facts' constraints, so the proof is about the knowledge base, not numbers the test chose.",
+          "required": ["fact_ids"],
+          "properties": {
+            "fact_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "proof_bindings": {
+      "type": "array",
+      "description": "Optional native-runner bindings for proof obligations. Bindings are provenance metadata; they never replace the semantic proof contract.",
+      "items": {
+        "type": "object",
+        "required": ["symbol_id", "target"],
+        "properties": {
+          "symbol_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "native_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "source_file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "proof_receipts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "Kibi-derived kibi.proof-receipt.v2 (kibi.proof-receipt.v1 entries are still read). Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
+        "required": [
+          "version",
+          "receipt_id",
+          "test_id",
+          "scope",
+          "outcome",
+          "code_snapshot",
+          "environment_hash",
+          "started_at",
+          "finished_at",
+          "artifact_digest",
+          "contract_hash",
+          "fingerprint",
+          "fingerprint_components",
+          "integration_id",
+          "producer",
+          "command_argv",
+          "run_outcome",
+          "proof_results"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "enum": ["kibi.proof-receipt.v1", "kibi.proof-receipt.v2"]
+          },
+          "receipt_id": {
+            "type": "string",
+            "pattern": "^PR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+          },
+          "test_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scope": {
+            "type": "string",
+            "enum": ["unit", "integration", "end_to_end"]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "errored",
+              "cancelled",
+              "skipped",
+              "timed_out",
+              "interrupted"
+            ]
+          },
+          "code_snapshot": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "environment_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "started_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "finished_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "contract_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "binding_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "fingerprint_components": {
+            "type": "object",
+            "required": [
+              "contract",
+              "integration",
+              "command",
+              "bindings",
+              "producer"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "contract": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "integration": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "command": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "bindings": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "producer": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          },
+          "integration_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "producer": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "command_argv": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "run_outcome": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "errored",
+              "cancelled",
+              "timed_out",
+              "interrupted",
+              "no_results"
+            ]
+          },
+          "proof_results": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "required": [
+                "symbol_id",
+                "target",
+                "outcome",
+                "binding",
+                "attempts"
+              ],
+              "properties": {
+                "symbol_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "passed",
+                    "failed",
+                    "timed_out",
+                    "skipped",
+                    "interrupted",
+                    "errored"
+                  ]
+                },
+                "binding": {
+                  "type": "string",
+                  "enum": ["native_case", "aggregate_run"]
+                },
+                "native_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "attempts": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["status", "entries"],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "complete"
+                        },
+                        "entries": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "type": "object",
+                            "required": ["outcome"],
+                            "properties": {
+                              "outcome": {
+                                "type": "string",
+                                "enum": [
+                                  "passed",
+                                  "failed",
+                                  "timed_out",
+                                  "skipped",
+                                  "interrupted",
+                                  "errored"
+                                ]
+                              },
+                              "duration_ms": {
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": ["status"],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "unavailable"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "e2e",
+              "example",
+              "property",
+              "exhaustive",
+              "typecheck",
+              "arithmetic",
+              "smt",
+              "rule",
+              "state_machine",
+              "regex",
+              "source"
+            ]
+          },
+          "evidence_level": {
+            "type": "string",
+            "enum": ["proved", "tested"]
+          },
+          "certificate": {
+            "type": "object"
+          },
+          "certificate_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "certificate_rejection": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim_bindings": {
+            "type": "array",
+            "description": "Certificate kinds: how the certificate binds to each claim its contract names in proves, judged at ingest. derived means Kibi derived the certificate's obligation from the claim's grounding fact and the certificate satisfies it; attested means no derivation exists and the author vouches for it (never proved); rejected names why.",
+            "items": {
+              "type": "object",
+              "required": ["claim_key", "binding"],
+              "properties": {
+                "claim_key": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "requirement_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fact_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "binding": {
+                  "type": "string",
+                  "enum": ["derived", "attested", "rejected"]
+                },
+                "scope": {
+                  "type": "string",
+                  "enum": ["code", "source", "harness", "intent"]
+                },
+                "obligation": {
+                  "type": "object"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "gaps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["symbol_id", "target", "reason"],
+              "properties": {
+                "symbol_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "req",
+        "scenario",
+        "test",
+        "adr",
+        "flag",
+        "event",
+        "symbol",
+        "fact"
+      ]
+    },
+    "fact_kind": {
+      "type": "string",
+      "enum": [
+        "subject",
+        "property_value",
+        "observation",
+        "meta",
+        "predicate_schema",
+        "predicate",
+        "rule_schema",
+        "rule"
+      ]
+    },
+    "subject_key": {
+      "type": "string"
+    },
+    "property_key": {
+      "type": "string"
+    },
+    "operator": {
+      "type": "string",
+      "enum": [
+        "eq",
+        "neq",
+        "lt",
+        "lte",
+        "gt",
+        "gte",
+        "matches",
+        "includes",
+        "subset_of",
+        "excludes"
+      ]
+    },
+    "value_type": {
+      "type": "string",
+      "enum": ["string", "int", "number", "bool", "set"]
+    },
+    "value_string": {
+      "type": "string"
+    },
+    "value_set": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "value_int": {
+      "type": "integer"
+    },
+    "value_number": {
+      "type": "number"
+    },
+    "value_bool": {
+      "type": "boolean"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "polarity": {
+      "type": "string",
+      "enum": ["require", "forbid", "assert", "deny"]
+    },
+    "closed_world": {
+      "type": "boolean"
+    },
+    "valid_from": {
+      "type": "string"
+    },
+    "valid_to": {
+      "type": "string"
+    },
+    "canonical_key": {
+      "type": "string"
+    },
+    "claim_key": {
+      "type": "string",
+      "pattern": "^CLAIM-[A-F0-9]{16}$"
+    },
+    "claim_text": {
+      "type": "string"
+    },
+    "dimension_waiver": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Fact-only. Why the quantifier word in claim_text (each, every, all, or a cardinality bound) ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented for the claim once dimension_waiver_approved_by is set."
+    },
+    "dimension_waiver_approved_by": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Fact-only. The person who accepted dimension_waiver. Without it the waiver is reported as awaiting approval and the gap stays open."
+    },
+    "case_waiver": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Fact-only. Why the edge cases Kibi derives from this fact (the value past a bound, a value outside a set) are covered some other way or cannot occur. Waives uncovered_case for the fact once case_waiver_approved_by is set."
+    },
+    "case_waiver_approved_by": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Fact-only. The person who accepted case_waiver. Without it the waiver is reported as awaiting approval and the gap stays open."
+    },
+    "predicate_name": {
+      "type": "string"
+    },
+    "predicate_namespace": {
+      "type": "string"
+    },
+    "predicate_arity": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "argument_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "argument_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "argument_descriptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "key_arguments": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "predicate_args": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "argument_constants": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "argument_aliases": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rule_ir": {
+      "$ref": "#/$defs/logicRule"
+    },
+    "rule_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "rule_schema_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rule_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "semantic_key": {
+      "type": "string",
+      "pattern": "^SEM-[A-F0-9]{24}$"
+    },
+    "claim_span_start": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "claim_span_end": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "status",
+    "created_at",
+    "updated_at",
+    "source",
+    "type"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "req"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": ["logic_claims"]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "fact"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": ["fact_kind"]
+            },
+            {
+              "required": ["subject_key"]
+            },
+            {
+              "required": ["property_key"]
+            },
+            {
+              "required": ["operator"]
+            },
+            {
+              "required": ["value_type"]
+            },
+            {
+              "required": ["value_string"]
+            },
+            {
+              "required": ["value_int"]
+            },
+            {
+              "required": ["value_number"]
+            },
+            {
+              "required": ["value_bool"]
+            },
+            {
+              "required": ["value_set"]
+            },
+            {
+              "required": ["unit"]
+            },
+            {
+              "required": ["scope"]
+            },
+            {
+              "required": ["polarity"]
+            },
+            {
+              "required": ["closed_world"]
+            },
+            {
+              "required": ["valid_from"]
+            },
+            {
+              "required": ["valid_to"]
+            },
+            {
+              "required": ["canonical_key"]
+            },
+            {
+              "required": ["claim_key"]
+            },
+            {
+              "required": ["claim_text"]
+            },
+            {
+              "required": ["dimension_waiver"]
+            },
+            {
+              "required": ["dimension_waiver_approved_by"]
+            },
+            {
+              "required": ["case_waiver"]
+            },
+            {
+              "required": ["case_waiver_approved_by"]
+            },
+            {
+              "required": ["predicate_name"]
+            },
+            {
+              "required": ["predicate_namespace"]
+            },
+            {
+              "required": ["predicate_arity"]
+            },
+            {
+              "required": ["argument_names"]
+            },
+            {
+              "required": ["argument_types"]
+            },
+            {
+              "required": ["argument_descriptions"]
+            },
+            {
+              "required": ["key_arguments"]
+            },
+            {
+              "required": ["aliases"]
+            },
+            {
+              "required": ["examples"]
+            },
+            {
+              "required": ["predicate_args"]
+            },
+            {
+              "required": ["argument_constants"]
+            },
+            {
+              "required": ["argument_aliases"]
+            },
+            {
+              "required": ["rule_ir"]
+            },
+            {
+              "required": ["rule_hash"]
+            },
+            {
+              "required": ["rule_schema_id"]
+            },
+            {
+              "required": ["rule_name"]
+            },
+            {
+              "required": ["semantic_key"]
+            },
+            {
+              "required": ["claim_span_start"]
+            },
+            {
+              "required": ["claim_span_end"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "test"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": ["verification_scope"]
+            },
+            {
+              "required": ["verification_perspective"]
+            },
+            {
+              "required": ["proof_contract"]
+            },
+            {
+              "required": ["proof_bindings"]
+            },
+            {
+              "required": ["proof_receipts"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["proof_receipts"]
+      },
+      "then": {
+        "required": ["verification_scope"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "req"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": ["semantic_inventory"]
+            },
+            {
+              "required": ["semantic_clauses"]
+            },
+            {
+              "required": ["semantic_text"]
+            },
+            {
+              "required": ["semantic_inventory_version"]
+            },
+            {
+              "required": ["semantic_source_field"]
+            },
+            {
+              "required": ["semantic_source_hash"]
+            },
+            {
+              "required": ["proof_exempt"]
+            },
+            {
+              "required": ["proof_exempt_reason"]
+            },
+            {
+              "required": ["retired_reason"]
+            },
+            {
+              "required": ["approved_by"]
+            },
+            {
+              "required": ["approval_ref"]
+            },
+            {
+              "required": ["failure_side_waiver"]
+            },
+            {
+              "required": ["failure_side_waiver_approved_by"]
+            },
+            {
+              "required": ["rationale"]
+            },
+            {
+              "required": ["exempts_claims"]
+            },
+            {
+              "required": ["required_evidence"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": ["req", "adr"]
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": ["firmness"]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "scenario"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": ["expects"]
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["claim_key"]
+      },
+      "then": {
+        "required": ["claim_text"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "fact"
+          },
+          "fact_kind": {
+            "const": "predicate_schema"
+          }
+        },
+        "required": ["type", "fact_kind"]
+      },
+      "then": {
+        "required": [
+          "predicate_name",
+          "predicate_arity",
+          "argument_names",
+          "argument_types"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "fact"
+          },
+          "fact_kind": {
+            "const": "predicate"
+          }
+        },
+        "required": ["type", "fact_kind"]
+      },
+      "then": {
+        "required": ["predicate_name", "predicate_args", "canonical_key"],
+        "properties": {
+          "polarity": {
+            "enum": ["assert", "deny"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "fact"
+          },
+          "fact_kind": {
+            "const": "rule_schema"
+          }
+        },
+        "required": ["type", "fact_kind"]
+      },
+      "then": {
+        "required": ["rule_name", "argument_names", "argument_types"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "fact"
+          },
+          "fact_kind": {
+            "const": "rule"
+          }
+        },
+        "required": ["type", "fact_kind"]
+      },
+      "then": {
+        "required": [
+          "rule_ir",
+          "rule_hash",
+          "rule_schema_id",
+          "rule_name",
+          "semantic_key"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "fact"
+          },
+          "fact_kind": {
+            "const": "property_value"
+          }
+        },
+        "required": ["type", "fact_kind"]
+      },
+      "then": {
+        "properties": {
+          "polarity": {
+            "enum": ["require", "forbid"]
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

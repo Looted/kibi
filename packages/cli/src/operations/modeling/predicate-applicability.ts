@@ -11,7 +11,8 @@ export const WEAK_CANDIDATE_MARGIN = 0.06;
 type IntentRule = {
   readonly allOf?: readonly (readonly RegExp[])[];
   readonly anyOf?: readonly RegExp[];
-  readonly prohibited?: readonly RegExp[];
+  /** Every rule names at most one contradictory-cue pattern. */
+  readonly prohibited?: RegExp;
 };
 
 // A bare permission modal ("coaches can read", "users may export", "are
@@ -20,26 +21,29 @@ type IntentRule = {
 // same holds for a capability grant ("must be able to", "are able to", "have
 // permission to", "are entitled to"), the wording product owners use most.
 const NORMATIVE_OR_VALIDITY_PATTERN =
-  /\b(?:must|shall|should|required|requires?|may\s+only|only\s+.+?\s+(?:may|can)|(?:can|may)\s+(?:not\s+)?(?:only\s+)?\w+|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|entitled|able)\s+to|ha(?:s|ve)\s+permission\s+to|permitted|must\s+not|shall\s+not|cannot|can't|allowed|denied|forbidden|prohibited|invalid|unresolved|reject(?:s|ed|ion)?|fail(?:s|ed|ure)?\s+(?:clearly|explicitly|with)|defaults?\s+to|states?\s+are|owned\s+by|initializes?\s+after|before|unless|when|if|(?:exception|exempt)\s+(?:to|from|when|if|unless))\b/i;
+  /\b(?:must|shall|should|required|requires?|only\s+.+?\s+(?:may|can)|(?:can|may)\s+\w+|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|entitled|able)\s+to|ha(?:s|ve)\s+permission\s+to|permitted|cannot|can't|allowed|denied|forbidden|prohibited|invalid|unresolved|reject(?:s|ed|ion)?|fail(?:s|ed|ure)?\s+(?:clearly|explicitly|with)|defaults?\s+to|states?\s+are|owned\s+by|initializes?\s+after|before|unless|when|if|(?:exception|exempt)\s+(?:to|from|when|if|unless))\b/i;
 
 function expressesNormativeOrValidityIntent(text: string): boolean {
   return /^\s*no\b/i.test(text) || NORMATIVE_OR_VALIDITY_PATTERN.test(text);
 }
 
+// Cue patterns only need a match anywhere in the text, so an alternative or
+// trailing repetition that another alternative already covers is left out.
+// Prohibited patterns are quoted verbatim in rejection reasons.
 const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
   state: {
     allOf: [
       [/\bstate\b|\bmode\b/i],
       [/\benter|\bidle\b|\bactive\b|\bdraft\b|\bedit\b/i],
     ],
-    prohibited: [/states?\s+are|one\s+of|transitions?\s+from/i],
+    prohibited: /states?\s+are|one\s+of|transitions?\s+from/i,
   },
   retention_policy: {
     allOf: [
       [/retain|retention/i],
       [/exist|duration|days?|months?|years?|weeks?|hours?/i],
     ],
-    prohibited: [/rate\s+limit|session\s+expir|latency|timeout/i],
+    prohibited: /rate\s+limit|session\s+expir|latency|timeout/i,
   },
   offline_behavior_rule: {
     allOf: [[/offline/i], [/non[- ]blocking|resilien|synchron|gameplay/i]],
@@ -49,26 +53,25 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
       [/dependenc|package|module|plugin|mcp/i],
       [/resolv|locat|load|execut|acquir/i],
       [
-        /consumer[- ]local|project[- ]local|plugin[- ]local|consumer[- ]scoped|workspace\s+(?:scope|semantics)|global(?:\s+fallback|\s+installation|\s+runtime)?|without\s+(?:downloading|installing)|no\s+(?:download|global\s+fallback)|must\s+not\s+(?:download|install)|acquisition\s+(?:policy|restriction)/i,
+        /consumer[- ]local|project[- ]local|plugin[- ]local|consumer[- ]scoped|workspace\s+(?:scope|semantics)|global|without\s+(?:downloading|installing)|no\s+download|must\s+not\s+(?:download|install)|acquisition\s+(?:policy|restriction)/i,
       ],
     ],
-    prohibited: [
+    prohibited:
       /ordered|first\s+then|deterministic\s+order|resolution\s+order|child\s+process|invalid|ambiguous|missing|actionable|failure/i,
-    ],
   },
   ordered_resolution_strategy: {
     allOf: [
       [/resolv|lookup|candidate|source|dependency/i],
       [/ordered|first|then|priority|candidates?|workspace|cwd/i],
     ],
-    prohibited: [/invalid|ambiguous|placeholder|child\s+process|spawn/i],
+    prohibited: /invalid|ambiguous|placeholder|child\s+process|spawn/i,
   },
   resolution_failure_policy: {
     allOf: [
       [/invalid|ambiguous|placeholder|root|usable|reject|fail|error/i],
       [/resolv|input|condition|clear|outcome|fail/i],
     ],
-    prohibited: [/child\s+process|spawn|stdio|package-manager.*exception/i],
+    prohibited: /child\s+process|spawn|stdio|package-manager.*exception/i,
   },
   process_delegation_contract: {
     allOf: [
@@ -77,20 +80,18 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
       ],
       [/launcher|delegate|delegat|process|command|spawn/i],
     ],
-    prohibited: [
+    prohibited:
       /dependency\s+resolution|invalid\s+placeholder|ambiguous\s+root/i,
-    ],
   },
   failure_behavior: {
     allOf: [
       [
-        /failure|fail|missing(?:\s+\S+){0,4}\s+dependenc|missing\s+(?:project[- ]local\s+)?(?:kibi[- ]mcp|package|module)|dependenc\w*\s+(?:is\s+)?missing|unavailable|exception|error\s+(?:behavior|outcome|handling|occurs)|errors\s+(?:or|and)\s+(?:timeouts?|failures?)/i,
+        /fail|missing(?:\s+\S+){0,4}\s+dependenc|missing\s+(?:project[- ]local\s+)?(?:kibi[- ]mcp|package|module)|dependenc\w*\s+(?:is\s+)?missing|unavailable|exception|error\s+(?:behavior|outcome|handling|occurs)|errors\s+(?:or|and)\s+timeout/i,
       ],
       [/report|outcome|actionable|clear|return|surface|throw|leave|recover/i],
     ],
-    prohibited: [
+    prohibited:
       /invalid\s+placeholder|ambiguous\s+root|ordered\s+source|child\s+process/i,
-    ],
   },
   abstraction_boundary_rule: {
     allOf: [
@@ -99,7 +100,7 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
       ],
       [/persist|contract|api\b|data|scene|replace|storage/i],
     ],
-    prohibited: [/permission|delete|export/i],
+    prohibited: /permission|delete|export/i,
   },
   exception_rule: {
     // Package-manager wording can provide context for an exception, but it
@@ -111,7 +112,7 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
       /\b(?:is|are|remains?|constitutes?)\s+(?:the\s+)?(?:only\s+)?exception\s+to\b/i,
       /\b(?:is|are|remains?)\s+exempt\s+(?:from|unless|when|if)\b/i,
     ],
-    prohibited: [/child\s+process|stdio|ordered\s+source/i],
+    prohibited: /child\s+process|stdio|ordered\s+source/i,
   },
   permission_rule: {
     allOf: [
@@ -124,8 +125,9 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
         /delete|export|access|read|write|update|remove|manage|permission/i,
         // A common action verb counts only right after the permission modal
         // ("must not publish", "may approve"), so a quota such as "uploads
-        // must not exceed 10 MB" does not read as a permission.
-        /\b(?:may|can|cannot|can't|must\s+(?:not|never)|never|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|forbidden|entitled|able)\s+to|(?:must|shall|should)\s+be\s+able\s+to|ha(?:s|ve)\s+permission\s+to)\s+(?:only\s+)?(?:publish|unpublish|approve|assign|view|see|edit|modify|create|submit|share|invite|upload|download|comment|post|complete|archive|restore|grant|revoke|purchase|cancel|execute|invoke|configure|moderate|ban|join|book|reserve|transfer|close|reopen|merge)\b/i,
+        // must not exceed 10 MB" does not read as a permission. "has
+        // permission to" already matches the pattern above.
+        /\b(?:may|can|cannot|can't|must\s+(?:not|never)|never|(?:is|are)\s+(?:not\s+)?(?:allowed|permitted|forbidden|entitled|able)\s+to|(?:must|shall|should)\s+be\s+able\s+to)\s+(?:only\s+)?(?:publish|unpublish|approve|assign|view|see|edit|modify|create|submit|share|invite|upload|download|comment|post|complete|archive|restore|grant|revoke|purchase|cancel|execute|invoke|configure|moderate|ban|join|book|reserve|transfer|close|reopen|merge)\b/i,
       ],
     ],
   },
@@ -135,12 +137,11 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
         /latency|timeout|throughput|quota|memory|cpu|size|resource|response\s+time|upload|download|payload|attachment|file|complete[sd]?\s+in\b|duration|frame\s+rate|\bfps\b/i,
       ],
       [
-        /at\s+most|at\s+least|not\s+exceed|maximum|minimum|under|below|above|within|limit|bounded|enforced|<[=>]?\s*\d|\b\d+(?:\.\d+)?\s*(?:ms|milliseconds?|s|seconds?|mb|gb|fps|%)?\b/i,
+        /at\s+most|at\s+least|not\s+exceed|maximum|minimum|under|below|above|within|limit|bounded|enforced|<[=>]?\s*\d|\b\d+\s*(?:ms|milliseconds?|s|seconds?|mb|gb|fps|%)?\b/i,
       ],
     ],
-    prohibited: [
+    prohibited:
       /only|allowed|denied|forbidden|permission|authorize|must\s+not\s+(?:delete|export|access|write|update|remove|manage)/i,
-    ],
   },
   migration_boundary_rule: {
     allOf: [
@@ -149,44 +150,42 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
         /canonical|migration\s+input|compatibility|only\s+(?:be\s+)?(?:read|used)|read\s+only/i,
       ],
     ],
-    prohibited: [/converted\s+once|no\s+data\s+loss|one[- ]time\s+conversion/i],
+    prohibited: /converted\s+once|no\s+data\s+loss|one[- ]time\s+conversion/i,
   },
   uniqueness_constraint: {
     allOf: [[/at\s+most\s+one|unique|uniqueness/i], [/\bper\b|scope|within/i]],
-    prohibited: [/rate\s+limit|per\s+(?:second|minute|hour|day|window)/i],
+    prohibited: /rate\s+limit|per\s+(?:second|minute|hour|day|window)/i,
   },
   state_membership: {
     allOf: [
       [/states?\s+are|terminal\s+states?|allowed\s+states?|one\s+of/i],
       [/\bstate|ready|anonymous|terminal|allowed|enumerated/i],
     ],
-    prohibited: [/transitions?\s+from/i],
+    prohibited: /transitions?\s+from/i,
   },
   conditional_behavior: {
     allOf: [
-      [/^\s*(?:if|when)\b|\b(?:if|when)\b/i],
+      [/\b(?:if|when)\b/i],
       [/\bmust\b|\bshall\b|\bshould\b|\bbecomes?\b|\bthen\b/i],
     ],
     anyOf: [
-      /^when\s+.+?,\s*(?:the\s+)?.+?\s+(?:must|shall|should)\s+/i,
+      /^when\s+.+?,\s*(?:the\s+)?.+?\s+(?:must|shall|should)\s/i,
       /^if\s+.+?,\s*(?:it|they|the\s+.+?)\s+(?:becomes?|must|shall|should)\b/i,
     ],
   },
   rate_limit: {
     allOf: [
       [/rate|frequency|repeated|requests?|actions?|operations?/i],
-      [
-        /per\s+(?:second|minute|hour|day|window)|every\s+\w+|time\s+window|window/i,
-      ],
+      [/per\s+(?:second|minute|hour|day|window)|every\s+\w|window/i],
     ],
-    prohibited: [/upload|download|payload|attachment|file\s+size/i],
+    prohibited: /upload|download|payload|attachment|file\s+size/i,
   },
   data_residency_rule: {
     allOf: [
       [/stored|processed|kept/i],
       [/region|jurisdiction|country|zone|area/i],
     ],
-    prohibited: [/redis|cache|memory|bucket|database\s+instance/i],
+    prohibited: /redis|cache|memory|bucket|database\s+instance/i,
   },
   coding_standard_rule: {
     allOf: [
@@ -195,26 +194,25 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
     ],
     // On-screen views and visual patterns are UI design claims (ui_pattern,
     // same_pattern), not developer coding standards.
-    prohibited: [
+    prohibited:
       /user|admin|access|permission|mfa|customer|\bviews?\b|screens?|timeline/i,
-    ],
   },
   release_gate_rule: {
     allOf: [
       [/release|deploy|testflight|app\s+store|distribution|build/i],
       [/pass|gate|before|configuration/i],
     ],
-    prohibited: [/checkout|payment|fraud|workflow|capture/i],
+    prohibited: /checkout|payment|fraud|workflow|capture/i,
   },
   security_configuration_rule: {
     allOf: [
       [/security|database|deployment|function|rpc|search_path|trigger/i],
       [/explicit|configuration|setting/i],
     ],
-    prohibited: [/display\s+label|ui|profile\s+field/i],
+    prohibited: /display\s+label|ui|profile\s+field/i,
   },
   absence_requirement: {
-    anyOf: [/\bno\b|absent|removed|not\s+exist|must\s+not\s+exist/i],
+    anyOf: [/\bno\b|absent|removed|not\s+exist/i],
   },
   fail_closed_authorization_rule: {
     allOf: [
@@ -225,9 +223,8 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
         /invalid|missing|unauthorized|unauthenticated|error|timeout|expired|fallback|role|credential/i,
       ],
     ],
-    prohibited: [
+    prohibited:
       /defaults?\s+to\s+(?:a\s+)?(?:student|user|role|identity)\b(?!\s+must)/i,
-    ],
   },
   deployment_precondition_rule: {
     allOf: [
@@ -236,16 +233,15 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
         /hold|block|abort|precondition|unsupported|before\s+(?:the\s+)?(?:release|deployment|rollout)/i,
       ],
     ],
-    prohibited: [/checkout|payment|fraud|workflow|capture/i],
+    prohibited: /checkout|payment|fraud|workflow|capture/i,
   },
   data_migration_rule: {
     allOf: [
       [/conver(?:t|s(?:ion|ions))|migrat/i],
       [/once|one[- ]time|no\s+data\s+loss|canonical|before/i],
     ],
-    prohibited: [
+    prohibited:
       /may\s+only\s+be\s+read|migration\s+input|never\s+fall\s+back|reads?\s+only/i,
-    ],
   },
   diagnostic_visibility_rule: {
     allOf: [
@@ -254,21 +250,21 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
       ],
       [/user|ui\b|friendly|actionable|shown|display|message|debugging/i],
     ],
-    prohibited: [/audit\s+log|consent/i],
+    prohibited: /audit\s+log|consent/i,
   },
   mutation_authority_rule: {
     allOf: [
       [/read[- ]only|server[- ]side|row[- ]level|\brls\b|trigger/i],
       [/client|view|surface|api|table|service|notification|ui\b/i],
     ],
-    prohibited: [/delete|export|remove|permission/i],
+    prohibited: /delete|export|remove|permission/i,
   },
   request_deduplication_rule: {
     allOf: [
       [/deduplicat|coalesc|in[- ]flight/i],
       [/request|quer(?:y|ies)|fetch|call|parallel|redundant/i],
     ],
-    prohibited: [/rate\s+limit|batch/i],
+    prohibited: /rate\s+limit|batch/i,
   },
   async_boundary_rule: {
     allOf: [
@@ -277,32 +273,32 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
       ],
       [/callback|handler|refresh|operation|work|action|ui\b/i],
     ],
-    prohibited: [/timeout|rate\s+limit/i],
+    prohibited: /timeout|rate\s+limit/i,
   },
   canonical_identifier_rule: {
     allOf: [[/canonical/i], [/identifier|\bid\b|videoid|key|resolve/i]],
-    prohibited: [/renderer[- ]neutral|legacy/i],
+    prohibited: /renderer[- ]neutral|legacy/i,
   },
   responsive_breakpoint_rule: {
     allOf: [
       [/breakpoint|landscape|portrait|viewport|responsive/i],
       [/mobile|desktop|tablet|width|height|px\b/i],
     ],
-    prohibited: [/server|database/i],
+    prohibited: /server|database/i,
   },
   operational_pause_rule: {
     allOf: [
       [/pause|halt|suspend|kill\s*switch|freeze/i],
       [/block|new|preserve|existing|resumable|continue/i],
     ],
-    prohibited: [/deletion|soft\s+delete/i],
+    prohibited: /deletion|soft\s+delete/i,
   },
   ui_pattern: {
     allOf: [
       [/pattern|timeline|card|list|grid|carousel|table|layout|design/i],
       [/use|show|present|render|display|design/i],
     ],
-    prohibited: [/aligned\s+with|colou?r|hex|font/i],
+    prohibited: /aligned\s+with|colou?r|hex|font/i,
   },
   same_pattern: {
     allOf: [
@@ -336,7 +332,8 @@ function countHintCues(
     const cues = (value.toLowerCase().match(/[a-z0-9]+/g) ?? []).filter(
       (cue) =>
         cue.length > 3 &&
-        !["when", "this", "that", "with", "from", "use"].includes(cue),
+        // "use" and shorter words already fall under the length cut.
+        !["when", "this", "that", "with", "from"].includes(cue),
     );
     if (cues.length === 0) return count;
     const matched = cues.filter((cue) => lower.includes(cue)).length;
@@ -344,11 +341,13 @@ function countHintCues(
     // evidence. Require an exact phrase or at least two meaningful cues.
     const phrase = value
       .toLowerCase()
-      .replace(/^do\s+not\s+use\s+(?:when|for)\s+/, "")
-      .replace(/^use\s+(?:when|for)\s+/, "")
+      .replace(/^do\s+not\s+use\s+(?:when|for)\s/, "")
+      .replace(/^use\s+(?:when|for)\s/, "")
       .replace(/[^a-z0-9]+/g, " ")
       .trim();
-    const exactPhrase = phrase.length > 0 && lower.includes(phrase);
+    // A value with a cue keeps a word of it after the prefix is dropped (the
+    // only long prefix word, "when", is no cue), so the phrase is never empty.
+    const exactPhrase = lower.includes(phrase);
     const requiredMatches =
       minimumCoverage > 0
         ? Math.max(2, Math.ceil(cues.length * minimumCoverage))
@@ -369,7 +368,8 @@ function specificityEvidence(
   ];
   const lower = text.toLowerCase();
   const hits = values.reduce((count, value) => {
-    const cues = value.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+    // Splitting leaves empty pieces, which the length cut drops.
+    const cues = value.toLowerCase().split(/[^a-z0-9]/);
     return (
       count +
       (cues.some((cue) => cue.length > 3 && lower.includes(cue)) ? 1 : 0)
@@ -470,16 +470,10 @@ export function evaluateSemanticApplicability(
   } else if (rule?.anyOf) {
     positive += 0.26;
   }
-  const prohibited = [...(rule?.prohibited ?? [])].filter((pattern) =>
-    pattern.test(text),
-  );
-  if (prohibited.length > 0) {
-    negative += prohibited.length * 0.35;
-    reasons.push(
-      `prohibited or contradictory cue: ${prohibited
-        .map((pattern) => pattern.source)
-        .join(", ")}`,
-    );
+  const prohibited = rule?.prohibited;
+  if (prohibited?.test(text)) {
+    negative += 0.35;
+    reasons.push(`prohibited or contradictory cue: ${prohibited.source}`);
   }
   if (negativeHints > 0) {
     reasons.push(
@@ -514,7 +508,8 @@ export function evaluateSemanticApplicability(
     }
   }
   return {
-    eligible: reasons.length === 0 && score >= MIN_APPLICABILITY_SCORE,
+    // A score below the threshold always adds a reason.
+    eligible: reasons.length === 0,
     reasons: Array.from(new Set(reasons)),
     applicabilityScore: score,
   };

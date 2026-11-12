@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import {
   type LogicRuleIR,
+  type LogicValidationResult,
   logicSemanticKey,
   utf8Span,
   validateLogicIr,
@@ -49,31 +50,23 @@ export function logicRuleFactId(semanticKey: string): string {
 export function buildLogicApplyPlan(
   input: LogicApplyPlanInput,
 ): LogicApplyPlanResult {
-  const validation = validateLogicIr(input.logic);
-  if (
-    !validation.valid ||
-    !validation.normalized ||
-    !validation.ruleHash ||
-    !validation.semanticKey ||
-    !validation.renderedProlog
-  ) {
-    throw new Error(
-      `Logic IR validation failed: ${validation.errors.join("; ")}`,
-    );
+  const result = validateLogicIr(input.logic);
+  if (!result.valid) {
+    throw new Error(`Logic IR validation failed: ${result.errors.join("; ")}`);
   }
-  const sourceText = input.claimText?.trim() || input.text.trim();
+  // A valid result carries every derived field.
+  const validation = result as Required<LogicValidationResult>;
+  const semanticText = input.text.trim();
+  const sourceText = input.claimText?.trim() || semanticText;
   const claimText = normalizeSemanticClause(sourceText);
   const claimKey = input.claimKey || semanticClaimKey(claimText);
   const semanticKey = logicSemanticKey(validation.normalized);
   const schemaId =
     validation.normalized.ruleSchemaId ?? "FACT-RULE-SCHEMA-LOGIC-V1";
   const ruleId = logicRuleFactId(semanticKey);
-  const claimStart = input.text.indexOf(claimText);
-  const span = utf8Span(
-    input.text,
-    claimStart >= 0 ? claimStart : 0,
-    claimStart >= 0 ? claimStart + claimText.length : claimText.length,
-  );
+  // A claim not found verbatim in the text spans from the text's start.
+  const claimStart = Math.max(input.text.indexOf(claimText), 0);
+  const span = utf8Span(input.text, claimStart, claimStart + claimText.length);
   const logicClaims = Array.from(
     new Set([...(input.existingLogicClaims ?? []), claimKey]),
   );
@@ -135,18 +128,18 @@ export function buildLogicApplyPlan(
           title: firstSentence(claimText) || "Typed logical requirement",
           status: "open",
           source: input.source,
-          semantic_text: input.text.trim(),
+          semantic_text: semanticText,
           logic_claims: logicClaims,
           semantic_clauses: [claimText],
           semantic_inventory_version: "kibi.semantic-inventory.v1",
           semantic_source_field: "semantic_text",
-          semantic_source_hash: semanticSourceHash(input.text.trim()),
+          semantic_source_hash: semanticSourceHash(semanticText),
           semantic_inventory: [
             {
               claim_key: claimKey,
               claim_text: claimText,
               role:
-                advisorPropositionRole(input.text.trim(), claimKey) ??
+                advisorPropositionRole(semanticText, claimKey) ??
                 modeledClaimRole(claimText, validation.normalized.modality),
               status: "modeled",
               span,

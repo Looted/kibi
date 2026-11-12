@@ -87,13 +87,18 @@ export type InstalledVersion = (packageName: string) => string | null;
 /** The version of a package installed for the workspace, or null. */
 export function workspaceInstalledVersion(
   workspaceRoot: string,
+  resolve: NodeJS.RequireResolve = createRequire(
+    join(workspaceRoot, "package.json"),
+  ).resolve,
 ): InstalledVersion {
-  const resolve = createRequire(join(workspaceRoot, "package.json")).resolve;
   return (packageName) => {
     // A package whose exports omit ./package.json (kibi-plugin-treesitter)
     // is found through the node_modules lookup directories instead.
     const manifests = [
       () => resolve(`${packageName}/package.json`),
+      // rationale: paths() is null only for relative or builtin requests,
+      // which have no lookup directory, so any placeholder list finds nothing.
+      // Stryker disable next-line ArrayDeclaration
       ...(resolve.paths(packageName) ?? []).map(
         (directory) => () => join(directory, packageName, "package.json"),
       ),
@@ -116,16 +121,20 @@ export function workspaceInstalledVersion(
 export function pinnedPackVersions(
   workspaceRoot: string | undefined,
 ): ReadonlyMap<string, string> {
+  // rationale: join() rejects an undefined root inside the try below, which
+  // also yields the empty map; the guard states it without the throw.
+  // Stryker disable next-line ConditionalExpression
   if (workspaceRoot === undefined) return new Map();
   try {
     const catalogPath = createRequire(
       join(workspaceRoot, "package.json"),
     ).resolve(`${REFERENCE_PLUGIN_PACKAGE}/catalog.json`);
     const catalog = JSON.parse(readFileSync(catalogPath, "utf8")) as {
-      languages?: { pack?: unknown; packVersion?: unknown }[];
+      languages: { pack?: unknown; packVersion?: unknown }[];
     };
+    // A catalog without a language list fails here and pins nothing.
     return new Map(
-      (catalog.languages ?? []).flatMap((language) =>
+      catalog.languages.flatMap((language) =>
         typeof language.pack === "string" &&
         typeof language.packVersion === "string"
           ? [[language.pack, language.packVersion] as const]
@@ -142,7 +151,6 @@ export function pinnedPackVersions(
  * whose grammar file does not hash to the SHA-256 the plugin pins. Doctor
  * names them so a changed grammar is not shown as healthy.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function modifiedPacks(
   workspaceRoot: string | undefined,
 ): ReadonlySet<string> {
@@ -155,15 +163,17 @@ export function modifiedPacks(
     assetSha256?: unknown;
   }[];
   try {
-    languages =
-      (
+    // Spreading a missing language list fails here and reports nothing.
+    languages = [
+      ...(
         JSON.parse(
           readFileSync(
             resolve(`${REFERENCE_PLUGIN_PACKAGE}/catalog.json`),
             "utf8",
           ),
-        ) as { languages?: typeof languages }
-      ).languages ?? [];
+        ) as { languages: typeof languages }
+      ).languages,
+    ];
   } catch {
     return new Set();
   }
@@ -227,7 +237,6 @@ export function languagePackFor(file: string): string | null {
  * in kibi.declinedLanguagePacks is never asked for.
  * Reads file names and package manifests only; never imports a plugin.
  */
-// implements REQ-kibi-tree-sitter-references, REQ-kibi-tree-sitter-language-packs
 export function referenceLanguageSuggestion(
   files: readonly string[],
   config: ProjectKibiConfig,
@@ -252,11 +261,10 @@ export function referenceLanguageSuggestion(
     name: language.name,
     found: production.filter((file) => language.pattern.test(file)),
   })).filter((language) => language.found.length > 0);
-  const entry = (config.plugins ?? []).find(
+  const entry = config.plugins?.find(
     (plugin) => plugin.package === REFERENCE_PLUGIN_PACKAGE,
   );
-  if ((config.declinedPlugins ?? []).includes(REFERENCE_PLUGIN_PACKAGE))
-    return null;
+  if (config.declinedPlugins?.includes(REFERENCE_PLUGIN_PACKAGE)) return null;
   const activate =
     references.length > 0 &&
     entry?.capabilities[REFERENCE_EXTRACTOR_CAPABILITY_ID] === undefined;
@@ -272,9 +280,7 @@ export function referenceLanguageSuggestion(
       language.pack !== "kibi-lang-prolog" ||
       language.found.some((file) => /(?:\.plt|(?:^|\/)pack\.pl)$/i.test(file)),
   );
-  const symbolLanguages = confirmed;
-  const suggestSymbols = entry === undefined && symbolLanguages.length > 0;
-  if (entry === undefined && !activate && !suggestSymbols) return null;
+  const suggestSymbols = entry === undefined && confirmed.length > 0;
   const missing = confirmed.filter((language) => {
     const installed = installedVersion(language.pack);
     const wanted = pinned.get(language.pack);
@@ -288,7 +294,7 @@ export function referenceLanguageSuggestion(
   // With proofs to activate, the reference languages lead and the other
   // languages the plugin would read (or whose packs are missing) follow, so
   // every pack named has its files named too.
-  const rest = suggestSymbols ? symbolLanguages : missing;
+  const rest = suggestSymbols ? confirmed : missing;
   const shown = activate
     ? [
         ...references.map((language) => ({ ...language, proofs: true })),
@@ -388,7 +394,6 @@ export function describeReferenceLanguageSuggestion(
  * ones the tracked KB names. Reads `.gitattributes` through git, the first
  * lines of those sources and the tracked `.kb/` text.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function workspacePackRelevance(
   workspaceRoot: string,
   files: readonly string[],
@@ -410,13 +415,15 @@ export function workspacePackRelevance(
   };
 }
 
-function readManifestOrNull(workspaceRoot: string): unknown {
+/** Whether the workspace package.json lists the plugin; false without one. */
+function manifestDeclaresPlugin(workspaceRoot: string): boolean {
   try {
-    return JSON.parse(
-      readFileSync(join(workspaceRoot, "package.json"), "utf8"),
+    return manifestDeclares(
+      JSON.parse(String(readFileSync(join(workspaceRoot, "package.json")))),
+      REFERENCE_PLUGIN_PACKAGE,
     );
   } catch {
-    return null;
+    return false;
   }
 }
 
@@ -425,7 +432,6 @@ function readManifestOrNull(workspaceRoot: string): unknown {
  * `kibi init` and `kibi doctor`, or null when nothing is missing. A project
  * without a package.json is told to create a minimal one first.
  */
-// implements REQ-kibi-tree-sitter-references, REQ-kibi-tree-sitter-language-packs
 export function workspaceReferenceLanguageNote(
   workspaceRoot: string,
 ): string | null {
@@ -435,11 +441,14 @@ export function workspaceReferenceLanguageNote(
     files = execFileSync("git", ["ls-files", "-z"], {
       cwd: workspaceRoot,
       encoding: "utf8",
+      // rationale: stdio only keeps git's stderr off the terminal; the
+      // captured stdout is the same either way.
+      // Stryker disable next-line ArrayDeclaration,StringLiteral
       stdio: ["ignore", "pipe", "ignore"],
       maxBuffer: 64 * 1024 * 1024,
     })
-      .split("\0")
-      .filter((file) => file.length > 0);
+      // The listing ends in NUL; the empty last entry names no file.
+      .split("\0");
     config = readProjectKibiConfig(workspaceRoot);
   } catch {
     return null;
@@ -451,10 +460,7 @@ export function workspaceReferenceLanguageNote(
     workspaceInstalledVersion(workspaceRoot),
     pinnedPackVersions(workspaceRoot),
     modifiedPacks(workspaceRoot),
-    manifestDeclares(
-      readManifestOrNull(workspaceRoot),
-      REFERENCE_PLUGIN_PACKAGE,
-    ),
+    manifestDeclaresPlugin(workspaceRoot),
     relevance,
   );
   if (suggestion === null) return null;

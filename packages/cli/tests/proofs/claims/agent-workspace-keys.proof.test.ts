@@ -8,8 +8,6 @@ import {
 import { KIBI_WORKSPACE_ENV_KEYS } from "../../../../claude/src/workspace-optin.js";
 import { KIBI_WORKSPACE_ARGUMENT } from "../../../../agent-core/src/kb-mcp-tools.js";
 
-// implements REQ-agent-workspace-opt-in-keys
-
 /**
  * The environment variables an agent plugin reads the Kibi workspace from, and the tool argument it passes the workspace in. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

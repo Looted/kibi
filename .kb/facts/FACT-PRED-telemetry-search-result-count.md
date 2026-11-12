@@ -22,4 +22,4 @@ origin:
 id: FACT-PRED-telemetry-search-result-count
 type: fact
 ---
-A telemetry event for a search shall report its bucketed result count and whether it abstained. Grounds one clause of REQ-kibi-telemetry-agent-signals as a conditional behavior of telemetry events.
+A telemetry event for a search shall report its bucketed result count and whether it abstained. Grounds one clause of REQ-kibi-telemetry-session-signals as a conditional behavior of telemetry events.

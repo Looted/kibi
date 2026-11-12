@@ -1,0 +1,178 @@
+[
+  {
+    "rule": "exception-approval-self-attested",
+    "entityId": "REQ-a-plain",
+    "description": "Exception REQ-a-plain was recorded by an agent with approved_by 'kim', but nothing corroborates the approval (missing approval_ref)",
+    "suggestion": "Have kim (or another human) confirm the exception: set origin.approved_by to the confirming person and approval_ref to the decision record (ticket, ADR or review link) on REQ-a-plain; if nobody approved it, remove approved_by so the exception stops exempting REQ-base-a",
+    "evidence": {
+      "exceptionId": "REQ-a-plain",
+      "exempts": ["REQ-base-a"],
+      "approvedBy": "kim",
+      "origin": {
+        "kind": "agent",
+        "approved_by": "lee"
+      },
+      "missing": ["approval_ref"]
+    }
+  },
+  {
+    "rule": "exception-approval-self-attested",
+    "entityId": "REQ-c-agent",
+    "description": "Exception REQ-c-agent was recorded by an agent with approved_by 'kim', but nothing corroborates the approval (missing origin.approved_by and approval_ref)",
+    "suggestion": "Have kim (or another human) confirm the exception: set origin.approved_by to the confirming person and approval_ref to the decision record (ticket, ADR or review link) on REQ-c-agent; if nobody approved it, remove approved_by so the exception stops exempting REQ-base-a, REQ-base-b",
+    "source": "docs/c.md",
+    "evidence": {
+      "exceptionId": "REQ-c-agent",
+      "exempts": ["REQ-base-a", "REQ-base-b"],
+      "approvedBy": "kim",
+      "origin": {
+        "kind": "agent",
+        "ref": "session-1"
+      },
+      "missing": ["origin.approved_by", "approval_ref"]
+    }
+  },
+  {
+    "rule": "exception-approval-self-attested",
+    "entityId": "REQ-d-agent-ref",
+    "description": "Exception REQ-d-agent-ref was recorded by an agent with approved_by 'kim', but nothing corroborates the approval (missing approval_ref)",
+    "suggestion": "Have kim (or another human) confirm the exception: set origin.approved_by to the confirming person and approval_ref to the decision record (ticket, ADR or review link) on REQ-d-agent-ref; if nobody approved it, remove approved_by so the exception stops exempting REQ-base-a",
+    "evidence": {
+      "exceptionId": "REQ-d-agent-ref",
+      "exempts": ["REQ-base-a"],
+      "approvedBy": "kim",
+      "origin": {
+        "kind": "agent",
+        "approved_by": "lee"
+      },
+      "missing": ["approval_ref"]
+    }
+  },
+  {
+    "rule": "exception-unapproved",
+    "entityId": "REQ-z-unapproved",
+    "description": "Exception REQ-z-unapproved exempts REQ-base-a, REQ-base-b but has no approved_by, so it exempts nothing: success scenarios it specifies are still checked against REQ-base-a, REQ-base-b",
+    "suggestion": "Have a human decide: set approved_by (and approval_ref to the decision record) on REQ-z-unapproved if the exception is approved, or remove the exempts link and set expects: rejection on the scenario if it is not",
+    "source": "docs/z.md",
+    "evidence": {
+      "exceptionId": "REQ-z-unapproved",
+      "exempts": ["REQ-base-a", "REQ-base-b"]
+    }
+  },
+  {
+    "rule": "agent-requirement-unapproved",
+    "entityId": "REQ-c-agent",
+    "description": "Requirement REQ-c-agent was authored by an agent (session-1) and no human has approved it",
+    "suggestion": "Review the requirement text; when it states the intended behavior, record the reviewer in origin.approved_by (keep kind: agent and the rest of origin)",
+    "source": "docs/c.md",
+    "evidence": {
+      "origin": {
+        "kind": "agent",
+        "ref": "session-1"
+      }
+    }
+  },
+  {
+    "rule": "agent-requirement-unapproved",
+    "entityId": "REQ-e-agent",
+    "description": "Requirement REQ-e-agent was authored by an agent and no human has approved it",
+    "suggestion": "Review the requirement text; when it states the intended behavior, record the reviewer in origin.approved_by (keep kind: agent and the rest of origin)",
+    "evidence": {
+      "origin": {
+        "kind": "agent"
+      }
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "REQ-a-plain",
+    "description": "Requirement REQ-a-plain does not say why it exists: it has no rationale field, no Rationale or Why section and no linked ADR",
+    "suggestion": "Ask the person who stated the intent why it matters and record the answer in rationale (one or two sentences), or link the ADR that explains the decision",
+    "evidence": {
+      "origin": {
+        "kind": "agent",
+        "approved_by": "lee"
+      }
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "REQ-b-human-approved",
+    "description": "Requirement REQ-b-human-approved does not say why it exists: it has no rationale field, no Rationale or Why section and no linked ADR",
+    "suggestion": "Ask the person who stated the intent why it matters and record the answer in rationale (one or two sentences), or link the ADR that explains the decision",
+    "evidence": {
+      "origin": {
+        "kind": "human"
+      }
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "REQ-c-agent",
+    "description": "Requirement REQ-c-agent does not say why it exists: it has no rationale field, no Rationale or Why section and no linked ADR",
+    "suggestion": "Ask the person who stated the intent why it matters and record the answer in rationale (one or two sentences), or link the ADR that explains the decision",
+    "source": "docs/c.md",
+    "evidence": {
+      "origin": {
+        "kind": "agent",
+        "ref": "session-1"
+      }
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "REQ-d-agent-ref",
+    "description": "Requirement REQ-d-agent-ref does not say why it exists: it has no rationale field, no Rationale or Why section and no linked ADR",
+    "suggestion": "Ask the person who stated the intent why it matters and record the answer in rationale (one or two sentences), or link the ADR that explains the decision",
+    "evidence": {
+      "origin": {
+        "kind": "agent",
+        "approved_by": "lee"
+      }
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "REQ-h-spaced",
+    "description": "Requirement REQ-h-spaced does not say why it exists: it has no rationale field, no Rationale or Why section and no linked ADR",
+    "suggestion": "Ask the person who stated the intent why it matters and record the answer in rationale (one or two sentences), or link the ADR that explains the decision",
+    "evidence": {
+      "origin": {
+        "kind": "human"
+      }
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "REQ-i-closed",
+    "description": "Requirement REQ-i-closed does not say why it exists: it has no rationale field, no Rationale or Why section and no linked ADR",
+    "suggestion": "Ask the person who stated the intent why it matters and record the answer in rationale (one or two sentences), or link the ADR that explains the decision",
+    "evidence": {
+      "origin": {
+        "kind": "human"
+      }
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "REQ-j-active",
+    "description": "Requirement REQ-j-active does not say why it exists: it has no rationale field, no Rationale or Why section and no linked ADR",
+    "suggestion": "Ask the person who stated the intent why it matters and record the answer in rationale (one or two sentences), or link the ADR that explains the decision",
+    "evidence": {
+      "origin": {
+        "kind": "human"
+      }
+    }
+  },
+  {
+    "rule": "requirement-rationale-missing",
+    "entityId": "REQ-k-approved",
+    "description": "Requirement REQ-k-approved does not say why it exists: it has no rationale field, no Rationale or Why section and no linked ADR",
+    "suggestion": "Ask the person who stated the intent why it matters and record the answer in rationale (one or two sentences), or link the ADR that explains the decision",
+    "evidence": {
+      "origin": {
+        "kind": "human"
+      }
+    }
+  }
+]

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.discovery
-property_key: clause_05_the_discovery_surface_must_offer_coverage_reporting_with_kb_
+property_key: offers_coverage_reporting
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_search_discovery.clause_05_the_discovery_surface_must_offer_coverage_reporting_with_kb_.eq.true
+canonical_key: req.req_mcp_search_discovery.offers_coverage_reporting.eq.true
 claim_key: CLAIM-85DE8086A2F011E3
 claim_text: The discovery surface must offer coverage reporting with kb_coverage and kibi coverage
 origin:

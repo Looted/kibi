@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as core from "kibi-agent-core/usage-telemetry";
 

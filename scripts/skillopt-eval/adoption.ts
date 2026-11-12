@@ -72,7 +72,6 @@ export async function adoptApprovedSkill(
   );
 }
 
-// implements REQ-skillopt-automatic-adoption
 export async function adoptSkillOptCandidate(
   input: AutoAdoptionInput,
   verdict: ExternalAdoptionVerdict | undefined,

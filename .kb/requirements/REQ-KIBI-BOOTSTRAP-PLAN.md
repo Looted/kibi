@@ -1,6 +1,6 @@
 ---
 title: Bootstrap Kibi onboarding and plan/apply safety
-status: open
+status: closed
 text_ref: .kb/requirements/REQ-KIBI-BOOTSTRAP-PLAN.md
 semantic_text: Kibi initialization must attach the exact Git branch and create infrastructure only; An explicit bootstrap request must perform initial inference and seed through kibi-bootstrap, then seeded repositories must hand off to normal Kibi work. Public interfaces must use canonical plan-bootstrap and kb_plan_bootstrap names without legacy aliases. The planner must return a deterministic read-only hash-bound plan with exact branch, KB, workspace, and source evidence bindings and bounded context questions. Status and next actions must classify thin, seeded, degraded, and repair-required states consistently. Applying bootstrap must require explicit approval, execute dependency-ordered actions sequentially through kb_apply_plan, and never permit direct kb_upsert for bootstrap tasks. Partial application must produce a typed repair journal with action-start and post-action checkpoints, reject original-plan replay, and fail closed on changed state. MCP, Cursor, OpenCode, Codex, and CLI adapters must route to the shared planner and canonical skills rather than duplicate workflows. Generic onboarding must direct agents through typed status and canonical kibi-usage, kibi-freshness, kibi-traceability, and kibi-bootstrap skills without manual .kb edits.
 logic_claims:
@@ -94,9 +94,10 @@ id: REQ-KIBI-BOOTSTRAP-PLAN
 type: req
 origin:
   kind: migration
-  ref: kibi migrate v5->v6
+  ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-05, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 4): "ok" Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
-tags:
-  - review:context-missing
 ---
 The bootstrap workflow must produce a read-only deterministic plan and apply only an explicitly approved exact plan through kb_apply_plan.
+
+## Why
+Onboarding mixed repository init with teaching Kibi about an existing codebase, through an autopilot. A reviewable hash-bound plan, with only the approved plan applied, gives one clear and safe path. Source: changeset "steady-bootstrap-plan"; ADR-KIBI-BOOTSTRAP-PLAN-APPLY.

@@ -1,0 +1,300 @@
+{
+  "withoutEvaluator": {
+    "routes": {
+      "ok": false,
+      "reason": "reader routes needs Kibi's code evaluator"
+    },
+    "references": {
+      "ok": false,
+      "reason": "reader references needs Kibi's code evaluator"
+    },
+    "drizzle": {
+      "ok": false,
+      "reason": "reader schema needs Kibi's code evaluator"
+    }
+  },
+  "failed": {
+    "ok": false,
+    "reason": "boom"
+  },
+  "references": {
+    "ok": true,
+    "model": {
+      "members": ["A", "B"]
+    }
+  },
+  "bareReferences": {
+    "ok": true,
+    "model": {
+      "members": []
+    }
+  },
+  "prolog": {
+    "ok": true,
+    "model": {
+      "members": ["a", "b"],
+      "sequence": ["b", "a", "b"]
+    }
+  },
+  "bareProlog": {
+    "ok": true,
+    "model": {
+      "members": [],
+      "sequence": []
+    }
+  },
+  "routes": {
+    "ok": true,
+    "model": {
+      "members": ["GET /api/a", "GET /api/b", "GET /z", "POST /api/b"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/a",
+          "middleware": ["auth"]
+        },
+        {
+          "method": "GET",
+          "path": "/api/b",
+          "middleware": []
+        },
+        {
+          "method": "POST",
+          "path": "/api/b",
+          "middleware": ["auth", "log"]
+        },
+        {
+          "method": "GET",
+          "path": "/z",
+          "middleware": ["auth"]
+        }
+      ]
+    }
+  },
+  "middleware": {
+    "ok": true,
+    "model": {
+      "members": [
+        "GET /api/a auth",
+        "GET /z auth",
+        "POST /api/b auth",
+        "POST /api/b log"
+      ],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/a",
+          "middleware": ["auth"]
+        },
+        {
+          "method": "GET",
+          "path": "/api/b",
+          "middleware": []
+        },
+        {
+          "method": "POST",
+          "path": "/api/b",
+          "middleware": ["auth", "log"]
+        },
+        {
+          "method": "GET",
+          "path": "/z",
+          "middleware": ["auth"]
+        }
+      ]
+    }
+  },
+  "prefix": {
+    "ok": true,
+    "model": {
+      "members": ["GET /api/a", "GET /api/b", "POST /api/b"],
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/a",
+          "middleware": ["auth"]
+        },
+        {
+          "method": "GET",
+          "path": "/api/b",
+          "middleware": []
+        },
+        {
+          "method": "POST",
+          "path": "/api/b",
+          "middleware": ["auth", "log"]
+        }
+      ]
+    }
+  },
+  "prefixNone": {
+    "ok": false,
+    "reason": "no route of app is under /none"
+  },
+  "bareRoutes": {
+    "ok": true,
+    "model": {
+      "members": [],
+      "routes": []
+    }
+  },
+  "bareRoutesPrefix": {
+    "ok": false,
+    "reason": "no route of bare is under /x"
+  },
+  "fields": {
+    "ok": true,
+    "model": {
+      "members": ["bio", "id", "nick"],
+      "entities": [
+        {
+          "name": "Admin",
+          "columns": [],
+          "foreign_keys": []
+        },
+        {
+          "name": "User",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "nick",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "bio",
+              "nullable": false,
+              "optional": true
+            }
+          ],
+          "foreign_keys": []
+        }
+      ]
+    }
+  },
+  "required": {
+    "ok": true,
+    "model": {
+      "members": ["id"],
+      "entities": [
+        {
+          "name": "Admin",
+          "columns": [],
+          "foreign_keys": []
+        },
+        {
+          "name": "User",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "nick",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "bio",
+              "nullable": false,
+              "optional": true
+            }
+          ],
+          "foreign_keys": []
+        }
+      ]
+    }
+  },
+  "optional": {
+    "ok": true,
+    "model": {
+      "members": ["bio", "nick"],
+      "entities": [
+        {
+          "name": "Admin",
+          "columns": [],
+          "foreign_keys": []
+        },
+        {
+          "name": "User",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "nick",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "bio",
+              "nullable": false,
+              "optional": true
+            }
+          ],
+          "foreign_keys": []
+        }
+      ]
+    }
+  },
+  "table": {
+    "ok": false,
+    "reason": "source (reader validator) does not take table; it takes reader, file, export, select"
+  },
+  "noTable": {
+    "ok": false,
+    "reason": "source (reader validator) does not take table; it takes reader, file, export, select"
+  },
+  "bareValidator": {
+    "ok": true,
+    "model": {
+      "members": [],
+      "entities": []
+    }
+  },
+  "bareTable": {
+    "ok": false,
+    "reason": "source (reader validator) does not take table; it takes reader, file, export, select"
+  },
+  "drizzle": {
+    "ok": true,
+    "model": {
+      "members": ["Admin", "User"],
+      "entities": [
+        {
+          "name": "Admin",
+          "columns": [],
+          "foreign_keys": []
+        },
+        {
+          "name": "User",
+          "columns": [
+            {
+              "name": "id",
+              "nullable": false,
+              "optional": false
+            },
+            {
+              "name": "nick",
+              "nullable": true,
+              "optional": false
+            },
+            {
+              "name": "bio",
+              "nullable": false,
+              "optional": true
+            }
+          ],
+          "foreign_keys": []
+        }
+      ]
+    }
+  }
+}

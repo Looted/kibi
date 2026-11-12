@@ -98,7 +98,6 @@ export async function loadSurface(sourceRepoRoot: string): Promise<{
   });
 }
 
-// implements REQ-skillopt-codex-optimization
 export function buildOfflineReviewArtifacts(
   sourceRepoRoot: string,
   runId: string,
@@ -194,7 +193,6 @@ export async function buildOfflineReviewArtifacts(
   return { runLock, baseline, candidate, report, metrics, proposal, approval };
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function writeOfflineReviewArtifacts(
   root: ArtifactPath | string,
   artifacts: OfflineReviewArtifacts,
@@ -239,7 +237,6 @@ export async function writeOfflineReviewArtifacts(
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function planOfflineAdoption(
   repoRoot: string,
   artifacts: OfflineReviewArtifacts,

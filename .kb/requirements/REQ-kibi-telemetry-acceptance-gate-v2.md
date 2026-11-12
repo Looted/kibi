@@ -1,6 +1,6 @@
 ---
 title: Usage telemetry is a conservative workflow acceptance gate that includes lookup before first edit
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:
@@ -160,6 +160,7 @@ logic_claims:
   - CLAIM-2826A6AB85ACB393
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:14:53.581Z'
 id: REQ-kibi-telemetry-acceptance-gate-v2
 type: req

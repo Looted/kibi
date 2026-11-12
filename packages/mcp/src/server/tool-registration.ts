@@ -47,6 +47,7 @@ type ToolRegistrar<TProlog> = (
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
   annotations?: ToolAnnotations,
   outputSchema?: object,
+  businessInputSchema?: object,
 ) => void;
 
 type ToolRegistration = {
@@ -57,7 +58,6 @@ type ToolRegistration = {
   ) => Promise<unknown>;
 };
 
-// implements REQ-002, REQ-013
 export function registerConfiguredTools<TProlog>(
   server: McpServer,
   runtime: ToolsRuntime<TProlog>,
@@ -114,6 +114,7 @@ export function registerConfiguredTools<TProlog>(
       spec,
       definition.annotations,
       definition.outputSchema,
+      publicSpec.businessInputSchema,
     );
   };
 

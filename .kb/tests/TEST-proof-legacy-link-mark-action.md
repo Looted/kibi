@@ -26,15 +26,15 @@ id: TEST-proof-legacy-link-mark-action
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-2ff43f5be3546a04021e340a
+    receipt_id: PR-2a0c5421b9826c67b2c4b70b
     test_id: TEST-proof-legacy-link-mark-action
     scope: unit
     outcome: passed
-    code_snapshot: fed4ebb783f2658a2b1a7673268d9b0ffcf80faa0d1f59c186900196eec682cc
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T20:36:41.404Z'
-    finished_at: '2026-10-28T20:36:41.567Z'
-    artifact_digest: c2c6adab8888e3a68214a5fd79fdcd59064f677e9aa0fdd0d79de2b9205198a7
+    code_snapshot: e25a1f0385dac8dcff3382f76f7940204d134ea7aa298c9b083cb2fcd11015b2
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-04T18:30:26.614Z'
+    finished_at: '2026-11-04T18:30:26.764Z'
+    artifact_digest: 8ad507cef67c8c8e77deebad73a7a5576d042c629e65bfeef4a761dbc73aaf01
     contract_hash: 5469ac6c04fef76dc4f1ffa7ffb85c55b384ee974d7e81588378b5fe2c2cdf14
     binding_hash: 2a12acdf86390c4664581367e06a80ba849d73c719b5eb8d696a880e33bc0693
     fingerprint: eaafaf33430273eef03bc768a5968608749ddaf13a5a88f52b66287ef4692c0b
@@ -71,7 +71,7 @@ proof_receipts:
     certificate_digest: ec2396c82f16fbe4bf6e4ffae19bd1c3e9a21ffc2a225b3c465b7fa5b19c9203
     claim_bindings:
       - claim_key: CLAIM-AE6690A5E75ECDEF
-        requirement_id: REQ-cli-migration-pin-codes
+        requirement_id: REQ-cli-migration-symbol-codes
         fact_id: FACT-legacy-link-mark-action
         binding: derived
         scope: code

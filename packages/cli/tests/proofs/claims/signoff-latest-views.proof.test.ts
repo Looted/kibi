@@ -10,8 +10,6 @@ import {
   SIGNOFF_LATEST_MARKDOWN,
 } from "../../../src/signoff/model.js";
 
-// implements REQ-signoff-latest-views
-
 /**
  * The files kibi signoff writes its latest JSON, Markdown and HTML views to. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

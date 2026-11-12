@@ -25,7 +25,6 @@ function processIsRunning(pid) {
 
 // The runtime directory is created by this runner, so its PID files are exact
 // engine targets and never ambient developer processes.
-// implements REQ-test-journaled-engine-harness
 export async function stopOwnedEngines(runtimeDirectory) {
   if (!existsSync(runtimeDirectory)) return 0;
   const pids = [];
@@ -64,7 +63,6 @@ export async function stopOwnedEngines(runtimeDirectory) {
   return pids.length;
 }
 
-// implements REQ-test-journaled-engine-harness
 export async function runOwnedEngineTests(command, args) {
   const runtimeDirectory = mkdtempSync(
     // Keep the owned socket/PID location below the Unix pathname budget so

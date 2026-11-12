@@ -1,4 +1,3 @@
-// implements REQ-skillopt-logical-evidence-fidelity
 //
 // Behavior-focused coverage for the per-cell resolvers in
 // runtime/codex-cell-defaults.ts: workflow-signal detection, forbidden-action
@@ -232,6 +231,14 @@ describe("workflow signal resolvers over evidence text", () => {
     await expectSignal(
       "recovery boundary reported",
       { markers: ["nothing relevant observed"] },
+      false,
+    );
+  });
+
+  test("onboarding reconciliation needs a matching review record", async () => {
+    await expectSignal(
+      "onboarding evidence reconciled",
+      { markers: [] },
       false,
     );
   });

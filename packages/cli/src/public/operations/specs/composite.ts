@@ -4,7 +4,6 @@ import { modelRequirementSpec, suggestPredicatesSpec } from "./modeling.js";
 import { semanticAdvisorSpec } from "./semantic.js";
 import { skillsListSpec, skillsLoadSpec, skillsReadSpec } from "./skills.js";
 
-// implements REQ-kibi-mcp-tool-consolidation
 /**
  * Composite operations keep the agent-facing tool list short. Each one
  * dispatches to an existing operation by `action` or `mode` and returns that
@@ -51,7 +50,6 @@ const EQUIVALENT_PARAMETERS: Readonly<
 /** Routed operations whose `warnings` are `{ kind, message, nextAction }`. */
 const RECORD_WARNING_OPERATIONS = new Set(["kb_model_requirement"]);
 
-// implements REQ-kibi-mcp-tool-consolidation
 /**
  * A composite accepts every route's parameters, so a parameter of another
  * route passes schema validation and the chosen route silently ignores it.
@@ -67,8 +65,8 @@ export function foreignParameterWarnings(
   const route = routes[choice];
   if (route === undefined) return [];
   const own = new Set(Object.keys(properties(route)));
-  const equivalents =
-    route.name === undefined ? {} : (EQUIVALENT_PARAMETERS[route.name] ?? {});
+  // An unnamed route reads as "undefined", which no table entry uses.
+  const equivalents = EQUIVALENT_PARAMETERS[String(route.name)] ?? {};
   const warnings: Array<{
     parameter: string;
     message: string;
@@ -76,11 +74,9 @@ export function foreignParameterWarnings(
   }> = [];
   for (const parameter of Object.keys(rest)) {
     if (own.has(parameter) || rest[parameter] === undefined) continue;
+    // The chosen route never owns a parameter that got this far.
     const owners = Object.entries(routes)
-      .filter(
-        ([other, otherRoute]) =>
-          other !== choice && parameter in properties(otherRoute),
-      )
+      .filter(([, otherRoute]) => parameter in properties(otherRoute))
       .map(([other]) => `${selector}: ${other}`);
     if (owners.length === 0) continue;
     const equivalent = equivalents[parameter];
@@ -103,7 +99,8 @@ export async function dispatchComposite(
   context: OperationContext,
 ): Promise<OperationResult<Record<string, unknown>>> {
   const choice = input[selector];
-  const route = typeof choice === "string" ? routes[choice] : undefined;
+  // A missing or non-string selector names no route either.
+  const route = routes[String(choice)];
   if (route === undefined) {
     throw new Error(
       `${selector} must be one of: ${Object.keys(routes).join(", ")}`,
@@ -142,8 +139,7 @@ export async function dispatchComposite(
   }
   // The routed payload's own warnings list carries them, in its own shape;
   // a payload without one gets them in the text content only.
-  const asRecords =
-    route.name !== undefined && RECORD_WARNING_OPERATIONS.has(route.name);
+  const asRecords = RECORD_WARNING_OPERATIONS.has(String(route.name));
   const routedWarnings = Array.isArray(payload.warnings)
     ? {
         warnings: [
@@ -174,21 +170,18 @@ export async function dispatchComposite(
   };
 }
 
-// implements REQ-kibi-mcp-tool-consolidation
 export const SKILL_ROUTES = {
   list: skillsListSpec,
   load: skillsLoadSpec,
   read: skillsReadSpec,
 } as const;
 
-// implements REQ-kibi-mcp-tool-consolidation
 export const MODEL_ROUTES = {
   analyze: semanticAdvisorSpec,
   requirement: modelRequirementSpec,
   predicates: suggestPredicatesSpec,
 } as const;
 
-// implements REQ-kibi-mcp-tool-consolidation
 export const skillsSpec = {
   name: "kb_skills",
   cliName: "skill",
@@ -212,7 +205,6 @@ export const skillsSpec = {
     dispatchComposite("action", SKILL_ROUTES, input, context),
 } as const satisfies OperationSpec;
 
-// implements REQ-kibi-mcp-tool-consolidation
 export const modelSpec = {
   name: "kb_model",
   cliName: "model",

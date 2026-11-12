@@ -1,9 +1,9 @@
-// implements REQ-skillopt-predicate-first-requirements
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {
   FinalStateReceiptSchema,
   decodeFinalStatePredicateSnapshot,
+  factTarget,
 } from "../runtime/final-state";
 
 const spies: Array<{ mockRestore: () => void }> = [];
@@ -100,5 +100,45 @@ describe("final-state remaining fact targets and decode errors", () => {
         binding,
       ),
     ).toThrow("unexpected decoder");
+  });
+
+  test("an unknown fact kind has no target", () => {
+    expect(factTarget({ fact_kind: "observation" })).toBeNull();
+  });
+
+  test("scenarios keep their expectation, property assumptions and specification", () => {
+    const decoded = decodeFinalStatePredicateSnapshot(
+      JSON.stringify(
+        snapshot([
+          { type: "req", id: "REQ-1", specified_by: ["SCN-1"] },
+          {
+            type: "scenario",
+            id: "SCN-1",
+            expects: "rejection",
+            assumes: ["FACT-LIMIT", "FACT-OTHER"],
+          },
+          { type: "scenario", id: "SCN-2" },
+          {
+            type: "fact",
+            id: "FACT-LIMIT",
+            fact_kind: "property_value",
+            property_key: "limit",
+            value: 3,
+            value_type: "int",
+          },
+          { type: "fact", id: "FACT-OTHER", fact_kind: "observation" },
+        ]),
+      ),
+      binding,
+    );
+    expect(decoded.scenarios).toStrictEqual([
+      {
+        id: "SCN-1",
+        expects: "rejection",
+        assumes: 1,
+        specifiesRequirement: true,
+      },
+      { id: "SCN-2", assumes: 0, specifiesRequirement: false },
+    ]);
   });
 });

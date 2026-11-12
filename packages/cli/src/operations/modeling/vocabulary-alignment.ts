@@ -46,7 +46,6 @@ import type {
 /** Operation name used for the external-provider allowlist. */
 const OPERATION_NAME = "kb_model_requirement";
 
-// implements REQ-kibi-subject-vocabulary
 export type SubjectResolution = Readonly<{
   /** reuse_existing: the plan links the existing subject fact. */
   decision: "reuse_existing" | "declare_new";
@@ -57,7 +56,6 @@ export type SubjectResolution = Readonly<{
   candidates: readonly SubjectCandidate[];
 }>;
 
-// implements REQ-kibi-subject-vocabulary
 export type RedundancyCandidate = Readonly<{
   factId: string;
   subjectKey: string;
@@ -67,7 +65,6 @@ export type RedundancyCandidate = Readonly<{
   confidence: number;
 }>;
 
-// implements REQ-kibi-subject-vocabulary
 export type VocabularyAlignmentOutcome = Readonly<{
   subject: SubjectResolution;
   redundancyCandidates: readonly RedundancyCandidate[];
@@ -117,7 +114,6 @@ async function queryJson(prolog: PrologPort, goal: string): Promise<unknown> {
   return parseJsonBinding(result.bindings.Json);
 }
 
-// implements REQ-kibi-subject-vocabulary
 export async function readSubjectVocabulary(
   prolog: PrologPort,
 ): Promise<VocabularyEntryWithFact[]> {
@@ -128,7 +124,6 @@ export async function readSubjectVocabulary(
   return Array.isArray(parsed) ? (parsed as VocabularyEntryWithFact[]) : [];
 }
 
-// implements REQ-kibi-subject-vocabulary
 export async function readSubjectClaims(
   prolog: PrologPort,
   subjectKeys: readonly string[],
@@ -189,7 +184,6 @@ async function resolveRegistry(
  * modeling advice: exact duplicate detection stays with the deterministic
  * Prolog `domain-redundancy` check.
  */
-// implements REQ-kibi-subject-vocabulary, REQ-kibi-vocabulary-alignment-capability
 export async function alignRequirementVocabulary(
   context: OperationContext,
   clause: Readonly<{
@@ -236,7 +230,8 @@ export async function alignRequirementVocabulary(
         decision: "reuse_existing",
         subjectKey: chosen.subjectKey,
         existingFactId: chosen.factId,
-        confidence: decision?.confidence ?? 0,
+        // Only a decision can choose an existing subject.
+        confidence: (decision as NonNullable<typeof decision>).confidence,
         candidates,
       }
     : {
@@ -269,8 +264,9 @@ export async function alignRequirementVocabulary(
     );
     const claimsById = new Map(claims.map((claim) => [claim.factId, claim]));
     redundancyCandidates = comparison.results.flatMap((judgment) => {
-      const claim = claimsById.get(judgment.pairKey);
-      if (!judgment.sameObligation || claim === undefined) return [];
+      // The composition rejects a judgment whose pairKey was not supplied.
+      const claim = claimsById.get(judgment.pairKey) as SubjectClaim;
+      if (!judgment.sameObligation) return [];
       return [
         {
           factId: claim.factId,

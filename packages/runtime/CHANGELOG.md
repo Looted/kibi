@@ -1,5 +1,59 @@
 # kibi-runtime
 
+## 2.31.0
+
+### Minor Changes
+
+- 8263dea: A project can now read the KB of another repository it depends on, such as a library or a service it calls. Declare the repository and a tag, branch or commit in `.kb/dependencies.json`, pin it with `kibi deps lock`, and reads named with `kb` (MCP) or `--kb` (CLI) answer from that repository's own KB at the pinned commit. The dependency's KB is a read-only copy in a shared cache outside the repository: it never mixes with the project's KB, never slows its own checks, and can stay on an older KB schema (6 or later) until its owners upgrade.
+  - New `kibi deps lock [names...]` (with `--update`), `kibi deps fetch` and `kibi deps status`. The lock file `.kb/dependencies.lock.json` records each commit and its KB schema; `status` exits 1 when a dependency needs locking.
+  - `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage` and `kb_graph` accept an optional `kb` argument; the CLI commands `search`, `query`, `status`, `find-gaps`, `coverage` and `graph` accept `--kb <name>`, and their `--input` JSON routes accept `kb`.
+  - Over MCP, a dependency read runs in its own routed child server, so the attached project's server and store are untouched. Write tools take no `kb` argument and refuse a call that names one, so a dependency is never written and a write meant for it never lands in the project's KB.
+  - A dependency read ignores `KIBI_BRANCH`, which names a branch of the project, not of the dependency's pinned checkout.
+  - The cache lives in `KIBI_DEPENDENCY_CACHE`, else `$XDG_CACHE_HOME/kibi/dependencies`, else `~/.cache/kibi/dependencies`.
+  - `kibi sync --quiet` no longer prints the symbol-coordinate refresh line.
+
+- 0a490cd: The MCP server now checks each Kibi operation's input against the same contract as the CLI JSON route. A field the operation does not define is refused instead of being silently dropped, and a value of the wrong type comes back as the coded `VALIDATION_FAILED` error envelope instead of a bare protocol message. Clients that sent extra fields must drop them. kibi-runtime exports `prepareOperationInput` for adapters.
+
+### Patch Changes
+
+- 0087d57: Kibi no longer reads `// implements REQ-...` comments in source code as traceability links. The symbol manifest (`.kb/symbols.yaml`) is now the only record of which requirements a symbol implements, so a comment can no longer pass `kibi check --staged` on its own, and a stale comment can no longer hide that the manifest links a symbol to something else. `kibi migrate` lists the comments left in your repository so you can move each link that still holds into the manifest and delete the comment.
+  - `kibi check --staged` takes a changed symbol's requirement links only from the manifest. Before, a leading `implements` comment replaced the manifest links of that symbol for the staged gate. The failure message no longer suggests writing a comment.
+  - The ts-morph and tree-sitter extractors no longer collect comment text. `SourceSymbolAnalysis.directiveText` in `kibi-plugin-sdk` is deprecated and ignored by every host; extractors that still send it keep validating.
+  - OpenCode's risk classifier counts a code file as traced when a manifest symbol of that file has an `implements` link, not when the file contains an `implements` comment. Cursor's post-edit guidance, the bundled skills, `AGENTS.md`-style guidance and the docs no longer recommend comments.
+  - `kibi migrate` adds one `review_inline_implements_comment` review action that lists each comment's file, line, the ids it names and `manifestLinked` (ids a manifest symbol of the same file already implements). It never edits source code.
+
+  ## Migration
+
+  This is a hard change: a commit that touches a symbol whose only requirement link was a comment now fails `kibi check --staged` with "fewer than 1 requirement link(s)".
+  1. Run `kibi migrate` (or `kibi migrate --format json`) and open the `review_inline_implements_comment` action.
+  2. For each listed comment whose `manifestLinked` does not cover every id it names, and whose code still implements that requirement, add the link with `kb_upsert` (CLI: `kibi upsert --input -`): the symbol's `title`, `sourceFile` and `implements -> REQ-...`.
+  3. Delete the comments. They have no effect any more.
+
+- 3c6809e: The `kibi-usage` skill now explains reading another repository's knowledge base: the read tools take `kb` to answer from a pinned KB dependency, a dependency is never written, and re-pinning with `kibi deps lock` is asked about first.
+- 51a228e: kibi-mcp starts again when kibi-cli is not installed next to it. The server read its telemetry signals from `kibi-cli/telemetry-details`, but kibi-cli is only a development dependency of kibi-mcp, so a project or global install of kibi-mcp alone failed at startup with `ERR_MODULE_NOT_FOUND: Cannot find package 'kibi-cli'` (and with `ERR_PACKAGE_PATH_NOT_EXPORTED` beside an older kibi-cli). kibi-runtime now exports `operationTelemetrySignals`, and kibi-mcp reads it from there, from the same bundle that raises the operation's errors, so MCP telemetry also recognizes a rejected write by its class.
+
+  Packing a package now fails when its published files import another package by name that is not in its `dependencies`, `peerDependencies` or `optionalDependencies`, and the release contract installs kibi-mcp without kibi-cli and checks that it answers `initialize`.
+
+- c6d1600: A `Kibi-Impact: none` line never changed the result of `kibi check --staged`, so it is no longer parsed or documented, and the `kibi_impact_override_missing_rationale` diagnostic is removed. A behavior edit is cleared only by staged evidence or by a `.kb/symbols.yaml` that covers every declaration of the file. An entity document that quotes the declaration now counts as staged evidence instead of being dropped.
+
+  Behaviour change: the diagnostic id `kibi_impact_override_missing_rationale` no longer exists. The bundled `kibi-commit-review` skill drops the audited no-impact section.
+
+- 2b7ede7: A requirement whose behavior no longer exists can now say so: set `status: retired` with a `retired_reason`. Until now `closed` meant both "done and still valid" and "retired", so a retired requirement without a successor kept being served as governing by search, hooks and every current-intent check. A retired requirement stops governing, and `kibi check` makes sure nothing current is left hanging off it. This is KB schema 14: run `kibi migrate --yes`, then review the requirements it suggests retiring.
+  - New requirement status `retired`, with the required field `retired_reason`. `kb_upsert` refuses `status: retired` without a reason. A retired requirement is out of proof scope ("requirement is retired"), listed under `notGoverning` by `kb_search`, and treated as retired by `symbol-owner-superseded` and the context check.
+  - New blocking check rule `retired-reason-missing`: a retired requirement must state why.
+  - New blocking check rule `retired-owner-only`: a current fact, scenario or test whose every owning requirement is retired must be relinked to the current owner, archived (`status: deprecated` for facts and scenarios) or deleted (tests).
+  - `kibi migrate` (KB schema 14) lists every `closed` requirement that nothing supersedes and whose own source says it was retired (its proof exemption, title, body or a `historical-status:` tag) as a `req_retired_status_suggest` review action. Approving one by id sets `status: retired` and a `retired_reason` quoting those words. Kibi never retires a requirement on its own.
+  - `kibi migrate` now suggests `retired` instead of `closed` for requirements with the legacy statuses `deprecated` and `rejected`, and `kb_upsert` lists `retired` instead of `deprecated` as a requirement status.
+  - The `kibi-usage` skill explains when to retire a requirement instead of closing it.
+
+- Updated dependencies [0087d57]
+- Updated dependencies [d65ab84]
+- Updated dependencies [3d41cbb]
+- Updated dependencies [644b209]
+- Updated dependencies [2b7ede7]
+  - kibi-core@0.32.0
+  - kibi-plugin-builtin@0.6.0
+
 ## 2.30.0
 
 ### Minor Changes

@@ -4,7 +4,6 @@ import type { SemanticPropositionRole } from "./types.js";
 const DEFINITION_VERB = /\b(?:means|defined as|refers to|is called)\b/i;
 const CONDITION_OPENER = /^\s*(?:if|when|whenever|provided that|only if)\b/i;
 
-// implements REQ-kibi-conditional-requirement-authoring
 // A definition is "<subject> means|is defined as|refers to|is called <...>" as
 // the main predicate of a sentence that asserts no obligation. A definition
 // verb that opens a relative clause ("every note that refers to the clip") or
@@ -19,7 +18,6 @@ export function isDefinitionShape(statement: string): boolean {
   return !/\b(?:that|which|who)\s*$/i.test(subject);
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
 // Inventories persisted before definitions required the main-predicate shape
 // recorded any clause containing a definition verb as a definition. Accept that
 // stored role so existing knowledge keeps validating; new writes use the
@@ -30,7 +28,26 @@ export function legacyPropositionRoles(
   return DEFINITION_VERB.test(statement) ? ["definition"] : [];
 }
 
-// implements REQ-kibi-conditional-requirement-authoring
+// A bare desired impression is subjective, even when phrased with should.
+// Keep concrete actions, quantitative conditions and any independent
+// obligation assertive instead of exempting them through subjective words.
+function isSubjectiveAspiration(statement: string): boolean {
+  const impression =
+    /\bshould\s+(?:feel\s+(?:welcoming|comfortable|energetic)(?:\s+and\s+(?:welcoming|comfortable|energetic))*|(?:look|seem)\s+complete)\b/i.exec(
+      statement,
+    );
+  if (impression === null) return false;
+  const tail = statement.slice(impression.index + impression[0].length).trim();
+  return (
+    (tail.length === 0 || /^(?:to|for)\s[^,;.!?]+$/i.test(tail)) &&
+    !/\b(?:and|or)\b/i.test(tail) &&
+    !/\d|\b(?:at least|at most|exactly|within|no more than)\b/i.test(
+      statement,
+    ) &&
+    !hasNormativeAssertion(statement.replace(impression[0], ""))
+  );
+}
+
 export function propositionRole(
   statement: string,
   normative: boolean,
@@ -38,25 +55,7 @@ export function propositionRole(
   // Explicit context labels may quote obligations. Incidental explanatory
   // words within an asserted obligation must not exempt it from grounding.
   const assertedNormative = normative && hasNormativeAssertion(statement);
-  // A bare desired impression is subjective, even when phrased with should.
-  // Keep concrete actions, quantitative conditions and any independent
-  // obligation assertive instead of exempting them through subjective words.
-  const impression =
-    /\bshould\s+(?:feel\s+(?:welcoming|comfortable|energetic)(?:\s+and\s+(?:welcoming|comfortable|energetic))*|(?:look|seem)\s+complete)\b/i.exec(
-      statement,
-    );
-  const impressionTail = impression
-    ? statement.slice(impression.index + impression[0].length).trim()
-    : "";
-  const subjectiveAspiration =
-    impression !== null &&
-    (impressionTail.length === 0 ||
-      /^(?:to|for)\s+[^,;.!?]+$/i.test(impressionTail)) &&
-    !/\b(?:and|or)\b/i.test(impressionTail) &&
-    !/\d|\b(?:at least|at most|exactly|within|no more than)\b/i.test(
-      statement,
-    ) &&
-    !hasNormativeAssertion(statement.replace(impression[0], ""));
+  const subjectiveAspiration = isSubjectiveAspiration(statement);
   if (
     /^\s*(?:for example\b|e\.g\.|(?:example|illustrative(?: example)?)\s*:)/i.test(
       statement,
@@ -89,7 +88,6 @@ export function propositionRole(
   return "descriptive";
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
 // The role the semantic advisor assigns to one claim of a requirement's
 // semantic text. Writers derive persisted inventory roles from it so the
 // write-time proposition-complete check, which compares against the same

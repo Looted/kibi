@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -69,7 +68,7 @@ describe("cursor hook runner edges", () => {
     expect(reads).toBeGreaterThan(1);
     expect(result).toStrictEqual({
       additional_context:
-        'Kibi MCP has not been observed in this session and workspace trust is unknown. Do not probe or execute a CLI fallback; ask the operator to enable MCP or explicitly approve the trusted project-local CLI workflow.\nKibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.\nPrefer symbol manifest + executable_for or // implements REQ-<area>-<behavior> for traceability.',
+        'Kibi MCP has not been observed in this session and workspace trust is unknown. Do not probe or execute a CLI fallback; ask the operator to enable MCP or explicitly approve the trusted project-local CLI workflow.\nKibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.\nRecord traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.',
     });
   });
 });

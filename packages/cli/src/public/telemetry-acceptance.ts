@@ -51,7 +51,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /**
  * A row written by a host plugin hook (`interface: "hook"`). Hooks record
  * agent activity around Kibi calls: which Kibi operation a tool call ran
@@ -67,7 +66,6 @@ export interface TelemetryHookEvent extends TelemetryUsageEvent {
   readonly kb_operation?: string | null;
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /** A host hook row and where it sits relative to the operation events. */
 export interface TelemetryHookRow {
   readonly event: TelemetryHookEvent;
@@ -77,7 +75,6 @@ export interface TelemetryHookRow {
   readonly operationsBefore: number;
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /** Operation events and host hook rows of one usage log, kept apart. */
 export interface TelemetryUsagePartition {
   readonly operations: readonly TelemetryUsageEvent[];
@@ -144,7 +141,6 @@ export function parseTelemetryUsageLog(
   return events;
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /**
  * Split events into Kibi operations and host hook rows. Arrays from
  * `parseTelemetryUsageLog` carry their hook rows and log lines; any other
@@ -194,8 +190,8 @@ function telemetryProvided(event: TelemetryUsageEvent): boolean {
 }
 
 function timestampMillis(timestamp: string | undefined): number | null {
-  if (timestamp === undefined) return null;
-  const parsed = Date.parse(timestamp);
+  // A missing timestamp parses as NaN, like a malformed one.
+  const parsed = Date.parse(String(timestamp));
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -372,11 +368,13 @@ function advisorBeforeRequirementWriteMetric(
   recentStart: number,
   policy: TelemetryAcceptancePolicy,
 ): MutableMetric {
+  // Advisor runs without a requirement id land under the undefined key,
+  // which no requirement upsert looks up.
   const advisors = new Map<
-    string,
+    string | undefined,
     Array<{
       readonly entry: TimedEvent;
-      readonly sourceHash?: string;
+      readonly sourceHash: string | undefined;
     }>
   >();
   let attempts = 0;
@@ -393,15 +391,12 @@ function advisorBeforeRequirementWriteMetric(
           : undefined;
     if (
       current.event.tool === "kb_semantic_advisor" &&
-      eventSucceeded(current.event) &&
-      id !== undefined
+      eventSucceeded(current.event)
     ) {
       const matches = advisors.get(id) ?? [];
       matches.push({
         entry: current,
-        ...(current.event.semantic_source_hash !== undefined
-          ? { sourceHash: current.event.semantic_source_hash }
-          : {}),
+        sourceHash: current.event.semantic_source_hash,
       });
       advisors.set(id, matches);
       continue;
@@ -460,11 +455,9 @@ function advisorBeforeRequirementWriteMetric(
   };
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate-v2
 /** Kibi operations that count as looking up requirements before an edit. */
 export const LOOKUP_BEFORE_EDIT_OPERATIONS = ["kb_query", "kb_search"] as const;
 
-// implements REQ-kibi-telemetry-acceptance-gate-v2
 /** The first requirement-linked edit of one host session. */
 export interface FirstLinkedEdit {
   /** `<host>:<session_id>` of the session. */
@@ -480,7 +473,6 @@ function hookSession(event: TelemetryHookEvent): string | undefined {
   return `${event.host ?? "unknown"}:${sessionId}`;
 }
 
-// implements REQ-kibi-telemetry-acceptance-gate-v2, REQ-claude-hook-usage-telemetry-v2
 /**
  * For each host session, its first edit of a file whose symbols implement a
  * requirement and whether a Kibi lookup (MCP or CLI) preceded it. Rows
@@ -667,7 +659,7 @@ function proofGapRecoveryMetric(recent: readonly TimedEvent[]): MutableMetric {
     return {
       id: "proof_gap_recovery",
       status: "passed",
-      numerator: previous === undefined ? 0 : Math.max(0, previous - latest),
+      numerator: Math.max(0, previous ?? 0),
       denominator: previous ?? latest,
       message:
         "The latest complete requirement coverage event has zero proof gaps.",
@@ -717,7 +709,8 @@ function receiptFreshnessMetric(recent: readonly TimedEvent[]): MutableMetric {
     id: "e2e_receipt_freshness",
     status: gapCount === 0 ? "passed" : "failed",
     numerator: gapCount,
-    denominator: Number(latest.coverage_proof_gap_count ?? gapCount),
+    // Complete coverage events always carry a numeric proof-gap count.
+    denominator: latest.coverage_proof_gap_count as number,
     threshold: { operator: "<=", value: 0 },
     message:
       gapCount === 0

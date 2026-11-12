@@ -63,7 +63,6 @@ export function stringLogicClaims(value: unknown): string[] {
     : [];
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 function proseOf(payload: Payload): string {
   const properties = propertiesOf(payload);
   // text_ref is the prose only while semantic_text is unset (the ingestion
@@ -85,51 +84,44 @@ function isRequirement(payload: Payload): boolean {
   return stringValue(payload.type) === "req";
 }
 
-// implements REQ-kibi-logical-requirement-coverage
-// implements REQ-skillopt-logical-evidence-fidelity
-function logicalGroundingSlots(payload: Payload): number {
-  const relationships = Array.isArray(payload.relationships)
-    ? payload.relationships
-    : [];
-  return relationships.filter(
-    (relationship) =>
-      isRecord(relationship) &&
-      ["requires_property", "requires_predicate", "requires_rule"].includes(
-        stringValue(relationship.type),
-      ),
-  ).length;
+function recordsOf(value: unknown): Record<string, unknown>[] {
+  // rationale: a placeholder entry is not a record either, so callers see the same empty list.
+  // Stryker disable next-line ArrayDeclaration
+  return Array.isArray(value) ? value.filter(isRecord) : [];
 }
 
+const GROUNDING_TYPES = [
+  "requires_property",
+  "requires_predicate",
+  "requires_rule",
+];
+
+/**
+ * Every assertive claim is modeled and has exactly one logical grounding.
+ * With no assertive claim there is no grounding to count, so the type check
+ * below fails and nothing is reported as modeled.
+ */
 function isModeled(
   payload: Payload,
   expectedClaimKeys: readonly string[],
 ): boolean {
-  if (expectedClaimKeys.length === 0) return false;
-  const relationships = Array.isArray(payload.relationships)
-    ? payload.relationships
-    : [];
-  const types = new Set(
-    relationships
-      .filter(isRecord)
-      .map((relationship) => stringValue(relationship.type))
-      .filter(Boolean),
+  const relationships = recordsOf(payload.relationships);
+  const types = relationships.map((relationship) =>
+    stringValue(relationship.type),
   );
-  const rawInventory = propertiesOf(payload).semantic_inventory;
-  const inventory = Array.isArray(rawInventory)
-    ? rawInventory.filter(isRecord)
-    : [];
-  const modeledClaimKeys = inventory
+  const modeledClaimKeys = recordsOf(propertiesOf(payload).semantic_inventory)
     .filter(({ status }) => status === "modeled")
     .map(({ claim_key }) => stringValue(claim_key));
   return (
-    logicalGroundingSlots(payload) === expectedClaimKeys.length &&
+    types.filter((type) => GROUNDING_TYPES.includes(type)).length ===
+      expectedClaimKeys.length &&
     modeledClaimKeys.length === expectedClaimKeys.length &&
     expectedClaimKeys.every((claimKey) =>
       modeledClaimKeys.includes(claimKey),
     ) &&
-    ((types.has("constrains") && types.has("requires_property")) ||
-      types.has("requires_predicate") ||
-      types.has("requires_rule"))
+    ((types.includes("constrains") && types.includes("requires_property")) ||
+      types.includes("requires_predicate") ||
+      types.includes("requires_rule"))
   );
 }
 
@@ -143,25 +135,27 @@ function detectSignals(prose: string): readonly SemanticSignal[] {
   }));
 }
 
+// The suggestion detectors read normalized clause text (normalizeSemanticClause
+// collapses whitespace to single spaces), so their patterns match one space.
 function ambiguitySuggestion(
   payload: Payload,
   statement: string,
 ): SemanticModelingSuggestion | null {
   const match = statement.match(
-    /\b(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?<resource>active\s+sessions?|sessions?)\b/i,
+    /\b(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten) (?<resource>active sessions?|sessions?)\b/i,
   );
-  if (
-    !match?.groups?.value ||
-    !match.groups.resource ||
-    /at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to/i.test(statement)
-  )
+  if (!match || /at most|at least|exactly|no more than|up to/i.test(statement))
     return null;
+  // Both groups are required parts of the pattern.
+  const { value, resource } = match.groups as Record<string, string>;
   return {
     kind: "ambiguity_observation",
+    // rationale: withClauseProvenance sets the clause's own claim key on every suggestion.
+    // Stryker disable next-line StringLiteral
     claim_key: "",
     claim_text: statement,
     confidence: 0.78,
-    evidence: `${match.groups.value} ${match.groups.resource}`,
+    evidence: `${value} ${resource}`,
     rationale:
       "Cardinality without an explicit operator is ambiguous and should be clarified before strict modeling.",
     ambiguity: ["exactly", "at_most", "at_least", "illustrative_example"],
@@ -178,11 +172,13 @@ function ontologyGapSuggestion(
   statement: string,
 ): SemanticModelingSuggestion | null {
   const match = statement.match(
-    /\brate\s+limited\s+to\s+(?<count>\d+)\s+(?<action>[a-z][a-z\s_-]*?)\s+per\s+(?<window>[a-z]+)\b/i,
+    /\brate limited to (?<count>\d+) (?<action>[a-z][a-z _-]*?) per (?<window>[a-z]+)\b/i,
   );
   if (!match?.groups) return null;
   return {
     kind: "ontology_gap",
+    // rationale: withClauseProvenance sets the clause's own claim key on every suggestion.
+    // Stryker disable next-line StringLiteral
     claim_key: "",
     claim_text: statement,
     confidence: 0.82,
@@ -209,6 +205,8 @@ function predicateSuggestion(
 ): SemanticModelingSuggestion | null {
   // Deterministic builtin pack — never loads external plugins on sync paths.
   const matches = createBuiltinOntologyPack().match({
+    // rationale: the builtin pack matches on the statement; withClauseProvenance sets the claim key afterwards.
+    // Stryker disable next-line StringLiteral
     claimKey: "",
     statement,
   });
@@ -227,11 +225,18 @@ function predicateSuggestion(
 const HOST_RULE_RATIONALE =
   "The host supplied a typed kibi.logic.v1 interpretation. Kibi validated its safety, canonicalized it, and will persist it as data-backed rule evidence.";
 
+/** A host-supplied confidence, kept within [0, 1]. */
+function clampConfidence(value: number | undefined, fallback: number): number {
+  return Math.max(0, Math.min(1, value ?? fallback));
+}
+
+type RuleSuggestion = Extract<SemanticModelingSuggestion, { kind: "rule" }>;
+
 function ruleSuggestion(
   payload: Payload,
   candidate: NonNullable<SemanticAdvisorInput["interpretations"]>[number],
   rationale = HOST_RULE_RATIONALE,
-): SemanticModelingSuggestion | null {
+): RuleSuggestion | null {
   const validation = validateLogicIr(candidate.ir);
   if (
     !validation.valid ||
@@ -268,7 +273,7 @@ function ruleSuggestion(
     kind: "rule",
     claim_key: candidate.claim_key,
     claim_text: candidate.claim_text,
-    confidence: candidate.confidence ?? 0.75,
+    confidence: clampConfidence(candidate.confidence, 0.75),
     evidence: candidate.claim_text,
     rationale,
     suggested_next_tool: "kb_model_requirement",
@@ -307,7 +312,6 @@ function ruleSuggestion(
   };
 }
 
-// implements REQ-kibi-truthful-consistency
 // "X may happen only when C" and "X must not happen unless C" are conditional
 // requirements: they restrict an action, not a property of every situation.
 // Route them to the rule lane as a typed forbid-unless rule, so scenario
@@ -330,7 +334,6 @@ function conditionalRuleSuggestion(
   );
 }
 
-// implements REQ-kibi-truthful-consistency
 // A conditional clause that is neither a translatable rule nor a catalog
 // predicate stays an ontology gap (unresolved), never a strict property or an
 // observation that looks modeled: the strict lane would drop the condition.
@@ -364,19 +367,12 @@ function modelingSuggestions(
   payload: Payload,
   modeled: boolean,
   clauses: readonly SemanticClause[],
-  interpretations: SemanticAdvisorInput["interpretations"],
+  expectedClaimKeys: readonly string[],
+  interpretations: NonNullable<SemanticAdvisorInput["interpretations"]>,
 ): readonly SemanticModelingSuggestion[] {
   if (!isRequirement(payload) || modeled) return [];
   const suggestions: SemanticModelingSuggestion[] = [];
-  const seen = new Set<string>();
-  const expectedClaimKeys = clauses
-    .filter(
-      (clause) =>
-        !["rationale", "example", "subjective"].includes(
-          propositionRole(clause.text, clause.normative),
-        ),
-    )
-    .map((clause) => clause.claim_key);
+  // Each clause has its own claim key, so the clause suggestions never repeat.
   for (const clause of clauses) {
     const candidate = clause.text;
     const conditional = detectConditionalRule(candidate);
@@ -400,14 +396,11 @@ function modelingSuggestions(
       : clause.normative
         ? unmatchedClauseSuggestion(payload, clause, clauses, expectedClaimKeys)
         : null;
-    if (!suggestion) continue;
-    const key = `${suggestion.claim_key}:${suggestion.kind}:${suggestion.evidence}:${suggestion.suggested_next_tool}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      suggestions.push(suggestion);
-    }
+    if (suggestion) suggestions.push(suggestion);
   }
-  for (const interpretation of interpretations ?? []) {
+  // The same interpretation submitted twice yields one rule suggestion.
+  const seen = new Set<string>();
+  for (const interpretation of interpretations) {
     const clause = clauses.find(
       (entry) => entry.claim_key === interpretation.claim_key,
     );
@@ -422,10 +415,7 @@ function modelingSuggestions(
       statementOf(payload),
       semanticSourceOf(payload).field,
     );
-    const key =
-      withProvenance.kind === "rule"
-        ? `${withProvenance.claim_key}:rule:${withProvenance.semantic_key}`
-        : `${withProvenance.claim_key}:${withProvenance.kind}`;
+    const key = `${interpretation.claim_key}:${suggestion.semantic_key}`;
     if (!seen.has(key)) {
       seen.add(key);
       suggestions.push(withProvenance);
@@ -445,12 +435,9 @@ function withClauseProvenance(
   const clauseLocation = propositionSpan(statement, clause, 0);
   const clauseText = clauseLocation.sourceText;
   const clauseSpan = clauseLocation.span;
-  const status =
-    suggestion.kind === "ambiguity_observation"
-      ? "ambiguous"
-      : suggestion.kind === "ontology_gap"
-        ? "ontology_gap"
-        : "modeled";
+  // Only a typed grounding (a strict, predicate or rule suggestion) carries
+  // this inventory, in its req step or relationship plan, and it grounds
+  // the clause: the clause is modeled there.
   let inventoryCursor = 0;
   const semanticInventory = clauses.map((entry) => {
     const located = propositionSpan(statement, entry, inventoryCursor);
@@ -459,7 +446,7 @@ function withClauseProvenance(
     const context = ["rationale", "example", "subjective"].includes(role);
     const entryStatus =
       entry.index === clause.index
-        ? status
+        ? "modeled"
         : context
           ? "nonlogical"
           : "missing";
@@ -471,9 +458,7 @@ function withClauseProvenance(
       span: located.span,
       reason:
         entry.index === clause.index
-          ? status === "modeled"
-            ? "Draft apply plan contains a typed grounding for this proposition."
-            : suggestion.rationale
+          ? "Draft apply plan contains a typed grounding for this proposition."
           : context
             ? "Prose is retained for human context and is not a verifiable domain proposition."
             : "No typed grounding is included for this proposition in the current draft plan.",
@@ -484,10 +469,9 @@ function withClauseProvenance(
     source_field: sourceField,
     source_hash: semanticSourceHash(statement),
   };
+  // Every plan step is a req or fact step with properties.
   const applyPlan = suggestion.applyPlan.map((step) => {
-    if (!isRecord(step)) return step;
-    const properties = isRecord(step.properties) ? step.properties : null;
-    if (properties === null) return step;
+    const properties = step.properties as Record<string, unknown>;
     if (step.type === "req") {
       const existing = stringLogicClaims(properties.logic_claims);
       return {
@@ -505,7 +489,6 @@ function withClauseProvenance(
         },
       };
     }
-    if (step.type !== "fact") return step;
     return {
       ...step,
       properties: {
@@ -522,7 +505,8 @@ function withClauseProvenance(
     claim_key: clause.claim_key,
     claim_text: clauseText,
     applyPlan,
-    ...(suggestion.kind === "predicate" && suggestion.relationshipPlan !== null
+    // Only predicate and rule suggestions carry a relationship plan.
+    ...("relationshipPlan" in suggestion && suggestion.relationshipPlan !== null
       ? {
           relationshipPlan: {
             ...suggestion.relationshipPlan,
@@ -533,22 +517,9 @@ function withClauseProvenance(
             semanticInventory,
             inventoryContract,
             instructions:
-              "Create the predicate fact, merge the returned logicClaims into the requirement logic_claims manifest, then add requires_predicate without overwriting other requirement metadata.",
-          },
-        }
-      : {}),
-    ...(suggestion.kind === "rule" && suggestion.relationshipPlan !== null
-      ? {
-          relationshipPlan: {
-            ...suggestion.relationshipPlan,
-            claimKey: clause.claim_key,
-            claimText: clauseText,
-            logicClaims: expectedClaimKeys,
-            semanticClauses: clauses.map(({ text }) => text),
-            semanticInventory,
-            inventoryContract,
-            instructions:
-              "Create the rule_schema and rule facts, merge the returned logicClaims into the requirement logic_claims manifest, then add requires_rule without overwriting other requirement metadata.",
+              suggestion.kind === "predicate"
+                ? "Create the predicate fact, merge the returned logicClaims into the requirement logic_claims manifest, then add requires_predicate without overwriting other requirement metadata."
+                : "Create the rule_schema and rule facts, merge the returned logicClaims into the requirement logic_claims manifest, then add requires_rule without overwriting other requirement metadata.",
           },
         }
       : {}),
@@ -596,28 +567,23 @@ function shadowAnalysis(
     (interpretation) => interpretation.valid,
   );
   const models = valid.flatMap(({ normalized_ir: ir }) => (ir ? [ir] : []));
-  const containsExpressionKind = (kind: string): boolean => {
-    const visit = (value: unknown): boolean => {
-      if (!isRecord(value)) return false;
-      if (value.kind === kind) return true;
-      return Object.values(value).some((child) =>
-        Array.isArray(child) ? child.some(visit) : visit(child),
-      );
-    };
-    return models.some((model) => visit(model));
+  /** Some node of some model, at any depth, satisfies `test`. */
+  const containsNode = (
+    test: (node: Record<string, unknown>) => boolean,
+  ): boolean => {
+    const visit = (value: unknown): boolean =>
+      Array.isArray(value)
+        ? value.some(visit)
+        : isRecord(value) && (test(value) || Object.values(value).some(visit));
+    return visit(models);
   };
+  const containsExpressionKind = (kind: string): boolean =>
+    containsNode((node) => node.kind === kind);
   const hasModality = (modalities: readonly string[]): boolean =>
     models.some((model) => modalities.includes(model.modality));
-  const hasNegativeAtom = (() => {
-    const visit = (value: unknown): boolean => {
-      if (!isRecord(value)) return false;
-      if (value.kind === "not" || value.polarity === "negative") return true;
-      return Object.values(value).some((child) =>
-        Array.isArray(child) ? child.some(visit) : visit(child),
-      );
-    };
-    return models.some((model) => visit(model));
-  })();
+  const hasNegativeAtom = containsNode(
+    (node) => node.kind === "not" || node.polarity === "negative",
+  );
   const cues: Array<{
     kind: SemanticShadowCueKind;
     pattern: RegExp;
@@ -664,7 +630,8 @@ function shadowAnalysis(
     },
     {
       kind: "prerequisite",
-      pattern: /\b(?:before|only after|requires?\s+.+?\s+before)\b/i,
+      // "requires X before Y" is covered by the word before.
+      pattern: /\b(?:before|only after)\b/i,
       evidence: "prerequisite/order relation",
       represented: containsExpressionKind("temporal"),
     },
@@ -704,7 +671,8 @@ function shadowAnalysis(
     {
       kind: "numeric",
       pattern:
-        /\b\d+(?:\.\d+)?\b|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten)\b/i,
+        // A decimal such as 2.5 already matches at its integer part.
+        /\b\d+\b|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten)\b/i,
       evidence: "numeric or cardinality value",
       represented:
         containsExpressionKind("number") ||
@@ -781,7 +749,7 @@ function locateSourceText(
   const pattern = new RegExp(
     escapeRegExp(claimText.trim()).replace(/\s+/g, "\\s+"),
   );
-  for (const from of cursor > 0 ? [cursor, 0] : [0]) {
+  for (const from of [cursor, 0]) {
     const match = pattern.exec(source.slice(from));
     if (match !== null) {
       const start = from + match.index;
@@ -812,19 +780,18 @@ function assertVerbatimClauses(
 }
 
 function interpretationResults(
-  interpretations: SemanticAdvisorInput["interpretations"],
+  interpretations: NonNullable<SemanticAdvisorInput["interpretations"]>,
   clauses: readonly SemanticClause[],
   statement: string,
 ): {
   results: readonly SemanticInterpretationResult[];
   warnings: readonly string[];
 } {
-  if (interpretations === undefined) return { results: [], warnings: [] };
   const known = new Set(clauses.map((clause) => clause.claim_key));
   const semanticKeys = new Map<string, string>();
   const warnings: string[] = [];
   const results = interpretations.slice(0, 3).map((candidate) => {
-    const confidence = Math.max(0, Math.min(1, candidate.confidence ?? 0.5));
+    const confidence = clampConfidence(candidate.confidence, 0.5);
     const validation = validateLogicIr(candidate.ir);
     const errors = [...validation.errors];
     const clause = clauses.find(
@@ -834,11 +801,7 @@ function interpretationResults(
       errors.push(
         `claim_key ${candidate.claim_key} is not present in the advisor proposition inventory`,
       );
-    if (
-      clause &&
-      candidate.claim_text !== clause.text &&
-      semanticClaimKey(candidate.claim_text) !== clause.claim_key
-    )
+    if (clause && semanticClaimKey(candidate.claim_text) !== clause.claim_key)
       errors.push(
         `claim_text for ${candidate.claim_key} must match the proposition text (apart from normalized punctuation)`,
       );
@@ -897,7 +860,6 @@ function interpretationResults(
   return { results, warnings };
 }
 
-// implements REQ-kibi-dimension-gap
 /**
  * The first quantifier over a collection or cardinality bound in a clause,
  * and the typed groundings that represent it. The proof ladder's
@@ -1002,13 +964,10 @@ export function analyzeSemanticAdvisorInput(
         input.clauses ?? semanticClausesOf(payload),
       )
     : [];
+  // rationale: detected clauses are cut from the prose itself, so only caller-supplied clauses can fail the verbatim check.
+  // Stryker disable next-line ConditionalExpression
   if (input.clauses !== undefined) assertVerbatimClauses(statement, clauses);
-  const rawDeclaredClaims = propertiesOf(payload).logic_claims;
-  const declaredClaims = Array.isArray(rawDeclaredClaims)
-    ? rawDeclaredClaims.filter(
-        (value: unknown): value is string => typeof value === "string",
-      )
-    : [];
+  const declaredClaims = stringLogicClaims(propertiesOf(payload).logic_claims);
   const expectedClaims = clauses
     .filter(
       (clause) =>
@@ -1020,16 +979,17 @@ export function analyzeSemanticAdvisorInput(
   const modeled =
     requirement &&
     isModeled(payload, expectedClaims) &&
-    expectedClaims.length > 0 &&
     expectedClaims.every((claimKey) => declaredClaims.includes(claimKey));
+  const interpretations = input.interpretations ?? [];
   const suggestions = modelingSuggestions(
     payload,
     modeled,
     clauses,
-    input.interpretations,
+    expectedClaims,
+    interpretations,
   );
   const interpreted = interpretationResults(
-    input.interpretations,
+    interpretations,
     clauses,
     statement,
   );

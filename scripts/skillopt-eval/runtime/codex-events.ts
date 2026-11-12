@@ -91,7 +91,6 @@ const GLOB_OPTION_PATTERN =
 const UNSAFE_GLOB_CONTENT = /[\0\r\n$`;&|<>(){}\\]/;
 
 /** Decode only literal shell words, without evaluating expansions or operators. */
-// implements REQ-skillopt-codex-optimization
 function literalShellWords(command: string): string[] | null {
   const words: string[] = [];
   let word = "";
@@ -142,7 +141,6 @@ function literalShellWords(command: string): string[] | null {
  * normal negated glob exclusion for the private tree terminates a cell before
  * the model can use the public Kibi surface.
  */
-// implements REQ-skillopt-codex-optimization
 function commandReferencesKb(rawCommand: string): boolean {
   let command = rawCommand;
   const words = literalShellWords(rawCommand);
@@ -273,7 +271,6 @@ function eventViolations(
   return violations;
 }
 
-// implements REQ-skillopt-codex-optimization
 export function normalizeCodexJsonl(
   stdout: string,
   options: CodexNormalizationOptions,
@@ -326,7 +323,6 @@ export function normalizeCodexJsonl(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function deterministicVariantLabel(
   runLockHash: string,
   episodeId: string,

@@ -21,6 +21,8 @@ import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapsho
 import {
   environmentHash as canonicalEnvironmentHash,
   effectiveProofFingerprint,
+  fingerprintDrift,
+  type ProofFingerprintComponents,
   jsonDigest,
   proofContractHash,
 } from "../../public/proof-fingerprint.js";
@@ -30,14 +32,13 @@ import {
   type ProofBinding,
   type ProofContract,
   type ProofRunArtifact,
-  optionalProofContractFields,
-  proofBindingsErrors,
   proofRunArtifactErrors,
 } from "../../public/proof-protocol.js";
 import {
   MAX_PROOF_RECEIPTS,
   type ClaimBinding,
   type ProofReceipt,
+  validFingerprintComponents,
   proofReceiptCurrentBindingErrors,
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
@@ -55,11 +56,11 @@ import {
   releaseWorkspaceMutationLock,
 } from "../mutation/workspace-mutation-lock.js";
 import { MutationRollbackFailureError } from "../mutation/saga.js";
+import { parseBindings, parseContract } from "./current-fingerprint.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
 import { judgeClaimBindings, receiptEvidenceLevel } from "./claim-bindings.js";
 import { checkCodeCertificate } from "./code-certificates.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
   snapshot: string;
   artifact: Readonly<Record<string, unknown>>;
@@ -86,9 +87,10 @@ export type IngestProofTestResult = Readonly<{
   certificateRejection?: string;
   /** The receipt's verification scope (unit, integration or end_to_end). */
   scope?: string;
+  /** Fingerprint components that changed since the test's previous receipt. */
+  fingerprintDrift?: readonly string[];
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type IngestProofResult = Readonly<{
   artifactDigest: string;
   environmentHash: string;
@@ -105,8 +107,8 @@ type IngestProofOutput = {
 };
 
 type IngestProofMutationLifecycle = Readonly<{
-  onBatchCommitted?: () => void;
-  onRollbackFailure?: () => void;
+  onBatchCommitted: () => void;
+  onRollbackFailure: () => void;
 }>;
 
 type PendingReceiptCommit = {
@@ -137,7 +139,7 @@ async function rollbackUncommittedReceipts(
     }
   }
   if (failures.length > 0) {
-    lifecycle?.onRollbackFailure?.();
+    lifecycle?.onRollbackFailure();
     throw new AggregateError(
       [originalError, ...failures.map((failure) => failure.error)],
       `Proof ingest failed and could not restore every uncommitted receipt source; the source mutation lock remains held for recovery (${failures.map(({ testId, step }) => `${testId}:${step}`).join(", ")})`,
@@ -151,8 +153,9 @@ function text(value: unknown): string {
 }
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // typeof null is "object", so null comes back as itself.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 
@@ -163,65 +166,12 @@ function requiredString(value: unknown, label: string): string {
   return result;
 }
 
-function parseContract(test: Record<string, unknown>): ProofContract {
-  const contract = record(test.proof_contract);
-  const candidate: Record<string, unknown> = contract ?? {};
-  const { version, integration, required_proofs, success_policy } =
-    candidate as Record<string, unknown>;
-  const normalized: ProofContract = {
-    version: version as ProofContract["version"],
-    integration: String(integration ?? ""),
-    required_proofs: Array.isArray(required_proofs)
-      ? (required_proofs.map((entry) => {
-          const row = record(entry);
-          return {
-            symbol_id: String(row?.symbol_id ?? ""),
-            target: String(row?.target ?? ""),
-          };
-        }) as ProofContract["required_proofs"])
-      : [],
-    success_policy: success_policy as ProofContract["success_policy"],
-    ...optionalProofContractFields(candidate),
-  };
-  if (!contract || contract.version !== PROOF_CONTRACT_VERSION)
-    throw new Error(
-      `Proof ingest failed: test ${String(test.id)} has no proof_contract (${PROOF_CONTRACT_VERSION})`,
-    );
-  return normalized;
+export /** Whether a binding names a native case id, as its own id or an alias. */
+function ownsNativeId(binding: ProofBinding, nativeId: string): boolean {
+  return binding.native_id === nativeId || binding.aliases?.includes(nativeId) === true;
 }
 
-function parseBindings(test: Record<string, unknown>): ProofBinding[] {
-  const raw = test.proof_bindings;
-  if (raw === undefined || raw === null) return [];
-  if (!Array.isArray(raw))
-    throw new Error(
-      `Proof ingest failed: test ${String(test.id)} proof_bindings must be an array`,
-    );
-  const errors = proofBindingsErrors(raw);
-  if (errors.length > 0)
-    throw new Error(
-      `Proof ingest failed: test ${String(test.id)} ${errors.join("; ")}`,
-    );
-  return raw.map((entry) => {
-    const row = record(entry) ?? {};
-    return {
-      symbol_id: String(row.symbol_id ?? ""),
-      target: String(row.target ?? ""),
-      ...(row.native_id !== undefined
-        ? { native_id: String(row.native_id) }
-        : {}),
-      ...(row.aliases !== undefined
-        ? { aliases: (row.aliases as unknown[]).map(String) }
-        : {}),
-      ...(row.source_file !== undefined
-        ? { source_file: String(row.source_file) }
-        : {}),
-      ...(row.line !== undefined ? { line: Number(row.line) } : {}),
-    };
-  });
-}
-
-function enforceNativeCaseBindings(
+export function enforceNativeCaseBindings(
   testId: string,
   contract: ProofContract,
   bindings: readonly ProofBinding[],
@@ -240,8 +190,7 @@ function enforceNativeCaseBindings(
   const seenNativeIds = new Set<string>();
 
   for (const result of nativeResults) {
-    const nativeId =
-      typeof result.native_id === "string" ? result.native_id : "";
+    const nativeId = result.native_id ?? "";
     const resultLabel = `${result.symbol_id}/${result.target}`;
     if (!nativeId) {
       throw new Error(
@@ -267,27 +216,30 @@ function enforceNativeCaseBindings(
         `Proof ingest failed: test ${testId} native_case result ${resultLabel} has no matching proof_binding`,
       );
     }
-    const boundNativeIds = [
-      binding.native_id,
-      ...(binding.aliases ?? []),
-    ].filter(
-      (value): value is string => typeof value === "string" && value !== "",
-    );
-    if (!boundNativeIds.includes(nativeId)) {
+    if (!ownsNativeId(binding, nativeId)) {
       throw new Error(
         `Proof ingest failed: test ${testId} native_case result ${resultLabel} native_id '${nativeId}' does not match its proof_binding native_id or aliases`,
       );
     }
 
-    const ambiguousOwners = bindings.filter((candidate) =>
-      [candidate.native_id, ...(candidate.aliases ?? [])].includes(nativeId),
-    );
+    const ambiguousOwners = bindings.filter((candidate) => ownsNativeId(candidate, nativeId));
     if (ambiguousOwners.length !== 1) {
       throw new Error(
         `Proof ingest failed: test ${testId} native_id '${nativeId}' has an ambiguous proof_binding`,
       );
     }
   }
+}
+
+/** The components that differ between the newest earlier receipt and now. */
+function previousFingerprintDrift(
+  existing: readonly Record<string, unknown>[],
+  components: ProofFingerprintComponents,
+): readonly string[] {
+  const previous = existing.at(-1)?.fingerprint_components;
+  return validFingerprintComponents(previous)
+    ? fingerprintDrift(previous, components)
+    : [];
 }
 
 function existingReceipts(
@@ -298,14 +250,13 @@ function existingReceipts(
     : [];
 }
 
-// implements REQ-kibi-verification-evidence-contract
 async function executeIngestProofUnlocked(
   args: IngestProofArgs,
   context: OperationContext,
   lifecycle?: IngestProofMutationLifecycle,
 ): Promise<IngestProofOutput> {
-  if (!context.prolog)
-    throw new Error("Proof ingest requires a Prolog runtime");
+  const prolog = context.prolog;
+  if (!prolog) throw new Error("Proof ingest requires a Prolog runtime");
   const snapshot = requiredString(args.snapshot, "snapshot");
   const artifactValue = record(args.artifact);
   if (!artifactValue)
@@ -347,7 +298,7 @@ async function executeIngestProofUnlocked(
   const tests: Record<string, unknown>[] = [];
   if (requestedTestIds.length > 0) {
     for (const testId of requestedTestIds) {
-      const found = await loadEntities(context.prolog, {
+      const found = await loadEntities(prolog, {
         id: testId,
         type: "test",
       });
@@ -361,7 +312,7 @@ async function executeIngestProofUnlocked(
     // histories), then load each matching test in full: the append-only
     // receipt update needs that test's existing history, but never every
     // test's history in a single Prolog answer.
-    const candidates = await loadEntities(context.prolog, {
+    const candidates = await loadEntities(prolog, {
       type: "test",
       projection: "proof_contract",
     });
@@ -375,7 +326,7 @@ async function executeIngestProofUnlocked(
         continue;
       }
       const testId = String(candidate.id);
-      const found = await loadEntities(context.prolog, {
+      const found = await loadEntities(prolog, {
         id: testId,
         type: "test",
       });
@@ -397,10 +348,12 @@ async function executeIngestProofUnlocked(
     evaluation: ReturnType<typeof evaluateContractAgainstRun>;
     receipt: ProofReceipt;
     existing: Record<string, unknown>[];
+    components: ProofFingerprintComponents;
+    drift: readonly string[];
   };
   // Loaded outside the per-test binding try/catch: an engine failure must fail
   // the ingest, not silently write receipts without a binding hash.
-  const coveredBy = await loadCoveredBySymbolsByTest(context.prolog);
+  const coveredBy = await loadCoveredBySymbolsByTest(prolog);
   const prepared: Prepared[] = [];
   for (const test of tests) {
     const testId = String(test.id);
@@ -453,9 +406,7 @@ async function executeIngestProofUnlocked(
       testId,
       contract,
       outcome: evaluation.outcome,
-      certificate: (artifact.certificates ?? []).find(
-        (entry) => entry.test_id === testId,
-      ),
+      certificate: artifact.certificates?.find((entry) => entry.test_id === testId),
     });
     const claimBindings = await judgeClaimBindings(context, {
       testId,
@@ -495,18 +446,20 @@ async function executeIngestProofUnlocked(
       evidence_level: receiptEvidenceLevel(verdict.evidence_level, claimBindings),
       ...(claimBindings !== undefined ? { claim_bindings: claimBindings } : {}),
     };
+    const existing = existingReceipts(test);
     prepared.push({
       testId,
       test,
       contract,
       evaluation,
       receipt,
-      existing: existingReceipts(test),
+      existing,
+      components,
+      drift: previousFingerprintDrift(existing, components),
     });
   }
 
   const results: IngestProofTestResult[] = [];
-  // implements REQ-kibi-code-proof-kinds
   // What each receipt says about its proof kind, evidence level, certificate
   // and claim bindings, so the caller sees a rejected certificate at ingest.
   const bindingsOf = new Map(
@@ -526,6 +479,7 @@ async function executeIngestProofUnlocked(
           ? { certificateRejection: entry.receipt.certificate_rejection }
           : {}),
         scope: entry.receipt.scope,
+        ...(entry.drift.length > 0 ? { fingerprintDrift: entry.drift } : {}),
       },
     ]),
   );
@@ -571,6 +525,7 @@ async function executeIngestProofUnlocked(
       receipt as unknown as Record<string, unknown>,
       contract,
       receipt.fingerprint,
+      entry.components,
     );
     const receiptErrors = [...historyErrors, ...bindingErrors];
     if (receiptErrors.length > 0)
@@ -608,8 +563,12 @@ async function executeIngestProofUnlocked(
     // workspace". Falls back to the canonical render when the document is
     // not a patchable markdown file.
     let sourceDocumentOverride: string | undefined;
-    const source = typeof test.source === "string" ? test.source : "";
-    if (context.fs && source !== "" && /\.(md|mdx)$/i.test(source)) {
+    // A source that is not a string reads as no markdown path.
+    const source = String(test.source);
+    // rationale: without a filesystem port the read below throws and is
+    // caught, which leaves no override, as skipping the read does.
+    // Stryker disable next-line ConditionalExpression,LogicalOperator
+    if (context.fs && /\.(md|mdx)$/i.test(source)) {
       try {
         const absolute = resolveContainedSourcePath(
           context.workspaceRoot,
@@ -619,7 +578,7 @@ async function executeIngestProofUnlocked(
         sourceDocumentOverride =
           patchReceiptsIntoDocument(before, nextReceipts) ?? undefined;
       } catch {
-        sourceDocumentOverride = undefined;
+        // An unreadable document falls back to the canonical render.
       }
     }
     // exactOptionalPropertyTypes: only pass the override when one exists.
@@ -661,13 +620,11 @@ async function executeIngestProofUnlocked(
   }
   } catch (error) {
     if (error instanceof MutationRollbackFailureError) {
-      lifecycle?.onRollbackFailure?.();
+      lifecycle?.onRollbackFailure();
     }
     await rollbackUncommittedReceipts(pendingCommits, error, lifecycle);
   }
 
-  const prolog = context.prolog;
-  if (!prolog) throw new Error("Proof ingest failed: Prolog runtime is unavailable");
   const batchSize = 25;
   for (let offset = 0; offset < pendingCommits.length; offset += batchSize) {
     const batch = pendingCommits.slice(offset, offset + batchSize);
@@ -689,7 +646,7 @@ async function executeIngestProofUnlocked(
       // batch before parsing auxiliary metadata or doing more work, so later
       // failures can only roll back still-prepared source writes.
       for (const entry of batch) entry.deferred.finalize();
-      lifecycle?.onBatchCommitted?.();
+      lifecycle?.onBatchCommitted();
       prolog.invalidateCache?.();
       parseUpsertChangeKinds(written.bindings, batch.length);
     } catch (error) {
@@ -730,7 +687,6 @@ async function executeIngestProofUnlocked(
   };
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export async function executeIngestProof(
   args: IngestProofArgs,
   context: OperationContext,

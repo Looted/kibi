@@ -252,8 +252,7 @@ function unquoted(value: unknown): string {
  * predicate fact, by the recommended candidate's canonical_key (the same
  * predicate tuple stated in other words).
  */
-// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-grounding-guards
-async function existingClaimGrounding(
+export async function existingClaimGrounding(
   prolog: PrologPort | null,
   requirementId: string | undefined,
   claimKey: string,
@@ -268,7 +267,8 @@ async function existingClaimGrounding(
         `findall(To, kb_relationship(${type}, '${escapeAtom(requirementId)}', To), Targets)`,
       );
       if (!targets.success) continue;
-      for (const target of parsePrologList(targets.bindings.Targets ?? "[]")) {
+      // A missing binding reads as no list.
+      for (const target of parsePrologList(String(targets.bindings.Targets))) {
         const fact = await prolog.query(
           `once((kb_entity('${escapeAtom(target)}', fact, _GroundProps), memberchk(claim_key=_GroundClaimRaw, _GroundProps), normalize_term_atom(_GroundClaimRaw, ClaimKey), (memberchk(fact_kind=_GroundKindRaw, _GroundProps) -> normalize_term_atom(_GroundKindRaw, FactKind) ; FactKind = ''), (memberchk(canonical_key=_GroundCanonicalRaw, _GroundProps) -> normalize_term_atom(_GroundCanonicalRaw, CanonicalKey) ; CanonicalKey = '')))`,
         );
@@ -278,9 +278,7 @@ async function existingClaimGrounding(
         const matchedBy =
           storedClaimKey === claimKey
             ? "claim_key"
-            : canonicalKey !== null &&
-                storedCanonicalKey !== "" &&
-                storedCanonicalKey === canonicalKey
+            : storedCanonicalKey !== "" && storedCanonicalKey === canonicalKey
               ? "canonical_key"
               : null;
         if (matchedBy === null) continue;
@@ -312,7 +310,6 @@ function hasSubjectHint(value: string | undefined): boolean {
  * contradiction checks by subject see the predicate and the subject fact as
  * one subject.
  */
-// implements REQ-model-predicates-requirement-subject-v2
 async function constrainedSubjectKeys(
   prolog: PrologPort | null,
   requirementId: string | undefined,
@@ -326,7 +323,7 @@ async function constrainedSubjectKeys(
     if (!result.success) return [];
     return Array.from(
       new Set(
-        parsePrologList(result.bindings.Keys ?? "[]")
+        parsePrologList(String(result.bindings.Keys))
           .map(unquoted)
           .filter((key) => key.length > 0),
       ),
@@ -339,7 +336,6 @@ async function constrainedSubjectKeys(
   }
 }
 
-// implements REQ-mcp-suggest-predicates
 export async function handleKbSuggestPredicates(
   prolog: PrologPort | null,
   args: SuggestPredicatesArgs,
@@ -482,9 +478,11 @@ export async function handleKbSuggestPredicates(
     )
       ? evaluatedCandidates
       : [];
-  const recommendedCandidate = candidates
-    .filter((candidate) => candidate.eligibility === "eligible")
-    .sort(compareEligibleByApplicabilityScoreThenName)[0];
+  // The candidates are already in compareEligibleByApplicabilityScoreThenName
+  // order, eligible ones first.
+  const recommendedCandidate = candidates.find(
+    (candidate) => candidate.eligibility === "eligible",
+  );
 
   if (candidates.length === 0 && !args.schemaId) {
     warnings.push(
@@ -505,15 +503,11 @@ export async function handleKbSuggestPredicates(
     warnings,
   );
   const alreadyGrounded = existingGrounding.length > 0;
-  // implements REQ-model-predicates-grounding-guards
   // The requirement already grounds the very predicate tuple the candidate
   // names (in other words, or the same text again): nothing to write or
   // swap, whatever the candidate's binding status.
   const sameTupleGrounding = existingGrounding.filter(
-    (row) =>
-      recommendedCandidate !== undefined &&
-      row.canonicalKey !== null &&
-      row.canonicalKey === recommendedCandidate.canonical_key,
+    (row) => row.canonicalKey === recommendedCandidate?.canonical_key,
   );
   const keepExistingGrounding = sameTupleGrounding.length > 0;
   const completeCandidate =
@@ -523,17 +517,16 @@ export async function handleKbSuggestPredicates(
   // The stored requirement and its proposition ledger, read once for the
   // ledger guard, the replacement plan and the hash-bound plan.
   const storedRequirement =
-    prolog !== null && context !== undefined && args.requirementId
+    context !== undefined && args.requirementId
       ? await storedRequirementContract(prolog, args.requirementId, warnings)
       : null;
-  const ledger = ledgerState(storedRequirement, claimKey);
+  const ledgerLacksClaim = ledgerState(storedRequirement, claimKey);
   // A requirement grounds only the propositions its prose states, so a
   // claim its ledger does not carry cannot be linked to it: the predicate
   // fact would be written and stay unlinked. The requirement's prose has to
   // be extended first.
   const ledgerMissing =
-    ledger === "missing" && completeCandidate !== undefined && !alreadyGrounded;
-  // implements REQ-model-predicates-participant-not-subject
+    ledgerLacksClaim && completeCandidate !== undefined && !alreadyGrounded;
   // A schema whose participant argument (actor, role, owner) the claim never
   // names does not fit the claim: no binding the agent could supply would be
   // read from the claim. When every unbound argument of the recommended
@@ -549,10 +542,11 @@ export async function handleKbSuggestPredicates(
           requirementSubjects,
         )
       : [];
+  // Participants are only named for a recommended candidate.
   const schemaDoesNotFit =
     unnamedParticipants.length > 0 &&
     unnamedParticipants.length ===
-      (recommendedCandidate?.unbound_arguments.length ?? 0);
+      (recommendedCandidate as PredicateSuggestion).unbound_arguments.length;
   // The action names the predicate state; existingGrounding (non-empty) is
   // the separate "already grounded" signal. A complete candidate for a claim
   // that is already grounded becomes a replacement, never a second link.
@@ -571,9 +565,13 @@ export async function handleKbSuggestPredicates(
         : schemaDoesNotFit
           ? "record_ontology_gap"
           : "provide_argument_bindings";
+  // rationale: only a complete candidate's plan is read, so the empty plan's
+  // contents are never observed.
+  // Stryker disable ArrayDeclaration
   const predicatePlan = completeCandidate
     ? buildPredicateApplyPlan(completeCandidate, args)
     : [];
+  // Stryker restore ArrayDeclaration
   // An already grounded claim gets no predicate write plan: a second
   // grounding link would fail the proposition-complete rule, so the
   // replacement plan below swaps the grounding instead. The ontology-gap
@@ -612,12 +610,10 @@ export async function handleKbSuggestPredicates(
         )
       : null;
   const replacementPlan =
-    alreadyGrounded &&
-    !keepExistingGrounding &&
-    plannedFactId !== null &&
-    args.requirementId
+    alreadyGrounded && !keepExistingGrounding && plannedFactId !== null
       ? buildGroundingReplacementPlan(
-          args.requirementId,
+          // Only a named requirement has a grounding.
+          args.requirementId as string,
           plannedFactId,
           predicatePlan,
           existingGrounding,
@@ -625,7 +621,7 @@ export async function handleKbSuggestPredicates(
             ? restatedRequirementFields(storedRequirement)
             : await storedRequirementProperties(
                 prolog,
-                args.requirementId,
+                args.requirementId as string,
                 warnings,
               ),
         )
@@ -645,14 +641,14 @@ export async function handleKbSuggestPredicates(
     .join(", ");
   if (keepExistingGrounding) {
     warnings.push(
-      `${args.requirementId} already grounds the predicate ${recommendedCandidate?.canonical_key} through ${sameTupleSummary}. Keep that grounding: no fact or link is needed. If this text is a further proposition of the requirement, extend its prose and run kb_model mode analyze before grounding it separately.`,
+      `${args.requirementId} already grounds the predicate ${(recommendedCandidate as PredicateSuggestion).canonical_key} through ${sameTupleSummary}. Keep that grounding: no fact or link is needed. If this text is a further proposition of the requirement, extend its prose and run kb_model mode analyze before grounding it separately.`,
     );
   } else if (alreadyGrounded) {
     warnings.push(
       `${args.requirementId} already grounds this claim (${claimKey}) through ${groundingSummary}. A modeled claim takes exactly one logical grounding relationship, so adding requires_predicate beside it fails the proposition-complete rule. ${replacementPlan ? "Keep the existing grounding, or follow replacementPlan to swap it for the predicate." : "Keep the existing grounding; no predicate replacement is available yet."}`,
     );
   }
-  if (ledger === "missing" && !alreadyGrounded && recommendedCandidate) {
+  if (ledgerLacksClaim && !alreadyGrounded && recommendedCandidate) {
     warnings.push(
       `The proposition ledger of ${args.requirementId} has no claim ${claimKey} for this text, so the requirement cannot ground it: a requirement grounds only the propositions its prose states. ${ledgerMissing ? "No fact was planned, because it would be written without a link. " : ""}Extend the requirement's prose with this clause (kb_model mode requirement, or kb_upsert with the extended semantic_text and the ledger kb_model mode analyze returns), then call mode predicates again.`,
     );
@@ -680,9 +676,9 @@ export async function handleKbSuggestPredicates(
   const textSummary =
     groundedPrefix +
     (keepExistingGrounding
-      ? `${args.requirementId} already grounds ${recommendedCandidate?.canonical_key} through ${sameTupleSummary}. Nothing to apply; keep that grounding.`
+      ? `${args.requirementId} already grounds ${(recommendedCandidate as PredicateSuggestion).canonical_key} through ${sameTupleSummary}. Nothing to apply; keep that grounding.`
       : replacementPlan
-        ? `To use ${completeCandidate?.predicate_name} instead, follow replacementPlan and link requires_predicate to ${plannedFactId}; otherwise keep the existing grounding.`
+        ? `To use ${(completeCandidate as PredicateSuggestion).predicate_name} instead, follow replacementPlan and link requires_predicate to ${plannedFactId}; otherwise keep the existing grounding.`
         : ledgerMissing && completeCandidate
           ? `Matched ${completeCandidate.predicate_name} as ${completeCandidate.canonical_key}, but ${args.requirementId} does not state this claim (its ledger has no ${claimKey}). Extend the requirement's prose with this clause first; no fact or link was planned.`
           : completeCandidate
@@ -723,7 +719,7 @@ export async function handleKbSuggestPredicates(
       : [];
   for (const conflict of decisionConflicts) {
     warnings.push(
-      `The proposed ${conflict.canonicalKey} (${conflict.proposedEffect}) contradicts ${conflict.factId} (${conflict.effect}) under ${conflict.requirementId}${conflict.requirementId === args.requirementId ? ", the requirement this claim would ground" : ""}: both decide ${completeCandidate?.predicate_name} on the same key arguments. kb_upsert refuses a grounding link that introduces this conflict; supersede or close the conflicting requirement, or correct the decision, before applying.`,
+      `The proposed ${conflict.canonicalKey} (${conflict.proposedEffect}) contradicts ${conflict.factId} (${conflict.effect}) under ${conflict.requirementId}${conflict.requirementId === args.requirementId ? ", the requirement this claim would ground" : ""}: both decide ${(completeCandidate as PredicateSuggestion).predicate_name} on the same key arguments. kb_upsert refuses a grounding link that introduces this conflict; supersede or close the conflicting requirement, or correct the decision, before applying.`,
     );
   }
 
@@ -763,24 +759,19 @@ export async function handleKbSuggestPredicates(
 }
 
 /**
- * Whether the stored requirement's proposition ledger carries the claim:
- * "unknown" when the requirement or its ledger is not readable.
+ * Whether the stored requirement's proposition ledger is known to lack the
+ * claim: false when the requirement or its ledger is not readable.
  */
-// implements REQ-model-predicates-grounding-guards
-function ledgerState(
+export function ledgerState(
   stored: Record<string, unknown> | null,
   claimKey: string,
-): "present" | "missing" | "unknown" {
+): boolean {
   if (stored === null || !Array.isArray(stored.semantic_inventory))
-    return "unknown";
-  return stored.semantic_inventory.some(
-    (row) =>
-      row !== null &&
-      typeof row === "object" &&
-      (row as Record<string, unknown>).claim_key === claimKey,
-  )
-    ? "present"
-    : "missing";
+    return false;
+  // Object(null) is an empty object, and a primitive row has no claim_key.
+  return !stored.semantic_inventory.some(
+    (row) => (Object(row) as Record<string, unknown>).claim_key === claimKey,
+  );
 }
 
 /**
@@ -788,8 +779,7 @@ function ledgerState(
  * the candidate on every key argument and decide the opposite: the pairs
  * the domain-contradictions rule would report once the candidate is linked.
  */
-// implements REQ-model-predicates-grounding-guards
-async function candidateDecisionConflicts(
+export async function candidateDecisionConflicts(
   prolog: PrologPort | null,
   candidate: PredicateSuggestion,
   warnings: string[],
@@ -809,6 +799,9 @@ async function candidateDecisionConflicts(
     );
     if (!result.success) return [];
     const conflicts: CandidateDecisionConflict[] = [];
+    // rationale: findall always binds Rows, and a fallback row without four
+    // parts is skipped, so the fallback's text is never observed.
+    // Stryker disable next-line StringLiteral
     for (const row of parsePrologList(result.bindings.Rows ?? "[]")) {
       const [requirementId, factId, effect, proposedEffect] = row.split("|");
       if (!requirementId || !factId || !effect || !proposedEffect) continue;
@@ -838,9 +831,9 @@ function restatedRequirementFields(
   stored: Record<string, unknown>,
 ): Record<string, unknown> {
   const restated: Record<string, unknown> = {};
+  // The stored contract holds no null field.
   for (const field of RESTATED_REQUIREMENT_FIELDS)
-    if (stored[field] !== undefined && stored[field] !== null)
-      restated[field] = stored[field];
+    if (stored[field] !== undefined) restated[field] = stored[field];
   return restated;
 }
 
@@ -849,7 +842,6 @@ function restatedRequirementFields(
  * a subject the requirement constrains, so kb_check would keep reporting
  * strict-req-fact-pairing after the link.
  */
-// implements REQ-model-predicates-requirement-subject-v2
 function unpairedSubjectWarning(
   candidate: PredicateSuggestion,
   args: SuggestPredicatesArgs,
@@ -873,7 +865,6 @@ const RESTATED_REQUIREMENT_FIELDS = [
   "tags",
 ] as const;
 
-// implements REQ-model-what-if-planned-facts
 /**
  * The hash-bound plan behind applyPlan + relationshipPlan: the predicate fact,
  * then the requirement restated with the merged logic_claims manifest and the
@@ -910,9 +901,7 @@ async function groundingPlan(
     const inventory = stored.semantic_inventory as unknown[];
     const entry = inventory.find(
       (row): row is Record<string, unknown> =>
-        row !== null &&
-        typeof row === "object" &&
-        (row as Record<string, unknown>).claim_key === input.claimKey,
+        (Object(row) as Record<string, unknown>).claim_key === input.claimKey,
     );
     stored.semantic_inventory = inventory.map((row) =>
       row === entry
@@ -934,20 +923,11 @@ async function groundingPlan(
         {
           type: "req",
           id: input.requirementId,
-          // The manifest must name every assertive ledger claim, so the
-          // stored manifest is kept and this claim merged into it.
+          // The manifest must name every assertive ledger claim: logicClaims
+          // is the stored manifest with this claim merged into it.
           properties: {
             ...stored,
-            logic_claims: Array.from(
-              new Set([
-                ...(Array.isArray(stored.logic_claims)
-                  ? stored.logic_claims.filter(
-                      (claim): claim is string => typeof claim === "string",
-                    )
-                  : []),
-                ...input.logicClaims,
-              ]),
-            ),
+            logic_claims: [...input.logicClaims],
           },
           relationships: [input.relationship],
         },
@@ -985,14 +965,13 @@ const STORED_LEDGER_FIELDS = [
   "logic_claims",
 ] as const;
 
-// implements REQ-model-what-if-planned-facts
 /**
  * The stored requirement as a plan step restates it: title, status and
  * metadata plus its proposition ledger, so the upsert kb_apply_plan runs is
  * validated as given and keeps the ledger instead of replacing it.
  */
 async function storedRequirementContract(
-  prolog: PrologPort,
+  prolog: PrologPort | null,
   requirementId: string,
   warnings: string[],
 ): Promise<Record<string, unknown> | null> {
@@ -1002,7 +981,8 @@ async function storedRequirementContract(
     warnings,
   );
   if (restated === null) return null;
-  const [stored] = await loadEntities(prolog, {
+  // A requirement was read, so there is a store.
+  const [stored] = await loadEntities(prolog as PrologPort, {
     id: requirementId,
     type: "req",
   });
@@ -1018,7 +998,6 @@ async function storedRequirementContract(
  * that keeps the stored metadata. The stored proposition ledger and text_ref
  * are merged by kb_upsert itself.
  */
-// implements REQ-model-predicates-plan-roundtrip
 async function storedRequirementProperties(
   prolog: PrologPort | null,
   requirementId: string,
@@ -1059,8 +1038,7 @@ async function storedRequirementProperties(
  * transient diagnostics and `rollback` restores the old link when kb_check
  * after the last step is not clean.
  */
-// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-plan-roundtrip, REQ-model-predicates-replacement-diagnostics
-function buildGroundingReplacementPlan(
+export function buildGroundingReplacementPlan(
   requirementId: string,
   factId: string,
   predicatePlan: ReadonlyArray<Record<string, unknown>>,

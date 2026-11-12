@@ -313,7 +313,6 @@ describe("semantic advisor operation", () => {
     }
   });
 
-  // implements REQ-kibi-proposition-complete-ingestion
   test("reads a definition only from a main predicate that asserts no obligation", () => {
     for (const [text, role] of [
       [
@@ -350,7 +349,6 @@ describe("semantic advisor operation", () => {
     }
   });
 
-  // implements REQ-kibi-proposition-complete-ingestion
   test("keeps validating inventories that stored the earlier definition role", () => {
     const text =
       "Deleting an annotation must clear any active, editing, or draft state that refers to it.";
@@ -391,7 +389,6 @@ describe("semantic advisor operation", () => {
     );
   });
 
-  // implements REQ-kibi-truthful-consistency
   test("routes only-when and must-not-unless prose to one forbid-unless rule", () => {
     const suggestionsFor = (text: string) =>
       analyzeSemanticAdvisorInput({
@@ -427,7 +424,6 @@ describe("semantic advisor operation", () => {
     expect(key(onlyWhen)).toBe(key(unless));
   });
 
-  // implements REQ-kibi-truthful-consistency
   test("keeps a conditional it cannot translate as an unresolved ontology gap", () => {
     for (const text of [
       "Checkout may happen only when the cart total is positive and the user is verified.",
@@ -454,7 +450,6 @@ describe("semantic advisor operation", () => {
     }
   });
 
-  // implements REQ-kibi-truthful-consistency
   test("keeps a catalog predicate for a conditional the rule reader cannot translate", () => {
     const receipt = analyzeSemanticAdvisorInput({
       payload: {
@@ -827,7 +822,6 @@ describe("semantic advisor operation", () => {
     ).toEqual([]);
   });
 
-  // implements REQ-kibi-proposition-complete-ingestion
   test("a missing or unknown semantic_source_field says which field was derived and why", () => {
     const text = "System must support OAuth2 authentication.";
     const errorsFor = (properties: Record<string, unknown>) => {
@@ -1219,7 +1213,6 @@ describe("caller-supplied clauses", () => {
   });
 });
 
-// implements REQ-kibi-dimension-gap
 describe("quantified claim dimension", () => {
   test("a collection quantifier or cardinality bound names the groundings that represent it", () => {
     expect(
@@ -1255,7 +1248,6 @@ describe("quantified claim dimension", () => {
   });
 });
 
-// implements REQ-kibi-case-coverage
 describe("edge-case preview on a strict-property suggestion", () => {
   test("a bounded count lists the cases its scenarios must reach", () => {
     const { receipt } = analyzeSemanticAdvisorInput({

@@ -92,12 +92,10 @@ const outDir = path.resolve(REPO_ROOT, flags.out ?? "docs-site/dist");
 const branch = flags.branch ?? "develop";
 const reportUrlFlag = flags["report-url"] ?? DEFAULT_REPORT_URL;
 const reportUrl = reportUrlFlag === "none" ? null : reportUrlFlag;
-// implements REQ-docs-site-analytics
 const analyticsId = parseAnalyticsId(
   flags["umami-website-id"] ?? process.env.KIBI_UMAMI_WEBSITE_ID,
 );
 
-// implements REQ-docs-site-analytics
 function parseAnalyticsId(raw: string | undefined): string | null {
   const value = raw?.trim();
   if (!value) return null;

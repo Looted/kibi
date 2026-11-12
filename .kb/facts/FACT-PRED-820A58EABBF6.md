@@ -16,8 +16,6 @@ predicate_args:
   - allow
 canonical_key: provider_allowed_operation(external_semantic_classifier,kb_compile_intent,allow)
 polarity: assert
-claim_key: CLAIM-527900920AE83BD4
-claim_text: An external semantic classifier must be allowed only for kb_compile_intent
 id: FACT-PRED-820A58EABBF6
 type: fact
 predicate_namespace: kibi.capability
@@ -26,3 +24,4 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+The kb_compile_intent half of the classifier allowlist in REQ-capability-plugin-observable-behavior-v1. The requirement states both operations in one claim, which FACT-PRED-C842EDCDDC65 grounds; this fact records the second allowed operation beside it.

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: opencode.kibi_plugin
-property_key: clause_05_the_opencode_plugin_must_classify_an_extracted_comment_as_fa
+property_key: classifies_comment_entity_type
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_opencode_comment_routing.clause_05_the_opencode_plugin_must_classify_an_extracted_comment_as_fa.eq.true
+canonical_key: req.req_opencode_comment_routing.classifies_comment_entity_type.eq.true
 claim_key: CLAIM-203AE3C7BB8B3CD0
 claim_text: The OpenCode plugin must classify an extracted comment as FACT, ADR, REQ, SCEN or TEST with knowledge-classifier.ts
 origin:

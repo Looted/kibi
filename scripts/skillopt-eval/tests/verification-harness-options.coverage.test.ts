@@ -1,4 +1,3 @@
-// implements REQ-skillopt-external-adoption-verdict
 import { describe, expect, test } from "bun:test";
 import {
   VerificationHarnessOptionsError,

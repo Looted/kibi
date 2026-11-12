@@ -1,0 +1,11 @@
+[
+  {
+    "rule": "policy-markers",
+    "entityId": "kibi-plugin-x",
+    "description": "Check policy from 'kibi-plugin-x' could not be read: gone",
+    "suggestion": "Install the activated plugin package in this workspace, or remove its kibi.check-policy.v1 entry from package.json#kibi.plugins. Kibi does not skip an activated policy it cannot read.",
+    "evidence": {
+      "package": "kibi-plugin-x"
+    }
+  }
+]

@@ -78,7 +78,6 @@ function failClosed(diagnostics: string[]): NativeConversion {
  * Plans are checked per indentation scope; bailouts, malformed plans, and
  * conflicting duplicate observations discard the whole projection.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function convertTap(
   tap: string,
   bindings: readonly NativeBinding[],

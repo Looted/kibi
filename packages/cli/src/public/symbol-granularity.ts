@@ -63,42 +63,40 @@ const coarseGranularityReasonSet: ReadonlySet<string> = new Set(
   COARSE_GRANULARITY_REASONS,
 );
 
-export function inferSymbolRole(kind: SymbolKind): SymbolRole {
-  return ROLE_INFERENCE[kind] ?? "unknown";
+export function inferSymbolRole(kind: SymbolKind | undefined): SymbolRole {
+  // A missing kind looks up "undefined", which has no entry either.
+  return ROLE_INFERENCE[String(kind)] ?? "unknown";
 }
 
 export const inferSymbolRoleFromKind = inferSymbolRole;
 
+// Membership tests reject non-strings on their own: no vocabulary entry is
+// anything but a string.
 export function isSymbolRole(value: unknown): value is SymbolRole {
-  return (
-    typeof value === "string" && SYMBOL_ROLES.some((role) => role === value)
-  );
+  return (SYMBOL_ROLES as readonly unknown[]).includes(value);
 }
 
 export function isTraceabilityRelationshipType(
   value: unknown,
 ): value is TraceabilityRelationshipType {
-  return (
-    typeof value === "string" && traceabilityRelationshipTypeSet.has(value)
-  );
+  return traceabilityRelationshipTypeSet.has(value as string);
 }
 
 export function isAllowedGranularityReason(
   value: unknown,
 ): value is GranularityReason {
-  return typeof value === "string" && allowedGranularityReasonSet.has(value);
+  return allowedGranularityReasonSet.has(value as string);
 }
 
 export function isCoarseGranularityReason(
   value: unknown,
 ): value is CoarseGranularityReason {
-  return typeof value === "string" && coarseGranularityReasonSet.has(value);
+  return coarseGranularityReasonSet.has(value as string);
 }
 
 export function getSymbolRole(candidate: GranularSymbolCandidate): SymbolRole {
   if (candidate.role) return candidate.role;
-  if (candidate.kind) return inferSymbolRole(candidate.kind);
-  return "unknown";
+  return inferSymbolRole(candidate.kind);
 }
 
 export function isBehavioralSymbol(
@@ -112,7 +110,6 @@ export function isBehavioralSymbol(
  * functions, methods and accessors first, then properties (behavioral in the
  * schema, but usually plain fields), each group sorted by name.
  */
-// implements REQ-kibi-symbol-link-guidance
 export function getBehavioralSymbolNames(
   candidates: GranularSymbolCandidate[],
 ): string[] {
@@ -130,7 +127,6 @@ export function getBehavioralSymbolNames(
  * (`Title.member`), or, when the source declares no symbol named like it,
  * every other declaration in the file.
  */
-// implements REQ-symbol-behavioral-anchors, REQ-cli-schema-migration
 export function narrowerSymbols<T extends { name: string }>(
   manifestSymbolName: string,
   candidates: readonly T[],
@@ -152,7 +148,6 @@ export function narrowerSymbols<T extends { name: string }>(
  * link unless it carries a granularity_reason, and `kibi migrate` marks
  * exactly these links legacy-link. Empty when the link is narrow enough.
  */
-// implements REQ-symbol-behavioral-anchors, REQ-cli-schema-migration
 export function coarseLinkBehavioralNames(
   manifestSymbolName: string,
   sourceSymbols: readonly GranularSymbolCandidate[],

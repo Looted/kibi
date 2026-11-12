@@ -52,11 +52,9 @@ import {
  */
 
 /** The authored frontmatter fields that name workspace files. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceField = "source" | "text_ref";
 
 /** One authored `source` or `text_ref` value and the entity file that carries it. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type AuthoredSourceRef = Readonly<{
   entityId: string;
   field: SourceField;
@@ -67,14 +65,12 @@ export type AuthoredSourceRef = Readonly<{
   value: unknown;
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type AuthoredSourceScan = Readonly<{
   refs: readonly AuthoredSourceRef[];
   /** Ids of every authored entity, symbols included. */
   entityIds: ReadonlySet<string>;
 }>;
 
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceResolution =
   | Readonly<{ kind: "missing" | "path" | "entity" | "url" }>
   /** Names the entity's own file; `resolves` is false when that spelling names no existing path. */
@@ -82,17 +78,14 @@ export type SourceResolution =
   | Readonly<{ kind: "dangling"; rewrite?: string }>;
 
 /** Why `kibi migrate` removes an authored `source` value. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceRemovalReason = "self" | "dangling";
 
 /** The edit `kibi migrate` makes to one authored `source` value. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceFix =
   | Readonly<{ kind: "rewrite"; to: string }>
   | Readonly<{ kind: "remove"; reason: SourceRemovalReason }>;
 
 /** One authored `source` value that is redundant or resolves to nothing. */
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourceRepair = AuthoredSourceRef &
   Readonly<{
     /** Names no existing path, entity id or URL: `source-path-dangling` blocks it. */
@@ -121,14 +114,12 @@ function editRefusedReason(field: SourceField): string {
   return field === "text_ref" ? TEXT_REF_EDIT_REFUSED : SOURCE_EDIT_REFUSED;
 }
 
-/** Whether a `text_ref` value reads as one workspace file path. */
-// implements REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
+/**
+ * Whether a `text_ref` value reads as one workspace file path. A URL never
+ * does: the path shape allows no colon before its first slash.
+ */
 export function isPathShapedTextRef(value: unknown): boolean {
-  return (
-    typeof value === "string" &&
-    !URL_PATTERN.test(value.trim()) &&
-    FILE_PATH_SHAPE.test(value.trim())
-  );
+  return typeof value === "string" && FILE_PATH_SHAPE.test(value.trim());
 }
 
 function scalarText(value: unknown): string | undefined {
@@ -142,7 +133,6 @@ function unquote(value: string): string {
 }
 
 /** An authored value as plain text, the form plans record and compare. */
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function shownSourceValue(value: unknown): string {
   return typeof value === "string" ? value : (JSON.stringify(value) ?? "");
 }
@@ -152,7 +142,6 @@ export function shownSourceValue(value: unknown): string {
  * canonical lanes, plus the symbol ids of the symbols manifest. Only the id
  * and source lines are parsed. Read-only.
  */
-// implements REQ-core-validation-rules, REQ-cli-schema-migration, REQ-kibi-kb-lifecycle-integrity
 export function scanAuthoredSources(workspaceRoot: string): AuthoredSourceScan {
   const refs: AuthoredSourceRef[] = [];
   const entityIds = new Set<string>();
@@ -201,7 +190,7 @@ export function scanAuthoredSources(workspaceRoot: string): AuthoredSourceScan {
   const symbols = readText(path.join(workspaceRoot, KB_PATHS.symbolsManifest));
   if (symbols !== null) {
     for (const match of symbols.matchAll(SYMBOL_ID_LINE)) {
-      const id = unquote(match[1] ?? "");
+      const id = unquote(match[1] as string);
       if (id !== "") entityIds.add(id);
     }
   }
@@ -219,7 +208,6 @@ const LEGACY_LANE_ROOTS = new Set<string>([...ENTITY_LANES, "symbols.yaml"]);
  * `documentation/<lane>/...` or `<lane>/...` value carries the
  * `.kb/<lane>/...` rewrite when that file exists.
  */
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function resolveAuthoredSource(
   value: unknown,
   context: Readonly<{
@@ -237,14 +225,12 @@ export function resolveAuthoredSource(
   if (URL_PATTERN.test(text)) return { kind: "url" };
   if (context.entityIds.has(text)) return { kind: "entity" };
   const hash = text.indexOf("#");
-  const anchor = hash >= 0 ? text.slice(hash) : "";
-  const relative = (hash >= 0 ? text.slice(0, hash) : text)
-    .trim()
-    .replaceAll("\\", "/")
-    .replace(/^\.\//, "");
+  const named = hash === -1 ? text : text.slice(0, hash);
+  const anchor = text.slice(named.length);
+  const relative = named.trim().replaceAll("\\", "/").replace(/^\.\//, "");
   const own = context.file?.toLowerCase();
   const exists = relative !== "" && context.exists(relative);
-  if (own !== undefined && relative.toLowerCase() === own) {
+  if (relative.toLowerCase() === own) {
     return { kind: "self", resolves: exists };
   }
   // Another existing file is provenance, even when its path would map onto
@@ -254,13 +240,13 @@ export function resolveAuthoredSource(
   const legacy = lower.startsWith(LEGACY_ROOT)
     ? lower.slice(LEGACY_ROOT.length)
     : lower;
-  if (own !== undefined && `${KB_ROOT}/${legacy}` === own) {
+  if (`${KB_ROOT}/${legacy}` === own) {
     return { kind: "self", resolves: false };
   }
   const rest = relative.startsWith(LEGACY_ROOT)
     ? relative.slice(LEGACY_ROOT.length)
     : relative;
-  const lane = rest.split("/")[0] ?? "";
+  const lane = rest.split("/")[0] as string;
   const target = `${KB_ROOT}/${rest}`;
   if (LEGACY_LANE_ROOTS.has(lane) && context.exists(target)) {
     return { kind: "dangling", rewrite: `${target}${anchor}` };
@@ -269,7 +255,6 @@ export function resolveAuthoredSource(
 }
 
 /** A memoized existence test confined to the workspace. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function workspacePathExists(
   workspaceRoot: string,
 ): (relativePath: string) => boolean {
@@ -279,11 +264,9 @@ export function workspacePathExists(
     const cached = cache.get(relativePath);
     if (cached !== undefined) return cached;
     const absolute = path.resolve(root, relativePath);
-    const fromRoot = path.relative(root, absolute);
-    const exists =
-      !fromRoot.startsWith("..") &&
-      !path.isAbsolute(fromRoot) &&
-      existsSync(absolute);
+    const inside =
+      absolute === root || absolute.startsWith(`${root}${path.sep}`);
+    const exists = inside && existsSync(absolute);
     cache.set(relativePath, exists);
     return exists;
   };
@@ -294,14 +277,13 @@ function repairFor(
   resolution: SourceResolution,
 ): SourceRepair | undefined {
   if (ref.field === "text_ref") {
-    // A text_ref naming its own existing file is evidence, not redundancy.
-    if (resolution.kind === "self" && resolution.resolves) return undefined;
-    if (resolution.kind !== "dangling" && resolution.kind !== "self") {
-      return undefined;
-    }
-    // A pre-canonical spelling of the entity's own file moved with it.
-    const rewrite =
-      resolution.kind === "dangling" ? resolution.rewrite : ref.file;
+    let rewrite: string | undefined;
+    if (resolution.kind === "dangling") rewrite = resolution.rewrite;
+    // A pre-canonical spelling of the entity's own file moved with it; a
+    // text_ref naming its own existing file is evidence, not redundancy.
+    else if (resolution.kind === "self" && !resolution.resolves)
+      rewrite = ref.file;
+    else return undefined;
     if (ref.semanticSource === true) {
       return {
         ...ref,
@@ -404,7 +386,6 @@ function withEditability(
  * id, with the fix `kibi migrate` makes and, when the edit is not safe, why.
  * Each path is checked once per call. Read-only.
  */
-// implements REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function findDanglingSources(workspaceRoot: string): SourceRepair[] {
   return withEditability(
     workspaceRoot,
@@ -417,12 +398,10 @@ export function findDanglingSources(workspaceRoot: string): SourceRepair[] {
  * dangling ones plus existing values that name the entity's own file.
  * Read-only.
  */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function findSourceRepairs(workspaceRoot: string): SourceRepair[] {
   return withEditability(workspaceRoot, classifySources(workspaceRoot));
 }
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRewrite = Readonly<{
   entityId: string;
   file: string;
@@ -432,7 +411,6 @@ export type SourcePathRewrite = Readonly<{
   to: string;
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRemoval = Readonly<{
   entityId: string;
   file: string;
@@ -440,13 +418,11 @@ export type SourcePathRemoval = Readonly<{
   reason: SourceRemovalReason;
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type PlannedSourcePathRepairs = Readonly<{
   rewrites: readonly SourcePathRewrite[];
   removals: readonly SourcePathRemoval[];
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRepairResult = Readonly<{
   rewritten: readonly SourcePathRewrite[];
   removed: readonly SourcePathRemoval[];
@@ -471,7 +447,6 @@ function plannedRepair(repair: SourceRepair): PlannedRepair {
  * The rewrite and removal records a migration plan lists for these repairs.
  * Repairs Kibi cannot edit safely are left out; they need a person.
  */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function plannedSourcePathRepairs(
   repairs: readonly SourceRepair[],
 ): PlannedSourcePathRepairs {
@@ -487,9 +462,7 @@ export function plannedSourcePathRepairs(
 }
 
 function plannedField(repair: PlannedRepair): SourceField {
-  return "field" in repair && repair.field === "text_ref"
-    ? "text_ref"
-    : "source";
+  return (repair as { field?: "text_ref" }).field ?? "source";
 }
 
 function plannedKey(file: string, field: SourceField): string {
@@ -497,15 +470,16 @@ function plannedKey(file: string, field: SourceField): string {
 }
 
 function samePlannedRepair(left: PlannedRepair, right: PlannedRepair): boolean {
-  if (
-    left.entityId !== right.entityId ||
-    left.from !== right.from ||
-    plannedField(left) !== plannedField(right)
-  ) {
-    return false;
-  }
-  if ("to" in left) return "to" in right && left.to === right.to;
-  return "reason" in right && left.reason === right.reason;
+  // Both are keyed by file and field. A rewrite has no reason and a removal
+  // has no target, so comparing both also tells the two kinds apart.
+  const fix = (repair: PlannedRepair) =>
+    repair as { readonly to?: string; readonly reason?: string };
+  return (
+    left.entityId === right.entityId &&
+    left.from === right.from &&
+    fix(left).to === fix(right).to &&
+    fix(left).reason === fix(right).reason
+  );
 }
 
 /**
@@ -516,7 +490,6 @@ function samePlannedRepair(left: PlannedRepair, right: PlannedRepair): boolean {
  * planned. A value that cannot be edited safely is skipped with a reason.
  * Idempotent: a repaired value is not found again.
  */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function applySourcePathRepairs(
   workspaceRoot: string,
   planned?: PlannedSourcePathRepairs,

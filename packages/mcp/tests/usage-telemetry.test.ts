@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -115,7 +114,6 @@ describe("MCP anonymous usage telemetry", () => {
     expect(text).not.toContain("REQ-secret");
   });
 
-  // implements REQ-kibi-telemetry-expected-outcomes
   test("counts refusals as rejected and faults as errors with their class", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);
@@ -176,7 +174,6 @@ describe("MCP anonymous usage telemetry", () => {
     expect(text).not.toContain("REQ-secret");
   });
 
-  // implements REQ-kibi-telemetry-expected-outcomes
   test("a thrown error's own code counts only when the classifier names nothing and it is a non-empty string on an object", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);
@@ -201,6 +198,12 @@ describe("MCP anonymous usage telemetry", () => {
     call(null);
     call(Object.assign(() => undefined, { code: "FUNCTION_CODE" }));
     call(Object.assign(new Error("something broke"), { code: "" }));
+    // A plain wrapper takes the code of the error it wraps.
+    call(
+      new Error("Upsert execution failed: x", {
+        cause: Object.assign(new Error("x"), { code: "ENOENT" }),
+      }),
+    );
 
     const categories = fs
       .readFileSync(path.join(directory, "telemetry-queue.jsonl"), "utf8")
@@ -212,10 +215,10 @@ describe("MCP anonymous usage telemetry", () => {
       "handler_error",
       "handler_error",
       "handler_error",
+      "enoent",
     ]);
   });
 
-  // implements REQ-kibi-telemetry-agent-signals
   test("derives struggle signals from the tool's arguments and result", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);

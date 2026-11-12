@@ -12,8 +12,6 @@ import { runCodeEvaluator } from "../../src/operations/proof/code-runner.js";
 import { evaluateSourceCode } from "../../src/operations/proof/source-code-readers.js";
 import { type SourceSpec, readSource } from "../../src/public/proof-sources.js";
 
-// implements REQ-kibi-multilingual-code-proofs
-
 const roots: string[] = [];
 const savedSwipl = process.env.KIBI_SWIPL;
 afterEach(() => {

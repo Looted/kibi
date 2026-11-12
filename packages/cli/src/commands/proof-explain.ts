@@ -15,7 +15,6 @@ import {
 } from "../operations/proof/explain.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type ProofExplainOptions = Readonly<{
   id?: string;
   requirement?: string;
@@ -23,7 +22,6 @@ export type ProofExplainOptions = Readonly<{
   json?: boolean;
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export async function proofExplainCommand(
   options: ProofExplainOptions,
 ): Promise<{ exitCode: number }> {

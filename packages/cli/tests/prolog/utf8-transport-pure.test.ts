@@ -9,7 +9,7 @@ import {
 describe("utf8 transport helpers", () => {
   test("the streams goal sets every stream to UTF-8", () => {
     expect(PROLOG_UTF8_STREAMS_GOAL).toBe(
-      "set_prolog_flag(encoding, utf8), set_stream(user_input, encoding(utf8)), set_stream(user_output, encoding(utf8)), set_stream(user_error, encoding(utf8))",
+      "set_prolog_flag(encoding, utf8), set_stream(user_input, encoding(utf8)), set_stream(user_output, encoding(utf8)), set_stream(user_error, encoding(utf8)), set_stream(user_output, newline(posix)), set_stream(user_error, newline(posix))",
     );
   });
 

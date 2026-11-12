@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-0432EB217242A518
 claim_text: Proof runs shall be stored under .kb/proof/runs
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-producers-and-storage
 property_key: runs_dir
 operator: eq
 value_type: string

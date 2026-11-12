@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-treesitter",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Offline multi-language Tree-sitter symbol extraction; each language's grammar installs as a kibi-lang-* pack",
   "type": "module",
   "main": "./dist/index.js",
@@ -60,11 +60,11 @@
     "kibi-lang-hcl": "1.0.0",
     "kibi-lang-java": "1.0.0",
     "kibi-lang-php": "1.0.0",
-    "kibi-lang-prolog": "1.0.0",
+    "kibi-lang-prolog": "1.1.0",
     "kibi-lang-python": "1.0.0",
     "kibi-lang-ruby": "1.0.0",
     "kibi-lang-rust": "1.0.0",
-    "kibi-plugin-sdk": "^0.7.0",
+    "kibi-plugin-sdk": "^0.7.2",
     "typescript": "^5.7.0"
   },
   "peerDependencies": {

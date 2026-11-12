@@ -9,7 +9,7 @@ value_type: bool
 value_bool: true
 claim_key: CLAIM-61B8FDEE869872E7
 claim_text: The kb_status operation must not report the KB as fresh while an authored source that kibi sync cannot extract remains
-text_ref: REQ-kibi-uncompiled-source-visibility
+text_ref: REQ-kibi-uncompiled-source-reported
 tags:
   - strict-modeling
   - lane:strict

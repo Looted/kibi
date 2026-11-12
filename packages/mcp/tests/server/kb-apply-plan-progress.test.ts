@@ -1,4 +1,3 @@
-// implements REQ-bootstrap-apply-long-running
 import { afterEach, describe, expect, test } from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import Ajv2020 from "ajv/dist/2020";

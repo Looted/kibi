@@ -119,7 +119,6 @@ describe("result envelope effect statuses", () => {
   });
 });
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 describe("refused migration plans", () => {
   const applySpec = {
     name: "kb_apply_plan",

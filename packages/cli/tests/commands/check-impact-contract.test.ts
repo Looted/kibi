@@ -6,9 +6,7 @@ import {
   KIBI_IMPACT_DIAGNOSTICS,
   KIBI_IMPACT_DIAGNOSTIC_IDS,
   classifyKibiImpactEvidence,
-  isAuditedNoImpactOverrideAllowed,
   isBehaviorSourceEdit,
-  parseKibiImpactOverride,
 } from "../../src/traceability/staged-impact-contract";
 
 describe("staged impact contract", () => {
@@ -51,7 +49,6 @@ describe("staged impact contract", () => {
     expect(KIBI_IMPACT_DIAGNOSTIC_IDS).toEqual([
       "kibi_impact_evidence_missing",
       "symbols_manifest_stale",
-      "kibi_impact_override_missing_rationale",
     ]);
 
     expect(
@@ -73,17 +70,6 @@ describe("staged impact contract", () => {
     expect(
       KIBI_IMPACT_DIAGNOSTICS.symbols_manifest_stale.resolution.join("\n"),
     ).toContain(".kb/symbols.yaml");
-
-    expect(
-      KIBI_IMPACT_DIAGNOSTICS.kibi_impact_override_missing_rationale.resolution.join(
-        "\n",
-      ),
-    ).toContain("Kibi-Impact: none");
-    expect(
-      KIBI_IMPACT_DIAGNOSTICS.kibi_impact_override_missing_rationale.resolution.join(
-        "\n",
-      ),
-    ).toContain("Rationale:");
   });
 
   it("treats .kb/symbols.yaml as valid evidence when extraction output changes", () => {
@@ -185,43 +171,6 @@ describe("staged impact contract", () => {
         path: "README.md",
         diffText: commentOnlyDiff,
         intersectsBehaviorBearingSymbol: true,
-      }),
-    ).toBe(false);
-  });
-
-  it("requires rationale for audited no-impact overrides and forbids overriding genuine behavior edits", () => {
-    expect(
-      parseKibiImpactOverride(
-        [
-          "Kibi-Impact: none",
-          "Rationale: comment-only edit in exported function",
-        ].join("\n"),
-      ),
-    ).toEqual({
-      declared: true,
-      rationale: "comment-only edit in exported function",
-    });
-
-    expect(parseKibiImpactOverride("Kibi-Impact: none\n")).toEqual({
-      declared: true,
-      rationale: null,
-    });
-
-    expect(
-      isAuditedNoImpactOverrideAllowed({
-        behaviorSourceEdit: false,
-        override: parseKibiImpactOverride(
-          "Kibi-Impact: none\nRationale: formatting-only change",
-        ),
-      }),
-    ).toBe(true);
-
-    expect(
-      isAuditedNoImpactOverrideAllowed({
-        behaviorSourceEdit: true,
-        override: parseKibiImpactOverride(
-          "Kibi-Impact: none\nRationale: should not bypass behavior change",
-        ),
       }),
     ).toBe(false);
   });

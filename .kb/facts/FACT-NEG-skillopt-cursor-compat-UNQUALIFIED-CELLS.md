@@ -3,7 +3,7 @@ status: active
 title: The cursor compatibility lane is asked to evaluate after cursor qualification returned no-go
 fact_kind: property_value
 subject_key: kibi.skillopt.cursor_lane
-property_key: clause_03_the_lane_must_gate_evaluation_on_a_passing_curso
+property_key: evaluation_gated_on_qualification
 operator: eq
 value_type: bool
 value_bool: false

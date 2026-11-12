@@ -36,13 +36,22 @@ function runGit(workspaceRoot: string, args: readonly string[]): string {
   });
 }
 
+/** Whether a path.relative() result leaves its base ("..x" stays inside). */
+function leavesBase(relative: string): boolean {
+  return (
+    // path.relative returns an absolute path only across Windows drives.
+    relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)
+  );
+}
+
 function readWorkingTreeSource(
   workspaceRoot: string,
   sourceFile: string,
 ): string | null {
   const absolutePath = path.resolve(workspaceRoot, sourceFile);
   const relative = path.relative(workspaceRoot, absolutePath);
-  if (!relative || relative.startsWith("..") || path.isAbsolute(relative))
+  // Callers pass qualified source file paths, never the root or its parent.
+  if (leavesBase(relative))
     throw new Error("Source path must remain inside the workspace");
   if (!existsSync(absolutePath) || !lstatSync(absolutePath).isFile())
     return null;
@@ -50,7 +59,7 @@ function readWorkingTreeSource(
     realpathSync(workspaceRoot),
     realpathSync(absolutePath),
   );
-  if (actualRelative.startsWith("..") || path.isAbsolute(actualRelative))
+  if (leavesBase(actualRelative))
     throw new Error("Source path escapes the workspace");
   const bytes = readFileSync(absolutePath);
   if (bytes.includes(0)) return null;
@@ -62,21 +71,41 @@ function readWorkingTreeSource(
 }
 
 function fullFileHunk(content: string): HunkRange[] {
-  return [{ start: 1, end: Math.max(1, content.split(/\r?\n/).length) }];
+  // Splitting always yields at least one line.
+  return [{ start: 1, end: content.split(/\r?\n/).length }];
+}
+
+/**
+ * Python, Go and Rust changes are reviewed whatever their diff looks like:
+ * whitespace is meaningful there or the diff filter does not understand them.
+ */
+function isMeaningfulChange(sourceFile: string, diffText: string): boolean {
+  return (
+    /\.(pyi?|go|rs)$/.test(sourceFile) || hasMeaningfulSourceDiff(diffText)
+  );
 }
 
 function getWorkingTreeDiffSourceFiles(workspaceRoot: string): string[] {
+  // rationale: any fallback text yields no source path once filtered
+  // Stryker disable next-line StringLiteral
+  let names = "";
   try {
-    return uniqueSorted(
-      runGit(workspaceRoot, ["diff", "--name-only", "-z", "--diff-filter=ACMR"])
-        .split("\0")
-        .map((filePath) => normalizeSourceFile(workspaceRoot, filePath))
-        .filter((filePath) => filePath.length > 0)
-        .filter(isSupportedSourcePath),
-    );
+    names = runGit(workspaceRoot, [
+      "diff",
+      "--name-only",
+      "-z",
+      "--diff-filter=ACMR",
+    ]);
   } catch {
-    return [];
+    // Outside a repository there is no working-tree diff.
   }
+  return uniqueSorted(
+    names
+      .split("\0")
+      .map((filePath) => normalizeSourceFile(workspaceRoot, filePath))
+      // The trailing "" after the last NUL is not a source path either.
+      .filter(isSupportedSourcePath),
+  );
 }
 
 function getStagedSourceChanges(
@@ -93,20 +122,16 @@ function getStagedSourceChanges(
       (file) => sourceFileFilter.size === 0 || sourceFileFilter.has(file.path),
     )
     .flatMap((file): SourceChange[] => {
-      if (file.content === undefined || file.hunkRanges.length === 0) return [];
-      if (
-        !/\.(pyi?|go|rs)$/.test(file.path) &&
-        file.diffText !== undefined &&
-        !hasMeaningfulSourceDiff(file.diffText)
-      ) {
-        return [];
-      }
+      // getStagedFiles always reads both the staged diff and content, and
+      // yields JavaScript and TypeScript only, whose hunk-less diffs (mode
+      // changes) are never meaningful.
+      if (!isMeaningfulChange(file.path, file.diffText as string)) return [];
       return [
         {
           file: file.path,
           status: file.status,
           hunkRanges: file.hunkRanges,
-          content: file.content,
+          content: file.content as string,
         },
       ];
     });
@@ -125,11 +150,7 @@ function getWorkingTreeSourceChanges(
     const content = readWorkingTreeSource(workspaceRoot, sourceFile);
     if (content === null) return [];
     const diffText = runGit(workspaceRoot, ["diff", "-U0", "--", sourceFile]);
-    if (
-      !/\.(pyi?|go|rs)$/.test(sourceFile) &&
-      !hasMeaningfulSourceDiff(diffText)
-    )
-      return [];
+    if (!isMeaningfulChange(sourceFile, diffText)) return [];
     // The same diff names the hunks; reading it again could only disagree
     // through a race.
     const hunkRanges = parseHunksFromDiff(diffText);
@@ -161,8 +182,8 @@ export function collectSourceChanges(
 ): SourceChange[] {
   const workspaceRoot = path.resolve(options.workspaceRoot);
   const sourceFileFilter = new Set(
-    (options.sourceFiles ?? [])
-      .map((sourceFile) => normalizeSourceFile(workspaceRoot, sourceFile))
+    options.sourceFiles
+      ?.map((sourceFile) => normalizeSourceFile(workspaceRoot, sourceFile))
       .filter(isSupportedSourcePath),
   );
 

@@ -31,6 +31,7 @@ Nothing about this requires you to maintain a parallel requirements bureaucracy.
 - A `.kb/` directory in your repository holding the branch-local project model.
 - Git hooks that keep the model synchronized as you work.
 - New tools available to your agent, through MCP or the `kibi` CLI: search, query, gap analysis, coverage, validation, and proof.
+- Optionally, read-only answers from the KBs of repositories you depend on, each pinned to a commit and kept apart from your own.
 - A self-contained HTML health report and a status badge you can publish, showing the percentage of requirements with current proof.
 
 ## What Kibi is not

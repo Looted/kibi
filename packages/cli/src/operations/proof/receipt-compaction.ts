@@ -18,7 +18,6 @@
 
 import { canonicalJson } from "../../public/proof-fingerprint.js";
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export const PROOF_RECEIPT_COMPACTION_POLICY =
   "kibi.proof-receipt-compaction.v1" as const;
 
@@ -27,7 +26,6 @@ export const PROOF_RECEIPT_COMPACTION_POLICY =
  * snapshot and the test's current per-contract binding hash. Coverage selects
  * a test's deciding receipts with exactly these two keys.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ReceiptCompactionAnchor = Readonly<{
   codeSnapshot?: string;
   bindingHash?: string;
@@ -35,7 +33,6 @@ export type ReceiptCompactionAnchor = Readonly<{
   legacyBindingHashes?: readonly string[];
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ReceiptCompaction = Readonly<{
   kept: readonly Readonly<Record<string, unknown>>[];
   removed: number;
@@ -88,36 +85,31 @@ function newest(receipts: readonly Receipt[], indices: readonly number[]) {
  * history decides `invalid`, and dropping the offending entry would change
  * that decision.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function compactProofReceipts(
   receipts: readonly Receipt[],
   anchor: ReceiptCompactionAnchor,
 ): ReceiptCompaction {
-  if (receipts.length === 0) return { kept: [], removed: 0 };
   const all = receipts.map((_, index) => index);
-  const keep = new Set<number>();
-  const add = (index: number | undefined): void => {
-    if (index !== undefined) keep.add(index);
-  };
-
-  add(newest(receipts, all));
-  add(
+  // An empty group adds undefined, which no kept index matches.
+  const keep = new Set<number | undefined>();
+  keep.add(newest(receipts, all));
+  keep.add(
     newest(
       receipts,
-      all.filter((index) => receipts[index]?.outcome === "passed"),
+      all.filter((index) => (receipts[index] as Receipt).outcome === "passed"),
     ),
   );
 
   const selectors: Array<(receipt: Receipt) => boolean> = [];
   for (const bindingHash of [
     anchor.bindingHash,
-    ...(anchor.legacyBindingHashes ?? []),
-  ]) {
-    if (bindingHash === undefined || bindingHash === "") continue;
+    anchor.legacyBindingHashes,
+  ].flat()) {
+    if (!bindingHash) continue;
     selectors.push((receipt) => receipt.binding_hash === bindingHash);
   }
-  if (anchor.codeSnapshot !== undefined && anchor.codeSnapshot !== "") {
-    const codeSnapshot = anchor.codeSnapshot;
+  const codeSnapshot = anchor.codeSnapshot;
+  if (codeSnapshot) {
     selectors.push((receipt) => receipt.code_snapshot === codeSnapshot);
   }
   for (const selector of selectors) {
@@ -130,7 +122,7 @@ export function compactProofReceipts(
       group.push(index);
       groups.set(key, group);
     }
-    for (const group of groups.values()) add(newest(receipts, group));
+    for (const group of groups.values()) keep.add(newest(receipts, group));
   }
 
   const kept = all
@@ -144,7 +136,6 @@ export function compactProofReceipts(
  * reordered. Compaction may only drop receipts; this guard keeps every other
  * rewrite of a receipt history fail-closed.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function isOrderedReceiptSubsequence(
   subset: readonly Receipt[],
   superset: readonly Receipt[],

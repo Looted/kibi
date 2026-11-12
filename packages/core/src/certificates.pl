@@ -1,5 +1,4 @@
 % Module: certificates
-% implements REQ-kibi-kb-certificates
 %
 % Finds a certificate for every KB theorem that certificate_check.pl states:
 % a model for each consistent property context, predicate atom and decision

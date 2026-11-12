@@ -249,6 +249,12 @@
         "description": "Skip results",
         "default": "0",
         "mandatory": false
+      },
+      {
+        "flags": "--kb <name>",
+        "description": "Read this KB dependency (a name from .kb/dependencies.json) instead of the project's own KB",
+        "default": null,
+        "mandatory": false
       }
     ],
     "commands": []
@@ -296,6 +302,12 @@
         "description": "Skip results",
         "default": "0",
         "mandatory": false
+      },
+      {
+        "flags": "--kb <name>",
+        "description": "Read this KB dependency (a name from .kb/dependencies.json) instead of the project's own KB",
+        "default": null,
+        "mandatory": false
       }
     ],
     "commands": []
@@ -316,6 +328,12 @@
         "flags": "--format <format>",
         "description": "Output format: json|table",
         "default": "table",
+        "mandatory": false
+      },
+      {
+        "flags": "--kb <name>",
+        "description": "Read this KB dependency (a name from .kb/dependencies.json) instead of the project's own KB",
+        "default": null,
         "mandatory": false
       }
     ],

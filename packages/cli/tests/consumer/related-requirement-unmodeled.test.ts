@@ -1,4 +1,3 @@
-// implements REQ-check-related-requirement-unmodeled
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

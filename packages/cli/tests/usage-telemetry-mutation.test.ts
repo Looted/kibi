@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import {
   afterEach,
   beforeEach,
@@ -238,6 +237,23 @@ describe("noteCliThrownError", () => {
       "TypeError",
       null,
       null,
+    ]);
+  });
+});
+
+describe("wrapped failures", () => {
+  test("a plain wrapper is named and placed by the error it wraps", async () => {
+    const cause = Object.assign(crash("inner"), { code: "ENOENT" });
+    noteCliThrownError(new Error("Upsert execution failed: x", { cause }));
+    await finish("upsert", 1);
+    await finish("sync", 1, {
+      error: new Error("Sync failed: x", { cause: crash("thrown") }),
+    });
+    expect(categories()).toStrictEqual(["enoent", "typeerror"]);
+    expect(field("error_class")).toStrictEqual(["TypeError", "TypeError"]);
+    expect(field("crash_frame")).toStrictEqual([
+      "kibi-cli/src/inner#inner",
+      "kibi-cli/src/thrown#thrown",
     ]);
   });
 });

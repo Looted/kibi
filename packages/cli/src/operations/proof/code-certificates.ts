@@ -69,7 +69,6 @@ import {
  * What a receipt records about its contract's kind: the evidence level it
  * supports and, for a certificate kind, the certificate and its re-check.
  */
-// implements REQ-kibi-code-proof-kinds
 export type CertificateVerdict = Readonly<{
   kind: ProofKind;
   evidence_level: "proved" | "tested";
@@ -81,8 +80,9 @@ export type CertificateVerdict = Readonly<{
 export type SymbolRow = Readonly<{ id: string; title: string; sourceFile: string }>;
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // null is an object too, and stays null.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 
@@ -94,7 +94,8 @@ export async function loadSymbol(
   context: OperationContext,
   symbolId: string,
 ): Promise<SymbolRow | null> {
-  if (context.prolog === undefined) return null;
+  // An empty id would match every symbol, so it names none.
+  if (context.prolog === undefined || symbolId === "") return null;
   const [row] = await loadEntities(context.prolog, {
     id: symbolId,
     type: "symbol",
@@ -122,7 +123,6 @@ const IMPORT_SPECIFIER =
  * names the predicate and loads its file (use_module, ensure_loaded, consult
  * or a load list), or is the plunit file beside it (`x.plt` for `x.pl`).
  */
-// implements REQ-kibi-code-proof-kinds
 export function importsDomain(
   source: string,
   sourcePath: string,
@@ -133,14 +133,14 @@ export function importsDomain(
   if (codeLanguage(targetPath) === "prolog")
     return prologLoadsModule(source, sourcePath, targetPath, identifier);
   // A dotted export (BRAND.name) is imported under its head.
-  const imported = identifier.split(".")[0] ?? "";
+  const imported = identifier.split(".")[0] as string;
   if (imported === "" || !new RegExp(`\\b${escapeRegExp(imported)}\\b`).test(source))
     return false;
   const target = stripExtension(path.normalize(targetPath));
   if (/\.py$/i.test(sourcePath))
     return pythonImportsModule(source, sourcePath, targetPath);
   for (const match of source.matchAll(IMPORT_SPECIFIER)) {
-    const specifier = match[1] ?? "";
+    const specifier = match[1] as string;
     if (!specifier.startsWith(".")) continue;
     const joined = path.normalize(path.join(path.dirname(sourcePath), specifier));
     if (stripExtension(joined) === target) return true;
@@ -163,7 +163,10 @@ function prologLoadsModule(
   targetPath: string,
   identifier: string,
 ): boolean {
-  const name = identifier.replace(/^[^:]*:/, "").replace(/\/\/?\d+$/, "");
+  // A module qualifier (lists:member/2) ends at the first colon.
+  const name = identifier
+    .slice(identifier.indexOf(":") + 1)
+    .replace(/\/\/?\d+$/, "");
   if (name === "" || !new RegExp(`(?<![\\w])${escapeRegExp(name)}(?![\\w])`).test(source))
     return false;
   const target = stripPrologExtension(targetPath);
@@ -196,25 +199,26 @@ function pythonImportsModule(
     .normalize(targetPath)
     .replace(/\.pyi?$/i, "")
     .replace(/[\\/]__init__$/, "");
+  // An empty dotted path names no file: the target never ends in a separator.
   const matchesDotted = (dotted: string) => {
-    if (dotted === "") return false;
     const tail = dotted.split(".").join(path.sep);
     return target === tail || target.endsWith(`${path.sep}${tail}`);
   };
   for (const match of source.matchAll(PYTHON_FROM_IMPORT)) {
-    const dots = match[1] ?? "";
-    const module = match[2] ?? "";
+    // Both groups always take part in a match, if only as "".
+    const dots = match[1] as string;
+    const module = match[2] as string;
     if (dots === "") {
       if (matchesDotted(module)) return true;
       continue;
     }
     let base = path.dirname(path.normalize(sourcePath));
     for (let level = 1; level < dots.length; level++) base = path.dirname(base);
-    const resolved = path.join(base, ...module.split(".").filter(Boolean));
+    const resolved = path.join(base, ...module.split("."));
     if (resolved === target) return true;
   }
   for (const match of source.matchAll(PYTHON_IMPORT))
-    for (const dotted of (match[1] ?? "").split(","))
+    for (const dotted of (match[1] as string).split(","))
       if (matchesDotted(dotted.trim())) return true;
   return false;
 }
@@ -227,24 +231,28 @@ function parseJsonc(text: string): unknown {
     const char = text[index];
     const next = text[index + 1];
     if (inString) {
-      out += char;
       if (char === "\\") {
-        out += next ?? "";
+        // An escape keeps the character it escapes, a quote included.
+        out += text.slice(index, index + 2);
         index++;
-      } else if (char === '"') inString = false;
+        continue;
+      }
+      out += char;
+      if (char === '"') inString = false;
       continue;
     }
     if (char === '"') {
       inString = true;
       out += char;
     } else if (char === "/" && next === "/") {
-      while (index < text.length && text[index] !== "\n") index++;
-      out += "\n";
-    } else if (char === "/" && next === "*") {
-      index += 2;
-      while (index < text.length && !(text[index] === "*" && text[index + 1] === "/"))
-        index++;
-      index++;
+      // Resume at the line break, which stays as whitespace.
+      const end = text.indexOf("\n", index);
+      index = end === -1 ? text.length : end - 1;
+    } else if (char === "/") {
+      // Outside a string, a slash that does not open a line comment opens a
+      // block comment; resume after its close, or at the end.
+      const end = text.indexOf("*/", index + 2);
+      index = end === -1 ? text.length : end + 1;
     } else out += char;
   }
   return JSON.parse(out.replace(/,(\s*[}\]])/g, "$1"));
@@ -256,7 +264,6 @@ function parseJsonc(text: string): unknown {
  * using the nearest tsconfig.json above the path. Null when no tsconfig
  * declares an `outDir` that contains it.
  */
-// implements REQ-kibi-code-proof-kinds
 export function compiledToSourcePath(
   workspaceRoot: string,
   relativePath: string,
@@ -266,23 +273,22 @@ export function compiledToSourcePath(
   const root = path.resolve(workspaceRoot);
   for (;;) {
     const config = path.join(dir, "tsconfig.json");
-    if (existsSync(config)) {
-      try {
-        const options = record(
-          record(parseJsonc(readFileSync(config, "utf8")))?.compilerOptions,
-        );
-        const outDir = text(options?.outDir);
-        if (outDir !== "") {
-          const out = path.resolve(dir, outDir);
-          const rel = path.relative(out, absolute);
-          if (rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel)) {
-            const rootDir = path.resolve(dir, text(options?.rootDir) || ".");
-            return path.relative(root, path.join(rootDir, rel));
-          }
+    try {
+      const options = Object(
+        Object(parseJsonc(readFileSync(config, "utf8"))).compilerOptions,
+      ) as Record<string, unknown>;
+      const outDir = text(options.outDir);
+      if (outDir !== "") {
+        const out = path.resolve(dir, outDir);
+        const rel = path.relative(out, absolute);
+        if (rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel)) {
+          // An unset rootDir resolves to the tsconfig's own directory.
+          const rootDir = path.resolve(dir, text(options.rootDir));
+          return path.relative(root, path.join(rootDir, rel));
         }
-      } catch {
-        // An unreadable tsconfig maps nothing.
       }
+    } catch {
+      // A missing or unreadable tsconfig maps nothing.
     }
     if (dir === root || path.dirname(dir) === dir) return null;
     dir = path.dirname(dir);
@@ -382,7 +388,6 @@ else:
  * files); a Python domain (`.py`) loads with the first interpreter
  * pythonDomainInterpreters finds.
  */
-// implements REQ-kibi-code-proof-kinds
 export function evaluateDomain(
   workspaceRoot: string,
   sourceFile: string,
@@ -412,7 +417,6 @@ export function evaluateDomain(
  * The number a value_source export holds, read the same way as a domain. A
  * Prolog constant is a predicate with a single solution holding a number.
  */
-// implements REQ-kibi-claim-bound-proofs
 export function evaluateScalar(
   workspaceRoot: string,
   sourceFile: string,
@@ -421,9 +425,10 @@ export function evaluateScalar(
 ): { ok: true; value: number } | { ok: false; reason: string } {
   const evaluated = evaluateExport(workspaceRoot, sourceFile, exportName, "scalar", options);
   if (!evaluated.ok) return evaluated;
-  if (evaluated.scalar === undefined || !Number.isFinite(evaluated.scalar))
+  // A domain has no scalar, and undefined is not finite either.
+  if (!Number.isFinite(evaluated.scalar))
     return { ok: false, reason: `${exportName} in ${sourceFile} is not a finite number` };
-  return { ok: true, value: evaluated.scalar };
+  return { ok: true, value: evaluated.scalar as number };
 }
 
 function evaluateExport(
@@ -461,11 +466,8 @@ function evaluateExport(
       ok: false,
       reason: `arg applies only to a SWI-Prolog predicate, not to ${CODE_LANGUAGE_NAMES[language]} in ${sourceFile}`,
     };
-  const ref = {
-    file: absolute,
-    export: exportName,
-    ...(options.arg === undefined ? {} : { arg: options.arg }),
-  };
+  // JSON leaves an unset arg out.
+  const ref = { file: absolute, export: exportName, arg: options.arg };
   const run = runCodeEvaluator(
     workspaceRoot,
     sourceFile,
@@ -513,7 +515,6 @@ function evaluateExport(
  * Whether an exhaustive certificate covers the domain Kibi evaluated: the
  * same members when they are primitive values, else the same count.
  */
-// implements REQ-kibi-code-proof-kinds
 export function domainCoverageProblem(
   exportName: string,
   evaluated: Readonly<{ count: number; members: readonly string[] | null }>,
@@ -663,7 +664,6 @@ function hasExhaustivenessCheck(
  * strict, so a lax project tsconfig cannot make the never check vacuous. It
  * accepts the witness only with no errors in it.
  */
-// implements REQ-kibi-code-proof-kinds
 export function compileWitness(
   workspaceRoot: string,
   witnessPath: string,
@@ -714,7 +714,7 @@ export function compileWitness(
   if (errors.length > 0)
     return {
       ok: false,
-      reason: `TypeScript ${ts.version} rejects the witness ${witnessPath}: ${ts.flattenDiagnosticMessageText(errors[0]?.messageText ?? "", " ")}`,
+      reason: `TypeScript ${ts.version} rejects the witness ${witnessPath}: ${ts.flattenDiagnosticMessageText((errors[0] as import("typescript").Diagnostic).messageText, " ")}`,
       // Zero-based witness lines with an error, so a generated witness can
       // say which of its checks failed.
       errorLines: [
@@ -781,10 +781,10 @@ async function factConstraints(
       ok: false,
       reason: "the constraint_source facts are about more than one subject and property",
     };
-  const [subject = ""] = [...subjects];
+  const [subject] = subjects as Set<string>;
   return {
     ok: true,
-    property: subject.split("\0")[1] ?? "",
+    property: (subject as string).split("\0")[1] as string,
     valueType: valueTypes.has("number") ? "real" : "int",
     constraints,
   };
@@ -827,7 +827,6 @@ export function smtAssertion(
  * same way as a domain (a count measure is the collection's size), or why
  * one cannot be read.
  */
-// implements REQ-kibi-claim-bound-proofs
 export async function valueSourceValues(
   context: OperationContext,
   contract: ProofContract,
@@ -923,7 +922,9 @@ async function constraintSourceProblem(
       return `the certificate's value_type ${text(certificate.value_type)} is not the facts' ${valueType}`;
     const assumptions = Array.isArray(certificate.assumptions)
       ? certificate.assumptions.map((row) => constraintKey(record(row) ?? {}))
-      : [];
+      : // rationale: a placeholder row's key (":undefined") matches no constraint, so it is refused like none.
+        // Stryker disable next-line ArrayDeclaration
+        [];
     const expected = constraints.map(constraintKey);
     const same =
       assumptions.length === expected.length &&
@@ -947,7 +948,6 @@ async function constraintSourceProblem(
 }
 
 /** The solver re-run behind an smt certificate; unsat is the only proof. */
-// implements REQ-kibi-code-proof-kinds
 export function rerunSmtQuery(
   solver: string,
   query: string,
@@ -969,7 +969,7 @@ export function rerunSmtQuery(
       ok: false,
       reason: `Kibi could not re-run ${solver} on the query: ${run.error.message}`,
     };
-  const answer = run.stdout.trim().split(/\s+/)[0] ?? "";
+  const answer = run.stdout.trim().split(/\s/)[0] as string;
   return answer === "unsat"
     ? { ok: true }
     : {
@@ -991,23 +991,31 @@ async function workspaceProblem(
     const named = text(record(certificate.domain)?.symbol_id);
     if (named !== domainId)
       return `the certificate's domain ${named || "(none)"} is not the contract's domain_source ${domainId}`;
+    if (domainId === "") return "the contract names no domain_source symbol";
+    // Past the check above the contract names a domain and the certificate
+    // names the same one.
+    const domainSource = contract.domain_source as NonNullable<ProofContract["domain_source"]>;
+    const certificateDomain = record(certificate.domain) as Record<string, unknown>;
     const domain = await loadSymbol(context, domainId);
     if (!domain || domain.sourceFile === "")
       return `the domain_source symbol ${domainId} has no source file`;
+    // A missing path reads as "undefined", a file no workspace has.
+    const witnessPath = String(contract.witness?.path);
     const readers =
       kind === "typecheck"
-        ? [contract.witness?.path ?? ""]
+        ? [witnessPath]
         : (
             await Promise.all(
               contract.required_proofs.map((proof) =>
                 loadSymbol(context, proof.symbol_id),
               ),
             )
-          ).map((symbol) => symbol?.sourceFile ?? "");
+          ).map((symbol) => String(symbol?.sourceFile));
     // The export Kibi reads: domain_source.export, else the symbol's title.
-    const exportName = contract.domain_source?.export ?? domain.title;
+    const exportName = domainSource.export ?? domain.title;
     const importing = readers.some((reader) => {
-      if (reader === "") return false;
+      // An empty path resolves to the workspace itself, which is not a file
+      // readWorkspaceFile reads.
       const source = readWorkspaceFile(context.workspaceRoot, reader);
       return (
         source !== null &&
@@ -1021,39 +1029,34 @@ async function workspaceProblem(
       );
     });
     if (!importing)
-      return `the proof does not import ${exportName || domainId} from ${domain.sourceFile}, so its domain may be hand-listed${contract.domain_source?.export === undefined ? ` (Kibi reads the export named by the symbol's title; set domain_source.export when the export has another name)` : ""}`;
+      return `the proof does not import ${exportName || domainId} from ${domain.sourceFile}, so its domain may be hand-listed${domainSource.export === undefined ? ` (Kibi reads the export named by the symbol's title; set domain_source.export when the export has another name)` : ""}`;
     if (kind === "exhaustive") {
       const evaluated = evaluateDomain(
         context.workspaceRoot,
         domain.sourceFile,
         exportName,
         {
-          ...(contract.domain_source?.field === undefined
-            ? {}
-            : { field: contract.domain_source.field }),
-          ...(contract.domain_source?.arg === undefined
-            ? {}
-            : { arg: contract.domain_source.arg }),
+          ...(domainSource.field === undefined ? {} : { field: domainSource.field }),
+          ...(domainSource.arg === undefined ? {} : { arg: domainSource.arg }),
         },
       );
       if (!evaluated.ok) return evaluated.reason;
-      const members = record(certificate.domain)?.members;
-      const problem = domainCoverageProblem(
+      const members = certificateDomain.members;
+      return domainCoverageProblem(
         exportName,
         evaluated,
         Array.isArray(members) ? members.map(String) : [],
       );
-      if (problem !== null) return problem;
     }
-    if (kind === "typecheck") {
+    // Only a typecheck certificate is left here.
+    {
       const witness = record(certificate.witness);
-      const witnessPath = contract.witness?.path ?? "";
       if (text(witness?.path) !== witnessPath)
         return `the certificate's witness is not the contract's witness ${witnessPath}`;
       // The import check above read this same file, so it exists.
-      const content = readWorkspaceFile(context.workspaceRoot, witnessPath) ?? "";
+      const content = readWorkspaceFile(context.workspaceRoot, witnessPath) as string;
       const sha = createHash("sha256").update(content).digest("hex");
-      if (text(witness?.sha256) !== sha)
+      if (text((witness as Record<string, unknown>).sha256) !== sha)
         return `the witness sha256 does not match ${witnessPath} in the workspace`;
       // With proves, Kibi decides each claim with its own witness (set
       // equality, required fields), so the author's witness only has to
@@ -1092,7 +1095,6 @@ async function workspaceProblem(
  * a model it carries must be what Kibi reads; either way the stored model is
  * Kibi's own read, so the proof never rests on members the test listed.
  */
-// implements REQ-kibi-source-proof-kinds
 export async function completeSourceCertificate(
   context: OperationContext,
   testId: string,
@@ -1175,7 +1177,6 @@ export {
  * the workspace file, that the solver still answers unsat, and that a rule
  * table, state machine or pattern is what Kibi itself reads from the code.
  */
-// implements REQ-kibi-code-proof-kinds
 export async function checkCodeCertificate(
   context: OperationContext,
   input: Readonly<{

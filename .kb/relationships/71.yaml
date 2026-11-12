@@ -1,11 +1,4 @@
 relationships:
-  - id: rel-b615228056c2
-    type: covered_by
-    from: SYM-telemetry-diagnostic-derive
-    to: TEST-kibi-telemetry-remediation-evidence
-    created_at: "2026-08-16T18:52:17.705Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: implements
     from: SYM-handleKbSkillsRead
     to: REQ-002
@@ -83,20 +76,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7f9bd1dfcad
-  - type: implements
-    from: SYM-quality-inventory-522c5b9aeb69
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-09-14T20:38:33.061Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f44bf1889cb1
-  - type: covered_by
-    from: SYM-quality-inventory-522c5b9aeb69
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-09-14T20:38:33.074Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2db623fc36c9
   - type: executable_for
     from: SYM-claude-case-scanner-equivalence
     to: TEST-claude-code-kibi-plugin-v1
@@ -111,13 +90,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bfff35dae8e4
-  - type: implements
-    from: SYM-prolog-build-verify-archive
-    to: REQ-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:53:20.609Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-27af57615edd
   - type: covered_by
     from: SYM-prolog-build-verify-archive
     to: TEST-prolog-build-pipeline-validation
@@ -300,17 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9edb75476cfa
-  - type: implements
-    from: SYM-cli-update-check-update-fetch-timeout-ms
-    to: REQ-kibi-update-notice
-    created_at: 2026-11-04T13:23:33.678Z
+  - type: verified_by
+    from: SCEN-search-answer-replacement-strong-match
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:33:45.067Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-3c107586b1a5
-  - type: covered_by
-    from: SYM-cli-update-check-update-fetch-timeout-ms
-    to: TEST-kibi-update-notice
-    created_at: 2026-11-04T13:23:33.702Z
+    id: rel-a4cdb0df0f61
+  - type: assumes
+    from: SCEN-search-answer-replacement-strong-match
+    to: FACT-search-answer-replacement-only-for-strong-predecessor
+    created_at: 2026-11-11T17:39:04.279Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-3bec4e7d73f6
+    id: rel-045f1dd4d021

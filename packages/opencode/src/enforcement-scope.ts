@@ -1,5 +1,3 @@
-// implements REQ-opencode-worktree-hard-enforcement-v1
-
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 
@@ -21,7 +19,6 @@ function normalizeComponent(
 /**
  * Build a deterministic scope key for hard-enforcement decisions.
  */
-// implements REQ-opencode-worktree-hard-enforcement-v1
 export function buildEnforcementScopeKey(input: EnforcementScopeInput): string {
   return JSON.stringify({
     sessionId: normalizeComponent(input.sessionId, "unknown"),
@@ -38,7 +35,6 @@ export function buildEnforcementScopeKey(input: EnforcementScopeInput): string {
 /**
  * Hash dirty relevant inputs into a stable, order-insensitive fingerprint.
  */
-// implements REQ-opencode-worktree-hard-enforcement-v1
 export function buildDirtyRelevantFingerprint(
   values: Iterable<string | null | undefined>,
 ): string {

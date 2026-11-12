@@ -10,7 +10,6 @@ import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
 import type { ActivationPolicy, ActivationState, Candidate } from "./types.js";
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 // covered_by TEST-KIBI-BOOTSTRAP-PLAN-APPLY
 export function missingManifestActivation(
   vendored: boolean,
@@ -26,7 +25,6 @@ export function missingManifestActivation(
  * older Kibi: it is migrated, never initialized, so the first step is the one
  * `kibi doctor` names.
  */
-// implements REQ-legacy-kb-first-step-migrate
 export function legacyKbActivation(): ActivationPolicy {
   return {
     activationState: "root_partial",
@@ -109,7 +107,6 @@ function activationFor(state: ActivationState): ActivationPolicy {
  * deduplicated against the existing KB. Such a plan is applicable like a thin
  * bootstrap plan; a seeded plan holding anything else stays a handoff.
  */
-// implements REQ-bootstrap-discovered-candidate-budget
 // covered_by TEST-KIBI-BOOTSTRAP-PLAN-APPLY
 export function claimPlanActivation(
   policy: ActivationPolicy,
@@ -139,56 +136,53 @@ async function exists(
     await context.fs?.stat(target);
     return true;
   } catch {
-    return false;
+    // Absent or unreadable.
   }
+  return false;
 }
 
-function coverageState(
-  rows: readonly { readonly type: string; readonly count: number }[],
-): ActivationState {
-  const counts = Object.fromEntries(
-    rows.map((row) => [row.type, Number(row.count)]),
-  );
-  const nonSymbols = [
-    "req",
-    "scenario",
-    "test",
-    "adr",
-    "flag",
-    "event",
-    "fact",
-  ].reduce((sum, type) => sum + Number(counts[type] ?? 0), 0);
-  const supporting =
-    Number(counts.scenario ?? 0) +
-    Number(counts.test ?? 0) +
-    Number(counts.adr ?? 0) +
-    Number(counts.fact ?? 0);
-  return Number(counts.req ?? 0) >= 1 && nonSymbols >= 5 && supporting >= 1
+type CoverageRow = Readonly<{ type: unknown; count: number }>;
+
+/** Seeded once the KB holds a requirement, five entities and support. */
+function coverageState(rows: readonly CoverageRow[]): ActivationState {
+  const counts: Record<string, number> = {};
+  for (const { type, count } of rows)
+    counts[type as string] = (counts[type as string] ?? 0) + count;
+  const total = (...types: string[]) =>
+    types.reduce((sum, type) => sum + (counts[type] ?? 0), 0);
+  return total("req") >= 1 &&
+    total("req", "scenario", "test", "adr", "flag", "event", "fact") >= 5 &&
+    total("scenario", "test", "adr", "fact") >= 1
     ? "root_active_seeded"
     : "root_active_thin";
 }
 
+const LANE_FILE =
+  /^\.kb\/(requirements|scenarios|tests|adrs?|flags|events|facts)\/.*\.md$/i;
+const LANE_TYPE: Readonly<Record<string, string>> = {
+  requirements: "req",
+  scenarios: "scenario",
+  tests: "test",
+  adr: "adr",
+  adrs: "adr",
+  flags: "flag",
+  events: "event",
+  facts: "fact",
+};
+
+/** One row per authored entity file in a lane. */
 function sourceCoverageState(files: readonly string[]): ActivationState {
-  const counts = {
-    req: files.filter((file) => /^\.kb\/requirements\/.*\.md$/i.test(file))
-      .length,
-    scenario: files.filter((file) => /^\.kb\/scenarios\/.*\.md$/i.test(file))
-      .length,
-    test: files.filter((file) => /^\.kb\/tests\/.*\.md$/i.test(file)).length,
-    adr: files.filter((file) => /^\.kb\/adrs?\/.*\.md$/i.test(file)).length,
-    flag: files.filter((file) => /^\.kb\/flags\/.*\.md$/i.test(file)).length,
-    event: files.filter((file) => /^\.kb\/events\/.*\.md$/i.test(file)).length,
-    fact: files.filter((file) => /^\.kb\/facts\/.*\.md$/i.test(file)).length,
-  };
   return coverageState(
-    Object.entries(counts).map(([type, count]) => ({ type, count })),
+    files
+      .map((file) => LANE_FILE.exec(file)?.[1])
+      .filter((lane): lane is string => lane !== undefined)
+      .map((lane) => ({ type: LANE_TYPE[lane.toLowerCase()], count: 1 })),
   );
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function classifyActivation(
   context: OperationContext,
-  files: readonly string[] = [],
+  files?: readonly string[],
 ): Promise<ActivationPolicy> {
   // Discovery callers do not all use the same path base.  The CLI globber
   // returns workspace-relative paths, while host adapters may pass absolute
@@ -196,6 +190,9 @@ export async function classifyActivation(
   // KB has the same posture on every peer surface.
   // Hosts (and leaked fast-glob mocks) may omit or return a non-array; treat
   // that as "no source files" rather than crashing status/bootstrap.
+  // rationale: a placeholder path is neither vendored, a project signal nor
+  // a KB source file, so it classifies like no files at all.
+  // Stryker disable next-line ArrayDeclaration
   const sourceFiles = Array.isArray(files) ? files : [];
   const normalizedFiles = sourceFiles.map((file) => {
     const relative = path.isAbsolute(file)
@@ -211,10 +208,9 @@ export async function classifyActivation(
     return legacyKbActivation();
   if (manifestStatus.state === "missing") {
     const vendored = normalizedFiles.some((file) => file.startsWith("kibi/"));
-    const projectSignalFromFiles = normalizedFiles.some(
-      (file) =>
-        !file.startsWith("kibi/") &&
-        /^(README\.md|package\.json|src\/|app\/|packages\/|tests\/)/.test(file),
+    // A kibi/ path never starts like a project file.
+    const projectSignalFromFiles = normalizedFiles.some((file) =>
+      /^(README\.md|package\.json|src\/|app\/|packages\/|tests\/)/.test(file),
     );
     const projectSignalFromDirectories = await Promise.all(
       ["README.md", "package.json", "src", "app", "packages", "tests"].map(
@@ -235,35 +231,22 @@ export async function classifyActivation(
   );
   if (resolved.some((value) => !value)) return activationFor("root_partial");
   if (!context.prolog)
-    return activationFor(
-      normalizedFiles.some((file) => file.startsWith(".kb/"))
-        ? sourceCoverageState(normalizedFiles)
-        : "root_active_thin",
-    );
+    // Without KB source files the count is that of a thin KB.
+    return activationFor(sourceCoverageState(normalizedFiles));
   try {
     const result = await context.prolog.query(
       "discovery:coverage_report_json(type, [], true, false, 100, 0, JsonString)",
     );
-    const parsed: unknown = JSON.parse(
-      result.bindings.JsonString ?? '{"rows":[]}',
+    // A missing binding, a payload without a rows list or a null row throws
+    // here, and the catch below reads a thin KB as an empty report would.
+    const { rows } = JSON.parse(result.bindings.JsonString as string) as {
+      rows: { type?: unknown; count?: unknown }[];
+    };
+    // A row whose type is not a lane name counts towards nothing.
+    const counted = rows.filter(
+      (row): row is CoverageRow => typeof row.count === "number",
     );
-    const rows =
-      parsed !== null &&
-      typeof parsed === "object" &&
-      "rows" in parsed &&
-      Array.isArray(parsed.rows)
-        ? parsed.rows.flatMap((row) =>
-            row !== null &&
-            typeof row === "object" &&
-            "type" in row &&
-            "count" in row &&
-            typeof row.type === "string" &&
-            typeof row.count === "number"
-              ? [{ type: row.type, count: row.count }]
-              : [],
-          )
-        : [];
-    return activationFor(coverageState(rows));
+    return activationFor(coverageState(counted));
   } catch {
     return activationFor("root_active_thin");
   }

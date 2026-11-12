@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-agent-guided-migration-orchestration
 import { createHash } from "node:crypto";
 import {
   existsSync,

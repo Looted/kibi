@@ -14,7 +14,6 @@
  * contract-checked against this module.
  */
 
-// implements REQ-020
 export type PackageCatalogSlice =
   | "publishable"
   | "pack-all"
@@ -23,7 +22,6 @@ export type PackageCatalogSlice =
   | "default-install"
   | "tarball-clean";
 
-// implements REQ-020
 export type PackageCatalogEntry = Readonly<{
   readonly dir: string;
   readonly npmName: string;
@@ -34,7 +32,6 @@ export type PackageCatalogEntry = Readonly<{
   readonly packAll: boolean;
 }>;
 
-// implements REQ-020
 export const PACKAGE_CATALOG = [
   {
     dir: "core",
@@ -345,7 +342,6 @@ export const PACKAGE_CATALOG = [
   },
 ] as const satisfies readonly PackageCatalogEntry[];
 
-// implements REQ-020
 export type CatalogPackageDir = (typeof PACKAGE_CATALOG)[number]["dir"];
 
 function dirsWhere(
@@ -355,29 +351,22 @@ function dirsWhere(
 }
 
 /** Canonical publishable package directories (npm). */
-// implements REQ-020
 export const PUBLISHABLE_DIRS = dirsWhere((entry) => entry.publishable);
 
-// implements REQ-020
 export const CI_PACK_DIRS = dirsWhere((entry) => entry.packInCi);
 
-// implements REQ-020
 export const PACK_ALL_DIRS = dirsWhere((entry) => entry.packAll);
 
-// implements REQ-020
 export const PACKED_E2E_DIRS = CI_PACK_DIRS;
 
-// implements REQ-020
 export const DEFAULT_INSTALL_DIRS = dirsWhere(
   (entry) => entry.includedInDefaultInstall,
 );
 
-// implements REQ-020
 export const TARBALL_CLEAN_DIRS = dirsWhere(
   (entry) => entry.packAll || entry.publishable,
 );
 
-// implements REQ-020
 export function catalogEntriesForSlice(
   slice: PackageCatalogSlice,
 ): readonly (typeof PACKAGE_CATALOG)[number][] {
@@ -402,12 +391,10 @@ export function catalogEntriesForSlice(
   }
 }
 
-// implements REQ-020
 export function dirsForSlice(slice: PackageCatalogSlice): readonly string[] {
   return catalogEntriesForSlice(slice).map((entry) => entry.dir);
 }
 
-// implements REQ-020
 export function lookupCatalogEntry(
   dirOrNpmName: string,
 ): (typeof PACKAGE_CATALOG)[number] | undefined {
@@ -447,7 +434,6 @@ function printCatalogCli(argv: readonly string[]): void {
   }
 }
 
-// implements REQ-020
 export function runPackageCatalogCliIfMain(
   isMain = import.meta.main,
   argv: readonly string[] = process.argv.slice(2),

@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { MINIMUM_SWIPL_MAJOR } from "../../../src/prolog/swipl-resolver.js";
 
-// implements REQ-prolog-swipl-minimum-version
-
 /**
  * The oldest SWI-Prolog major version Kibi accepts from PATH. Kibi reads
  * MINIMUM_SWIPL_MAJOR itself at ingest, so the certificate is checked against the code.

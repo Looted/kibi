@@ -72,7 +72,7 @@ The telemetry acceptance report shall read at most 200 usage events. The maximum
 
 ## Context
 
-These are the limits DEFAULT_TELEMETRY_ACCEPTANCE_POLICY in packages/cli/src/public/telemetry-acceptance.ts sets for the telemetry acceptance report described by REQ-kibi-telemetry-acceptance-gate-v2 (the latest 200 events, evidence no more than seven days old, a preflight within one hour, an advisor call within 24 hours, three failed upserts). Each limit is stated here as a number so it is proved against the policy field itself; how the report uses each limit stays in REQ-kibi-telemetry-acceptance-gate-v2.
+These are the limits DEFAULT_TELEMETRY_ACCEPTANCE_POLICY in packages/cli/src/public/telemetry-acceptance.ts sets for the telemetry acceptance report described by REQ-kibi-telemetry-acceptance-report-verdict (the latest 200 events, evidence no more than seven days old, a preflight within one hour, an advisor call within 24 hours, three failed upserts). Each limit is stated here as a number so it is proved against the policy field itself; how the report uses each limit stays in REQ-kibi-telemetry-acceptance-report-verdict.
 
 ## Source
 

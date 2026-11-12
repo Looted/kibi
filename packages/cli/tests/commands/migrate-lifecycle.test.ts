@@ -22,8 +22,6 @@ import {
   writeManifest,
 } from "../helpers/schema6-fixture.js";
 
-// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
-
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 180_000;
 
@@ -376,7 +374,7 @@ describe("kibi migrate lifecycle repairs", () => {
       const audit = JSON.parse(read(root, ".kb/migrations/main.json"));
       expect(audit).toMatchObject({
         fromVersion: 5,
-        toVersion: 13,
+        toVersion: 14,
         supersededRequirementsClosed: 1,
         sourcePathsRewritten: 1,
         sourcePathsRemoved: 3,

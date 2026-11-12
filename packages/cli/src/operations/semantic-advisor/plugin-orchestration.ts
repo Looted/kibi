@@ -47,7 +47,6 @@ import type {
   SemanticProposition,
 } from "./types.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type SemanticPluginOrchestrationResult = Readonly<{
   analysis: SemanticAdvisorAnalysisResult;
   classification: ComposedSemanticClassifierResult | null;
@@ -63,33 +62,17 @@ function hasConfiguredPlugins(registry: CapabilityRegistry): Promise<boolean> {
   });
 }
 
-const ASSERTIVE_ROLES = new Set([
-  "normative",
-  "definition",
-  "condition",
-  "exception",
-]);
-
-function isAssertiveUnresolved(proposition: SemanticProposition): boolean {
-  return (
-    ASSERTIVE_ROLES.has(proposition.role) &&
-    ["missing", "ambiguous", "ontology_gap"].includes(proposition.status)
-  );
-}
+/** The lanes from weakest to strongest. */
+const LANE_ORDER: readonly SemanticAdvisorLane[] = [
+  "none",
+  "observation_review",
+  "rule",
+  "predicate",
+  "strict_property",
+];
 
 function laneRank(lane: SemanticLane | SemanticAdvisorLane): number {
-  switch (lane) {
-    case "strict_property":
-      return 4;
-    case "predicate":
-      return 3;
-    case "rule":
-      return 2;
-    case "observation_review":
-      return 1;
-    default:
-      return 0;
-  }
+  return LANE_ORDER.indexOf(lane);
 }
 
 function toolForLane(lane: SemanticAdvisorLane): string {
@@ -106,7 +89,6 @@ function toolForLane(lane: SemanticAdvisorLane): string {
  * active, those suggestions must not survive into the public receipt —
  * including when the replace pack abstains with a valid empty match set.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function stripSyncBuiltinOntologySuggestions(
   analysis: SemanticAdvisorAnalysisResult,
 ): SemanticAdvisorAnalysisResult {
@@ -137,11 +119,10 @@ export function stripSyncBuiltinOntologySuggestions(
  * stripped). When false (augment/builtin), matches only fill claims that
  * lack a suggestion.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function applyOntologyMatchSuggestions(
   analysis: SemanticAdvisorAnalysisResult,
   ontologyMatches: readonly StampedOntologyCandidate[],
-  options: Readonly<{ replaced: boolean }> = { replaced: false },
+  options: Readonly<{ replaced?: boolean }> = {},
 ): SemanticAdvisorAnalysisResult {
   if (analysis.receipt.logic_readiness === "modeled") {
     return analysis;
@@ -159,33 +140,27 @@ export function applyOntologyMatchSuggestions(
   );
 
   for (const match of ontologyMatches) {
-    const claimKey =
-      (match.claimKey &&
-      propositions.some(
+    // The match's own claim, else the claim quoting its evidence, else the
+    // first claim.
+    const proposition =
+      propositions.find(
         (proposition) => proposition.claim_key === match.claimKey,
-      )
-        ? match.claimKey
-        : undefined) ??
+      ) ??
       propositions.find((proposition) =>
         proposition.claim_text.includes(match.evidence),
-      )?.claim_key ??
-      propositions[0]?.claim_key;
-    if (!claimKey) continue;
-    const proposition = propositions.find(
-      (entry) => entry.claim_key === claimKey,
-    );
+      ) ??
+      propositions[0];
     if (!proposition) continue;
+    const claimKey = proposition.claim_key;
     const existing = suggestionByClaim.get(claimKey);
-    if (existing && !options.replaced) continue;
+    // Only replace mode overrides a suggestion, and it preserves
+    // strict/rule/ambiguity host suggestions.
     if (
       existing &&
-      options.replaced &&
-      existing.kind !== "predicate" &&
-      existing.kind !== "ontology_gap"
-    ) {
-      // Preserve strict/rule/ambiguity host suggestions under replace.
+      (!options.replaced ||
+        (existing.kind !== "predicate" && existing.kind !== "ontology_gap"))
+    )
       continue;
-    }
 
     const advisory: SemanticModelingSuggestion = {
       kind: "ontology_gap",
@@ -245,7 +220,6 @@ export function applyOntologyMatchSuggestions(
  * propositions, erase assertive unresolved obligations, downgrade modeled
  * completeness, manufacture typed grounding, or invent mutation/proof.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function applyClassificationRouting(
   analysis: SemanticAdvisorAnalysisResult,
   classification: ComposedSemanticClassifierResult,
@@ -257,27 +231,20 @@ export function applyClassificationRouting(
   }> = {},
 ): SemanticAdvisorAnalysisResult {
   const receipt = analysis.receipt;
-  if (receipt.logic_readiness === "modeled") {
-    // Never downgrade semantic completeness via plugin classification.
-    return {
-      receipt: {
-        ...receipt,
-        // Still expose advisory plugin metadata without changing completeness.
-      },
-      warnings: [
-        ...analysis.warnings,
-        ...(classification.fallbackUsed
-          ? [
-              "Semantic classifier fell back to the builtin provider after an external classifier failure.",
-            ]
-          : []),
-        ...classification.diagnostics.map((diagnostic) => {
-          const model = diagnostic.model ? ` model=${diagnostic.model}` : "";
-          return `Semantic classifier '${diagnostic.pluginId}' failed (${diagnostic.code}${model}): ${diagnostic.message}`;
-        }),
-      ],
-    };
-  }
+  const warnings = [
+    ...analysis.warnings,
+    ...(classification.fallbackUsed
+      ? [
+          "Semantic classifier fell back to the builtin provider after an external classifier failure.",
+        ]
+      : []),
+    ...classification.diagnostics.map((diagnostic) => {
+      const model = diagnostic.model ? ` model=${diagnostic.model}` : "";
+      return `Semantic classifier '${diagnostic.pluginId}' failed (${diagnostic.code}${model}): ${diagnostic.message}`;
+    }),
+  ];
+  // Never downgrade semantic completeness via plugin classification.
+  if (receipt.logic_readiness === "modeled") return { receipt, warnings };
 
   const byClaim = new Map(
     classification.decisions.map((decision) => [decision.claimKey, decision]),
@@ -286,23 +253,21 @@ export function applyClassificationRouting(
 
   const propositions = receipt.propositions.map((proposition) => {
     const decision = byClaim.get(proposition.claim_key);
-    if (!decision) return proposition;
-    // `none` cannot erase an assertive unresolved obligation.
-    if (decision.lane === "none" && isAssertiveUnresolved(proposition)) {
-      return proposition;
-    }
-    if (decision.lane === "none") return proposition;
+    // `none` never changes a claim, so it cannot erase an assertive
+    // unresolved obligation.
+    if (!decision || decision.lane === "none") return proposition;
 
     // A predicate lane routes toward predicate modeling without claiming
     // the claim is grounded, so only ambiguity changes the status.
+    const ambiguous = decision.ambiguity?.ambiguous === true;
     const status =
-      decision.ambiguity?.ambiguous === true && proposition.status === "missing"
+      ambiguous && proposition.status === "missing"
         ? "ambiguous"
         : proposition.status;
     return {
       ...proposition,
       status,
-      ...(decision.ambiguity?.ambiguous === true
+      ...(ambiguous
         ? {
             reason:
               proposition.reason ??
@@ -328,7 +293,6 @@ export function applyClassificationRouting(
     if (existing) {
       // Re-route suggested tool when classifier lifts the lane; never remove.
       if (
-        laneRank(decision.lane) > 0 &&
         existing.suggested_next_tool !== nextTool &&
         (existing.kind === "ambiguity_observation" ||
           existing.kind === "ontology_gap" ||
@@ -345,7 +309,9 @@ export function applyClassificationRouting(
             entry.claim_key === existing.claim_key &&
             entry.kind === existing.kind,
         );
-        if (index >= 0) suggestions[index] = updated;
+        // existing is always one of suggestions: the map only holds entries
+        // of that list.
+        suggestions[index] = updated;
         suggestionByClaim.set(decision.claimKey, updated);
       }
       continue;
@@ -390,14 +356,12 @@ export function applyClassificationRouting(
 
   // Replace mode owns the candidate lane. Start from none so a valid empty
   // decisions[] abstention does not inherit sync analyze-prose routing.
-  let candidateLane: SemanticAdvisorLane = classifierReplaced
-    ? "none"
-    : receipt.candidate_lane;
-  for (const decision of classification.decisions) {
-    if (laneRank(decision.lane) > laneRank(candidateLane)) {
-      candidateLane = decision.lane;
-    }
-  }
+  const candidateLane = LANE_ORDER[
+    Math.max(
+      laneRank(classifierReplaced ? "none" : receipt.candidate_lane),
+      ...classification.decisions.map((decision) => laneRank(decision.lane)),
+    )
+  ] as SemanticAdvisorLane;
 
   const tools = [
     ...new Set([
@@ -419,18 +383,6 @@ export function applyClassificationRouting(
         : `${receipt.summary} Classifier routing: ${candidateLane} → ${toolForLane(candidateLane)}.`,
   };
 
-  const warnings = [...analysis.warnings];
-  if (classification.fallbackUsed) {
-    warnings.push(
-      "Semantic classifier fell back to the builtin provider after an external classifier failure.",
-    );
-  }
-  for (const diagnostic of classification.diagnostics) {
-    const model = diagnostic.model ? ` model=${diagnostic.model}` : "";
-    warnings.push(
-      `Semantic classifier '${diagnostic.pluginId}' failed (${diagnostic.code}${model}): ${diagnostic.message}`,
-    );
-  }
   if (
     classifierReplaced &&
     classification.decisions.every((decision) => decision.lane === "none")
@@ -457,7 +409,6 @@ export function applyClassificationRouting(
  * Async orchestration for allowlisted semantic operations.
  * Maintenance paths must keep calling sync `analyzeSemanticAdvisorInput`.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export async function analyzeSemanticAdvisorInputWithPlugins(
   input: SemanticAdvisorInput,
   options: Readonly<{
@@ -494,74 +445,64 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
   }
 
   const stamps: PluginProviderStamp[] = [];
+  // The claims as plugins see them.
+  const contexts: OntologyMatchContext[] = analysis.receipt.propositions.map(
+    (proposition) => ({
+      claimKey: proposition.claim_key,
+      statement: proposition.claim_text,
+      role: proposition.role,
+    }),
+  );
   let classification: ComposedSemanticClassifierResult | null = null;
-  let ontologyCatalog: ComposedOntologyCatalog | null = null;
-  let ontologyMatches: readonly StampedOntologyCandidate[] = [];
-  let ontologyShadowMatches: readonly StampedOntologyCandidate[] = [];
-  let nextAnalysis = analysis;
-
   if (analysis.receipt.logic_readiness !== "modeled") {
-    const propositions: SemanticClassifierInput["propositions"] =
-      analysis.receipt.propositions.map((proposition) => ({
-        claimKey: proposition.claim_key,
-        statement: proposition.claim_text,
-        role: proposition.role,
-      }));
     const resolution = await registry.resolveSemanticClassifiers();
     classification = await composeSemanticClassification(
       resolution,
-      { propositions },
+      { propositions: contexts },
       { operationName: options.operationName },
     );
     stamps.push(...classification.stamps);
   }
 
   const packResolution = await registry.resolveOntologyPacks();
-  ontologyCatalog = composeOntologyCatalog(packResolution);
+  const ontologyCatalog = composeOntologyCatalog(packResolution);
   stamps.push(...ontologyCatalog.stamps);
-  const contexts: OntologyMatchContext[] =
-    nextAnalysis.receipt.propositions.map((proposition) => ({
-      claimKey: proposition.claim_key,
-      statement: proposition.claim_text,
-      role: proposition.role,
-    }));
+  const ontologyMatches: StampedOntologyCandidate[] = [];
+  const ontologyShadowMatches: StampedOntologyCandidate[] = [];
   const seen = new Set<string>();
-  const collected: StampedOntologyCandidate[] = [];
-  const shadowCollected: StampedOntologyCandidate[] = [];
   const shadowSeen = new Set<string>();
+  // Each schema, polarity and argument list is kept once, in claim order.
+  const collect = (
+    candidates: readonly StampedOntologyCandidate[],
+    keys: Set<string>,
+    into: StampedOntologyCandidate[],
+  ): void => {
+    for (const candidate of candidates) {
+      const key = [
+        candidate.schemaId,
+        candidate.polarity,
+        ...candidate.arguments,
+      ].join("\0");
+      if (keys.has(key)) continue;
+      keys.add(key);
+      into.push(candidate);
+    }
+  };
   for (const matchContext of contexts) {
     const matched = composeOntologyMatches(packResolution, matchContext);
-    for (const candidate of matched.canonical) {
-      const key = [
-        candidate.schemaId,
-        candidate.polarity,
-        ...candidate.arguments,
-      ].join("\0");
-      if (seen.has(key)) continue;
-      seen.add(key);
-      collected.push(candidate);
-    }
-    for (const candidate of matched.shadow) {
-      const key = [
-        candidate.schemaId,
-        candidate.polarity,
-        ...candidate.arguments,
-      ].join("\0");
-      if (shadowSeen.has(key)) continue;
-      shadowSeen.add(key);
-      shadowCollected.push(candidate);
-    }
+    collect(matched.canonical, seen, ontologyMatches);
+    collect(matched.shadow, shadowSeen, ontologyShadowMatches);
   }
-  ontologyMatches = collected;
-  ontologyShadowMatches = shadowCollected;
 
-  const replaced = ontologyCatalog?.replaced === true;
+  const replaced = ontologyCatalog.replaced === true;
   // Replace mode must clear sync-path builtin predicate suggestions even when
   // the replace pack abstains with a valid empty match set.
-  if (replaced) {
-    nextAnalysis = stripSyncBuiltinOntologySuggestions(nextAnalysis);
-  }
+  let nextAnalysis = replaced
+    ? stripSyncBuiltinOntologySuggestions(analysis)
+    : analysis;
 
+  // Without a classification the analysis is modeled, and ontology matches
+  // never change a modeled analysis.
   if (classification) {
     const classifierReplaced =
       !classification.fallbackUsed &&
@@ -571,14 +512,6 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
       classification,
       ontologyMatches,
       { replaced, classifierReplaced },
-    );
-  } else {
-    nextAnalysis = applyOntologyMatchSuggestions(
-      nextAnalysis,
-      ontologyMatches,
-      {
-        replaced,
-      },
     );
   }
 
@@ -596,7 +529,6 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
  * Run allowlisted semantic classifier composition without re-running advisor
  * analysis.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export async function composeSemanticClassificationForOperation(
   context: OperationContext | undefined,
   operationName: string,
@@ -610,7 +542,6 @@ export async function composeSemanticClassificationForOperation(
   return composeSemanticClassification(resolution, input, { operationName });
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export async function composeOntologyCatalogForOperation(
   context: OperationContext | undefined,
   operationName: string,

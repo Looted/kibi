@@ -31,8 +31,6 @@ import {
 import { proofContractErrors } from "../../src/public/proof-protocol.js";
 import { prologCases } from "./prolog-cases.js";
 
-// implements REQ-kibi-non-numeric-proof-kinds
-
 const repoRoot = path.resolve(import.meta.dir, "../../../..");
 const scratch = mkdtempSync(path.join(import.meta.dir, ".non-numeric-"));
 const roots: string[] = [scratch];

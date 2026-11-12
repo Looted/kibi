@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.proof.run_vocabulary
 claim_key: CLAIM-90AD356D3D051F57
 claim_text: A proof run attempts status shall be complete or unavailable
-text_ref: REQ-kibi-proof-run-vocabulary
+text_ref: REQ-kibi-proof-result-vocabulary
 property_key: attempts_status
 operator: eq
 value_type: set

@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 // This is deliberately an opt-in artifact test. Unit coverage must not pack
 // packages or install dependencies, while the native acceptance job exercises
 // the exact consumer layout that a published plugin encounters.

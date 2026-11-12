@@ -1,4 +1,3 @@
-// implements REQ-kibi-proposition-complete-ingestion
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";

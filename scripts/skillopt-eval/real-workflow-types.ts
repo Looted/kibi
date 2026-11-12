@@ -6,7 +6,6 @@ import type { runCodexCell } from "./runtime/codex-cell-runner";
 import type { TargetEpisodeBudgetReport } from "./target-episode-budget";
 import type { FrozenVariant } from "./variants";
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const RootsSchema = z
   .object({
@@ -21,12 +20,10 @@ export const RootsSchema = z
     artifactSchema: z.string().regex(/^[a-f0-9]{64}$/),
   })
   .strict();
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type CorpusRoots = z.infer<typeof RootsSchema>;
 export const ProductionAdoptionSchema = z.literal("external-verdict-required");
 export type ProductionAdoption = z.infer<typeof ProductionAdoptionSchema>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type DevelopmentGate = Readonly<{
   mean: number;
@@ -55,7 +52,6 @@ const DevelopmentReviewEvaluationSchema = z
 // source-compatible; persisted authoritative reviews always normalize it.
 export type DevelopmentEvaluation = DevelopmentGate &
   Readonly<{ securityFailures?: number }>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const TrainResultSchema = z.looseObject({
   codex_candidate_body: z.string().min(1),
@@ -71,7 +67,6 @@ export const TrainResultSchema = z.looseObject({
     })
     .strict(),
 });
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const ReviewSchema = z
   .object({
@@ -116,7 +111,6 @@ export const ReviewSchema = z
     generatedAt: z.iso.datetime(),
   })
   .strict();
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type PublicTaskDescriptor = Readonly<{
   id: string;
@@ -124,9 +118,7 @@ export type PublicTaskDescriptor = Readonly<{
   split: "train" | "development";
   publicClaim: unknown;
 }>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type TrainingInput = Readonly<{
   runId: string;
@@ -142,7 +134,6 @@ export type TrainingInput = Readonly<{
   env: NodeJS.ProcessEnv;
   cellRuntime?: CodexCellRuntime;
 }>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type TrainingOutput = Readonly<{
   status: "frozen";
@@ -151,7 +142,6 @@ export type TrainingOutput = Readonly<{
   trajectoryHashes: readonly string[];
   development?: DevelopmentGate;
 }>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 const CodexCellRuntimeSchema = z
   .object({
@@ -167,7 +157,6 @@ const CodexCellRuntimeSchema = z
     hiddenMarkers: z.array(z.string().min(1)).optional(),
   })
   .strict();
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type CodexCellRuntime = Readonly<z.infer<typeof CodexCellRuntimeSchema>>;
 export type ResolvedCodexCellRuntime = CodexCellRuntime &
@@ -189,7 +178,6 @@ export class CodexRuntimeError extends Error {
     super(code);
   }
 }
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 import type { ArtifactPath } from "./artifact-path";
 
@@ -205,7 +193,6 @@ export type RealOptimizationOptions = Readonly<{
   cellRuntime?: CodexCellRuntime;
   artifactPath?: ArtifactPath;
 }>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type RealOptimizationResult = Readonly<{
   status: "evaluated" | "blocked";
@@ -223,7 +210,6 @@ export type RealOptimizationResult = Readonly<{
   targetEpisodeBudget?: TargetEpisodeBudgetReport;
   reason?: "development_gate_ineligible" | "development_only";
 }>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type HeldOutEvaluation =
   | Readonly<{
@@ -235,7 +221,6 @@ export type HeldOutEvaluation =
       eligibility: "HELD_OUT_MATRIX_INELIGIBLE";
       cellCount: number;
     }>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type RealOptimizationDependencies = Readonly<{
   sourceClean: (
@@ -271,12 +256,10 @@ export type RealOptimizationDependencies = Readonly<{
   ) => Promise<HeldOutEvaluation>;
   oneShot: (input: TrainingInput) => Promise<FrozenVariant>;
 }>;
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function canonicalHash(value: unknown): string {
   return contractHash(JsonValueSchema.parse(value));
 }
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function requireRuntime(runtime: unknown): ResolvedCodexCellRuntime {
   if (runtime === undefined)

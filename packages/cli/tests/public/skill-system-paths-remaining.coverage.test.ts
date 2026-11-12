@@ -1,4 +1,3 @@
-// implements REQ-kibi-bundled-skills
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";

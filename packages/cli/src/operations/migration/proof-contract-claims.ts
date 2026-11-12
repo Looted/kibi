@@ -19,21 +19,19 @@
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { load as loadYaml } from "js-yaml";
+import type { StatusPayload } from "../../public/operations/discovery-executors.js";
 import { readAuthoredEntity } from "../../public/operations/entity-context.js";
 import type { BodyContextTarget } from "./entity-body-context.js";
 import {
-  listLaneMarkdownFiles,
-  readText,
+  listLaneMarkdownSources,
   sliceFrontmatter,
   writeFileAtomically,
 } from "./kb-sources.js";
 
 /** Schema 12: pin proves on a certificate contract with one provable claim. */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export const PROOF_CONTRACT_CLAIMS_PIN_CODE = "proof_contract_claims_pin";
 
 /** Schema 12: certificate contracts a person must bind to their claims. */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export const PROOF_CONTRACT_CLAIMS_REVIEW_CODE = "proof_contract_claims_review";
 
 /**
@@ -86,7 +84,6 @@ function describeCandidate(candidate: ClaimCandidate): string {
  * What a person reviewing a contract without proves has to do, naming every
  * claim its test reaches and how a certificate of its kind would bind it.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function claimReviewInstruction(row: ProofContractClaimsReview): string {
   const factKind =
     row.kind === "exhaustive" || row.kind === "typecheck"
@@ -106,10 +103,6 @@ export function claimReviewInstruction(row: ProofContractClaimsReview): string {
   return `${row.id} (${row.path}) has a ${row.kind} proof contract without proves. Claims its test reaches: ${row.candidates.map(describeCandidate).join("; ")}. ${advice}, then run kibi prove --test ${row.id}.`;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
 /**
  * Add proves to a test's proof_contract block, leaving every other byte of
  * the document unchanged: the list goes after the block's last line, at the
@@ -117,28 +110,28 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * block mapping, already names proves, or the edit would not read back as
  * exactly that change.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function withProofContractProves(
   content: string,
   keys: readonly string[],
 ): string | null {
   const slice = sliceFrontmatter(content);
-  if (slice === null || keys.length === 0) return null;
+  if (slice === null) return null;
+  // Every line ends with its line break.
   const lines = slice.text.split(/(?<=\n)/);
   const start = lines.findIndex((line) =>
-    /^proof_contract:[ \t]*\r?\n$/.test(line),
+    /^proof_contract:[ \t]*\r?\n/.test(line),
   );
-  if (start < 0) return null;
+  // No early refusals below: without a contract line (start -1), with an
+  // empty block (indent null) or with no keys (`proves:` reads back as null),
+  // the edited text never reads back as the expected change.
   let end = start + 1;
   let indent: string | null = null;
-  while (end < lines.length) {
-    const line = lines[end] ?? "";
+  for (const line of lines.slice(start + 1)) {
     const leading = /^([ \t]+)\S/.exec(line);
     if (leading === null) break;
-    if (indent === null) indent = leading[1] ?? "";
+    indent ??= leading[1] as string;
     end += 1;
   }
-  if (indent === null) return null;
   const inserted = [
     `${indent}proves:${slice.eol}`,
     ...keys.map((key) => `${indent}${indent}- ${key}${slice.eol}`),
@@ -147,11 +140,13 @@ export function withProofContractProves(
     "",
   );
   try {
-    const before = loadYaml(slice.text);
+    // A top-level `proof_contract:` line makes the block a mapping; text that
+    // is not one fails to parse.
+    const before = loadYaml(slice.text) as Record<string, unknown>;
     const next = loadYaml(text);
-    if (!isRecord(before) || !isRecord(next)) return null;
-    const contract = before.proof_contract;
-    if (!isRecord(contract) || contract.proves !== undefined) return null;
+    // A contract without keys reads as null and throws here.
+    const contract = before.proof_contract as Record<string, unknown>;
+    if (contract.proves !== undefined) return null;
     const expected = {
       ...before,
       proof_contract: { ...contract, proves: [...keys] },
@@ -169,7 +164,6 @@ export function withProofContractProves(
  * obligation for gets that claim pinned in proves; any other is left for a
  * person to bind (review). Read-only.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function planProofContractClaimPins(
   workspaceRoot: string,
   rows: readonly ClaimCandidateRow[] | null,
@@ -178,24 +172,25 @@ export function planProofContractClaimPins(
   const targets: BodyContextTarget[] = [];
   const review: ProofContractClaimsReview[] = [];
   const skipped: { id: string; path: string; reason: string }[] = [];
-  if (byTest.size === 0) return { targets, review, skipped };
-  for (const file of listLaneMarkdownFiles(workspaceRoot, ["tests"])) {
-    const content = readText(file.absolutePath);
-    if (content === null) continue;
-    const entity = readAuthoredEntity(content, file.relativePath);
-    const row = entity === null ? undefined : byTest.get(entity.id);
-    if (entity === null || row === undefined) continue;
+  for (const { content, relativePath } of listLaneMarkdownSources(
+    workspaceRoot,
+    ["tests"],
+  )) {
+    const entity = readAuthoredEntity(content, relativePath);
+    const row = byTest.get(entity?.id as string);
+    if (row === undefined) continue;
+    const id = row.test_id;
     const keys = [
       ...new Set(
         row.candidates
           .filter((c) => c.binding === "derived")
           .map((c) => c.claim_key),
       ),
-    ].sort();
+    ];
     if (keys.length !== 1) {
       review.push({
-        id: entity.id,
-        path: file.relativePath,
+        id,
+        path: relativePath,
         kind: row.kind,
         candidates: row.candidates,
       });
@@ -204,17 +199,17 @@ export function planProofContractClaimPins(
     const after = withProofContractProves(content, keys);
     if (after === null) {
       skipped.push({
-        id: entity.id,
-        path: file.relativePath,
+        id,
+        path: relativePath,
         reason:
           "its proof_contract is not a block mapping Kibi can extend in place",
       });
       continue;
     }
     targets.push({
-      id: entity.id,
+      id,
       type: "test",
-      path: file.relativePath,
+      path: relativePath,
       before: content,
       after,
     });
@@ -222,7 +217,6 @@ export function planProofContractClaimPins(
   return { targets, review, skipped };
 }
 
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export function applyProofContractClaimPins(
   workspaceRoot: string,
   rows: readonly ClaimCandidateRow[] | null,
@@ -239,7 +233,6 @@ export function applyProofContractClaimPins(
  * store is attached or the evaluation fails; the migration then pins
  * nothing, and proof-contract-claims lists the contracts.
  */
-// implements REQ-kibi-claim-bound-proofs, REQ-cli-schema-migration
 export async function readProofContractClaimCandidates(
   workspaceRoot: string,
 ): Promise<readonly ClaimCandidateRow[] | null> {
@@ -256,12 +249,14 @@ export async function readProofContractClaimCandidates(
       import("../../public/operations/prolog-json.js"),
     ]);
     const runtime = createCliRuntime({ workspaceRoot });
-    const status = (await executeOperation(runtime, statusSpec, {}))
-      .structuredContent;
+    // A missing payload or field throws, and the catch returns null for it.
+    const { branchStore, snapshotId, branchAttachment } = (
+      await executeOperation(runtime, statusSpec, {})
+    ).structuredContent as Required<StatusPayload>;
     if (
-      status?.branchStore?.state !== "healthy" ||
-      status?.snapshotId === "missing" ||
-      status?.branchAttachment?.kind !== "exact"
+      branchStore.state !== "healthy" ||
+      snapshotId === "missing" ||
+      branchAttachment.kind !== "exact"
     )
       return null;
     const rows: unknown = await executeOperation(

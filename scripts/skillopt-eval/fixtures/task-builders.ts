@@ -553,8 +553,6 @@ class TaskDefinitionError extends Error {
   readonly name = "TaskDefinitionError";
 }
 
-// implements REQ-skillopt-predicate-first-requirements
-// implements REQ-skillopt-codex-optimization
 export function buildFamilyPayload(context: BuilderContext): FamilyPayload {
   const definition = DEFINITIONS[context.skill][context.family];
   if (definition === undefined)

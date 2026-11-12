@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { EVIDENCE_LEVELS } from "../../../src/public/evidence-levels.js";
 
-// implements REQ-kibi-evidence-level-vocabulary
-
 /**
  * The evidence levels Kibi reports. Kibi reads EVIDENCE_LEVELS itself at ingest
  * (domain_source), so the certificate is checked against the list in code.

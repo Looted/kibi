@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.migration.orchestration
-property_key: clause_05_semantic_judgment_contradictions_e2e_execution_package_chang
+property_key: judgment_actions_stay_manual
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_agent_guided_migration_orchestration.clause_05_semantic_judgment_contradictions_e2e_execution_package_chang.eq.true
+canonical_key: req.req_agent_guided_migration_orchestration.judgment_actions_stay_manual.eq.true
 claim_key: CLAIM-CA304D0A5C107DC2
 claim_text: Semantic judgment, contradictions, E2E execution, package changes, receipt history and limitation acceptance must remain review, operator or execution actions
 id: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C05

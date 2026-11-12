@@ -138,6 +138,24 @@ Kibi checks that a firm decision names a reference; it cannot check that the ref
 
 ---
 
+### Retired requirements
+
+A requirement has two ways to stop governing:
+
+- **Superseded**: a newer requirement links to it with `supersedes` and takes over its intent. The old one is `closed`.
+- **Retired**: the behavior is gone and nothing replaces it. Set `status: retired` with `retired_reason`:
+
+```yaml
+status: retired
+retired_reason: Retired on 2026-10-30 because branch storage no longer writes audit.log.
+```
+
+A retired requirement is not current: the proof ladder reports it `not_applicable` ("requirement is retired"), `kb_search` lists it under `notGoverning` instead of `governing`, hooks and impact reviews stop offering it, and no current-intent rule reads it. Requirements that are only done keep `status: closed`; they still govern.
+
+Retiring a requirement leaves what it owned. `kibi check` blocks (rule `retired-owner-only`) a current fact, scenario or test whose every owning requirement is retired: the requirements that ground a fact (`constrains`, `requires_property`, `requires_predicate`, `requires_rule`), that specify a scenario (`specified_by`), or that a test verifies directly or through a scenario. Link each one to the current requirement that took over the behavior, archive a fact or scenario with `status: deprecated`, or delete a test whose behavior is gone. Symbols that implement only retired requirements are listed by the advisory `symbol-owner-superseded`.
+
+From KB schema 14, `kibi migrate` lists every `closed` requirement that nothing supersedes and whose own source says it was retired (its `proof_exempt_reason` or title says retired or archived, its body says "this requirement was retired", or a `historical-status:` tag records retired, archived, deprecated or superseded) as a `req_retired_status_suggest` review action. Approving one by id sets `status: retired` and a `retired_reason` quoting those words; Kibi never retires a requirement on its own.
+
 ### Entity Type Details & Example Frontmatter
 
 #### Requirement (`req`)
@@ -146,7 +164,7 @@ Kibi checks that a firm decision names a reference; it cannot check that the ref
 |--------------|----------|----------------|--------------------------------------------------|
 | id           | Yes      | string         | Unique identifier                                |
 | title        | Yes      | string         | Requirement summary                              |
-| status       | Yes      | string         | open, in_progress, closed, deprecated. ADR vocabulary such as `accepted` compiles but is not a requirement status: it silently removes the requirement from the proof ladder, and `kibi check` reports it under `req-status-vocabulary`. A superseded requirement (the target of a `supersedes` link from its successor) must be `closed`; `kibi check` blocks an open one under `superseded-requirement-open`. |
+| status       | Yes      | string         | open, in_progress, closed, retired. `closed` means done and still valid: the requirement keeps governing search, hooks and checks. `retired` means the behavior it stated no longer exists: the requirement stops governing, needs `retired_reason`, and nothing current may be owned only by it (see [Retired requirements](#retired-requirements)). ADR vocabulary such as `accepted` compiles but is not a requirement status: it silently removes the requirement from the proof ladder, and `kibi check` reports it under `req-status-vocabulary`. A superseded requirement (the target of a `supersedes` link from its successor) must be `closed`; `kibi check` blocks an open one under `superseded-requirement-open`. |
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
 | source       | Yes      | string         | Provenance                                       |
@@ -158,6 +176,7 @@ Kibi checks that a firm decision names a reference; it cannot check that the ref
 | text_ref     | No       | string         | Independent code/doc evidence pointer; a value shaped like one file path must name an existing file (`source-path-dangling`) |
 | proof_exempt | No       | boolean        | Marks a current requirement as intentionally outside E2E-proof scope. Requires `proof_exempt_reason`; coverage reports the requirement `not_applicable` with that reason |
 | proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
+| retired_reason | No | string        | Required when `status` is `retired`: why the behavior no longer exists, with the date or change that retired it. `kb_upsert` refuses `status: retired` without it, and `kibi check` blocks a hand-edited one under `retired-reason-missing` |
 | approved_by  | No       | string         | Exception requirements only: the human who approved the exception. An exception that `exempts` a requirement makes its specified success scenarios feasible only when `approved_by` is non-empty; without it the advisory `exception-unapproved` check reports the exception |
 | approval_ref | No       | string         | Optional reference to the exception's approval record (ticket, ADR or review link). When an agent recorded the exception (`origin.kind: agent`), the advisory `exception-approval-self-attested` check asks for `approval_ref` and `origin.approved_by` |
 | rationale    | No       | string         | Why the requirement exists, in one or two sentences from whoever stated the intent. Explanation only, never part of the checked meaning. The advisory `requirement-rationale-missing` check asks human- and agent-authored requirements for it unless the body has a `## Rationale` or `## Why` section or an ADR is linked |

@@ -25,7 +25,10 @@ import {
   sourceExtractionRemediation,
 } from "../../commands/sync/cache.js";
 import { extractFromMarkdownString } from "../../extractors/markdown.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import type {
+  FilesystemPort,
+  OperationContext,
+} from "../../public/operations/runtime-types.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import { branchStorePath } from "../../utils/branch-store-locator.js";
 import {
@@ -40,7 +43,6 @@ import type { RelationshipInput, UpsertInput } from "./types.js";
  * An authored document for an entity the compiled store does not hold: the
  * file the source-first writer would merge an upsert into.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export type UncompiledAuthoredSource = Readonly<{
   /** Workspace-relative path. */
   path: string;
@@ -60,7 +62,6 @@ export type UncompiledAuthoredSource = Readonly<{
   syncFailure: SourceExtractionFailure | undefined;
 }>;
 
-// implements REQ-kibi-uncompiled-source-semantic-baseline
 function lastSyncFailure(
   context: OperationContext,
   relative: string,
@@ -87,18 +88,19 @@ function errorText(error: unknown): string {
  * entity. A file whose front matter does not parse is refused here: the
  * writer could not merge into it either.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export async function readUncompiledAuthoredSource(
   context: OperationContext,
   input: UpsertInput,
 ): Promise<UncompiledAuthoredSource | null> {
-  if (context.fs === undefined || context.sourceFirst === false) return null;
+  if (context.sourceFirst === false) return null;
   if (input.type === "symbol") return null;
-  const absolute = newEntitySourceTarget(context, input);
-  if (absolute === undefined || !/\.mdx?$/i.test(absolute)) return null;
+  const absolute = newEntitySourceTarget(context, input) as string;
+  // No target (undefined) reads as the text "undefined", which is no markdown.
+  if (!/\.mdx?$/i.test(absolute)) return null;
   let content: string;
   try {
-    content = await context.fs.readFile(absolute);
+    // A runtime without a filesystem fails here like an unreadable file.
+    content = await (context.fs as FilesystemPort).readFile(absolute);
   } catch {
     return null;
   }
@@ -147,7 +149,6 @@ export async function readUncompiledAuthoredSource(
  * file: the file's own state is what the write changes, so the stored
  * ledger, origin and firmness checks read it.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export function authoredEntityLookup(
   source: UncompiledAuthoredSource,
 ): StoredEntityLookup {
@@ -169,7 +170,6 @@ export function authoredEntityLookup(
  * file and the error, because the entity would stay invisible to every
  * store-backed tool. Returns the relationships the written file declares.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export function assertAuthoredWriteCompiles(
   source: UncompiledAuthoredSource,
   input: UpsertInput,

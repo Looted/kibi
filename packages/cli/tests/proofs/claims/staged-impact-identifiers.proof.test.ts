@@ -5,21 +5,18 @@ import {
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { KIBI_IMPACT_DIAGNOSTIC_IDS } from "../../../src/traceability/staged-impact-contract.js";
 import {
   KIBI_ENTITY_SCHEMA_DOC,
-  KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
   KIBI_SYMBOL_COORDINATES_PATH,
 } from "../../../src/traceability/evidence-model.js";
-
-// implements REQ-staged-impact-identifiers
+import { KIBI_IMPACT_DIAGNOSTIC_IDS } from "../../../src/traceability/staged-impact-contract.js";
 
 /**
- * The diagnostics, paths and declaration line the staged impact check uses. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
+ * The diagnostics and paths the staged impact check uses. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */
 
-/** A staged impact diagnostic shall be kibi_impact_evidence_missing, symbols_manifest_stale or kibi_impact_override_missing_rationale. */
+/** A staged impact diagnostic shall be kibi_impact_evidence_missing or symbols_manifest_stale. */
 export async function impactDiagnosticIdsCertificate(): Promise<CodeCertificate> {
   return exhaustiveCertificate({
     testId: "TEST-proof-impact-diagnostic-ids",
@@ -30,15 +27,6 @@ export async function impactDiagnosticIdsCertificate(): Promise<CodeCertificate>
     check: (member) => {
       expect(typeof member).toBe("string");
     },
-  });
-}
-
-/** The no impact declaration shall be Kibi-Impact: none. */
-export function noImpactDeclarationCertificate(): CodeCertificate {
-  return regexCertificate({
-    testId: "TEST-proof-no-impact-declaration",
-    symbolId: "SYM-KIBI-NO-IMPACT-DECLARATION",
-    value: KIBI_NO_IMPACT_DECLARATION,
   });
 }
 
@@ -70,18 +58,12 @@ export function entitySchemaDocCertificate(): CodeCertificate {
 }
 
 describe("Staged impact diagnostics and paths", () => {
-  test("A staged impact diagnostic shall be kibi_impact_evidence_missing, symbols_manifest_stale or kibi_impact_override_missing_rationale", async () => {
+  test("A staged impact diagnostic shall be kibi_impact_evidence_missing or symbols_manifest_stale", async () => {
     writeCodeCertificate(await impactDiagnosticIdsCertificate());
     expect([...KIBI_IMPACT_DIAGNOSTIC_IDS].sort()).toEqual([
       "kibi_impact_evidence_missing",
-      "kibi_impact_override_missing_rationale",
       "symbols_manifest_stale",
     ]);
-  });
-
-  test("The no impact declaration shall be Kibi-Impact: none", () => {
-    writeCodeCertificate(noImpactDeclarationCertificate());
-    expect(KIBI_NO_IMPACT_DECLARATION).toBe("Kibi-Impact: none");
   });
 
   test("The symbols manifest shall be .kb/symbols.yaml", () => {

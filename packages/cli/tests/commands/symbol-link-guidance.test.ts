@@ -11,8 +11,6 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "../helpers/isolated-env.js";
 
-// implements REQ-kibi-symbol-link-guidance
-
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 240_000;
 

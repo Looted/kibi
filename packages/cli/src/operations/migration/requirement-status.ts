@@ -24,7 +24,8 @@ import {
   planInventoryRederivation,
 } from "./inventory-rederive.js";
 import {
-  listLaneMarkdownFiles,
+  type FrontmatterSlice,
+  listLaneMarkdownSources,
   readText,
   readTopLevelField,
   sliceFrontmatter,
@@ -52,27 +53,27 @@ const REQUIREMENT_STATUSES = new Set([
   "open",
   "in_progress",
   "closed",
+  "retired",
   "active",
   "approved",
 ]);
 
 /**
  * Suggested current status for ADR or lifecycle vocabulary found on
- * requirements: decided or still-proposed intent stays `open`; retired
- * intent is `closed`.
+ * requirements: decided or still-proposed intent stays `open`; superseded
+ * intent is `closed` (its successor governs); deprecated or rejected intent
+ * is `retired`, which then needs a retired_reason (retired-reason-missing).
  */
-// implements REQ-cli-schema-migration
 export const SUGGESTED_REQUIREMENT_STATUS: Readonly<Record<string, string>> = {
   accepted: "open",
   proposed: "open",
   draft: "open",
-  deprecated: "closed",
+  deprecated: "retired",
   superseded: "closed",
-  rejected: "closed",
+  rejected: "retired",
 };
 
 /** The tag that keeps a delivered legacy requirement's meaning once closed. */
-// implements REQ-cli-schema-migration
 export const DELIVERED_REQUIREMENT_TAG = "implemented";
 
 /**
@@ -80,7 +81,6 @@ export const DELIVERED_REQUIREMENT_TAG = "implemented";
  * with the tag `implemented`, which kb.pl reads as a delivered requirement
  * that still owes coverage. `kibi migrate` applies these without review.
  */
-// implements REQ-cli-schema-migration
 export const DELIVERED_REQUIREMENT_STATUS: Readonly<
   Record<string, Readonly<{ status: string; tag: string }>>
 > = {
@@ -90,7 +90,6 @@ export const DELIVERED_REQUIREMENT_STATUS: Readonly<
 };
 
 /** One requirement whose status is outside the vocabulary. */
-// implements REQ-cli-schema-migration
 export type RequirementStatusFinding = Readonly<{
   requirementId: string;
   path: string;
@@ -116,7 +115,8 @@ function extractionErrorOf(absolutePath: string): string | null {
     extractFromMarkdown(absolutePath);
     return null;
   } catch (error) {
-    return error instanceof Error ? error.message : String(error);
+    // The extractor throws only FrontmatterError.
+    return (error as Error).message;
   }
 }
 
@@ -125,24 +125,18 @@ function statusOf(content: string): unknown {
   return slice === null ? undefined : readTopLevelField(slice.text, "status");
 }
 
-function idOf(content: string): unknown {
-  const slice = sliceFrontmatter(content);
-  return slice === null ? undefined : readTopLevelField(slice.text, "id");
-}
-
 /** Every requirement whose authored status is outside the vocabulary. */
-// implements REQ-cli-schema-migration
 export function planRequirementStatusMappings(
   workspaceRoot: string,
 ): RequirementStatusFinding[] {
   const findings: RequirementStatusFinding[] = [];
-  for (const file of listLaneMarkdownFiles(workspaceRoot, ["requirements"])) {
-    const content = readText(file.absolutePath);
-    if (content === null) continue;
-    const status = statusOf(content);
+  for (const file of listLaneMarkdownSources(workspaceRoot, ["requirements"])) {
+    const status = statusOf(file.content);
     if (typeof status !== "string" || REQUIREMENT_STATUSES.has(status))
       continue;
-    const id = idOf(content);
+    // A status was read, so the file has front matter.
+    const { text } = sliceFrontmatter(file.content) as FrontmatterSlice;
+    const id = readTopLevelField(text, "id");
     const requirementId =
       typeof id === "string" && id.length > 0
         ? id
@@ -170,10 +164,10 @@ export function planRequirementStatusMappings(
   );
 }
 
+/** `content` is a mapped document, so it always has front matter. */
 function hasTag(content: string, tag: string): boolean {
-  const slice = sliceFrontmatter(content);
-  const tags =
-    slice === null ? undefined : readTopLevelField(slice.text, "tags");
+  const { text } = sliceFrontmatter(content) as FrontmatterSlice;
+  const tags = readTopLevelField(text, "tags");
   return Array.isArray(tags) && tags.includes(tag);
 }
 
@@ -182,7 +176,6 @@ function hasTag(content: string, tag: string): boolean {
  * `status` line, and add `tag` when given and missing. Refuses when the
  * authored status is no longer `from`.
  */
-// implements REQ-cli-schema-migration
 export function applyRequirementStatusMapping(
   workspaceRoot: string,
   relativePath: string,
@@ -209,7 +202,6 @@ export function applyRequirementStatusMapping(
 }
 
 /** What mapping the delivery statuses changed, and what it could not edit. */
-// implements REQ-cli-schema-migration
 export type DeliveredStatusMappingResult = Readonly<{
   mapped: readonly RequirementStatusFinding[];
   skipped: readonly Readonly<{ path: string; reason: string }>[];
@@ -220,7 +212,6 @@ export type DeliveredStatusMappingResult = Readonly<{
  * the tag `implemented`, front matter only. With `only`, maps just those
  * requirement ids (a plan action applies what it planned). Idempotent.
  */
-// implements REQ-cli-schema-migration
 export function applyDeliveredStatusMappings(
   workspaceRoot: string,
   only?: ReadonlySet<string>,
@@ -240,10 +231,8 @@ export function applyDeliveredStatusMappings(
       );
       mapped.push(finding);
     } catch (error) {
-      skipped.push({
-        path: finding.path,
-        reason: error instanceof Error ? error.message : String(error),
-      });
+      // applyRequirementStatusMapping throws only Error.
+      skipped.push({ path: finding.path, reason: (error as Error).message });
     }
   }
   return { mapped, skipped };

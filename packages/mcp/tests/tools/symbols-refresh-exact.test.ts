@@ -1,4 +1,3 @@
-// implements REQ-vscode-traceability
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import {
   existsSync,

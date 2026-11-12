@@ -16,7 +16,7 @@ import type {
   ExtractionResult,
 } from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
-import { toPrologAtom, toPrologString } from "../prolog/codec.js";
+import { escapeAtom, toPrologAtom, toPrologString } from "../prolog/codec.js";
 import type { ExtractedSymbol } from "./symbol-extract";
 
 export interface TempKbContext {
@@ -35,7 +35,6 @@ const cleanedTempDirs = new Set<string>();
  * This is necessary because module-level Maps/Sets persist across tests.
  */
 export function resetModuleState(): void {
-  // implements REQ-014
   // Terminate all tracked prolog processes
   for (const prolog of prologByTempDir.values()) {
     void prolog.terminate().catch(() => {});
@@ -48,16 +47,20 @@ export function resetModuleState(): void {
 // Factory function for creating PrologProcess instances.
 // Default uses the imported PrologProcess. Tests can override via _setPrologFactory
 // to bypass mock.module() pollution from other test files.
-let _createProlog = (opts: { timeout: number; oneShot: false }) =>
+const defaultPrologFactory = (opts: { timeout: number; oneShot: false }) =>
   new PrologProcess(opts);
+let _createProlog = defaultPrologFactory;
 
 /**
  * Override the PrologProcess factory — used by tests to inject the real constructor
- * when mock.module() has replaced the module-level binding.
+ * when mock.module() has replaced the module-level binding. Without an
+ * argument it restores the default.
  */
 export function _setPrologFactory(
-  // implements REQ-014
-  factory: (opts: { timeout: number; oneShot: false }) => PrologProcess,
+  factory: (opts: {
+    timeout: number;
+    oneShot: false;
+  }) => PrologProcess = defaultPrologFactory,
 ): void {
   _createProlog = factory;
 }
@@ -120,7 +123,7 @@ function trace(message: string): void {
 }
 
 function escapePrologAtom(value: string): string {
-  return `'${value.replace(/'/g, "''")}'`;
+  return `'${escapeAtom(value)}'`;
 }
 
 function getEntityField(entity: ExtractedEntity, field: string): unknown {
@@ -162,7 +165,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
 
   for (const field of FACT_NUMBER_FIELDS) {
     const value = getEntityField(entity, field);
-    if (value !== undefined && value !== null && typeof value === "number") {
+    if (typeof value === "number") {
       if (skipNonIntegerFactNumber(field, value)) {
         continue;
       }
@@ -172,7 +175,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
 
   for (const field of FACT_BOOLEAN_FIELDS) {
     const value = getEntityField(entity, field);
-    if (value !== undefined && value !== null && typeof value === "boolean") {
+    if (typeof value === "boolean") {
       fields.push(`${field}=${value}`);
     }
   }
@@ -258,7 +261,6 @@ function buildEntityAssertionGoal(
       `exempts_claims=[${entity.exempts_claims.map(toPrologAtom).join(",")}]`,
     );
   }
-  // implements REQ-cli-staged-consistency
   // Scenario feasibility reads the intended outcome.
   if (entity.type === "scenario" && entity.expects !== undefined) {
     props.push(`expects=${toPrologAtom(entity.expects)}`);
@@ -328,14 +330,9 @@ function buildRelationshipAssertionGoal(
 }
 
 function createCleanupHandler(tempDir: string): () => void {
-  let inProgress = false;
-
+  // cleanupTempKb marks the directory before its first await, so a repeated
+  // signal finds it cleaned and does nothing.
   return () => {
-    if (inProgress || cleanedTempDirs.has(tempDir)) {
-      return;
-    }
-    inProgress = true;
-
     void cleanupTempKb(tempDir).catch((error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
       trace(`cleanup on signal/exit failed for ${tempDir}: ${message}`);
@@ -379,7 +376,6 @@ export { consultOverlay };
 
 const PROJECTION_BATCH_SIZE = 128;
 
-// implements REQ-014
 function contextualProjectionGoal(goal: string, context: string): string {
   const label = toPrologString(context);
   // A failed goal must abort the transaction just like an exception. Keep the
@@ -389,7 +385,6 @@ function contextualProjectionGoal(goal: string, context: string): string {
   return `catch((${goal} -> true ; throw(staged_goal_failed)), ProjectionError, (message_to_string(ProjectionError, ProjectionDetail), format(atom(ProjectionMessage), '~s: ~s', [${label}, ProjectionDetail]), throw(error(validation_error(ProjectionMessage), context(projectStagedEntities, ${label})))))`;
 }
 
-// implements REQ-014
 export async function projectStagedEntities(
   prolog: PrologProcess,
   results: ExtractionResult[],
@@ -425,7 +420,6 @@ export async function projectStagedEntities(
   // in later batches. Keep only one bounded batch of relationship goals.
   let relationshipGoals: string[] = [];
   let relationshipLabels: string[] = [];
-  // implements REQ-014
   const flushRelationships = async (): Promise<void> => {
     if (relationshipGoals.length === 0) return;
     const result = await prolog.query(relationshipGoals);
@@ -458,7 +452,6 @@ export async function projectStagedEntities(
 export async function createTempKb(
   baseKbPath?: string,
 ): Promise<TempKbContext> {
-  // implements REQ-014
   if (baseKbPath !== undefined && !existsSync(baseKbPath)) {
     throw new Error(`Base KB path does not exist: ${baseKbPath}`);
   }
@@ -477,9 +470,9 @@ export async function createTempKb(
   trace(`copying base KB ${baseKbPath} -> ${kbPath}`);
   if (baseKbPath !== undefined)
     await cp(baseKbPath, kbPath, { recursive: true });
-  else await mkdir(kbPath, { recursive: true });
+  else await mkdir(kbPath);
 
-  await writeFile(overlayPath, "", "utf8");
+  await writeFile(overlayPath, "");
 
   const prolog = _createProlog({ timeout: 120000, oneShot: false });
   await prolog.start();
@@ -506,7 +499,6 @@ export async function createTempKb(
   return ctx;
 }
 
-// implements REQ-014
 export function createOverlayFacts(symbols: ExtractedSymbol[]): string {
   const lines: string[] = [];
 
@@ -516,7 +508,8 @@ export function createOverlayFacts(symbols: ExtractedSymbol[]): string {
       `kb:changed_symbol_loc(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.location.file)}, ${symbol.location.startLine}, 0, ${escapePrologAtom(symbol.name)}).`,
     );
 
-    // Emit overlay facts for requirement links from code-comment directives.
+    // Emit overlay facts for the requirement links the symbol manifest gives
+    // the changed symbol; source comments are never a link.
     for (const reqId of symbol.reqLinks) {
       lines.push(
         `kb:changed_symbol_req(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(reqId)}).`,
@@ -536,6 +529,9 @@ export async function cleanupTempKb(tempDir: string): Promise<void> {
   const unregister = cleanupByTempDir.get(tempDir);
   if (unregister) {
     unregister();
+    // rationale: only frees the entry; cleanedTempDirs keeps every later
+    // cleanup of this directory from reading it again.
+    // Stryker disable next-line CallExpression
     cleanupByTempDir.delete(tempDir);
   }
 

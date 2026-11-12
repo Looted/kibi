@@ -6,8 +6,6 @@ import {
   treeEntry,
 } from "../../src/traceability/impact-git-tree.js";
 
-// implements REQ-impact-policy-stage-e-content-bound-review
-
 const OID = "a".repeat(40);
 const OID2 = "b".repeat(64);
 

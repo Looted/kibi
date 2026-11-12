@@ -1,5 +1,13 @@
 import { type Firmness, effectiveFirmness } from "./decision-firmness.js";
-import type { IntentSearchMatch } from "./intent-search.js";
+import {
+  CLOSED_REQUIREMENT_FACTOR,
+  type IntentSearchMatch,
+  isClosedRequirement,
+} from "./intent-search.js";
+import {
+  type NegativePathMarker,
+  negativePathTitle,
+} from "./negative-path-facts.js";
 import {
   escapeAtom,
   normalizeEntityId,
@@ -17,7 +25,6 @@ import type {
 } from "./public/operations/runtime-types.js";
 import { loadMarkdownBody } from "./search-ranking.js";
 
-// implements REQ-kibi-search-answer-layer-v2
 /**
  * The answer layer turns ranked matches into what an agent asking "what
  * governs this?" needs: the current requirements that apply, why (ADRs, with
@@ -49,16 +56,13 @@ export type SearchAnswerEntity = Readonly<{
  * A test verifying a governing requirement. `via` is `"direct"` for a test
  * linked to the requirement itself, or the id of the scenario it verifies.
  */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerTest = SearchAnswerEntity & Readonly<{ via: string }>;
 
 /** An ADR with the opening of its decision (or rationale) section. */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerRationale = SearchAnswerEntity &
   Readonly<{ source?: string; excerpt?: string }>;
 
 /** A blocking finding of an existing check that names the requirement. */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerWitness = Readonly<{
   check: "domain-contradictions" | "scenario-feasibility";
   status: "contradiction" | "infeasible";
@@ -75,7 +79,6 @@ export type SearchAnswerWitness = Readonly<{
  * still ambiguous or ontology gaps, a missing clause ledger, or a verdict
  * that could not be computed.
  */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerUnknown = Readonly<{
   kind:
     | "contradiction_unresolved"
@@ -87,7 +90,6 @@ export type SearchAnswerUnknown = Readonly<{
   entities: readonly string[];
 }>;
 
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerVerdict = Readonly<{
   /**
    * The worst finding: `contradiction` or `infeasible` when a blocking
@@ -99,7 +101,6 @@ export type SearchAnswerVerdict = Readonly<{
 }>;
 
 /** A requirement that `exempts` the governing one. */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerException = SearchAnswerEntity &
   Readonly<{ approvedBy?: string }>;
 
@@ -114,11 +115,9 @@ export type SearchAnswerException = SearchAnswerEntity &
  * else the first), otherwise its full positional `args`. Pasted, it returns
  * the fact and only facts sharing those key arguments.
  */
-// implements REQ-kibi-query-fact-filters
 export type SearchAnswerFact = SearchAnswerEntity &
   Readonly<{ factKind?: string; claim?: string; ask?: string }>;
 
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerRequirement = SearchAnswerEntity &
   Readonly<{
     score: number;
@@ -138,7 +137,6 @@ export type SearchAnswerRequirement = SearchAnswerEntity &
   }>;
 
 /** The KB the answer was computed from. */
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerScope = Readonly<{
   branch: string | null;
   snapshotId: string;
@@ -152,7 +150,6 @@ export type SearchAnswerScope = Readonly<{
  * the answer says so instead of presenting those requirements as the top
  * match's.
  */
-// implements REQ-search-answer-hygiene
 export type SearchAnswerUngoverned = SearchAnswerFact &
   Readonly<{
     type: string;
@@ -166,9 +163,14 @@ export type SearchAnswerUngoverned = SearchAnswerFact &
       requirement: string;
       claim?: string;
     }>;
+    /**
+     * Set on a negative-path fact: a rejecting scenario assumes it, so it
+     * describes a situation that must not happen. Its title carries the
+     * "Forbidden: " prefix.
+     */
+    negativePath?: NegativePathMarker;
   }>;
 
-// implements REQ-kibi-search-answer-layer-v2, REQ-search-answer-hygiene
 export type SearchAnswer = Readonly<{
   version: "kibi.search-answer.v1";
   governing: readonly SearchAnswerRequirement[];
@@ -181,7 +183,6 @@ export type SearchAnswer = Readonly<{
   note: string;
 }>;
 
-// implements REQ-kibi-search-answer-layer-v2
 export type SearchAnswerOptions = Readonly<{
   /** Root that ADR sources resolve against; without it no excerpts. */
   workspaceRoot?: string;
@@ -196,6 +197,11 @@ const CURRENT_REQ_STATUSES = new Set([
   "active",
   "approved",
 ]);
+/**
+ * Share of the best candidate's score a superseded requirement needs for its
+ * replacement to be proposed.
+ */
+export const SUCCESSOR_PULL_RATIO = 0.8;
 const SUPERSEDED_ADR_STATUSES = new Set([
   "superseded",
   "deprecated",
@@ -248,7 +254,6 @@ const ROW_KEYS = [
   "unit",
 ] as const;
 
-// implements REQ-kibi-search-answer-layer-v2
 export const SEARCH_ANSWER_LIMITS = {
   seeds: 10,
   governing: 5,
@@ -309,7 +314,6 @@ export function queryCall(args: Record<string, unknown>): string {
  * `predicate_schema` or the built-in signature kb_query resolves `where`
  * names against. `keyArguments` is empty when the schema declares none.
  */
-// implements REQ-kibi-query-fact-filters
 export type PredicateFactSchema = Readonly<{
   argumentNames: readonly string[];
   keyArguments: readonly string[];
@@ -322,7 +326,6 @@ export type PredicateFactSchema = Readonly<{
  * (arity) or no key argument has a value, so the caller falls back to
  * positional args.
  */
-// implements REQ-kibi-query-fact-filters
 export function predicateKeyFilter(
   args: readonly string[],
   schema: PredicateFactSchema,
@@ -347,7 +350,6 @@ export function predicateKeyFilter(
  * arguments with other values or polarity. Without declared key arguments
  * two tuples may both hold (alice has two roles), so no pair is claimed.
  */
-// implements REQ-search-answer-hygiene
 export function disagreeingPredicateFacts(
   left: Row,
   right: Row,
@@ -384,7 +386,6 @@ export function disagreeingPredicateFacts(
 }
 
 /** Typed statement and follow-up query of a linked fact, by fact kind. */
-// implements REQ-kibi-query-fact-filters
 export function factDetail(
   fact: Row,
   schema?: PredicateFactSchema,
@@ -439,7 +440,6 @@ export function edgesGoal(ids: readonly string[]): string {
  * `predicate_schema` of its namespace and name, else the built-in signature.
  * Facts of other kinds, and predicates without a schema, yield no row.
  */
-// implements REQ-kibi-query-fact-filters
 export function factSchemasGoal(ids: readonly string[]): string {
   const idList = ids.map((id) => `'${escapeAtom(id)}'`).join(",");
   return `findall([FactId,Names,Keys], (member(FactId, [${idList}]), kb:predicate_fact(FactId, Ns, Name, _, _), ((kb:predicate_schema(SchemaId, Ns, Name, _, Names, _) -> ((kb_entity(SchemaId, fact, Props), memberchk(key_arguments=KeysRaw, Props), kb:normalize_term_atom_list(KeysRaw, Keys)) -> true ; Keys = [])) ; (kb:builtin_decision_predicate(Ns, Name, _, KeyPositions, _), kb:builtin_predicate_signature(Name, _, Names), findall(Key, (member(P, KeyPositions), nth1(P, Names, Key)), Keys)))), Schemas)`;
@@ -612,7 +612,6 @@ export function clip(value: string, maxChars: number): string {
  * Rationale, then to the first prose paragraph), as plain text of at most
  * `maxChars` characters.
  */
-// implements REQ-kibi-search-answer-layer-v2
 export function adrExcerpt(
   body: string,
   maxChars: number = SEARCH_ANSWER_LIMITS.excerptChars,
@@ -738,7 +737,6 @@ const FEASIBILITY_UNKNOWN_TEXT: Readonly<Record<string, string>> = {
 };
 
 /** Project the Prolog verdict of one requirement onto the answer fields. */
-// implements REQ-kibi-search-answer-layer-v2
 export function projectVerdict(
   raw: RawVerdict | undefined,
   perRequirement: number = SEARCH_ANSWER_LIMITS.perRequirement,
@@ -902,7 +900,6 @@ export async function fetchVerdicts(
  * among `factIds`, in one round trip. A schema lookup the engine cannot run
  * leaves the rows loaded and every ask positional.
  */
-// implements REQ-kibi-query-fact-filters
 export async function fetchFactSchemas(
   graph: AnswerGraph,
   factIds: readonly string[],
@@ -924,7 +921,6 @@ export async function fetchFactSchemas(
   }
 }
 
-// implements REQ-bootstrap-provenance-stubs
 export async function buildSearchAnswer(
   prolog: Pick<PrologPort, "query">,
   matches: readonly IntentSearchMatch[],
@@ -1076,8 +1072,14 @@ export async function buildSearchAnswer(
   // follow the chain so the replacement is a candidate too. Every candidate
   // so far is on the first frontier, so its supersedes edges are read there;
   // an empty frontier fetches nothing.
+  // A replacement is only proposed for a predecessor that matched about as
+  // well as the best candidate: a weak match on an old requirement says
+  // little about its replacement, which would otherwise fill a free slot.
   const supersededBy = new Map<string, string>();
   let frontier = byScore();
+  const pullFloor =
+    Math.max(...[...candidates.values()].map((entry) => entry.score)) *
+    SUCCESSOR_PULL_RATIO;
   for (let hop = 0; hop < 3; hop += 1) {
     await graph.fetch({ edges: frontier, rows: frontier });
     for (const edge of graph.edgesOf(frontier))
@@ -1089,6 +1091,7 @@ export async function buildSearchAnswer(
       const replacement = supersededBy.get(id);
       if (replacement === undefined) continue;
       const source = candidates.get(id) as { score: number; via: string };
+      if (source.score < pullFloor) continue;
       if (!candidates.has(replacement)) {
         candidates.set(replacement, {
           score: source.score * 0.95,
@@ -1109,6 +1112,14 @@ export async function buildSearchAnswer(
   type Chosen = { id: string; entity: Row; score: number; via: string };
   const chosen: Chosen[] = [];
   const notGoverning: (SearchAnswerEntity & { supersededBy?: string })[] = [];
+  // A closed requirement reached through a matched fact, scenario or test
+  // ranks as a matched one does: below a current requirement reached as
+  // well. A matched one already carries the factor from the search.
+  for (const [id, candidate] of candidates) {
+    const entity = graph.row(id);
+    if (entity && candidate.via !== "matched" && isClosedRequirement(entity))
+      candidate.score *= CLOSED_REQUIREMENT_FACTOR;
+  }
   const ordered = [...candidates.entries()].sort(
     ([leftId, left], [rightId, right]) =>
       right.score - left.score || leftId.localeCompare(rightId),
@@ -1280,6 +1291,25 @@ export async function buildSearchAnswer(
   const governingFacts = plans.flatMap((plan) =>
     rowsOf(plan.facts).map((fact) => ({ fact, requirement: plan.req.id })),
   );
+  const negativePathOf = new Map(
+    seeds.flatMap((match) =>
+      match.negativePath !== undefined
+        ? [[text(match.entity.id), match.negativePath] as const]
+        : [],
+    ),
+  );
+  const markNegativePath = (
+    entry: SearchAnswerUngoverned,
+  ): SearchAnswerUngoverned => {
+    const marker = negativePathOf.get(entry.id);
+    return marker === undefined
+      ? entry
+      : {
+          ...entry,
+          title: negativePathTitle(entry.title),
+          negativePath: marker,
+        };
+  };
   const ungovernedAnswer: SearchAnswerUngoverned[] = ungoverned
     .map((entry) => {
       const row = entry.type === "fact" ? graph.row(entry.id) : null;
@@ -1306,6 +1336,7 @@ export async function buildSearchAnswer(
         },
       };
     })
+    .map(markNegativePath)
     .sort((left, right) => left.rank - right.rank);
   const answer: SearchAnswer = {
     version: "kibi.search-answer.v1",
@@ -1321,7 +1352,6 @@ export async function buildSearchAnswer(
   return fitSearchAnswer(answer, limits.maxBytes);
 }
 
-// implements REQ-search-answer-hygiene
 /**
  * How to read the layer. When the top-ranked match is owned by no
  * requirement, the note says so first: the governing list, if any, came from

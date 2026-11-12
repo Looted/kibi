@@ -34,7 +34,6 @@ import path from "node:path";
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 
 /** The shell commands of the README's first quick-start code block. */
-// implements REQ-prolog-bundled-quickstart
 export function quickStartCommands(readme) {
   const section = readme.split(/^## Quick start\s*$/m)[1];
   if (section === undefined) throw new Error("README has no Quick start");
@@ -54,7 +53,6 @@ export function quickStartCommands(readme) {
 }
 
 /** `{ package name -> tarball path }` for every packed package. */
-// implements REQ-prolog-bundled-quickstart
 export function packedTarballs(packagesDir) {
   const found = {};
   for (const entry of readdirSync(packagesDir, { withFileTypes: true })) {
@@ -77,7 +75,6 @@ export function packedTarballs(packagesDir) {
  * Substitute packed tarballs for the package names an `npm install` line asks
  * for. Returns the rewritten command and the names that were substituted.
  */
-// implements REQ-prolog-bundled-quickstart
 export function substituteTarballs(command, tarballs) {
   if (!/^npm (install|i|add)\b/.test(command)) {
     return { command, direct: [] };
@@ -126,9 +123,8 @@ function swiplOnPath(env) {
 }
 
 function hostPlatformPackage() {
-  return process.platform === "linux"
-    ? `kibi-swipl-linux-${process.arch}-gnu`
-    : `kibi-swipl-${process.platform}-${process.arch}`;
+  const libc = process.platform === "linux" ? "-gnu" : "";
+  return `kibi-swipl-${process.platform}-${process.arch}${libc}`;
 }
 
 function parseJson(text, label) {
@@ -144,7 +140,6 @@ function assert(condition, message) {
 }
 
 /** Runs the whole simulation; returns the steps it completed. */
-// implements REQ-prolog-bundled-quickstart
 export function simulate({ packagesDir, readme, requireBundled = true }) {
   const tarballs = packedTarballs(packagesDir);
   const platform = hostPlatformPackage();
@@ -290,7 +285,6 @@ export function simulate({ packagesDir, readme, requireBundled = true }) {
   }
 }
 
-// implements REQ-prolog-bundled-quickstart
 export function parseArgs(argv) {
   const options = { packagesDir: undefined, readme: undefined };
   for (let index = 0; index < argv.length; index += 1) {
@@ -307,9 +301,10 @@ export function parseArgs(argv) {
   return options;
 }
 
-if (import.meta.main) {
+/** Command-line entry: returns the process exit code. */
+export function main(argv) {
   try {
-    const options = parseArgs(process.argv.slice(2));
+    const options = parseArgs(argv);
     const readme = readFileSync(
       path.resolve(options.readme ?? path.join(REPO_ROOT, "README.md")),
       "utf8",
@@ -330,10 +325,13 @@ if (import.meta.main) {
         flag: "a",
       });
     }
+    return 0;
   } catch (error) {
     console.error(
       `simulate-readme-quickstart: ${error instanceof Error ? error.message : String(error)}`,
     );
-    process.exit(1);
+    return 1;
   }
 }
+
+if (import.meta.main) process.exitCode = main(process.argv.slice(2));

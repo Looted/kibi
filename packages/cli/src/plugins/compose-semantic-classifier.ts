@@ -32,7 +32,6 @@ import type {
   CapabilityProviderBinding,
 } from "./registry.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type SemanticClassifierDiagnostic = Readonly<{
   pluginId: string;
   packageName: string | null;
@@ -42,7 +41,6 @@ export type SemanticClassifierDiagnostic = Readonly<{
   model?: string;
 }>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type ComposedSemanticClassifierResult = Readonly<{
   decisions: readonly SemanticClassificationDecision[];
   stamps: readonly PluginProviderStamp[];
@@ -59,7 +57,6 @@ type ClassifierAttempt =
   | { readonly ok: false; readonly diagnostic: SemanticClassifierDiagnostic };
 
 /** Bounded provenance copied onto advisor and compile-intent results. */
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function publicCapabilityStamp(stamp: PluginProviderStamp): {
   pluginId: string;
   pluginVersion: string;
@@ -84,7 +81,6 @@ export function publicCapabilityStamp(stamp: PluginProviderStamp): {
   };
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function withFallback(
   stamp: PluginProviderStamp,
   fallbackUsed: boolean,
@@ -103,7 +99,6 @@ function isUnresolved(
 }
 
 /** Bound and redact provider error text before it reaches diagnostics. */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function redactClassifierMessage(message: string): string {
   return message
     .replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]")
@@ -112,7 +107,6 @@ export function redactClassifierMessage(message: string): string {
 }
 
 /** Typed, redacted diagnostic for a failed provider call of any capability. */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function diagnosticFromError(
   binding: CapabilityProviderBinding<unknown>,
   error: unknown,
@@ -181,7 +175,6 @@ function decisionsInInputOrder(
  * External providers are skipped unless `operationName` is on the allowlist
  * (`kb_semantic_advisor`, `kb_compile_intent`).
  */
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export async function composeSemanticClassification(
   resolution: CapabilityModeResolution<SemanticClassifierV1>,
   input: SemanticClassifierInput,

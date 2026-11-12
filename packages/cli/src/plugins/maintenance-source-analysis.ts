@@ -27,10 +27,15 @@ import {
 function digestFile(root: string, file: string): string {
   const candidate = resolve(root, file);
   const rel = relative(root, candidate);
+  // rationale: path.relative only returns an absolute path across Windows
+  // drives, so on the POSIX test hosts the isAbsolute guards are always false.
+  // Stryker disable next-line ConditionalExpression
   if (!rel || rel.startsWith("..") || isAbsolute(rel))
     throw new Error(`Invalid approved asset path: ${file}`);
   const actual = realpathSync(candidate);
   const actualRel = relative(realpathSync(root), actual);
+  // rationale: as above, isAbsolute is always false on POSIX hosts.
+  // Stryker disable next-line ConditionalExpression
   if (actualRel.startsWith("..") || isAbsolute(actualRel))
     throw new Error(`Approved asset escapes its package: ${file}`);
   return createHash("sha256").update(readFileSync(actual)).digest("hex");
@@ -73,10 +78,11 @@ function dependencyRoot(importer: string, packageName: string): string {
  * manager's job; hashing the installed tree made the fingerprint differ
  * between a workspace checkout, an npm install and a bundled runtime.
  */
-function builtinRuntimeIdentity(): { name: string; version: string } {
-  const manifest = createRequire(import.meta.url)(
-    "kibi-plugin-builtin/package.json",
-  ) as { name?: unknown; version?: unknown };
+export function builtinRuntimeIdentity(
+  manifest: { name?: unknown; version?: unknown } = createRequire(
+    import.meta.url,
+  )("kibi-plugin-builtin/package.json"),
+): { name: string; version: string } {
   if (
     manifest.name !== "kibi-plugin-builtin" ||
     typeof manifest.version !== "string"
@@ -86,10 +92,10 @@ function builtinRuntimeIdentity(): { name: string; version: string } {
 }
 
 /** Hash the exact trusted source-extractor activation and its host-pinned closure. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function fingerprintMaintenanceSourceSet(
   workspaceRoot: string,
   projectConfig: ProjectKibiConfig,
+  approvals: readonly ApprovedSourceAnalyzer[] = APPROVED_SOURCE_ANALYZERS,
 ): Fingerprint {
   const sourceEntries = (projectConfig.plugins ?? [])
     .map((entry) => ({
@@ -99,9 +105,7 @@ export function fingerprintMaintenanceSourceSet(
     .filter((entry) => entry.capability !== null)
     .sort((a, b) => a.package.localeCompare(b.package));
   const bindings = sourceEntries.map(({ package: packageName, capability }) => {
-    const approval = APPROVED_SOURCE_ANALYZERS.find(
-      (item) => item.packageName === packageName,
-    );
+    const approval = approvals.find((item) => item.packageName === packageName);
     if (!approval)
       throw new Error(
         `Source analyzer is not approved for impact review: ${packageName}`,
@@ -133,7 +137,6 @@ export function fingerprintMaintenanceSourceSet(
 }
 
 /** Verify the exact host-approved closure before any plugin entrypoint executes. */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function verifyApprovedSourceAnalyzer(
   root: string,
   approval: ApprovedSourceAnalyzer,
@@ -169,7 +172,6 @@ export function verifyApprovedSourceAnalyzer(
  * file needs the pack, so the staged gate keeps blocking until it is
  * installed.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function languagePackWaiver(
   workspaceRoot: string,
   config: ProjectKibiConfig,
@@ -188,33 +190,24 @@ export function languagePackWaiver(
 }
 
 /** Maintenance resolves source capabilities only; unrelated plugin code is never imported. */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function createMaintenanceSourceAnalysisService(
   workspaceRoot: string,
   projectConfig?: ProjectKibiConfig,
+  approvals: readonly ApprovedSourceAnalyzer[] = APPROVED_SOURCE_ANALYZERS,
 ): SourceAnalysisService {
   const config = projectConfig ?? readProjectKibiConfig(workspaceRoot);
   const fingerprints: Record<string, string> = {};
-  const sourceEntries = (config.plugins ?? []).filter(
-    (entry) => entry.capabilities[SYMBOL_EXTRACTOR_V2_CAPABILITY_ID],
-  );
+  const sourceEntries = (config.plugins ?? []).flatMap((entry) => {
+    const capability = entry.capabilities[SYMBOL_EXTRACTOR_V2_CAPABILITY_ID];
+    return capability ? [{ package: entry.package, capability }] : [];
+  });
   const registry = new CapabilityRegistry({
     workspaceRoot,
     projectConfig: {
-      plugins: sourceEntries.flatMap((entry) => {
-        const capability =
-          entry.capabilities[SYMBOL_EXTRACTOR_V2_CAPABILITY_ID];
-        return capability
-          ? [
-              {
-                package: entry.package,
-                capabilities: {
-                  [SYMBOL_EXTRACTOR_V2_CAPABILITY_ID]: capability,
-                },
-              },
-            ]
-          : [];
-      }),
+      plugins: sourceEntries.map((entry) => ({
+        package: entry.package,
+        capabilities: { [SYMBOL_EXTRACTOR_V2_CAPABILITY_ID]: entry.capability },
+      })),
     },
   });
   return createSourceAnalysisService({
@@ -223,7 +216,7 @@ export function createMaintenanceSourceAnalysisService(
     languagePackWaiver: languagePackWaiver(workspaceRoot, config),
     resolveExtractorsV2: async () => {
       for (const entry of sourceEntries) {
-        const approval = APPROVED_SOURCE_ANALYZERS.find(
+        const approval = approvals.find(
           (item) => item.packageName === entry.package,
         );
         if (!approval)
@@ -253,7 +246,6 @@ export function createMaintenanceSourceAnalysisService(
 }
 
 /** Capture activation with the same source snapshot and retain baseline analyzers for code changes. */
-// implements REQ-source-analysis-v2
 export function readSnapshotSourceConfig(
   snapshot: GitChangeSnapshot,
   trustedTree?: string,

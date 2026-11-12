@@ -273,6 +273,22 @@ const RECEIPT_GAP_CODES = new Set([
 
 const MAX_COVERAGE_RECEIPT_GAPS = 50;
 
+/** Tests whose receipt was proven under another fingerprint, with the drifted components. */
+function fingerprintDriftDetails(
+  evidence: unknown,
+): readonly { testId: string; components: readonly string[] }[] {
+  if (!Array.isArray(evidence)) return [];
+  return evidence
+    .flatMap((item) => {
+      const row = isRecord(item) ? item : {};
+      const components = stringArray(row.fingerprintDrift);
+      return components.length > 0 && typeof row.testId === "string"
+        ? [{ testId: row.testId, components }]
+        : [];
+    })
+    .sort((left, right) => left.testId.localeCompare(right.testId));
+}
+
 function coverageReceiptGapDetails(rows: readonly Record<string, unknown>[]): {
   readonly details: readonly Record<string, unknown>[];
   readonly total: number;
@@ -297,11 +313,13 @@ function coverageReceiptGapDetails(rows: readonly Record<string, unknown>[]): {
         "snapshotUnavailableTests",
       ].flatMap((key) => stringArray(passingE2e?.[key]));
       const requirementId = typeof row.id === "string" ? row.id : "unknown";
+      const drift = fingerprintDriftDetails(passingE2e?.receiptEvidence);
       return [
         {
           requirementId,
           testIds: [...new Set(testIds)].sort(),
           codes,
+          ...(drift.length > 0 ? { fingerprintDrift: drift } : {}),
         },
       ];
     })
@@ -422,7 +440,6 @@ const SKILL_ACTION_OPERATIONS: ReadonlyMap<unknown, string> = new Map([
 ]);
 
 /** Composite tools report diagnostics under the operation they routed to. */
-// implements REQ-kibi-mcp-tool-consolidation
 export function routedOperationName(
   toolName: string,
   args: Record<string, unknown>,
@@ -440,7 +457,6 @@ export function routedOperationName(
  * The business arguments the routed operation received: the composite's
  * selector is dropped, so a usage entry matches the narrow CLI route's entry.
  */
-// implements REQ-kibi-mcp-tool-consolidation
 export function routedBusinessArgs(
   toolName: string,
   args: Record<string, unknown>,

@@ -1,0 +1,549 @@
+[
+  {
+    "name": "predicate rows suggest a distinct count",
+    "goal": "discovery:ask_predicate_json('paint', 'color', where(['hue'='red']), 'deny', current_requirements, none, 2, 1, JsonString)",
+    "text": "5  color  facts. Showing 2 (offset 1.2, limit 2.7): F1: color(car, red) -> blocked [deny]; F2: color(x, 1)\nWarning: w1\nNext: kb_query({\"id\":\"F1\"}) (full fact text and relationships of one row)\nNext: kb_query({\"predicate\":\" color \",\"namespace\":\" paint \",\"where\":{\"hue\":\"red\"},\"polarity\":\"deny\",\"scope\":\"current_requirements\",\"distinct\":\"spare\"}) (count the distinct values of 'spare' across these facts)",
+    "data": {
+      "entities": [
+        {
+          "id": "F1",
+          "name": "color",
+          "args": ["car", "red"],
+          "effect": "blocked",
+          "polarity": "deny"
+        },
+        {
+          "id": "F2",
+          "name": "color",
+          "args": ["x", 1]
+        }
+      ],
+      "count": 5,
+      "factQuery": {
+        "mode": "predicate",
+        "predicate": {
+          "name": "color"
+        },
+        "schema": {
+          "argumentNames": ["thing", "spare", "hue", 3]
+        },
+        "distinct": null,
+        "suggestions": null,
+        "warnings": ["w1"],
+        "next": [
+          {
+            "call": "kb_query({\"id\":\"F1\"})",
+            "why": "full fact text and relationships of one row"
+          },
+          {
+            "call": "kb_query({\"predicate\":\" color \",\"namespace\":\" paint \",\"where\":{\"hue\":\"red\"},\"polarity\":\"deny\",\"scope\":\"current_requirements\",\"distinct\":\"spare\"})",
+            "why": "count the distinct values of 'spare' across these facts"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "positional predicate without matches suggests a value",
+    "goal": "discovery:ask_predicate_json(none, 'color', ['$any','$any','red'], none, all, none, 100, 0, JsonString)",
+    "text": "No color facts matched.\nValues that exist: {\"thing\":\"not a list\",\"hue\":[\"blue\",\"red\"],\"size\":[\"s\"]}\nNext: kb_query({\"predicate\":\"color\",\"where\":{\"hue\":\"blue\"}}) ('hue' has no fact with that value; 'blue' is one that exists)",
+    "data": {
+      "entities": [],
+      "count": 0,
+      "factQuery": {
+        "mode": "predicate",
+        "schema": {
+          "argumentNames": ["thing"]
+        },
+        "suggestions": {
+          "thing": "not a list",
+          "hue": ["blue", "red"],
+          "size": ["s"]
+        },
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"predicate\":\"color\",\"where\":{\"hue\":\"blue\"}})",
+            "why": "'hue' has no fact with that value; 'blue' is one that exists"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "positional predicate rows suggest a distinct count",
+    "goal": "discovery:ask_predicate_json(none, 'color', ['$any','red'], none, all, none, 100, 0, JsonString)",
+    "text": "3 color facts. Showing 3 (offset 0, limit 100): F1 (); F2 (); F3 ()\nNext: kb_query({\"id\":\"F1\"}) (full fact text and relationships of one row)\nNext: kb_query({\"predicate\":\"color\",\"args\":[null,\"red\"],\"distinct\":\"thing\"}) (count the distinct values of 'thing' across these facts)",
+    "data": {
+      "entities": [
+        {
+          "id": "F1",
+          "name": 5,
+          "args": ["car"]
+        },
+        {
+          "id": "F2",
+          "subjectKey": 1,
+          "propertyKey": "p"
+        },
+        {
+          "id": "F3",
+          "name": 5,
+          "arity": 1
+        }
+      ],
+      "count": 3,
+      "factQuery": {
+        "mode": "predicate",
+        "schema": {
+          "argumentNames": ["thing", "hue"]
+        },
+        "distinct": "flat",
+        "suggestions": "flat",
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"id\":\"F1\"})",
+            "why": "full fact text and relationships of one row"
+          },
+          {
+            "call": "kb_query({\"predicate\":\"color\",\"args\":[null,\"red\"],\"distinct\":\"thing\"})",
+            "why": "count the distinct values of 'thing' across these facts"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "positional predicate suggests a named correction",
+    "goal": "discovery:ask_predicate_json(none, 'color', ['car','$any','red','extra'], none, all, none, 100, 0, JsonString)",
+    "text": "No color facts matched.\nValues that exist: {\"thing\":[\"car\"],\"hue\":[\"blue\"],\"size\":[\"s\"]}\nNext: kb_query({\"predicate\":\"color\",\"where\":{\"thing\":\"car\",\"hue\":\"blue\"}}) ('hue' has no fact with that value; 'blue' is one that exists)",
+    "data": {
+      "entities": [],
+      "count": 0,
+      "factQuery": {
+        "mode": "predicate",
+        "schema": {
+          "argumentNames": ["thing", "size", "hue"]
+        },
+        "suggestions": {
+          "thing": ["car"],
+          "hue": ["blue"],
+          "size": ["s"]
+        },
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"predicate\":\"color\",\"where\":{\"thing\":\"car\",\"hue\":\"blue\"}})",
+            "why": "'hue' has no fact with that value; 'blue' is one that exists"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "named predicate suggests only an argument whose value is missing",
+    "goal": "discovery:ask_predicate_json(none, 'color', where(['hue'='red','thing'='car','extra'='x']), none, all, none, 100, 0, JsonString)",
+    "text": "No color facts matched.\nValues that exist: {\"hue\":[\"red\",\"blue\"],\"thing\":[5,\"boat\"],\"extra\":[\"e1\",\"e2\"]}\nNext: kb_query({\"predicate\":\"color\",\"where\":{\"hue\":\"red\",\"thing\":\"car\",\"extra\":\"e1\"}}) ('extra' has no fact with that value; 'e1' is one that exists)",
+    "data": {
+      "entities": [],
+      "count": 0,
+      "factQuery": {
+        "mode": "predicate",
+        "suggestions": {
+          "hue": ["red", "blue"],
+          "thing": [5, "boat"],
+          "extra": ["e1", "e2"]
+        },
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"predicate\":\"color\",\"where\":{\"hue\":\"red\",\"thing\":\"car\",\"extra\":\"e1\"}})",
+            "why": "'extra' has no fact with that value; 'e1' is one that exists"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "predicate warnings keep the schema listing as the next call",
+    "goal": "discovery:ask_predicate_json(none, 'color', [], none, all, 'hue', 100, 0, JsonString)",
+    "text": "No color facts matched.\nDistinct hue: [\"a\",\"b\"]\nValues that exist: {\"hue\":[\"x\"]}\nWarning: unknown predicate\nNext: kb_query({\"factKind\":\"predicate_schema\"}) (list the predicates this KB can answer about and their argument names)",
+    "data": {
+      "entities": [],
+      "count": 0,
+      "factQuery": {
+        "mode": "predicate",
+        "schema": null,
+        "distinct": {
+          "argument": "hue",
+          "values": ["a", "b"]
+        },
+        "suggestions": {
+          "hue": ["x"]
+        },
+        "warnings": ["unknown predicate"],
+        "next": [
+          {
+            "call": "kb_query({\"factKind\":\"predicate_schema\"})",
+            "why": "list the predicates this KB can answer about and their argument names"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "predicate distinct without values",
+    "goal": "discovery:ask_predicate_json(none, 'color', [], none, all, 'hue', 100, 0, JsonString)",
+    "text": "1 color facts. Showing 1 (offset 0, limit 100): F1: color()\nDistinct hue: []\nNext: kb_query({\"id\":\"F1\"}) (full fact text and relationships of one row)",
+    "data": {
+      "entities": [
+        {
+          "id": "F1",
+          "name": "color",
+          "args": []
+        }
+      ],
+      "count": 1,
+      "factQuery": {
+        "mode": "predicate",
+        "schema": {
+          "argumentNames": ["hue"]
+        },
+        "distinct": {
+          "argument": "hue"
+        },
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"id\":\"F1\"})",
+            "why": "full fact text and relationships of one row"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "predicate with every argument bound",
+    "goal": "discovery:ask_predicate_json(none, 'color', where(['hue'='red']), none, all, none, 100, 0, JsonString)",
+    "text": "1 color facts. Showing 1 (offset 0, limit 100): 7: color(red)\nValues that exist: {\"hue\":[\"blue\"]}\nNext: kb_query({\"factKind\":\"predicate_schema\"}) (list the predicates this KB can answer about and their argument names)",
+    "data": {
+      "entities": [
+        {
+          "id": 7,
+          "name": "color",
+          "args": ["red"]
+        }
+      ],
+      "count": 1,
+      "factQuery": {
+        "mode": "predicate",
+        "schema": {
+          "argumentNames": ["hue"]
+        },
+        "suggestions": {
+          "hue": ["blue"]
+        },
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"factKind\":\"predicate_schema\"})",
+            "why": "list the predicates this KB can answer about and their argument names"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "predicate schema that is not a list of names",
+    "goal": "discovery:ask_predicate_json(none, 'color', [], none, all, none, 100, 0, JsonString)",
+    "text": "1 color facts. Showing 1 (offset 0, limit 100): : color(x)\nNext: kb_query({\"factKind\":\"predicate_schema\"}) (list the predicates this KB can answer about and their argument names)",
+    "data": {
+      "entities": [
+        {
+          "name": "color",
+          "args": ["x"]
+        }
+      ],
+      "count": 1,
+      "factQuery": {
+        "mode": "predicate",
+        "schema": {
+          "argumentNames": "hue"
+        },
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"factKind\":\"predicate_schema\"})",
+            "why": "list the predicates this KB can answer about and their argument names"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "property with a property key",
+    "goal": "discovery:ask_property_json('car', 'speed', all, 3, 0, JsonString)",
+    "text": "3 properties of  car . Showing 3 (offset 0, limit 3): P1: car speed > 3 kmh; P2: car color  ; P3: car mass  \nNext: kb_query({\"id\":\"P1\"}) (full fact text and relationships of one row)\nNext: kb_query({\"subjectKey\":\" car \"}) (every property stated about this subject)",
+    "data": {
+      "entities": [
+        {
+          "id": "P1",
+          "subjectKey": "car",
+          "propertyKey": "speed",
+          "operator": ">",
+          "value": 3,
+          "unit": "kmh"
+        },
+        {
+          "id": "P2",
+          "subjectKey": "car",
+          "propertyKey": "color",
+          "unit": ""
+        },
+        {
+          "id": "P3",
+          "subjectKey": "car",
+          "propertyKey": "mass",
+          "unit": 5
+        }
+      ],
+      "count": 3,
+      "factQuery": {
+        "mode": "property",
+        "property": {
+          "subjectKey": "car"
+        },
+        "subjectFacts": ["F9"],
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"id\":\"P1\"})",
+            "why": "full fact text and relationships of one row"
+          },
+          {
+            "call": "kb_query({\"subjectKey\":\" car \"})",
+            "why": "every property stated about this subject"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "property of an unknown subject",
+    "goal": "discovery:ask_property_json('ghost', none, all, 100, 0, JsonString)",
+    "text": "No properties of ghost matched.\nNext: kb_query({\"factKind\":\"subject\"}) (list the subject keys that exist)",
+    "data": {
+      "entities": [],
+      "count": 0,
+      "factQuery": {
+        "mode": "property",
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"factKind\":\"subject\"})",
+            "why": "list the subject keys that exist"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "property rows of a known subject",
+    "goal": "discovery:ask_property_json('car', none, all, 100, 0, JsonString)",
+    "text": "1 properties of car. Showing 1 (offset 0, limit 100):  ()",
+    "data": {
+      "entities": [
+        {
+          "subjectKey": "car",
+          "propertyKey": 1
+        }
+      ],
+      "count": 1,
+      "factQuery": {
+        "mode": "property",
+        "warnings": [],
+        "next": []
+      }
+    }
+  },
+  {
+    "name": "schemas of a namespace",
+    "goal": "discovery:ask_schemas_json('paint', 'color', 100, 0, JsonString)",
+    "text": "4 predicate schemas. Showing 4 (offset 0, limit 100): color(a, b) [builtin S1, not a stored entity]; x() [builtin, not a stored entity]; y();  ()\nNext: kb_query({\"predicate\":\"color\"}) (every stored fact of the first listed predicate)",
+    "data": {
+      "entities": [
+        {
+          "name": "color",
+          "arity": 2,
+          "argumentNames": ["a", "b"],
+          "builtin": true,
+          "id": "S1"
+        },
+        {
+          "name": "x",
+          "arity": 0,
+          "builtin": true
+        },
+        {
+          "name": "y",
+          "arity": 1,
+          "argumentNames": "no"
+        },
+        {
+          "name": "z",
+          "arity": "1"
+        }
+      ],
+      "count": 4,
+      "factQuery": {
+        "mode": "schemas",
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"predicate\":\"color\"})",
+            "why": "every stored fact of the first listed predicate"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "schemas without rows",
+    "goal": "discovery:ask_schemas_json(none, none, 100, 0, JsonString)",
+    "text": "No predicate schemas matched.",
+    "data": {
+      "entities": [],
+      "count": 0,
+      "factQuery": {
+        "mode": "schemas",
+        "warnings": [],
+        "next": []
+      }
+    }
+  },
+  {
+    "name": "predicate facts by kind",
+    "goal": "discovery:ask_fact_kind_json('predicate', 100, 0, JsonString)",
+    "text": "1 predicate facts. Showing 1 (offset 0, limit 100): F1 (T)\nNext: kb_query({\"factKind\":\"predicate_schema\"}) (argument names and constants for asking by name)",
+    "data": {
+      "entities": [
+        {
+          "id": "F1",
+          "title": "T"
+        }
+      ],
+      "count": 1,
+      "factQuery": {
+        "mode": "fact_kind",
+        "factKind": "predicate",
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"factKind\":\"predicate_schema\"})",
+            "why": "argument names and constants for asking by name"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "property values by kind",
+    "goal": "discovery:ask_fact_kind_json('property_value', 100, 0, JsonString)",
+    "text": "2 property_value facts. Showing 2 (offset 0, limit 100): V1 (); V2 ()\nNext: kb_query({\"subjectKey\":\"car\"}) (the properties of the first listed subject)",
+    "data": {
+      "entities": [
+        {
+          "id": "V1",
+          "subject_key": "car"
+        },
+        {
+          "id": "V2"
+        }
+      ],
+      "count": 2,
+      "factQuery": {
+        "mode": "fact_kind",
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"subjectKey\":\"car\"})",
+            "why": "the properties of the first listed subject"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "property values without a subject key",
+    "goal": "discovery:ask_fact_kind_json('property_value', 100, 0, JsonString)",
+    "text": "1 property_value facts. Showing 1 (offset 0, limit 100): V1 ()",
+    "data": {
+      "entities": [
+        {
+          "id": "V1",
+          "subject_key": 3
+        }
+      ],
+      "count": 1,
+      "factQuery": {
+        "mode": "fact_kind",
+        "warnings": [],
+        "next": []
+      }
+    }
+  },
+  {
+    "name": "property values without rows",
+    "goal": "discovery:ask_fact_kind_json('property_value', 100, 0, JsonString)",
+    "text": "No property_value facts matched.",
+    "data": {
+      "entities": [],
+      "count": 0,
+      "factQuery": {
+        "mode": "fact_kind",
+        "warnings": [],
+        "next": []
+      }
+    }
+  },
+  {
+    "name": "rules by kind",
+    "goal": "discovery:ask_fact_kind_json('rule', 100, 0, JsonString)",
+    "text": "2 rule facts. Showing 2 (offset 0, limit 100): R1 (Rule);  ()\nNext: kb_query({\"id\":\"R1\"}) (full fact text of one row)",
+    "data": {
+      "entities": [
+        {
+          "id": "R1",
+          "title": "Rule"
+        },
+        {}
+      ],
+      "count": 2,
+      "factQuery": {
+        "mode": "fact_kind",
+        "warnings": [],
+        "next": [
+          {
+            "call": "kb_query({\"id\":\"R1\"})",
+            "why": "full fact text of one row"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "observations by kind without rows",
+    "goal": "discovery:ask_fact_kind_json('observation', 100, 0, JsonString)",
+    "text": "No observation facts matched.",
+    "data": {
+      "entities": [],
+      "count": 0,
+      "factQuery": {
+        "mode": "fact_kind",
+        "warnings": [],
+        "next": []
+      }
+    }
+  }
+]

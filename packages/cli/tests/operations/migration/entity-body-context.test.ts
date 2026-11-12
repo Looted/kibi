@@ -31,8 +31,6 @@ import {
 } from "../../../src/operations/migration/schema6.js";
 import { readKbManifest } from "../../../src/utils/kb-manifest.js";
 
-// implements REQ-kb-entity-body-context
-
 const roots: string[] = [];
 
 afterEach(() => {

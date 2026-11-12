@@ -1,5 +1,3 @@
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
-
 import type { PathKind } from "./path-kind.js";
 
 /**
@@ -26,6 +24,12 @@ export interface ClassifyRiskParams {
   hasMustPriority: boolean;
   hasDurableComment: boolean;
   fileContent: string;
+  /**
+   * Whether a symbol manifest entry for this file links a requirement with
+   * `implements`. Source comments never count: the manifest is the only
+   * record of which requirements code implements.
+   */
+  hasManifestLinks: boolean;
 }
 
 /**
@@ -44,11 +48,6 @@ const BEHAVIOR_PATTERN =
   /(?:export\s+(?:function|class|const|let|var)|\bclass\s+\w|\bfunction\s+\w|\bdef\s+\w)/;
 
 /**
- * Regex to detect traceability annotations.
- */
-const TRACEABILITY_PATTERN = /implements\s+REQ-[A-Za-z0-9_-]/i;
-
-/**
  * Classify a file edit into a deterministic risk class.
  *
  * Classification order (first match wins):
@@ -57,7 +56,7 @@ const TRACEABILITY_PATTERN = /implements\s+REQ-[A-Za-z0-9_-]/i;
  * 3. req_policy_candidate  — pathKind is "requirement" (including `.kb/requirements`)
  * 4. kb_doc_structural     — pathKind is "scenario", "adr", "fact", "flag", "event", or "symbol"
  * 5. safe_docs_only        — pathKind is "unknown" (markdown/config/etc.)
- * 6. traceability_candidate — code with exports AND (hasDurableComment OR missing traceability)
+ * 6. traceability_candidate — code with exports AND (hasDurableComment OR no manifest implements link)
  * 7. behavior_candidate    — code with exports, already has traceability, no durable comment
  * 8. safe_docs_only        — code without exports, or fallback
  */
@@ -68,6 +67,7 @@ export function classifyRisk(params: ClassifyRiskParams): RiskClassification {
     hasMustPriority,
     hasDurableComment,
     fileContent,
+    hasManifestLinks,
   } = params;
 
   // 1. manual_kb_edit — derived/runtime `.kb/` files, not canonical lanes.
@@ -133,7 +133,7 @@ export function classifyRisk(params: ClassifyRiskParams): RiskClassification {
   // pathKind === "code" from here on
   if (pathKind === "code") {
     const hasBehavior = BEHAVIOR_PATTERN.test(fileContent);
-    const hasTraceability = TRACEABILITY_PATTERN.test(fileContent);
+    const hasTraceability = hasManifestLinks;
 
     if (hasBehavior) {
       // 6. traceability_candidate — needs traceability attention
@@ -141,7 +141,7 @@ export function classifyRisk(params: ClassifyRiskParams): RiskClassification {
         const reasons: string[] = [];
         if (!hasTraceability) {
           reasons.push(
-            "Code file contains exports without // implements REQ-<area>-<behavior> annotation",
+            "Code file contains exports that no symbol manifest entry links to a requirement with implements",
           );
         }
         if (hasDurableComment) {

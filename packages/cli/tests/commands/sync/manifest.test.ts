@@ -527,7 +527,6 @@ describe("refreshManifestCoordinates", () => {
   });
 
   test("counts a refresh against the stored coordinate artifact, not the authored manifest", async () => {
-    // implements REQ-generated-coordinate-persistence
     const authored = makeEntry({
       sourceLine: undefined,
       sourceColumn: undefined,

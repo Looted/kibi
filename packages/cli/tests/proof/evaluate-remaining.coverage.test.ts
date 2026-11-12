@@ -1,4 +1,3 @@
-// implements REQ-kibi-proof-receipts
 import { afterEach, describe, expect, test } from "bun:test";
 import { mapRunOutcome } from "../../src/proof/evaluate.js";
 

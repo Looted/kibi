@@ -1,4 +1,3 @@
-// implements REQ-kibi-telemetry-agent-signals
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -16,7 +15,6 @@ import path from "node:path";
  * leave the machine.
  */
 
-// implements REQ-kibi-telemetry-agent-signals
 /** One reason Kibi refused a payload: a fixed rule and the schema field. */
 export type RejectionIssue = {
   /** Fixed rule id: a JSON Schema keyword or a Kibi check name. */
@@ -25,7 +23,6 @@ export type RejectionIssue = {
   readonly field?: string | undefined;
 };
 
-// implements REQ-kibi-telemetry-agent-signals
 /** What an operation tells telemetry about the call, before sanitizing. */
 export type OperationSignals = {
   /** A validation-only upsert (`dryRun: true` or kb_validate_upsert). */
@@ -62,7 +59,6 @@ export const SKILL_WINDOW_MS = 30 * 60 * 1000;
 const MAX_RECENT_ENTRIES = 200;
 const RECENT_FILE = "telemetry-recent.json";
 
-// implements REQ-kibi-telemetry-agent-signals
 /** The Kibi skills a skill-load signal may name; anything else is `other`. */
 export const KIBI_SKILL_NAMES: ReadonlySet<string> = new Set([
   "kibi-bootstrap",
@@ -74,7 +70,6 @@ export const KIBI_SKILL_NAMES: ReadonlySet<string> = new Set([
   "kibi-usage",
 ]);
 
-// implements REQ-kibi-telemetry-agent-signals
 /** A count as one of a few fixed ranges, never the exact number. */
 export function countBucket(
   value: number | null | undefined,
@@ -88,7 +83,6 @@ export function countBucket(
   return null;
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 export const RESULT_COUNT_BUCKETS = [
   [0, 0, "0"],
   [1, 1, "1"],
@@ -97,7 +91,6 @@ export const RESULT_COUNT_BUCKETS = [
   [11, Number.POSITIVE_INFINITY, "11+"],
 ] as const;
 
-// implements REQ-kibi-telemetry-agent-signals
 export const RELATIONSHIP_COUNT_BUCKETS = [
   [0, 0, "0"],
   [1, 1, "1"],
@@ -105,7 +98,6 @@ export const RELATIONSHIP_COUNT_BUCKETS = [
   [6, Number.POSITIVE_INFINITY, "6+"],
 ] as const;
 
-// implements REQ-kibi-telemetry-agent-signals
 export const SMALL_COUNT_BUCKETS = [
   [1, 1, "1"],
   [2, 2, "2"],
@@ -113,7 +105,6 @@ export const SMALL_COUNT_BUCKETS = [
   [4, Number.POSITIVE_INFINITY, "4+"],
 ] as const;
 
-// implements REQ-kibi-telemetry-agent-signals
 /** A rule id as sent: a short identifier, lower-cased, else `other`. */
 export function telemetryRule(value: string | undefined): string | null {
   const trimmed = value?.trim();
@@ -123,7 +114,6 @@ export function telemetryRule(value: string | undefined): string | null {
     : "other";
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * A schema field path as sent: identifier segments and `*` joined by dots,
  * at most six segments, else `other`. Callers map names that are not Kibi
@@ -195,7 +185,28 @@ export function kibiStackFrames(stack: unknown): string[] {
   return frames;
 }
 
-// implements REQ-kibi-telemetry-agent-signals
+/**
+ * The error a plain wrapper stands for: a message-prefixing `Error` with no
+ * code of its own (such as `Upsert execution failed: ...`) names nothing, so
+ * its `cause` chain is followed to the first error that has a class or code
+ * of its own. Anything else is returned as it is.
+ */
+export function telemetryRootError(error: unknown): unknown {
+  let current = error;
+  for (let depth = 0; depth < 5; depth += 1) {
+    if (!isRecord(current)) return current;
+    const wrapper: { code?: unknown; cause?: unknown } = current;
+    const errorClass: unknown = current.constructor;
+    if (errorClass !== Error) return current;
+    if (typeof wrapper.code === "string" && wrapper.code !== "") {
+      return current;
+    }
+    if (!isRecord(wrapper.cause)) return current;
+    current = wrapper.cause;
+  }
+  return current;
+}
+
 /**
  * Where a crash happened in Kibi's own code: the top Kibi frame, and a
  * fingerprint of the error class and the top three Kibi frames that groups
@@ -206,7 +217,8 @@ export function telemetryCrash(
   errorClass: string | null,
 ): { frame: string | null; fingerprint: string | null } {
   const frames = kibiStackFrames(
-    (error as { stack?: unknown } | null | undefined)?.stack,
+    (telemetryRootError(error) as { stack?: unknown } | null | undefined)
+      ?.stack,
   );
   if (frames.length === 0) return { frame: null, fingerprint: null };
   const fingerprint = createHash("sha256")
@@ -244,7 +256,6 @@ function skillInStrings(value: unknown, depth: number): string | undefined {
   return undefined;
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * The Kibi skill a host tool call loads, or undefined: a skill tool naming a
  * `kibi-*` skill (Claude Code, OpenCode), or any tool whose input names a
@@ -330,7 +341,6 @@ function writeRecent(directory: string, recent: RecentFile): void {
   }
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /** Remember that a Kibi skill was loaded in a workspace (hashed). */
 export function rememberSkillLoad(
   directory: string,
@@ -342,7 +352,6 @@ export function rememberSkillLoad(
   writeRecent(directory, recent);
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 export type OperationRecall = {
   /** 1 for a first call; n when n-1 calls on the same entity just failed. */
   readonly attempt: number | null;
@@ -354,7 +363,6 @@ export type OperationRecall = {
   readonly skillLoadedBefore: boolean;
 };
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * Compare this call with the recent ones and remember it. `retryHash` and
  * `searchHash` are one-way hashes of what the call worked on;

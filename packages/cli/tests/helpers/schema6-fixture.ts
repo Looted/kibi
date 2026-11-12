@@ -11,15 +11,12 @@ import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared
  * claim 1 as rationale; the current advisor reads both as normative.
  */
 
-// implements REQ-kibi-schema6-migration
 export const UPLOAD_TEXT =
   "Interrupted uploads must resume from the last confirmed chunk. Each resumed upload must verify the checksum of every chunk before completion. This keeps large uploads affordable on mobile networks.";
 
-// implements REQ-kibi-schema6-migration
 export const EXCEPTION_TEXT =
   "Uploads from trusted LAN mirrors may skip checksum verification.";
 
-// implements REQ-kibi-schema6-migration
 export type Proposition = {
   claim_key: string;
   claim_text: string;
@@ -29,7 +26,6 @@ export type Proposition = {
   reason?: string;
 };
 
-// implements REQ-kibi-schema6-migration
 export function currentPropositions(id: string, text: string): Proposition[] {
   const { receipt } = analyzeSemanticAdvisorInput({
     payload: {
@@ -66,7 +62,6 @@ function writeDoc(
 }
 
 /** A requirement whose inventory matches the current advisor; nothing modeled. */
-// implements REQ-kibi-schema6-migration
 export function writeCurrentRequirement(
   root: string,
   id: string,
@@ -110,7 +105,6 @@ export function writeCurrentRequirement(
  * grounding claim 1 is not (it was nonlogical and becomes unresolved, so its
  * grounding no longer matches a modeled claim).
  */
-// implements REQ-kibi-schema6-migration
 export function writeDriftedRequirement(
   root: string,
   id: string,
@@ -182,7 +176,6 @@ export function writeDriftedRequirement(
 }
 
 /** An exception requirement that exempts `baseId` but has no approved_by. */
-// implements REQ-kibi-schema6-migration
 export function writeUnapprovedException(
   root: string,
   id: string,
@@ -193,7 +186,6 @@ export function writeUnapprovedException(
   });
 }
 
-// implements REQ-kibi-schema6-migration
 export function writeManifest(root: string, schemaVersion: number): void {
   mkdirSync(path.join(root, ".kb"), { recursive: true });
   writeFileSync(

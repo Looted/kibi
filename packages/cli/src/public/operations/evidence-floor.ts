@@ -28,14 +28,11 @@ import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
  * reach its floor; older KBs get the floor with their schema upgrade, whose
  * migration records the floor of firm requirements without a proof path.
  */
-// implements REQ-kibi-evidence-floors
 export const EVIDENCE_FLOOR_SCHEMA_VERSION = 11;
 
 /** A current requirement's evidence level must reach its floor. */
-// implements REQ-kibi-evidence-floors
 export const EVIDENCE_FLOOR_RULE = "evidence-floor";
 
-// implements REQ-kibi-evidence-floors
 export type EvidenceFloorRow = Readonly<{
   id: string;
   evidenceLevel: string;
@@ -95,7 +92,6 @@ const GAP_DETAIL_LABELS: Readonly<Record<string, string>> = {
 };
 
 /** The entities behind the gaps, for a person reading kibi check's text. */
-// implements REQ-kibi-evidence-floors
 export function gapDetailLines(row: EvidenceFloorRow): string[] {
   return Object.entries(row.gapDetails ?? {}).flatMap(([key, ids]) =>
     ids.length === 0
@@ -110,7 +106,6 @@ export function gapDetailLines(row: EvidenceFloorRow): string[] {
 const REFUTATION_GAPS = new Set(["happy_path_only", "uncovered_case"]);
 
 /** Each refuted claim in plain words: which test refutes it and why. */
-// implements REQ-kibi-claim-bound-proofs
 export function refutationText(row: EvidenceFloorRow): string | undefined {
   const refutations = row.refutations ?? [];
   if (refutations.length === 0) return undefined;
@@ -131,8 +126,10 @@ function suggestionFor(row: EvidenceFloorRow): string {
   if (row.status === "pending_reproof")
     return `Run kibi prove for the tests behind ${row.id} so its receipts match the current code, then rerun kibi check --fresh-evidence.`;
   switch (row.requiredEvidence) {
-    case "proved":
-      return `Prove every applicable claim of ${row.id}${(row.gapDetails?.unprovedClaims ?? []).length > 0 ? ` (unproved: ${(row.gapDetails?.unprovedClaims ?? []).join(", ")})` : ""}: model each as a set fact (prove it with exhaustive or typecheck), a numeric fact (arithmetic or smt), a rule, predicate or set fact about a predicate (rule or state_machine) or a string fact (regex), name it in a certificate test's proof_contract.proves, and run kibi prove; kibi proof explain ${row.id} shows each claim's bindings. A claim with no such fact can only be attested, so lower required_evidence to tested with the reason in the requirement if that is enough.`;
+    case "proved": {
+      const unproved = row.gapDetails?.unprovedClaims ?? [];
+      return `Prove every applicable claim of ${row.id}${unproved.length > 0 ? ` (unproved: ${unproved.join(", ")})` : ""}: model each as a set fact (prove it with exhaustive or typecheck), a numeric fact (arithmetic or smt), a rule, predicate or set fact about a predicate (rule or state_machine) or a string fact (regex), name it in a certificate test's proof_contract.proves, and run kibi prove; kibi proof explain ${row.id} shows each claim's bindings. A claim with no such fact can only be attested, so lower required_evidence to tested with the reason in the requirement if that is enough.`;
+    }
     case "tested":
       return `Link ${row.id} to a scenario with an end-to-end test that has a proof contract, run kibi prove, and fix its proof gaps (${row.proofGaps.join(", ") || "none listed"}${gapDetailLines(row).length > 0 ? `; ${gapDetailLines(row).join("; ")}` : ""}); kibi proof explain ${row.id} shows each one. Or lower required_evidence if a person decides it does not need tests.`;
     default:
@@ -141,7 +138,6 @@ function suggestionFor(row: EvidenceFloorRow): string {
 }
 
 /** One finding per current requirement whose evidence is below its floor. */
-// implements REQ-kibi-evidence-floors
 export function evidenceFloorViolations(
   rows: readonly EvidenceFloorRow[],
   options: EvidenceFloorOptions = {},
@@ -176,7 +172,6 @@ export function evidenceFloorViolations(
  * ignores the schema version, so a migration can read the floor the ladder
  * will apply before it records the new schema.
  */
-// implements REQ-kibi-evidence-floors
 export async function readEvidenceFloorRows(
   context: OperationContext,
   snapshotEvidence?: Awaited<ReturnType<typeof readWorkspaceSnapshot>>,
@@ -202,7 +197,6 @@ export async function readEvidenceFloorRows(
  * Evaluate the evidence-floor rule against the attached store, with the same
  * per-contract receipt binding kb_coverage uses.
  */
-// implements REQ-kibi-evidence-floors
 export async function collectEvidenceFloorViolations(
   context: OperationContext,
   rules: ReadonlySet<string>,

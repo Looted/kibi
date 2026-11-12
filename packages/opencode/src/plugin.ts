@@ -8,19 +8,19 @@ import {
   invalidateKibiOpencodePackage,
   runBunInstallForOpenCodePlugin,
 } from "./auto-update.js";
-import { getE2eCoverageSignal } from "./e2e-coverage-signals.js"; // implements REQ-opencode-file-context-guidance-v1
+import { getE2eCoverageSignal } from "./e2e-coverage-signals.js";
 import {
   buildDirtyRelevantFingerprint,
   buildEnforcementScopeKey,
 } from "./enforcement-scope.js";
-import { getFileLinkedEntityIds } from "./file-entity-links.js"; // implements REQ-opencode-file-context-guidance-v1
+import { getFileLinkedEntityIds } from "./file-entity-links.js";
 import * as fileFilter from "./file-filter.js";
-import { deriveFileOperationReminder } from "./file-operation-reminders.js"; // implements REQ-opencode-file-context-guidance-v1
+import { deriveFileOperationReminder } from "./file-operation-reminders.js";
 import {
   type FileLifecycle,
   type FileOperationState,
   createFileOperationState,
-} from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
+} from "./file-operation-state.js";
 import type { ReminderKind } from "./file-operation-state.js";
 import type { CacheKey } from "./guidance-cache.js";
 import { recordOpencodeToolTelemetry } from "./hook-telemetry.js";
@@ -82,7 +82,6 @@ export function resetCommentSuggestion(): null {
   return null;
 }
 
-// implements REQ-opencode-file-context-guidance-v1
 export function nextRecentCommentSuggestion<T>(
   inspectingCodeComments: boolean,
   suggestion: T | null | undefined,
@@ -217,7 +216,6 @@ const startupNotifyGlobals = globalThis as typeof globalThis & {
 /**
  * Lint requirement documents for embedded scenarios/tests and oversized content.
  */
-// implements REQ-opencode-kibi-plugin-v1
 export function lintRequirementDoc(
   filePath: string,
   worktree: string,
@@ -273,7 +271,6 @@ function readTextOrEmpty(fullPath: string): string {
 // rationale: ends the exemption for the read fallback above.
 // Stryker restore BlockStatement,StringLiteral
 
-// implements REQ-opencode-kibi-plugin-v1
 const kibiOpencodePlugin: Plugin = async (
   input: PluginInput,
 ): Promise<Hooks> => {
@@ -364,7 +361,6 @@ const kibiOpencodePlugin: Plugin = async (
         sessionEdits: createSessionEditState({
           worktree: context.worktreeRoot,
         }),
-        // implements REQ-opencode-file-context-guidance-v1
         fileOperations: createFileOperationState({
           worktree: context.worktreeRoot,
         }),
@@ -667,7 +663,7 @@ const kibiOpencodePlugin: Plugin = async (
             }
           : null;
 
-        // Steps 3-4: File-operation reminder selection with suppression // implements REQ-opencode-file-context-guidance-v1
+        // Steps 3-4: File-operation reminder selection with suppression
         let fileOperationReminder:
           | {
               path: string;
@@ -891,7 +887,7 @@ const kibiOpencodePlugin: Plugin = async (
           });
         }
 
-        // Step 6: After prompt generation, mark reminders as shown if guidance contains the text // implements REQ-opencode-file-context-guidance-v1
+        // Step 6: After prompt generation, mark reminders as shown if guidance contains the text
         if (fileOperationReminder) {
           const lifecycleReminderText = fileOperationReminder.lifecycleReminder;
           const e2eReminderText = fileOperationReminder.e2eReminder;
@@ -972,7 +968,6 @@ const kibiOpencodePlugin: Plugin = async (
 
         // No entry carries the sentinel, so the guidance is never a repeat.
         output.system.push(guidance);
-        // implements REQ-kibi-fresh-clone-setup
         const hooksNote = checkoutHooksNote(promptWorkContext.worktreeRoot);
         if (hooksNote !== null) output.system.push(hooksNote);
       };

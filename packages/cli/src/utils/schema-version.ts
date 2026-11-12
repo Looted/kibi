@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// implements REQ-003
 // Schema 8 requires body context on current entities and pins requirement
 // semantic_text so context sections never change a requirement's meaning.
 // Schema 9 adds decision firmness on requirements and ADRs and requires a
@@ -29,7 +28,10 @@
 // claims it proves.
 // Schema 13 derives symbol coordinates on every sync and keeps
 // .kb/symbol-coordinates.yaml out of Git.
-export const LATEST_KB_SCHEMA_VERSION = 13;
+// Schema 14 adds the retired requirement status (with retired_reason) and
+// blocks current facts, scenarios and tests owned only by retired
+// requirements.
+export const LATEST_KB_SCHEMA_VERSION = 14;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";
@@ -44,7 +46,6 @@ export type SchemaVersionSource =
   | null
   | undefined;
 
-// implements REQ-003
 export function normalizeSchemaVersion(
   schemaVersion: number | string | null | undefined,
 ): number | null {
@@ -65,7 +66,6 @@ export function normalizeSchemaVersion(
   return Number.isInteger(parsed) ? parsed : null;
 }
 
-// implements REQ-003
 export function getSchemaVersionStatus(
   config?: SchemaVersionSource,
 ): SchemaVersionStatus {

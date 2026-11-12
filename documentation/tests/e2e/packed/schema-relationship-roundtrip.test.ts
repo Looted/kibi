@@ -271,7 +271,6 @@ function writeSchemaFixtures(sandbox: TestSandbox): void {
   stageSourceFile(sandbox, ".kb/symbols.yaml");
 }
 
-// implements REQ-004
 export async function packedEightEntitySchemaRoundTrip(
   sandbox: TestSandbox,
 ): Promise<void> {
@@ -338,7 +337,6 @@ export async function packedEightEntitySchemaRoundTrip(
   assert.strictEqual(sparse.tags, undefined);
 }
 
-// implements REQ-005
 export async function packedTypedRelationshipRoundTrip(
   sandbox: TestSandbox,
 ): Promise<void> {
@@ -433,7 +431,6 @@ export async function packedTypedRelationshipRoundTrip(
   );
 }
 
-// implements REQ-005
 export async function packedUntypedRelationshipRejected(
   sandbox: TestSandbox,
 ): Promise<void> {

@@ -50,10 +50,8 @@ import { type LoadPluginOptions, loadPluginPackage } from "./load-plugin.js";
 import { readProjectKibiConfig } from "./project-config.js";
 import { PluginResolutionError } from "./resolve-package.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type BuiltinPluginFactory = () => KibiPluginV1 | Promise<KibiPluginV1>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type CapabilityProviderBinding<T> = Readonly<{
   pluginId: string;
   pluginVersion: string;
@@ -65,7 +63,6 @@ export type CapabilityProviderBinding<T> = Readonly<{
   stamp: PluginProviderStamp;
 }>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type CapabilityModeResolution<T> = Readonly<{
   builtin: CapabilityProviderBinding<T>;
   /** At most one replace provider for this capability. */
@@ -76,7 +73,6 @@ export type CapabilityModeResolution<T> = Readonly<{
   shadow: readonly CapabilityProviderBinding<T>[];
 }>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type CapabilityRegistryOptions = Readonly<{
   workspaceRoot: string;
   /** Injected builtin plugin; defaults to a local stub. */
@@ -121,7 +117,6 @@ const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
  * are no hints. A builtin package that predates the capability resolves to
  * this host no-op instead of failing the search.
  */
-// implements REQ-kibi-search-hints-host
 export const NO_SEARCH_HINTS: SearchHintsV1 = {
   id: "kibi-host.search-hints.none",
   model: "none",
@@ -132,7 +127,6 @@ export const NO_SEARCH_HINTS: SearchHintsV1 = {
  * Minimal builtin used when no factory is injected and the builtin package is
  * not yet wired. Satisfies kibi.plugin.v1 validation.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function createStubBuiltinPlugin(): KibiPluginV1 {
   return validateKibiPlugin(
     defineKibiPlugin({
@@ -202,39 +196,33 @@ export function createStubBuiltinPlugin(): KibiPluginV1 {
 /** Default host builtin from the published kibi-plugin-builtin package. */
 async function defaultBuiltinFactory(): Promise<KibiPluginV1> {
   const mod = (await import("kibi-plugin-builtin")) as {
-    kibiPlugin?: KibiPluginV1;
-    default?: KibiPluginV1;
+    kibiPlugin: KibiPluginV1;
   };
-  const plugin = mod.kibiPlugin;
-  if (!plugin) {
-    throw new Error("kibi-plugin-builtin did not export kibiPlugin");
-  }
-  const validated = validateKibiPlugin(plugin);
+  // Validation rejects a missing export.
+  const validated = validateKibiPlugin(mod.kibiPlugin);
   let packageVersion = validated.version;
+  let builtinPackageJson: { version?: unknown } = {};
   try {
     const { createRequire } = await import("node:module");
     const require = createRequire(import.meta.url);
-    const builtinPackageJson = require("kibi-plugin-builtin/package.json") as {
-      version?: string;
-    };
-    if (
-      typeof builtinPackageJson.version === "string" &&
-      builtinPackageJson.version.trim()
-    ) {
-      packageVersion = builtinPackageJson.version.trim();
-    }
+    builtinPackageJson = require("kibi-plugin-builtin/package.json");
   } catch {
     // Fall back to the export version when package.json is not resolvable.
+  }
+  if (
+    typeof builtinPackageJson.version === "string" &&
+    builtinPackageJson.version.trim()
+  ) {
+    packageVersion = builtinPackageJson.version.trim();
   }
   if (validated.version !== packageVersion) {
     throw new Error(
       `kibi-plugin-builtin export version '${validated.version}' does not match package.json version '${packageVersion}'`,
     );
   }
-  return { ...validated, version: packageVersion };
+  return validated;
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 function stampFor(
   plugin: KibiPluginV1,
   capability: CapabilityId,
@@ -254,10 +242,8 @@ function stampFor(
   };
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 function disclosedModel(capability: unknown): string | undefined {
-  if (typeof capability !== "object" || capability === null) return undefined;
-  if (!("model" in capability)) return undefined;
+  // Validated capabilities are objects.
   const model = (capability as { model?: unknown }).model;
   return typeof model === "string" && model.trim() !== ""
     ? model.trim()
@@ -312,7 +298,6 @@ function capabilityFromPlugin(
  * configured packages load lazily the first time a capability is resolved.
  * Not a process-wide singleton — inject or construct per test/runtime.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export class CapabilityRegistry {
   readonly workspaceRoot: string;
   private readonly builtinFactory: BuiltinPluginFactory;
@@ -382,7 +367,6 @@ export class CapabilityRegistry {
     >;
   }
 
-  // implements REQ-capability-plugin-activation-disclosure-v1
   async resolveSymbolExtractorsV2(): Promise<
     CapabilityModeResolution<SymbolExtractorV2>
   > {
@@ -399,7 +383,6 @@ export class CapabilityRegistry {
     ) as Promise<CapabilityModeResolution<VocabularyAlignmentV1>>;
   }
 
-  // implements REQ-kibi-search-hints-host
   async resolveSearchHints(): Promise<CapabilityModeResolution<SearchHintsV1>> {
     return this.resolveCapability(SEARCH_HINTS_CAPABILITY_ID) as Promise<
       CapabilityModeResolution<SearchHintsV1>
@@ -461,9 +444,6 @@ export class CapabilityRegistry {
 
     const config = await this.getProjectConfig();
     const entries = config.plugins ?? [];
-    const relevant = entries.filter(
-      (entry) => entry.capabilities[capabilityId] !== undefined,
-    );
 
     let replace: CapabilityProviderBinding<unknown> | null = null;
     const augment: CapabilityProviderBinding<unknown>[] = [];
@@ -471,11 +451,9 @@ export class CapabilityRegistry {
     const pluginIds = new Map<string, string>([
       [builtinPlugin.id, "kibi-plugin-builtin"],
     ]);
-    const providerIds = new Set<string>([
-      builtinCapability.id ?? builtinPlugin.id,
-    ]);
+    const providerIds = new Set<string>([builtinCapability.id]);
 
-    for (const entry of relevant) {
+    for (const entry of entries) {
       const modeConfig = entry.capabilities[capabilityId];
       if (!modeConfig) continue;
       const loaded = await this.ensurePackageLoaded(entry);
@@ -494,15 +472,14 @@ export class CapabilityRegistry {
           `Plugin package '${entry.package}' is activated for ${capabilityId} but does not export that capability`,
         );
       }
-      if ("id" in capability && typeof capability.id === "string") {
-        if (providerIds.has(capability.id)) {
-          throw new PluginResolutionError(
-            "DUPLICATE_PROVIDER_ID",
-            `Provider id '${capability.id}' for ${capabilityId} is not unique`,
-          );
-        }
-        providerIds.add(capability.id);
+      // Plugin validation gives every capability a string id.
+      if (providerIds.has(capability.id)) {
+        throw new PluginResolutionError(
+          "DUPLICATE_PROVIDER_ID",
+          `Provider id '${capability.id}' for ${capabilityId} is not unique`,
+        );
       }
+      providerIds.add(capability.id);
       const binding = bindingFor(
         loaded.plugin,
         entry.package,
@@ -544,9 +521,7 @@ export class CapabilityRegistry {
     try {
       return await promise;
     } catch (error) {
-      if (this.loadedPackages.get(entry.package) === promise) {
-        this.loadedPackages.delete(entry.package);
-      }
+      this.loadedPackages.delete(entry.package);
       throw error;
     }
   }
@@ -555,7 +530,6 @@ export class CapabilityRegistry {
 /**
  * Explicit cache keyed by workspace root. Injectable — not a hidden global.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export class CapabilityRegistryCache {
   private readonly registries = new Map<string, CapabilityRegistry>();
 
@@ -586,19 +560,16 @@ export class CapabilityRegistryCache {
   }
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function createCapabilityRegistry(
   options: CapabilityRegistryOptions,
 ): CapabilityRegistry {
   return new CapabilityRegistry(options);
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function createCapabilityRegistryCache(): CapabilityRegistryCache {
   return new CapabilityRegistryCache();
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type EnsureCapabilityRegistryOptions = CapabilityRegistryOptions & {
   readonly cache?: CapabilityRegistryCache;
 };
@@ -607,7 +578,6 @@ export type EnsureCapabilityRegistryOptions = CapabilityRegistryOptions & {
  * Lazily construct and cache a registry per workspace root.
  * Callers should supply a cache instance — there is no process-global store.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function ensureCapabilityRegistry(
   workspaceRootOrOptions: string | EnsureCapabilityRegistryOptions,
   options?: Omit<CapabilityRegistryOptions, "workspaceRoot"> & {

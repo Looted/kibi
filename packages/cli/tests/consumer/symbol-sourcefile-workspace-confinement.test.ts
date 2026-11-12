@@ -1,4 +1,3 @@
-// implements REQ-symbol-sourcefile-workspace-confinement
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

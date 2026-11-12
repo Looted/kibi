@@ -5,7 +5,6 @@ import {
 
 type JsonInput = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-operation-interface-parity
 export type ParityCase = {
   readonly operation: OperationName;
   readonly input: JsonInput;
@@ -132,7 +131,6 @@ const SEED_INPUTS = {
   kb_prepare_impact_review: { scope: { kind: "staged" } },
 } as const satisfies Record<OperationName, JsonInput>;
 
-// implements REQ-kibi-operation-interface-parity
 export const PARITY_CASES: readonly ParityCase[] = listSpecs().map((spec) => ({
   operation: spec.name,
   input: SEED_INPUTS[spec.name],

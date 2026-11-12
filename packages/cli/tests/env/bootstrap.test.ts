@@ -1,4 +1,3 @@
-// implements REQ-kibi-env-bootstrap
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";

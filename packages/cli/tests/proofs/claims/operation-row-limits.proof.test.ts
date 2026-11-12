@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { ENTITY_ROW_BATCH_LIMIT } from "../../../src/public/operations/discovery-entities.js";
 
-// implements REQ-kibi-operation-row-limits
-
 /**
  * The entity row batch limit. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

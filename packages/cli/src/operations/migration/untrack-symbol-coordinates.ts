@@ -16,28 +16,35 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { spawnSync } from "node:child_process";
+import { type SpawnSyncReturns, spawnSync } from "node:child_process";
 import { KB_PATHS } from "../../utils/kb-paths.js";
 
 /** Schema version from which symbol coordinates are derived and never tracked. */
 export const DERIVED_COORDINATES_SCHEMA_VERSION = 13;
 
 /** What the schema 13 untracking step did to the Git index. */
-// implements REQ-symbol-coordinates-derived-locally
 export type CoordinateUntrackOutcome =
   | { outcome: "untracked" }
   | { outcome: "not_tracked" }
   | { outcome: "not_a_repository" }
   | { outcome: "failed"; reason: string };
 
+/** Runs one git command in `cwd`; tests pass a fake to reach every outcome. */
+export type GitRunner = (
+  cwd: string,
+  args: string[],
+) => Pick<SpawnSyncReturns<string>, "error" | "status" | "stderr">;
+
 function git(cwd: string, args: string[]) {
   return spawnSync("git", args, { cwd, encoding: "utf8" });
 }
 
 /** True when the derived coordinate artifact is in the Git index. */
-// implements REQ-symbol-coordinates-derived-locally
-export function isCoordinateArtifactTracked(cwd: string): boolean | null {
-  const result = git(cwd, [
+export function isCoordinateArtifactTracked(
+  cwd: string,
+  run: GitRunner = git,
+): boolean | null {
+  const result = run(cwd, [
     "ls-files",
     "--error-unmatch",
     "--",
@@ -54,14 +61,14 @@ export function isCoordinateArtifactTracked(cwd: string): boolean | null {
  * gitignored from schema 13; tracking them made every two branches that
  * touch the same source file conflict.
  */
-// implements REQ-symbol-coordinates-derived-locally
 export function untrackCoordinateArtifact(
   cwd: string,
+  run: GitRunner = git,
 ): CoordinateUntrackOutcome {
-  const tracked = isCoordinateArtifactTracked(cwd);
+  const tracked = isCoordinateArtifactTracked(cwd, run);
   if (tracked === null) return { outcome: "not_a_repository" };
   if (!tracked) return { outcome: "not_tracked" };
-  const result = git(cwd, [
+  const result = run(cwd, [
     "rm",
     "--cached",
     "--quiet",

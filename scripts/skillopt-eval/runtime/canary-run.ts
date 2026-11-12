@@ -141,7 +141,6 @@ function codexRequiredMcpFailure(
   return new RequiredMcpStartupError(detail);
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runModelCanary(
   context: ModelCanaryContext,
 ): Promise<ModelCanaryResult> {

@@ -1,7 +1,7 @@
 ---
 id: TEST-007
 title: Prolog KB attaches, asserts, and retrieves entities correctly
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-08-02T00:00:00.000Z
 priority: must
@@ -10,8 +10,6 @@ tags:
   - core
   - unit
 links:
-  - type: validates
-    target: REQ-core-persistence
   - type: validates
     target: SCEN-001
 verification_scope: unit
@@ -28,17 +26,17 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-855f0df88f3a59ff1eac8e66
+    receipt_id: PR-6659931a81cf37d9361b8e49
     test_id: TEST-007
     scope: unit
     outcome: passed
-    code_snapshot: c78d87453534f34be23060678a90114386641b97f24f1f909f008a3c1ad06ae5
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-25T12:27:18.767Z'
-    finished_at: '2026-10-25T12:27:22.170Z'
-    artifact_digest: feb94aa8c6d5fc62aaf8b18e650997ae991eba5ea64f634d1d88a624c408230c
+    code_snapshot: 77a05ac3f136388d07560216e6f9644997c4b9918c6920a54149f03a47779bca
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T05:33:42.441Z'
+    finished_at: '2026-11-10T05:36:08.645Z'
+    artifact_digest: dc8736db249dfdd88751ad8485abe81283e5b9591ca84f894b18a7ce3504ead7
     contract_hash: 8eb486cc247b16c56391b8f3ff1a729a2ec39c3ffeac9dae6c97c31fb3321c56
-    binding_hash: 350bbcd942fc2506fb5f7a855e100bd90ce4eabdd89e498377465673832d31c5
+    binding_hash: 00049f4f1586ee80ac86f72880578e2e8e09a6ee5479e60bf9a19528fac23dea
     fingerprint: 81920f957a7e4b1ee9ef4ec628d92215b793e7dde666459fef5bfbdb18fb8084
     fingerprint_components:
       contract: 8eb486cc247b16c56391b8f3ff1a729a2ec39c3ffeac9dae6c97c31fb3321c56

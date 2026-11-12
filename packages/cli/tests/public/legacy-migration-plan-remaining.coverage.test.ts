@@ -1,4 +1,3 @@
-// implements REQ-kibi-legacy-migration-preview-v2
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as loader from "../../src/operations/modeling/predicate-loader.js";
 import * as analyzeProse from "../../src/operations/semantic-advisor/analyze-prose.js";

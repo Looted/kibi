@@ -16,8 +16,6 @@ import {
   STORE_LOCK_TAKEOVER_VISIBLE_MS,
 } from "../../../src/prolog/store-lock.js";
 
-// implements REQ-branch-store-settings
-
 /**
  * The codes, manifest version and lock takeover record of a branch store. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

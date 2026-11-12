@@ -1,5 +1,5 @@
-// implements REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 import { afterEach, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -7,6 +7,7 @@ import path from "node:path";
 import {
   pathTopicWords,
   rankRequirementCandidates,
+  replacedRequirements,
   requestTopicWords,
   requirementCandidatesForPath,
 } from "../src/requirement-candidates";
@@ -85,6 +86,116 @@ describe("candidate requirements for an unlinked file", () => {
     expect(
       requirementCandidatesForPath(path.join(root, "missing"), COACH_PAGE),
     ).toEqual([]);
+  });
+
+  test("a closed requirement is offered only after every current one", () => {
+    const ranked = rankRequirementCandidates(COACH_PAGE, [
+      {
+        id: "REQ-coach-dashboard-done",
+        title: "Coach dashboard shows totals",
+        status: " Closed ",
+      },
+      { id: "REQ-dashboard-theme", title: "The dashboard follows the theme" },
+    ]);
+    expect(ranked.map((candidate) => candidate.id)).toEqual([
+      "REQ-dashboard-theme",
+      "REQ-coach-dashboard-done",
+    ]);
+  });
+
+  test("a closed requirement a current one supersedes is not offered", () => {
+    const root = workspace({
+      "REQ-old": "title: Coach dashboard shows totals\nstatus: closed",
+      "REQ-done": "title: Coach dashboard exports totals\nstatus: closed",
+      "REQ-new":
+        "title: Coach inbox lists requests\nstatus: open\nlinks:\n  - type: supersedes\n    target: REQ-old",
+      // A closed successor does not make its predecessor stale.
+      "REQ-gone": "title: Coach dashboard counts sessions\nstatus: closed",
+      "REQ-later":
+        "title: Payments settle daily\nstatus: closed\nlinks:\n  - type: supersedes\n    target: REQ-gone",
+      // Nor does a retired one, or a link of another type.
+      "REQ-gone-too": "title: Coach dashboard counts minutes\nstatus: closed",
+      "REQ-retired":
+        "title: Payments refund weekly\nstatus: deprecated\nlinks:\n  - type: supersedes\n    target: REQ-gone-too",
+      "REQ-related":
+        "title: Payments refund monthly\nstatus: open\nlinks:\n  - type: relates_to\n    target: REQ-gone-too",
+      "REQ-plain": "title: Payments settle weekly\nstatus: open",
+    });
+    expect(
+      requirementCandidatesForPath(root, COACH_PAGE).map(
+        (candidate) => candidate.id,
+      ),
+    ).toEqual(["REQ-new", "REQ-done", "REQ-gone"]);
+    expect(
+      requirementCandidatesForPath(root, COACH_PAGE, 5).map(
+        (candidate) => candidate.id,
+      ),
+    ).toEqual(["REQ-new", "REQ-done", "REQ-gone", "REQ-gone-too"]);
+  });
+
+  test("a closed requirement reached by request words alone is also checked for a successor", () => {
+    const root = workspace({
+      "REQ-old": "title: Owner removal keeps one owner\nstatus: closed",
+      "REQ-new":
+        "title: Owner removal needs a second owner\nstatus: open\nlinks:\n  - type: supersedes\n    target: REQ-old",
+    });
+    expect(
+      requirementCandidatesForPath(
+        root,
+        "src/app/index.ts",
+        3,
+        requestTopicWords("Owner removal must keep one owner"),
+      ).map((candidate) => candidate.id),
+    ).toEqual(["REQ-new"]);
+  });
+
+  test("only closed requirements are ever treated as replaced", () => {
+    const root = workspace({
+      "REQ-a": "title: Payments settle daily\nstatus: open",
+      "REQ-b":
+        "title: Payments settle hourly\nstatus: open\nlinks:\n  - type: supersedes\n    target: REQ-a",
+    });
+    expect(
+      replacedRequirements(
+        root,
+        [
+          { id: "REQ-a", title: "Payments settle daily", status: "open" },
+          { id: "REQ-b", title: "Payments settle hourly", status: "open" },
+        ],
+        new Set(["REQ-c"]),
+      ),
+    ).toEqual(new Set());
+  });
+
+  test("supersedes links in relationship shards also retire a closed requirement", () => {
+    const root = workspace({
+      "REQ-old": "title: Coach dashboard shows totals\nstatus: closed",
+      "REQ-new": "title: Payments settle daily\nstatus: open",
+    });
+    const shard = createHash("sha256")
+      .update("REQ-new")
+      .digest("hex")
+      .slice(0, 2);
+    fs.mkdirSync(path.join(root, ".kb", "relationships"), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, ".kb", "relationships", `${shard}.yaml`),
+      "relationships:\n  - type: supersedes\n    from: REQ-new\n    to: REQ-old\n",
+    );
+    expect(requirementCandidatesForPath(root, COACH_PAGE)).toEqual([]);
+    expect(
+      replacedRequirements(
+        root,
+        [
+          {
+            id: "REQ-old",
+            title: "Coach dashboard shows totals",
+            status: "closed",
+          },
+          { id: "REQ-new", title: "Payments settle daily", status: "open" },
+        ],
+        new Set(["REQ-old"]),
+      ),
+    ).toEqual(new Set(["REQ-old"]));
   });
 
   test("the unowned-file note names the candidates and says no link is not no rule", () => {

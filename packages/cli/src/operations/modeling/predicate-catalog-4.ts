@@ -4,7 +4,6 @@ import {
 } from "./predicate-closed-vocabularies.js";
 import type { PredicateSchemaCandidate } from "./predicate-types.js";
 
-// implements REQ-mcp-suggest-predicates
 export const PREDICATE_CATALOG_4: PredicateSchemaCandidate[] = [
   {
     id: "FACT-SCHEMA-DEPENDENCY-RESOLUTION-POLICY",

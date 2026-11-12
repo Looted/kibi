@@ -57,7 +57,6 @@ const SEARCH_STOP_WORDS = new Set([
   "not",
 ]);
 
-// implements REQ-mcp-search-discovery, REQ-002, REQ-003, REQ-bootstrap-provenance-stubs
 export async function rankEntities(
   entities: Record<string, unknown>[],
   query: string,
@@ -99,7 +98,6 @@ export async function rankEntities(
   return matches;
 }
 
-// implements REQ-mcp-search-discovery
 async function rankEntity(
   entity: Record<string, unknown>,
   queryContext: SearchQueryContext,
@@ -200,7 +198,6 @@ async function rankEntity(
 }
 
 export async function loadMarkdownBody(
-  // implements REQ-007, REQ-mcp-search-discovery
   source: string,
   workspaceRoot: string,
 ): Promise<string | null> {
@@ -220,7 +217,6 @@ export async function loadMarkdownBody(
  * round trips (open, stat, read, close), which made reading them take ten
  * times as long as reading them in turn.
  */
-// implements REQ-mcp-search-discovery
 export function loadMarkdownBodySync(
   source: string,
   workspaceRoot: string,
@@ -258,7 +254,6 @@ function markdownBodyPath(
   return resolved;
 }
 
-// implements REQ-mcp-search-discovery
 function stripFrontmatter(content: string): string {
   const trimmedContent = content.trimStart();
   // A delimiter at the very end leaves no room for a closing one.
@@ -278,7 +273,6 @@ function stripFrontmatter(content: string): string {
   return trimmedContent.slice(match.index + match[0].length);
 }
 
-// implements REQ-mcp-search-discovery
 function buildSearchQueryContext(query: string): SearchQueryContext {
   return {
     phrase: searchText(query),
@@ -290,19 +284,16 @@ function buildSearchQueryContext(query: string): SearchQueryContext {
   };
 }
 
-// implements REQ-mcp-search-discovery
 function searchTokens(value: string): string[] {
   return Array.from(value.toLowerCase().matchAll(/[a-z0-9]+/g), (match) =>
     singularizeSimplePlural(match[0]),
   );
 }
 
-// implements REQ-mcp-search-discovery
 function searchText(value: string): SearchText {
   return searchTokens(value).join("");
 }
 
-// implements REQ-mcp-search-discovery
 function singularizeSimplePlural(token: string): string {
   if (
     token.length <= 4 ||
@@ -317,15 +308,12 @@ function singularizeSimplePlural(token: string): string {
   return token.slice(0, -1);
 }
 
-// implements REQ-mcp-search-discovery
-// implements REQ-mcp-search-discovery
 // The query phrase is never empty: a query without signal tokens ranks
 // nothing.
 function isExactSearchMatch(haystack: SearchText, needle: SearchText): boolean {
   return haystack === needle;
 }
 
-// implements REQ-mcp-search-discovery
 function isPhraseSearchMatch(
   haystack: SearchText,
   needle: SearchText,
@@ -333,12 +321,10 @@ function isPhraseSearchMatch(
   return haystack.includes(needle);
 }
 
-// implements REQ-mcp-search-discovery
 function countTokenMatches(haystack: SearchText, tokens: string[]): number {
   return tokens.filter((token) => haystack.includes(token)).length;
 }
 
-// implements REQ-mcp-search-discovery
 function getInlineBodyText(entity: Record<string, unknown>): string | null {
   const candidates = [
     entity.body,
@@ -356,7 +342,6 @@ function getInlineBodyText(entity: Record<string, unknown>): string | null {
   return null;
 }
 
-// implements REQ-mcp-search-discovery
 function buildSnippet(
   bodyText: string,
   queryForms: SearchText,

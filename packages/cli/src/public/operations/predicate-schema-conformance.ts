@@ -48,7 +48,6 @@ const NON_AUTHORED_FIELDS = new Set([
   "created_at",
   "updated_at",
   "links",
-  "relationships",
 ]);
 
 type Entity = Readonly<Record<string, unknown>>;
@@ -66,14 +65,12 @@ type SchemaRef = Readonly<{
  * to the only namespace whose schema matches, and/or replace alias spellings
  * with their declared constants. Present only when nothing is left for review.
  */
-// implements REQ-kibi-predicate-vocabulary-migration
 export type PredicateFactRepair = Readonly<{
   type: "fact";
   id: string;
   properties: Readonly<Record<string, unknown>>;
 }>;
 
-// implements REQ-kibi-predicate-vocabulary-migration
 export type PredicateConformanceEvidence = Readonly<{
   factId: string;
   predicateName: string;
@@ -124,8 +121,8 @@ function schemaRefs(facts: readonly Entity[]): Map<string, SchemaRef[]> {
   };
   for (const entity of facts) {
     if (entity.fact_kind !== "predicate_schema") continue;
-    const name = text(entity.predicate_name);
-    if (name === undefined) continue;
+    // A schema without a name is filed under none that a fact can use.
+    const name = text(entity.predicate_name) as string;
     add(name, {
       schemaId: String(entity.id),
       namespace: namespaceOf(entity),
@@ -190,7 +187,6 @@ function repairFor(
  * in the default namespace) with the same namespace, name, and arity, and
  * must use declared constants where the schema closes an argument.
  */
-// implements REQ-kibi-predicate-schema-conformance
 export function evaluatePredicateSchemaConformance(
   facts: readonly Entity[],
 ): Violation[] {
@@ -222,13 +218,9 @@ export function evaluatePredicateSchemaConformance(
     const sameShape = (schemasByName.get(name) ?? []).filter(
       (ref) => ref.argumentNames.length === arity,
     );
-    const exact =
-      sameShape.find(
-        (ref) => ref.namespace === namespace && ref.origin === "project_local",
-      ) ??
-      sameShape.find(
-        (ref) => ref.namespace === namespace && ref.origin === "built_in",
-      );
+    // Project-local schemas are listed before built-in ones, so a
+    // project-local schema with the same signature wins.
+    const exact = sameShape.find((ref) => ref.namespace === namespace);
     const candidates = [
       ...new Map(
         sameShape
@@ -319,7 +311,8 @@ function conformanceDescription(
     parts.push(
       evidence.alignment !== null
         ? `Predicate fact ${evidence.factId} uses ${where}, but its schema ${evidence.alignment.schemaId} is in namespace ${evidence.alignment.namespace}`
-        : evidence.candidateNamespaces.length > 1
+        : // Without an alignment there is no candidate, or several.
+          evidence.candidateNamespaces.length > 0
           ? `Predicate fact ${evidence.factId} uses ${where}; schemas with this signature exist in several namespaces (${evidence.candidateNamespaces.join(", ")})`
           : `Predicate fact ${evidence.factId} uses ${where}, which has no predicate_schema`,
     );
@@ -346,14 +339,15 @@ function conformanceSuggestion(evidence: PredicateConformanceEvidence): string {
   if (evidence.undeclared.length > 0) {
     return "Use a declared constant, add the value to argument_constants, or map it with argument_aliases so kibi migrate can rewrite it.";
   }
-  if (evidence.candidateNamespaces.length > 1) {
+  // Without a repair or an undeclared value no schema applies, so there is
+  // no candidate, or several.
+  if (evidence.candidateNamespaces.length > 0) {
     return "Set predicate_namespace to the schema this claim belongs to.";
   }
   return "Declare a predicate_schema for this signature (kb_model mode predicates helps pick an existing one) or move the claim to a schema that already exists.";
 }
 
 /** Load every fact once and evaluate predicate conformance. */
-// implements REQ-kibi-predicate-schema-conformance
 export async function collectPredicateSchemaConformanceViolations(
   prolog: Pick<PrologPort, "query">,
 ): Promise<Violation[]> {

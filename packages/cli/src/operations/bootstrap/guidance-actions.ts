@@ -9,7 +9,8 @@ import type {
   SourceOnlySignal,
 } from "./types.js";
 
-function relative(root: string, target: string): string {
+/** A signal source as a workspace-relative path; other citations as written. */
+export function relative(root: string, target: string): string {
   // Intent claims cite tickets and URLs, which are not workspace paths.
   if (!path.isAbsolute(target)) return target;
   const value = path.relative(root, target);
@@ -18,7 +19,8 @@ function relative(root: string, target: string): string {
     : value.split(path.sep).join("/");
 }
 
-function summary(values: readonly string[], limit = 3): string {
+/** The first `limit` values, then how many more there are. */
+export function summary(values: readonly string[], limit = 3): string {
   if (values.length === 0) return "workspace evidence";
   return values.length <= limit
     ? values.join(", ")
@@ -101,7 +103,6 @@ export function buildActions(
       description:
         "No declared intent claim could be planned. Claims already in the KB need nothing; compile each remaining claim with kb_compile_intent, citing its source and reference (see the Knowledge source diagnostics).",
     });
-  // implements REQ-bootstrap-authoring-claim-review
   const toReview = signals.filter(needsConflictReview).length;
   if (signals.length > 0)
     result.push({

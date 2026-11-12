@@ -6,16 +6,45 @@ import {
   nameOrStopWordReason,
   subjectKeyParticipantReason,
 } from "./predicate-bindings.js";
-import type { BindingHint, PredicateSuggestion } from "./predicate-types.js";
+import type {
+  BindingHint,
+  BindingProvenance,
+  PredicateSuggestion,
+} from "./predicate-types.js";
 import { escapeRegExp } from "./predicate-utils.js";
 
 const MAX_EXAMPLES = 5;
+
+/**
+ * Per-argument lookups by own key only: argument names are free text, and a
+ * name such as `constructor` must not read an Object.prototype member.
+ */
+function argumentConstants(
+  schema: PredicateSuggestion["schema"],
+  name: string,
+): readonly string[] | undefined {
+  const constants = schema.argument_constants;
+  return constants !== undefined && Object.hasOwn(constants, name)
+    ? constants[name]
+    : undefined;
+}
+
+function argumentProvenance(
+  candidate: PredicateSuggestion,
+  name: string,
+): BindingProvenance {
+  const byArgument = candidate.binding_provenance_by_argument;
+  return Object.hasOwn(byArgument, name)
+    ? (byArgument[name] as BindingProvenance)
+    : "placeholder";
+}
 
 /** Split `name(a, b(c), d)` into its top-level arguments, or [] when it is not a call. */
 function exampleArguments(example: string): string[] {
   const open = example.indexOf("(");
   const close = example.lastIndexOf(")");
-  if (open < 0 || close <= open) return [];
+  // A ")" before the "(" leaves an empty slice, so only a missing one matters.
+  if (open === -1 || close === -1) return [];
   const inner = example.slice(open + 1, close);
   const args: string[] = [];
   let depth = 0;
@@ -39,12 +68,10 @@ function exampleArguments(example: string): string[] {
  * the requirement's subject key is not a participant, and a schema whose
  * actor the claim never names does not fit the claim.
  */
-// implements REQ-model-predicates-participant-not-subject
 function noParticipantGuidance(type: string): string {
   return `The claim names no ${type}. Bind the participant the claim names (a noun of at most 3 words), never the requirement's subject key; if the claim names no ${type}, this schema does not fit the claim: record_ontology_gap instead.`;
 }
 
-// implements REQ-model-predicates-participant-not-subject
 function unboundReason(
   candidate: PredicateSuggestion,
   name: string,
@@ -53,27 +80,28 @@ function unboundReason(
   requirementSubjects: readonly string[],
 ): string {
   const schema = candidate.schema;
-  const provenance = candidate.binding_provenance_by_argument[name];
+  const provenance = argumentProvenance(candidate, name);
+  const constants = argumentConstants(schema, name);
   const type = schema.argument_types[schema.argument_names.indexOf(name)];
   const participant = isParticipantArgumentType(type);
   const nameReason = nameOrStopWordReason(value, {
     argumentName: name,
     argumentNames: schema.argument_names,
-    constants: schema.argument_constants?.[name],
+    constants,
     text,
   });
   if (nameReason !== null)
     return `The value "${value}" is not a binding: ${nameReason}.`;
   const subjectReason = subjectKeyParticipantReason(value, {
     argumentType: type,
-    constants: schema.argument_constants?.[name],
+    constants,
     constrainedSubjects: requirementSubjects,
   });
   if (subjectReason !== null)
     return `The value "${value}" is not a binding: ${subjectReason}. ${noParticipantGuidance(String(type))}`;
   const clauseReason = clauseBindingReason(value, {
     argumentType: type,
-    constants: schema.argument_constants?.[name],
+    constants,
   });
   if (clauseReason !== null)
     return participant
@@ -85,7 +113,7 @@ function unboundReason(
       : "The claim text names no value for this argument.";
   if (provenance === "inferred")
     return `The value "${value}" was inferred and does not appear in the claim text; confirm it or pass the exact value.`;
-  if (schema.argument_constants?.[name])
+  if (constants)
     return `The value "${value}" is not one of this argument's declared constants.`;
   return `The value "${value}" needs review.`;
 }
@@ -96,7 +124,6 @@ function unboundReason(
  * current value was not accepted, so the agent binds from the claim text
  * instead of guessing.
  */
-// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-requirement-subject-v2, REQ-model-predicates-binding-clauses, REQ-model-predicates-participant-not-subject
 export function buildBindingHints(
   candidate: PredicateSuggestion,
   text: string,
@@ -121,7 +148,7 @@ export function buildBindingHints(
         reason: `The ${schema.predicate_name} schema does not name the requirement's subject, so kb_check pairs the predicate with the subject fact only through subject_key. Pass subjectHint with one of the subjects the requirement constrains.`,
       };
     const position = schema.argument_names.indexOf(name);
-    const constants = schema.argument_constants?.[name];
+    const constants = argumentConstants(schema, name);
     const exampleValues = parsedExamples
       .map((args) => args[position])
       .filter((value): value is string => typeof value === "string");
@@ -150,14 +177,11 @@ export function buildBindingHints(
       ...(constants ? { allowedValues: [...constants] } : {}),
       examples,
       currentValue: current,
-      provenance:
-        candidate.binding_provenance_by_argument[name] ?? "placeholder",
+      provenance: argumentProvenance(candidate, name),
       reason:
         name === "subject" &&
         candidate.subject_pairing === "unpaired" &&
-        bindingCanBeApplied(
-          candidate.binding_provenance_by_argument[name] ?? "placeholder",
-        )
+        bindingCanBeApplied(argumentProvenance(candidate, name))
           ? `The value "${current}" is not a subject the requirement constrains (${requirementSubjects.join(", ")}), so kb_check would not pair the predicate with the subject fact. Bind one of them.`
           : unboundReason(candidate, name, current, text, requirementSubjects),
     };
@@ -168,12 +192,9 @@ export function buildBindingHints(
  * Whether the claim text names `value`: its words in order, any separator,
  * with a plural ending allowed on the last word (`guest` names `guests`).
  */
-// implements REQ-model-predicates-participant-not-subject
 function claimNamesValue(text: string, value: string): boolean {
-  const words = value
-    .toLowerCase()
-    .split(/[\s_.-]+/)
-    .filter(Boolean);
+  // The pattern ignores case; empty pieces between separators are dropped.
+  const words = value.split(/[\s_.-]/).filter(Boolean);
   if (words.length === 0) return false;
   // Lookarounds instead of \b: a value may start or end with a symbol
   // (`svc(ci)`, `c++`), where a word boundary never matches.
@@ -189,13 +210,12 @@ function claimNamesValue(text: string, value: string): boolean {
  * clause that opens with a noun ("Administrators who were granted …") may
  * still name the participant in its first words, so it is left to the agent.
  */
-// implements REQ-model-predicates-participant-not-subject
 function clauseIsActivity(clause: string): boolean {
-  const head =
-    clause
-      .toLowerCase()
-      .split(/[\s_-]+/)
-      .find(Boolean) ?? "";
+  // Only a clause of several words reaches here, so it has a first word.
+  const head = clause
+    .toLowerCase()
+    .split(/[\s_-]/)
+    .find(Boolean) as string;
   return head.length > 4 && head.endsWith("ing");
 }
 
@@ -208,7 +228,6 @@ function clauseIsActivity(clause: string): boolean {
  * example values occurs in the claim text. The agent cannot bind such an
  * argument from the claim, so the schema does not fit the claim.
  */
-// implements REQ-model-predicates-participant-not-subject
 export function unnamedParticipantArguments(
   candidate: PredicateSuggestion,
   text: string,
@@ -217,11 +236,11 @@ export function unnamedParticipantArguments(
   const schema = candidate.schema;
   const parsedExamples = schema.examples.map(exampleArguments);
   return candidate.unbound_arguments.filter((name) => {
+    // An unknown name (-1) has no argument type, so it is no participant.
     const position = schema.argument_names.indexOf(name);
-    if (position < 0) return false;
     const type = schema.argument_types[position];
     if (!isParticipantArgumentType(type)) return false;
-    const constants = schema.argument_constants?.[name];
+    const constants = argumentConstants(schema, name);
     const current = candidate.predicate_args[position] ?? "";
     const unnamed =
       !current.trim() ||

@@ -246,7 +246,8 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts",
-        "./scripts/tests/run-owned-engine-tests.test.ts"
+        "./scripts/tests/run-owned-engine-tests.test.ts",
+        "./packages/cli/tests/cli-operation-metadata.test.ts"
       ],
       [
         "node",
@@ -1161,6 +1162,13 @@
         "--timeout",
         "15000",
         "./packages/cli/tests/parity/helpers.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/agent-core/tests/agent-core.test.ts"
       ]
     ]
   },
@@ -5093,16 +5101,6 @@
     ]
   },
   {
-    "test_id": "TEST-proof-no-impact-declaration",
-    "steps": [
-      [
-        "bun",
-        "test",
-        "./packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts"
-      ]
-    ]
-  },
-  {
     "test_id": "TEST-proof-symbols-manifest-path",
     "steps": [
       [
@@ -7356,6 +7354,202 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/update-check.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kb-dependencies-git",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/dependencies/kb-dependencies.test.ts",
+        "./packages/cli/tests/dependencies/kb-dependency-commands.test.ts",
+        "./packages/mcp/tests/server/workspace-router-dependency.test.ts",
+        "./packages/mcp/tests/server/add-tool-paths.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-duplicate-entity-declarations",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/duplicate-entity-declarations.test.ts",
+        "./packages/cli/tests/public-mutation/operations/source-relationship-parity.mutation.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-doctor-merge-driver-remediation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/doctor-merge-driver-hint.test.ts",
+        "./packages/cli/tests/utils/merge-driver-setup.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-opencode-v2-plugin-load",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-plugin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-skillopt-optimizer-toolchain",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-optimizer-toolchain.e2e.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-agent-core-shared-hook-inputs",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/agent-core/tests/shared-hook-inputs.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-supersedes-history-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations-mutation/mutation/relationships.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-015",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/issue-93-regression.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-impact-aggregate-gate-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-pr-diff.test.ts",
+        "./packages/cli/tests/traceability/trusted-pr-event.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-impact-policy-opt-in-unit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/traceability/impact-policy.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-check-review-rules",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/check-review-rules.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-negative-path-facts-marked",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-g",
+        "load_test_files([]),run_tests(kb_relationships:negative_path_facts_are_assumed_by_rejecting_scenarios_and_ground_nothing),halt",
+        "-t",
+        "halt(1)",
+        "packages/core/tests/kb.plt"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/negative-path-facts.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-search-closed-requirements",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/consumer/search-closed-requirements.test.ts",
+        "./packages/cli/tests/search-answer.test.ts",
+        "./packages/cli/tests/intent-search.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-traceability-manifest-only-links",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/inline-implements-comments.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-migrate-inline-implements-review",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/inline-implements-comments.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kb-requirement-retired-status",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/retired-status.test.ts",
+        "./packages/cli/tests/operations/migration/retired-status.test.ts"
       ]
     ]
   }

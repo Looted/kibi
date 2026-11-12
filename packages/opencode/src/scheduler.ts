@@ -494,7 +494,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function createSyncScheduler(opts: SchedulerOptions): SyncScheduler {
   return new WorktreeSyncScheduler(opts);
 }

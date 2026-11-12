@@ -1,15 +1,27 @@
-// implements REQ-skillopt-codex-optimization
-import { afterEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as fsPromises from "node:fs/promises";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
   FixtureIntegrityError,
+  readWorkspaceSources,
   runCodexCell,
 } from "../runtime/codex-cell-runner";
-import { CallerScoreInjectionError } from "../runtime/codex-cell-types";
+import {
+  CallerScoreInjectionError,
+  type TargetHost,
+} from "../runtime/codex-cell-types";
 import { FixtureSetupError } from "../runtime/fixture-kb-setup";
 import { ProcessControlError } from "../runtime/process";
+import { skillOptHostImplementation } from "../runtime/skillopt-host-registry";
 import {
   HAPPY_STDOUT,
   cleanupRoots,
@@ -188,6 +200,74 @@ describe("codex-cell-runner remaining rejection and assembly paths", () => {
     expect(completed.receipt.result.status).toBe("completed");
   });
 
+  test("removes a private temp root it could not lock down and reports why", async () => {
+    const publicFixture = await fixture();
+    const artifactRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-cell-temp-root-"),
+    );
+    roots.push(artifactRoot);
+    const created: string[] = [];
+    const realChmod = fsPromises.chmod;
+    const chmod = spyOn(fsPromises, "chmod").mockImplementation((async (
+      path: string,
+      mode: number,
+    ) => {
+      if (!String(path).includes("kibi-cell-")) return realChmod(path, mode);
+      created.push(String(path));
+      throw new Error("chmod refused");
+    }) as never);
+    try {
+      await expect(
+        runCodexCell(cellOptions(publicFixture, artifactRoot), dependencies()),
+      ).rejects.toThrow("chmod refused");
+    } finally {
+      chmod.mockRestore();
+    }
+    expect(created.length).toBeGreaterThan(0);
+    for (const path of created) {
+      await expect(access(path)).rejects.toThrow();
+    }
+  });
+
+  test("reads nested workspace sources in name order", async () => {
+    const workspace = await mkdtemp(join(tmpdir(), "skillopt-cell-sources-"));
+    roots.push(workspace);
+    await mkdir(join(workspace, "src", "lib"), { recursive: true });
+    await writeFile(join(workspace, "src", "b.ts"), "b\n");
+    await writeFile(join(workspace, "src", "lib", "a.ts"), "a\n");
+    expect(await readWorkspaceSources(workspace)).toStrictEqual({
+      "src/b.ts": "b\n",
+      "src/lib/a.ts": "a\n",
+    });
+  });
+
+  test("keeps the raw host stream beside a normalized transcript", async () => {
+    const publicFixture = await fixture();
+    const artifactRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-cell-normalized-"),
+    );
+    roots.push(artifactRoot);
+    const deps = dependencies();
+    const codex = skillOptHostImplementation("codex").targetHost(deps);
+    const normalizing: TargetHost = {
+      ...codex,
+      prepareLaunch: async (input) => ({
+        ...(await codex.prepareLaunch(input)),
+        normalizeTranscript: (raw) => raw,
+      }),
+    };
+    const completed = await runCodexCell(
+      cellOptions(publicFixture, artifactRoot),
+      { ...deps, targetHost: normalizing },
+    );
+    expect(
+      await readFile(
+        join(completed.artifactDirectory, "raw-codex-stream.jsonl"),
+        "utf8",
+      ),
+    ).toBe(HAPPY_STDOUT);
+  });
+
   test("dispatches each fixtureSetup mode through the staged CLI", async () => {
     const source = await mkdtemp(join(tmpdir(), "skillopt-cell-setup-src-"));
     roots.push(source);
@@ -206,6 +286,15 @@ describe("codex-cell-runner remaining rejection and assembly paths", () => {
       "seeded_fresh_kb",
       "seeded_stale_kb",
       "generated_coordinate_divergence",
+      "seeded_uncovered_kb",
+      "seeded_safe_mutation_kb",
+      "seeded_governed_area_kb",
+      "seeded_precondition_kb",
+      "seeded_consistency_kb",
+      "seeded_unresolved_rule_kb",
+      "seeded_joint_contradiction_kb",
+      "seeded_dirty_kb",
+      "seeded_decision_kb",
     ].entries()) {
       const publicFixture = await fixture();
       const artifactRoot = await mkdtemp(
@@ -218,7 +307,7 @@ describe("codex-cell-runner remaining rejection and assembly paths", () => {
             sourceWorktree: source,
             request: {
               ...request(publicFixture.hash),
-              episodeId: `00000000-0000-4000-8000-00000000003${index}`,
+              episodeId: `00000000-0000-4000-8000-${String(30 + index).padStart(12, "0")}`,
             },
             evaluatorManifest: {
               ...evaluatorManifest("predicate"),

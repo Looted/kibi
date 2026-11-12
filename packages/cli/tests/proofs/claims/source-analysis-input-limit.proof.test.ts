@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS } from "kibi-plugin-sdk";
 
-// implements REQ-capability-plugin-source-analysis-input-limit
-
 /**
  * The largest source text a symbol extractor is given. Kibi reads the constant
  * itself at ingest, so the certificate is checked against the code.

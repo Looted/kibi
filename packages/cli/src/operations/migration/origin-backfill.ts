@@ -19,13 +19,14 @@
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { dump as dumpYaml, load as loadYaml } from "js-yaml";
-import { inferTypeFromPath } from "../../extractors/markdown.js";
 import {
   type EntityOrigin,
   SCHEMA6_MIGRATION_ORIGIN_REF,
   normalizeEntityOrigin,
 } from "../../public/entity-origin.js";
+import { LANE_TYPES } from "./entity-type.js";
 import {
+  type LaneMarkdownFile,
   listLaneMarkdownFiles,
   readText,
   sliceFrontmatter,
@@ -33,37 +34,30 @@ import {
 } from "./kb-sources.js";
 
 /** One authored entity the v5 -> v6 migration stamps with an origin. */
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillTarget = Readonly<{
   id: string;
   type: string;
   path: string;
 }>;
 
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillSkip = Readonly<{ path: string; reason: string }>;
 
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillPlan = Readonly<{
   targets: readonly OriginBackfillTarget[];
   /** Files Kibi cannot stamp safely; sync reports most of them anyway. */
   skipped: readonly OriginBackfillSkip[];
 }>;
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
 type Candidate =
   | { kind: "target"; target: OriginBackfillTarget; content: string }
   | { kind: "skip"; skip: OriginBackfillSkip }
   | { kind: "has_origin"; migrated: boolean };
 
-function inspect(
-  workspaceRoot: string,
-  absolutePath: string,
-  relativePath: string,
-): Candidate {
+function inspect({
+  lane,
+  absolutePath,
+  relativePath,
+}: LaneMarkdownFile): Candidate {
   const content = readText(absolutePath);
   if (content === null) {
     return { kind: "skip", skip: { path: relativePath, reason: "unreadable" } };
@@ -75,19 +69,21 @@ function inspect(
       skip: { path: relativePath, reason: "no closed YAML frontmatter" },
     };
   }
-  let data: unknown;
+  let data: Record<string, unknown>;
   try {
-    data = loadYaml(slice.text);
+    // Scalars and lists read no string title, so they skip below like an
+    // empty block does.
+    data = (loadYaml(slice.text) ?? {}) as Record<string, unknown>;
   } catch (error) {
     return {
       kind: "skip",
       skip: {
         path: relativePath,
-        reason: `frontmatter does not parse: ${error instanceof Error ? error.message : String(error)}`,
+        reason: `frontmatter does not parse: ${(error as Error).message}`,
       },
     };
   }
-  if (!isRecord(data) || typeof data.title !== "string") {
+  if (typeof data.title !== "string") {
     return {
       kind: "skip",
       skip: { path: relativePath, reason: "frontmatter has no title" },
@@ -107,24 +103,16 @@ function inspect(
     typeof data.id === "string" && data.id.trim() !== ""
       ? data.id.trim()
       : path.basename(relativePath, ".md");
-  const type =
-    typeof data.type === "string"
-      ? data.type
-      : (inferTypeFromPath(path.join(workspaceRoot, relativePath)) ?? "");
+  const type = typeof data.type === "string" ? data.type : LANE_TYPES[lane];
   return { kind: "target", target: { id, type, path: relativePath }, content };
 }
 
 /** Authored Markdown entities that carry no origin yet. Read-only. */
-// implements REQ-cli-schema-migration, REQ-004
 export function planOriginBackfill(workspaceRoot: string): OriginBackfillPlan {
   const targets: OriginBackfillTarget[] = [];
   const skipped: OriginBackfillSkip[] = [];
   for (const file of listLaneMarkdownFiles(workspaceRoot)) {
-    const candidate = inspect(
-      workspaceRoot,
-      file.absolutePath,
-      file.relativePath,
-    );
+    const candidate = inspect(file);
     if (candidate.kind === "target") targets.push(candidate.target);
     else if (candidate.kind === "skip") skipped.push(candidate.skip);
   }
@@ -132,7 +120,6 @@ export function planOriginBackfill(workspaceRoot: string): OriginBackfillPlan {
 }
 
 /** The origin recorded on entities the v5 -> v6 migration backfills. */
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export function migrationOrigin(recordedAt: string): EntityOrigin {
   return {
     kind: "migration",
@@ -146,25 +133,29 @@ export function migrationOrigin(recordedAt: string): EntityOrigin {
  * other byte unchanged, and confirm the frontmatter reads back with the same
  * fields plus that origin. Returns null when the edit would not read back.
  */
-// implements REQ-cli-schema-migration
 export function withBackfilledOrigin(
   content: string,
   origin: EntityOrigin,
 ): string | null {
   const slice = sliceFrontmatter(content);
   if (slice === null) return null;
-  const block = dumpYaml({ origin }, { lineWidth: -1, noRefs: true })
+  // An origin holds only strings, so the dump has no shared references.
+  const block = dumpYaml({ origin }, { lineWidth: -1 })
     .split("\n")
     .join(slice.eol);
   const text = `${slice.text}${block}`;
   try {
     const before = loadYaml(slice.text);
-    const after = loadYaml(text);
-    if (!isRecord(before) || !isRecord(after)) return null;
-    const { origin: readBack, ...rest } = after;
-    const normalized = normalizeEntityOrigin(readBack);
+    // A read-back that is not a mapping throws here or fails a comparison
+    // below, as does a block that was not a mapping before.
+    const { origin: readBack, ...rest } = loadYaml(text) as Record<
+      string,
+      unknown
+    >;
+    const normalized = normalizeEntityOrigin(readBack) as {
+      origin?: EntityOrigin;
+    };
     if (
-      !("origin" in normalized) ||
       !isDeepStrictEqual(normalized.origin, origin) ||
       !isDeepStrictEqual(rest, before)
     ) {
@@ -176,7 +167,6 @@ export function withBackfilledOrigin(
   return `${slice.prefix}${text}${slice.suffix}`;
 }
 
-// implements REQ-kibi-entity-origin, REQ-cli-schema-migration
 export type OriginBackfillResult = Readonly<{
   written: readonly OriginBackfillTarget[];
   skipped: readonly OriginBackfillSkip[];
@@ -189,7 +179,6 @@ export type OriginBackfillResult = Readonly<{
  * Markdown entity without an origin. Idempotent: entities that already carry
  * an origin, including ones stamped by an earlier run, are left alone.
  */
-// implements REQ-cli-schema-migration, REQ-004
 export function applyOriginBackfill(
   workspaceRoot: string,
   recordedAt: string,
@@ -199,11 +188,7 @@ export function applyOriginBackfill(
   const skipped: OriginBackfillSkip[] = [];
   let previouslyStamped = 0;
   for (const file of listLaneMarkdownFiles(workspaceRoot)) {
-    const candidate = inspect(
-      workspaceRoot,
-      file.absolutePath,
-      file.relativePath,
-    );
+    const candidate = inspect(file);
     if (candidate.kind === "has_origin") {
       if (candidate.migrated) previouslyStamped += 1;
       continue;

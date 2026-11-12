@@ -1,4 +1,3 @@
-// implements REQ-009
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import {
   persistEntities,

@@ -1,5 +1,5 @@
 ---
-title: The latest knowledge base schema version shall be 13, by an arithmetic proof
+title: The latest knowledge base schema version shall be 14, by an arithmetic proof
 status: passing
 tags:
   - proof
@@ -18,7 +18,7 @@ proof_contract:
   value_source:
     - symbol_id: SYM-LATEST-KB-SCHEMA-VERSION
   proves:
-    - CLAIM-FE5C9D3D6AB1DEB5
+    - CLAIM-48C64457D9D6CF6F
 origin:
   kind: agent
   recorded_at: '2026-10-29T10:58:21.157Z'
@@ -26,20 +26,20 @@ id: TEST-proof-latest-kb-schema-version
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-0d445a2c58cb630be1faa619
+    receipt_id: PR-5c9ba6e29c48a20e0d87344a
     test_id: TEST-proof-latest-kb-schema-version
     scope: unit
     outcome: passed
-    code_snapshot: 7f95b60fc7c9571f2ac61dfd41473f2975dea1d250d6b29ca38549f7d6503d2e
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:59:11.758Z'
-    finished_at: '2026-10-29T10:59:11.956Z'
-    artifact_digest: ae71d09b305b9f443f1502a37016e0701ba8ec96d9b57a7768e9ea7ade17871c
-    contract_hash: 8cea6a795366cd9554e314ace2a65f8fb27018e7ed2442d88bdce503e31267c6
-    binding_hash: 8a000db23744b8cc5233ddd92b3d49540b2a7a1bf82d57dc33e85872916d020b
-    fingerprint: 814272ee9862468b477e4958abeb3727fded7d87f538cbbe234cebd30fc72ada
+    code_snapshot: cc7af8fde9cf569fd48df6b98f10b7e2e7e9b457e12c7495f258a1296dc3acad
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-11T17:36:02.763Z'
+    finished_at: '2026-11-11T17:36:02.907Z'
+    artifact_digest: e089d3cf9b725021b24df41f7517eaab6cfacace46e895f96e354fbc106d0aaf
+    contract_hash: 3a92c969878c07db93e7cf6eca70233fb0854f619ce55ab95cccd5b26365840a
+    binding_hash: cb68fcde790976ac49ca21b8da39341c302fe71fedabc157efccc0b55f278cc2
+    fingerprint: 4a70d6831598761c7e56e780361a64f680c6647e664a4b1fe570c1bf1e6b9ecf
     fingerprint_components:
-      contract: 8cea6a795366cd9554e314ace2a65f8fb27018e7ed2442d88bdce503e31267c6
+      contract: 3a92c969878c07db93e7cf6eca70233fb0854f619ce55ab95cccd5b26365840a
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -68,13 +68,13 @@ proof_receipts:
       value_type: int
       assumptions:
         - operator: eq
-          value: 13
+          value: 14
       claim:
         operator: eq
-        value: 13
-    certificate_digest: 1e09003fc1a890afe780dfb0d16375905d5bffae0508acde220a622f9d4b6c1d
+        value: 14
+    certificate_digest: 6fe1222e8935cad2bf5fb87e1c21bdbe988fe9b65a2e78e4491ec13dffca8dd6
     claim_bindings:
-      - claim_key: CLAIM-FE5C9D3D6AB1DEB5
+      - claim_key: CLAIM-48C64457D9D6CF6F
         requirement_id: REQ-kibi-latest-kb-schema-version
         fact_id: FACT-latest-kb-schema-version
         binding: derived
@@ -82,8 +82,8 @@ proof_receipts:
         obligation:
           kind: numeric_constraint
           operator: eq
-          value: 13
+          value: 14
           value_type: int
           variable: latest_schema_version
 ---
-Proves that the latest knowledge base schema version shall be 13, against the code Kibi reads at ingest.
+Proves that the latest knowledge base schema version shall be 14, against the code Kibi reads at ingest.

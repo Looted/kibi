@@ -5,7 +5,7 @@ fact_kind: property_value
 subject_key: kibi.lifecycle.check_codes
 claim_key: CLAIM-9646A15E0E142800
 claim_text: The superseded symbol owner review code shall be review_symbol_owner_superseded
-text_ref: REQ-kibi-lifecycle-check-codes
+text_ref: REQ-kibi-lifecycle-review-codes
 property_key: symbol_owner_code
 operator: eq
 value_type: string

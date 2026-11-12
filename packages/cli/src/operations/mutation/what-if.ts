@@ -1,6 +1,5 @@
 import { normalizeEntityId } from "../../prolog/codec.js";
 
-// implements REQ-kibi-truthful-consistency
 /** A contradiction or scenario-infeasibility witness the checker reports. */
 export type ContradictionWitness = Readonly<
   {
@@ -12,7 +11,6 @@ export type ContradictionWitness = Readonly<
   } & Record<string, unknown>
 >;
 
-// implements REQ-kibi-truthful-consistency
 export type WhatIfAnalysis = Readonly<{
   after: readonly ContradictionWitness[];
   introduced: readonly ContradictionWitness[];
@@ -29,14 +27,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function whatIfWitness(witness: Record<string, unknown>): ContradictionWitness {
+  const { kind, ...rest } = witness;
   return {
-    ...witness,
+    ...rest,
     requirements: Array.isArray(witness.requirements)
       ? witness.requirements.map((id) => normalizeEntityId(String(id)))
       : [],
     reason: text(witness.reason),
     status: text(witness.status) || "contradiction",
-    ...(typeof witness.kind === "string" ? { kind: witness.kind } : {}),
+    ...(typeof kind === "string" ? { kind } : {}),
   };
 }
 
@@ -46,7 +45,16 @@ function whatIfWitnesses(value: unknown): ContradictionWitness[] {
   );
 }
 
-// implements REQ-kibi-truthful-consistency
+/** The parsed JSON value, or undefined when `raw` is not JSON. */
+function decodeJson(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Unreadable output: undefined, which the caller rejects.
+  }
+  return undefined;
+}
+
 /**
  * Parse checks:what_if_analysis_json/2 output. The binding is a quoted Prolog
  * string, so the JSON may arrive encoded once more as a JSON string. A bare
@@ -56,13 +64,8 @@ function whatIfWitnesses(value: unknown): ContradictionWitness[] {
  */
 export function parseWhatIfAnalysis(raw: unknown): WhatIfAnalysis | null {
   if (typeof raw !== "string") return null;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-    if (typeof parsed === "string") parsed = JSON.parse(parsed);
-  } catch {
-    return null;
-  }
+  const once = decodeJson(raw);
+  const parsed = typeof once === "string" ? decodeJson(once) : once;
   if (Array.isArray(parsed)) {
     const after = whatIfWitnesses(parsed);
     return { after, introduced: after, removed: [], unchanged: [] };
@@ -76,7 +79,6 @@ export function parseWhatIfAnalysis(raw: unknown): WhatIfAnalysis | null {
   };
 }
 
-// implements REQ-kibi-truthful-consistency
 /** Blocking: a proven contradiction or an infeasible success scenario. */
 export function isBlockingWitness(witness: ContradictionWitness): boolean {
   return witness.status === "contradiction" || witness.status === "infeasible";

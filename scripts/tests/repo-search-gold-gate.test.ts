@@ -1,4 +1,3 @@
-// implements REQ-kibi-search-gold-set-gate
 import { afterEach, describe, expect, test } from "bun:test";
 import { type SpawnSyncReturns, spawnSync } from "node:child_process";
 import {

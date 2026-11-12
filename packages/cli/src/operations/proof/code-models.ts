@@ -50,7 +50,7 @@ export const MAX_TABLE_ROWS = 100_000;
 
 type Reference = Readonly<{ symbol_id: string; export?: string; arg?: number }>;
 /** A code export Kibi reads; `arg` projects a Prolog predicate's solutions. */
-export type Resolved = { file: string; export: string; arg?: number };
+export type Resolved = { file: string; export: string; arg?: number | undefined };
 
 export type TableRow = Readonly<{
   args: readonly string[];
@@ -372,18 +372,14 @@ async function resolveReference(
   const file = path.resolve(context.workspaceRoot, symbol.sourceFile);
   if (reference.arg !== undefined && codeLanguage(file) !== "prolog")
     return `${label}.arg applies only to a SWI-Prolog predicate, not to ${languageName(file)} in ${symbol.sourceFile}`;
-  return {
-    file,
-    export: reference.export ?? symbol.title,
-    ...(reference.arg === undefined ? {} : { arg: reference.arg }),
-  };
+  // The plan goes to the evaluator as JSON, which leaves out an undefined arg.
+  return { file, export: reference.export ?? symbol.title, arg: reference.arg };
 }
 
 /**
  * Run one evaluation plan (table, machine or pattern mode) against the code
  * files it names, in the language of those files.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function evaluateCodeModel<T>(
   workspaceRoot: string,
   files: readonly Resolved[],
@@ -402,8 +398,7 @@ export function evaluateCodeModel<T>(
     path.relative(workspaceRoot, first.file),
     { js: jsModelEvaluator(), python: PYTHON_MODEL_EVALUATOR, prolog: PROLOG_EVALUATOR },
     [JSON.stringify(plan)],
-    (parsed) =>
-      parsed !== null && typeof parsed === "object" && "ok" in (parsed as object),
+    (parsed) => Object.hasOwn(Object(parsed), "ok"),
   );
   if (!run.ok)
     return {
@@ -420,7 +415,6 @@ export function evaluateCodeModel<T>(
  * Evaluate every predicate a rule contract names over every combination of
  * its argument domains, with the argument types the certificate declares.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function evaluateRuleModel(
   context: OperationContext,
   contract: ProofContract,
@@ -459,7 +453,6 @@ export async function evaluateRuleModel(
 }
 
 /** Read a state machine's states, transitions and initial states. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function evaluateMachine(
   context: OperationContext,
   contract: ProofContract,
@@ -492,7 +485,6 @@ export async function evaluateMachine(
 }
 
 /** Read the pattern or string a regex contract's pattern_source exports. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function evaluatePattern(
   context: OperationContext,
   contract: ProofContract,
@@ -508,8 +500,9 @@ export async function evaluatePattern(
 }
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // typeof null is "object", so null comes back as itself.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 
@@ -536,10 +529,13 @@ function sameKeys(
   const declared = Object.keys(contract ?? {}).sort();
   if (!sameSorted(certified, declared))
     return `the certificate's ${field} (${certified.join(", ") || "none"}) are not the contract's (${declared.join(", ") || "none"})`;
+  // The keys match, so a declared key is in both.
   for (const key of declared) {
-    const named = text(record(certificate?.[key])?.symbol_id);
-    const entry = contract?.[key];
-    const expected = entry !== undefined && "symbol_id" in entry ? entry.symbol_id : "";
+    const named = text(record((certificate as Record<string, unknown>)[key])?.symbol_id);
+    const entry = (contract as Readonly<Record<string, Reference | Readonly<{ source: unknown }>>>)[
+      key
+    ] as Reference | Readonly<{ source: unknown }>;
+    const expected = "symbol_id" in entry ? entry.symbol_id : "";
     if (named !== expected)
       return `the certificate's ${field}.${key} is ${named || "(none)"}, not the contract's ${expected}`;
   }
@@ -553,7 +549,6 @@ const rowKey = (args: readonly string[]) => JSON.stringify(args);
  * table are what Kibi reads from the code: the same values, and the same
  * decision for every combination of arguments.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function ruleCertificateProblem(
   context: OperationContext,
   contract: ProofContract,
@@ -566,12 +561,14 @@ export async function ruleCertificateProblem(
     sameKeys(predicates, contract.predicate_source, "predicates");
   if (keys !== null) return keys;
   const argTypes: Record<string, string[]> = {};
+  // Each entry names its symbol (sameKeys), so it is an object.
   for (const [name, entry] of Object.entries(predicates ?? {}))
-    argTypes[name] = strings(record(entry)?.arg_types);
+    argTypes[name] = strings((entry as Record<string, unknown>).arg_types);
   const evaluated = await evaluateRuleModel(context, contract, argTypes);
   if (!evaluated.ok) return evaluated.reason;
+  // The certificate has the contract's domains and predicates (sameKeys).
   for (const [type, members] of Object.entries(evaluated.model.domains)) {
-    const certified = strings(record(domains?.[type])?.members);
+    const certified = strings(record((domains as Record<string, unknown>)[type])?.members);
     if (!sameSorted(certified, members))
       return `the certificate's domain ${type} is not the values Kibi read from the code (${members.slice(0, 8).join(", ")})`;
   }
@@ -580,11 +577,10 @@ export async function ruleCertificateProblem(
     if (failed !== undefined)
       return `${name}(${failed.args.join(", ")}) failed when Kibi evaluated it: ${failed.error}`;
     const certified = new Map<string, unknown>();
-    for (const row of Array.isArray(record(predicates?.[name])?.rows)
-      ? (record(predicates?.[name])?.rows as unknown[])
-      : []) {
-      const entry = record(row);
-      certified.set(rowKey(strings(entry?.args)), entry?.value);
+    const table = ((predicates as Record<string, unknown>)[name] as Record<string, unknown>).rows;
+    for (const row of Array.isArray(table) ? table : []) {
+      const entry = record(row) ?? {};
+      certified.set(rowKey(strings(entry.args)), entry.value);
     }
     if (certified.size !== rows.length)
       return `the certificate's table for ${name} has ${certified.size} rows, but the code's domains give ${rows.length}`;
@@ -598,51 +594,49 @@ export async function ruleCertificateProblem(
 }
 
 /** A state_machine certificate re-checks only when it is the code's machine. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function machineCertificateProblem(
   context: OperationContext,
   contract: ProofContract,
   certificate: Record<string, unknown>,
 ): Promise<string | null> {
-  const machine = record(certificate.machine);
+  const machine = record(certificate.machine) ?? {};
   const expected = contract.domain_source?.symbol_id ?? "";
-  if (text(machine?.symbol_id) !== expected)
-    return `the certificate's machine is ${text(machine?.symbol_id) || "(none)"}, not the contract's domain_source ${expected}`;
+  if (text(machine.symbol_id) !== expected)
+    return `the certificate's machine is ${text(machine.symbol_id) || "(none)"}, not the contract's domain_source ${expected}`;
   const evaluated = await evaluateMachine(context, contract);
   if (!evaluated.ok) return evaluated.reason;
   const { model } = evaluated;
-  if (!sameSorted(strings(machine?.states), model.states))
+  if (!sameSorted(strings(machine.states), model.states))
     return `the certificate's states are not the machine Kibi read from the code (${model.states.join(", ")})`;
   const edges = (rows: unknown) =>
     (Array.isArray(rows) ? rows : []).map((row) => strings(row).join("->"));
-  if (!sameSorted(edges(machine?.transitions), edges(model.transitions)))
+  if (!sameSorted(edges(machine.transitions), edges(model.transitions)))
     return `the certificate's transitions are not the machine Kibi read from the code (${edges(model.transitions).slice(0, 8).join(", ")})`;
-  if (!sameSorted(strings(machine?.initial), [...(model.initial ?? [])]))
+  if (!sameSorted(strings(machine.initial), [...(model.initial ?? [])]))
     return `the certificate's initial states are not the ones Kibi read from the code (${(model.initial ?? []).join(", ") || "none"})`;
   return null;
 }
 
 /** A regex certificate re-checks only when it holds the code's own pattern. */
-// implements REQ-kibi-non-numeric-proof-kinds
 export async function patternCertificateProblem(
   context: OperationContext,
   contract: ProofContract,
   certificate: Record<string, unknown>,
 ): Promise<string | null> {
-  const pattern = record(certificate.pattern);
+  const pattern = record(certificate.pattern) ?? {};
   const expected = contract.pattern_source?.symbol_id ?? "";
-  if (text(pattern?.symbol_id) !== expected)
-    return `the certificate's pattern is ${text(pattern?.symbol_id) || "(none)"}, not the contract's pattern_source ${expected}`;
+  if (text(pattern.symbol_id) !== expected)
+    return `the certificate's pattern is ${text(pattern.symbol_id) || "(none)"}, not the contract's pattern_source ${expected}`;
   const evaluated = await evaluatePattern(context, contract);
   if (!evaluated.ok) return evaluated.reason;
   const model = evaluated.model;
   const same =
     model.type === "string"
-      ? text(pattern?.type) === "string" && pattern?.value === model.value
-      : text(pattern?.type) === "regexp" &&
-        pattern?.source === model.source &&
-        pattern?.flags === model.flags &&
-        pattern?.flavor === model.flavor;
+      ? text(pattern.type) === "string" && pattern.value === model.value
+      : text(pattern.type) === "regexp" &&
+        pattern.source === model.source &&
+        pattern.flags === model.flags &&
+        pattern.flavor === model.flavor;
   if (!same)
     return model.type === "string"
       ? `the certificate's value is not the string Kibi read from the code (${JSON.stringify(model.value)})`
@@ -651,7 +645,7 @@ export async function patternCertificateProblem(
 }
 
 /** The fact's pattern: a JavaScript pattern with the u flag, matched whole. */
-export function factPattern(source: string): LanguageSpec {
+export function factPattern(source: string): Extract<LanguageSpec, { type: "pattern" }> {
   return { type: "pattern", source, flags: "u", flavor: "js", mode: "full" };
 }
 
@@ -664,19 +658,18 @@ export function factPattern(source: string): LanguageSpec {
  * describes. Polarity forbid negates the constraint; for a pattern, a
  * forbidden match means no string matches both.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 export function stringConstraintProblem(
   certificate: Record<string, unknown>,
   obligation: Readonly<Record<string, unknown>>,
   factId: string,
 ): string | null {
-  const pattern = record(certificate.pattern);
+  const pattern = record(certificate.pattern) ?? {};
   const operator = text(obligation.operator);
   const value = text(obligation.value);
   const forbid = text(obligation.polarity) === "forbid";
   try {
-    if (text(pattern?.type) === "string") {
-      const actual = text(pattern?.value);
+    if (text(pattern.type) === "string") {
+      const actual = text(pattern.value);
       const holds =
         operator === "eq"
           ? actual === value
@@ -687,13 +680,12 @@ export function stringConstraintProblem(
       return `the code's string ${JSON.stringify(actual)} ${forbid ? "meets" : "does not meet"} ${factId}'s constraint ${operator} ${JSON.stringify(value)}${forbid ? ", which the fact forbids" : ""}`;
     }
     const code: LanguageSpec = {
-      type: "pattern",
-      source: text(pattern?.source),
-      flags: text(pattern?.flags),
-      flavor: text(pattern?.flavor) === "python" ? "python" : "js",
+      ...factPattern(text(pattern.source)),
+      flags: text(pattern.flags),
+      ...(text(pattern.flavor) === "python" ? { flavor: "python" } : {}),
       mode: "search",
     };
-    const describe = `/${text(pattern?.source)}/${text(pattern?.flags)}`;
+    const describe = `/${text(pattern.source)}/${text(pattern.flags)}`;
     if (operator === "eq" || operator === "neq") {
       const mustAccept = (operator === "eq") !== forbid;
       if (operator === "eq" && !forbid) {

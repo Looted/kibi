@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as fs from "node:fs";
 import {
@@ -306,6 +305,6 @@ describe("symbol refresh remaining publication and parse branches", () => {
         manifestPath,
         context(workspace),
       ),
-    ).rejects.toThrow(/invalid legacy coordinate span for SYM-BAD/);
+    ).rejects.toThrow(/invalid or missing legacy coordinate span for SYM-BAD/);
   });
 });

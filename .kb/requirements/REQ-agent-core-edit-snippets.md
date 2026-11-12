@@ -101,6 +101,7 @@ logic_claims:
   - CLAIM-ADC3F363B8076F7A
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-10-04T02:42:12.402Z'
 id: REQ-agent-core-edit-snippets
 type: req

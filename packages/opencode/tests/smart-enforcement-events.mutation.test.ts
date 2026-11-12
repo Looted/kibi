@@ -26,7 +26,7 @@ function write(relativePath: string, content: string): void {
   fs.writeFileSync(target, content);
 }
 
-const TRACED = "// implements REQ-x\nexport function run() {}\n";
+const TRACED = "export function run() {}\n";
 const FACT_COMMENT =
   "/*\n * The retry count is at most three and never negative.\n * It must be unique per job and the default is one.\n * This invariant always holds for every queue.\n */\n";
 const ADR_COMMENT =
@@ -56,6 +56,30 @@ write(".kb/requirements/REQ-may.md", "---\nid: REQ-may\npriority: may\n---\n");
 write(".kb/facts/FACT-a.md", "---\nid: FACT-a\n---\n");
 write(".kb/scenarios/SCEN-a.md", "---\nid: SCEN-a\n---\n");
 write(".kb/config.json", "{}\n");
+// Traceability comes only from the symbol manifest: these files are traced,
+// src/untraced.ts is not.
+write(
+  ".kb/symbols.yaml",
+  [
+    "symbols:",
+    ...[
+      "src/traced.ts",
+      "src/fact.ts",
+      "src/fact-two.ts",
+      "src/adr.ts",
+      "src/req.ts",
+      "src/front.ts",
+    ].flatMap((sourceFile, index) => [
+      `  - id: SYM-run-${index}`,
+      "    title: run",
+      `    sourceFile: ${sourceFile}`,
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-x",
+    ]),
+    "",
+  ].join("\n"),
+);
 
 type Call = [string, ...unknown[]];
 

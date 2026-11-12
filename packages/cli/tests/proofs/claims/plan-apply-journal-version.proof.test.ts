@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { PLAN_APPLY_JOURNAL_VERSION } from "../../../src/operations/mutation/plan-apply-journal.js";
 
-// implements REQ-kibi-plan-apply-journal-version
-
 /**
  * The version of the journal an applied plan writes. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

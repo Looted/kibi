@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { CHECK_POLICY_CONTRACT_VERSION } from "../../../../plugin-sdk/src/capabilities/check-policy.js";
 
-// implements REQ-capability-check-policy-version
-
 /**
  * The contract version a check policy plugin declares. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

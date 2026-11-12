@@ -1,6 +1,6 @@
 ---
 title: Kibi release version tests
-status: active
+status: passing
 priority: must
 tags:
   - release

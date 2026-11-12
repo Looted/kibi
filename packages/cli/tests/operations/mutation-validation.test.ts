@@ -105,6 +105,48 @@ describe("symbol sourceFile validation", () => {
   });
 });
 
+describe("retired requirement validation", () => {
+  const at = new Date("2026-11-11T00:00:00.000Z");
+  const retired = (extra: Record<string, unknown>, type = "req") =>
+    validateUpsertInput(
+      {
+        type,
+        id: "REQ-GONE",
+        properties: { title: "gone", status: "retired", ...extra },
+      },
+      at,
+    );
+
+  test("rejects status retired without retired_reason", () => {
+    expect(() => retired({})).toThrow(
+      "Entity validation failed: status retired requires retired_reason saying why the behavior no longer exists (with the date or change that retired it)",
+    );
+  });
+
+  test("rejects a blank retired_reason through the schema", () => {
+    expect(() => retired({ retired_reason: "   " })).toThrow(/retired_reason/);
+  });
+
+  test("accepts status retired with a reason", () => {
+    expect(
+      retired({ retired_reason: "Removed on 2026-10-30." }).entity,
+    ).toMatchObject({
+      status: "retired",
+      retired_reason: "Removed on 2026-10-30.",
+    });
+  });
+
+  test("rejects retired_reason on a non-requirement", () => {
+    expect(() =>
+      retired({ retired_reason: "Removed on 2026-10-30." }, "scenario"),
+    ).toThrow(/retired_reason is only valid on req entities/);
+  });
+
+  test("leaves a retired status on another entity type to the schema", () => {
+    expect(retired({}, "fact").entity.status).toBe("retired");
+  });
+});
+
 describe("proof exemption validation", () => {
   test("rejects proof_exempt without a reason", () => {
     expect(() =>

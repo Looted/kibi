@@ -112,6 +112,13 @@ describe("SkillOpt fixture catalog", () => {
     }
   });
 
+  test("hashes a catalog by its exact task list", () => {
+    const tasks = buildPublicCatalog();
+    expect(catalogHash(tasks)).toMatch(/^[a-f0-9]{64}$/);
+    expect(catalogHash(tasks)).toBe(catalogHash(buildPublicCatalog()));
+    expect(catalogHash(tasks.slice(1))).not.toBe(catalogHash(tasks));
+  });
+
   test("rejects duplicate task IDs before host launch", () => {
     const tasks = buildSkillCatalog("kibi-usage");
     const [first, second] = tasks;

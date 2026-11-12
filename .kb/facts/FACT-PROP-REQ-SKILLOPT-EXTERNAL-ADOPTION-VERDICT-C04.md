@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.skillopt.adoption
-property_key: clause_04_only_a_complete_matrix_may_reach_external_verdic
+property_key: complete_matrix_required_for_verdict
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_skillopt_external_adoption_verdict.clause_04_only_a_complete_matrix_may_reach_external_verdic.eq.true
+canonical_key: req.req_skillopt_external_adoption_verdict.complete_matrix_required_for_verdict.eq.true
 claim_key: CLAIM-EE241F293DB8EE4F
 claim_text: Only a complete matrix may reach external-verdict review
 id: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C04

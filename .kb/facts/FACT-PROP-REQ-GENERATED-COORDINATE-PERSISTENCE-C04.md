@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.symbols.coordinates
-property_key: clause_04_the_sync_compiler_must_treat_symbol_coordinates_yaml_as_a_de
+property_key: coordinates_file_is_sync_dependency
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_generated_coordinate_persistence.clause_04_the_sync_compiler_must_treat_symbol_coordinates_yaml_as_a_de.eq.true
+canonical_key: req.req_generated_coordinate_persistence.coordinates_file_is_sync_dependency.eq.true
 claim_key: CLAIM-551AD42515A8BF91
 claim_text: The sync compiler must treat symbol-coordinates.yaml as a dependency of symbols.yaml, detect its creation, modification and deletion, derive cache identities relative to the explicit workspace root, and recompile affected symbols
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C04

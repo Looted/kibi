@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -274,7 +273,7 @@ describe("shared file knowledge snippet", () => {
       "Decision: ADR-decimal: Money is decimal cents.",
       "Covered by: TEST-rounding.",
       "The edit is inside computeTotal, which implements REQ-rounding.",
-      'Next layer: kb_query({id:"REQ-rounding"}) returns full requirement text; kb_search({query:"<topic>", sourceLocations:[{path:"src/checkout.ts", symbol:"computeTotal"}]}) answers with governing requirements, facts, decisions, and tests.',
+      'Next layer: kb_query({id:"REQ-rounding", includeBody:true}) returns the full requirement text and why it exists; kb_search({query:"<topic>", sourceLocations:[{path:"src/checkout.ts", symbol:"computeTotal"}]}) answers with governing requirements, facts, decisions, and tests.',
       'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
     ]);
 

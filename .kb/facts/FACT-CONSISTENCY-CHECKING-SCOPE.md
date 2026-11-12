@@ -1,7 +1,7 @@
 ---
 id: FACT-CONSISTENCY-CHECKING-SCOPE
 title: Consistency Checking Scope
-status: active
+status: archived
 created_at: 2026-04-24T00:00:00Z
 updated_at: 2026-04-24T00:00:00Z
 tags: [validation, check]

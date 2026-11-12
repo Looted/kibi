@@ -82,7 +82,6 @@ export function workspaceBin(workspaceRoot: string, name: string): string | null
  * and python on PATH. The system interpreter usually cannot import the
  * project's dependencies, so a project environment comes before it.
  */
-// implements REQ-kibi-code-proof-kinds
 export function pythonDomainInterpreters(
   workspaceRoot: string,
   sourceFile: string,
@@ -101,13 +100,20 @@ export function pythonDomainInterpreters(
     ].find((candidate) => existsSync(candidate));
   if (env.VIRTUAL_ENV) add(venvPython(env.VIRTUAL_ENV));
   const root = path.resolve(workspaceRoot);
-  let dir = path.dirname(path.resolve(root, sourceFile));
-  for (;;) {
-    for (const name of [".venv", "venv"]) add(venvPython(path.join(dir, name)));
-    if (dir === root || path.dirname(dir) === dir) break;
-    if (!dir.startsWith(`${root}${path.sep}`)) break;
-    dir = path.dirname(dir);
-  }
+  const dir = path.dirname(path.resolve(root, sourceFile));
+  // Walk up to the root, one step per directory below it; a directory
+  // outside it (the filesystem root included) is checked alone.
+  const below = path.relative(root, dir);
+  const steps =
+    below === ".." || below.startsWith(`..${path.sep}`)
+      ? 0
+      : below.split(path.sep).filter(Boolean).length;
+  const ancestors = Array.from({ length: steps + 1 }, (_, up) =>
+    path.resolve(dir, ...Array<string>(up).fill("..")),
+  );
+  for (const ancestor of ancestors)
+    for (const name of [".venv", "venv"])
+      add(venvPython(path.join(ancestor, name)));
   add("python3");
   add("python");
   return interpreters;
@@ -126,7 +132,7 @@ export function spawnSyncThroughFiles(
     cwd?: string;
     input?: string;
     timeout: number;
-    env?: NodeJS.ProcessEnv;
+    env?: NodeJS.ProcessEnv | undefined;
   }>,
 ): { error: Error | undefined; status: number | null; stdout: string; stderr: string } {
   const dir = mkdtempSync(path.join(os.tmpdir(), "kibi-spawn-"));
@@ -140,7 +146,8 @@ export function spawnSyncThroughFiles(
     try {
       run = spawnSync(command, [...args], {
         cwd: options.cwd,
-        ...(options.env === undefined ? {} : { env: options.env }),
+        // An undefined env inherits process.env, as an absent one does.
+        env: options.env,
         stdio: fds,
         timeout: options.timeout,
       });
@@ -154,14 +161,15 @@ export function spawnSyncThroughFiles(
       stderr: readFileSync(errPath, "utf8"),
     };
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    // The directory was created above, so removing it needs no force.
+    rmSync(dir, { recursive: true });
   }
 }
 
 /** The line of a runner's stderr that names the failure. */
 function failureLine(stderr: string, language: CodeLanguage): string {
+  // Blank lines, the edges included, are dropped after trimming.
   const lines = stderr
-    .trim()
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line !== "");
@@ -182,7 +190,6 @@ type Runner = Readonly<{ command: string; argv: string[]; env?: NodeJS.ProcessEn
  * start) yields to the next. A file in a language the caller has no script
  * for refuses.
  */
-// implements REQ-kibi-non-numeric-proof-kinds, REQ-kibi-multilingual-code-proofs
 export function runCodeEvaluator(
   workspaceRoot: string,
   sourceFile: string,
@@ -195,9 +202,11 @@ export function runCodeEvaluator(
 ):
   | { ok: true; value: unknown; language: CodeLanguage }
   | { ok: false; failure: string; language: CodeLanguage | null } {
-  const language = codeLanguage(sourceFile);
-  const script = language === null ? undefined : scripts[language];
-  if (language === null || script === undefined)
+  const detected = codeLanguage(sourceFile);
+  // An unknown language (null) indexes the "null" key no caller sets, so it
+  // has no script either.
+  const script = scripts[detected as CodeLanguage];
+  if (script === undefined)
     return {
       ok: false,
       failure: unsupportedLanguageReason(
@@ -205,8 +214,9 @@ export function runCodeEvaluator(
         (Object.keys(scripts) as CodeLanguage[]).filter((key) => scripts[key] !== undefined),
         [sourceFile],
       ),
-      language,
+      language: detected,
     };
+  const language = detected as CodeLanguage;
   const fail = (failure: string) => ({ ok: false, failure, language }) as const;
   let scriptDir: string | null = null;
   let runners: Runner[];
@@ -215,7 +225,10 @@ export function runCodeEvaluator(
     try {
       swipl = resolveSwipl();
     } catch (error) {
-      return fail(error instanceof Error ? error.message.split("\n")[0] ?? "" : String(error));
+      // split always yields a first line.
+      return fail(
+        error instanceof Error ? (error.message.split("\n")[0] as string) : String(error),
+      );
     }
     // swipl runs a script from a file, not from an argument.
     scriptDir = mkdtempSync(path.join(os.tmpdir(), "kibi-prolog-"));
@@ -234,26 +247,24 @@ export function runCodeEvaluator(
     );
   else {
     const tsx = workspaceBin(workspaceRoot, "tsx");
+    const available: Readonly<Record<"bun" | "tsx" | "node", Runner[]>> = {
+      bun: [{ command: "bun", argv: ["-e", script] }],
+      tsx: tsx === null ? [] : [{ command: tsx, argv: ["--eval", script, "--"] }],
+      node: [
+        {
+          command: process.execPath,
+          argv: [
+            "--experimental-strip-types",
+            "--no-warnings",
+            "--input-type=module",
+            "-e",
+            script,
+          ],
+        },
+      ],
+    };
     runners = (options.runners ?? ["bun", "tsx", "node"]).flatMap(
-      (runner): Runner[] => {
-        if (runner === "bun") return [{ command: "bun", argv: ["-e", script] }];
-        if (runner === "tsx")
-          return tsx === null
-            ? []
-            : [{ command: tsx, argv: ["--eval", script, "--"] }];
-        return [
-          {
-            command: process.execPath,
-            argv: [
-              "--experimental-strip-types",
-              "--no-warnings",
-              "--input-type=module",
-              "-e",
-              script,
-            ],
-          },
-        ];
-      },
+      (runner) => available[runner],
     );
   }
   let failure = "";
@@ -262,10 +273,11 @@ export function runCodeEvaluator(
       const run = spawnSyncThroughFiles(command, [...argv, ...args], {
         cwd: workspaceRoot,
         timeout: 60_000,
-        ...(env === undefined ? {} : { env }),
+        env,
       });
       if (run.error) continue;
-      const line = run.stdout.trim().split("\n").pop() ?? "";
+      // split always yields a last line.
+      const line = run.stdout.trim().split("\n").pop() as string;
       try {
         const parsed = JSON.parse(line) as unknown;
         if (accept(parsed)) return { ok: true, value: parsed, language };
@@ -275,7 +287,7 @@ export function runCodeEvaluator(
       failure = failureLine(run.stderr, language);
     }
   } finally {
-    if (scriptDir !== null) rmSync(scriptDir, { recursive: true, force: true });
+    if (scriptDir !== null) rmSync(scriptDir, { recursive: true });
   }
   return fail(failure);
 }

@@ -1,4 +1,3 @@
-// implements REQ-skillopt-logical-evidence-fidelity
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
@@ -451,6 +450,20 @@ describe("defaultCodexCellDependencies leftover wiring", () => {
     });
     expect(sealed.broker.integrityValid).toBe(false);
     expect(sealed.diagnostic.integrityValid).toBe(false);
+    const withLanes = await deps.evaluateSealedEvidence({
+      finalState: JSON.stringify({
+        schemaVersion: "1.0.0",
+        workspaceRoot: "/tmp",
+        requests: [],
+      }),
+      brokerTrace: "",
+      diagnosticReceipt: "",
+      transcript: "",
+      workspaceFiles: { "src/fixture.ts": "export {};\n" },
+    });
+    expect(withLanes.finalState.integrityValid).toBe(
+      sealed.finalState.integrityValid,
+    );
   });
 });
 

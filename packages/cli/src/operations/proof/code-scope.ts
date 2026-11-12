@@ -34,27 +34,19 @@ import { removeFrontmatterBlock } from "./receipt-document.js";
  * Editing any of those symbols' source files changes the binding hash, so the
  * receipt goes stale until the test is proven again on the new code.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function receiptCodeScopeSymbolIds(
   contract: unknown,
   bindings: unknown,
   coveredBySymbols: readonly string[],
 ): string[] {
   const ids = new Set<string>();
-  const requiredProofs =
-    contract !== null &&
-    typeof contract === "object" &&
-    Array.isArray((contract as { required_proofs?: unknown }).required_proofs)
-      ? (contract as { required_proofs: unknown[] }).required_proofs
-      : [];
-  for (const entry of [
-    ...requiredProofs,
-    ...(Array.isArray(bindings) ? bindings : []),
-  ]) {
-    const symbolId =
-      entry !== null && typeof entry === "object"
-        ? (entry as { symbol_id?: unknown }).symbol_id
-        : undefined;
+  // Object(contract) reads no required_proofs from null or a primitive, and
+  // only the lists among them are walked.
+  const requiredProofs = (Object(contract) as { required_proofs?: unknown })
+    .required_proofs;
+  for (const entry of [requiredProofs, bindings].filter(Array.isArray).flat()) {
+    // A non-object entry has no symbol_id (Object(null) is an empty object).
+    const symbolId = (Object(entry) as { symbol_id?: unknown }).symbol_id;
     if (typeof symbolId === "string" && symbolId !== "") ids.add(symbolId);
   }
   for (const symbolId of coveredBySymbols) ids.add(symbolId);
@@ -62,7 +54,6 @@ export function receiptCodeScopeSymbolIds(
 }
 
 /** Map each test id to the symbols linked `covered_by` it, in one query. */
-// implements REQ-kibi-verification-evidence-contract
 export async function loadCoveredBySymbolsByTest(
   prolog: Pick<PrologPort, "query">,
 ): Promise<ReadonlyMap<string, readonly string[]>> {
@@ -75,6 +66,8 @@ export async function loadCoveredBySymbolsByTest(
     );
   }
   const byTest = new Map<string, string[]>();
+  // rationale: findall always binds Rels, and text that is no list parses to no rows.
+  // Stryker disable next-line StringLiteral
   for (const [rawFrom, rawTo] of parseTriples(result.bindings.Rels ?? "[]")) {
     const testId = normalizeEntityId(rawTo);
     const symbols = byTest.get(testId) ?? [];
@@ -85,8 +78,9 @@ export async function loadCoveredBySymbolsByTest(
 }
 
 function record(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
+  // null is an object too, and stays null.
+  return typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown> | null)
     : null;
 }
 
@@ -96,7 +90,6 @@ function record(value: unknown): Record<string, unknown> | null {
  * same projection, never the raw stored value, or a cosmetic extra key would
  * make every receipt of that test silently fall back to snapshot matching.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function receiptBindingContract(raw: unknown): ProofContract | null {
   const contract = record(raw);
   if (!contract) return null;
@@ -125,7 +118,6 @@ export function receiptBindingContract(raw: unknown): ProofContract | null {
  * is read from stales the receipt even when that symbol is not linked
  * covered_by the test. A symbol already in scope binds as before.
  */
-// implements REQ-kibi-multilingual-code-proofs
 export function contractCodeSymbolIds(contract: ProofContract): string[] {
   const ids = new Set<string>();
   const add = (entry: unknown) => {
@@ -136,6 +128,8 @@ export function contractCodeSymbolIds(contract: ProofContract): string[] {
   add(contract.domain_source);
   add(contract.initial_source);
   add(contract.pattern_source);
+  // rationale: a primitive entry has no symbol id, so the fallback's contents are never observed.
+  // Stryker disable next-line ArrayDeclaration
   for (const entry of contract.value_source ?? []) add(entry);
   for (const entry of Object.values(contract.domains ?? {})) add(entry);
   for (const entry of Object.values(contract.predicate_source ?? {})) add(entry);
@@ -143,7 +137,6 @@ export function contractCodeSymbolIds(contract: ProofContract): string[] {
 }
 
 /** Every project source a contract reads: its source, source counts and source domains. */
-// implements REQ-kibi-source-proof-kinds
 export function contractSources(contract: ProofContract): SourceSpec[] {
   const specs: SourceSpec[] = [];
   if (contract.source !== undefined) specs.push(contract.source as SourceSpec);
@@ -154,7 +147,6 @@ export function contractSources(contract: ProofContract): SourceSpec[] {
   return specs;
 }
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ReceiptBindingInput = Readonly<{
   workspaceRoot: string;
   readFile: (absolutePath: string) => Promise<string>;
@@ -175,7 +167,6 @@ export type ReceiptBindingInput = Readonly<{
  * written on a CI runner and on a developer checkout of the same commit
  * therefore carry the same binding.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function currentReceiptBindingHash(
   input: ReceiptBindingInput,
 ): Promise<string | undefined> {
@@ -191,15 +182,20 @@ export async function currentReceiptBindingHash(
  * them never stales a receipt. Receipts written under the earlier binding
  * stay current until the test's own inputs change.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function currentReceiptBindingHashes(
   input: ReceiptBindingInput,
 ): Promise<readonly string[] | undefined> {
   const contract = receiptBindingContract(input.test.proof_contract);
+  // rationale: without a contract the scope lookup below throws, which binds nothing too.
+  // Stryker disable next-line ConditionalExpression
   if (!contract) return undefined;
-  const source = typeof input.test.source === "string" ? input.test.source : "";
-  if (!/\.(md|mdx)$/i.test(source.trim())) return undefined;
+  const source = input.test.source;
+  // A path with trailing blanks names no file, so it binds nothing either way.
+  if (typeof source !== "string" || !/\.(md|mdx)$/i.test(source))
+    return undefined;
   const relative = normalizeRepoRelativePath(input.workspaceRoot, source);
+  // rationale: an outside path throws when it is resolved below, which binds nothing too.
+  // Stryker disable next-line ConditionalExpression
   if (relative === null) return undefined;
   try {
     const absolute = resolveContainedSourcePath(input.workspaceRoot, relative);
@@ -233,7 +229,10 @@ export async function currentReceiptBindingHashes(
     const current = receiptBindingHash(contract, withoutLinks, scope);
     const legacy = receiptBindingHash(contract, withoutReceipts, scope);
     return legacy === current ? [current] : [current, legacy];
-  } catch {
+  }
+  // rationale: an empty handler also returns undefined.
+  // Stryker disable next-line BlockStatement
+  catch {
     return undefined;
   }
 }

@@ -58,7 +58,7 @@
     },
     {
       "name": "source-relationship-parity",
-      "description": "Authored Markdown and relationship-shard edges must exactly match the compiled KB",
+      "description": "Authored Markdown and relationship-shard edges must exactly match the compiled KB, and authored sources must declare each entity id once",
       "enforcementClass": "canonical",
       "category": "integrity",
       "implementation": "typescript",
@@ -220,11 +220,29 @@
     },
     {
       "name": "req-status-vocabulary",
-      "description": "Requirement statuses must use the canonical vocabulary (open, in_progress, closed; legacy: active, approved); ADR statuses such as accepted silently fall out of the proof ladder",
+      "description": "Requirement statuses must use the canonical vocabulary (open, in_progress, closed, retired; legacy: active, approved); ADR statuses such as accepted silently fall out of the proof ladder",
       "enforcementClass": "canonical",
       "category": "lifecycle",
       "implementation": "prolog",
       "prologPredicate": "check_req_status_vocabulary",
+      "prologPredicateArity": 1
+    },
+    {
+      "name": "retired-reason-missing",
+      "description": "A requirement with status retired must state retired_reason: why the behavior it stated no longer exists",
+      "enforcementClass": "canonical",
+      "category": "lifecycle",
+      "implementation": "prolog",
+      "prologPredicate": "check_retired_reason_missing",
+      "prologPredicateArity": 1
+    },
+    {
+      "name": "retired-owner-only",
+      "description": "A current fact, scenario or test whose every owning requirement is retired describes behavior that no longer exists; relink it to the current owner or archive it",
+      "enforcementClass": "canonical",
+      "category": "lifecycle",
+      "implementation": "prolog",
+      "prologPredicate": "check_retired_owner_only",
       "prologPredicateArity": 1
     },
     {
@@ -385,7 +403,7 @@
     },
     {
       "name": "symbol-owner-superseded",
-      "description": "Advisory: a symbol whose every implements target is superseded or deprecated has no current owning requirement; listed up to 25 per check plus one summary finding",
+      "description": "Advisory: a symbol whose every implements target is superseded, deprecated or retired has no current owning requirement; listed up to 25 per check plus one summary finding",
       "enforcementClass": "advisory",
       "category": "traceability",
       "implementation": "prolog",

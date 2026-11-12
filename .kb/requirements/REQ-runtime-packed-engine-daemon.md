@@ -7,7 +7,6 @@ tags:
   - engine
   - packed
   - distribution
-  - review:context-missing
 semantic_text: The published kibi-runtime package MUST ship a self-contained engine daemon entry point that the runtime engine client resolves without a nested kibi-cli install. A consumer installing only published kibi packages MUST be able to start the Kibi engine and serve typed queries from the installed runtime.
 logic_claims:
   - CLAIM-DBB35C0D294764B4
@@ -36,9 +35,12 @@ id: REQ-runtime-packed-engine-daemon
 type: req
 origin:
   kind: migration
-  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'kibi migrate v5->v6 Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 7): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
 ---
 The published kibi-runtime package MUST ship a self-contained engine daemon entry point that the runtime engine client resolves without a nested kibi-cli install. A consumer installing only published kibi packages MUST be able to start the Kibi engine and serve typed queries from the installed runtime.
+
+## Why
+A consumer that installs only published packages must be able to start the engine without a nested `kibi-cli` install. This requirement gave the daemon fix its own proof chain, through a packed install into a clean prefix. Source: commit "trace and prove packed runtime engine daemon end to end"; PR 218.

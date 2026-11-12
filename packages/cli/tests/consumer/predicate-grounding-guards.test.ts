@@ -1,4 +1,3 @@
-// implements REQ-model-predicates-grounding-guards
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

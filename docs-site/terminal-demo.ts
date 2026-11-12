@@ -1,4 +1,3 @@
-// implements REQ-docs-site-root-pages
 /**
  * The animated terminal on the landing page and in the README.
  *
@@ -66,7 +65,6 @@ const say = (
 /** Milliseconds a finished scene stays on screen before the next one starts. */
 export const TERMINAL_HOLD_MS = 6500;
 
-// implements REQ-docs-site-root-pages
 export const TERMINAL_SCENES: readonly TerminalScene[] = [
   {
     name: "Contradiction",
@@ -169,7 +167,6 @@ export const TERMINAL_ROWS = Math.max(
   ...TERMINAL_SCENES.map((scene) => scene.lines.length),
 );
 
-// implements REQ-docs-site-root-pages
 /**
  * Landing-page markup. The first scene is rendered statically so the page
  * reads without JavaScript; the client script replays every scene.
@@ -224,7 +221,6 @@ function xml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-// implements REQ-docs-site-root-pages
 /**
  * The README terminal: a self-contained SVG whose CSS animation steps
  * through every scene, revealing lines on the same schedule as the landing
@@ -316,10 +312,16 @@ ${shapes.join("\n")}
 /** Committed copy of the README terminal, regenerated with `bun run docs:terminal-demo`. */
 export const TERMINAL_SVG_PATH = "assets/terminal-demo.svg";
 
-if (import.meta.main) {
+/** Writes the README terminal SVG; `bun run docs:terminal-demo` calls this. */
+export async function writeTerminalDemoSvg(
+  repoRoot = `${import.meta.dir}/..`,
+): Promise<string> {
   const { writeFileSync } = await import("node:fs");
   const path = await import("node:path");
-  const out = path.resolve(import.meta.dir, "..", TERMINAL_SVG_PATH);
+  const out = path.resolve(repoRoot, TERMINAL_SVG_PATH);
   writeFileSync(out, terminalDemoSvg());
   console.log(`Wrote ${TERMINAL_SVG_PATH}`);
+  return out;
 }
+
+if (import.meta.main) await writeTerminalDemoSvg();

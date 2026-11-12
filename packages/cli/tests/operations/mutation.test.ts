@@ -364,7 +364,6 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  // implements REQ-kb-upsert-keeps-omitted-proof-receipts
   test("validate-upsert keeps the stored receipt history when an update omits it", async () => {
     const previousJson = JSON.stringify([proofReceipt]);
     const { context, save } = createContext(() => ({
@@ -506,7 +505,6 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  // implements REQ-kb-upsert-ledger-contract-in-error
   test("the omitted-ledger error carries the contract one resend needs", async () => {
     const { context, save } = createContext((goal) =>
       goal.startsWith("kb_preview_upsert_contradiction(")

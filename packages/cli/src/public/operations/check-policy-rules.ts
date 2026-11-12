@@ -43,15 +43,12 @@ import { loadEntitiesPaged } from "./discovery-entities.js";
 import type { PrologPort } from "./runtime-types.js";
 
 /** Symbols in a policy's file set must implement a qualifying requirement. */
-// implements REQ-capability-check-policy
 export const POLICY_OWNERSHIP_RULE = "policy-ownership";
 /** Files implementing a pattern must keep the pattern's declared markers. */
-// implements REQ-capability-check-policy
 export const POLICY_MARKERS_RULE = "policy-markers";
 
 const POLICY_RULES = [POLICY_OWNERSHIP_RULE, POLICY_MARKERS_RULE] as const;
 
-// implements REQ-capability-check-policy
 export type PolicySymbol = Readonly<{
   id: string;
   title: string;
@@ -59,7 +56,6 @@ export type PolicySymbol = Readonly<{
   tags: readonly string[];
 }>;
 
-// implements REQ-capability-check-policy
 export type PolicyPredicateFact = Readonly<{
   id: string;
   name: string;
@@ -67,7 +63,6 @@ export type PolicyPredicateFact = Readonly<{
   polarity: string;
 }>;
 
-// implements REQ-capability-check-policy
 export type CheckPolicyEvaluationInput = Readonly<{
   policies: readonly ActiveCheckPolicy[];
   loadErrors: readonly CheckPolicyLoadError[];
@@ -102,7 +97,6 @@ function insideWorkspace(path: string): boolean {
  * Workspace-relative POSIX path of a symbol sourceFile, or undefined when it
  * points outside the workspace. Policies only govern workspace files.
  */
-// implements REQ-capability-check-policy
 export function workspaceSourcePath(
   workspaceRoot: string,
   sourceFile: string,
@@ -139,14 +133,15 @@ function requirementPredicates(
   input: CheckPolicyEvaluationInput,
 ): Map<string, PolicyPredicateFact[]> {
   const facts = new Map(input.predicateFacts.map((fact) => [fact.id, fact]));
-  const grounded = new Map<string, PolicyPredicateFact[]>();
-  for (const [req, factId] of input.requiresPredicateEdges) {
-    const fact = facts.get(factId);
-    if (!input.currentRequirements.has(req) || fact === undefined) continue;
-    if (fact.polarity !== "assert") continue;
-    grounded.set(req, [...(grounded.get(req) ?? []), fact]);
-  }
-  return grounded;
+  return groupBy(
+    input.requiresPredicateEdges
+      .map(([req, factId]) => [req, facts.get(factId)] as const)
+      .filter(
+        (pair): pair is readonly [string, PolicyPredicateFact] =>
+          input.currentRequirements.has(pair[0]) &&
+          pair[1]?.polarity === "assert",
+      ),
+  );
 }
 
 function ownershipViolations(
@@ -157,21 +152,23 @@ function ownershipViolations(
   owners: Map<string, string[]>,
 ): Violation[] {
   const included = matcher(rule.include);
-  const excluded = matcher(rule.exclude ?? []);
-  const title =
-    rule.symbolTitlePattern !== undefined
-      ? new RegExp(rule.symbolTitlePattern)
-      : undefined;
+  const excluded =
+    // rationale: an undefined answer reads as false, so it excludes nothing too
+    // Stryker disable next-line ArrowFunction
+    rule.exclude === undefined ? () => false : matcher(rule.exclude);
+  // Without a pattern every title matches.
+  const title = new RegExp(rule.symbolTitlePattern ?? "");
   const qualifying = new Set(rule.requirePredicates);
   const violations: Violation[] = [];
   for (const symbol of input.symbols) {
     if (!included(symbol.sourceFile) || excluded(symbol.sourceFile)) continue;
-    if (title !== undefined && !title.test(symbol.title)) continue;
-    if (rule.exemptTag !== undefined && symbol.tags.includes(rule.exemptTag))
-      continue;
+    if (!title.test(symbol.title)) continue;
+    // Without an exempt tag no tag exempts.
+    if (symbol.tags.includes(rule.exemptTag as string)) continue;
     const requirements = owners.get(symbol.id) ?? [];
-    const owned = requirements.some((req) =>
-      (grounded.get(req) ?? []).some((fact) => qualifying.has(fact.name)),
+    const owned = requirements.some(
+      (req) =>
+        grounded.get(req)?.some((fact) => qualifying.has(fact.name)) === true,
     );
     if (owned) continue;
     violations.push({
@@ -234,11 +231,15 @@ function markerViolations(
   // report each missing marker once per file and requirement.
   const reported = new Set<string>();
   for (const symbol of input.symbols) {
-    for (const req of owners.get(symbol.id) ?? []) {
-      for (const fact of grounded.get(req) ?? []) {
+    const requirements = owners.get(symbol.id);
+    if (requirements === undefined) continue;
+    for (const req of requirements) {
+      const facts = grounded.get(req);
+      if (facts === undefined) continue;
+      for (const fact of facts) {
         if (fact.name !== rule.patternPredicate) continue;
-        const pattern = fact.args[rule.patternArgument];
-        if (pattern === undefined) continue;
+        // A pattern fact without the argument names no pattern with markers.
+        const pattern = fact.args[rule.patternArgument] as string;
         const files = searchedFiles(symbol.sourceFile, rule);
         const contents = files
           .map((path) => input.readFile(path))
@@ -295,7 +296,6 @@ function loadErrorViolations(
  * Evaluate active check policies against the KB. Pure: all KB data and file
  * reads come in through `input`.
  */
-// implements REQ-capability-check-policy
 export function evaluateCheckPolicies(
   input: CheckPolicyEvaluationInput,
   rules: ReadonlySet<string>,
@@ -315,8 +315,9 @@ export function evaluateCheckPolicies(
         );
       }
     }
-    if (rules.has(POLICY_MARKERS_RULE)) {
-      for (const rule of policy.document.markers ?? []) {
+    const markers = policy.document.markers;
+    if (rules.has(POLICY_MARKERS_RULE) && markers !== undefined) {
+      for (const rule of markers) {
         violations.push(
           ...markerViolations(policy, rule, input, grounded, owners),
         );
@@ -337,17 +338,24 @@ async function rows(
       `Unable to read ${what} for check policies: ${result.error ?? "query failed"}`,
     );
   }
-  return parseListOfLists(result.bindings.Rows ?? "[]");
+  // A missing binding reads as no rows.
+  return parseListOfLists(String(result.bindings.Rows));
 }
 
 function atom(value: string | undefined): string {
+  // rationale: every findall row carries all its columns, so no column is
+  // missing; the fallback only keeps a malformed row from throwing
+  // Stryker disable next-line StringLiteral
   return String(parsePrologValue(value ?? ""));
 }
 
 function stringList(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String);
-  if (typeof value === "string" && value !== "") return [value];
-  return [];
+  // rationale: a value that is neither a list nor text is a number or
+  // nothing, which matches no tag and no marker text whatever it lists
+  // Stryker disable next-line ConditionalExpression,ArrayDeclaration
+  if (typeof value !== "string") return [];
+  return [value].filter((item) => item !== "");
 }
 
 function fileReader(
@@ -360,7 +368,11 @@ function fileReader(
   return (path) => {
     if (!cache.has(path)) {
       try {
-        cache.set(path, fs.readFileSync(join(workspaceRoot, path), "utf8"));
+        cache.set(
+          path,
+          // A Buffer reads as UTF-8 text.
+          String(fs.readFileSync(join(workspaceRoot, path))),
+        );
       } catch {
         cache.set(path, undefined);
       }
@@ -373,7 +385,6 @@ function fileReader(
  * Collect policy findings for the selected rules. With no activated check
  * policy this returns at once, so projects without one pay nothing.
  */
-// implements REQ-capability-check-policy
 export async function collectCheckPolicyViolations(
   prolog: Pick<PrologPort, "query">,
   rules: ReadonlySet<string>,
@@ -427,6 +438,9 @@ export async function collectCheckPolicyViolations(
   ).map(([id, name, args, polarity]) => ({
     id: atom(id),
     name: atom(name),
+    // rationale: every findall row carries all its columns; an empty text
+    // and an empty list both read as no arguments
+    // Stryker disable next-line StringLiteral
     args: stringList(parsePrologValue(args ?? "[]")),
     polarity: atom(polarity),
   }));

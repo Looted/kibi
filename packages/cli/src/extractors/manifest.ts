@@ -355,7 +355,6 @@ function extractFromParsedManifest(
  * Exported so mutation flows can re-extract one canonical entity from the
  * authored manifest plus generated coordinate artifact before committing.
  */
-// implements REQ-generated-coordinate-persistence
 export function extractManifestSymbolRecords(
   manifestSymbols: ManifestSymbolRecord[],
   filePath: string,
@@ -366,7 +365,6 @@ export function extractManifestSymbolRecords(
     }
 
     const id = symbol.id || generateId(filePath, symbol.title);
-    // implements REQ-004
     let origin: EntityOrigin | undefined;
     if (symbol.origin !== undefined) {
       const normalized = normalizeEntityOrigin(symbol.origin);
@@ -455,7 +453,6 @@ function withParsedManifest<T>(
   }
 }
 
-// implements REQ-007
 export function extractFromManifestString(
   content: string,
   filePath: string,
@@ -548,7 +545,6 @@ function sourceTextResolver(
   };
 }
 
-// implements REQ-core-extractors
 export function readManifestWithCoordinateOverlay(
   manifestPath: string,
   coordinatesPath?: string,
@@ -582,7 +578,6 @@ export interface ReceiptCodeScopeEntry {
  * "missing", so deleting it stales the receipt too; symbols without a
  * source file cannot be hashed and are left out.
  */
-// implements REQ-kibi-verification-evidence-contract
 // Scope reads run once per proof-bearing test and a campaign touches
 // dozens-to-hundreds of tests, so the manifest's symbol -> source mapping is
 // memoized per manifest state and file hashes per file state (mtime + size).
@@ -646,10 +641,8 @@ function scopeFileHash(absolutePath: string): string {
  * repository. Only repository content can be compared between a CI checkout
  * and a developer machine, so such a file is never read.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export const OUTSIDE_WORKSPACE_SCOPE_HASH = "outside-workspace";
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function resolveBoundSymbolScope(
   manifestPath: string,
   symbolIds: readonly string[],

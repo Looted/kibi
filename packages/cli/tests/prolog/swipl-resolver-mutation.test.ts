@@ -409,6 +409,48 @@ describe("swipl on PATH", () => {
     ).toStrictEqual({ bin: first, version: "9.0.0", source: "path" });
   });
 
+  test("on Windows, finds swipl.exe through a Path entry of any case", () => {
+    const dir = temp();
+    const exe = script(path.join(dir, "swipl.exe"), "exit 0");
+    const versions: string[] = [];
+    const windows = deps({
+      platform: "win32",
+      glibc: undefined,
+      runVersion: (bin) => {
+        versions.push(bin);
+        return "SWI-Prolog version 9.2.9 for x64-win64\n";
+      },
+    });
+    for (const name of ["Path", "PATH", "path"]) {
+      expect(
+        resolveSwiplWith({ KIBI_SWIPL: "system", [name]: dir }, windows),
+      ).toStrictEqual({ bin: exe, version: "9.2.9", source: "path" });
+    }
+    expect(versions).toStrictEqual([exe, exe, exe]);
+    // A bare `swipl` (a shell script) cannot run there and is not taken.
+    const bare = temp();
+    swipl(bare);
+    expect(
+      caught(() =>
+        resolveSwiplWith({ KIBI_SWIPL: "system", Path: bare }, windows),
+      ).message,
+    ).toContain("System SWI-Prolog: swipl was not found on PATH.");
+    expect(
+      caught(() => resolveSwiplWith({ KIBI_SWIPL: "system" }, windows)).message,
+    ).toContain("System SWI-Prolog: swipl was not found on PATH.");
+  });
+
+  test("off Windows, reads only PATH and never swipl.exe", () => {
+    const dir = temp();
+    script(path.join(dir, "swipl.exe"), `printf '%s' '${banner("10.0.0")}'`);
+    expect(notFound({ Path: dir }).message).toContain(
+      "System SWI-Prolog: swipl was not found on PATH.",
+    );
+    expect(notFound({ PATH: dir }).message).toContain(
+      "System SWI-Prolog: swipl was not found on PATH.",
+    );
+  });
+
   test("reports the first swipl when it is too old or unusable", () => {
     const old = swipl(temp(), "8.4.3");
     const newer = swipl(temp(), "10.0.0");

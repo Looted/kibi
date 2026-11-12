@@ -16,7 +16,6 @@ import {
 
 const MARKDOWN_LINK = /\[(?:[^\]]*)\]\(([^)\s]+)\)/g;
 
-// implements REQ-docs-readme-published-links
 export function readmePublishedDocProblems(markdown: string): string[] {
   const problems: string[] = [];
   if (!markdown.includes(publishedLlmsIndexHref())) {

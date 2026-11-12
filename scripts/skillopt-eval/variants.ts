@@ -66,7 +66,6 @@ export type OneShotResult =
       error: string;
     }>;
 
-// implements REQ-skillopt-codex-optimization
 export class CandidateValidationError extends Error {
   readonly name = "CandidateValidationError";
 
@@ -184,7 +183,6 @@ function assertCandidateStructure(body: string): void {
 }
 
 /** Validates a body written from scratch: every line counts as candidate text. */
-// implements REQ-skillopt-codex-optimization
 export function validateCandidateBody(body: string): void {
   validateCandidateBodyAgainstBaseline(body, "");
 }
@@ -194,7 +192,6 @@ export function validateCandidateBody(body: string): void {
  * to the whole body; content-safety checks judge only the lines the candidate
  * adds or changes relative to the trusted baseline.
  */
-// implements REQ-skillopt-codex-optimization
 export function validateCandidateBodyAgainstBaseline(
   body: string,
   baselineBody: string,
@@ -209,7 +206,6 @@ export function validateCandidateBodyAgainstBaseline(
  * line of at most 1024 characters without angle brackets, and it follows the
  * same host-neutral content policy as candidate bodies.
  */
-// implements REQ-skillopt-description-candidates
 export function validateCandidateDescription(description: string): void {
   if (typeof description !== "string" || description.trim().length === 0) {
     throw new CandidateValidationError("description_empty");
@@ -261,7 +257,6 @@ function freezeVariant(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function createBaselineVariant(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -282,7 +277,6 @@ export function createBaselineVariant(
   });
 }
 
-// implements REQ-skillopt-codex-optimization
 export function freezeCandidateVariant(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -301,7 +295,6 @@ export function freezeCandidateVariant(
   });
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function generateOneShotVariant(
   input: Readonly<{
     skill: CanonicalSkill;

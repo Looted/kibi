@@ -1,6 +1,6 @@
 ---
 title: Capability plugin observable behavior runs end to end
-status: active
+status: passing
 tags:
   - plugins
 verification_scope: end_to_end

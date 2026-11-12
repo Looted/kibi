@@ -5,7 +5,6 @@
  * behind unnoticed.
  */
 
-// implements REQ-docs-readme-published-links
 export type DocSection = "guide" | "reference";
 
 export type DocPage = {
@@ -24,7 +23,6 @@ export type DocPage = {
  * the project Pages root; the requirement-health report lives beside it under
  * REPORT_PATH.
  */
-// implements REQ-docs-readme-published-links
 export const PUBLISHED_SITE_ORIGIN = "https://looted.github.io/kibi";
 
 /**
@@ -34,16 +32,13 @@ export const PUBLISHED_SITE_ORIGIN = "https://looted.github.io/kibi";
  * the script only reports on the published host. Generated `kibi report`
  * pages never load it.
  */
-// implements REQ-docs-site-analytics
 export const UMAMI_SCRIPT_SRC = "https://cloud.umami.is/script.js";
-// implements REQ-docs-site-analytics
 export const UMAMI_DOMAINS = new URL(PUBLISHED_SITE_ORIGIN).hostname;
 
 /**
  * The one public tagline. The landing page, page metadata, and llms.txt all
  * read it, so the site cannot publish competing variants.
  */
-// implements REQ-docs-readme-published-links
 export const SITE_TAGLINE =
   "Prompt the intent. Kibi makes the agent remember it—and prove the implementation.";
 
@@ -52,7 +47,6 @@ export const SITE_TAGLINE =
  * The landing page renders it, and the README and quick-start page must quote
  * it verbatim, so every entry point asks the agent for the same setup.
  */
-// implements REQ-docs-site-root-pages
 export const AGENT_SETUP_PROMPT = `Set up Kibi (https://github.com/Looted/kibi) in this repository, then bootstrap its knowledge base.
 
 1. Install: confirm Node.js 22+ is available. With the package manager this repository already uses, add kibi-core, kibi-cli and kibi-mcp as dev dependencies. Do not skip optional dependencies; the bundled SWI-Prolog runtime is one.
@@ -62,13 +56,10 @@ export const AGENT_SETUP_PROMPT = `Set up Kibi (https://github.com/Looted/kibi) 
 5. Verify: run \`kibi check\` and \`kibi status\`, fix anything they report, and summarize what was added. Do not commit; I will review the changes.`;
 
 /** Site-root-relative directory of the requirement-health report. */
-// implements REQ-docs-site-root-pages
 export const REPORT_PATH = "kibi-report/";
 
-// implements REQ-docs-readme-published-links
 export const LLMS_INDEX_PATH = "llms.txt";
 
-// implements REQ-docs-readme-published-links
 export const DOCS: readonly DocPage[] = [
   {
     slug: "welcome",
@@ -245,29 +236,24 @@ export const DOCS: readonly DocPage[] = [
   },
 ];
 
-// implements REQ-docs-readme-published-links
 export function sitePagePath(page: DocPage): string {
   return `${page.section}/${page.slug}.html`;
 }
 
-// implements REQ-docs-readme-published-links
 export function publishedPageHref(page: DocPage, fragment = ""): string {
   const hash =
     fragment === "" ? "" : fragment.startsWith("#") ? fragment : `#${fragment}`;
   return `${PUBLISHED_SITE_ORIGIN}/${sitePagePath(page)}${hash}`;
 }
 
-// implements REQ-docs-readme-published-links
 export function publishedLlmsIndexHref(): string {
   return `${PUBLISHED_SITE_ORIGIN}/${LLMS_INDEX_PATH}`;
 }
 
-// implements REQ-docs-readme-published-links
 export function pageForSource(source: string): DocPage | undefined {
   return DOCS.find((page) => page.source === source);
 }
 
-// implements REQ-docs-readme-published-links
 export function pageForSitePath(sitePath: string): DocPage | undefined {
   return DOCS.find((page) => sitePagePath(page) === sitePath);
 }

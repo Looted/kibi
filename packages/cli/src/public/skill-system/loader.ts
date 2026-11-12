@@ -35,7 +35,6 @@ export function listBundledSkills(): SkillManifest[] {
 export function loadBundledSkill(id: string): SkillBundle {
   return loadBundledSkillFrom(bundledSkillsDir, id);
 }
-// implements REQ-reusable-skill-subsystem
 // covered_by TEST-skill-cli-load-validate
 export function loadBundledSkillFrom(
   skillsDir: string,
@@ -51,7 +50,6 @@ export function readBundledSkillResource(
 ): string {
   return readBundle(loadBundledSkill(id), id, resourcePath);
 }
-// implements REQ-reusable-skill-subsystem
 // covered_by TEST-skill-cli-load-validate
 export function readBundledSkillResourceFrom(
   skillsDir: string,
@@ -61,11 +59,7 @@ export function readBundledSkillResourceFrom(
   return readBundle(loadBundledSkillFrom(skillsDir, id), id, resourcePath);
 }
 function listFrom(dir: string): SkillManifest[] {
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => join(dir, entry.name))
-    .filter((root) => existsSync(join(root, SKILL_FILE_NAME)))
+  return listRoots(dir)
     .map((root) => parseSkillBundle(root).manifest)
     .sort((a, b) => a.id.localeCompare(b.id));
 }
@@ -87,13 +81,11 @@ function readBundle(
   resourcePath: string,
 ): string {
   const resource = normalizeResourcePath(resourcePath);
-  if (!resource || isPathOutOfBounds(resourcePath))
+  // normalize() never returns "" (an empty path becomes ".").
+  if (isPathOutOfBounds(resourcePath))
     throw new SkillResourceOutOfBoundsError(id, resourcePath);
-  if (
-    !(bundle.manifest.resources ?? []).some(
-      (declared) => normalizeResourcePath(declared) === resource,
-    )
-  )
+  // parseSkillBundle already normalized the declared resources.
+  if (!bundle.manifest.resources?.includes(resource))
     throw new SkillResourceNotFoundError(id, resourcePath);
   const candidate = resolve(bundle.rootDir, resource);
   try {

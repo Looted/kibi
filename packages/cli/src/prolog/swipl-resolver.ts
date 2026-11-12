@@ -338,15 +338,34 @@ type PathLookup =
   | { kind: "too-old"; bin: string; version: string }
   | { kind: "unusable"; bin: string; detail: string };
 
+/**
+ * The search path. Windows names it `Path` and matches environment names
+ * without regard to case, which a copied environment object no longer does.
+ */
+function searchPath(
+  env: NodeJS.ProcessEnv,
+  platform: string = process.platform,
+): string | undefined {
+  if (platform !== "win32") return env.PATH;
+  const key = Object.keys(env).find((name) => name.toUpperCase() === "PATH");
+  return key === undefined ? undefined : env[key];
+}
+
+/** The executable file name of swipl: Windows needs its `.exe` suffix. */
+function swiplFileName(platform: string): string {
+  return platform === "win32" ? "swipl.exe" : "swipl";
+}
+
 function findOnPath(
   env: NodeJS.ProcessEnv,
   deps: SwiplResolverDeps,
 ): PathLookup {
-  if (env.PATH === undefined) return { kind: "absent" };
-  for (const directory of env.PATH.split(path.delimiter)) {
+  const searched = searchPath(env, deps.platform);
+  if (searched === undefined) return { kind: "absent" };
+  for (const directory of searched.split(path.delimiter)) {
     // An empty entry is relative too.
     if (!path.isAbsolute(directory)) continue;
-    const candidate = path.join(directory, "swipl");
+    const candidate = path.join(directory, swiplFileName(deps.platform));
     if (!isExecutableFile(candidate)) continue;
     const probe = probeVersion(candidate, deps);
     if (probe.kind === "ok") {
@@ -511,7 +530,7 @@ const cache = new Map<string, ResolvedSwipl>();
 export function resolveSwipl(
   env: NodeJS.ProcessEnv = process.env,
 ): ResolvedSwipl {
-  const key = `${env.KIBI_SWIPL ?? ""}\0${env.PATH ?? ""}`;
+  const key = `${env.KIBI_SWIPL ?? ""}\0${searchPath(env) ?? ""}`;
   const cached = cache.get(key);
   if (cached !== undefined) return cached;
   const resolved = resolveSwiplWith(env, defaultDeps());

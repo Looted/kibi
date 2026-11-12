@@ -21,7 +21,6 @@ interface CoverageOptions {
   cases?: boolean;
 }
 
-// implements REQ-002, REQ-003
 export async function coverageCommand(options: CoverageOptions): Promise<void> {
   const result = await executeReportingSpec(coverageSpec, {
     by: options.by ?? "req",
@@ -73,7 +72,6 @@ type CaseRow = {
   assumption?: Record<string, unknown>;
 };
 
-// implements REQ-kibi-case-coverage
 // The edge cases of each returned requirement: one line per case with its
 // predicted outcome and coverage, and the assumption an uncovered rejection
 // case needs.  JSON keeps the requirement id with its cases stage.

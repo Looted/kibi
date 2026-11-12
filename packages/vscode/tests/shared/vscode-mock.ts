@@ -74,12 +74,10 @@ export type VscodeMockOverrides = {
   languages?: MockNamespace;
 };
 
-// implements REQ-vscode-traceability
 function createDisposable(): DisposableLike {
   return { dispose() {} };
 }
 
-// implements REQ-vscode-traceability
 function createOutputChannel() {
   return {
     appendLine: mock((_value: string) => {}),
@@ -87,12 +85,10 @@ function createOutputChannel() {
   };
 }
 
-// implements REQ-vscode-traceability
 function createTreeViewCaptureList() {
   return [] as Array<{ id: string; options: unknown }>;
 }
 
-// implements REQ-vscode-traceability
 function createTextEditor() {
   return {
     selection: undefined as unknown,
@@ -100,7 +96,6 @@ function createTextEditor() {
   };
 }
 
-// implements REQ-vscode-traceability
 function mergeNamespace<T extends MockNamespace>(
   base: T,
   overrides?: MockNamespace,
@@ -108,12 +103,10 @@ function mergeNamespace<T extends MockNamespace>(
   return overrides ? ({ ...base, ...overrides } as T) : base;
 }
 
-// implements REQ-vscode-traceability
 function toPoint(value: PositionLike): PositionLike {
   return { line: value.line, character: value.character };
 }
 
-// implements REQ-vscode-traceability
 export class DefaultEventEmitter<T = unknown> {
   listeners: Array<(value: T) => void> = [];
   fireCount = 0;
@@ -139,12 +132,10 @@ export class DefaultEventEmitter<T = unknown> {
   }
 }
 
-// implements REQ-vscode-traceability
 export class DefaultThemeIcon {
   constructor(public id: string) {}
 }
 
-// implements REQ-vscode-traceability
 export class DefaultTreeItem {
   description?: string;
   iconPath?: unknown;
@@ -159,7 +150,6 @@ export class DefaultTreeItem {
   ) {}
 }
 
-// implements REQ-vscode-traceability
 export class DefaultCodeAction {
   command?: unknown;
 
@@ -169,7 +159,6 @@ export class DefaultCodeAction {
   ) {}
 }
 
-// implements REQ-vscode-traceability
 export class DefaultCodeLens {
   constructor(
     public range: unknown,
@@ -177,7 +166,6 @@ export class DefaultCodeLens {
   ) {}
 }
 
-// implements REQ-vscode-traceability
 export class DefaultPosition {
   constructor(
     public line: number,
@@ -185,7 +173,6 @@ export class DefaultPosition {
   ) {}
 }
 
-// implements REQ-vscode-traceability
 export class DefaultRange {
   start: PositionLike;
   end: PositionLike;
@@ -212,10 +199,8 @@ export class DefaultRange {
   }
 }
 
-// implements REQ-vscode-traceability
 export class DefaultSelection extends DefaultRange {}
 
-// implements REQ-vscode-traceability
 export class DefaultRelativePattern {
   constructor(
     public base: unknown,
@@ -223,19 +208,16 @@ export class DefaultRelativePattern {
   ) {}
 }
 
-// implements REQ-vscode-traceability
 export class DefaultMarkdownString {
   isTrusted?: boolean;
 
   constructor(public value: string) {}
 }
 
-// implements REQ-vscode-traceability
 export class DefaultHover {
   constructor(public contents: unknown) {}
 }
 
-// implements REQ-vscode-traceability
 export class DefaultFileSystemWatcher {
   changeListeners: Array<(...args: unknown[]) => void> = [];
   createListeners: Array<(...args: unknown[]) => void> = [];
@@ -279,7 +261,6 @@ export class DefaultFileSystemWatcher {
   dispose() {}
 }
 
-// implements REQ-vscode-traceability
 function createDefaultState(): VscodeMockState {
   const createTreeViewCalls = createTreeViewCaptureList();
   const registerCommandCalls = [] as Array<{
@@ -447,12 +428,10 @@ const vscodeMockModule = {
   },
 };
 
-// implements REQ-vscode-traceability
 export function getVscodeMockModule() {
   return vscodeMockModule;
 }
 
-// implements REQ-vscode-traceability
 export function resetVscodeMock(overrides: VscodeMockOverrides = {}): void {
   const base = createDefaultState();
   state = {

@@ -1,18 +1,4 @@
 relationships:
-  - id: rel-72490fac0748
-    type: covered_by
-    from: SYM-reqcompiler-usage-options
-    to: TEST-kibi-telemetry-acceptance-gate
-    created_at: 2026-08-16T18:52:12.209Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-core-journaled-indexes
-    to: TEST-core-journaled-engine-persistence
-    created_at: 2026-08-16T19:47:07.410Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b8498e717d73
   - type: specified_by
     from: REQ-mcp-tag-filtering-server-side
     to: SCEN-mcp-tag-filtering-server-side
@@ -34,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99c1222dcc48
-  - type: implements
-    from: SYM-packed-e2e-runner
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-21T19:56:43.261Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1dcd242ebd04
   - type: covered_by
     from: SYM-packed-e2e-runner
     to: TEST-test-journaled-engine-harness
@@ -105,13 +84,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-a6e825200312
   - type: covered_by
-    from: SYM-core-journaled-indexes
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:32:46.626Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eb4b2b15dff9
-  - type: covered_by
     from: SYM-semantic-advisor-detectCountStrictSuggestion
     to: TEST-mcp-semantic-advisor-preflight
     created_at: 2026-09-05T17:39:07.159Z
@@ -126,40 +98,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-de52383add99
   - type: covered_by
-    from: SYM-assertMaxBytes
-    to: TEST-skill-cli-load-validate
-    created_at: 2026-09-05T18:03:11.507Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-caddf7a129ee
-  - type: implements
-    from: SYM-skillopt-fake-provider-reservation
-    to: REQ-skillopt-paid-matrix-infrastructure
-    created_at: 2026-09-19T19:41:41.836Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7508ef41d53a
-  - type: covered_by
     from: SYM-mcp-env-get-branch-override
     to: TEST-001
     created_at: 2026-09-23T14:46:50.790Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c30f9a2a0454
-  - type: covered_by
-    from: SYM-source-analysis-v2-hostsourceanalysisresultv2-1bcf8177
-    to: TEST-source-analysis-v2-contract
-    created_at: 2026-09-26T16:56:34.219Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-11c4bfaafad9
-  - type: implements
-    from: SYM-source-analysis-v2-hostsourceanalysisresultv2-1bcf8177
-    to: REQ-source-analysis-v2
-    created_at: 2026-09-26T16:56:34.232Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2223109f579c
   - type: relates_to
     from: FACT-OBS-4C12224D56974CF4
     to: REQ-source-analysis-v2
@@ -196,41 +140,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-353bb2c5f5a0
   - type: implements
-    from: SYM-reqcompiler-usage-options
-    to: REQ-kibi-telemetry-acceptance-gate-v2
-    created_at: 2026-10-04T03:06:21.682Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2c7048c84cd2
-  - type: implements
-    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-open-eddd058c
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:46.637Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-930bd761d03d
-  - type: covered_by
-    from: SYM-skillopt-campaign-artifacts-campaignartifactstore-open-eddd058c
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-10-05T12:20:46.653Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-30045bcd10f7
-  - type: implements
-    from: SYM-cli-unowned-files-unownedfilediagnosticsoptions
-    to: REQ-kb-unowned-file-candidates
-    created_at: 2026-10-14T09:46:55.530Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d8147aac3b07
-  - type: covered_by
-    from: SYM-cli-unowned-files-unownedfilediagnosticsoptions
-    to: TEST-search-answer-hygiene
-    created_at: 2026-10-14T09:46:55.547Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8101ca0a3f48
-  - type: implements
     from: SYM-diagnostics-formatSyncSummary
     to: REQ-cli-sync-summary-kb-totals
     created_at: 2026-10-14T21:21:51.652Z
@@ -244,20 +153,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b08029f6e769
-  - type: implements
-    from: SYM-cli-signoff-model-signoff-proof
-    to: REQ-kibi-signoff-views
-    created_at: 2026-10-23T10:53:44.472Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3c2c33c5be11
-  - type: covered_by
-    from: SYM-cli-signoff-model-signoff-proof
-    to: TEST-kibi-signoff-views
-    created_at: 2026-10-23T10:53:44.490Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7c16f72cabae
   - type: executable_for
     from: SYM-proof-delivered-requirement-tag
     to: TEST-proof-delivered-requirement-tag
@@ -272,13 +167,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acf2cc7e6bdb
-  - type: implements
-    from: SYM-const-symbol-legacy-link-mark-code
-    to: REQ-cli-migration-pin-codes
-    created_at: 2026-10-28T20:33:13.205Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-32d6e17e0986
   - type: covered_by
     from: SYM-const-symbol-legacy-link-mark-code
     to: TEST-proof-legacy-link-mark-code

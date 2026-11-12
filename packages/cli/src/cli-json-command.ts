@@ -8,6 +8,7 @@ import {
   openFailureResult,
 } from "./cli-protocol.js";
 import { prepareOperationInput } from "./cli-validate.js";
+import { scopeJsonInputToKbDependency } from "./dependencies/kb-dependency-cli.js";
 import {
   appendCliDiagnosticUsage,
   diagnosticEnvOptIn,
@@ -26,7 +27,6 @@ export function writeOptionalStderr(stderr: string | undefined): void {
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * Runs `fn` with console.log and console.info sent to stderr. Commands that a
  * JSON route reuses (sync, branch ensure, migrate) print progress; on stdout
@@ -45,7 +45,6 @@ export async function withConsoleOnStderr<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export type JsonInvocation = {
   readonly operationName: OperationName;
   readonly inputPath: string;
@@ -105,13 +104,12 @@ async function writeAndWaitForDrain(
   await once(stream, "drain");
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function runJsonInvocation(
   invocation: JsonInvocation,
 ): Promise<void> {
   const startedAt = new Date();
   const diagnostic = diagnosticModeEnabled(invocation.command);
-  const workspaceRoot = process.cwd();
+  let workspaceRoot = process.cwd();
   const spec = await loadOperationSpec(invocation.operationName);
   const conflicts = findInputConflicts(invocation);
   if (conflicts.length > 0) {
@@ -159,9 +157,19 @@ export async function runJsonInvocation(
     throw error;
   }
 
+  // A `kb` scope moves the whole invocation to that dependency's checkout.
+  try {
+    input = scopeJsonInputToKbDependency(input, spec.businessInputSchema);
+  } catch (error) {
+    if (error instanceof InputError) {
+      writeInputError(error);
+      return;
+    }
+    throw error;
+  }
+  workspaceRoot = process.cwd();
   const prepared = prepareOperationInput(input, spec.businessInputSchema);
   const businessArgs = prepared.valid ? prepared.businessInput : {};
-  // implements REQ-kibi-telemetry-agent-signals
   const inputIssues = prepared.valid ? undefined : prepared.issues;
   const telemetry = prepared.valid ? (prepared.telemetry ?? null) : null;
   const runtime = createCliRuntime({ workspaceRoot });

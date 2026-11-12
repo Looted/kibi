@@ -7,6 +7,24 @@ import { composeCampaignManifest, sha256Text } from "../campaign-artifacts";
 import { surface } from "../real-workflow";
 
 describe("campaign CLI", () => {
+  test("an unknown command prints the usage", async () => {
+    const stderr: string[] = [];
+    const err = spyOn(process.stderr, "write").mockImplementation(((
+      text: string,
+    ) => {
+      stderr.push(text);
+      return true;
+    }) as never);
+    try {
+      expect(await campaignMain(["bogus"])).toBe(2);
+    } finally {
+      err.mockRestore();
+    }
+    expect(stderr.join("")).toContain(
+      "Usage: campaign.ts <revise|compose|evaluate|confirm|package>",
+    );
+  });
+
   test("requires an artifact root and paid acknowledgement for paid commands", async () => {
     expect(await campaignMain(["evaluate", "--skill", "kibi-usage"])).toBe(2);
 

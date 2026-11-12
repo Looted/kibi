@@ -1,4 +1,3 @@
-// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -33,7 +32,6 @@ import {
  * enables them.
  */
 
-// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 /** What the hook did for one tool call. Unset `action` means "nothing to record". */
 export type HookTrace = {
   action?: string;
@@ -49,15 +47,11 @@ export type HookTrace = {
   skill?: string | undefined;
 };
 
-// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 /** Hook actions the acceptance report reads; hosts emit these names. */
 export const HOOK_ACTION_EDITED = "edited";
-// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 export const HOOK_ACTION_KB_USAGE = "kb_usage";
-// implements REQ-kibi-telemetry-agent-signals
 export const HOOK_ACTION_SKILL_LOADED = "skill_loaded";
 
-// implements REQ-claude-hook-usage-telemetry-v2
 export function hookTelemetryEnabled(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
@@ -65,7 +59,6 @@ export function hookTelemetryEnabled(
   return value === "1" || value === "true";
 }
 
-// implements REQ-claude-hook-usage-telemetry-v2
 export type HookUsageRow = {
   /** Host agent, e.g. `claude-code`, `cursor`, `codex`, `zcode`, `opencode`. */
   host: string;
@@ -81,7 +74,6 @@ export type HookUsageRow = {
   startedAt: Date;
 };
 
-// implements REQ-claude-hook-usage-telemetry-v2
 /**
  * Whether a host should build hook traces at all: for the opt-in
  * `.kb/usage.log` rows or for anonymous usage telemetry.
@@ -96,7 +88,6 @@ function adapterPackage(host: string): string {
   return host === "claude-code" ? "kibi-claude" : `kibi-${host}`;
 }
 
-// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-anonymous-usage-telemetry
 /**
  * Record one hook decision: an anonymous summary event (unless telemetry is
  * off) and, when the operator opted in, the detailed `.kb/usage.log` row.
@@ -159,7 +150,6 @@ export function appendHookUsage(
   }
 }
 
-// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 /**
  * Trace for a tool call that ran a Kibi operation through MCP or the
  * project-local CLI, or undefined for any other tool.
@@ -173,7 +163,6 @@ export function kbUsageTrace(
   return skillLoadTrace(toolName, toolInput);
 }
 
-// implements REQ-kibi-telemetry-agent-signals
 /**
  * Trace for a tool call that loads a Kibi skill (a skill tool, or a read or
  * shell command naming a `kibi-*\/SKILL.md` file), or undefined.
@@ -186,7 +175,6 @@ export function skillLoadTrace(
   return skill ? { action: HOOK_ACTION_SKILL_LOADED, skill } : undefined;
 }
 
-// implements REQ-claude-hook-usage-telemetry-v2, REQ-kibi-telemetry-acceptance-gate-v2
 /**
  * One `edited` trace per workspace-relative path an edit tool changed,
  * skipping docs, config, and generated paths. `requirementIdsFor` names the
@@ -210,7 +198,6 @@ export function editTraces(
   return traces;
 }
 
-// implements REQ-claude-hook-usage-telemetry-v2
 /** Append one row per trace, sharing the call's host, session and tool. */
 export function appendHookUsageRows(
   row: Omit<HookUsageRow, "trace">,
@@ -223,7 +210,6 @@ export function appendHookUsageRows(
 /** Host events that end a turn or a session: the queue is sent right away. */
 const TURN_END_EVENTS = new Set(["stop", "sessionend"]);
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /**
  * End-of-hook bookkeeping every host runs: remember the host session for the
  * workspace, so CLI and MCP events from that workspace can carry it, and send
@@ -251,7 +237,6 @@ export async function finishHookTelemetry(
   }
 }
 
-// implements REQ-claude-hook-usage-telemetry-v2
 /**
  * Version of the adapter package whose `package.json` sits at
  * `packageJsonPath`, or null when it cannot be read.

@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.symbols.coordinates
-property_key: clause_06_sync_cache_state_may_advance_only_after_refresh_extraction_r
+property_key: cache_advances_after_durable_save
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_generated_coordinate_persistence.clause_06_sync_cache_state_may_advance_only_after_refresh_extraction_r.eq.true
+canonical_key: req.req_generated_coordinate_persistence.cache_advances_after_durable_save.eq.true
 claim_key: CLAIM-FA76D9EC41628C8D
 claim_text: Sync cache state may advance only after refresh, extraction, RDF persistence and durable save succeed
 id: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C06

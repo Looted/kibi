@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import type { ExtractionResult } from "../../extractors/markdown.js";
+import type { StagedFile } from "../../traceability/git-staged.js";
 import type { KibiImpactDiagnostic } from "../../traceability/staged-diagnostics.js";
 import {
   type ExtractedSymbol,
@@ -30,6 +31,23 @@ function hasValidGranularityReason(result: ExtractionResult): boolean {
   return isAllowedGranularityReason(result.entity.granularity_reason);
 }
 
+function extractAllSymbols(
+  sourceFile: string,
+  content: string,
+): readonly ExtractedSymbol[] {
+  // rationale: every declaration meets the whole-file hunk, so neither the
+  // status nor the hunk range changes which symbols come back
+  // Stryker disable StringLiteral,ArrayDeclaration,ObjectLiteral
+  const wholeFile: StagedFile = {
+    path: sourceFile,
+    status: "M",
+    hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+    content,
+  };
+  // Stryker restore StringLiteral,ArrayDeclaration,ObjectLiteral
+  return extractSymbolsFromStagedFile(wholeFile);
+}
+
 function readSourceSymbols(
   sourceFile: string,
   sourceContentByFile: ReadonlyMap<string, string> | undefined,
@@ -37,12 +55,7 @@ function readSourceSymbols(
 ): readonly ExtractedSymbol[] {
   const stagedContent = sourceContentByFile?.get(sourceFile);
   if (stagedContent !== undefined) {
-    return extractSymbolsFromStagedFile({
-      path: sourceFile,
-      status: "M",
-      hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-      content: stagedContent,
-    });
+    return extractAllSymbols(sourceFile, stagedContent);
   }
 
   const absolutePath = path.isAbsolute(sourceFile)
@@ -50,12 +63,7 @@ function readSourceSymbols(
     : path.resolve(workspaceRoot, sourceFile);
   if (!existsSync(absolutePath)) return [];
 
-  return extractSymbolsFromStagedFile({
-    path: sourceFile,
-    status: "M",
-    hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-    content: readFileSync(absolutePath, "utf8"),
-  });
+  return extractAllSymbols(sourceFile, readFileSync(absolutePath, "utf8"));
 }
 
 function getGranularSymbolsForSourceFile(
@@ -72,26 +80,28 @@ function getGranularSymbolsForSourceFile(
         options.sourceContentByFile,
         options.workspaceRoot ?? process.cwd(),
       );
-  const changedSymbols = options.symbolsByFile.get(sourceFile);
+  const candidateSymbols =
+    options.symbolsByFile.get(sourceFile) ?? sourceSymbols;
 
   return {
-    candidateSymbols: changedSymbols ?? sourceSymbols,
-    sourceSymbols:
-      sourceSymbols.length > 0 ? sourceSymbols : (changedSymbols ?? []),
+    candidateSymbols,
+    sourceSymbols: sourceSymbols.length > 0 ? sourceSymbols : candidateSymbols,
   };
 }
 
 function hasTraceabilityLinks(symbol: ExtractedSymbol): boolean {
-  return (symbol.relationships ?? []).some((relationship) =>
-    isTraceabilityRelationshipType(relationship.type),
+  return (
+    symbol.relationships?.some((relationship) =>
+      isTraceabilityRelationshipType(relationship.type),
+    ) === true
   );
 }
 
 function formatRelationshipTargets(symbol: ExtractedSymbol): string {
   const targets = [
     ...new Set(
-      (symbol.relationships ?? [])
-        .filter((relationship) =>
+      symbol.relationships
+        ?.filter((relationship) =>
           isTraceabilityRelationshipType(relationship.type),
         )
         .map((relationship) => relationship.to),
@@ -107,7 +117,6 @@ function isChangedBehavioralReviewCandidate(symbol: ExtractedSymbol): boolean {
   return symbol.hunkRanges.length > 0;
 }
 
-// implements REQ-cli-staged-impact-enforcement, REQ-cli-check
 export function createSymbolGranularityDiagnostics(
   options: SymbolGranularityDiagnosticsOptions,
 ): KibiImpactDiagnostic[] {
@@ -133,8 +142,7 @@ export function createSymbolGranularityDiagnostics(
       candidateSymbols,
       sourceSymbols,
     );
-    if (narrower.length === 0) continue;
-
+    // No narrower symbols means no behavioral names either.
     const behavioralNames = getBehavioralSymbolNames(narrower);
     if (behavioralNames.length === 0) continue;
 

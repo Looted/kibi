@@ -1,4 +1,3 @@
-// implements REQ-kibi-proof-aware-quality-diagnostics
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

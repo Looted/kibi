@@ -1,4 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-claude-code-kibi-plugin-v1, REQ-020
 /**
  * Repository dogfood contract.
  *

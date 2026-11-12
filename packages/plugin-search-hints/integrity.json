@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-search-hints",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 4029,
-      "sha256": "d79a9798f4978e4c94ba67b9876e9d882573acb1b3c0064127781044be75be23"
+      "bytes": 4189,
+      "sha256": "07a8cbf653b9a97047d7ffcdfd55e39575ecff0670c0a628d9b5c629df7a20c3"
     },
     {
       "path": "LICENSE.md",
@@ -27,7 +27,7 @@
     {
       "path": "SBOM.spdx.json",
       "bytes": 2353,
-      "sha256": "a7060ecf875f653732ca637c217f91a880fa5343257b4321a064c2000e4707f3"
+      "sha256": "69f6d0be33d1b2e0f16aba5dcbaeddde4bd57a19aec853807e964d9e27972aa1"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -47,7 +47,7 @@
     {
       "path": "catalog.json",
       "bytes": 900,
-      "sha256": "ffd66d984f31800bab1b4169b64271935e55faa1ad44b8fde82cda6ba6765bfc"
+      "sha256": "9cf311f5c4325750e276b1c9b868c9aec4f91620b3035fd5f632387e80ff53d2"
     },
     {
       "path": "dist/cache.d.ts",
@@ -57,12 +57,12 @@
     {
       "path": "dist/cache.d.ts.map",
       "bytes": 723,
-      "sha256": "e7fea8c72ed8220c1a029509c865dca37026fc15f3e112237b7f48dca6b2ad43"
+      "sha256": "b4961ecf967c867aa963ff0aced7348aeab8fe45fd88171c9225bf48dd807fb7"
     },
     {
       "path": "dist/cache.js",
-      "bytes": 4326,
-      "sha256": "5c35a4e265c8a48a1adb573770e97ea1a0126e4fc4dd23d7f508f52cce29f450"
+      "bytes": 4283,
+      "sha256": "114aa58ffff06ff3b50d806191c15123ce589d76c9d79d2257c104715d9da0a6"
     },
     {
       "path": "dist/index.d.ts",
@@ -72,12 +72,12 @@
     {
       "path": "dist/index.d.ts.map",
       "bytes": 720,
-      "sha256": "b36616a0cf872a9de7aec8660dbdae5d3b12b9a36ecc07b2d1c250188e6c8d4f"
+      "sha256": "0235afbfceae488d7b0559b81882e99fa2fe95e72c330b4dc287c19414f8e36f"
     },
     {
       "path": "dist/index.js",
-      "bytes": 2978,
-      "sha256": "6a5eff91a9796e7fcc24ad3797d83840119894909f9a34a1858a3892b99ac8f9"
+      "bytes": 2849,
+      "sha256": "ef0a57ef29c12ba2df3bf5a8a2e13249a406bd5450d0b8810e31525707d0c407"
     },
     {
       "path": "dist/model.d.ts",
@@ -87,12 +87,12 @@
     {
       "path": "dist/model.d.ts.map",
       "bytes": 451,
-      "sha256": "e36bf801454b83d4d76902dfd903f7019e7edc74a5b050e232bc299d1036f8fd"
+      "sha256": "a5470076876c76947aafc7b250ca11a1e332b5ac2fafb8688e307862a9ad9c4e"
     },
     {
       "path": "dist/model.js",
-      "bytes": 2765,
-      "sha256": "13af1dc20ce42d374264c14953d40320c2da7b23bf413db4af993bf928251621"
+      "bytes": 2722,
+      "sha256": "2cb1d4ef776173bf4643d845845bf39fdbb9821ecbbace8d535b5887f4f1c25d"
     },
     {
       "path": "dist/tokenizer.d.ts",
@@ -102,12 +102,12 @@
     {
       "path": "dist/tokenizer.d.ts.map",
       "bytes": 476,
-      "sha256": "e44d6f2e0b5e626d8e87e9fc9747e7c1d5bba44f36909ca15a2e69950d516c0c"
+      "sha256": "bfc5f53fb43fe4845ea58afe3a0a4713cc1e8135425daec8c96265e05b241bd5"
     },
     {
       "path": "dist/tokenizer.js",
-      "bytes": 4728,
-      "sha256": "e35b1200ada6df138c36d90a7c861242a1b7eb3a662dadf653bf102495a59cc8"
+      "bytes": 4599,
+      "sha256": "4f020f316e3f57ef312dd9fe9aff7390acd05534fce619ba6ebe63b4dc947e2d"
     },
     {
       "path": "licenses/bge-base-en-v1.5-vocabulary-MIT.txt",
@@ -122,7 +122,7 @@
     {
       "path": "package.json",
       "bytes": 1340,
-      "sha256": "2bf79edeb33e577b2ea75694be34728212d0a257fc9e52d76714a9ef58c28f57"
+      "sha256": "10e53d0717548f7539ee86891222fc82230c731d4c00f8a721e4c0f34b4e3dc6"
     }
   ]
 }

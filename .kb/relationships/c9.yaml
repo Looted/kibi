@@ -1,46 +1,4 @@
 relationships:
-  - id: rel-4174b97b3c31
-    type: implements
-    from: SYM-auto-67CF23A17B69
-    to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:19:08.844Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-  - type: implements
-    from: SYM-auto-0955397546A3
-    to: REQ-kibi-operation-interface-parity
-    created_at: 2026-08-15T22:21:12.562Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-33be390c14d2
-  - type: covered_by
-    from: SYM-auto-67CF23A17B69
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-08-16T07:53:03.629Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b128a400b192
-  - type: covered_by
-    from: SYM-auto-0955397546A3
-    to: TEST-cli-branch-store-recovery
-    created_at: 2026-08-16T07:54:25.149Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7571e4b4223a
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileintentargs
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-16T19:45:30.484Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-13d36a4705e5
-  - type: implements
-    from: SYM-canonical-KB_MANIFEST_VERSION
-    to: REQ-cli-init-canonical
-    created_at: 2026-08-18T17:02:35.068Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-430b0b16750a
   - type: covered_by
     from: SYM-canonical-KB_MANIFEST_VERSION
     to: TEST-cli-canonical-init
@@ -48,83 +6,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acb63488130e
-  - type: covered_by
-    from: SYM-auto-0955397546A3
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:41:25.022Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c01605471d92
-  - type: implements
-    from: SYM-FixtureSetupError
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-23T23:20:21.223Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-719c39e805a3
-  - type: covered_by
-    from: SYM-FixtureSetupError
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-23T23:20:21.234Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a00cba9e7449
-  - type: covered_by
-    from: SYM-cli-PrologProcess-terminate
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-26T07:16:57.694Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6f918e6f9d5c
-  - type: covered_by
-    from: SYM-cli-engine-parse-attachment-identity
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:30:26.601Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-73a747a4623e
-  - type: covered_by
-    from: SYM-cli-PrologProcess-terminate
-    to: TEST-001
-    created_at: 2026-09-05T15:34:27.453Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b339bc0511a9
-  - type: covered_by
-    from: SYM-auto-0955397546A3
-    to: TEST-kibi-operation-interface-parity
-    created_at: 2026-09-05T17:15:27.480Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-69dbbfc6e76e
-  - type: implements
-    from: SYM-quality-producer-selectExactProofSteps
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-09-14T18:54:35.064Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-43a5166afe54
-  - type: covered_by
-    from: SYM-quality-producer-selectExactProofSteps
-    to: TEST-proof-runner-integrity
-    created_at: 2026-09-14T18:54:35.082Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ef52aafec61
-  - type: covered_by
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileintentargs
-    to: TEST-e2e-plan-compiler-hash
-    created_at: 2026-09-18T07:15:18.798Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a533bfad27af
-  - type: covered_by
-    from: SYM-quality-producer-selectExactProofSteps
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-09-18T07:43:02.341Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5d470974cf66
   - type: verified_by
     from: SCEN-skillopt-external-adoption-verdict
     to: TEST-e2e-skillopt-trust-boundaries
@@ -132,20 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9af0207daa7c
-  - type: implements
-    from: SYM-auto-0955397546A3
-    to: REQ-branch-store-recovery-v4
-    created_at: 2026-10-04T02:55:48.674Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9a1d01c4396e
-  - type: implements
-    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileintentargs
-    to: REQ-kibi-change-to-proof-plan-compiler-v2
-    created_at: 2026-10-04T03:01:33.710Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5b513dbefeb1
   - type: implements
     from: SYM-engine-limits-queryLimitsFromEnv
     to: REQ-core-engine-read-limits
@@ -349,3 +216,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dbfb7e2b005d
+  - type: assumes
+    from: SCEN-kibi-case-coverage
+    to: FACT-advisor-case-preview-limit
+    created_at: 2026-11-04T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-223989e0741a
+  - type: assumes
+    from: SCEN-NEG-kb-decision-implicit-supersede-UNREPORTED
+    to: FACT-NEG-kb-decision-implicit-supersede-UNREPORTED
+    created_at: 2026-11-04T15:03:36.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24406de644bd
+  - type: verified_by
+    from: SCEN-NEG-kb-decision-implicit-supersede-UNREPORTED
+    to: TEST-kb-decision-firmness
+    created_at: 2026-11-04T15:03:36.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dced69e4317c
+  - type: constrains
+    from: REQ-kb-requirement-retired-status
+    to: FACT-SUBJECT-kibi-retired-requirement
+    created_at: 2026-11-11T17:30:54.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc8995d1c68c
+  - type: requires_property
+    from: REQ-kb-requirement-retired-status
+    to: FACT-kb-requirement-retired-status-reason-missing-reported
+    created_at: 2026-11-11T17:30:54.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5672178b1706
+  - type: requires_property
+    from: REQ-kb-requirement-retired-status
+    to: FACT-kb-requirement-retired-status-retired-only-dependents-reported
+    created_at: 2026-11-11T17:30:54.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c682f345d09b
+  - type: requires_property
+    from: REQ-kb-requirement-retired-status
+    to: FACT-kb-requirement-retired-status-not-governing
+    created_at: 2026-11-11T17:30:54.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97bf0be51263
+  - type: requires_property
+    from: REQ-kb-requirement-retired-status
+    to: FACT-kb-requirement-retired-status-suggestion-is-review
+    created_at: 2026-11-11T17:30:54.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1bd44d116c5
+  - type: relates_to
+    from: REQ-kb-requirement-retired-status
+    to: REQ-cli-schema-migration
+    created_at: 2026-11-11T17:30:54.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa4e31c81b48
+  - type: relates_to
+    from: REQ-kb-requirement-retired-status
+    to: REQ-core-validation-rules
+    created_at: 2026-11-11T17:30:54.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acb8f87c8630
+  - type: specified_by
+    from: REQ-kb-requirement-retired-status
+    to: SCEN-kb-requirement-retired-status
+    created_at: 2026-11-11T17:31:36.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0f24a44b7b3
+  - type: specified_by
+    from: REQ-kb-requirement-retired-status
+    to: SCEN-kb-requirement-retired-status-migration-suggestion
+    created_at: 2026-11-11T17:31:36.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54061367d54f
+  - type: verified_by
+    from: REQ-kb-requirement-retired-status
+    to: TEST-kb-requirement-retired-status
+    created_at: 2026-11-11T17:31:36.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7cb8e2a75d6
+  - type: specified_by
+    from: REQ-kb-requirement-retired-status
+    to: SCEN-NEG-kb-requirement-retired-status-REASON-UNREPORTED
+    created_at: 2026-11-11T17:42:18.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b49d509eeff
+  - type: specified_by
+    from: REQ-kb-requirement-retired-status
+    to: SCEN-NEG-kb-requirement-retired-status-DEPENDENT-UNREPORTED
+    created_at: 2026-11-11T17:42:18.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7930f927a45b
+  - type: specified_by
+    from: REQ-kb-requirement-retired-status
+    to: SCEN-NEG-kb-requirement-retired-status-STILL-GOVERNS
+    created_at: 2026-11-11T17:42:18.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4c670b60d2a
+  - type: specified_by
+    from: REQ-kb-requirement-retired-status
+    to: SCEN-NEG-kb-requirement-retired-status-SUGGESTION-AUTO-APPLIED
+    created_at: 2026-11-11T17:42:18.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae1fd16d917c

@@ -5,8 +5,6 @@ import os from "node:os";
 import path from "node:path";
 import { analyzeCodeFile } from "../src/comment-analysis";
 
-// implements REQ-opencode-comment-routing
-
 describe("comment-analysis", () => {
   let tmpDir: string;
 

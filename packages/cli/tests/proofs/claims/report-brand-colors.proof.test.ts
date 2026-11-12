@@ -7,8 +7,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { KIBI_BRAND } from "../../../src/report/brand.js";
 
-// implements REQ-kibi-report-brand-colors
-
 /**
  * The brand colours the health report and badge are drawn with. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

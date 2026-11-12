@@ -309,6 +309,57 @@ if (RUN_NODE_TEST_SUITE) {
           }
         },
       );
+
+      it(
+        "keeps missing complete coverage evidence as a report-level repair",
+        { timeout: 300_000 },
+        async (testContext) => {
+          if (!hasProlog) {
+            testContext.skip("SWI-Prolog is unavailable");
+            return;
+          }
+          const usagePath = join(sandbox.repoDir, ".kb", "usage.log");
+          const now = Date.now();
+          // Enough recent events to judge acceptance, but none of them is a
+          // complete requirement coverage report.
+          const events = Array.from({ length: 20 }, (_, index) => ({
+            timestamp: new Date(now - (30 - index) * 1_000).toISOString(),
+            request_id: `status-${index + 1}`,
+            tool: "kb_status",
+            status: "success",
+            telemetry_status: "provided",
+            telemetry: diagnosticTelemetry("session-gap", "actor-gap"),
+            session_id: "session-gap",
+            actor_id: "actor-gap",
+            business_args: {},
+          }));
+          appendFileSync(
+            usagePath,
+            `${events.map((event) => JSON.stringify(event)).join("\n")}\n`,
+          );
+          const result = await kibi(sandbox, [
+            "usage-remediation",
+            "--format",
+            "json",
+          ]);
+          assert.strictEqual(
+            result.exitCode,
+            0,
+            `${result.stdout}${result.stderr}`,
+          );
+          const report = JSON.parse(result.stdout) as RemediationReport;
+          assert.strictEqual(report.status, "action_required");
+          const gap = report.items.find(
+            (item) => item.metric === "proof_gap_recovery",
+          );
+          assert.ok(gap, "missing coverage gap is not reported");
+          assert.strictEqual(gap.scope, "report");
+          assert.strictEqual(gap.target, "coverage:req");
+          assert.strictEqual(gap.event, null);
+          assert.ok(gap.reason.length > 0);
+          assert.ok(gap.action.length > 0);
+        },
+      );
     },
   );
 }

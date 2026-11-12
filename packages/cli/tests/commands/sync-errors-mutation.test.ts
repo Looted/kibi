@@ -1,4 +1,3 @@
-// implements REQ-core-atomic-upsert-persistence
 import { describe, expect, test } from "bun:test";
 import {
   SyncError,

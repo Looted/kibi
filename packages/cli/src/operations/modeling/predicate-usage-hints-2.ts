@@ -1,6 +1,5 @@
 import type { PredicateUsageHints } from "./predicate-types.js";
 
-// implements REQ-mcp-suggest-predicates
 export const PREDICATE_USAGE_HINTS_2: Record<string, PredicateUsageHints> = {
   offline_behavior_rule: {
     use_when: [

@@ -51,7 +51,6 @@ function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-// implements REQ-skillopt-codex-optimization
 export function blindedVariantOrder(taskId: string, skill: CanonicalSkill) {
   const ordered = VARIANTS.map((variant) => ({
     variant,
@@ -332,7 +331,6 @@ function workflowExpectation(task: FixtureTaskSpec) {
   return expectation === undefined ? null : { ...expectation };
 }
 
-// implements REQ-skillopt-predicate-first-requirements
 function buildPredicateExpectation(task: FixtureTaskSpec) {
   if (!isPredicateFamily(task.family)) {
     return null;
@@ -380,8 +378,6 @@ function buildPredicateExpectation(task: FixtureTaskSpec) {
   };
 }
 
-// implements REQ-skillopt-predicate-first-requirements
-// implements REQ-skillopt-codex-optimization
 export function buildPrivateManifest(input: {
   readonly task: FixtureTaskSpec;
   readonly publicManifestHash: string;
@@ -629,7 +625,6 @@ export function buildPrivateManifest(input: {
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function verifyPrivateManifestIntegrity(
   task: FixtureTaskSpec,
   manifest: PrivateEvaluatorManifest,

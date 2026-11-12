@@ -171,7 +171,7 @@ describe("symbol-extract (real integration)", () => {
     ]);
   });
 
-  it("extracts symbols across script kinds and applies inline, manifest, hunk, and hash fallbacks", async () => {
+  it("extracts symbols across script kinds and applies manifest, hunk, and hash fallbacks while ignoring comments", async () => {
     const { extractSymbolsFromStagedFile } =
       await loadSymbolExtractModule("real-script-kinds");
 
@@ -223,7 +223,7 @@ describe("symbol-extract (real integration)", () => {
     ]);
     expect(tsSymbols[0]).toMatchObject({
       kind: "function",
-      reqLinks: ["REQ-INLINE", "REQ_2"],
+      reqLinks: [],
       hunkRanges: [{ start: 1, end: 4 }],
     });
     expect(tsSymbols[1]).toMatchObject({
@@ -283,39 +283,7 @@ describe("symbol-extract (real integration)", () => {
     expect(ctsSymbols[0]).toMatchObject({ name: "CommonMode", kind: "enum" });
   });
 
-  it("ignores empty directive tokens when regex matches trailing whitespace", async () => {
-    const { extractSymbolsFromStagedFile } = await loadSymbolExtractModule(
-      "directive-empty-token",
-    );
-    const originalExec = RegExp.prototype.exec;
-    let seenDirectiveRegex = false;
-
-    RegExp.prototype.exec = function (text: string) {
-      if (this.source.includes("implements\\s*:?\\s*") && !seenDirectiveRegex) {
-        seenDirectiveRegex = true;
-        return Object.assign(["implements: REQ-ONLY   ", "REQ-ONLY   "], {
-          index: 0,
-          input: text,
-        }) as RegExpExecArray;
-      }
-
-      if (this.source.includes("implements\\s*:?\\s*") && seenDirectiveRegex) {
-        return null;
-      }
-
-      return originalExec.call(this, text);
-    };
-
-    const symbols = extractSymbolsFromStagedFile(
-      makeStagedFile("directive.ts", "export function directiveFn() {}", "A"),
-    );
-
-    RegExp.prototype.exec = originalExec;
-
-    expect(symbols[0]?.reqLinks).toEqual(["REQ-ONLY"]);
-  });
-
-  it("preserves typed relationships from staged manifests while inline implements override manifest req links", async () => {
+  it("takes requirement links from the staged manifest and never from an implements comment", async () => {
     const { extractSymbolsFromStagedFile } = await loadSymbolExtractModule(
       "staged-manifest-relationships",
     );
@@ -384,7 +352,7 @@ describe("symbol-extract (real integration)", () => {
     expect(symbols[0]).toMatchObject({
       id: "SYM-STAGED-FN",
       name: "featureFn",
-      reqLinks: ["REQ-INLINE-FN"],
+      reqLinks: ["REQ-MANIFEST-FN"],
       relationships: [
         { type: "implements", to: "REQ-MANIFEST-FN" },
         { type: "covered_by", to: "TEST-MANIFEST-FN" },
@@ -407,7 +375,7 @@ describe("symbol-extract (real integration)", () => {
     expect(symbols[2]?.id).not.toBe("SYM-DISK-VAR");
   });
 
-  it("qualifies duplicate class method symbols and keeps method directives off the class", async () => {
+  it("qualifies duplicate class method symbols and reads no links from method comments", async () => {
     const { extractSymbolsFromStagedFile } =
       await loadSymbolExtractModule("qualified-methods");
 
@@ -438,13 +406,13 @@ describe("symbol-extract (real integration)", () => {
     expect(symbols[1]).toMatchObject({
       name: "Alpha.run",
       kind: "method",
-      reqLinks: ["REQ-ALPHA-RUN"],
+      reqLinks: [],
     });
     expect(symbols[2]).toMatchObject({ name: "Beta", reqLinks: [] });
     expect(symbols[3]).toMatchObject({
       name: "Beta.run",
       kind: "method",
-      reqLinks: ["REQ-BETA-RUN"],
+      reqLinks: [],
     });
     expect(symbols[1]?.id).not.toBe(symbols[3]?.id);
   });
@@ -738,7 +706,7 @@ describe("symbol-extract (cache and failure branches)", () => {
         "ManifestVar",
       ]);
       expect(modified[0]).toMatchObject({
-        reqLinks: ["REQ-INLINE"],
+        reqLinks: [],
         kind: "function",
       });
       expect(modified[1]).toMatchObject({

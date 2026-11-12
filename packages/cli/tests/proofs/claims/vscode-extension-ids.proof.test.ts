@@ -11,8 +11,6 @@ import {
   KIBI_VIEW_ID,
 } from "../../../../vscode/src/extensionIds.js";
 
-// implements REQ-vscode-extension-ids
-
 /**
  * The sidebar container, tree view and tree command ids the VS Code extension contributes. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

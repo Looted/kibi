@@ -1,0 +1,541 @@
+[
+  {
+    "id": "close-superseded-requirements",
+    "code": "close_superseded_requirements",
+    "category": "quality",
+    "state": "ready",
+    "safety": "automatic",
+    "invocation": {
+      "kind": "cli",
+      "command_argv": ["kibi", "migrate", "--yes"]
+    },
+    "affectedEntityIds": ["REQ-OLD"],
+    "affectedFiles": [".kb/requirements/old.md"],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [
+      {
+        "rule": "superseded-requirement-open",
+        "violations": 0
+      }
+    ],
+    "evidence": {
+      "reason": "A requirement another requirement supersedes is retired and must be closed (superseded-requirement-open). Each listed requirement gets status: closed; the rest of its file is unchanged.",
+      "count": 1,
+      "requirements": [
+        {
+          "id": "REQ-OLD",
+          "status": "",
+          "supersededBy": []
+        }
+      ]
+    },
+    "autoApplicable": true,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "migration-sync",
+    "code": "migration_sync",
+    "category": "freshness",
+    "state": "ready",
+    "safety": "automatic",
+    "invocation": {
+      "kind": "cli",
+      "command_argv": ["kibi", "sync"]
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [".kb/branches"],
+    "dependsOn": ["close-superseded-requirements"],
+    "preconditions": [],
+    "postconditions": [
+      {
+        "syncState": "fresh"
+      }
+    ],
+    "evidence": {
+      "reason": "Earlier migration actions rewrite authored sources; recompile them so status, check and coverage read the migrated KB."
+    },
+    "autoApplicable": true,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "untracked-knowledge-sources",
+    "code": "untracked_knowledge_sources",
+    "category": "relationship",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "2 authored relationship(s) are missing from the compiled KB because 2 file(s) declaring their endpoints are not tracked by Git and no pending-source receipt covers them: a.md, b.md. Stage them (git add; staging is enough, Kibi never stages files itself) or rewrite the entities with kb_upsert, then run kibi sync and rerun kibi migrate."
+    },
+    "affectedEntityIds": ["E1", "E2"],
+    "affectedFiles": ["a.md", "b.md"],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [
+      {
+        "rule": "source-relationship-parity",
+        "findings": 0
+      }
+    ],
+    "evidence": {
+      "relationshipCount": 2,
+      "files": ["a.md", "b.md"],
+      "relationships": [
+        {
+          "from": "E1",
+          "to": "E2"
+        }
+      ]
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "check-required-fields-REQ-1-1",
+    "code": "check_required-fields",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Add a title."
+    },
+    "affectedEntityIds": ["REQ-1"],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "violation": {
+        "rule": "required-fields",
+        "entityId": "REQ-1",
+        "suggestion": "Add a title."
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "check-check-workspace-2",
+    "code": "check_check",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Described."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "violation": {
+        "rule": 3,
+        "description": "Described."
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "check-check-workspace-3",
+    "code": "check_check",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review the blocking validation violation."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "violation": {
+        "entityId": 4
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "check-source-relationship-parity-workspace-7",
+    "code": "check_source-relationship-parity",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review the blocking validation violation."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "violation": {
+        "rule": "source-relationship-parity",
+        "evidence": {
+          "untrackedSources": []
+        }
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "check-source-relationship-parity-workspace-8",
+    "code": "check_source-relationship-parity",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review the blocking validation violation."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "violation": {
+        "rule": "source-relationship-parity",
+        "evidence": "none"
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "check-source-relationship-parity-workspace-9",
+    "code": "check_source-relationship-parity",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review the blocking validation violation."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "violation": {
+        "rule": "source-relationship-parity",
+        "evidence": {
+          "untrackedSources": "a.md"
+        }
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "review-exception-unapproved-EXC-1",
+    "code": "review_exception_unapproved",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "EXC-1 exempts  but has no approved_by, so it exempts nothing: success scenarios it specifies are checked against  and fail scenario-feasibility if they assume a forbidden value. If a human approved the exception, kb_upsert EXC-1 with approved_by set to that person and approval_ref to the decision record. If not, remove the exempts link (kb_delete relationships [{type: exempts, from: EXC-1, to: <base>}]) and set expects: rejection on the scenario, or correct its assumes facts."
+    },
+    "affectedEntityIds": ["EXC-1"],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "exceptionId": "EXC-1",
+      "exempts": []
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "diagnostic-rule.x-REQ-2-1",
+    "code": "quality_rule.x",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Fix x."
+    },
+    "affectedEntityIds": ["REQ-2"],
+    "affectedFiles": ["f.md"],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "diagnostic": {
+        "id": "rule.x",
+        "entityId": "REQ-2",
+        "suggestion": "Fix x.",
+        "files": ["f.md", 3],
+        "blocking": true
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "diagnostic-quality-workspace-2",
+    "code": "quality_quality",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review this quality diagnostic."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "diagnostic": {
+        "id": 5,
+        "files": "f.md"
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "predicate-schema-alignment-FACT-1",
+    "code": "predicate_schema_alignment",
+    "category": "semantic",
+    "state": "ready",
+    "safety": "automatic",
+    "invocation": {
+      "kind": "operation",
+      "name": "kb_upsert",
+      "input": {
+        "type": "fact",
+        "id": "FACT-1",
+        "properties": {
+          "a": 1
+        }
+      }
+    },
+    "affectedEntityIds": ["FACT-1"],
+    "affectedFiles": [".kb/facts/p.md"],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [
+      {
+        "rule": "predicate-schema-conformance",
+        "entityId": "FACT-1",
+        "findings": 0
+      }
+    ],
+    "evidence": {
+      "issue": "namespace",
+      "namespace": "ns",
+      "alignment": "align",
+      "rewrites": ["r"]
+    },
+    "autoApplicable": true,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "predicate-schema-alignment-FACT-2",
+    "code": "predicate_schema_alignment",
+    "category": "semantic",
+    "state": "ready",
+    "safety": "automatic",
+    "invocation": {
+      "kind": "operation",
+      "name": "kb_upsert",
+      "input": {
+        "type": "fact",
+        "id": "FACT-2",
+        "properties": {}
+      }
+    },
+    "affectedEntityIds": ["FACT-2"],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [
+      {
+        "rule": "predicate-schema-conformance",
+        "entityId": "FACT-2",
+        "findings": 0
+      }
+    ],
+    "evidence": {},
+    "autoApplicable": true,
+    "dispositionRequired": false,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "diagnostic-rule.predicate-schema-conformance-workspace-6",
+    "code": "quality_rule.predicate-schema-conformance",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review this quality diagnostic."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "diagnostic": {
+        "id": "rule.predicate-schema-conformance",
+        "evidence": {
+          "repair": {
+            "type": "req",
+            "id": "R",
+            "properties": {}
+          }
+        }
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "diagnostic-rule.predicate-schema-conformance-workspace-7",
+    "code": "quality_rule.predicate-schema-conformance",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review this quality diagnostic."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "diagnostic": {
+        "id": "rule.predicate-schema-conformance",
+        "evidence": {
+          "repair": {
+            "type": "fact",
+            "id": 1,
+            "properties": {}
+          }
+        }
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "diagnostic-rule.predicate-schema-conformance-workspace-8",
+    "code": "quality_rule.predicate-schema-conformance",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review this quality diagnostic."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "diagnostic": {
+        "id": "rule.predicate-schema-conformance",
+        "evidence": {
+          "repair": {
+            "type": "fact",
+            "id": "F",
+            "properties": []
+          }
+        }
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "diagnostic-rule.predicate-schema-conformance-workspace-9",
+    "code": "quality_rule.predicate-schema-conformance",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review this quality diagnostic."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "diagnostic": {
+        "id": "rule.predicate-schema-conformance",
+        "evidence": {
+          "repair": "none"
+        }
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  },
+  {
+    "id": "diagnostic-rule.predicate-schema-conformance-workspace-10",
+    "code": "quality_rule.predicate-schema-conformance",
+    "category": "quality",
+    "state": "ready",
+    "safety": "review",
+    "invocation": {
+      "kind": "review",
+      "instruction": "Review this quality diagnostic."
+    },
+    "affectedEntityIds": [],
+    "affectedFiles": [],
+    "dependsOn": [],
+    "preconditions": [],
+    "postconditions": [],
+    "evidence": {
+      "diagnostic": {
+        "id": "rule.predicate-schema-conformance",
+        "evidence": "none"
+      }
+    },
+    "autoApplicable": false,
+    "dispositionRequired": true,
+    "allowedDispositions": ["fixed", "accepted", "deferred"]
+  }
+]

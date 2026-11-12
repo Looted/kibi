@@ -34,7 +34,6 @@ interface ToolConfig {
   annotations?: ToolAnnotations;
 }
 
-// implements REQ-kibi-mcp-tool-consolidation
 /**
  * The agent-facing tool list. Narrower operations (kb_skills_list,
  * kb_semantic_advisor, kb_model_requirement, kb_suggest_predicates,
@@ -62,19 +61,16 @@ const MCP_TOOL_ORDER = [
 ] as const satisfies readonly OperationName[];
 
 /** Tools registered only when named in KIBI_MCP_OPTIONAL_TOOLS. */
-// implements REQ-kibi-mcp-tool-consolidation
 export const OPTIONAL_TOOL_NAMES = [
   "kb_sparql_remote",
   "kb_job_status",
 ] as const;
-// implements REQ-kibi-mcp-tool-consolidation
 export type OptionalToolName = (typeof OPTIONAL_TOOL_NAMES)[number];
 
 /**
  * Parse KIBI_MCP_OPTIONAL_TOOLS: a comma-separated list of optional tool
  * names, or "all".
  */
-// implements REQ-kibi-mcp-tool-consolidation
 export function enabledOptionalTools(
   value: string | undefined = process.env.KIBI_MCP_OPTIONAL_TOOLS,
 ): ReadonlySet<OptionalToolName> {
@@ -87,7 +83,6 @@ export function enabledOptionalTools(
   );
 }
 
-// implements REQ-002
 /**
  * Presentation titles. The behaviour hints come from the operation effects
  * (see toolConfig), so only the tools MCP exposes need an entry here.
@@ -149,7 +144,6 @@ function toolConfig(name: keyof typeof TOOL_TITLES): ToolConfig {
 }
 
 /** Catalog tool configs for the base list plus the given optional tools. */
-// implements REQ-kibi-mcp-tool-consolidation
 export function buildBaseTools(
   optional: ReadonlySet<OptionalToolName> = enabledOptionalTools(),
 ): ToolConfig[] {

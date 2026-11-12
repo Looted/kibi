@@ -61,7 +61,7 @@ The impact policy file shall be .kibi/impact-policy.json. The impact policy vers
 
 ## Context
 
-packages/cli/src/traceability/impact-review.ts versions the review, policy and evaluator documents REQ-impact-policy-stage-e-content-bound-review binds to staged content, and names the policy file a project commits. They are stated here so every identifier is proved against its constant.
+packages/cli/src/traceability/impact-review.ts versions the review, policy and evaluator documents REQ-kibi-impact-review-content-bound binds to staged content, and names the policy file a project commits. They are stated here so every identifier is proved against its constant.
 
 ## Source
 

@@ -1,0 +1,564 @@
+{
+  "version": "kibi.legacy-migration-plan.v1",
+  "codeSnapshot": "code-1",
+  "repairPlanId": "repair-plan-1",
+  "scope": {
+    "repairPlanComplete": true,
+    "candidateRequirements": 6,
+    "selectedRequirements": 6,
+    "offset": 0,
+    "limit": 10,
+    "selectionComplete": true,
+    "nextOffset": null
+  },
+  "batches": [
+    {
+      "id": "legacy-migration-REQ-a",
+      "requirementId": "REQ-a",
+      "repairBatchId": "repair-REQ-a",
+      "dependsOn": ["dep-REQ-a"],
+      "state": "ready_for_review",
+      "autoApplicable": false,
+      "sourceBinding": {
+        "status": "compatible",
+        "sourceFile": "docs/a.md",
+        "sourceKind": "authored_markdown_body",
+        "sourceHash": "hash:alpha body",
+        "sourceByteLength": 10,
+        "persistedField": "semantic_text",
+        "existingTextRef": null,
+        "existingSemanticText": null,
+        "reason": "Authored Markdown can be reviewed in the dedicated semantic_text field."
+      },
+      "sourceText": "alpha body",
+      "claimDelta": {
+        "preserved": ["keep", "zkeep"],
+        "added": ["new-a", "new-b"],
+        "stale": ["a kb:entity/b", "old", "zold"]
+      },
+      "propositions": [
+        {
+          "claimKey": "REQ-a:n",
+          "claimText": "n text",
+          "role": "clause",
+          "inventoryStatus": "nonlogical",
+          "span": {
+            "start": 0,
+            "end": 1
+          },
+          "recommendedLane": "nonlogical",
+          "disposition": "nonlogical",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        },
+        {
+          "claimKey": "REQ-a:s",
+          "claimText": "s text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 1,
+            "end": 2
+          },
+          "recommendedLane": "strict_property",
+          "disposition": "strict_property_candidate",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        },
+        {
+          "claimKey": "REQ-a:r",
+          "claimText": "r text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 2,
+            "end": 3
+          },
+          "recommendedLane": "rule",
+          "disposition": "rule_candidate",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        },
+        {
+          "claimKey": "REQ-a:p",
+          "claimText": "p text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 3,
+            "end": 4
+          },
+          "recommendedLane": "predicate",
+          "disposition": "predicate_candidate",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        },
+        {
+          "claimKey": "REQ-a:ranked",
+          "claimText": "ranked text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 4,
+            "end": 5
+          },
+          "recommendedLane": "predicate",
+          "disposition": "predicate_candidate",
+          "predicateCandidates": [
+            {
+              "schemaId": "P-top",
+              "origin": "project_local",
+              "predicateName": "ztop",
+              "argumentNames": ["subject"],
+              "argumentTypes": ["entity"],
+              "score": 0.9,
+              "bindingStatus": "complete",
+              "unboundArguments": ["SUBJECT"],
+              "polarity": "assert",
+              "canonicalKey": "P-top:ranked text",
+              "writeEligible": false
+            },
+            {
+              "schemaId": "P-0",
+              "origin": "project_local",
+              "predicateName": "zalpha",
+              "argumentNames": ["thing"],
+              "argumentTypes": ["entity"],
+              "score": 0.5,
+              "bindingStatus": "incomplete",
+              "unboundArguments": ["SUBJECT"],
+              "polarity": "assert",
+              "canonicalKey": "P-0:ranked text",
+              "writeEligible": false
+            },
+            {
+              "schemaId": "P-1",
+              "origin": "project_local",
+              "predicateName": "zalpha",
+              "argumentNames": ["subject"],
+              "argumentTypes": ["entity"],
+              "score": 0.5,
+              "bindingStatus": "incomplete",
+              "unboundArguments": ["SUBJECT"],
+              "polarity": "assert",
+              "canonicalKey": "P-1:ranked text",
+              "writeEligible": false
+            },
+            {
+              "schemaId": "P-beta",
+              "origin": "project_local",
+              "predicateName": "zbeta",
+              "argumentNames": ["subject"],
+              "argumentTypes": ["entity"],
+              "score": 0.5,
+              "bindingStatus": "incomplete",
+              "unboundArguments": ["SUBJECT"],
+              "polarity": "assert",
+              "canonicalKey": "P-beta:ranked text",
+              "writeEligible": false
+            },
+            {
+              "schemaId": "FACT-SCHEMA-STATE",
+              "origin": "built_in",
+              "predicateName": "state",
+              "argumentNames": ["subject", "state"],
+              "argumentTypes": ["entity", "state"],
+              "score": 0.5,
+              "bindingStatus": "incomplete",
+              "unboundArguments": ["SUBJECT"],
+              "polarity": "assert",
+              "canonicalKey": "FACT-SCHEMA-STATE:ranked text",
+              "writeEligible": false
+            }
+          ],
+          "reviewRequired": true
+        },
+        {
+          "claimKey": "REQ-a:amb",
+          "claimText": "amb text",
+          "role": "clause",
+          "inventoryStatus": "ambiguous",
+          "span": {
+            "start": 5,
+            "end": 6
+          },
+          "recommendedLane": "unresolved",
+          "disposition": "unresolved_ambiguity",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        },
+        {
+          "claimKey": "REQ-a:obs",
+          "claimText": "obs text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 6,
+            "end": 7
+          },
+          "recommendedLane": "unresolved",
+          "disposition": "unresolved_ambiguity",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        },
+        {
+          "claimKey": "REQ-a:gap",
+          "claimText": "gap text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 7,
+            "end": 8
+          },
+          "recommendedLane": "unresolved",
+          "disposition": "unresolved_ontology_gap",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        }
+      ],
+      "requirementPropertyPatchPreview": {
+        "semantic_text": "alpha body",
+        "logic_claims": ["zkeep", "keep", "new-b", "new-a"],
+        "semantic_clauses": ["clause one", "clause two"],
+        "semantic_inventory_version": "inv-1",
+        "semantic_source_field": "semantic_text",
+        "semantic_source_hash": "inventory:alpha body",
+        "semantic_inventory": [
+          {
+            "claim_key": "REQ-a:n",
+            "claim_text": "n text",
+            "role": "clause",
+            "status": "nonlogical",
+            "span": {
+              "start": 0,
+              "end": 1
+            }
+          },
+          {
+            "claim_key": "REQ-a:s",
+            "claim_text": "s text",
+            "role": "clause",
+            "status": "assertive",
+            "span": {
+              "start": 1,
+              "end": 2
+            },
+            "reason": "why"
+          },
+          {
+            "claim_key": "REQ-a:r",
+            "claim_text": "r text",
+            "role": "clause",
+            "status": "assertive",
+            "span": {
+              "start": 2,
+              "end": 3
+            }
+          },
+          {
+            "claim_key": "REQ-a:p",
+            "claim_text": "p text",
+            "role": "clause",
+            "status": "assertive",
+            "span": {
+              "start": 3,
+              "end": 4
+            }
+          },
+          {
+            "claim_key": "REQ-a:ranked",
+            "claim_text": "ranked text",
+            "role": "clause",
+            "status": "assertive",
+            "span": {
+              "start": 4,
+              "end": 5
+            }
+          },
+          {
+            "claim_key": "REQ-a:amb",
+            "claim_text": "amb text",
+            "role": "clause",
+            "status": "ambiguous",
+            "span": {
+              "start": 5,
+              "end": 6
+            }
+          },
+          {
+            "claim_key": "REQ-a:obs",
+            "claim_text": "obs text",
+            "role": "clause",
+            "status": "assertive",
+            "span": {
+              "start": 6,
+              "end": 7
+            }
+          },
+          {
+            "claim_key": "REQ-a:gap",
+            "claim_text": "gap text",
+            "role": "clause",
+            "status": "assertive",
+            "span": {
+              "start": 7,
+              "end": 8
+            }
+          }
+        ]
+      },
+      "diagnostics": ["warning for REQ-a"]
+    },
+    {
+      "id": "legacy-migration-REQ-c",
+      "requirementId": "REQ-c",
+      "repairBatchId": "repair-REQ-c",
+      "dependsOn": ["dep-REQ-c"],
+      "state": "ready_for_review",
+      "autoApplicable": false,
+      "sourceBinding": {
+        "status": "compatible",
+        "sourceFile": null,
+        "sourceKind": "authored_markdown_body",
+        "sourceHash": "hash:same",
+        "sourceByteLength": 4,
+        "persistedField": "semantic_text",
+        "existingTextRef": null,
+        "existingSemanticText": "same",
+        "reason": "Authored Markdown can be reviewed in the dedicated semantic_text field."
+      },
+      "sourceText": "same",
+      "claimDelta": {
+        "preserved": ["keep"],
+        "added": ["new-a", "new-b", "zkeep"],
+        "stale": []
+      },
+      "propositions": [
+        {
+          "claimKey": "REQ-c:gap",
+          "claimText": "gap text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 0,
+            "end": 1
+          },
+          "recommendedLane": "unresolved",
+          "disposition": "unresolved_ontology_gap",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        }
+      ],
+      "requirementPropertyPatchPreview": {
+        "semantic_text": "same",
+        "logic_claims": ["zkeep", "keep", "new-b", "new-a"],
+        "semantic_clauses": ["clause one", "clause two"],
+        "semantic_inventory_version": "inv-1",
+        "semantic_source_field": "semantic_text",
+        "semantic_source_hash": "inventory:same",
+        "semantic_inventory": [
+          {
+            "claim_key": "REQ-c:gap",
+            "claim_text": "gap text",
+            "role": "clause",
+            "status": "assertive",
+            "span": {
+              "start": 0,
+              "end": 1
+            }
+          }
+        ]
+      },
+      "diagnostics": ["warning for REQ-c"]
+    },
+    {
+      "id": "legacy-migration-REQ-e",
+      "requirementId": "REQ-e",
+      "repairBatchId": "repair-REQ-e",
+      "dependsOn": ["dep-REQ-e"],
+      "state": "blocked",
+      "autoApplicable": false,
+      "sourceBinding": {
+        "status": "missing",
+        "sourceFile": null,
+        "sourceKind": "authored_markdown_body",
+        "sourceHash": null,
+        "sourceByteLength": 0,
+        "persistedField": null,
+        "existingTextRef": null,
+        "existingSemanticText": null,
+        "reason": "Requirement REQ-e is present in the repair plan but absent from exact KB query results."
+      },
+      "sourceText": null,
+      "claimDelta": {
+        "preserved": [],
+        "added": [],
+        "stale": []
+      },
+      "propositions": [],
+      "requirementPropertyPatchPreview": null,
+      "diagnostics": [
+        "Requirement REQ-e is present in the repair plan but absent from exact KB query results."
+      ]
+    },
+    {
+      "id": "legacy-migration-REQ-f",
+      "requirementId": "REQ-f",
+      "repairBatchId": "repair-REQ-f",
+      "dependsOn": ["dep-REQ-f"],
+      "state": "blocked",
+      "autoApplicable": false,
+      "sourceBinding": {
+        "status": "missing",
+        "sourceFile": "docs/f.md",
+        "sourceKind": "authored_markdown_body",
+        "sourceHash": null,
+        "sourceByteLength": 0,
+        "persistedField": null,
+        "existingTextRef": null,
+        "existingSemanticText": null,
+        "reason": "Requirement REQ-f has no readable authored Markdown body inside the workspace."
+      },
+      "sourceText": null,
+      "claimDelta": {
+        "preserved": [],
+        "added": [],
+        "stale": []
+      },
+      "propositions": [],
+      "requirementPropertyPatchPreview": null,
+      "diagnostics": [
+        "Requirement REQ-f has no readable authored Markdown body inside the workspace."
+      ]
+    },
+    {
+      "id": "legacy-migration-REQ-g",
+      "requirementId": "REQ-g",
+      "repairBatchId": "repair-REQ-g",
+      "dependsOn": ["dep-REQ-g"],
+      "state": "blocked",
+      "autoApplicable": false,
+      "sourceBinding": {
+        "status": "conflict",
+        "sourceFile": "docs/g.md",
+        "sourceKind": "authored_markdown_body",
+        "sourceHash": "hash:gee",
+        "sourceByteLength": 3,
+        "persistedField": null,
+        "existingTextRef": null,
+        "existingSemanticText": "different",
+        "reason": "Requirement REQ-g has semantic_text that differs from its normalized authored Markdown body; review the source drift before applying this migration."
+      },
+      "sourceText": "gee",
+      "claimDelta": {
+        "preserved": [],
+        "added": ["keep", "new-a", "new-b", "zkeep"],
+        "stale": []
+      },
+      "propositions": [
+        {
+          "claimKey": "REQ-g:gap",
+          "claimText": "gap text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 0,
+            "end": 1
+          },
+          "recommendedLane": "unresolved",
+          "disposition": "unresolved_ontology_gap",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        }
+      ],
+      "requirementPropertyPatchPreview": null,
+      "diagnostics": [
+        "Requirement REQ-g has semantic_text that differs from its normalized authored Markdown body; review the source drift before applying this migration.",
+        "warning for REQ-g"
+      ]
+    },
+    {
+      "id": "legacy-migration-REQ-h",
+      "requirementId": "REQ-h",
+      "repairBatchId": "repair-REQ-h",
+      "dependsOn": ["dep-REQ-h"],
+      "state": "ready_for_review",
+      "autoApplicable": false,
+      "sourceBinding": {
+        "status": "compatible",
+        "sourceFile": "docs/h.md",
+        "sourceKind": "authored_markdown_body",
+        "sourceHash": "hash:hé",
+        "sourceByteLength": 3,
+        "persistedField": "semantic_text",
+        "existingTextRef": "ref",
+        "existingSemanticText": null,
+        "reason": "Authored Markdown can be reviewed in semantic_text while preserving the independent text_ref evidence."
+      },
+      "sourceText": "hé",
+      "claimDelta": {
+        "preserved": [],
+        "added": ["keep", "new-a", "new-b", "zkeep"],
+        "stale": []
+      },
+      "propositions": [
+        {
+          "claimKey": "REQ-h:gap",
+          "claimText": "gap text",
+          "role": "clause",
+          "inventoryStatus": "assertive",
+          "span": {
+            "start": 0,
+            "end": 1
+          },
+          "recommendedLane": "unresolved",
+          "disposition": "unresolved_ontology_gap",
+          "predicateCandidates": [],
+          "reviewRequired": true
+        }
+      ],
+      "requirementPropertyPatchPreview": {
+        "semantic_text": "hé",
+        "logic_claims": ["zkeep", "keep", "new-b", "new-a"],
+        "semantic_clauses": ["clause one", "clause two"],
+        "semantic_inventory_version": "inv-1",
+        "semantic_source_field": "semantic_text",
+        "semantic_source_hash": "inventory:hé",
+        "semantic_inventory": [
+          {
+            "claim_key": "REQ-h:gap",
+            "claim_text": "gap text",
+            "role": "clause",
+            "status": "assertive",
+            "span": {
+              "start": 0,
+              "end": 1
+            }
+          }
+        ]
+      },
+      "diagnostics": ["warning for REQ-h"]
+    }
+  ],
+  "readOnly": true,
+  "status": "ready",
+  "applicationPolicy": {
+    "previewOnly": true,
+    "reviewEveryProposition": true,
+    "preserveExistingTextRefs": true,
+    "exactBindingsBeforeWrite": true,
+    "validateBeforeEachWrite": true,
+    "sequentialUpsertsOnly": true,
+    "recheckContradictionsAfterEachBatch": true
+  },
+  "summary": {
+    "batchCount": 6,
+    "readyBatchCount": 3,
+    "blockedBatchCount": 3,
+    "propositionCount": 11,
+    "assertivePropositionCount": 10,
+    "unresolvedPropositionCount": 6,
+    "predicateCandidateCount": 5
+  },
+  "diagnostics": ["schema note"]
+}

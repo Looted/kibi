@@ -9,6 +9,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-10-09: UI design plugin'
+  approved_by: maintainer
   recorded_at: '2026-10-09T12:13:47.366Z'
 rationale: UI design enforcement is experimental and only useful for projects with a frontend, so it ships as an optional package rather than as default behavior.
 semantic_text: The kibi-plugin-ui policy must require React and Angular components to implement a requirement grounded in UI design predicates. The kibi-plugin-ui policy must require implementing component files and their html templates to contain every pattern marker of their requirement pattern. The kibi-plugin-ui package must declare no permissions.

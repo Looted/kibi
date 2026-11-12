@@ -83,7 +83,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** The complete trust decision. SHA identifies provenance; only the snapshot identifies proof. */
-// implements REQ-kibi-verification-evidence-contract
 export function assessProofReuse(input: ReuseInput): ReuseDecision {
   const mergeSnapshot = input.snapshot.hash;
   const intoDevelop = input.baseRef === "develop";
@@ -274,7 +273,6 @@ async function findProofRun(
  * proof has finished. Returns the develop push runs for `sha` that are still
  * queued or running; the caller waits on them instead of re-proving.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function pendingDevelopProofRuns(
   response: unknown,
   sha: string,
@@ -326,10 +324,9 @@ async function waitForDevelopProof(
       `repos/${repository}/actions/workflows/proof.yml/runs?${query}`,
     );
     const pending = pendingDevelopProofRuns(response, sha);
-    const seen =
-      isRecord(response) && Array.isArray(response.workflow_runs)
-        ? response.workflow_runs.length
-        : 0;
+    // pendingDevelopProofRuns has already rejected a malformed listing.
+    const seen = (response as { workflow_runs: unknown[] }).workflow_runs
+      .length;
     const waited = (Date.now() - started) / 1000;
     if (pending.length === 0 && seen > 0) return;
     if (waited >= (seen === 0 ? appearGrace : maxWait)) return;
@@ -523,8 +520,8 @@ async function decide(outputPath: string): Promise<void> {
     );
 }
 
-if (import.meta.main) {
-  const [command, output] = process.argv.slice(2);
+export async function main(argv: readonly string[]): Promise<void> {
+  const [command, output] = argv;
   if (!output || (command !== "attest" && command !== "decide"))
     throw new Error(
       "usage: bun scripts/ci-proof-reuse.ts attest|decide <output-path>",
@@ -532,3 +529,5 @@ if (import.meta.main) {
   if (command === "attest") await attest(output);
   else await decide(output);
 }
+
+if (import.meta.main) await main(process.argv.slice(2));

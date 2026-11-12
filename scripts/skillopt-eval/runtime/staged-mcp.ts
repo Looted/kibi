@@ -120,7 +120,6 @@ function manifestDependencies(manifest: unknown): readonly string[] {
  * package that needs it. Optional and peer dependencies that are not installed
  * are skipped, as Node would fail to resolve them too.
  */
-// implements REQ-skillopt-codex-optimization
 export async function stageRuntimePackage(
   name: string,
   fromDirectory: string,
@@ -235,7 +234,6 @@ async function copyRuntimeResources(
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function stageKibiMcpRuntime(
   workspace: Pick<IsolationWorkspace, "target" | "privateEvidence">,
   sourceWorktree: string,

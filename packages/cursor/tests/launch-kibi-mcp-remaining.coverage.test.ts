@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as fs from "node:fs";
 import {

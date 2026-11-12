@@ -8,7 +8,6 @@ interface StatusOptions {
 }
 
 export async function statusCommand(options: StatusOptions): Promise<void> {
-  // implements REQ-003, REQ-kibi-operation-interface-parity
   const result = await executeOperation(
     createCliRuntime(),
     statusSpec,

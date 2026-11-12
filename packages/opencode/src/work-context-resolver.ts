@@ -230,7 +230,6 @@ function authoritativeForPosture(posture: RepoPosture): boolean {
   return posture === "root_active" || posture === "hybrid_root_plus_vendored";
 }
 
-// implements REQ-opencode-worktree-hard-enforcement-v1
 const resolveWorkContext = function resolveWorkContext(
   input: ResolveWorkContextInput,
 ): WorkContext {

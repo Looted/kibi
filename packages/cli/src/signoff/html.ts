@@ -263,7 +263,6 @@ function questionsBody(view: SignoffQuestions): string {
   return parts.join("\n");
 }
 
-// implements REQ-kibi-signoff-views
 /** A signoff view as a self-contained HTML page with no network assets. */
 export function renderSignoffHtml(view: SignoffView): string {
   const heading =

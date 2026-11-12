@@ -12,7 +12,6 @@ import type { FrozenVariant } from "./variants";
 
 type ReportV1 = Readonly<z.infer<typeof ReportV1Schema>>;
 
-// implements REQ-skillopt-codex-optimization
 export type BuildProposalInput = Readonly<{
   proposalId: string;
   createdAt: string;
@@ -72,7 +71,6 @@ function assertCandidateIntegrity(input: BuildProposalInput): void {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export function buildProposal(input: BuildProposalInput): Proposal {
   const report = ReportV1Schema.parse(input.report);
   assertPassingReport(report);

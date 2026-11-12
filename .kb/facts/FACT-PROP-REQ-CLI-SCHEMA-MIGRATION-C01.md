@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: kibi.migration.schema_version
-property_key: clause_01_the_cli_must_provide_an_idempotent_migration_pat
+property_key: idempotent_schema_migration
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_cli_schema_migration.clause_01_the_cli_must_provide_an_idempotent_migration_pat.eq.true
+canonical_key: req.req_cli_schema_migration.idempotent_schema_migration.eq.true
 claim_key: CLAIM-E34E624D48A4327B
 claim_text: The CLI must provide an idempotent migration path for branch KB schema changes, including dry-run preview, explicit application, audit metadata, compatibility remediation for legacy ontology data, and a non-mutating semantic-advisor backfill marker for existing requirement prose
 id: FACT-PROP-REQ-CLI-SCHEMA-MIGRATION-C01

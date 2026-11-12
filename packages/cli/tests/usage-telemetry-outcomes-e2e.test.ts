@@ -1,4 +1,3 @@
-// implements REQ-kibi-telemetry-expected-outcomes
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -122,7 +121,6 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
         "{}",
       );
       expect(malformed.exitCode).toBe(2);
-      // implements REQ-kibi-telemetry-agent-signals
       // The same entity again: a retry after a refusal.
       const retried = await runKibi(
         ["upsert", "--input", "-"],
@@ -200,6 +198,63 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
       expect(payload).not.toContain("zebra");
       expect(payload).not.toContain("REQ-other");
       expect(payload).not.toContain(workspace);
+    } finally {
+      collector.stop();
+    }
+  }, 240_000);
+
+  test("a retry marker stays on the machine as a one-way hash, never the raw entity id", async () => {
+    const workspace = gitWorkspace();
+    const state = temporaryDirectory("kibi-outcome-state-");
+    const collector = startCollector();
+    try {
+      const env = {
+        KIBI_TELEMETRY: "1",
+        KIBI_TELEMETRY_DIR: state,
+        KIBI_TELEMETRY_HOST: collector.url,
+      };
+      expect(
+        (await runKibi(["init", "--no-hooks"], workspace, env)).exitCode,
+      ).toBe(0);
+      const payload = JSON.stringify({
+        type: "req",
+        id: "REQ-private-retry-target",
+        properties: { title: "Private retry target", status: "bogus" },
+      });
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const refused = await runKibi(
+          ["upsert", "--input", "-"],
+          workspace,
+          env,
+          payload,
+        );
+        expect(refused.exitCode).toBe(1);
+      }
+
+      const recentFile = path.join(state, "telemetry-recent.json");
+      const recent = JSON.parse(fs.readFileSync(recentFile, "utf8")) as {
+        calls: { k: unknown }[];
+      };
+      const keys = recent.calls.map((call) => call.k);
+      // Both upserts recorded the same retry marker, as a short hex hash.
+      expect(keys.length).toBeGreaterThanOrEqual(2);
+      for (const key of keys) expect(key).toMatch(/^[0-9a-f]{16}$/);
+      expect(new Set(keys).size).toBe(1);
+      const marker = keys[0] as string;
+
+      // No file Kibi keeps holds the raw id, and only the local recall file
+      // holds the marker: nothing queued to send carries it.
+      for (const name of fs.readdirSync(state, { recursive: true })) {
+        const file = path.join(state, String(name));
+        if (!fs.statSync(file).isFile()) continue;
+        const text = fs.readFileSync(file, "utf8");
+        expect(text).not.toContain("REQ-private-retry-target");
+        expect(text).not.toContain(workspace);
+        if (file !== recentFile) expect(text).not.toContain(marker);
+      }
+      const sent = JSON.stringify(collector.batches);
+      expect(sent).not.toContain("REQ-private-retry-target");
+      expect(sent).not.toContain(marker);
     } finally {
       collector.stop();
     }

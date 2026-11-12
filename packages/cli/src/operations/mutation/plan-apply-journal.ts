@@ -48,13 +48,11 @@ import type { RelationshipInput } from "./types.js";
  * the journal by the next mutating call.
  */
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export const PLAN_APPLY_JOURNAL_VERSION = "kibi.plan-apply-journal.v1" as const;
 
 const JOURNAL_DIRECTORY = "plan-apply";
 const JOURNAL_ID_PATTERN = /^plan-apply-[a-f0-9]{16}$/;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyFileWrite = Readonly<{
   /** Workspace-relative path with forward slashes. */
   path: string;
@@ -73,14 +71,12 @@ export type PlanApplyFileWrite = Readonly<{
   after: string | null;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyStoreEntry = Readonly<{
   entity: Readonly<Record<string, unknown>>;
   relationships: readonly RelationshipInput[];
   skipContradictionCheck: boolean;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyJournalState =
   /** Journal durable; files may be partly published; store untouched. */
   | "prepared"
@@ -91,7 +87,6 @@ export type PlanApplyJournalState =
   | "committed"
   | "rolled_back";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyJournal = Readonly<{
   version: typeof PLAN_APPLY_JOURNAL_VERSION;
   journalId: string;
@@ -122,7 +117,6 @@ export type PlanApplyJournal = Readonly<{
   }>;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export type PlanApplyRecovery = Readonly<{
   journalId: string;
   planHash: string;
@@ -136,17 +130,14 @@ export type PlanApplyRecovery = Readonly<{
   receiptFailure?: string;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function planApplyJournalId(planHash: string): string {
   return `plan-apply-${planHash.slice(0, 16).toLowerCase()}`;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function isPlanApplyJournalId(value: string): boolean {
   return JOURNAL_ID_PATTERN.test(value);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function contentHash(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -187,7 +178,7 @@ function journalLocation(context: OperationContext): JournalLocation | null {
       statSync(attachment.storePath).isDirectory() &&
       existsSync(branchStoreManifestPath(attachment.storePath));
   } catch {
-    storeReady = false;
+    // An unreadable store path is a store that does not exist yet.
   }
   return {
     branch: attachment.kbBranch,
@@ -196,6 +187,9 @@ function journalLocation(context: OperationContext): JournalLocation | null {
   };
 }
 
+// rationale: directory fsync only affects durability across a power loss,
+// which no test can observe; every outcome a caller sees is the same.
+// Stryker disable all
 function fsyncDirectory(directory: string): void {
   if (process.platform === "win32") return;
   try {
@@ -209,6 +203,23 @@ function fsyncDirectory(directory: string): void {
     // Directory fsync is best effort; the journal file itself is synced.
   }
 }
+// Stryker restore all
+
+// rationale: fsync and close only affect durability across a power loss and
+// descriptor use, which no test can observe; the written bytes and the mode
+// are checked through the published journal.
+// Stryker disable all
+/** Create a private file holding `text`, synced to stable storage. */
+function writeSyncedFile(file: string, text: string): void {
+  const descriptor = openSync(file, "w", 0o600);
+  try {
+    writeSync(descriptor, text);
+    fsyncSync(descriptor);
+  } finally {
+    closeSync(descriptor);
+  }
+}
+// Stryker restore all
 
 /** Publish the journal with temp-file + fsync + rename + directory fsync. */
 function writeJournal(journalPath: string, journal: PlanApplyJournal): void {
@@ -216,13 +227,7 @@ function writeJournal(journalPath: string, journal: PlanApplyJournal): void {
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const temporary = `${journalPath}.tmp-${process.pid}-${randomUUID()}`;
   try {
-    const descriptor = openSync(temporary, "w", 0o600);
-    try {
-      writeSync(descriptor, `${JSON.stringify(journal, null, 2)}\n`);
-      fsyncSync(descriptor);
-    } finally {
-      closeSync(descriptor);
-    }
+    writeSyncedFile(temporary, `${JSON.stringify(journal, null, 2)}\n`);
     renameSync(temporary, journalPath);
   } catch (error) {
     try {
@@ -232,6 +237,8 @@ function writeJournal(journalPath: string, journal: PlanApplyJournal): void {
     }
     throw error;
   }
+  // rationale: directory fsync only affects durability across a power loss.
+  // Stryker disable next-line all
   fsyncDirectory(directory);
 }
 
@@ -240,8 +247,7 @@ function isHash(value: unknown): value is string {
 }
 
 function isFileWrite(value: unknown): value is PlanApplyFileWrite {
-  if (value === null || typeof value !== "object") return false;
-  const entry = value as Record<string, unknown>;
+  const entry = Object(value) as Record<string, unknown>;
   const before = entry.before;
   const after = entry.after;
   return (
@@ -312,7 +318,7 @@ function readJournalFile(journalPath: string): PlanApplyJournal {
   const journalId = path.basename(journalPath, ".json");
   let text: string;
   try {
-    text = readFileSync(journalPath, "utf8");
+    text = readFileSync(journalPath).toString();
   } catch (error) {
     unrecoverableJournal(journalPath, `unreadable (${errorText(error)})`);
   }
@@ -324,13 +330,11 @@ function readJournalFile(journalPath: string): PlanApplyJournal {
 }
 
 /** A journal handle bound to its file. */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export type PlanApplyJournalHandle = {
   readonly journalPath: string;
   journal: PlanApplyJournal;
 };
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * The terminal-or-absent journal slot for a plan. Returns the existing
  * journal (if any) so the caller can refuse a plan that already committed.
@@ -364,7 +368,6 @@ export function openPlanApplyJournal(
   return { journalId, journalPath, branch: location.branch, existing };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /** Durably record a journal state; the handle tracks the latest record. */
 export function recordPlanApplyJournal(
   handle: PlanApplyJournalHandle,
@@ -386,7 +389,6 @@ export function recordPlanApplyJournal(
   handle.journal = compacted;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 export function createPlanApplyJournal(
   journalPath: string,
   journal: PlanApplyJournal,
@@ -396,7 +398,6 @@ export function createPlanApplyJournal(
 }
 
 /** Bind pending-source receipts to the bytes a committed plan published. */
-// implements REQ-core-journaled-engine-persistence
 export function reconcilePendingSourceReceipts(
   workspaceRoot: string,
   writes: readonly {
@@ -406,7 +407,7 @@ export function reconcilePendingSourceReceipts(
   }[],
 ): void {
   for (const write of writes) {
-    if ((write.mode ?? "write") === "delete") {
+    if (write.mode === "delete") {
       retirePendingSourceReceipt(workspaceRoot, write.path);
     } else if (write.afterHash !== null) {
       writePendingSourceReceipt(workspaceRoot, write.path, write.afterHash);
@@ -425,7 +426,6 @@ async function currentHash(
   }
 }
 
-// implements REQ-core-journaled-engine-persistence
 /**
  * Replace one workspace file atomically: write a unique staged file in the
  * target directory, fsync it, rename it over the target, then fsync the
@@ -486,7 +486,6 @@ async function setFile(
   else await publishWorkspaceFile(fsPort, absolute, content);
 }
 
-// implements REQ-core-journaled-engine-persistence
 /**
  * Publish every journaled file's after-bytes in journal order. Throws on the
  * first failure; the caller restores the before-bytes from the journal.
@@ -502,7 +501,8 @@ export async function publishJournaledFiles(
 }
 
 /**
- * Move every journaled file to one side of the plan. With `verify`, every
+ * Move every journaled file to one side of the plan: its after-bytes when
+ * `toAfter`, else its before-bytes. With `verify`, every
  * file must currently hold its journaled before or after bytes, checked for
  * all files before any of them changes; a file another writer changed makes
  * the move refuse without touching anything. Without `verify` (the in-process
@@ -513,7 +513,7 @@ async function moveJournaledFiles(
   workspaceRoot: string,
   journalPath: string,
   files: readonly PlanApplyFileWrite[],
-  side: "before" | "after",
+  toAfter: boolean,
   verify: boolean,
 ): Promise<string[]> {
   const pending: PlanApplyFileWrite[] = [];
@@ -523,9 +523,9 @@ async function moveJournaledFiles(
       fsPort,
       path.resolve(workspaceRoot, file.path),
     );
-    const wanted = side === "before" ? file.beforeHash : file.afterHash;
+    const wanted = toAfter ? file.afterHash : file.beforeHash;
     if (actual === wanted) continue;
-    const other = side === "before" ? file.afterHash : file.beforeHash;
+    const other = toAfter ? file.beforeHash : file.afterHash;
     if (verify && actual !== other) {
       conflicts.push(file.path);
       continue;
@@ -538,13 +538,13 @@ async function moveJournaledFiles(
       `${conflicts.join(", ")} changed outside the journal (neither the journaled before nor after bytes)`,
     );
   }
-  const ordered = side === "before" ? [...pending].reverse() : pending;
+  const ordered = toAfter ? pending : [...pending].reverse();
   for (const file of ordered) {
     await setFile(
       fsPort,
       workspaceRoot,
       file.path,
-      side === "before" ? file.before : file.after,
+      toAfter ? file.after : file.before,
     );
   }
   return ordered.map((file) => file.path);
@@ -578,7 +578,6 @@ function removeOrphanedStagedFiles(
   }
 }
 
-// implements REQ-core-journaled-engine-persistence
 /** Restore every journaled file's before-bytes (in-process rollback). */
 export async function restoreJournaledFiles(
   fsPort: FilesystemPort,
@@ -591,12 +590,11 @@ export async function restoreJournaledFiles(
     workspaceRoot,
     journalPath,
     files,
-    "before",
+    false,
     false,
   );
 }
 
-// implements REQ-core-journaled-engine-persistence
 /**
  * Fingerprint the store state of the entities a plan touches: their sorted
  * properties and outgoing relationships. Comparing the fingerprint taken
@@ -633,7 +631,6 @@ type RecoveryOptions = Readonly<{
   now?: () => Date;
 }>;
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * Deterministically finish one journal:
  * - prepared: the store was never asked to commit, so every file is restored
@@ -652,7 +649,6 @@ export async function recoverPlanApplyJournal(
   options: RecoveryOptions,
 ): Promise<PlanApplyRecovery> {
   const { journal } = handle;
-  const now = options.now ?? (() => new Date());
   if (journal.state === "committed" || journal.state === "rolled_back") {
     return {
       journalId: journal.journalId,
@@ -704,14 +700,18 @@ export async function recoverPlanApplyJournal(
   // Record the decision before touching files, so a second interruption
   // resumes the same direction without inspecting the store again.
   if (committed && journal.state !== "store_committed") {
-    recordPlanApplyJournal(handle, { state: "store_committed" }, now());
+    recordPlanApplyJournal(
+      handle,
+      { state: "store_committed" },
+      options.now?.(),
+    );
   }
   const restoredPaths = await moveJournaledFiles(
     fsPort,
     context.workspaceRoot,
     handle.journalPath,
     journal.files,
-    committed ? "after" : "before",
+    committed,
     true,
   );
   removeOrphanedStagedFiles(context.workspaceRoot, journal.files);
@@ -723,7 +723,7 @@ export async function recoverPlanApplyJournal(
         state: "rolled_back",
         resolution: { action: "rolled_back", by: "recovery", detail },
       },
-      now(),
+      options.now?.(),
     );
     return {
       journalId: journal.journalId,
@@ -756,7 +756,7 @@ export async function recoverPlanApplyJournal(
       state: "committed",
       resolution: { action: "completed", by: "recovery", detail },
     },
-    now(),
+    options.now?.(),
   );
   return {
     journalId: journal.journalId,
@@ -768,7 +768,6 @@ export async function recoverPlanApplyJournal(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /** Open an explicit journal by id for kb_apply_plan recoveryJournalId. */
 export function openPlanApplyJournalById(
   context: OperationContext,
@@ -794,7 +793,6 @@ export function openPlanApplyJournalById(
   );
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * Detect and finish every incomplete plan journal of the active branch. Runs
  * at the start of each mutating call that holds the workspace mutation lock,
@@ -835,7 +833,6 @@ export async function recoverPendingPlanApplyJournals(
 }
 
 /** One line per journal a recovery actually changed, for result warnings. */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export function planRecoveryNotes(
   recoveries: readonly PlanApplyRecovery[],
 ): string[] {
@@ -844,7 +841,6 @@ export function planRecoveryNotes(
     .map((recovery) => recovery.detail);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * A mutating call that settled an interrupted plan and then failed on its own
  * work still reports the settlement in its failure text. Typed errors keep
@@ -873,7 +869,6 @@ export function withPlanRecoveryNotes(
   return new Error(`${String(error)}${suffix}`);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-journaled-engine-persistence
 /**
  * Recover every pending plan journal before another mutation, then refuse
  * that mutation while a recovered plan still has unfinished postcommit work

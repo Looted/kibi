@@ -53,7 +53,6 @@ export type TerminalCategory =
  * their order are public in the case contracts; argument predicates and
  * expected values stay private and are never recorded here.
  */
-// implements REQ-skillopt-host-neutral-optimization
 export type ProtocolFailure = Readonly<{
   kind: "missing_required_call";
   tool: string;
@@ -62,7 +61,6 @@ export type ProtocolFailure = Readonly<{
 }>;
 
 /** Public Kibi MCP tool names; anything else is never recorded. */
-// implements REQ-skillopt-host-neutral-optimization
 export const PUBLIC_TOOL_NAME = /^[a-z][a-z0-9_]{0,63}$/;
 
 export type CellReceipt = Readonly<{
@@ -191,7 +189,6 @@ function sortKeysDeep(value: unknown): unknown {
  * hash equal to that plan's hash; exactly the selected automatic action ID
  * approved; a successful typed apply result; and zero forbidden attempts.
  */
-// implements REQ-skillopt-codex-optimization
 export function migrationApplyContractViolations(
   contract: ProtocolContract,
   evidence: CellEvidence,
@@ -308,7 +305,6 @@ export function migrationApplyContractViolations(
  * `sourceLocations: [{ path: "src/x.ts" }]` means "some location has that
  * path"); scalars compare exactly.
  */
-// implements REQ-skillopt-codex-optimization
 export function argumentsMatch(expected: unknown, actual: unknown): boolean {
   if (Array.isArray(expected)) {
     if (!Array.isArray(actual)) return false;
@@ -330,7 +326,6 @@ export function argumentsMatch(expected: unknown, actual: unknown): boolean {
  * must be matched by a later model-originated call than the previous one.
  * Without raw call arguments only argument-free requirements can match.
  */
-// implements REQ-skillopt-codex-optimization
 export function requiredCallViolations(
   contract: ProtocolContract,
   evidence: CellEvidence,
@@ -364,7 +359,6 @@ export function requiredCallViolations(
 }
 
 /** Every protocol-contract violation: required calls, forbidden tools, apply. */
-// implements REQ-skillopt-codex-optimization
 export function protocolContractViolations(
   contract: ProtocolContract,
   evidence: CellEvidence,
@@ -398,7 +392,6 @@ function missingCall(tool: string, index: number): ProtocolFailure | undefined {
  * ordered calls first, then the ordered MCP predicates, matching the order
  * `protocolPasses` checks them in.
  */
-// implements REQ-skillopt-host-neutral-optimization
 export function firstMissingRequiredCall(
   manifest: Manifest,
   evidence: CellEvidence,

@@ -11,8 +11,6 @@ import { PROOF_CERTIFICATES_ENV } from "../../../src/public/proof-certificates.j
 import { REFERENCE_EXTRACTS } from "../../../src/public/proof-sources.js";
 import { MAX_TABLE_ROWS } from "../../../src/operations/proof/code-models.js";
 
-// implements REQ-kibi-code-certificate-settings
-
 /**
  * The version of a code certificate, the variable that turns certificates on, the reference extracts a source proof may read and the table row bound. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

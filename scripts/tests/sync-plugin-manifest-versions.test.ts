@@ -16,6 +16,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   runSyncPluginManifestVersionsCli,
+  syncCatalogPackVersions,
   syncPluginManifestVersions,
 } from "../sync-plugin-manifest-versions.ts";
 
@@ -442,6 +443,42 @@ describe("syncPluginManifestVersions", () => {
     );
   });
 
+  test("syncs the MCP Registry entry and refuses an ambiguous one", async () => {
+    await withTempWorkspace(
+      "kibi-plugin-manifest-registry-",
+      async (workspaceRoot) => {
+        const mcpDir = join(workspaceRoot, "packages/mcp");
+        await writeJson(join(mcpDir, "package.json"), {
+          name: "kibi-mcp",
+          version: "2.0.0",
+        });
+        const registryPath = join(mcpDir, "server.json");
+        await writeJson(registryPath, {
+          name: "io.github.Looted/kibi-mcp",
+          version: "1.0.0",
+          packages: [
+            "not an entry",
+            { registryType: "oci", identifier: "kibi-mcp", version: "1.0.0" },
+            { registryType: "npm", identifier: "kibi-mcp", version: "1.0.0" },
+          ],
+        });
+        await syncPluginManifestVersions(workspaceRoot);
+        const synced = readJson(registryPath);
+        expect(synced.version).toBe("2.0.0");
+        expect(synced.packages).toEqual([
+          "not an entry",
+          { registryType: "oci", identifier: "kibi-mcp", version: "1.0.0" },
+          { registryType: "npm", identifier: "kibi-mcp", version: "2.0.0" },
+        ]);
+
+        await writeJson(registryPath, { version: "1.0.0", packages: {} });
+        await expect(syncPluginManifestVersions(workspaceRoot)).rejects.toThrow(
+          "Expected exactly one Registry npm entry for kibi-mcp",
+        );
+      },
+    );
+  });
+
   test("rejects analyzer identity mismatches before changing earlier package metadata", async () => {
     await withTempWorkspace(
       "kibi-plugin-catalog-identity-",
@@ -601,6 +638,36 @@ describe("syncPluginManifestVersions", () => {
         }
         expect(console.log).toBe(log);
       },
+    );
+  });
+});
+
+describe("catalog language pack pins", () => {
+  test("move each packVersion to its workspace pack's version and keep the rest", () => {
+    const raw = `{
+  "languages": [
+    { "id": "a", "pack": "kibi-lang-a",
+      "packVersion": "1.0.0" },
+    { "id": "b", "pack": "kibi-lang-b", "packVersion": "1.0.0" },
+    { "id": "c", "pack": "kibi-lang-unknown", "packVersion": "2.0.0" },
+    { "id": "d", "version": "1.0.0" }
+  ]
+}
+`;
+    const versions = new Map([
+      ["kibi-lang-a", "1.1.0"],
+      ["kibi-lang-b", "1.0.1"],
+    ]);
+    expect(syncCatalogPackVersions(raw, versions)).toBe(
+      raw
+        .replace(
+          '"kibi-lang-a",\n      "packVersion": "1.0.0"',
+          '"kibi-lang-a",\n      "packVersion": "1.1.0"',
+        )
+        .replace(
+          '"kibi-lang-b", "packVersion": "1.0.0"',
+          '"kibi-lang-b", "packVersion": "1.0.1"',
+        ),
     );
   });
 });

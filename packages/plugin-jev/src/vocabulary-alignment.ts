@@ -25,10 +25,8 @@ import {
 import { choice, createTypeSafeJevClient, noul } from "./typesafe-client.js";
 
 /** Candidates offered to Jev per clause, in builtin rank order. */
-// implements REQ-kibi-vocabulary-alignment-capability
 export const JEV_SUBJECT_TOP_K = 5;
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export type JevVocabularyAlignmentOptions = JevSemanticClassifierOptions;
 
 /**
@@ -38,7 +36,6 @@ export type JevVocabularyAlignmentOptions = JevSemanticClassifierOptions;
  * constructing this provider never creates a client or touches the network;
  * the client is created on the first call.
  */
-// implements REQ-kibi-vocabulary-alignment-capability
 export function createJevVocabularyAlignment(
   options: JevVocabularyAlignmentOptions = {},
 ): VocabularyAlignmentV1 {

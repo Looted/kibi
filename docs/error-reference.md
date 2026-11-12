@@ -84,9 +84,13 @@ The same check applies when the store does not hold the requirement but its file
 
 ## Uncompiled authored source (`source-relationship-parity`, `source_extraction_failed`)
 
-`<file> cannot be compiled, so the entities and relationships it declares are missing from the KB: <error>` means `kibi sync` could not extract an authored `.kb/` file, so `kb_query`, `kb_coverage` and `kb_upsert` do not see what it declares. `kb_check` reports it as a blocking `source-relationship-parity` violation, and `kb_status` reports the stale reason `source_extraction_failed` (and `dirty: true`) until the file compiles. An error on `/status` usually means a legacy requirement status: run `kibi migrate --yes`, which maps `implemented`, `done` and `completed` to `closed` with the tag `implemented`, or set `open`, `in_progress` or `closed` in the file. For any other error, fix the named front matter field (edit the file, or rewrite the entity with `kb_upsert` so the write replaces the failing field), then run `kibi sync`.
+`<file> cannot be compiled, so the entities and relationships it declares are missing from the KB: <error>` means `kibi sync` could not extract an authored `.kb/` file, so `kb_query`, `kb_coverage` and `kb_upsert` do not see what it declares. `kb_check` reports it as a blocking `source-relationship-parity` violation, and `kb_status` reports the stale reason `source_extraction_failed` (and `dirty: true`) until the file compiles. An error on `/status` usually means a legacy requirement status: run `kibi migrate --yes`, which maps `implemented`, `done` and `completed` to `closed` with the tag `implemented`, or set `open`, `in_progress`, `closed` or `retired` (with `retired_reason`) in the file. For any other error, fix the named front matter field (edit the file, or rewrite the entity with `kb_upsert` so the write replaces the failing field), then run `kibi sync`.
 
 `Upsert of <ID> refused: <ID> exists in <file> but is not compiled (<error>), and this write would leave the file uncompilable: <error>` means the write merges into that existing file and the result still would not compile. Send the field that fixes the error (for example a valid `status`). `... exists but kibi sync cannot compile it (...), and its front matter does not parse` means the YAML itself is broken; fix it in the file. A successful write into such a file returns the warning `<ID> was not in the compiled KB; this write updated its authored file <file>...`; run `kibi sync` to compile it.
+
+## Duplicate entity declaration (`source-relationship-parity`, `duplicate_entity`)
+
+`<ID> is declared N times ('<title>' in <file>; ...), so the KB keeps only one of the declarations and the staged gate refuses every commit until one remains` means authored `.kb/` sources declare one entity id more than once: two records in `.kb/symbols.yaml`, two entity files with the same `id`, or both. The compiled store keeps one entity per id, so `kb_check` reports it as a blocking `source-relationship-parity` violation (evidence `direction: duplicate_entity` lists every declaration), and `kibi check --staged` refuses every commit with `Duplicate snapshot entities` until one declaration remains. Copies like these usually come from a line-based Git merge of two branches that each added the record, in a clone without the Kibi merge driver (`kibi doctor` reports how to set it up). When the copies in `.kb/symbols.yaml` differ only in their links, a `kb_upsert` of the id with its title and status merges them into one record. Otherwise keep one declaration with the fields and links of every copy by hand, then run `kibi sync` and `kb_check` again.
 
 ## Semantic advisor clauses must be verbatim fragments of the requirement prose
 
@@ -145,6 +149,14 @@ The check runs at commit time (`stage=contradiction_check`), after every validat
 
 `kibi check` blocks a requirement that another requirement `supersedes` while its status is not `closed`. Upsert it with `status: closed`, or run `kibi migrate` (action `close_superseded_requirements`), which edits only the status line. If the requirement still states current intent, delete the `supersedes` link instead. A finding that starts with `Supersession cycle:` names requirements that supersede each other; nothing closes them automatically. Decide which one is current, delete the `supersedes` link that points at it, then close the others.
 
+## Retired requirement without a reason (`retired-reason-missing`)
+
+`status retired requires retired_reason` (from `kb_upsert`) and the blocking `retired-reason-missing` finding (from `kibi check`) mean a requirement says it is retired but not why. Add `retired_reason`: why the behavior no longer exists, with the date or change that retired it. If the requirement still states current intent, set its status back to `closed` or `open` instead.
+
+## Current entity owned only by retired requirements (`retired-owner-only`)
+
+A current fact, scenario or test is owned only by retired requirements, so it describes behavior that no longer exists while search and coverage still read it as current. Link it to the current requirement that took over the behavior (for a fact, a grounding link such as `constrains`; for a scenario, `specified_by`; for a test, `verified_by` or `validates`), archive a fact or scenario with `status: deprecated`, or delete a test whose behavior is gone with `kb_delete`. The finding's `evidence.owners` lists the retired requirements.
+
 ## Entity has no body context (`entity-context-missing`)
 
 `kibi check` blocks a current `req`, `scenario`, `test`, `adr` or observation/meta `fact` whose body has fewer than 12 words of context, or whose context only restates the title (for a requirement, also `semantic_text`). For a requirement only text under a `Context`, `Rationale`, `Why`, `Background`, `Source`, `Notes` or `Evidence` heading counts. Add a `## Context` section (requirement) or prose body stating why, who asked, the source and anything that does not fit front matter, and pass it as `document.body` to `kb_upsert`; the upsert result and dryRun warn about the same finding. Never invent a reason the requester did not give: write "Reason not stated". Entities the schema 8 `kibi migrate` acknowledged (tagged `review:context-missing` and listed in `.kb/manifest.json` under `contextAcknowledged`) do not block and are counted by the advisory `entity-context-acknowledged` diagnostic. The tag is reserved for them: on any other entity `kibi check` still blocks with "review:context-missing is reserved for entities acknowledged by the schema 8 migration; add context instead". Do not tag an entity to clear the finding; write who asked, the source and "Reason not stated" in the Context section. Remove the tag once real context is added. The pre-commit `kibi check --staged` blocks the same finding on an entity document the commit adds or edits, unless the entity already had it at the last commit or is acknowledged.
@@ -196,6 +208,20 @@ A tool that rejects its input with a Kibi error code, such as `kb_compile_intent
 ## Read stopped at its engine limit (`QUERY_LIMIT_EXCEEDED`)
 
 The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFERENCE_LIMIT` and was stopped before it computed an answer; `error.details.limitExceeded` names the `kind` (`time` or `inferences`) and the `limit`. Nothing was read partially and nothing was written. Narrow the request (a type, id, tag, or smaller page), or raise or unset the limit in the CLI or MCP server environment, then retry.
+
+## KB dependency errors (`DEPENDENCY_*`)
+
+A read with `kb` (MCP) or `--kb` (CLI), and `kibi deps lock|fetch|status`, fail with one of these codes instead of answering from the project's own KB:
+
+- `DEPENDENCY_UNKNOWN`: `.kb/dependencies.json` declares no dependency with that name. The message lists the declared names; fix the name or add the dependency.
+- `DEPENDENCY_NOT_LOCKED`: the dependency is declared but has no pin in `.kb/dependencies.lock.json`. Run `kibi deps lock <name>` and commit the lock file.
+- `DEPENDENCY_LOCK_STALE`: the lock pins the dependency for a different `git` URL, `ref` or `directory` than `.kb/dependencies.json` now declares. Run `kibi deps lock <name>`.
+- `DEPENDENCY_REF_NOT_FOUND`: the repository has no tag, branch or ref with the declared name. Fix `ref` (or remove it to follow the remote `HEAD`).
+- `DEPENDENCY_FETCH_FAILED`: `git` could not list or fetch the repository. Check the URL, the network, and that git already has credentials for a private repository (it runs without a terminal prompt).
+- `DEPENDENCY_NOT_A_KB`: the pinned commit has no `.kb/manifest.json`. Pin a commit that has a Kibi KB, or set `directory` when the workspace is in a subdirectory.
+- `DEPENDENCY_SCHEMA_UNSUPPORTED`: the dependency's KB schema is older than 6 or newer than this Kibi reads. Pin another commit, upgrade Kibi, or run `kibi migrate` in that repository.
+
+A write that names a dependency is refused: MCP tools without a `kb` input fail with "`<tool>` does not take a kb scope: KB dependency '`<name>`' is read-only", and the CLI JSON routes report `VALIDATION_FAILED` for the extra `kb` property. Drop `kb` to write this project's KB.
 
 ## Write refused on a detached HEAD
 

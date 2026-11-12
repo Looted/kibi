@@ -1,0 +1,77 @@
+[
+  {
+    "rule": "source-relationship-parity",
+    "entityId": "REQ-a",
+    "description": "Authored relationship is missing from the compiled KB: depends_on REQ-a->REQ-u",
+    "suggestion": "REQ-u is declared in .kb/requirements/REQ-u.md, which Git does not track and no pending-source receipt covers, so sync never compiles it. Run 'git add .kb/requirements/REQ-u.md' (staging is enough) or rewrite the entity with kb_upsert, then run kibi sync and rerun kb_check.",
+    "source": "<root>/.kb/requirements/REQ-a.md",
+    "evidence": {
+      "direction": "authored_to_compiled",
+      "relationship": {
+        "type": "depends_on",
+        "from": "REQ-a",
+        "to": "REQ-u"
+      },
+      "untrackedSources": [
+        {
+          "entityId": "REQ-u",
+          "file": ".kb/requirements/REQ-u.md"
+        }
+      ]
+    }
+  },
+  {
+    "rule": "source-relationship-parity",
+    "entityId": "REQ-b",
+    "description": "Authored relationship is missing from the compiled KB: relates_to REQ-b->REQ-a",
+    "suggestion": "Run kibi sync after resolving semantic/source errors; do not delete authored links merely to make the compiled snapshot pass.",
+    "source": ".kb/relationships",
+    "evidence": {
+      "direction": "authored_to_compiled",
+      "relationship": {
+        "type": "relates_to",
+        "from": "REQ-b",
+        "to": "REQ-a"
+      }
+    }
+  },
+  {
+    "rule": "source-relationship-parity",
+    "entityId": "REQ-u",
+    "description": "Compiled relationship has no authored Markdown or relationship-shard source: relates_to REQ-u->REQ-x",
+    "suggestion": "Restore the canonical authored relationship through kb_upsert, or remove the stale compiled edge through kb_delete after dependency review.",
+    "evidence": {
+      "direction": "compiled_to_authored",
+      "relationship": {
+        "type": "relates_to",
+        "from": "REQ-u",
+        "to": "REQ-x"
+      }
+    }
+  },
+  {
+    "rule": "source-relationship-parity",
+    "entityId": "REQ-v",
+    "description": "Authored relationship is missing from the compiled KB: relates_to REQ-v->REQ-u",
+    "suggestion": "REQ-v and REQ-u are declared in .kb/requirements/REQ-v.md, .kb/requirements/REQ-u.md, which Git does not track and no pending-source receipt covers, so sync never compiles it. Run 'git add .kb/requirements/REQ-v.md .kb/requirements/REQ-u.md' (staging is enough) or rewrite the entity with kb_upsert, then run kibi sync and rerun kb_check.",
+    "source": ".kb/relationships",
+    "evidence": {
+      "direction": "authored_to_compiled",
+      "relationship": {
+        "type": "relates_to",
+        "from": "REQ-v",
+        "to": "REQ-u"
+      },
+      "untrackedSources": [
+        {
+          "entityId": "REQ-v",
+          "file": ".kb/requirements/REQ-v.md"
+        },
+        {
+          "entityId": "REQ-u",
+          "file": ".kb/requirements/REQ-u.md"
+        }
+      ]
+    }
+  }
+]

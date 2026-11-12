@@ -11,8 +11,6 @@ import {
   SEARCH_HINT_WEAK_SCORE,
 } from "../../../src/search-hints.js";
 
-// implements REQ-kibi-search-hints-limits
-
 /**
  * The search hints limits. Each certificate assumes the value one constant
  * holds; Kibi reads the same constant again at ingest and decides the

@@ -5,12 +5,7 @@ import type {
   KibiImpactSymbolsManifest,
   KibiImpactSymbolsManifestFileDetail,
 } from "../../src/traceability/evidence-model.js";
-import {
-  collectStagedKibiDiagnostics,
-  createMissingOverrideRationaleDiagnostic,
-} from "../../src/traceability/staged-diagnostics.js";
-
-// implements REQ-cli-staged-impact-enforcement
+import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
 
 const DOC = "docs/cli-reference.md#staged-impact-evidence";
 const BASE_SUGGESTION = (manifest: string) =>
@@ -35,20 +30,6 @@ function evidence(
     mode,
   };
 }
-
-const override = (
-  rationale: string,
-  sourcePaths: string[],
-): KibiImpactMode => ({
-  kind: "no_impact_override",
-  override: {
-    declaration: "Kibi-Impact: none",
-    path: ".kibi/override.md",
-    sourcePaths,
-    reason: "false_positive",
-    rationale,
-  },
-});
 
 const detail = (
   path: string,
@@ -252,55 +233,5 @@ describe("stale manifest diagnostic", () => {
         }),
       ),
     ).toStrictEqual([]);
-  });
-});
-
-describe("override rationale diagnostic", () => {
-  const expected = {
-    id: "kibi_impact_override_missing_rationale",
-    severity: "error",
-    blocking: true,
-    category: "fact",
-    files: [".kibi/override.md", "src/a.ts", "src/b.ts"],
-    docs: [DOC],
-    message:
-      "Kibi-Impact: none override is missing rationale for staged source files: src/a.ts, src/b.ts",
-    suggestion:
-      "Add a non-empty rationale in the same staged override record, keep overrides limited to false positives or non-behavioral source edits, and re-run kibi check --staged.",
-  };
-
-  test("fires for a blank rationale before other diagnostics", () => {
-    expect(
-      collectStagedKibiDiagnostics(
-        evidence([], override("  ", ["src/b.ts", "src/a.ts"])),
-      ) as unknown[],
-    ).toStrictEqual([expected]);
-    expect(
-      collectStagedKibiDiagnostics(
-        evidence(["src/q.ts"], override("", ["src/b.ts", "src/a.ts"])),
-      ).map((d) => d.id),
-    ).toStrictEqual([
-      "kibi_impact_override_missing_rationale",
-      "kibi_impact_evidence_missing",
-    ]);
-  });
-
-  test("does not fire for a rationale or another mode", () => {
-    expect(
-      collectStagedKibiDiagnostics(evidence([], override("ok", ["src/a.ts"]))),
-    ).toStrictEqual([]);
-  });
-
-  test("the exported builder needs an override", () => {
-    expect(
-      createMissingOverrideRationaleDiagnostic(
-        evidence([], override("", ["src/b.ts", "src/a.ts"])),
-      ) as unknown,
-    ).toStrictEqual(expected);
-    expect(() =>
-      createMissingOverrideRationaleDiagnostic(evidence([])),
-    ).toThrow(
-      new Error("Override rationale diagnostic requires a no-impact override"),
-    );
   });
 });

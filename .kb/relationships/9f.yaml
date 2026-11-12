@@ -24,34 +24,6 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-vscode-traceability.md
-  - type: implements
-    from: SYM-skillopt-file-bridge-write-private
-    to: REQ-skillopt-codex-optimization
-    created_at: 2026-08-16T07:13:58.111Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-550771464c5f
-  - type: covered_by
-    from: SYM-skillopt-file-bridge-write-private
-    to: TEST-skillopt-codex-optimization
-    created_at: 2026-08-16T07:13:58.122Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-038af9b9336a
-  - type: implements
-    from: SYM-cli-report-short-sha
-    to: REQ-kibi-html-health-report
-    created_at: 2026-08-18T20:41:15.661Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-843c1e5921d3
-  - type: covered_by
-    from: SYM-cli-report-short-sha
-    to: TEST-kibi-html-health-report
-    created_at: 2026-08-18T20:41:15.675Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8bf966c45088
   - type: constrains
     from: REQ-skillopt-paid-launch-accounting
     to: FACT-SUBJ-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING
@@ -88,13 +60,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-bf80d2423d1f
   - type: covered_by
-    from: SYM-isBehavioralSymbol
-    to: TEST-cli-symbol-behavioral-anchors
-    created_at: 2026-09-05T18:22:42.476Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4af5d1d35684
-  - type: covered_by
     from: SYM-plugin-describe-configured
     to: TEST-e2e-capability-plugins
     created_at: 2026-09-22T09:43:29.164Z
@@ -108,20 +73,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-035762fe9fa2
-  - type: implements
-    from: SYM-claude-scanSymbolCoordinates
-    to: REQ-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:21:20.891Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a14e0aa4a6d4
-  - type: covered_by
-    from: SYM-claude-scanSymbolCoordinates
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:21:20.910Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eaf6d8690b1a
   - type: specified_by
     from: REQ-skillopt-paid-launch-accounting
     to: SCEN-skillopt-paid-launch-accounting
@@ -150,13 +101,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7fd8aa80472
-  - type: implements
-    from: SYM-prolog-build-main
-    to: REQ-prolog-build-pipeline-validation
-    created_at: 2026-09-30T17:53:48.748Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-26697c31941a
   - type: covered_by
     from: SYM-prolog-build-main
     to: TEST-prolog-build-pipeline-validation
@@ -179,34 +123,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-9b1014aea491
   - type: implements
-    from: SYM-prolog-swipl-swiplsource-src
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:35:26.370Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-12d5d034b44c
-  - type: covered_by
-    from: SYM-prolog-swipl-swiplsource-src
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:35:26.386Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-83aaabef7645
-  - type: implements
-    from: SYM-prolog-swipl-manifest-file-js
-    to: REQ-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:27.618Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-955d62a9258f
-  - type: covered_by
-    from: SYM-prolog-swipl-manifest-file-js
-    to: TEST-prolog-bundled-runtime
-    created_at: 2026-09-30T23:36:27.645Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-02ad38ed8275
-  - type: implements
     from: SYM-migration-delivered-requirement-status
     to: REQ-cli-migrate-legacy-requirement-status
     created_at: 2026-10-14T10:12:38.549Z
@@ -220,13 +136,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba9e2b6cd154
-  - type: implements
-    from: SYM-migration-entity-type-backfill-code
-    to: REQ-cli-migrate-entity-type-backfill
-    created_at: 2026-10-14T21:20:52.060Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7cb69e83ce12
   - type: covered_by
     from: SYM-migration-entity-type-backfill-code
     to: TEST-cli-migrated-kb-type-backfill-sync-totals
@@ -367,3 +276,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc082006b298
+  - type: verified_by
+    from: SCEN-NEG-migrate-inline-implements-edits-source
+    to: TEST-migrate-inline-implements-review
+    created_at: 2026-11-11T06:01:48.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc11c54fa615
+  - type: assumes
+    from: SCEN-NEG-migrate-inline-implements-edits-source
+    to: FACT-NEG-migrate-inline-implements-comment-edited
+    created_at: 2026-11-11T06:03:57.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51dfd4e543f0

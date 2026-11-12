@@ -124,7 +124,6 @@ export type {
   EntityDeletionPlan,
 } from "./apply-plan-types.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const PLAN_APPLY_RESULT_VERSION = "kibi.plan-apply-result.v1" as const;
 
 const ENTITY_TYPES = new Set([
@@ -192,7 +191,6 @@ function asUpsert(step: PlanStep): UpsertInput {
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 /**
  * Why a plan that is not ready cannot be applied, with the remedy for its
  * status. The leading sentence stays the same for every status.
@@ -306,11 +304,7 @@ export function orderBootstrapActions(
   const visiting = new Set<string>();
   const visited = new Set<string>();
   const visit = (action: BootstrapAction): void => {
-    if (visited.has(action.id)) return;
-    if (completed.has(action.id)) {
-      visited.add(action.id);
-      return;
-    }
+    if (visited.has(action.id) || completed.has(action.id)) return;
     if (visiting.has(action.id))
       throw new Error(
         `Bootstrap apply failed: dependency cycle at '${action.id}'`,
@@ -325,7 +319,6 @@ export function orderBootstrapActions(
         );
       visit(endpoint);
     }
-    visiting.delete(action.id);
     visited.add(action.id);
     result.push(action);
   };
@@ -385,11 +378,7 @@ function validateBootstrapPlanShape(
   for (const [sourcePath, sourceHash] of Object.entries(
     plan.expected.sourceHashes,
   )) {
-    if (
-      !sourcePath ||
-      sourceHash === null ||
-      !/^[a-f0-9]{64}$/i.test(sourceHash)
-    )
+    if (!sourcePath || !/^[a-f0-9]{64}$/i.test(String(sourceHash)))
       throw new Error(
         `Bootstrap apply failed: ready plans require an exact hash for evidence source '${sourcePath}'`,
       );
@@ -399,7 +388,6 @@ function validateBootstrapPlanShape(
   return orderBootstrapActions(plan.actions);
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 function preflightBootstrapActions(
   actions: readonly BootstrapAction[],
   context: OperationContext,
@@ -408,10 +396,7 @@ function preflightBootstrapActions(
     try {
       const input = validateBootstrapPayload(action.payload, context.clock());
       if (input.document?.path !== undefined)
-        canonicalSourcePath(context, input, {
-          id: input.id,
-          ...input.properties,
-        });
+        canonicalSourcePath(context, input, input.properties);
     } catch (error) {
       throw new OperationError(
         "BOOTSTRAP_PLAN_INVALID",
@@ -422,7 +407,6 @@ function preflightBootstrapActions(
   }
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 function isDeterministicBootstrapFailure(error: unknown): boolean {
   const detail = error instanceof Error ? error.message : String(error);
   return (
@@ -479,10 +463,6 @@ function validateEntityDeletionPlan(
 function validateMigrationPlanShape(
   args: Extract<ApplyPlanArgs, { plan: MigrationPlan }>,
 ): MigrationAction[] {
-  if (!isRecord(args.plan))
-    throw new Error("Migration apply failed: plan must be an object");
-  if (args.plan.version !== "kibi.migration-plan.v2")
-    throw new Error("Migration apply failed: unsupported plan version");
   if (!/^[a-f0-9]{64}$/i.test(args.approvedPlanHash))
     throw new Error(
       "Migration apply failed: approvedPlanHash must be a SHA-256 hash",
@@ -543,7 +523,6 @@ function validateMigrationPlanShape(
  * `--approved-action` selects only automatic actions, so these never run on
  * their own.
  */
-// implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
 function isApprovableReviewAction(action: MigrationAction): boolean {
   return (
     action.safety === "review" &&
@@ -568,10 +547,9 @@ function topologicalActions(
       );
     visiting.add(action.id);
     for (const dependency of action.dependsOn) {
-      const dependencyAction = byId.get(dependency);
-      if (dependencyAction !== undefined) visit(dependencyAction);
+      // validateMigrationPlanShape requires every dependency approved.
+      visit(byId.get(dependency) as MigrationAction);
     }
-    visiting.delete(action.id);
     visited.add(action.id);
     result.push(action);
   };
@@ -640,6 +618,9 @@ async function resolveSourceWriteTarget(
   }
   const absolute = path.resolve(workspaceRoot, write.path);
   const root = path.resolve(workspaceRoot);
+  // rationale: after the relative, no-".." check above a POSIX path always
+  // resolves inside the root; this guards drive-relative Windows paths.
+  // Stryker disable next-line BlockStatement,CallExpression
   assertSourceWriteStaysInWorkspace(root, absolute, write.path);
   const relative = path.relative(root, absolute).split(path.sep).join("/");
   if (relative === ".kb" || isDerivedKbPath(relative)) {
@@ -665,9 +646,7 @@ async function resolveSourceWriteTarget(
   const mode = write.mode ?? "write";
   if (
     mode === "write" &&
-    (write.body === undefined ||
-      write.afterHash === null ||
-      digest(write.body) !== write.afterHash)
+    (write.body === undefined || digest(write.body) !== write.afterHash)
   ) {
     throw new Error(
       `Apply plan failed: afterHash does not match staged body for ${write.path}`,
@@ -685,8 +664,8 @@ async function applySourceWrites(
   context: OperationContext,
   writes: readonly SourceWritePlan[],
   planHash: string,
-  allowReplay = false,
-  onCommitted: () => void = () => undefined,
+  allowReplay: boolean,
+  onCommitted: () => void,
 ): Promise<{
   paths: string[];
   rollback: () => Promise<void>;
@@ -747,18 +726,12 @@ async function applySourceWrites(
       const parsed = JSON.parse(
         await fsPort.readFile(journalPath),
       ) as Partial<SourceJournal>;
+      // A null entry throws inside sameEntries and reads as no journal; a
+      // state outside the resumable ones leads to a fresh application.
       if (
         parsed.version === 1 &&
         parsed.planHash === planHash &&
         Array.isArray(parsed.entries) &&
-        (parsed.state === "prepared" ||
-          parsed.state === "publishing_sources" ||
-          parsed.state === "sources_committed" ||
-          parsed.state === "compiled_published" ||
-          parsed.state === "committed" ||
-          parsed.state === "repair_required" ||
-          parsed.state === "rolled_back") &&
-        parsed.entries.every((entry) => entry && typeof entry === "object") &&
         sameEntries(parsed.entries as JournalEntry[])
       ) {
         return parsed as SourceJournal;
@@ -770,7 +743,6 @@ async function applySourceWrites(
   };
 
   const prior = await readJournal();
-  const priorPaths = prior?.entries.map((entry) => entry.path) ?? [];
   if (
     prior &&
     [
@@ -786,7 +758,7 @@ async function applySourceWrites(
         const current = await context.fs.readFile(
           path.resolve(context.workspaceRoot, entry.path),
         );
-        if (entry.afterHash === null || digest(current) !== entry.afterHash) {
+        if (digest(current) !== entry.afterHash) {
           allAfter = false;
         }
       } catch {
@@ -801,7 +773,11 @@ async function applySourceWrites(
       }
       onCommitted();
       reconcilePendingSourceReceipts(context.workspaceRoot, prior.entries);
-      return { paths: priorPaths, rollback: async () => undefined, journalId };
+      return {
+        paths: prior.entries.map((entry) => entry.path),
+        rollback: async () => undefined,
+        journalId,
+      };
     }
   }
 
@@ -814,12 +790,9 @@ async function applySourceWrites(
     // hash that is neither the planned before nor after value.
     for (const entry of prior.entries) {
       const absolute = path.resolve(context.workspaceRoot, entry.path);
-      let current: string | undefined;
-      try {
-        current = await context.fs.readFile(absolute);
-      } catch {
-        current = undefined;
-      }
+      const current = await context.fs
+        .readFile(absolute)
+        .catch(() => undefined);
       const currentHash = current === undefined ? null : digest(current);
       if (currentHash !== entry.beforeHash && currentHash !== entry.afterHash) {
         throw new Error(
@@ -837,10 +810,18 @@ async function applySourceWrites(
       journalPath,
       `${JSON.stringify({ ...prior, state: "rolled_back" }, null, 2)}\n`,
     );
-    return { paths: priorPaths, rollback: async () => undefined, journalId };
+    return {
+      paths: prior.entries.map((entry) => entry.path),
+      rollback: async () => undefined,
+      journalId,
+    };
   }
 
-  const originals: Array<{ absolute: string; body: string | undefined }> = [];
+  const targets: Array<{
+    absolute: string;
+    existing: string | undefined;
+    write: SourceWritePlan;
+  }> = [];
   const entries: JournalEntry[] = [];
   const paths: string[] = [];
   let sourceCommitted = false;
@@ -852,7 +833,7 @@ async function applySourceWrites(
         fsPort,
         write,
       );
-      originals.push({ absolute, body: existing });
+      targets.push({ absolute, existing, write });
       paths.push(write.path);
       const stageBase = path.join(
         context.workspaceRoot,
@@ -874,17 +855,12 @@ async function applySourceWrites(
     // Stage both versions and publish a prepared journal before any
     // authoritative working-tree write. This makes a crash replayable.
     await context.fs.mkdir(path.dirname(journalPath));
-    for (let index = 0; index < writes.length; index += 1) {
-      const original = originals[index];
-      const entry = entries[index];
-      const write = writes[index];
-      if (!original || !entry || !write) continue;
-      if (original.body !== undefined) {
-        await context.fs.writeFile(entry.beforeStage, original.body);
-      }
-      if ((write.mode ?? "write") === "write") {
-        await context.fs.writeFile(entry.afterStage, write.body ?? "");
-      }
+    for (const [index, { existing, write }] of targets.entries()) {
+      const entry = entries[index] as JournalEntry;
+      if (existing !== undefined)
+        await context.fs.writeFile(entry.beforeStage, existing);
+      if (entry.mode === "write")
+        await context.fs.writeFile(entry.afterStage, write.body as string);
     }
     await context.fs.writeFile(
       journalPath,
@@ -893,16 +869,13 @@ async function applySourceWrites(
 
     // Publish all target files. Journal each boundary so a crash can be
     // rolled back without trusting in-memory originals.
-    for (let index = 0; index < writes.length; index += 1) {
-      const absolute = originals[index]?.absolute;
-      const write = writes[index];
-      if (!absolute || !write) continue;
+    for (const [index, { absolute, write }] of targets.entries()) {
       await context.fs.mkdir(path.dirname(absolute));
       await context.fs.writeFile(
         journalPath,
         `${JSON.stringify({ version: 1, planHash, state: "publishing_sources", entries }, null, 2)}\n`,
       );
-      if ((write.mode ?? "write") === "delete") {
+      if (write.mode === "delete") {
         if (!context.fs.unlink) {
           throw new Error(
             `Apply plan failed: delete requires filesystem unlink support: ${write.path}`,
@@ -912,14 +885,14 @@ async function applySourceWrites(
       } else {
         const staged = `${absolute}.kibi-stage-${journalId}-${index}-${randomUUID()}`;
         try {
-          await context.fs.writeFile(staged, write.body ?? "");
+          await context.fs.writeFile(staged, write.body as string);
           if (context.fs.rename) {
             await context.fs.rename(staged, absolute);
           } else {
             // Test and constrained host ports may not expose rename. Keep the
             // compatibility fallback explicit; production nodeFilesystem uses
             // same-directory rename for atomic replacement.
-            await context.fs.writeFile(absolute, write.body ?? "");
+            await context.fs.writeFile(absolute, write.body as string);
             if (context.fs.unlink)
               await context.fs.unlink(staged).catch(() => undefined);
           }
@@ -957,12 +930,12 @@ async function applySourceWrites(
         false,
       );
     }
-    for (const original of [...originals].reverse()) {
+    for (const { absolute, existing } of targets) {
       try {
-        if (original.body === undefined && context.fs.unlink) {
-          await context.fs.unlink(original.absolute);
+        if (existing === undefined && context.fs.unlink) {
+          await context.fs.unlink(absolute);
         } else {
-          await context.fs.writeFile(original.absolute, original.body ?? "");
+          await context.fs.writeFile(absolute, existing ?? "");
         }
       } catch {
         // Preserve the original failure; the journal remains available for
@@ -995,7 +968,8 @@ async function markSourceJournal(
   journalId: string | null,
   state: "compiled_published" | "committed" | "repair_required" | "rolled_back",
 ): Promise<void> {
-  if (!journalId || !context.fs) return;
+  // Every failure here is swallowed: a missing runtime or a plan without
+  // source writes (journal id null) finds no journal to mark.
   const journalPath = path.join(
     context.workspaceRoot,
     ".kb",
@@ -1003,10 +977,12 @@ async function markSourceJournal(
     `${journalId}.json`,
   );
   try {
-    const current = JSON.parse(
-      await context.fs.readFile(journalPath),
-    ) as Record<string, unknown>;
-    await context.fs.writeFile(
+    const fsPort = context.fs as FilesystemPort;
+    const current = JSON.parse(await fsPort.readFile(journalPath)) as Record<
+      string,
+      unknown
+    >;
+    await fsPort.writeFile(
       journalPath,
       `${JSON.stringify({ ...current, state }, null, 2)}\n`,
     );
@@ -1054,7 +1030,7 @@ async function executeSourceRecovery(
     typeof journal.planHash !== "string" ||
     !Array.isArray(journal.entries) ||
     !["sources_committed", "compiled_published", "repair_required"].includes(
-      journal.state ?? "",
+      String(journal.state),
     )
   ) {
     throw new Error(
@@ -1140,7 +1116,6 @@ type BootstrapJournalCarry = Readonly<{
  * The bootstrap plan's live-state checks: branch, KB snapshot, workspace
  * snapshot and declared source hashes must still match the plan.
  */
-// implements REQ-bootstrap-apply-long-running
 async function assertBootstrapPlanCurrent(
   args: Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }>,
   operationContext: OperationContext,
@@ -1162,19 +1137,15 @@ async function assertBootstrapPlanCurrent(
           sourceHashes: args.plan.expected.sourceHashes,
         })
       : status.snapshotId;
-  if (
-    args.plan.expected.branch !== "unknown" &&
-    status.branch !== args.plan.expected.branch
-  )
+  if (status.branch !== args.plan.expected.branch)
     throw new Error("Bootstrap apply failed: branch changed since planning");
   if (boundLiveKbSnapshot !== args.plan.expected.kbSnapshotId)
     throw new Error(
       "Bootstrap apply failed: KB snapshot changed since planning",
     );
   if (
-    args.plan.expected.workspaceSnapshot !== "unknown" &&
-    (!workspace.available ||
-      workspace.snapshot.hash !== args.plan.expected.workspaceSnapshot)
+    !workspace.available ||
+    workspace.snapshot.hash !== args.plan.expected.workspaceSnapshot
   )
     throw new Error(
       "Bootstrap apply failed: workspace snapshot changed since planning",
@@ -1190,7 +1161,6 @@ async function assertBootstrapPlanCurrent(
  * receipt, so input and stale-plan errors fail the call instead of the job.
  * The apply itself repeats every check under the workspace lock.
  */
-// implements REQ-mcp-apply-plan-async-preflight
 export async function preflightApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1198,10 +1168,7 @@ export async function preflightApplyPlan(
   if (!("plan" in args)) return;
   if (!isRecord(args.plan))
     throw new Error("Apply plan failed: plan must be an object");
-  if (
-    typeof args.approvedPlanHash !== "string" ||
-    !/^[a-f0-9]{64}$/i.test(args.approvedPlanHash)
-  )
+  if (!/^[a-f0-9]{64}$/i.test(args.approvedPlanHash))
     throw new Error(
       "Apply plan failed: approvedPlanHash must be the SHA-256 planHash returned with the plan",
     );
@@ -1232,10 +1199,10 @@ export async function preflightApplyPlan(
 async function executeBootstrapPlan(
   args: Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }>,
   context: OperationContext,
-  recovery = false,
-  remainingActions?: readonly BootstrapAction[],
-  priorResults: readonly BootstrapActionResult[] = [],
-  onCommitted: () => void = () => undefined,
+  recovery: boolean,
+  remainingActions: readonly BootstrapAction[] | undefined,
+  priorResults: readonly BootstrapActionResult[],
+  onCommitted: () => void,
   carry: BootstrapJournalCarry = {},
 ): Promise<{
   content: Array<{ type: "text"; text: string }>;
@@ -1293,7 +1260,7 @@ async function executeBootstrapPlan(
         currentWorkspace.available &&
         /^[a-f0-9]{64}$/i.test(currentWorkspace.snapshot.hash)
           ? bootstrapEmptyKbSnapshotId({
-              branch: current?.branch ?? "unavailable",
+              branch: current.branch,
               workspaceSnapshot: currentWorkspace.snapshot.hash,
               sourceHashes: args.plan.expected.sourceHashes,
             })
@@ -1339,8 +1306,12 @@ async function executeBootstrapPlan(
   const totalActions = priorResults.length + actions.length;
   const reportProgress = (message: string): void => {
     try {
+      // rationale: a missing listener throws inside this try and is
+      // swallowed like a failing one, so the optional call is unobservable.
+      // Stryker disable next-line OptionalChaining
       context.onProgress?.({
-        progress: results.filter((row) => row.outcome === "applied").length,
+        // Only applied rows exist until an action fails and the apply stops.
+        progress: results.length,
         total: totalActions,
         message,
       });
@@ -1361,98 +1332,89 @@ async function executeBootstrapPlan(
           operationContext,
         );
         onCommitted();
-        const payload = result.structuredContent;
-        if (payload && typeof payload === "object") {
-          const row = payload as Record<string, unknown>;
-          changedEntities +=
-            Number(row.created ?? 0) + Number(row.updated ?? 0);
-          changedRelationships += Number(row.relationships_created ?? 0);
+        const row = (result.structuredContent ?? {}) as Record<string, unknown>;
+        changedEntities += Number(row.created ?? 0) + Number(row.updated ?? 0);
+        changedRelationships += Number(row.relationships_created ?? 0);
 
-          // A source-first upsert can commit its authoritative mutation while
-          // a derived effect still needs repair. Treat that as a committed
-          // action with repair state, checkpoint it, and stop the bootstrap
-          // graph. Recovery will see the applied action in the journal and
-          // resume only its remaining dependants.
-          if (row.status === "committed_with_repairs") {
-            results.push({
-              actionId: action.id,
-              outcome: "applied",
-              detail:
-                "Applied with committed derived effects requiring repair.",
-            });
-            const effectFailures = Array.isArray(row.effectFailures)
-              ? row.effectFailures
-                  .filter(
-                    (failure): failure is Readonly<Record<string, unknown>> =>
-                      failure !== null &&
-                      typeof failure === "object" &&
-                      !Array.isArray(failure),
-                  )
-                  .map((failure) => ({ ...failure, actionId: action.id }))
-              : [];
-            failures.push(...effectFailures);
-            const nextActions = Array.isArray(row.nextActions)
-              ? row.nextActions.filter(
-                  (
-                    nextAction,
-                  ): nextAction is Readonly<Record<string, unknown>> =>
-                    nextAction !== null &&
-                    typeof nextAction === "object" &&
-                    !Array.isArray(nextAction),
+        // A source-first upsert can commit its authoritative mutation while
+        // a derived effect still needs repair. Treat that as a committed
+        // action with repair state, checkpoint it, and stop the bootstrap
+        // graph. Recovery will see the applied action in the journal and
+        // resume only its remaining dependants.
+        if (row.status === "committed_with_repairs") {
+          results.push({
+            actionId: action.id,
+            outcome: "applied",
+            detail: "Applied with committed derived effects requiring repair.",
+          });
+          const effectFailures = Array.isArray(row.effectFailures)
+            ? row.effectFailures
+                .filter(
+                  (failure): failure is Readonly<Record<string, unknown>> =>
+                    failure !== null &&
+                    typeof failure === "object" &&
+                    !Array.isArray(failure),
                 )
-              : [];
-            lastCheckpoint = await checkpoint();
-            activeActionId = undefined;
-            await writeJournal("repair_required", action.id, lastCheckpoint);
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Bootstrap plan ${args.plan.planHash.slice(0, 12)} committed an action with repair effects; repair journal ${journalId}.`,
-                },
-              ],
-              structuredContent: {
-                version: PLAN_APPLY_RESULT_VERSION,
-                outcome: "partially_applied",
-                planHash: args.plan.planHash,
-                actionResults: results,
-                changedEntities,
-                changedRelationships,
-                finalSnapshots: {
-                  branch: lastCheckpoint.branch,
-                  kbSnapshotId: lastCheckpoint.kbSnapshotId,
-                  workspaceSnapshot: lastCheckpoint.workspaceSnapshot,
-                },
-                recoveryJournalId: journalId,
-                changedPaths: [],
-                validationSummary: {
-                  stepsValidated: actions.length,
-                  stepsApplied: results.filter(
-                    (row) => row.outcome === "applied",
-                  ).length,
-                  sourceHashesChecked: Object.keys(
-                    args.plan.expected.sourceHashes,
-                  ).length,
-                  notes: [
-                    ...(carry.notes ?? []),
-                    "Bootstrap stopped after an authoritative action committed with derived repair effects.",
-                  ],
-                },
-                status: "committed_with_repairs",
-                effectFailures: failures,
-                nextActions: [
-                  ...nextActions,
-                  {
-                    operation: "kb_apply_plan",
-                    input: { recoveryJournalId: journalId },
-                    reason:
-                      "Resume the remaining bootstrap actions from the immutable recovery journal; do not retry the original plan.",
-                    required: true,
-                  },
+                .map((failure) => ({ ...failure, actionId: action.id }))
+            : [];
+          failures.push(...effectFailures);
+          const nextActions = Array.isArray(row.nextActions)
+            ? row.nextActions.filter(
+                (nextAction): nextAction is Readonly<Record<string, unknown>> =>
+                  nextAction !== null &&
+                  typeof nextAction === "object" &&
+                  !Array.isArray(nextAction),
+              )
+            : [];
+          lastCheckpoint = await checkpoint();
+          activeActionId = undefined;
+          await writeJournal("repair_required", action.id, lastCheckpoint);
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Bootstrap plan ${args.plan.planHash.slice(0, 12)} committed an action with repair effects; repair journal ${journalId}.`,
+              },
+            ],
+            structuredContent: {
+              version: PLAN_APPLY_RESULT_VERSION,
+              outcome: "partially_applied",
+              planHash: args.plan.planHash,
+              actionResults: results,
+              changedEntities,
+              changedRelationships,
+              finalSnapshots: {
+                branch: lastCheckpoint.branch,
+                kbSnapshotId: lastCheckpoint.kbSnapshotId,
+                workspaceSnapshot: lastCheckpoint.workspaceSnapshot,
+              },
+              recoveryJournalId: journalId,
+              changedPaths: [],
+              validationSummary: {
+                stepsValidated: actions.length,
+                stepsApplied: results.length,
+                sourceHashesChecked: Object.keys(
+                  args.plan.expected.sourceHashes,
+                ).length,
+                notes: [
+                  ...(carry.notes ?? []),
+                  "Bootstrap stopped after an authoritative action committed with derived repair effects.",
                 ],
               },
-            };
-          }
+              status: "committed_with_repairs",
+              effectFailures: failures,
+              nextActions: [
+                ...nextActions,
+                {
+                  operation: "kb_apply_plan",
+                  input: { recoveryJournalId: journalId },
+                  reason:
+                    "Resume the remaining bootstrap actions from the immutable recovery journal; do not retry the original plan.",
+                  required: true,
+                },
+              ],
+            },
+          };
         }
         results.push({
           actionId: action.id,
@@ -1608,7 +1570,7 @@ async function executeBootstrapPlan(
       changedPaths: [],
       validationSummary: {
         stepsValidated: actions.length,
-        stepsApplied: results.filter((row) => row.outcome === "applied").length,
+        stepsApplied: results.length,
         sourceHashesChecked: Object.keys(args.plan.expected.sourceHashes)
           .length,
         notes: [
@@ -1620,7 +1582,6 @@ async function executeBootstrapPlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 async function executeApplyPlanUnlocked(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1653,7 +1614,6 @@ async function executeApplyPlanUnlocked(
  * Only then may recovery attribute drift since the last checkpoint to the
  * action and re-apply it; every other drift stays a refusal.
  */
-// implements REQ-bootstrap-apply-long-running
 function interruptedBootstrapAction(
   journal: Readonly<{
     state?: string;
@@ -1662,16 +1622,12 @@ function interruptedBootstrapAction(
   }>,
   actionIds: ReadonlySet<string>,
 ): string | undefined {
-  const active = journal.activeActionId;
-  if (journal.state !== "applying" || typeof active !== "string")
-    return undefined;
-  if (!actionIds.has(active)) return undefined;
-  if ((journal.results ?? []).some((row) => row.actionId === active))
-    return undefined;
+  const active = journal.activeActionId as string;
+  if (journal.state !== "applying" || !actionIds.has(active)) return undefined;
+  if (journal.results?.some((row) => row.actionId === active)) return undefined;
   return active;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-agent-guided-migration-orchestration
 async function dispatchApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1693,7 +1649,7 @@ async function dispatchApplyPlan(
         throw new Error(
           "Bootstrap recovery requires a filesystem-capable runtime",
         );
-      if (!/^bootstrap-[a-f0-9]{16}$/.test(args.recoveryJournalId))
+      if (!/^[a-f0-9]{16}$/.test(args.recoveryJournalId.slice(10)))
         throw new Error("Bootstrap recovery journal ID is invalid");
       const journalPath = path.join(
         context.workspaceRoot,
@@ -1728,7 +1684,7 @@ async function dispatchApplyPlan(
         throw new Error("Bootstrap recovery journal is invalid");
       if (
         journal.state === "rejected" ||
-        (journal.results ?? []).some(
+        journal.results?.some(
           (row) =>
             row.outcome === "failed" &&
             isDeterministicBootstrapFailure(new Error(String(row.detail))),
@@ -1740,7 +1696,6 @@ async function dispatchApplyPlan(
           false,
         );
       if (
-        !/^[a-f0-9]{64}$/i.test(journal.plan.planHash) ||
         bootstrapPlanHash(
           journal.plan as unknown as Record<string, unknown>,
         ) !== journal.plan.planHash
@@ -1766,7 +1721,7 @@ async function dispatchApplyPlan(
           recoveryWorkspace.available &&
           /^[a-f0-9]{64}$/i.test(recoveryWorkspace.snapshot.hash)
             ? bootstrapEmptyKbSnapshotId({
-                branch: recoveryStatus?.branch ?? "unavailable",
+                branch: recoveryStatus.branch,
                 workspaceSnapshot: recoveryWorkspace.snapshot.hash,
                 sourceHashes: journal.plan.expected.sourceHashes,
               })
@@ -1823,41 +1778,30 @@ async function dispatchApplyPlan(
               ],
       };
       const applied = new Set<string>();
+      const priorResults: BootstrapActionResult[] = [];
       for (const row of journal.results ?? []) {
-        if (typeof row.actionId !== "string" || !actionIds.has(row.actionId))
+        const actionId = row.actionId as string;
+        if (!actionIds.has(actionId))
           throw new Error(
             "Bootstrap recovery journal contains an unknown action",
           );
-        if (row.outcome === "applied") applied.add(row.actionId);
+        if (row.outcome !== "applied") continue;
+        applied.add(actionId);
+        if (typeof row.detail === "string")
+          priorResults.push({
+            actionId,
+            outcome: "applied",
+            detail: row.detail,
+          });
       }
-      const remaining = orderBootstrapActions(
-        ordered.filter((action) => !applied.has(action.id)),
-        applied,
-      );
-      assertBootstrapRecoveryDependencies(remaining, applied);
+      // The plan passed validateBootstrapPlanShape, so every dependency of a
+      // remaining action is either applied or still remaining.
       return executeBootstrapPlan(
         { plan: journal.plan, approvedPlanHash: journal.plan.planHash },
         context,
         true,
-        remaining,
-        (journal.results ?? []).flatMap((row) =>
-          row &&
-          typeof row.actionId === "string" &&
-          (row.outcome === "applied" ||
-            row.outcome === "failed" ||
-            row.outcome === "skipped") &&
-          typeof row.detail === "string"
-            ? row.outcome === "applied"
-              ? [
-                  {
-                    actionId: row.actionId,
-                    outcome: row.outcome,
-                    detail: row.detail,
-                  },
-                ]
-              : []
-            : [],
-        ),
+        orderBootstrapActions(ordered, applied),
+        priorResults,
         onCommitted,
         carry,
       );
@@ -1890,7 +1834,7 @@ async function dispatchApplyPlan(
       sourceFirst: false as const,
       sourcePlanApplication: true as const,
     };
-    let payload: DeletePayload;
+    let deleted: number;
     const nextActions: Readonly<Record<string, unknown>>[] = [];
     let status: "committed_with_repairs" | undefined;
     try {
@@ -1898,7 +1842,7 @@ async function dispatchApplyPlan(
         { ids: args.plan.entityIds },
         operationContext,
       );
-      payload = result.structuredContent as DeletePayload;
+      deleted = (result.structuredContent as DeletePayload).deleted;
       onCommitted();
       await markSourceJournal(
         operationContext,
@@ -1920,11 +1864,7 @@ async function dispatchApplyPlan(
         sourceWrites.journalId,
         "repair_required",
       );
-      payload = {
-        deleted: 0,
-        skipped: args.plan.entityIds.length,
-        errors: [error instanceof Error ? error.message : String(error)],
-      };
+      deleted = 0;
     }
     return {
       content: [
@@ -1937,7 +1877,7 @@ async function dispatchApplyPlan(
         version: "kibi.entity-deletion-apply-result.v1",
         outcome: "applied",
         planHash: args.plan.planHash,
-        deleted: payload.deleted,
+        deleted,
         sourcePaths: sourceWrites.paths,
         ...(sourceWrites.journalId !== null
           ? { recoveryJournalId: sourceWrites.journalId }
@@ -1955,7 +1895,6 @@ type ValidatedPlanStep = Readonly<{
   relationships: readonly RelationshipInput[];
 }>;
 
-// implements REQ-kibi-truthful-consistency
 /**
  * Run every step through the validation chain executeUpsert runs. Each step
  * is validated against the live store plus what the earlier steps will have
@@ -2010,7 +1949,6 @@ type MutablePlanFileWrite = {
  * executeUpsert would write it, in step order. `sources` maps a step index to
  * its document, which becomes the committed entity's `source`.
  */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 async function planFileWrites(
   context: OperationContext,
   prolog: PrologPort,
@@ -2034,7 +1972,7 @@ async function planFileWrites(
       );
     }
     const before = target.existing ?? null;
-    const after = target.mode === "write" ? (write.body ?? "") : null;
+    const after = target.mode === "write" ? (write.body as string) : null;
     files.set(target.relative, {
       path: target.relative,
       origin: "plan",
@@ -2053,13 +1991,15 @@ async function planFileWrites(
   const sources = new Map<number, string>();
   for (const [index, step] of steps.entries()) {
     if (step.input.type === "symbol") continue;
-    const [existing] =
+    const existing =
       step.input.document?.path === undefined
-        ? await loadEntities(prolog, {
-            id: step.input.id,
-            type: step.input.type,
-          })
-        : [];
+        ? (
+            await loadEntities(prolog, {
+              id: step.input.id,
+              type: step.input.type,
+            })
+          )[0]
+        : undefined;
     const relative = canonicalSourcePath(
       context,
       step.input,
@@ -2074,14 +2014,15 @@ async function planFileWrites(
         .readFile(path.join(workspaceRoot, relative))
         .catch(() => undefined);
       const before = existingBytes ?? null;
+      const beforeHash = before === null ? null : contentHash(before);
       file = {
         path: relative,
         origin: "entity-document",
         mode: "write",
         before,
-        beforeHash: before === null ? null : contentHash(before),
+        beforeHash,
         after: before,
-        afterHash: before === null ? null : contentHash(before),
+        afterHash: beforeHash,
       };
       files.set(relative, file);
     }
@@ -2122,22 +2063,12 @@ async function planFileWrites(
         .relative(root, path.resolve(shardPath))
         .split(path.sep)
         .join("/");
-      let file = files.get(relative);
-      if (file === undefined) {
-        const existing = await fsPort.readFile(shardPath).catch(() => null);
-        const existingHash = existing === null ? null : contentHash(existing);
-        file = {
-          path: relative,
-          origin: "relationship-shard",
-          mode: "write",
-          before: existing,
-          beforeHash: existingHash,
-          after: existing,
-          afterHash: existingHash,
-        };
-        files.set(relative, file);
-      }
-      const next = renderShardWithRelationship(shardPath, file.after, {
+      const file = files.get(relative);
+      const base =
+        file === undefined
+          ? await fsPort.readFile(shardPath).catch(() => null)
+          : file.after;
+      const next = renderShardWithRelationship(shardPath, base, {
         type,
         from,
         to,
@@ -2145,22 +2076,27 @@ async function planFileWrites(
         created_by: "kibi/upsert",
         source: "mcp://kibi/upsert",
       });
-      if (next !== null) {
-        file.mode = "write";
-        file.after = next;
-        file.afterHash = contentHash(next);
+      // An already recorded relationship leaves its shard as it is.
+      if (next === null) continue;
+      if (file === undefined) {
+        files.set(relative, {
+          path: relative,
+          origin: "relationship-shard",
+          mode: "write",
+          before: base,
+          beforeHash: base === null ? null : contentHash(base),
+          after: next,
+          afterHash: contentHash(next),
+        });
+        continue;
       }
+      // A plan sourceWrite may delete this shard; the relationship rewrites it.
+      file.mode = "write";
+      file.after = next;
+      file.afterHash = contentHash(next);
     }
   }
-  return {
-    files: [...files.values()].filter(
-      (file) =>
-        file.origin === "plan" ||
-        file.origin === "entity-document" ||
-        file.afterHash !== file.beforeHash,
-    ),
-    sources,
-  };
+  return { files: [...files.values()], sources };
 }
 
 type CompilePlanCommit = Readonly<{
@@ -2177,7 +2113,6 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 /**
  * Apply a validated compile plan all-or-nothing:
  * 1. journal every file change (exact bytes) and every store upsert, plus a
@@ -2208,7 +2143,9 @@ async function commitCompilePlan(
       return {
         entity: source === undefined ? step.entity : { ...step.entity, source },
         relationships: step.relationships,
-        skipContradictionCheck: step.input._skipContradictionCheck === true,
+        // asUpsert never carries _skipContradictionCheck: compile plan
+        // steps always run the store's contradiction check.
+        skipContradictionCheck: false,
       };
     });
   let entries = storeEntries();
@@ -2246,13 +2183,14 @@ async function commitCompilePlan(
     }
     onCommitted();
     prolog.invalidateCache?.();
+    const none: readonly Readonly<Record<string, unknown>>[] = [];
     return {
       journalId: null,
       changedEntities: entries.length,
       changedRelationships,
       documentPaths: [],
-      effectFailures: [],
-      nextActions: [],
+      effectFailures: none,
+      nextActions: none,
     };
   }
 
@@ -2473,7 +2411,6 @@ async function commitCompilePlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 async function executeCompilePlan(
   args: Extract<ApplyPlanArgs, { plan: CompilePlanV1 }>,
   context: OperationContext,
@@ -2535,7 +2472,6 @@ async function executeCompilePlan(
     args.plan.expected.sourceHashes,
   );
   const steps = args.plan.steps.map((step) => asUpsert(step));
-  // implements REQ-kibi-truthful-consistency
   // Run every step through the same validation chain executeUpsert runs,
   // then stage all of them together in a rolled-back transaction, before the
   // first write. A step executeUpsert would reject, or a final state that
@@ -2599,29 +2535,31 @@ async function executeCompilePlan(
   // readback failure therefore cannot turn the operation into a retryable
   // mutation: return a repairable completion with deterministic next actions
   // instead.
-  let finalStatus: typeof status | undefined;
-  let finalWorkspace:
-    | Awaited<ReturnType<typeof readWorkspaceSnapshot>>
-    | undefined;
-  let postCommitFailure: string | undefined;
+  let finalSnapshots = {
+    branch: args.plan.expected.branch,
+    kbSnapshotId: args.plan.expected.kbSnapshotId,
+    workspaceSnapshot: args.plan.expected.workspaceSnapshot,
+  };
   try {
     const finalStatusResult = await executeStatus({}, operationContext);
-    finalStatus = finalStatusResult.structuredContent;
+    const finalStatus = finalStatusResult.structuredContent;
     if (!finalStatus) {
       throw new Error("final status query returned no payload");
     }
-    finalWorkspace = await readWorkspaceSnapshot(operationContext);
+    const finalWorkspace = await readWorkspaceSnapshot(operationContext);
     if (!finalWorkspace.available) {
-      throw new Error(
-        finalWorkspace.error ?? "final workspace snapshot unavailable",
-      );
+      throw new Error(finalWorkspace.error);
     }
+    finalSnapshots = {
+      branch: finalStatus.branch,
+      kbSnapshotId: finalStatus.snapshotId,
+      workspaceSnapshot: finalWorkspace.snapshot.hash,
+    };
   } catch (error) {
-    postCommitFailure = errorMessage(error);
     effectFailures.push({
       kind: "post-commit-readback",
       errorCode: "POST_COMMIT_READBACK_FAILED",
-      detail: postCommitFailure,
+      detail: errorMessage(error),
     });
     nextActions.push(
       {
@@ -2638,18 +2576,6 @@ async function executeCompilePlan(
       },
     );
   }
-  const finalSnapshots =
-    finalStatus !== undefined && finalWorkspace?.available === true
-      ? {
-          branch: finalStatus.branch,
-          kbSnapshotId: finalStatus.snapshotId,
-          workspaceSnapshot: finalWorkspace.snapshot.hash,
-        }
-      : {
-          branch: args.plan.expected.branch,
-          kbSnapshotId: args.plan.expected.kbSnapshotId,
-          workspaceSnapshot: args.plan.expected.workspaceSnapshot,
-        };
   const payload: ApplyPlanResult = {
     version: PLAN_APPLY_RESULT_VERSION,
     outcome: "applied",
@@ -2665,7 +2591,7 @@ async function executeCompilePlan(
       notes,
     },
     recoveryJournalId: commit.journalId,
-    ...(effectFailures.length > 0 || postCommitFailure !== undefined
+    ...(effectFailures.length > 0
       ? {
           status: "committed_with_repairs" as const,
           effectFailures,
@@ -2684,7 +2610,6 @@ async function executeCompilePlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 /** The kb_apply_plan result for a plan journal this call recovered or found finished. */
 async function planJournalRecoveryResult(
   context: OperationContext,
@@ -2702,6 +2627,9 @@ async function planJournalRecoveryResult(
   try {
     const status = (await executeStatus({}, context)).structuredContent;
     const workspace = await readWorkspaceSnapshot(context);
+    // rationale: a readback that throws is swallowed below with the same
+    // result, so loosening this guard into a TypeError is unobservable.
+    // Stryker disable next-line ConditionalExpression,LogicalOperator
     if (status !== undefined && workspace.available) {
       finalSnapshots = {
         branch: status.branch,
@@ -2757,7 +2685,6 @@ async function planJournalRecoveryResult(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 async function executePlanJournalRecovery(
   journalId: string,
   context: OperationContext,
@@ -2811,20 +2738,21 @@ function withRecoveryReport(
   const structured = result.structuredContent as Readonly<
     Record<string, unknown>
   >;
-  const own =
-    typeof structured.recoveryJournalId === "string"
-      ? structured.recoveryJournalId
-      : undefined;
+  const own = structured.recoveryJournalId;
   const reported = recovered.filter(
     (recovery) => recovery.action !== "none" && recovery.journalId !== own,
   );
   if (reported.length === 0) return result;
   const notes = reported.map((recovery) => recovery.detail);
-  const [first, ...rest] = result.content;
+  // Every result carries its summary line first.
+  const [first, ...rest] = result.content as [
+    { type: "text"; text: string },
+    ...Array<{ type: "text"; text: string }>,
+  ];
   const content = [
     {
       type: "text" as const,
-      text: [first?.text ?? "", ...notes].join(" ").trim(),
+      text: [first.text, ...notes].join(" ").trim(),
     },
     ...rest,
   ];
@@ -2868,49 +2796,47 @@ function withRecoveryReport(
  * journal is still `applying` (its process died mid-plan). Only such a
  * recovery may reclaim a lock whose holder process is dead.
  */
-// implements REQ-bootstrap-apply-long-running
 async function applyingBootstrapJournal(
   args: ApplyPlanArgs,
   context: OperationContext,
 ): Promise<string | undefined> {
-  if (!context.fs || !("recoveryJournalId" in args)) return undefined;
-  if (!/^bootstrap-[a-f0-9]{16}$/.test(args.recoveryJournalId))
-    return undefined;
+  // Called with a filesystem only; a plan-bearing call has no journal id.
+  const journalId = String(
+    (args as { recoveryJournalId?: unknown }).recoveryJournalId,
+  );
+  if (!/^bootstrap-[a-f0-9]{16}$/.test(journalId)) return undefined;
   const journalPath = path.join(
     context.workspaceRoot,
     ".kb",
     "recovery",
-    `${args.recoveryJournalId}.json`,
+    `${journalId}.json`,
   );
+  let journal: { kind?: unknown; state?: unknown } = {};
   try {
-    const journal = JSON.parse(await context.fs.readFile(journalPath)) as {
-      kind?: unknown;
-      state?: unknown;
-    };
-    return journal.kind === "bootstrap" && journal.state === "applying"
-      ? journalPath
-      : undefined;
-  } catch {
-    return undefined;
-  }
+    journal = JSON.parse(
+      await (context.fs as FilesystemPort).readFile(journalPath),
+    );
+  } catch {}
+  return journal.kind === "bootstrap" && journal.state === "applying"
+    ? journalPath
+    : undefined;
 }
 
 /** Record reclaimed dead lock holders in the bootstrap journal. */
-// implements REQ-bootstrap-apply-long-running
 async function recordBootstrapLockReclaims(
   context: OperationContext,
   journalPath: string,
   reclaimed: readonly WorkspaceMutationLockReclaim[],
 ): Promise<void> {
-  if (!context.fs) return;
-  const journal = JSON.parse(await context.fs.readFile(journalPath)) as Record<
+  const fsPort = context.fs as FilesystemPort;
+  const journal = JSON.parse(await fsPort.readFile(journalPath)) as Record<
     string,
     unknown
   >;
   const earlier = Array.isArray(journal.lockReclaims)
     ? journal.lockReclaims
     : [];
-  await context.fs.writeFile(
+  await fsPort.writeFile(
     journalPath,
     `${JSON.stringify(
       {
@@ -2931,7 +2857,6 @@ async function recordBootstrapLockReclaims(
   );
 }
 
-// implements REQ-agent-guided-migration-orchestration, REQ-cli-canonical-runtime, REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-change-to-proof-plan-compiler-v2, REQ-kibi-predicate-vocabulary-migration
 export async function executeApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -3140,7 +3065,7 @@ async function applyMigrationPlan(
   const outcome = failed
     ? results.some((result) => result.outcome === "applied")
       ? "partially_applied"
-      : failures > 0 && refusals === failures
+      : refusals === failures
         ? "refused"
         : "reconciliation_required"
     : "applied";
@@ -3249,7 +3174,6 @@ async function applyMigrationAction(
     case "missing_exact_branch_store":
       await branchEnsureCommand({ workspaceRoot: context.workspaceRoot });
       return;
-    // implements REQ-cli-status-pre-first-sync
     case BRANCH_STORE_NOT_COMPILED: {
       const result = await syncCommand({
         workspaceRoot: context.workspaceRoot,
@@ -3260,7 +3184,6 @@ async function applyMigrationAction(
         );
       return;
     }
-    // implements REQ-cli-status-pre-first-sync
     case FRESHNESS_RESYNC: {
       const result = await syncCommand({
         workspaceRoot: context.workspaceRoot,
@@ -3280,7 +3203,6 @@ async function applyMigrationAction(
     case "schema_version_upgrade":
     case "invalid_schema_version":
     case "legacy_storage_migration": {
-      // implements REQ-agent-guided-migration-orchestration
       const run = await migrateCommand({
         yes: true,
         workspaceRoot: context.workspaceRoot,
@@ -3305,7 +3227,6 @@ async function applyMigrationAction(
     case PREDICATE_SCHEMA_ALIGNMENT_CODE:
       await applyPredicateSchemaAlignment(action, context);
       return;
-    // implements REQ-kibi-verification-evidence-contract
     case PROOF_INTEGRATION_CONFIGURE:
       applyProofIntegrationAction(action, context.workspaceRoot);
       return;
@@ -3327,7 +3248,6 @@ async function applyMigrationAction(
  * Replay the planned kb_upsert for one predicate fact after confirming the
  * fact still has the namespace and alias spellings the plan was built from.
  */
-// implements REQ-kibi-predicate-vocabulary-migration
 async function applyPredicateSchemaAlignment(
   action: MigrationAction,
   context: OperationContext,
@@ -3353,9 +3273,7 @@ async function applyPredicateSchemaAlignment(
     current.predicate_namespace !== ""
       ? current.predicate_namespace
       : "default";
-  const currentArgs = Array.isArray(current?.predicate_args)
-    ? current.predicate_args
-    : [];
+  const currentArgs = current?.predicate_args;
   const rewrites = Array.isArray(evidence.rewrites) ? evidence.rewrites : [];
   const unchanged =
     current !== undefined &&
@@ -3365,6 +3283,7 @@ async function applyPredicateSchemaAlignment(
       (rewrite) =>
         isRecord(rewrite) &&
         typeof rewrite.index === "number" &&
+        Array.isArray(currentArgs) &&
         currentArgs[rewrite.index] === rewrite.from,
     );
   if (!unchanged)

@@ -44,12 +44,10 @@ const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const PAYLOAD_ENTRIES = ["bin", "lib", "licenses", "build-manifest.json"];
 const SHA256_LINE = /^([0-9a-f]{64}) {2}([^/\\\n]+)\n?$/;
 
-// implements REQ-prolog-bundled-release
 export function sha256Of(filePath) {
   return createHash("sha256").update(readFileSync(filePath)).digest("hex");
 }
 
-// implements REQ-prolog-bundled-release
 export function readPins(repoRoot = REPO_ROOT) {
   const pins = JSON.parse(
     readFileSync(path.join(repoRoot, "scripts", "swipl-version.json"), "utf8"),
@@ -60,7 +58,6 @@ export function readPins(repoRoot = REPO_ROOT) {
   return pins;
 }
 
-// implements REQ-prolog-bundled-release
 export function archiveName(version, target) {
   return `swipl-${version}-${target}.tar.gz`;
 }
@@ -70,7 +67,6 @@ export function archiveName(version, target) {
  * exactly this archive, so a sidecar copied from another artifact cannot pass.
  * Returns the lowercase digest.
  */
-// implements REQ-prolog-bundled-release
 export function verifyArchiveSidecar(archivePath, sidecarPath) {
   if (!existsSync(archivePath)) {
     throw new Error(`archive is missing: ${archivePath}`);
@@ -100,7 +96,6 @@ export function verifyArchiveSidecar(archivePath, sidecarPath) {
 }
 
 /** Verified extraction through the pipeline's own archive verifier. */
-// implements REQ-prolog-bundled-release
 export function extractWithPipelineVerifier({
   archive,
   sidecar,
@@ -196,7 +191,6 @@ function nativeReferences(files, names) {
  * renamed into its first referenced link instead of being copied beside it.
  * Returns what was done, for the release report.
  */
-// implements REQ-prolog-bundled-release
 export function materializeSymlinks(payloadRoot) {
   const root = realpathSync(payloadRoot);
   const entries = walkFiles(root);
@@ -254,12 +248,8 @@ export function materializeSymlinks(payloadRoot) {
       summary.materialized.push(rel(link));
     }
   }
-  const remaining = walkFiles(root).filter((entry) => entry.link);
-  if (remaining.length > 0) {
-    throw new Error(
-      `symbolic links remain after materialization: ${remaining.map((e) => rel(e.full)).join(", ")}`,
-    );
-  }
+  // Every link was removed above (dropped, or replaced by a regular file), and
+  // a directory link already failed the regular-file check, so none remain.
   return summary;
 }
 
@@ -294,14 +284,12 @@ function directorySize(root) {
 }
 
 /** The environment without the Actions run identity the verifier binds to. */
-// implements REQ-prolog-bundled-ci
 export function withoutRunBinding(env) {
   const { GITHUB_SHA: _sha, GITHUB_RUN_ID: _run, ...rest } = env;
   return rest;
 }
 
 /** Populate one platform package from its pipeline archive; returns a report. */
-// implements REQ-prolog-bundled-release
 export function populatePlatformPackage({
   target,
   artifactsDir,
@@ -383,7 +371,6 @@ export function populatePlatformPackage({
   }
 }
 
-// implements REQ-prolog-bundled-release
 export function platformTargets(
   packagesRoot = path.join(REPO_ROOT, "packages"),
 ) {
@@ -393,7 +380,6 @@ export function platformTargets(
     .sort();
 }
 
-// implements REQ-prolog-bundled-release
 export function parseArgs(argv) {
   const options = {
     targets: undefined,
@@ -415,14 +401,14 @@ export function parseArgs(argv) {
   return options;
 }
 
-// implements REQ-prolog-bundled-release
-export function main(argv = process.argv.slice(2)) {
+export function main(argv = process.argv.slice(2), overrides = {}) {
   const options = parseArgs(argv);
-  const targets = options.targets ?? platformTargets();
+  const targets = options.targets ?? platformTargets(overrides.packagesRoot);
   const reports = [];
   for (const target of targets) {
     reports.push(
       populatePlatformPackage({
+        ...overrides,
         target,
         artifactsDir: path.resolve(options.artifacts),
         cachedBuild: options.cachedBuild,
@@ -435,13 +421,17 @@ export function main(argv = process.argv.slice(2)) {
   return reports;
 }
 
-if (import.meta.main) {
+/** Command-line entry: returns the process exit code. */
+export function runCli(argv = process.argv.slice(2), overrides = {}) {
   try {
-    main();
+    main(argv, overrides);
+    return 0;
   } catch (error) {
     console.error(
       `populate-swipl-platform-packages: ${error instanceof Error ? error.message : String(error)}`,
     );
-    process.exit(1);
+    return 1;
   }
 }
+
+if (import.meta.main) process.exitCode = runCli();

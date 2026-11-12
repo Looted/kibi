@@ -1,7 +1,7 @@
 ---
 id: TEST-012
 title: kb_query supports sourceFile filtering for linked entities
-status: active
+status: passing
 created_at: 2026-02-20T10:35:00.000Z
 updated_at: 2026-02-20T10:35:00.000Z
 priority: must
@@ -19,26 +19,26 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-012
+    - symbol_id: SYM-e2e-init-sync-check
       target: default
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-ef6708c0b0225dcb660f6577
+    receipt_id: PR-4e5d7f34438ea28902582c98
     test_id: TEST-012
     scope: end_to_end
     outcome: passed
-    code_snapshot: 8b63c881af73e7cb6ddba865680663cd0558e67a4fce12bd16e3143f13445e6e
+    code_snapshot: b95fa37681e8a263f7711717a0c81ed6eb85ba81a6d11a9483e6acc81f4800fc
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-03T11:54:01.278Z'
-    finished_at: '2026-11-03T11:55:50.137Z'
-    artifact_digest: e9c67f147e60056623e1b8b3fea6562ca52b536c5441eac3f8d951f5d18a7a4c
-    contract_hash: bca81a1b5c8493d4567cf823c2da3e46809b51250715050d3d27eab1a8564029
-    binding_hash: 2fcc8c0aadad500f576cb5d1b9751f346926c5144bd915f2713a3d93798e5501
-    fingerprint: 5a728f314da3f5a32ce68601f04e727449cb7a1c14fd6ac6638255834fb3c2e3
+    started_at: '2026-11-10T15:17:14.455Z'
+    finished_at: '2026-11-10T15:17:41.388Z'
+    artifact_digest: 889375d5f1ce2ffeb89c1bb72d7bd5c334b274c0e6c59c6a782a8c153bbd139e
+    contract_hash: 4aeddfd893b85de667338165458ac8dfc908d633d6a4117ff137a3fd26d0f919
+    binding_hash: 5d744bcb404f1b41fca922f6757d0c0e40a6e7a644ca514d35fdee07869003a3
+    fingerprint: b306bd9de40a1467df2971230e0d6da3dddf85f413772e7f94361ed531556ac1
     fingerprint_components:
-      contract: bca81a1b5c8493d4567cf823c2da3e46809b51250715050d3d27eab1a8564029
+      contract: 4aeddfd893b85de667338165458ac8dfc908d633d6a4117ff137a3fd26d0f919
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -51,7 +51,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-012
+      - symbol_id: SYM-e2e-init-sync-check
         target: default
         outcome: passed
         binding: aggregate_run

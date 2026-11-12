@@ -6,13 +6,16 @@ import type { initCommand } from "./commands/init.js";
 import type { migrateCommand } from "./commands/migrate.js";
 import type { queryCommand } from "./commands/query.js";
 import type { syncCommand } from "./commands/sync.js";
+import {
+  KB_OPTION_DESCRIPTION,
+  applyKbOption,
+} from "./dependencies/kb-dependency-cli.js";
 
 async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   const executor = await import("./cli-json-command.js");
   await executor.runJsonInvocation(invocation);
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function registerFoundationCommands(program: Command): void {
   program
     .command("init")
@@ -154,13 +157,18 @@ export function registerFoundationCommands(program: Command): void {
     .option("--format <format>", "Output format: json|table", "json")
     .option("--limit <n>", "Limit results", "100")
     .option("--offset <n>", "Skip results", "0")
+    .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(
       withExitCode(
         async (
           type: Parameters<typeof queryCommand>[0],
-          options: Parameters<typeof queryCommand>[1] & { input?: string },
+          options: Parameters<typeof queryCommand>[1] & {
+            input?: string;
+            kb?: string;
+          },
           command: Command,
         ) => {
+          if (!applyKbOption(options)) return undefined;
           if (options.input !== undefined) {
             await runJsonInvocation({
               operationName: "kb_query",
@@ -186,7 +194,9 @@ export function registerFoundationCommands(program: Command): void {
     .option("--format <format>", "Output format: json|table", "table")
     .option("--limit <n>", "Limit results", "20")
     .option("--offset <n>", "Skip results", "0")
+    .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (query, options, command: Command) => {
+      if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
           operationName: "kb_search",
@@ -207,7 +217,9 @@ export function registerFoundationCommands(program: Command): void {
     .description(getCliOperationMetadata("kb_status").description)
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--format <format>", "Output format: json|table", "table")
+    .option("--kb <name>", KB_OPTION_DESCRIPTION)
     .action(async (options, command: Command) => {
+      if (!applyKbOption(options)) return;
       if (options.input !== undefined) {
         await runJsonInvocation({
           operationName: "kb_status",

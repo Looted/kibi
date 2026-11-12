@@ -21,7 +21,6 @@ const defaultDeps: McpDeps = {
  * Auto-detects if not configured and shows warnings if not found.
  */
 export function validateMcpServerPath(
-  // implements REQ-vscode-traceability
   output: vscode.OutputChannel,
   deps?: Partial<McpDeps>,
 ): void {
@@ -83,7 +82,6 @@ export function validateMcpServerPath(
  * Returns the path if found, undefined otherwise.
  */
 export function findKibiMcpInPath(deps?: Partial<McpDeps>): string | undefined {
-  // implements REQ-vscode-traceability
   const d = { ...defaultDeps, ...deps };
   try {
     const isWindows = process.platform === "win32";

@@ -48,13 +48,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-95721fe8a7a5
-  - type: implements
-    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid
-    to: REQ-KIBI-BOOTSTRAP-PLAN
-    created_at: 2026-08-20T13:48:54.338Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-06a21931e091
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid
     to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
@@ -104,13 +97,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f85ccafe1531
-  - type: executable_for
-    from: SYM-e2e-test-cli-status-pre-first-sync
-    to: TEST-cli-status-pre-first-sync
-    created_at: 2026-09-05T15:18:50.404Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-88403c8f78ba
   - type: covered_by
     from: SYM-auto-13239C566F5C
     to: TEST-kibi-operation-interface-parity
@@ -155,25 +141,11 @@ relationships:
     id: rel-9201b98fb8e8
   - type: implements
     from: SYM-operation-executeCoverage
-    to: REQ-kibi-conservative-requirement-proof
-    created_at: 2026-09-18T07:28:22.950Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e569853ca0c5
-  - type: implements
-    from: SYM-operation-executeCoverage
     to: REQ-kibi-dependency-ordered-repair-plan
     created_at: 2026-09-18T07:28:22.954Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-acb2019a5ceb
-  - type: implements
-    from: SYM-operation-executeCoverage
-    to: REQ-kibi-legacy-migration-preview-v2
-    created_at: 2026-09-18T07:28:22.963Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-568a40a2f248
   - type: covered_by
     from: SYM-operation-executeCoverage
     to: TEST-e2e-coverage-proof-status
@@ -202,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6b951e13e141
-  - type: implements
-    from: SYM-impact-stage-e-impact-evaluator-version
-    to: REQ-impact-policy-stage-e-content-bound-review
-    created_at: 2026-09-27T17:40:45.389Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d9f741236882
   - type: validates
     from: TEST-skillopt-claude-code-host
     to: SCEN-skillopt-claude-code-host
@@ -258,13 +223,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b4f6794e289
-  - type: implements
-    from: SYM-operation-executeCoverage
-    to: REQ-kibi-evidence-levels
-    created_at: 2026-10-23T12:09:38.586Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-adb32af70ff8
   - type: covered_by
     from: SYM-operation-executeCoverage
     to: TEST-kibi-evidence-levels
@@ -314,13 +272,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f4a3cbd047f3
-  - type: implements
-    from: SYM-const-symbol-legacy-link-mark-action-id
-    to: REQ-cli-migration-pin-codes
-    created_at: 2026-10-28T20:32:49.468Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eb13ade7548b
   - type: covered_by
     from: SYM-const-symbol-legacy-link-mark-action-id
     to: TEST-proof-legacy-link-mark-action
@@ -349,13 +300,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77b99dc41814
-  - type: implements
-    from: SYM-build-search-hints
-    to: REQ-kibi-search-hints-host
-    created_at: 2026-10-29T19:22:27.997Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-bd7d722b0b9d
   - type: covered_by
     from: SYM-build-search-hints
     to: TEST-kibi-search-hints-host

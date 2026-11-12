@@ -10,9 +10,7 @@ import {
   boundedContractSchema,
 } from "./common";
 
-// implements REQ-skillopt-codex-optimization
 export const VariantSchema = z.enum(["baseline", "one-shot", "skillopt"]);
-// implements REQ-skillopt-codex-optimization
 export const SkillSchema = z.enum([
   "kibi-usage",
   "kibi-freshness",
@@ -22,7 +20,6 @@ export const SkillSchema = z.enum([
   "kibi-commit-review",
 ]);
 
-// implements REQ-skillopt-codex-optimization
 export const EpisodeRequestSchema = boundedContractSchema(
   z
     .object({
@@ -42,7 +39,6 @@ export const EpisodeRequestSchema = boundedContractSchema(
     .strict(),
 );
 
-// implements REQ-skillopt-codex-optimization
 export const EpisodeResultSchema = boundedContractSchema(
   z
     .object({
@@ -121,7 +117,5 @@ export const EpisodeResultSchema = boundedContractSchema(
     }),
 );
 
-// implements REQ-skillopt-codex-optimization
 export type EpisodeRequest = Readonly<z.infer<typeof EpisodeRequestSchema>>;
-// implements REQ-skillopt-codex-optimization
 export type EpisodeResult = Readonly<z.infer<typeof EpisodeResultSchema>>;

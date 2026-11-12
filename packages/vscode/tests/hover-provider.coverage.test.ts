@@ -1,4 +1,3 @@
-// implements REQ-vscode-kb-to-source
 import { afterAll, afterEach, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";

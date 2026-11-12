@@ -16,8 +16,8 @@ predicate_args:
   - allow
 canonical_key: provider_allowed_operation(external_semantic_classifier,kb_semantic_advisor,allow)
 polarity: assert
-claim_key: CLAIM-08144D5332C78E6F
-claim_text: An external semantic classifier must be allowed only for kb_semantic_advisor
+claim_key: CLAIM-C7D1AFFF5CDB6B36
+claim_text: An external semantic classifier must be allowed only for kb_semantic_advisor and kb_compile_intent
 id: FACT-PRED-C842EDCDDC65
 type: fact
 predicate_namespace: kibi.capability

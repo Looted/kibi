@@ -35,7 +35,6 @@ function hasExplicitClaimFields(args: ModelRequirementArgs): boolean {
   );
 }
 
-// implements REQ-002
 export function estimateNormativeSignalConfidence(
   statement: string,
   heading?: string,
@@ -51,7 +50,6 @@ export function estimateNormativeSignalConfidence(
   return Math.round(Math.min(0.95, confidence) * 100) / 100;
 }
 
-// implements REQ-002
 export function extractRequirementClaim(
   args: ModelRequirementArgs,
 ): ExtractedRequirementClaim & {
@@ -112,7 +110,6 @@ export function extractRequirementClaim(
     };
   }
 
-  // implements REQ-kibi-source-proof-kinds
   // Set and pattern claims (every route uses a middleware, a state can never
   // reach another, a format) take the advisor's strict shapes, so the fact is
   // one a source, state_machine or regex proof can derive.
@@ -142,16 +139,15 @@ function strictSetClaim(
   provenance: string | undefined,
 ): ExtractedRequirementClaim | null {
   const normalized = stripListPrefix(statement);
-  const suggestion = detectStrictSuggestion(
-    { semantic_text: normalized },
-    normalized,
-  );
+  // Only the claim is read; the payload feeds suggestion metadata alone.
+  const suggestion = detectStrictSuggestion({}, normalized);
   if (suggestion?.kind !== "strict_property") return null;
   const strict: SemanticStrictPropertyClaim = suggestion.claim;
+  // Only set claims carry value_set, and a matches claim its value_string.
   const value =
-    strict.value_type === "set" && strict.value_set !== undefined
+    strict.value_set !== undefined
       ? [...strict.value_set]
-      : strict.operator === "matches" && strict.value_string !== undefined
+      : strict.operator === "matches"
         ? strict.value_string
         : undefined;
   if (value === undefined) return null;

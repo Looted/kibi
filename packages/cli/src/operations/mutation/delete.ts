@@ -12,7 +12,10 @@ import {
   parseListOfLists,
   toPrologAtom,
 } from "../../prolog/codec.js";
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import type {
+  FilesystemPort,
+  OperationContext,
+} from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
 import {
   type RelationshipSelector,
@@ -79,19 +82,17 @@ async function loadEntity(
     throw new Error(
       `Failed to load metadata for entity ${id}: ${result.error ?? "Unknown error"}`,
     );
-  const rows = parseListOfLists(result.bindings.Results ?? "[]");
+  const rows = parseListOfLists(String(result.bindings.Results));
   if (rows.length === 0)
     throw new KbRejection(
       "ENTITY_NOT_FOUND",
       `Failed to load metadata for entity ${id}: Entity not found`,
     );
-  return { ...parseEntityFromList(rows[0] ?? []), id };
+  return { ...parseEntityFromList(rows[0] as string[]), id };
 }
 
 function isSelector(value: unknown): value is RelationshipSelector {
-  if (value === null || typeof value !== "object" || Array.isArray(value))
-    return false;
-  const row = value as Record<string, unknown>;
+  const row = Object(value) as Record<string, unknown>;
   return ["type", "from", "to"].every(
     (key) =>
       typeof row[key] === "string" && (row[key] as string).trim().length > 0,
@@ -104,9 +105,36 @@ function sourceIsAuthored(source: string): boolean {
   return /\.(?:md|mdx|ya?ml)$/i.test(normalized);
 }
 
+/** The entity's authored document source, or undefined when it has none. */
+function authoredSource(
+  entity: Readonly<Record<string, unknown>>,
+): string | undefined {
+  const source = entity.source;
+  return typeof source === "string" && sourceIsAuthored(source)
+    ? source
+    : undefined;
+}
+
+/** A workspace file's path relative to the root, with forward slashes. */
+function workspacePath(workspaceRoot: string, absolute: string): string {
+  return path.relative(workspaceRoot, absolute).split(path.sep).join("/");
+}
+
 function fileHash(pathname: string): string | null {
   if (!existsSync(pathname)) return null;
   return createHash("sha256").update(readFileSync(pathname)).digest("hex");
+}
+
+function readPreflightShards(
+  shardRoot: string,
+): ReturnType<typeof readAllShards> {
+  try {
+    return readAllShards(shardRoot);
+  } catch (error) {
+    throw new Error(
+      `Relationship deletion preflight failed while reading legacy shards: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 type DeleteExecutionOptions = Readonly<{ dryRun?: boolean }>;
@@ -124,7 +152,6 @@ function sha256(text: string): string {
   return createHash("sha256").update(text).digest("hex");
 }
 
-// implements REQ-011
 /**
  * The relationship delete a preflight-clean call would perform: the shard and
  * authored-source writes with their hashes and the compiled edges it would
@@ -140,10 +167,10 @@ function relationshipDeleteDryRun(
   const planned = planRelationshipShardRemovals(shardRoot, preflight);
   const sourceWrites: NonNullable<DeletePayload["sourceWrites"]>[number][] = [];
   for (const [shardPath, body] of planned.bodies) {
-    const before = readFileSync(shardPath, "utf8");
+    const before = readFileSync(shardPath).toString();
     if (before === body) continue;
     sourceWrites.push({
-      path: path.relative(workspaceRoot, shardPath).replaceAll("\\", "/"),
+      path: workspacePath(workspaceRoot, shardPath),
       mode: "write",
       beforeHash: sha256(before),
       afterHash: sha256(body),
@@ -189,7 +216,6 @@ function relationshipDeleteDryRun(
   };
 }
 
-// implements REQ-011
 // covered_by TEST-cli-source-relationship-parity-unit
 async function executeRelationshipDeleteUnlocked(
   selectors: readonly RelationshipSelector[],
@@ -217,14 +243,7 @@ async function executeRelationshipDeleteUnlocked(
   // Relationship YAML shards are canonical tracked sources. Never patch the
   // hashed compiled branch store here; sync will rebuild derived state.
   const shardRoot = path.join(context.workspaceRoot, ".kb");
-  let shardRecords: ReturnType<typeof readAllShards> = [];
-  try {
-    shardRecords = readAllShards(shardRoot);
-  } catch (error) {
-    throw new Error(
-      `Relationship deletion preflight failed while reading legacy shards: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
+  const shardRecords = readPreflightShards(shardRoot);
   const preflight: RelationshipSelector[] = [];
   const liveByKey = new Map<string, boolean>();
   const sourcePatches = new Map<string, { before: string; after: string }>();
@@ -260,14 +279,10 @@ async function executeRelationshipDeleteUnlocked(
       // so the next sync cannot recreate a relationship the caller deleted.
       // Legacy Markdown declarations are authoritative by the same rule.
       try {
-        const entity = await loadEntity(prolog, selector.from);
-        const source = typeof entity.source === "string" ? entity.source : "";
-        if (sourceIsAuthored(source)) {
-          authoredSourceKind = /\.(?:ya?ml)$/i.test(
-            source.replaceAll("\\", "/"),
-          )
-            ? "YAML"
-            : "Markdown";
+        const source = authoredSource(await loadEntity(prolog, selector.from));
+        if (source !== undefined) {
+          const isYaml = /\.ya?ml$/i.test(source);
+          authoredSourceKind = isYaml ? "YAML" : "Markdown";
           const relative = normalizeAuthoredSourcePath(
             context.workspaceRoot,
             source,
@@ -276,7 +291,6 @@ async function executeRelationshipDeleteUnlocked(
             context.workspaceRoot,
             relative,
           );
-          const isYaml = /\.(?:ya?ml)$/i.test(relative);
           const previous = sourcePatches.get(relative);
           const before =
             previous?.before ?? (await context.fs.readFile(absolute));
@@ -315,7 +329,7 @@ async function executeRelationshipDeleteUnlocked(
       !sourceRemoved
     ) {
       errors.push(
-        `Failed to inspect ${selector.type} ${selector.from}->${selector.to}: ${liveResult.error ?? "Query failed"}`,
+        `Failed to inspect ${selector.type} ${selector.from}->${selector.to}: ${liveResult.error}`,
       );
       errorCodes.push({ code: "relationship_preflight_failed", selector });
       continue;
@@ -358,7 +372,7 @@ async function executeRelationshipDeleteUnlocked(
   const originalShardBytes = new Map(
     listShards(shardRoot).map((shardPath) => [
       shardPath,
-      readFileSync(shardPath, "utf8"),
+      readFileSync(shardPath).toString(),
     ]),
   );
   const originalShardHashes = new Map(
@@ -373,7 +387,7 @@ async function executeRelationshipDeleteUnlocked(
     // source remains authoritative even when the compiled retract never ran.
     try {
       for (const [shardPath, body] of originalShardBytes) {
-        writeFileSync(shardPath, body, "utf8");
+        writeFileSync(shardPath, body);
       }
     } catch (rollbackError) {
       throw new Error(
@@ -388,24 +402,25 @@ async function executeRelationshipDeleteUnlocked(
     relative: string,
     body: string,
   ): Promise<void> => {
-    assertFilesystemCapableRuntime(context.fs);
+    // Source patches are collected only for a runtime with a filesystem.
+    const fs = context.fs as FilesystemPort;
     const absolute = resolveContainedSourcePath(
       context.workspaceRoot,
       relative,
     );
-    await context.fs.mkdir(path.dirname(absolute));
+    await fs.mkdir(path.dirname(absolute));
     const temporary = `${absolute}.kibi-relationship-${process.pid}-${randomUUID()}`;
     try {
-      await context.fs.writeFile(temporary, body);
-      if (context.fs.rename) await context.fs.rename(temporary, absolute);
+      await fs.writeFile(temporary, body);
+      if (fs.rename) await fs.rename(temporary, absolute);
       else {
-        await context.fs.writeFile(absolute, body);
-        await context.fs.unlink?.(temporary).catch(() => undefined);
+        await fs.writeFile(absolute, body);
+        await fs.unlink?.(temporary).catch(() => undefined);
       }
     } catch (error) {
       // A failed rename must not leak the unique temp file into the authored
       // tree; the published target (if any) is untouched at this point.
-      await context.fs.unlink?.(temporary).catch(() => undefined);
+      await fs.unlink?.(temporary).catch(() => undefined);
       throw error;
     }
   };
@@ -447,7 +462,7 @@ async function executeRelationshipDeleteUnlocked(
     ];
     try {
       for (const [shardPath, body] of originalShardBytes)
-        writeFileSync(shardPath, body, "utf8");
+        writeFileSync(shardPath, body);
       for (const [relative, patch] of sourcePatches) {
         await writeSourcePatch(relative, patch.before);
       }
@@ -466,9 +481,7 @@ async function executeRelationshipDeleteUnlocked(
     const before = originalShardHashes.get(shardPath) ?? null;
     const after = fileHash(shardPath);
     if (before === after) return [];
-    const relative = path
-      .relative(context.workspaceRoot, shardPath)
-      .replaceAll("\\", "/");
+    const relative = workspacePath(context.workspaceRoot, shardPath);
     if (after !== null) {
       writePendingSourceReceipt(context.workspaceRoot, relative, after);
     }
@@ -562,7 +575,6 @@ export async function executeRelationshipDelete(
 type DeletionPlan = NonNullable<DeletePayload["deletionPlan"]>;
 type DeleteNextAction = NonNullable<DeletePayload["nextActions"]>[number];
 
-// implements REQ-kibi-operation-interface-parity
 /** The kb_apply_plan call that applies a returned deletion plan unmodified. */
 function applyDeletionPlanNextAction(plan: DeletionPlan): DeleteNextAction {
   return {
@@ -573,7 +585,6 @@ function applyDeletionPlanNextAction(plan: DeletionPlan): DeleteNextAction {
   };
 }
 
-// implements REQ-kibi-operation-interface-parity
 /** Requirements evolve append-only: point at the supersession upsert. */
 function supersessionNextAction(
   requirementIds: readonly string[],
@@ -594,7 +605,6 @@ function supersessionNextAction(
   };
 }
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * Apply a freshly computed authored-entity deletion plan in the same call
  * when the caller approved its hash. The plan goes through kb_apply_plan's
@@ -700,7 +710,6 @@ export async function executeDelete(
       sourceMutationLock = await acquireWorkspaceMutationLock(
         context.workspaceRoot,
       );
-      // implements REQ-core-atomic-upsert-persistence
       // Finish an interrupted kb_apply_plan before this delete reads or
       // changes the files its journal guards.
       recoveryNotes = planRecoveryNotes(
@@ -803,8 +812,9 @@ export async function executeDelete(
         continue;
       }
       const entity = await loadEntity(prolog, id);
-      const source = typeof entity.source === "string" ? entity.source : "";
-      if (sourceIsAuthored(source)) {
+      const source = authoredSource(entity);
+      if (source === undefined) directIds.push(id);
+      else {
         authoredIds.push(id);
         if (entity.type === "req") authoredRequirementIds.push(id);
         if (context.fs) {
@@ -814,51 +824,46 @@ export async function executeDelete(
           );
           const sourcePath = path.join(context.workspaceRoot, relativeSource);
           try {
-            const original =
-              sourceBodies.get(relativeSource) ??
-              (await context.fs.readFile(sourcePath));
-            if (!sourceBodies.has(relativeSource)) {
+            let original = sourceBodies.get(relativeSource);
+            if (original === undefined) {
+              original = await context.fs.readFile(sourcePath);
               sourceBodies.set(relativeSource, original);
             }
             const contents = evolvingSourceBodies.has(relativeSource)
               ? evolvingSourceBodies.get(relativeSource)
               : original;
             if (contents === undefined) {
-              throw new Error(
-                `Authored document ${relativeSource} no longer contains ${id}`,
+              // An earlier id already deleted the whole document.
+              sourceHashes[relativeSource] = null;
+            } else {
+              const deletion = renderSourceDeletion(
+                relativeSource,
+                id,
+                String(entity.type),
+                contents,
               );
+              evolvingSourceBodies.set(relativeSource, deletion.body);
+              const beforeHash = createHash("sha256")
+                .update(original)
+                .digest("hex");
+              const afterHash =
+                deletion.body === undefined
+                  ? null
+                  : createHash("sha256").update(deletion.body).digest("hex");
+              sourceHashes[relativeSource] = beforeHash;
+              sourcePlansByPath.set(relativeSource, {
+                path: relativeSource,
+                mode: deletion.mode,
+                beforeHash,
+                afterHash,
+                ...(deletion.body === undefined ? {} : { body: deletion.body }),
+              });
             }
-            const deletion = renderSourceDeletion(
-              relativeSource,
-              id,
-              String(entity.type),
-              contents,
-            );
-            evolvingSourceBodies.set(
-              relativeSource,
-              deletion.mode === "write" ? deletion.body : undefined,
-            );
-            const beforeHash = createHash("sha256")
-              .update(original)
-              .digest("hex");
-            const afterHash =
-              deletion.body === undefined
-                ? null
-                : createHash("sha256").update(deletion.body).digest("hex");
-            sourceHashes[relativeSource] = beforeHash;
-            sourcePlansByPath.set(relativeSource, {
-              path: relativeSource,
-              mode: deletion.mode,
-              beforeHash,
-              afterHash,
-              ...(deletion.body === undefined ? {} : { body: deletion.body }),
-            });
           } catch {
             sourceHashes[relativeSource] = null;
           }
         }
       }
-      if (!sourceIsAuthored(source)) directIds.push(id);
       goals.push(buildEntityDeleteAuditGoal(entity));
     }
     if (authoredIds.length > 0 && context.sourcePlanApplication !== true) {
@@ -875,10 +880,8 @@ export async function executeDelete(
             .filter((record) => deleted.has(record.from))
             .map(({ type, from, to }) => ({ type, from, to }));
           if (selectors.length === 0) continue;
-          const relativeShard = path
-            .relative(context.workspaceRoot, shardPath)
-            .replaceAll("\\", "/");
-          const original = readFileSync(shardPath, "utf8");
+          const relativeShard = workspacePath(context.workspaceRoot, shardPath);
+          const original = readFileSync(shardPath).toString();
           const body = renderShardWithout(original, selectors, shardPath);
           const beforeHash = createHash("sha256")
             .update(original)
@@ -989,8 +992,10 @@ export async function executeDelete(
       else await saveMutation(prolog, "delete");
       committed = true;
     } catch (error) {
+      // Source bodies are read only through a runtime filesystem.
+      const fs = context.fs as FilesystemPort;
       for (const [source, body] of sourceBodies) {
-        await context.fs?.writeFile(
+        await fs.writeFile(
           resolveContainedSourcePath(context.workspaceRoot, source),
           body,
         );

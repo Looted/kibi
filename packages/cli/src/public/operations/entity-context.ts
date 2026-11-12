@@ -41,13 +41,10 @@ import { readKbManifest } from "../../utils/kb-manifest.js";
 import type { Violation } from "../../utils/rule-registry.js";
 
 /** A current entity must carry body context (blocking). */
-// implements REQ-kb-entity-body-context
 export const ENTITY_CONTEXT_MISSING_RULE = "entity-context-missing";
 /** How many legacy entities carry the review:context-missing tag (advisory). */
-// implements REQ-kb-entity-body-context
 export const ENTITY_CONTEXT_ACKNOWLEDGED_RULE = "entity-context-acknowledged";
 
-// implements REQ-kb-entity-body-context
 export const ENTITY_CONTEXT_RULES = [
   ENTITY_CONTEXT_MISSING_RULE,
   ENTITY_CONTEXT_ACKNOWLEDGED_RULE,
@@ -59,10 +56,10 @@ const RETIRED_STATUSES = new Set([
   "superseded",
   "archived",
   "removed",
+  "retired",
 ]);
 
 /** One authored entity document, front matter and body kept apart. */
-// implements REQ-kb-entity-body-context
 export type AuthoredEntity = Readonly<{
   id: string;
   type: string;
@@ -75,18 +72,18 @@ export type AuthoredEntity = Readonly<{
  * Split an authored Markdown document into its front matter record and its
  * body. Returns null when the front matter is absent or does not parse.
  */
-// implements REQ-kb-entity-body-context
 export function readAuthoredEntity(
   content: string,
   relativePath: string,
 ): AuthoredEntity | null {
   const slice = sliceFrontmatter(content);
   if (slice === null) return null;
+  const { text, suffix } = slice;
   let data: unknown;
   try {
-    data = loadYaml(slice.text);
+    data = loadYaml(text);
   } catch {
-    return null;
+    // Front matter that does not parse is no record, as below.
   }
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
     return null;
@@ -100,13 +97,13 @@ export function readAuthoredEntity(
     typeof record.id === "string" && record.id.trim() !== ""
       ? record.id.trim()
       : path.basename(relativePath, ".md");
-  const newline = slice.suffix.indexOf("\n");
   return {
     id,
     type,
     path: relativePath,
     data: record,
-    body: newline < 0 ? "" : slice.suffix.slice(newline + 1),
+    // Everything after the closing `---` line.
+    body: suffix.split("\n").slice(1).join("\n"),
   };
 }
 
@@ -116,7 +113,6 @@ export function readAuthoredEntity(
  * context sections) is the body's derivation, not a statement of its own, so
  * it is replaced by the statement-only derivation; an authored value stands.
  */
-// implements REQ-kb-entity-body-context
 export function contextStatementOf(entity: AuthoredEntity): string | undefined {
   if (entity.type !== "req") return undefined;
   const pinned = entity.data.semantic_text;
@@ -131,7 +127,6 @@ export function contextStatementOf(entity: AuthoredEntity): string | undefined {
 }
 
 /** The entity fields the context rules read, with the derived meaning. */
-// implements REQ-kb-entity-body-context
 export function contextEntityOf(entity: AuthoredEntity): {
   title: unknown;
   semantic_text: unknown;
@@ -147,15 +142,14 @@ export function contextEntityOf(entity: AuthoredEntity): {
 }
 
 /** Whether an authored entity is current: not retired, not superseded. */
-// implements REQ-kb-entity-body-context
 export function isCurrentAuthoredEntity(
   entity: AuthoredEntity,
   superseded: ReadonlySet<string>,
 ): boolean {
   const status = entity.data.status;
   return (
-    !(typeof status === "string" && RETIRED_STATUSES.has(status)) &&
-    !superseded.has(entity.id)
+    // A status that is not text is never a retired one.
+    !RETIRED_STATUSES.has(status as string) && !superseded.has(entity.id)
   );
 }
 
@@ -168,7 +162,6 @@ const CONTEXT_LANES = [
 ] as const;
 
 /** Every authored entity of a type the context rules apply to. */
-// implements REQ-kb-entity-body-context
 export function listContextAuthoredEntities(
   workspaceRoot: string,
 ): AuthoredEntity[] {
@@ -191,7 +184,6 @@ export function listContextAuthoredEntities(
  * Ids some other entity supersedes, read from authored `links` and the
  * relationship shards so the check and the migration agree before a sync.
  */
-// implements REQ-kb-entity-body-context
 export function authoredSupersededIds(
   workspaceRoot: string,
   entities: readonly AuthoredEntity[],
@@ -201,13 +193,10 @@ export function authoredSupersededIds(
     const links = entity.data.links;
     if (!Array.isArray(links)) continue;
     for (const link of links) {
-      if (
-        link !== null &&
-        typeof link === "object" &&
-        (link as { type?: unknown }).type === "supersedes" &&
-        typeof (link as { target?: unknown }).target === "string"
-      ) {
-        superseded.add((link as { target: string }).target);
+      // A link that is not an object has no type.
+      const edge = link as { type?: unknown; target?: unknown } | null;
+      if (edge?.type === "supersedes" && typeof edge.target === "string") {
+        superseded.add(edge.target);
       }
     }
   }
@@ -226,7 +215,6 @@ export function authoredSupersededIds(
  * review:context-missing are acknowledged legacy: they never violate, and one
  * advisory finding counts them.
  */
-// implements REQ-kb-entity-body-context
 export function evaluateEntityContext(
   entities: readonly AuthoredEntity[],
   superseded: ReadonlySet<string>,
@@ -247,8 +235,13 @@ export function evaluateEntityContext(
       continue;
     }
     if (!rules.has(ENTITY_CONTEXT_MISSING_RULE)) continue;
-    const finding = contextFinding(entity.type, entity.id, entity.body, view);
-    if (finding === null) continue;
+    // The assessment just failed, so there is always a finding.
+    const finding = contextFinding(
+      entity.type,
+      entity.id,
+      entity.body,
+      view,
+    ) as NonNullable<ReturnType<typeof contextFinding>>;
     const selfTagged = isContextAcknowledged(view.tags);
     findings.push({
       rule: ENTITY_CONTEXT_MISSING_RULE,
@@ -288,7 +281,6 @@ export function evaluateEntityContext(
 }
 
 /** Read the authored entities once and evaluate the selected rules. */
-// implements REQ-kb-entity-body-context
 export function collectEntityContextViolations(
   rules: ReadonlySet<string>,
   workspaceRoot: string,
@@ -299,6 +291,6 @@ export function collectEntityContextViolations(
     entities,
     authoredSupersededIds(workspaceRoot, entities),
     rules,
-    new Set(readKbManifest(workspaceRoot)?.contextAcknowledged ?? []),
+    new Set(readKbManifest(workspaceRoot)?.contextAcknowledged),
   );
 }

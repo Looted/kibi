@@ -1,0 +1,113 @@
+{
+  "ruleMissing": [
+    "proof_contract.predicate_source is required for kind rule: name the function behind each predicate the claims use",
+    "proof_contract.domains is required for kind rule: name the export listing each argument type's values"
+  ],
+  "rule": [],
+  "rulePredicatesBad": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "rulePredicatesMixed": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "rulePredicatesNull": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "ruleHarnessArg": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "rulePredicatesEmpty": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "rulePredicatesBlankKey": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "rulePredicatesArray": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "ruleHarnessEmpty": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "ruleHarnessString": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "ruleHarnessBlank": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "ruleHarnessBadRef": [
+    "proof_contract.predicate_source must map each predicate name to {symbol_id, export?, harness_for?} naming the function that decides it"
+  ],
+  "ruleDomainsBad": [
+    "proof_contract.domains must map each argument type to {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) that lists its values, or {source} naming the project source Kibi reads them from"
+  ],
+  "ruleDomainsBadExport": [
+    "proof_contract.domains must map each argument type to {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) that lists its values, or {source} naming the project source Kibi reads them from"
+  ],
+  "ruleDomainsBadArg": [
+    "proof_contract.domains must map each argument type to {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) that lists its values, or {source} naming the project source Kibi reads them from"
+  ],
+  "ruleDomainsSourceExtra": [
+    "proof_contract.domains must map each argument type to {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) that lists its values, or {source} naming the project source Kibi reads them from"
+  ],
+  "ruleDomainsSourceBad": [
+    "proof_contract.domains.t.source must be an object whose reader is one of: json, yaml, glob, openapi, references, schema, routes, validator, prolog"
+  ],
+  "ruleDomainsNull": [
+    "proof_contract.domains must map each argument type to {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) that lists its values, or {source} naming the project source Kibi reads them from"
+  ],
+  "predicatesOnE2e": [
+    "proof_contract.predicate_source applies only to kind rule, not e2e"
+  ],
+  "domainsOnRegex": [
+    "proof_contract.domains applies only to kind rule or state_machine, not regex"
+  ],
+  "sourceDomainsOnStateMachine": [
+    "proof_contract.domains.state.source applies only to kind rule: a state machine's domains are the code's"
+  ],
+  "stateMachineMissing": [
+    "proof_contract.domain_source is required for kind state_machine: name the transition table or next-state function"
+  ],
+  "stateMachine": [],
+  "stateMachineNoDomains": [],
+  "stateMachineOneDomain": [
+    "proof_contract.domains for kind state_machine must name exactly the state and event domains a next-state function is called on"
+  ],
+  "stateMachineThreeDomains": [
+    "proof_contract.domains for kind state_machine must name exactly the state and event domains a next-state function is called on"
+  ],
+  "stateMachineNoState": [
+    "proof_contract.domains for kind state_machine must name exactly the state and event domains a next-state function is called on"
+  ],
+  "stateMachineNoEvent": [
+    "proof_contract.domains for kind state_machine must name exactly the state and event domains a next-state function is called on"
+  ],
+  "initialBad": [
+    "proof_contract.initial_source must be {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) Kibi reads"
+  ],
+  "initialOnE2e": [
+    "proof_contract.initial_source applies only to kind state_machine, not e2e"
+  ],
+  "regexMissing": [
+    "proof_contract.pattern_source is required for kind regex: name the export holding the pattern or string"
+  ],
+  "regexBad": [
+    "proof_contract.pattern_source must be {symbol_id, export?, arg?} naming the export (or SWI-Prolog predicate and argument) Kibi reads"
+  ],
+  "patternOnRule": [
+    "proof_contract.pattern_source applies only to kind regex, not rule"
+  ],
+  "sourceMissing": [
+    "proof_contract.source is required for kind source: name the project source Kibi reads (reader json, yaml, glob, openapi, references, schema, routes, validator or prolog)"
+  ],
+  "source": [],
+  "sourceBad": [
+    "proof_contract.source must be an object whose reader is one of: json, yaml, glob, openapi, references, schema, routes, validator, prolog"
+  ],
+  "sourceUnknownKey": [
+    "proof_contract.source (reader json) does not take extra; it takes reader, file, path, select, field"
+  ],
+  "sourceOnE2e": ["proof_contract.source applies only to kind source, not e2e"],
+  "sourceOnRule": [
+    "proof_contract.source applies only to kind source, not rule"
+  ]
+}

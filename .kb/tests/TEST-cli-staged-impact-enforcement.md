@@ -11,26 +11,26 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-cli-staged-impact-enforcement
+    - symbol_id: SYM-e2e-cli-workflows
       target: default
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-bb5761dd7c48ceffca377c09
+    receipt_id: PR-b4428be931e2864c392d4823
     test_id: TEST-cli-staged-impact-enforcement
     scope: end_to_end
     outcome: passed
-    code_snapshot: e4b745ccbc9bb6ad4c9f14b0630f36b4a2bbe6b0d1a46e6a7a2ab923af3a5908
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T21:03:39.229Z'
-    finished_at: '2026-10-28T21:05:46.777Z'
-    artifact_digest: 63346363e3fbf822c725037a649fbcd8e06a71542c9ece2dac844cab996f9802
-    contract_hash: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
-    binding_hash: 5a08a14be933d634b5b3ca63dc01fb9b97089e1b5d0033b6d68a9a169a20a21c
-    fingerprint: 2abf545e3d1cfb4da708934f33f4bf225ce38cecf4110428865cb2cc43b582de
+    code_snapshot: 1cbb35c11747ba23a78ec68263e3f4ad241071aefa97b8cd77b9c7a84f4b3fd2
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-11T20:38:55.175Z'
+    finished_at: '2026-11-11T20:41:33.865Z'
+    artifact_digest: e7514842bf386e4445502e540f36ac8d611394b6a5d9858b12dd24c4a0a38908
+    contract_hash: 6907ef1dd1aafd78b6175964c54f50e6a3e16c4660bbf6b8ecf05d3c6f654bb4
+    binding_hash: a58f5a9741425b05b15e21763080b70804e84776564b1e2e64e4b226977d3a64
+    fingerprint: 5802a43cc4640a02573b20e676f828c1d5e5aff77b3354c3d78855fbba53e8ae
     fingerprint_components:
-      contract: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+      contract: 6907ef1dd1aafd78b6175964c54f50e6a3e16c4660bbf6b8ecf05d3c6f654bb4
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -43,7 +43,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-cli-staged-impact-enforcement
+      - symbol_id: SYM-e2e-cli-workflows
         target: default
         outcome: passed
         binding: aggregate_run

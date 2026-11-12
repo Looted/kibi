@@ -39,7 +39,6 @@ import type { HostSourceAnalysisResultV2 } from "../../plugins/source-analysis-s
  * analyzer set, so an entry is keyed by both and the whole cache by the
  * analyzer set. The file lives in the branch store, which is never tracked.
  */
-// implements REQ-cli-check
 export const SOURCE_ANALYSIS_CACHE_FILE = "source-analysis-cache.json";
 const SOURCE_ANALYSIS_CACHE_VERSION = 1;
 
@@ -73,12 +72,24 @@ function entryKey(file: string, content: string): string {
  * build does not bump; its built files' sizes and times stand in for its
  * code so a rebuilt analyzer starts a fresh cache.
  */
+const resolveInstalledBuiltinManifest = (): string =>
+  createRequire(import.meta.url).resolve("kibi-plugin-builtin/package.json");
+let resolveBuiltinManifest = resolveInstalledBuiltinManifest;
+
+/**
+ * Replace how the builtin analyzer package is found, for tests; with no
+ * argument, restore the installed package lookup.
+ */
+export function setBuiltinManifestResolverForTests(
+  resolve: () => string = resolveInstalledBuiltinManifest,
+): void {
+  resolveBuiltinManifest = resolve;
+}
+
 function builtinBuildStamp(): string {
   const hash = createHash("sha256");
   try {
-    const manifest = createRequire(import.meta.url).resolve(
-      "kibi-plugin-builtin/package.json",
-    );
+    const manifest = resolveBuiltinManifest();
     const symbolsDir = path.join(path.dirname(manifest), "dist", "symbols");
     // rationale: readdir lists this directory in name order on the supported
     // filesystems, so the sort only guards odd ones and no test can tell.
@@ -145,7 +156,6 @@ function readCacheFile(cachePath: string, analyzers: string): CacheFile {
  * fingerprinted or there is no store. Only complete (`ok`) analyses
  * are kept; anything else is computed again.
  */
-// implements REQ-cli-check
 export function openSourceAnalysisCache(
   storeDir: string | undefined,
   workspaceRoot: string,

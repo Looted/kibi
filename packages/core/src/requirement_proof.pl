@@ -46,7 +46,10 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Contex
 % was proven on) or per_contract (a receipt carrying a binding_hash is current
 % while its contract + receipt-stripped test document are unchanged, via the
 % TestBindings dict TestId -> BindingHash; receipts without a binding_hash
-% still fall back to the snapshot match).
+% still fall back to the snapshot match). The reserved key
+% '$fingerprint_components' of TestBindings carries each test's current
+% execution fingerprint components: a receipt whose components differ is stale
+% and the evidence names the drifted components in fingerprintDrift.
 requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
                           BindingMode, TestBindings, Context) :-
     check_domain_contradictions_and_witnesses(Contradictions, ContradictionWitnesses),
@@ -77,7 +80,6 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
         proofTestBindings: TestBindings
     }.
 
-% implements REQ-kibi-conservative-requirement-proof
 % A requirement's proof is kept per KB generation and proof parameters, so
 % the evidence-floor rule, the coverage evidence and a coverage report in one
 % check read each ladder once.  Inside a transaction (what-if staging) the
@@ -242,11 +244,16 @@ proof_exempt(Props, Reason) :-
     Reason \= ''.
 
 %% applicability_exclusion_reason(+ReqId, -Reason)
-% Typed reason a requirement fails current_req/1: superseded lifecycle, or a
-% status outside the canonical+legacy requirement vocabulary (e.g. the ADR
+% Typed reason a requirement fails current_req/1: superseded lifecycle, a
+% retired requirement, or a status outside the canonical+legacy requirement vocabulary (e.g. the ADR
 % vocabulary 'accepted').
 applicability_exclusion_reason(ReqId, "requirement is superseded by a newer requirement") :-
     kb_relationship(supersedes, _, ReqId),
+    !.
+applicability_exclusion_reason(ReqId, 'requirement is retired: the behavior it stated no longer exists') :-
+    kb_entity(ReqId, req, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, retired),
     !.
 applicability_exclusion_reason(ReqId, Reason) :-
     kb_entity(ReqId, req, Props),
@@ -560,7 +567,6 @@ inventory_ground_text_mismatches(Inventory, Evidence, Keys) :-
         Keys0),
     sort(Keys0, Keys).
 
-% implements REQ-kibi-conservative-requirement-proof
 % Inventory and fact claim texts name the same sentence when they differ only
 % in whitespace or trailing punctuation ("…outcomes." vs "…outcomes").
 claim_texts_equivalent(Left, Right) :-
@@ -642,7 +648,6 @@ contradiction_stage(_ReqId, LogicStatus, _Context, Stage) :-
     ).
 
 %% contradiction_stage(+ReqId, +LogicStatus, +InventoryStatus, +Context, -Stage)
-% implements REQ-kibi-truthful-consistency
 % Absence of a conflict is evidence only when every normative proposition was
 % modeled.  Propositions still marked ambiguous or ontology_gap were never
 % encoded, so the checker cannot have looked at them: report the analysis as
@@ -675,7 +680,6 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
     findall(ScenarioId,
         (member(ScenarioId, ScenarioTargets), \+ existing_scenario(ScenarioId)),
         InvalidScenarioTargets),
-    % implements REQ-kibi-scenario-feasibility-v2
     % A scenario that expects success but whose assumptions cannot hold with
     % what current requirements require (pairwise or jointly) can never pass,
     % so the requirement cannot be proven through it.
@@ -690,7 +694,6 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
             unknown_feasibility_reason(Reason, ReasonText)
         ),
         UnknownFeasibility),
-    % implements REQ-kibi-happy-path-gap
     % The linked scenarios that exercise this requirement's failure side: they
     % expect rejection or error and assume a value it forbids.
     findall(ScenarioId,
@@ -726,7 +729,6 @@ existing_scenario(ScenarioId) :-
     kb_entity(ScenarioId, scenario, _).
 
 %% negative_path_stage(+ReqId, +ScenarioStage, +ScenarioTestStage, +Context, -Stage)
-% implements REQ-kibi-happy-path-gap
 % A requirement is not tested while only its happy path is: when it grounds
 % a claim (a property value, predicate or rule), at least one linked
 % scenario must expect rejection or error and assume a value or situation
@@ -818,7 +820,6 @@ failure_side_waiver(ReqId, Waiver) :-
 certified_claim(Certified, Key-_) :- memberchk(Key, Certified).
 
 %% cases_stage(+ReqId, +ScenarioStage, +ScenarioTestStage, +Context, -Stage)
-% implements REQ-kibi-case-coverage
 % Edge cases derived from the requirement's typed property claims
 % (cases.pl): the bound and the value past it, zero, one and many for a
 % count, each member of a set and a value outside it.  A case is covered
@@ -909,7 +910,6 @@ coverage_count(Rows, Coverage, Count) :-
     aggregate_all(count, (member(Row, Rows), get_dict(coverage, Row, Coverage)), Count).
 
 %% dimension_stage(+ReqId, +ScenarioTestStage, +Context, -Stage)
-% implements REQ-kibi-dimension-gap
 % A claim that quantifies over a collection (each, every, all) or bounds a
 % cardinality (at least, at most, exactly, no more than) must be grounded on what
 % varies: a count or bound, a set, a rule over a variable or a state
@@ -1194,7 +1194,6 @@ unique_evidence_by_test(Evidence0, Evidence) :-
 
 % A test shared by scenarios with different accepted scopes keeps its receipt
 % state from any scenario that accepts its scope, independent of scenario order.
-% implements REQ-ui-pattern-component-proof
 first_evidence_for_test(Evidence, TestId, Item) :-
     (   member(Item, Evidence),
         get_dict(testId, Item, TestId),
@@ -1250,7 +1249,6 @@ scenario_passing_e2e_obligation(Context, TestObligation, Obligation) :-
 % requirements are all grounded only in component-scope UI pattern predicates
 % may also be proven by a unit or integration test that renders the component
 % in isolation, with the same receipt rules (valid, fresh, passing).
-% implements REQ-ui-pattern-component-proof
 scenario_accepted_scopes(ScenarioId, [unit, integration, end_to_end]) :-
     component_scope_scenario(ScenarioId),
     !.
@@ -1334,7 +1332,6 @@ evidence_tests_with_state(Evidence, State, TestIds) :-
 test_receipt_evidence(Context, TestId, Evidence) :-
     test_receipt_evidence(Context, [end_to_end], TestId, Evidence).
 
-% implements REQ-ui-pattern-component-proof
 % AcceptedScopes lists the verification scopes whose receipts count for the
 % scenario. Tests outside them keep the nonblocking not_end_to_end state.
 test_receipt_evidence(Context, AcceptedScopes, TestId, Evidence) :-
@@ -1363,16 +1360,67 @@ receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, Context, Eviden
     receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts),
     (   SnapshotReceipts == []
     ->  length(Receipts, Count),
-        Evidence = _{testId: TestId, state: stale, scope: Scope, receiptCount: Count}
+        newest_receipt_drift(Context, TestId, Receipts, Drift),
+        evidence_with_drift(_{testId: TestId, state: stale, scope: Scope, receiptCount: Count}, Drift, Evidence)
     ;   proof_contract_binding(Props, ContractBinding),
         include(receipt_matches_current_binding(Scope, ContractBinding), SnapshotReceipts, CurrentReceipts),
         (   CurrentReceipts == []
-        ->  receipt_contract_mismatch_evidence(TestId, Scope, SnapshotReceipts, ContractBinding, Evidence)
-        ;   latest_receipt(CurrentReceipts, Latest, FinishedStamp),
-            receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
-            receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
+        ->  receipt_contract_mismatch_evidence(TestId, Scope, SnapshotReceipts, ContractBinding, Evidence0),
+            newest_receipt_drift(Context, TestId, SnapshotReceipts, Drift),
+            evidence_with_drift(Evidence0, Drift, Evidence)
+        ;   include(receipt_matches_current_fingerprint(Context, TestId), CurrentReceipts, FingerprintReceipts),
+            (   FingerprintReceipts == []
+            ->  length(Receipts, Count),
+                newest_receipt_drift(Context, TestId, CurrentReceipts, Drift),
+                evidence_with_drift(_{testId: TestId, state: stale, scope: Scope, receiptCount: Count}, Drift, Evidence)
+            ;   latest_receipt(FingerprintReceipts, Latest, FinishedStamp),
+                receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
+                receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
+            )
         )
     ).
+
+% The current execution fingerprint components of each test travel in the
+% TestBindings dict under the reserved key '$fingerprint_components' (a dict
+% TestId -> components). A test without an entry, or a context without the key,
+% is not checked, so a caller that does not send it keeps the earlier behaviour.
+current_fingerprint_components(Context, TestId, Components) :-
+    get_dict('$fingerprint_components', Context.proofTestBindings, All),
+    get_dict(TestId, All, Components).
+
+fingerprint_component_names([contract, integration, command, bindings, producer]).
+
+% Drift is the ordered list of components whose stored value differs from the
+% current one; [] when nothing is known to differ.
+receipt_fingerprint_drift(Context, TestId, Receipt, Drift) :-
+    (   current_fingerprint_components(Context, TestId, Current),
+        inventory_entry_field(Receipt, fingerprint_components, Stored)
+    ->  fingerprint_component_names(Names),
+        include(fingerprint_component_differs(Stored, Current), Names, Drift)
+    ;   Drift = []
+    ).
+
+fingerprint_component_differs(Stored, Current, Name) :-
+    get_dict(Name, Current, CurrentValue),
+    normalize_receipt_atom(CurrentValue, CurrentAtom),
+    (   inventory_entry_field(Stored, Name, StoredValue)
+    ->  normalize_receipt_atom(StoredValue, StoredAtom),
+        StoredAtom \== CurrentAtom
+    ;   true
+    ).
+
+receipt_matches_current_fingerprint(Context, TestId, Receipt) :-
+    receipt_fingerprint_drift(Context, TestId, Receipt, []).
+
+newest_receipt_drift(Context, TestId, Receipts, Drift) :-
+    (   latest_receipt(Receipts, Newest, _)
+    ->  receipt_fingerprint_drift(Context, TestId, Newest, Drift)
+    ;   Drift = []
+    ).
+
+evidence_with_drift(Evidence, [], Evidence) :- !.
+evidence_with_drift(Evidence0, Drift, Evidence) :-
+    put_dict(fingerprintDrift, Evidence0, Drift, Evidence).
 
 receipt_history_well_formed(TestId-Receipts, WellFormed) :-
     (   forall(member(Receipt, Receipts), valid_receipt_shape(TestId, Receipt)),
@@ -1697,7 +1745,6 @@ receipt_evidence_dict(TestId, Scope, Receipt, State, AgeSeconds, Evidence) :-
     },
     receipt_kind_evidence(Receipt, State, Evidence0, Evidence).
 
-% implements REQ-kibi-code-proof-kinds
 % A v2 receipt adds its contract kind and the evidence level it supports.
 % proved needs the certificate to re-check now, not only when it was
 % ingested: its digest must still match and code_certificates.pl must accept
@@ -1863,7 +1910,6 @@ type_shape_symbol_with_structural_contract(SymbolId) :-
     normalize_atom(RawStatus, Status),
     memberchk(Status, [active, passing]).
 
-% implements REQ-kibi-conservative-requirement-proof
 % A type-shape symbol is structurally covered by a unit test only while that
 % test holds a current passing receipt: an authored status alone is a claim,
 % not evidence. Receipt states are computed once per distinct unit test.
@@ -2144,7 +2190,7 @@ explanation_reason_text_def(test_scope_is_unit, "Test verification_scope is unit
 explanation_reason_text_def(test_scope_is_non_e2e, "Test verification_scope is not end_to_end").
 explanation_reason_text_def(proof_snapshot_unavailable, "Workspace snapshot is unavailable so receipt currency cannot be proven").
 explanation_reason_text_def(missing_proof_receipt, "Scenario-backed E2E test has no kibi.proof-receipt.v1").
-explanation_reason_text_def(receipt_snapshot_mismatch, "Receipts exist but none match the current snapshot or binding").
+explanation_reason_text_def(receipt_snapshot_mismatch, "Receipts exist but none match the current snapshot, binding or execution fingerprint").
 explanation_reason_text_def(stale_proof_receipt, "Current-snapshot receipt is older than the allowed proof age").
 explanation_reason_text_def(receipt_contract_mismatch, "Receipt does not match the current proof contract hash or fingerprint").
 explanation_reason_text_def(invalid_proof_receipt, "Receipt evidence is malformed or otherwise uncheckable").
@@ -2326,7 +2372,6 @@ proof_status(Stages, unresolved) :-
     !.
 proof_status(_, tested).
 
-% implements REQ-kibi-code-proof-kinds
 % Scenario tests whose receipt claimed proved but whose certificate no
 % longer re-checks, with the reason, so a drop to tested is never silent.
 certificate_rejections(ScenarioTestStage, Context, Rejections) :-
@@ -2343,7 +2388,6 @@ certificate_rejections(ScenarioTestStage, Context, Rejections) :-
     sort(Pairs0, Pairs),
     findall(_{test: TestId, reason: Reason}, member(TestId-Reason, Pairs), Rejections).
 
-% implements REQ-kibi-claim-bound-proofs
 %% receipt_claim_fields(+Receipt, +Evidence0, -Evidence)
 % A certificate receipt keeps the certificate and the claim bindings Kibi
 % recorded at ingest, so each claim can be judged against the current KB.
@@ -2360,7 +2404,6 @@ receipt_claim_fields(Receipt, Evidence0, Evidence) :-
     ;   Evidence = Evidence1
     ).
 
-% implements REQ-kibi-claim-bound-proofs
 %% claim_evidence(+ReqId, +Props, +Inventory, +ProofStatus, +ScenarioTestStage,
 %%                +Context, -ClaimEvidence, -ProvedTests, -Rejections)
 % One entry per semantic-inventory claim with the evidence level that claim
@@ -2568,7 +2611,6 @@ count_claims(Entries, Goal, Count) :-
     include(Goal, Entries, Matching),
     length(Matching, Count).
 
-% implements REQ-kibi-evidence-levels, REQ-kibi-code-proof-kinds
 %% requirement_evidence(+Props, +ProofStatus, +PassingE2eTests, +ProvedTests, -Level, -Evidence)
 % How strong the evidence behind a requirement is, never stronger than what
 % backs it.  Levels, strongest first: proved (the requirement is tested and
@@ -2604,7 +2646,6 @@ evidence_level(Evidence, Level) :-
     ;   Level = unverified
     ).
 
-% implements REQ-kibi-evidence-floors
 %% evidence_floor(+Props, +Level, +Gaps, +Stages, -Floor)
 % The weakest evidence level the requirement accepts and whether its computed
 % level reaches it.  The floor is the requirement's required_evidence, or,
@@ -2782,7 +2823,6 @@ proof_gaps(Stages, Gaps) :-
 proof_advisories(Stages, Advisories) :-
     proof_issues(Stages, _, Advisories).
 
-% implements REQ-kibi-conservative-requirement-proof
 % Every linked scenario is a mandatory proof obligation. Receipt-completeness
 % failures therefore remain blocking even when another scenario has a passing
 % receipt; unit/integration-only evidence stays nonblocking in the E2E lane.

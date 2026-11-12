@@ -1,0 +1,476 @@
+[
+  {
+    "name": "kb_skills_list",
+    "cliName": "skills list",
+    "description": "List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.",
+    "businessInputSchema": {
+      "type": "object",
+      "properties": {}
+    },
+    "requiresProlog": false,
+    "effects": ["local-read"],
+    "execute": "[function executeSkillsList]",
+    "resultVersion": "kibi.kb_skills_list.v1",
+    "outputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kibiProtocol",
+        "operation",
+        "resultVersion",
+        "status",
+        "data",
+        "effects",
+        "diagnostics",
+        "nextActions"
+      ],
+      "properties": {
+        "kibiProtocol": {
+          "const": 1
+        },
+        "operation": {
+          "const": "kb_skills_list"
+        },
+        "resultVersion": {
+          "const": "kibi.kb_skills_list.v1"
+        },
+        "status": {
+          "enum": ["success", "committed_with_repairs", "error"]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["skills"],
+          "properties": {
+            "skills": {
+              "type": "array",
+              "items": {}
+            }
+          }
+        },
+        "effects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "status"],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "status": {
+                "enum": ["completed", "failed", "not_applicable"]
+              },
+              "detail": {},
+              "errorCode": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["message"],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "severity": {
+                "enum": ["info", "warning", "error"]
+              },
+              "message": {
+                "type": "string"
+              },
+              "detail": {},
+              "category": {
+                "type": "string"
+              },
+              "suggestion": {
+                "type": "string"
+              },
+              "file": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "nextActions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["operation", "reason", "required"],
+            "properties": {
+              "operation": {
+                "type": "string"
+              },
+              "input": {},
+              "reason": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message", "retryable"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "details": {}
+          }
+        }
+      }
+    },
+    "declaredEffects": [
+      {
+        "kind": "local-read",
+        "mutability": "read",
+        "destructive": false,
+        "retrySafety": "safe",
+        "openWorld": false
+      }
+    ]
+  },
+  {
+    "name": "kb_skills_load",
+    "cliName": "skills load",
+    "description": "Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.",
+    "businessInputSchema": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Bundled skill ID to load. Example: 'kibi-usage'."
+        }
+      }
+    },
+    "requiresProlog": false,
+    "effects": ["local-read"],
+    "execute": "[function executeSkillsLoad]",
+    "resultVersion": "kibi.kb_skills_load.v1",
+    "outputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kibiProtocol",
+        "operation",
+        "resultVersion",
+        "status",
+        "data",
+        "effects",
+        "diagnostics",
+        "nextActions"
+      ],
+      "properties": {
+        "kibiProtocol": {
+          "const": 1
+        },
+        "operation": {
+          "const": "kb_skills_load"
+        },
+        "resultVersion": {
+          "const": "kibi.kb_skills_load.v1"
+        },
+        "status": {
+          "enum": ["success", "committed_with_repairs", "error"]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "metadata": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "body": {
+              "type": "string"
+            },
+            "resources": {
+              "type": "array",
+              "items": {}
+            },
+            "contentHash": {
+              "type": "string"
+            },
+            "sourceType": {
+              "type": "string"
+            }
+          }
+        },
+        "effects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "status"],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "status": {
+                "enum": ["completed", "failed", "not_applicable"]
+              },
+              "detail": {},
+              "errorCode": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["message"],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "severity": {
+                "enum": ["info", "warning", "error"]
+              },
+              "message": {
+                "type": "string"
+              },
+              "detail": {},
+              "category": {
+                "type": "string"
+              },
+              "suggestion": {
+                "type": "string"
+              },
+              "file": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "nextActions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["operation", "reason", "required"],
+            "properties": {
+              "operation": {
+                "type": "string"
+              },
+              "input": {},
+              "reason": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message", "retryable"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "details": {}
+          }
+        }
+      }
+    },
+    "declaredEffects": [
+      {
+        "kind": "local-read",
+        "mutability": "read",
+        "destructive": false,
+        "retrySafety": "safe",
+        "openWorld": false
+      }
+    ]
+  },
+  {
+    "name": "kb_skills_read",
+    "cliName": "skills read",
+    "description": "Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.",
+    "businessInputSchema": {
+      "type": "object",
+      "required": ["id", "resource"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Bundled skill ID. Example: 'kibi-usage'."
+        },
+        "resource": {
+          "type": "string",
+          "description": "Manifest-declared resource path to read. Example: 'resources/workflows.md'."
+        }
+      }
+    },
+    "requiresProlog": false,
+    "effects": ["local-read"],
+    "execute": "[function executeSkillsRead]",
+    "resultVersion": "kibi.kb_skills_read.v1",
+    "outputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kibiProtocol",
+        "operation",
+        "resultVersion",
+        "status",
+        "data",
+        "effects",
+        "diagnostics",
+        "nextActions"
+      ],
+      "properties": {
+        "kibiProtocol": {
+          "const": 1
+        },
+        "operation": {
+          "const": "kb_skills_read"
+        },
+        "resultVersion": {
+          "const": "kibi.kb_skills_read.v1"
+        },
+        "status": {
+          "enum": ["success", "committed_with_repairs", "error"]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["content"],
+          "properties": {
+            "content": {
+              "type": "string"
+            }
+          }
+        },
+        "effects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "status"],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "status": {
+                "enum": ["completed", "failed", "not_applicable"]
+              },
+              "detail": {},
+              "errorCode": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["message"],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "severity": {
+                "enum": ["info", "warning", "error"]
+              },
+              "message": {
+                "type": "string"
+              },
+              "detail": {},
+              "category": {
+                "type": "string"
+              },
+              "suggestion": {
+                "type": "string"
+              },
+              "file": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "nextActions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["operation", "reason", "required"],
+            "properties": {
+              "operation": {
+                "type": "string"
+              },
+              "input": {},
+              "reason": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message", "retryable"],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "details": {}
+          }
+        }
+      }
+    },
+    "declaredEffects": [
+      {
+        "kind": "local-read",
+        "mutability": "read",
+        "destructive": false,
+        "retrySafety": "safe",
+        "openWorld": false
+      }
+    ]
+  }
+]

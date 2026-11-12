@@ -56,7 +56,6 @@ export async function sha256File(path: string): Promise<string> {
     .digest("hex");
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function verifyCapabilityEvidence(
   events: readonly Readonly<Record<string, unknown>>[],
   probe: CapabilityProbeEvidence,

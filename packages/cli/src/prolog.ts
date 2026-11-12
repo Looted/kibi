@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
 import { kibiPackageVersions } from "./package-versions.js";
 import { writePerformanceTraceEvent } from "./performance-trace.js";
+import { escapeAtom } from "./prolog/codec.js";
 import {
   type PrologErrorRecord,
   extractPrologErrorRecord,
@@ -55,11 +56,29 @@ const INTERACTIVE_QUERY_FRAME_END = "__KIBI_QUERY_FRAME_END__";
  * never read the Prolog child again.
  */
 const INTERACTIVE_QUERY_FRAME_TERMINATOR = `${INTERACTIVE_QUERY_FRAME_END}\ntrue.\n\n`;
+/**
+ * Written to stderr by the frame goal just before the stdout marker. SWI
+ * writes a query's diagnostics before the frame goal runs, so once this line
+ * has been read the query's stderr is complete. Waiting for it makes the
+ * answer independent of which pipe the event loop happens to read first.
+ */
+const INTERACTIVE_QUERY_STDERR_END = "__KIBI_QUERY_STDERR_END__";
+const INTERACTIVE_QUERY_STDERR_TERMINATOR = `${INTERACTIVE_QUERY_STDERR_END}\n`;
 
 const require = createRequire(import.meta.url);
 
+/** The JavaScript runtime that hosts this process, reported to the child. */
+function runtimeIdentity(): { name: string; version: string } {
+  // rationale: the tests run under Bun only, so the Node identity is
+  // unreachable there.
+  // Stryker disable next-line all
+  const name = process.versions.bun === undefined ? "node" : "bun";
+  // rationale: as above, the Node version is never read under Bun.
+  // Stryker disable next-line all
+  return { name, version: process.versions.bun ?? process.versions.node };
+}
+
 export function resolveKbPlPath(): string {
-  // implements REQ-009
   const overrideKbPath = getKbPlPathOverride();
   if (overrideKbPath) {
     return overrideKbPath;
@@ -146,7 +165,6 @@ export interface QueryResult {
   errorRecord?: PrologErrorRecord;
 }
 
-// implements REQ-core-prolog-process-management
 export function registerProcessExitOnce(
   current: (() => void) | null,
   handler: () => void,
@@ -158,7 +176,6 @@ export function registerProcessExitOnce(
   return handler;
 }
 
-// implements REQ-core-prolog-process-management
 export function bindProcessExitHandler(
   current: (() => void) | null,
   terminate: () => void | Promise<void>,
@@ -179,11 +196,12 @@ export class PrologProcess {
   private explicitSwiplPath: string | undefined;
   private readonly swiplResolver: () => ResolvedSwipl;
   private timeout: number;
-  private outputBuffer = "";
-  private outputBufferBytes = 0;
-  private outputOverflowed = false;
-  private errorBuffer = "";
-  private errorBufferBytes = 0;
+  // start() resets these before any output can arrive.
+  private outputBuffer!: string;
+  private outputBufferBytes!: number;
+  private outputOverflowed!: boolean;
+  private errorBuffer!: string;
+  private errorBufferBytes!: number;
   private decodeOutput = utf8ChunkDecoder();
   private decodeError = utf8ChunkDecoder();
   private cache: Map<string, QueryResult> = new Map();
@@ -203,25 +221,24 @@ export class PrologProcess {
   private terminationReason: string | null = null;
   /** Wake hook of the in-flight interactive query, run when output arrives. */
   private outputWaiter: (() => void) | null = null;
-  private outputWakeScheduled = false;
 
   constructor(options: PrologOptions = {}) {
     this.explicitSwiplPath = options.swiplPath || undefined;
     this.swiplResolver = options.swiplResolver ?? (() => resolveSwipl());
     this.timeout = options.timeout || 30000;
+    const maxOutputBytes = Number(options.maxOutputBytes);
     this.maxOutputBytes =
-      options.maxOutputBytes !== undefined &&
-      Number.isInteger(options.maxOutputBytes) &&
-      options.maxOutputBytes > 0
-        ? options.maxOutputBytes
+      Number.isInteger(maxOutputBytes) && maxOutputBytes > 0
+        ? maxOutputBytes
         : DEFAULT_PROLOG_OUTPUT_MAX_BUFFER_BYTES;
     this.useOneShotMode =
       options.oneShot ??
       (process.env.NODE_ENV === "test" &&
+        // rationale: the tests always run under Bun, where Bun is defined.
+        // Stryker disable next-line ConditionalExpression,EqualityOperator,StringLiteral
         typeof (globalThis as { Bun?: unknown }).Bun !== "undefined");
   }
 
-  // implements REQ-core-prolog-process-management
   attachProcessExitHandler(
     on: (event: "exit", listener: () => void) => void = (event, listener) =>
       process.on(event, listener),
@@ -278,22 +295,24 @@ export class PrologProcess {
     this.interactiveStarted = true;
     this.terminationReason = null;
     this.invalidateCache();
+    const runtime = runtimeIdentity();
     this.process = spawn(
       launch.bin,
       [
         "-g",
-        `${PROLOG_UTF8_STREAMS_GOAL}, use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
+        `${PROLOG_UTF8_STREAMS_GOAL}, use_module('${escapeAtom(kbPath)}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
         "--quiet",
       ],
       {
+        // rationale: the tests run on POSIX hosts, where every child leads
+        // its own process group.
+        // Stryker disable next-line ConditionalExpression,StringLiteral
         detached: process.platform !== "win32",
         env: {
           ...process.env,
           ...launch.env,
-          KIBI_RUNTIME_NAME:
-            process.versions.bun !== undefined ? "bun" : "node",
-          KIBI_RUNTIME_VERSION:
-            process.versions.bun ?? process.versions.node ?? "unknown",
+          KIBI_RUNTIME_NAME: runtime.name,
+          KIBI_RUNTIME_VERSION: runtime.version,
           KIBI_PACKAGE_VERSIONS: kibiPackageVersions(),
         },
       },
@@ -319,7 +338,7 @@ export class PrologProcess {
     // whole host (the engine daemon); record the loss instead so the owner
     // sees needsRestart() and the in-flight query reports the termination.
     const child = this.process;
-    child.stdin?.on("error", (error: NodeJS.ErrnoException) => {
+    this.process.stdin.on("error", (error: NodeJS.ErrnoException) => {
       if (this.process === child) {
         this.terminationReason ??= `stdin ${error.code ?? "error"}`;
       }
@@ -337,7 +356,7 @@ export class PrologProcess {
     const start = Date.now();
     const maxStartWait = 2000; // ms
 
-    while (Date.now() - start < maxStartWait) {
+    for (;;) {
       // If process exited or was killed, surface the error buffer. A signal
       // kill leaves exitCode null but populates signalCode, so both must be
       // checked or an externally killed child looks "still starting".
@@ -359,27 +378,18 @@ export class PrologProcess {
         );
       }
 
-      if (this.outputBuffer.includes("true.")) {
-        this.clearQueryBuffers();
-        return;
-      }
+      // Each query clears the buffers before it starts.
+      if (this.outputBuffer.includes("true.")) return;
 
-      // brief pause
+      // The checks above run once more after the last pause, so a late
+      // error still fails the start.
+      if (Date.now() - start >= maxStartWait) return;
+
       // eslint-disable-next-line no-await-in-loop
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
-
-    // Final sanity check
-    if (this.errorBuffer.includes("ERROR")) {
-      throw new Error(
-        `Failed to load kb module: ${this.translateError(this.errorBuffer)}`,
-      );
-    }
-
-    this.clearQueryBuffers();
   }
 
-  // implements REQ-core-prolog-process-management
   async query(goal: string | string[]): Promise<QueryResult> {
     // A lost interactive session must fail before any cached answer is served.
     if (!this.useOneShotMode && this.needsRestart()) {
@@ -390,19 +400,18 @@ export class PrologProcess {
     const goalKey = isSingleGoal ? goal : null;
     const cacheable = goalKey !== null && this.isCacheableGoal(goalKey);
 
-    if (cacheable) {
-      const cacheLookupStartedAt =
-        process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
-      const cachedResult = this.cache.get(goalKey);
-      if (cachedResult) {
-        if (cacheLookupStartedAt !== null) {
-          writePerformanceTraceEvent({
-            kind: "prolog-process-cache-hit",
-            durationMs: performance.now() - cacheLookupStartedAt,
-          });
-        }
-        return cachedResult;
+    // Only cacheable goals are ever stored, and a goal list is never a key.
+    const cacheLookupStartedAt =
+      process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
+    const cachedResult = this.cache.get(goal as string);
+    if (cachedResult) {
+      if (cacheLookupStartedAt !== null) {
+        writePerformanceTraceEvent({
+          kind: "prolog-process-cache-hit",
+          durationMs: performance.now() - cacheLookupStartedAt,
+        });
       }
+      return cachedResult;
     }
 
     if (this.useOneShotMode) {
@@ -435,11 +444,9 @@ export class PrologProcess {
       // need a single read (and for legacy unit fixtures).  Normal CLI/MCP
       // runtimes provide an EngineClient, while explicitly attached callers
       // call start() and stay interactive; this fallback never participates
-      // in the engine-backed workflow.
-      if (this.process === null && !this.interactiveStarted) {
-        return this.execOneShot(goal as string, this.attachedKbPath);
-      }
-      throw this.lostProcessError();
+      // in the engine-backed workflow. A started process that was lost has
+      // already been refused above.
+      return this.execOneShot(goal as string, this.attachedKbPath);
     }
 
     const runInteractiveQuery = async (): Promise<QueryResult> => {
@@ -463,27 +470,26 @@ export class PrologProcess {
         ? `catch(${goalWithPersistence}, _E, ${errorReport})`
         : `catch(once((${goalWithPersistence})), _E, ${errorReport})`;
       const start = Date.now();
+      const child = this.process as ChildProcess;
 
       if (debug) {
         console.error(`[prolog debug] start query: ${goalLabel}`);
       }
 
-      this.process?.stdin?.write(
-        `${wrappedGoal}.\nwriteln('${INTERACTIVE_QUERY_FRAME_END}').\n`,
+      (child.stdin as NodeJS.WritableStream).write(
+        `${wrappedGoal}.\nwriteln(user_error, '${INTERACTIVE_QUERY_STDERR_END}'), writeln('${INTERACTIVE_QUERY_FRAME_END}').\n`,
       );
 
       return new Promise((resolve, reject) => {
-        let settled = false;
-        let pollTimer: NodeJS.Timeout | null = null;
+        let pollTimer: NodeJS.Timeout | undefined;
         const settle = (): void => {
-          settled = true;
           clearTimeout(timeoutId);
-          if (pollTimer !== null) clearTimeout(pollTimer);
-          if (this.outputWaiter === wake) this.outputWaiter = null;
+          clearTimeout(pollTimer);
+          this.outputWaiter = null;
         };
         const timeoutId = setTimeout(() => {
           const stage = this.lastDiagnosticStage(this.errorBuffer) ?? "unknown";
-          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, signal=${this.process?.signalCode ?? "null"}, goal=${goalLabel}). If several fresh Kibi commands hang or crawl the same way, the engine state is likely wedged: run 'kibi engine stop' (then 'kibi sync --rebuild' if needed) and retry.`;
+          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${child.pid ?? 0}, killed=${child.killed ? "yes" : "no"}, exitCode=${child.exitCode}, signal=${child.signalCode}, goal=${goalLabel}). If several fresh Kibi commands hang or crawl the same way, the engine state is likely wedged: run 'kibi engine stop' (then 'kibi sync --rebuild' if needed) and retry.`;
           if (debug) {
             console.error(`[prolog debug] timeout: ${msg}`);
             const runtime = this.errorBuffer
@@ -500,10 +506,8 @@ export class PrologProcess {
           });
         }, this.timeout);
 
+        // Only an unsettled query polls or wakes, so this runs unsettled.
         const checkResult = () => {
-          if (settled) {
-            return;
-          }
           if (this.outputOverflowed) {
             settle();
             this.terminationReason = `output overflow (ENOBUFS): ${goalLabel}`;
@@ -526,24 +530,26 @@ export class PrologProcess {
             });
             return;
           }
-          if (
-            this.errorBuffer.length > 0 &&
-            this.errorBuffer.includes("ERROR")
-          ) {
+          // The stderr frame end is transport, not a diagnostic.
+          const diagnostics = this.errorBuffer.replace(
+            INTERACTIVE_QUERY_STDERR_TERMINATOR,
+            "",
+          );
+          if (diagnostics.includes("ERROR")) {
             settle();
             if (debug) {
               console.error(
-                `[prolog debug] query error: ${goalLabel} error=${this.errorBuffer.split("\n")[0]}`,
+                `[prolog debug] query error: ${goalLabel} error=${diagnostics.split("\n")[0]}`,
               );
             }
-            const classified = this.classifyErrorOutput(this.errorBuffer);
+            const classified = this.classifyErrorOutput(diagnostics);
             resolve({
               success: false,
               bindings: {},
               error: this.addDiagnosticStage(
                 classified.message,
                 normalizedGoal,
-                this.errorBuffer,
+                diagnostics,
               ),
               ...(classified.record ? { errorRecord: classified.record } : {}),
             });
@@ -553,9 +559,12 @@ export class PrologProcess {
           const frameEnd = this.outputBuffer.indexOf(
             INTERACTIVE_QUERY_FRAME_TERMINATOR,
           );
-          if (frameEnd >= 0) {
+          if (
+            frameEnd >= 0 &&
+            this.errorBuffer.includes(INTERACTIVE_QUERY_STDERR_TERMINATOR)
+          ) {
             settle();
-            const framedOutput = this.outputBuffer.slice(0, frameEnd).trimEnd();
+            const framedOutput = this.outputBuffer.slice(0, frameEnd);
             if (/(?:^|\n)(?:false|fail)\.\s*$/.test(framedOutput)) {
               resolve({
                 success: false,
@@ -578,7 +587,7 @@ export class PrologProcess {
               this.invalidateCache();
             }
             if (shouldCache) {
-              this.cache.set(goalKey, result);
+              this.cache.set(goalKey as string, result);
             }
             if (debug) {
               console.error(
@@ -591,33 +600,29 @@ export class PrologProcess {
 
           // The poll still owns every state an output wake does not decide:
           // a diagnostic without its answer frame, or a process that died.
-          if (pollTimer === null) {
-            pollTimer = setTimeout(() => {
-              pollTimer = null;
-              checkResult();
-            }, 50);
-          }
+          // A poll clears its own timer before it checks again.
+          pollTimer = setTimeout(() => {
+            checkResult();
+          }, 50);
         };
 
-        // Output wakes act only once the answer frame (or an overflow) has
-        // arrived. SWI writes a query's stderr report before its stdout
-        // frame, so the frame proves both buffers are complete; anything
-        // earlier is left to the poll, keeping classification unchanged
-        // while a finished query no longer waits out a 50 ms poll interval.
-        let frameScanFrom = 0;
+        // Output wakes act only once both frame ends (or an overflow) have
+        // arrived: the stderr marker proves the diagnostics are complete and
+        // the stdout terminator proves the answer is. Anything earlier is
+        // left to the poll, keeping classification unchanged while a
+        // finished query no longer waits out a 50 ms poll interval.
+        const frameSeen = this.markerScanner(
+          () => this.outputBuffer,
+          INTERACTIVE_QUERY_FRAME_TERMINATOR,
+        );
+        const stderrEndSeen = this.markerScanner(
+          () => this.errorBuffer,
+          INTERACTIVE_QUERY_STDERR_TERMINATOR,
+        );
         const wake = (): void => {
-          if (settled) return;
-          const found =
-            this.outputBuffer.indexOf(
-              INTERACTIVE_QUERY_FRAME_TERMINATOR,
-              frameScanFrom,
-            ) >= 0;
-          frameScanFrom = Math.max(
-            0,
-            this.outputBuffer.length -
-              INTERACTIVE_QUERY_FRAME_TERMINATOR.length,
-          );
-          if (found || this.outputOverflowed) checkResult();
+          if ((frameSeen() && stderrEndSeen()) || this.outputOverflowed) {
+            checkResult();
+          }
         };
         this.outputWaiter = wake;
         checkResult();
@@ -675,26 +680,21 @@ export class PrologProcess {
       trimmed.startsWith("kb_storage_compact") ||
       trimmed.startsWith("kb_storage_export") ||
       trimmed.startsWith("status:") ||
-      trimmed.startsWith("kb_commit_upsert(") ||
       // The preview stages a write in a rolled-back transaction: never
       // answer it from the cache of an earlier payload.
-      trimmed.startsWith("kb_preview_upsert_contradiction(") ||
-      trimmed.startsWith("kb_assert_") ||
-      trimmed.startsWith("kb_delete_") ||
-      trimmed.startsWith("kb_retract_")
+      trimmed.startsWith("kb_preview_upsert_contradiction(")
     );
   }
 
-  // implements REQ-009
   private isMutatingGoal(goal: string): boolean {
     return /(?:kb_(?:assert|delete|retract|commit|save|log)_|\bkb_save\b|\brdf_(?:assert|retract))/u.test(
       goal,
     );
   }
 
-  // implements REQ-009
+  /** `goal` is already normalized, so it has no surrounding space. */
   private isExplicitSaveGoal(goal: string): boolean {
-    return goal.trim().startsWith("kb_save");
+    return goal.startsWith("kb_save");
   }
 
   private async queryOneShot(goal: string | string[]): Promise<QueryResult> {
@@ -713,15 +713,8 @@ export class PrologProcess {
 
     const attachMatch = trimmedGoal.match(/^kb_attach\('(.+)'\)$/);
     if (attachMatch) {
-      const attachPath = attachMatch[1] ?? null;
-      if (!attachPath) {
-        return {
-          success: false,
-          bindings: {},
-          error: "Invalid KB attach path",
-        };
-      }
-
+      // The pattern needs at least one character, so the path is never empty.
+      const attachPath = attachMatch[1] as string;
       if (this.attachedKbPath !== null) {
         return {
           success: false,
@@ -739,7 +732,6 @@ export class PrologProcess {
     return this.execOneShot(trimmedGoal, this.attachedKbPath);
   }
 
-  // implements REQ-009
   private execOneShot(
     goal: string,
     kbPath: string | null,
@@ -766,12 +758,12 @@ export class PrologProcess {
       goalList.length === 0
         ? "true"
         : goalList.length === 1
-          ? goalList[0]
+          ? (goalList[0] as string)
           : `(${goalList.join(", ")})`;
     const kbModulePath = resolveKbPlPath();
     const prologGoal = [
       PROLOG_UTF8_STREAMS_GOAL,
-      `use_module('${kbModulePath}')`,
+      `use_module('${escapeAtom(kbModulePath)}')`,
       "use_module(library(semweb/rdf_db))",
       "set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])",
       decodeGoalFromEnvGoal("KIBI_GOAL", "GoalAtom"),
@@ -788,20 +780,20 @@ export class PrologProcess {
       "(QuerySucceeded == true -> (forall(member(Name=Value, Vars), (write(Name), write('='), write_term(Value, [quoted(true), max_depth(0)]), writeln('.'))), writeln('__KIBI_TRUE__.')) ; writeln('__KIBI_FALSE__.'))",
     ].join(", ");
 
-    const runtimeName = process.versions.bun !== undefined ? "bun" : "node";
-    const runtimeVersion =
-      process.versions.bun ?? process.versions.node ?? "unknown";
+    const { name: runtimeName, version: runtimeVersion } = runtimeIdentity();
     const packageVersions = kibiPackageVersions();
 
     let child: ChildProcess;
     try {
       const launch = this.launchTarget();
       child = spawn(launch.bin, ["-q", "-g", prologGoal, "-t", "halt"], {
+        // rationale: as above, the tests run on POSIX hosts only.
+        // Stryker disable next-line ConditionalExpression,StringLiteral
         detached: process.platform !== "win32",
         env: {
           ...process.env,
           ...launch.env,
-          KIBI_GOAL: encodeGoalForEnv(combinedGoal ?? "true"),
+          KIBI_GOAL: encodeGoalForEnv(combinedGoal),
           KIBI_RUNTIME_NAME: runtimeName,
           KIBI_RUNTIME_VERSION: runtimeVersion,
           KIBI_PACKAGE_VERSIONS: packageVersions,
@@ -818,69 +810,61 @@ export class PrologProcess {
     }
 
     this.oneShotProcesses.add(child);
-    let stdout = "";
-    let stderr = "";
-    let outputBytes = 0;
-    let errorBytes = 0;
     let outputOverflowed = false;
     let timedOut = false;
-    let settled = false;
-    let closed = false;
     let termination: Promise<void> | null = null;
 
-    const decodeStdout = utf8ChunkDecoder();
-    const decodeStderr = utf8ChunkDecoder();
-    const appendChunk = (chunk: Buffer, target: "stdout" | "stderr"): void => {
-      if (outputOverflowed) return;
-      const bytes = target === "stdout" ? outputBytes : errorBytes;
-      const remaining = this.maxOutputBytes - bytes;
-      const decode = target === "stdout" ? decodeStdout : decodeStderr;
+    type Captured = {
+      text: string;
+      bytes: number;
+      decode: (chunk: Buffer) => string;
+    };
+    const capture = (): Captured => ({
+      text: "",
+      bytes: 0,
+      decode: utf8ChunkDecoder(),
+    });
+    const out = capture();
+    const err = capture();
+    const appendChunk = (stream: Captured, chunk: Buffer): void => {
+      const remaining = this.maxOutputBytes - stream.bytes;
       if (chunk.byteLength > remaining) {
-        const clipped = decode(chunk.subarray(0, Math.max(0, remaining)));
-        if (target === "stdout") stdout += clipped;
-        else stderr += clipped;
+        // Keep the part that fits: stderr stage markers still name the stage.
+        stream.text += stream.decode(chunk.subarray(0, remaining));
+        stream.bytes = this.maxOutputBytes;
         outputOverflowed = true;
         termination ??= this.terminateProcessTree(child);
         return;
       }
-      if (target === "stdout") {
-        stdout += decode(chunk);
-        outputBytes += chunk.byteLength;
-      } else {
-        stderr += decode(chunk);
-        errorBytes += chunk.byteLength;
-      }
+      stream.text += stream.decode(chunk);
+      stream.bytes += chunk.byteLength;
     };
 
-    child.stdout?.on("data", (chunk: Buffer) => appendChunk(chunk, "stdout"));
-    child.stderr?.on("data", (chunk: Buffer) => appendChunk(chunk, "stderr"));
+    // Both pipes exist: stdio is ["ignore", "pipe", "pipe"].
+    (child.stdout as NodeJS.ReadableStream).on("data", (chunk: Buffer) =>
+      appendChunk(out, chunk),
+    );
+    (child.stderr as NodeJS.ReadableStream).on("data", (chunk: Buffer) =>
+      appendChunk(err, chunk),
+    );
 
-    const completion = new Promise<{
-      readonly code: number | null;
-      readonly signal: NodeJS.Signals | null;
-      readonly error?: Error;
-    }>((resolve) => {
-      child.once("error", (error) => {
-        closed = true;
-        resolve({ code: null, signal: null, error });
-      });
-      child.once("close", (code, signal) => {
-        closed = true;
-        resolve({ code, signal });
-      });
+    const completion = new Promise<Error | undefined>((resolve) => {
+      child.once("error", resolve);
+      child.once("close", () => resolve(undefined));
     });
 
+    // Cleared as soon as the child finishes, so it fires only while it runs.
     const timeoutId = setTimeout(() => {
-      if (settled || closed) return;
       timedOut = true;
       termination ??= this.terminateProcessTree(child);
     }, this.timeout);
 
-    const result = await completion;
-    settled = true;
+    const failure = await completion;
     clearTimeout(timeoutId);
-    if (termination !== null) await termination;
+    await termination;
     this.oneShotProcesses.delete(child);
+    const stdout = out.text;
+    const stderr = err.text;
 
     const stage = this.lastDiagnosticStage(stderr) ?? "unknown";
     if (isPrologDebugEnabled()) {
@@ -897,7 +881,7 @@ export class PrologProcess {
 
     if (timedOut) {
       throw new Error(
-        `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${child.pid ?? 0}, goal=${this.goalLabel(combinedGoal ?? "true")})`,
+        `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${child.pid ?? 0}, goal=${this.goalLabel(combinedGoal)})`,
       );
     }
 
@@ -907,21 +891,17 @@ export class PrologProcess {
         bindings: {},
         error: this.addDiagnosticStage(
           PROLOG_OUTPUT_OVERFLOW_ERROR,
-          combinedGoal ?? "true",
+          combinedGoal,
           stderr,
         ),
       };
     }
 
-    if (result.error !== undefined) {
+    if (failure !== undefined) {
       return {
         success: false,
         bindings: {},
-        error: this.addDiagnosticStage(
-          result.error.message,
-          combinedGoal ?? "true",
-          stderr,
-        ),
+        error: this.addDiagnosticStage(failure.message, combinedGoal, stderr),
       };
     }
 
@@ -932,7 +912,7 @@ export class PrologProcess {
         bindings: {},
         error: this.addDiagnosticStage(
           classified.message,
-          combinedGoal ?? "true",
+          combinedGoal,
           stderr,
         ),
         ...(classified.record ? { errorRecord: classified.record } : {}),
@@ -963,7 +943,7 @@ export class PrologProcess {
       bindings: {},
       error: this.addDiagnosticStage(
         `Query failed - stdout: ${stdout.substring(0, 200)}, stderr: ${stderr.substring(0, 200)}`,
-        combinedGoal ?? "true",
+        combinedGoal,
         stderr,
       ),
     };
@@ -981,12 +961,10 @@ export class PrologProcess {
     this.errorBufferBytes = 0;
   }
 
+  // After an overflow the query fails and the process is stopped, so
+  // nothing more is read: the remaining bytes are never kept.
   private appendOutputChunk(chunk: Buffer): void {
-    if (this.outputOverflowed) return;
-    const remaining = this.maxOutputBytes - this.outputBufferBytes;
-    if (chunk.byteLength > remaining) {
-      this.outputBuffer += this.decodeOutput(chunk.subarray(0, remaining));
-      this.outputBufferBytes = this.maxOutputBytes;
+    if (this.outputBufferBytes + chunk.byteLength > this.maxOutputBytes) {
       this.outputOverflowed = true;
       return;
     }
@@ -995,12 +973,10 @@ export class PrologProcess {
     this.wakeOutputWaiter();
   }
 
+  // The stderr frame end can be read after the stdout one, so stderr wakes
+  // the query too.
   private appendErrorChunk(chunk: Buffer): void {
-    if (this.outputOverflowed) return;
-    const remaining = this.maxOutputBytes - this.errorBufferBytes;
-    if (chunk.byteLength > remaining) {
-      this.errorBuffer += this.decodeError(chunk.subarray(0, remaining));
-      this.errorBufferBytes = this.maxOutputBytes;
+    if (this.errorBufferBytes + chunk.byteLength > this.maxOutputBytes) {
       this.outputOverflowed = true;
       return;
     }
@@ -1010,15 +986,36 @@ export class PrologProcess {
   }
 
   /**
-   * Notify the in-flight query that output arrived. Deferred to the event
-   * loop's check phase so every pipe that became readable in this turn
-   * (stderr diagnostics precede the stdout answer frame) is drained first.
+   * Report whether `marker` has appeared in a growing buffer, searching only
+   * text that a previous call could not have seen in full. Once found, the
+   * answer stays true.
+   */
+  private markerScanner(read: () => string, marker: string): () => boolean {
+    let found = false;
+    let scanFrom = 0;
+    return () => {
+      const text = read();
+      found ||= text.indexOf(marker, scanFrom) >= 0;
+      // rationale: scanning from a later offset only skips text already
+      // searched; scanning from 0 finds the same marker.
+      // Stryker disable next-line MethodExpression
+      scanFrom = Math.max(0, text.length - marker.length);
+      return found;
+    };
+  }
+
+  /**
+   * Notify the in-flight query that output arrived. The waiter runs as a
+   * microtask of the pipe callback, never from setImmediate: when Bun drives
+   * the loop from a nested promise wait (as bun:test's expect().resolves and
+   * expect().rejects do), microtasks queued by an immediate callback are not
+   * drained until some unrelated timer fires, so the query's caller would
+   * resume up to a second late. Ordering against stderr needs no deferral,
+   * since the waiter acts only once both pipes carried their frame ends.
+   * Output between queries has no waiter.
    */
   private wakeOutputWaiter(): void {
-    if (this.outputWaiter === null || this.outputWakeScheduled) return;
-    this.outputWakeScheduled = true;
-    setImmediate(() => {
-      this.outputWakeScheduled = false;
+    queueMicrotask(() => {
       this.outputWaiter?.();
     });
   }
@@ -1055,6 +1052,8 @@ export class PrologProcess {
   private signalProcessTree(child: ChildProcess, signal: NodeJS.Signals): void {
     const pid = child.pid;
     if (pid === undefined || pid <= 0) return;
+    // rationale: the tests run on POSIX hosts, where process groups exist.
+    // Stryker disable next-line ConditionalExpression,StringLiteral
     if (process.platform !== "win32") {
       try {
         process.kill(-pid, signal);
@@ -1084,7 +1083,6 @@ export class PrologProcess {
       child.once("error", markExited);
     });
     if (graceMs > 0 && child.exitCode === null && child.signalCode === null) {
-      // implements REQ-core-journaled-engine-persistence
       let graceTimer: NodeJS.Timeout | undefined;
       await Promise.race([
         exited,
@@ -1092,7 +1090,10 @@ export class PrologProcess {
           graceTimer = setTimeout(resolve, graceMs);
         }),
       ]);
-      if (graceTimer) clearTimeout(graceTimer);
+      // rationale: clearing only lets the event loop exit before the timer;
+      // the race above is already decided.
+      // Stryker disable next-line CallExpression
+      clearTimeout(graceTimer);
       if (closed) return;
     }
     if (child.exitCode === null) this.signalProcessTree(child, "SIGTERM");
@@ -1109,49 +1110,27 @@ export class PrologProcess {
     }
   }
 
-  // implements REQ-009
   private isProcessUsable(): boolean {
-    return Boolean(
-      this.process?.stdin &&
-        !this.process?.killed &&
-        this.process?.exitCode === null &&
-        this.process?.signalCode === null,
-    );
+    return this.isRunning() && (this.process as ChildProcess).stdin !== null;
   }
 
   private extractBindings(output: string): Record<string, string> {
-    const bindings: Record<string, string> = {};
-    let variableName: string | undefined;
-    let valueLines: string[] = [];
-
-    const flush = (): void => {
-      if (variableName === undefined) return;
-      bindings[variableName] = valueLines
-        .join("\n")
-        .trim()
-        .replace(/\.$/, "")
-        .replace(/,$/, "");
-      variableName = undefined;
-      valueLines = [];
-    };
-
     // Prolog may print a quoted string over multiple physical lines when the
     // long-lived session's answer formatting is configured for readable JSON.
     // Parse assignment records as blocks instead of dropping every continuation
     // line after the first one (which previously reduced JsonString to "{").
+    const blocks: Array<[string, string[]]> = [];
     for (const line of output.split("\n")) {
-      const match = line.match(/^([A-Z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
-      if (match?.[1] !== undefined && match[2] !== undefined) {
-        flush();
-        variableName = match[1];
-        valueLines = [match[2]];
-        continue;
-      }
-      if (variableName !== undefined) valueLines.push(line);
+      const match = line.match(/^([A-Z_][A-Za-z0-9_]*)\s*=\s*(.*)/);
+      if (match) blocks.push([match[1] as string, [match[2] as string]]);
+      else blocks.at(-1)?.[1].push(line);
     }
-    flush();
-
-    return bindings;
+    return Object.fromEntries(
+      blocks.map(([name, lines]) => [
+        name,
+        lines.join("\n").trim().replace(/\.$/, "").replace(/,$/, ""),
+      ]),
+    );
   }
 
   /** Prefer the structured error term; fall back to text heuristics. */
@@ -1166,7 +1145,6 @@ export class PrologProcess {
     return { message: this.translateError(errorText) };
   }
 
-  // implements REQ-core-prolog-process-management
   private translateError(errorText: string): string {
     // Diagnostic markers intentionally contain words such as `lock` and the
     // audit path. Remove them before classifying the actual Prolog error so a
@@ -1176,14 +1154,14 @@ export class PrologProcess {
     const existence = errorText.match(
       /^__KIBI_ERROR__:error\(existence_error\((key|procedure),([^,()\r\n]+)(?:,|\),)/m,
     );
-    const identifier = existence?.[2]?.trim().replace(/^'([^']+)'$/, "$1");
-    if (existence?.[1] === "key" && identifier !== undefined) {
-      if (/^[A-Za-z][A-Za-z0-9_-]{0,95}$/.test(identifier)) {
+    if (existence) {
+      const [, kind, raw] = existence as unknown as [string, string, string];
+      const identifier = raw.trim().replace(/^'([^']+)'$/, "$1");
+      if (kind === "key" && /^[A-Za-z][A-Za-z0-9_-]{0,95}$/.test(identifier)) {
         return `Predicate or file not found (missing dictionary key: ${identifier})`;
       }
-    }
-    if (existence?.[1] === "procedure" && identifier !== undefined) {
       if (
+        kind === "procedure" &&
         /^(?:[A-Za-z][A-Za-z0-9_]{0,95}:)?[A-Za-z][A-Za-z0-9_]{0,95}\/[0-9]{1,3}$/.test(
           identifier,
         )
@@ -1212,15 +1190,12 @@ export class PrologProcess {
       cleanError.includes("does not exist") &&
       /entity [`'"].+?[`'"]/.test(cleanError)
     ) {
-      // SWI-Prolog doubles single quotes in formatted messages: ''REQ-TEST''
+      // SWI-Prolog doubles single quotes in formatted messages: ''REQ-TEST''.
+      // The quote runs on both sides stay outside the lazy capture.
       const entityIdMatch = cleanError.match(
         /entity [`'"]+(.+?)[`'"]+ does not exist/,
       );
-      const matchedEntityId = entityIdMatch?.[1];
-      const entityId =
-        matchedEntityId !== undefined
-          ? matchedEntityId.replace(/^`?'+|'+`?$/g, "")
-          : "unknown";
+      const entityId = entityIdMatch?.[1] ?? "unknown";
       if (cleanError.includes("Target entity does not exist")) {
         return `Target entity does not exist: ${entityId}`;
       }
@@ -1262,17 +1237,18 @@ export class PrologProcess {
         .replace(/ERROR:\s*/g, "")
         .replace(/^\*\*.*\*\*$/gm, "")
         .replace(/^\s+/gm, "")
-        .split("\n")[0] ?? ""
+        .split("\n")[0] as string
     ).trim();
     return simpleError || "Unknown error";
   }
 
   isRunning(): boolean {
-    return Boolean(
-      this.process &&
-        !this.process.killed &&
-        this.process?.exitCode === null &&
-        this.process?.signalCode === null,
+    const child = this.process;
+    return (
+      child !== null &&
+      !child.killed &&
+      child.exitCode === null &&
+      child.signalCode === null
     );
   }
 
@@ -1280,10 +1256,8 @@ export class PrologProcess {
     return this.process?.pid || 0;
   }
 
+  /** Only a started interactive process can be lost. */
   private lostProcessError(): Error {
-    if (!this.interactiveStarted) {
-      return new Error("Prolog process not started");
-    }
     return new PrologProcessTerminatedError(
       this.terminationReason ?? "process exited",
     );
@@ -1309,25 +1283,23 @@ export class PrologProcess {
 
     const current = this.process;
     const oneShots = [...this.oneShotProcesses];
+    // start() clears the query buffers of the next process.
     this.process = null;
-    this.clearQueryBuffers();
 
-    if (current || oneShots.length > 0) {
-      this.terminationPromise = (async () => {
-        if (current) {
-          current.stdin?.end();
-          await this.terminateProcessTree(current, options.graceMs ?? 0);
-        }
-        await Promise.all(
-          oneShots.map((child) => this.terminateProcessTree(child)),
-        );
-      })();
-
-      try {
-        await this.terminationPromise;
-      } finally {
-        this.terminationPromise = null;
+    this.terminationPromise = (async () => {
+      if (current) {
+        current.stdin?.end();
+        await this.terminateProcessTree(current, options.graceMs);
       }
+      await Promise.all(
+        oneShots.map((child) => this.terminateProcessTree(child)),
+      );
+    })();
+
+    try {
+      await this.terminationPromise;
+    } finally {
+      this.terminationPromise = null;
     }
   }
 }

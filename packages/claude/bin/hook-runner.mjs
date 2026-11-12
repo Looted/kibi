@@ -236,255 +236,18 @@ import fs6 from "node:fs";
 import path5 from "node:path";
 
 // ../agent-core/dist/requirement-candidates.js
-import fs3 from "node:fs";
-import path3 from "node:path";
-var REQUIREMENTS_DIR = path3.join(".kb", "requirements");
-var HEAD_BYTES = 4096;
-var MAX_SCANNED = 2000;
-var MAX_REQUIREMENT_CANDIDATES = 3;
-var LAYOUT_WORDS = stems([
-  "src",
-  "app",
-  "apps",
-  "lib",
-  "libs",
-  "source",
-  "page",
-  "component",
-  "view",
-  "screen",
-  "package",
-  "main",
-  "index",
-  "shared",
-  "common",
-  "core",
-  "util",
-  "helper",
-  "public",
-  "static",
-  "asset",
-  "web",
-  "client",
-  "server",
-  "frontend",
-  "backend",
-  "module",
-  "feature",
-  "internal",
-  "service",
-  "test",
-  "spec",
-  "dist",
-  "build",
-  "html",
-  "htm",
-  "tsx",
-  "jsx",
-  "mjs",
-  "cjs",
-  "vue",
-  "svelte",
-  "css",
-  "scss",
-  "less",
-  "json",
-  "yaml",
-  "yml",
-  "java",
-  "swift",
-  "php"
-]);
-var FILLER_WORDS = stems([
-  "the",
-  "and",
-  "for",
-  "with",
-  "must",
-  "should",
-  "shall",
-  "may",
-  "can",
-  "are",
-  "its",
-  "their",
-  "that",
-  "this",
-  "from",
-  "into",
-  "when",
-  "each",
-  "every",
-  "all",
-  "not",
-  "req",
-  "auto"
-]);
-function words(text) {
-  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().match(/[a-z0-9]+/g)?.filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word) ?? [];
-}
-function stems(list) {
-  return new Set(list.flatMap(words));
-}
-function pathTopicWords(relativePath) {
-  const found = words(relativePath).filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
-  return [...new Set(found)];
-}
-function unquote2(value) {
-  const trimmed = value.trim();
-  return /^(["']).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
-}
-function readHead(file) {
-  let head;
-  try {
-    const descriptor = fs3.openSync(file, "r");
-    try {
-      const buffer = Buffer.alloc(HEAD_BYTES);
-      const bytes = fs3.readSync(descriptor, buffer, 0, buffer.length, 0);
-      head = buffer.subarray(0, bytes).toString("utf8");
-    } finally {
-      fs3.closeSync(descriptor);
-    }
-  } catch {
-    return;
-  }
-  const lines = head.split(/\r?\n/);
-  if (lines[0].trim() !== "---")
-    return;
-  const fields = {};
-  for (const line of lines.slice(1)) {
-    if (line.trim() === "---")
-      break;
-    const match = /^(id|title|status):(.+)/.exec(line);
-    if (match)
-      fields[match[1]] = unquote2(match[2]);
-  }
-  if (!fields.id || !fields.title)
-    return;
-  return {
-    id: fields.id,
-    title: fields.title,
-    ...fields.status ? { status: fields.status } : {}
-  };
-}
-var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
-function requestTopicWords(text, limit = 40) {
-  const found = words(text).filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
-  return [...new Set(found)].slice(0, limit);
-}
-var REQUEST_FILLER_WORDS = stems([
-  "please",
-  "could",
-  "would",
-  "you",
-  "your",
-  "our",
-  "have",
-  "has",
-  "make",
-  "sure",
-  "change",
-  "update",
-  "add",
-  "fix",
-  "now",
-  "need",
-  "want",
-  "like",
-  "also",
-  "just",
-  "then",
-  "than",
-  "there",
-  "here",
-  "what",
-  "which",
-  "why",
-  "how",
-  "will",
-  "use",
-  "using",
-  "new",
-  "file",
-  "code",
-  "never",
-  "always",
-  "only",
-  "any",
-  "but",
-  "they",
-  "them",
-  "was",
-  "were",
-  "been",
-  "being",
-  "does",
-  "don",
-  "doesn",
-  "let",
-  "get",
-  "set",
-  "one",
-  "out",
-  "about",
-  "over",
-  "same",
-  "still",
-  "too",
-  "very"
-]);
-function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES, requestWords) {
-  const topic = new Set(pathTopicWords(relativePath));
-  const request = new Set(requestWords?.filter((word) => !topic.has(word)));
-  const scored = [];
-  for (const head of requirements) {
-    if (RETIRED_STATUS.test(String(head.status)))
-      continue;
-    const titleWords = words(head.title);
-    const pathHits = titleWords.filter((word) => topic.has(word));
-    const requestHits = titleWords.filter((word) => request.has(word));
-    const shared = new Set(pathHits).size;
-    const asked = new Set(requestHits).size;
-    if (shared > 0 || asked >= 2) {
-      scored.push({
-        head,
-        shared,
-        asked,
-        uses: pathHits.length + requestHits.length
-      });
-    }
-  }
-  scored.sort((a, b) => b.shared - a.shared || b.asked - a.asked || b.uses - a.uses || a.head.id.localeCompare(b.head.id));
-  return scored.slice(0, limit).map((entry) => entry.head);
-}
-function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES, requestWords) {
-  if (pathTopicWords(relativePath).length === 0 && (requestWords?.length ?? 0) < 2)
-    return [];
-  const directory = path3.join(workspaceRoot, REQUIREMENTS_DIR);
-  let names;
-  try {
-    names = fs3.readdirSync(directory).filter((name) => name.endsWith(".md"));
-  } catch {
-    return [];
-  }
-  if (names.length > MAX_SCANNED)
-    return [];
-  const heads = names.map((name) => readHead(path3.join(directory, name))).filter((head) => head !== undefined);
-  return rankRequirementCandidates(relativePath, heads, limit, requestWords);
-}
-
-// ../agent-core/dist/snippets.js
-import fs5 from "node:fs";
+import fs4 from "node:fs";
+import path4 from "node:path";
 
 // ../agent-core/dist/knowledge-index.js
 import { createHash, randomUUID } from "node:crypto";
-import fs4 from "node:fs";
-import path4 from "node:path";
+import fs3 from "node:fs";
+import path3 from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 var SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
 var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v2";
 var CACHE_FILE = "knowledge-index.json";
-function unquote3(raw) {
+function unquote2(raw) {
   const value = raw.trim();
   if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
     try {
@@ -515,7 +278,7 @@ function parseFlow(text, start = 0) {
       pattern.lastIndex = pos;
       const raw = pattern.exec(text)[0];
       pos = pattern.lastIndex;
-      return unquote3(raw);
+      return unquote2(raw);
     }
     let cursor = pos;
     for (;; ) {
@@ -602,7 +365,7 @@ function completeFlowValue(raw) {
 function parseScalarOrFlow(raw) {
   if (!raw)
     return;
-  return completeFlowValue(raw)?.value ?? unquote3(raw);
+  return completeFlowValue(raw)?.value ?? unquote2(raw);
 }
 function scanSymbolsManifest(text) {
   return scanRecordSequence(text, "symbols");
@@ -679,12 +442,12 @@ ${content}`;
         pendingFlow = undefined;
         continue;
       }
-      pendingFlow.target[pendingFlow.key] = unquote3(pendingFlow.first);
+      pendingFlow.target[pendingFlow.key] = unquote2(pendingFlow.first);
       pendingFlow = undefined;
     }
     if (indent === 0 && !dash) {
       const pair = keyValue.exec(content);
-      otherSection = pair === null || unquote3(pair[1]) !== sectionKey;
+      otherSection = pair === null || unquote2(pair[1]) !== sectionKey;
       item = undefined;
       continue;
     }
@@ -698,7 +461,7 @@ ${content}`;
       listItem = undefined;
       const pair = keyValue.exec(rest);
       if (pair !== null) {
-        const key = unquote3(pair[1]);
+        const key = unquote2(pair[1]);
         if (assign(item.record, key, pair[2], indent))
           listKey = key;
       }
@@ -720,17 +483,17 @@ ${content}`;
       }
       const pair = keyValue.exec(rest);
       if (pair?.[2] !== undefined) {
-        listItem = { [unquote3(pair[1])]: parseScalarOrFlow(pair[2]) };
+        listItem = { [unquote2(pair[1])]: parseScalarOrFlow(pair[2]) };
         list.push(listItem);
       } else {
-        list.push(unquote3(rest));
+        list.push(unquote2(rest));
       }
       continue;
     }
     const pair = keyValue.exec(content);
     if (pair === null)
       continue;
-    const key = unquote3(pair[1]);
+    const key = unquote2(pair[1]);
     if (indent === item.keyIndent) {
       listItem = undefined;
       listKey = assign(item.record, key, pair[2], item.indent) ? key : undefined;
@@ -749,7 +512,7 @@ function scanSymbolCoordinates(text) {
     if (pair === null)
       continue;
     const indent = rawLine.length - rawLine.trimStart().length;
-    const key = unquote3(pair[1]);
+    const key = unquote2(pair[1]);
     if (indent === 0) {
       inCoordinates = key === "coordinates";
       current = undefined;
@@ -766,7 +529,7 @@ function scanSymbolCoordinates(text) {
     }
     if (pair[2] === undefined)
       continue;
-    const value = unquote3(pair[2]);
+    const value = unquote2(pair[2]);
     if (key === "sourceFile") {
       const sourceFile = normalizeSourceFile(value);
       if (sourceFile.length > 0)
@@ -873,7 +636,7 @@ function buildKnowledgeIndex(records, coordinates = {}, options = {}, manifest =
 }
 function fileSignature(filePath) {
   try {
-    const stats = fs4.statSync(filePath);
+    const stats = fs3.statSync(filePath);
     return `${stats.size}:${stats.mtimeMs}`;
   } catch {
     return "missing";
@@ -881,21 +644,21 @@ function fileSignature(filePath) {
 }
 function readText(filePath) {
   try {
-    return fs4.readFileSync(filePath, "utf8");
+    return fs3.readFileSync(filePath, "utf8");
   } catch {}
   return;
 }
 function writeCacheAtomically(cachePath, payload) {
   try {
-    fs4.mkdirSync(path4.dirname(cachePath), { recursive: true });
+    fs3.mkdirSync(path3.dirname(cachePath), { recursive: true });
     const temporary = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
-    fs4.writeFileSync(temporary, payload);
-    fs4.renameSync(temporary, cachePath);
+    fs3.writeFileSync(temporary, payload);
+    fs3.renameSync(temporary, cachePath);
   } catch {}
 }
 function readCachedIndex(cachePath, signature) {
   try {
-    const parsed = JSON.parse(String(fs4.readFileSync(cachePath)));
+    const parsed = JSON.parse(String(fs3.readFileSync(cachePath)));
     if (parsed.signature === signature && parsed.index)
       return parsed.index;
   } catch {}
@@ -908,13 +671,13 @@ function scanKnowledgeIndex(symbolsPath, coordinatesPath, options) {
   return buildKnowledgeIndex(records, coordinatesText === undefined ? {} : scanSymbolCoordinates(coordinatesText), options, manifestStateOf(symbolsText, records.length));
 }
 function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
-  const symbolsPath = path4.join(workspaceRoot, SYMBOLS_MANIFEST);
-  const coordinatesPath = path4.join(workspaceRoot, SYMBOL_COORDINATES);
+  const symbolsPath = path3.join(workspaceRoot, SYMBOLS_MANIFEST);
+  const coordinatesPath = path3.join(workspaceRoot, SYMBOL_COORDINATES);
   if (!cacheDir)
     return scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
   const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = path4.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
+  const cachePath = path3.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
   const cached = readCachedIndex(cachePath, signature);
   if (cached !== undefined)
     return cached;
@@ -960,7 +723,7 @@ function readScalar(lines, index, raw) {
     last += 1;
   }
   const joined = parts.join(" ");
-  return { value: block ? joined : unquote3(joined), last };
+  return { value: block ? joined : unquote2(joined), last };
 }
 function firstParagraph(lines) {
   const paragraph = [];
@@ -985,7 +748,7 @@ var RELATIONSHIPS_DIR = ".kb/relationships";
 var shardCache = new Map;
 function shardPathFor(workspaceRoot, entityId) {
   const shard = createHash("sha256").update(entityId).digest("hex");
-  return path4.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
+  return path3.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
 }
 function shardLinksFrom(workspaceRoot, entityId) {
   const shardPath = shardPathFor(workspaceRoot, entityId);
@@ -1021,13 +784,13 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   let head;
   try {
-    const descriptor = fs4.openSync(path4.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
+    const descriptor = fs3.openSync(path3.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
       const buffer = Buffer.alloc(8192);
-      const bytes = fs4.readSync(descriptor, buffer, 0, buffer.length, 0);
+      const bytes = fs3.readSync(descriptor, buffer, 0, buffer.length, 0);
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
-      fs4.closeSync(descriptor);
+      fs3.closeSync(descriptor);
     }
   } catch {
     return { id: entityId };
@@ -1071,18 +834,18 @@ function readEntitySummary(workspaceRoot, entityId) {
       continue;
     }
     if (scalar && SCALAR_VALUE_FIELDS.has(scalar[1]) && scalar[2]) {
-      values.push(unquote3(scalar[2]));
+      values.push(unquote2(scalar[2]));
     }
     const flowSet = /^value_set:\s*\[(.*)\]\s*$/.exec(line);
     if (flowSet !== null && flowSet[1].trim()) {
-      values.push(...flowSet[1].split(",").map((member) => unquote3(member)));
+      values.push(...flowSet[1].split(",").map((member) => unquote2(member)));
     }
     if (/^\S/.test(line))
       inValueSet = /^value_set:\s*$/.test(line);
     else if (inValueSet) {
       const member = /^\s*-\s*(.+)/.exec(line);
       if (member)
-        values.push(unquote3(member[1]));
+        values.push(unquote2(member[1]));
     }
     const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
     if (flowOrigin)
@@ -1094,11 +857,11 @@ function readEntitySummary(workspaceRoot, entityId) {
       inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)/.exec(line);
     if (match?.[1] === "title" && match[2])
-      summary.title = unquote3(match[2]);
+      summary.title = unquote2(match[2]);
     if (match?.[1] === "status" && match[2])
-      summary.status = unquote3(match[2]);
+      summary.status = unquote2(match[2]);
     if (match?.[1] === "firmness" && match[2])
-      summary.firmness = unquote3(match[2]);
+      summary.firmness = unquote2(match[2]);
     if (/^\S/.test(line)) {
       flushLink(authored, pending);
       pending = undefined;
@@ -1117,11 +880,11 @@ function readEntitySummary(workspaceRoot, entityId) {
     const body = (entry ? entry[1] : line).trim();
     const field = /^(type|target):\s*(.+)/.exec(body);
     if (field?.[1] === "type")
-      pending.type = unquote3(field[2]);
+      pending.type = unquote2(field[2]);
     else if (field?.[1] === "target")
-      pending.target = unquote3(field[2]);
-    else if (entry && SAFE_ENTITY_ID.test(unquote3(body)))
-      pending.bare = unquote3(body);
+      pending.target = unquote2(field[2]);
+    else if (entry && SAFE_ENTITY_ID.test(unquote2(body)))
+      pending.bare = unquote2(body);
   }
   flushLink(authored, pending);
   if (summary.firmness === undefined && closed && (lane[1] === "requirements" || lane[1] === "adr"))
@@ -1154,7 +917,264 @@ function readEntitySummary(workspaceRoot, entityId) {
   return summary;
 }
 
+// ../agent-core/dist/requirement-candidates.js
+var REQUIREMENTS_DIR = path4.join(".kb", "requirements");
+var HEAD_BYTES = 4096;
+var MAX_SCANNED = 2000;
+var MAX_REQUIREMENT_CANDIDATES = 3;
+var LAYOUT_WORDS = stems([
+  "src",
+  "app",
+  "apps",
+  "lib",
+  "libs",
+  "source",
+  "page",
+  "component",
+  "view",
+  "screen",
+  "package",
+  "main",
+  "index",
+  "shared",
+  "common",
+  "core",
+  "util",
+  "helper",
+  "public",
+  "static",
+  "asset",
+  "web",
+  "client",
+  "server",
+  "frontend",
+  "backend",
+  "module",
+  "feature",
+  "internal",
+  "service",
+  "test",
+  "spec",
+  "dist",
+  "build",
+  "html",
+  "htm",
+  "tsx",
+  "jsx",
+  "mjs",
+  "cjs",
+  "vue",
+  "svelte",
+  "css",
+  "scss",
+  "less",
+  "json",
+  "yaml",
+  "yml",
+  "java",
+  "swift",
+  "php"
+]);
+var FILLER_WORDS = stems([
+  "the",
+  "and",
+  "for",
+  "with",
+  "must",
+  "should",
+  "shall",
+  "may",
+  "can",
+  "are",
+  "its",
+  "their",
+  "that",
+  "this",
+  "from",
+  "into",
+  "when",
+  "each",
+  "every",
+  "all",
+  "not",
+  "req",
+  "auto"
+]);
+function words(text) {
+  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().match(/[a-z0-9]+/g)?.filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word) ?? [];
+}
+function stems(list) {
+  return new Set(list.flatMap(words));
+}
+function pathTopicWords(relativePath) {
+  const found = words(relativePath).filter((word) => !LAYOUT_WORDS.has(word) && !FILLER_WORDS.has(word));
+  return [...new Set(found)];
+}
+function unquote3(value) {
+  const trimmed = value.trim();
+  return /^(["']).*\1$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed;
+}
+function readHead(file) {
+  let head;
+  try {
+    const descriptor = fs4.openSync(file, "r");
+    try {
+      const buffer = Buffer.alloc(HEAD_BYTES);
+      const bytes = fs4.readSync(descriptor, buffer, 0, buffer.length, 0);
+      head = buffer.subarray(0, bytes).toString("utf8");
+    } finally {
+      fs4.closeSync(descriptor);
+    }
+  } catch {
+    return;
+  }
+  const lines = head.split(/\r?\n/);
+  if (lines[0].trim() !== "---")
+    return;
+  const fields = {};
+  for (const line of lines.slice(1)) {
+    if (line.trim() === "---")
+      break;
+    const match = /^(id|title|status):(.+)/.exec(line);
+    if (match)
+      fields[match[1]] = unquote3(match[2]);
+  }
+  if (!fields.id || !fields.title)
+    return;
+  return {
+    id: fields.id,
+    title: fields.title,
+    ...fields.status ? { status: fields.status } : {}
+  };
+}
+var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
+var NOTHING_REPLACED = new Set;
+function isClosed(head) {
+  return String(head.status).trim().toLowerCase() === "closed";
+}
+function replacedRequirements(workspaceRoot, requirements, closed) {
+  const replaced = new Set;
+  for (const head of requirements) {
+    if (isClosed(head) || RETIRED_STATUS.test(String(head.status)))
+      continue;
+    for (const link of readEntitySummary(workspaceRoot, head.id).links ?? [])
+      if (link.type === "supersedes" && closed.has(link.target))
+        replaced.add(link.target);
+  }
+  return replaced;
+}
+function requestTopicWords(text, limit = 40) {
+  const found = words(text).filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
+  return [...new Set(found)].slice(0, limit);
+}
+var REQUEST_FILLER_WORDS = stems([
+  "please",
+  "could",
+  "would",
+  "you",
+  "your",
+  "our",
+  "have",
+  "has",
+  "make",
+  "sure",
+  "change",
+  "update",
+  "add",
+  "fix",
+  "now",
+  "need",
+  "want",
+  "like",
+  "also",
+  "just",
+  "then",
+  "than",
+  "there",
+  "here",
+  "what",
+  "which",
+  "why",
+  "how",
+  "will",
+  "use",
+  "using",
+  "new",
+  "file",
+  "code",
+  "never",
+  "always",
+  "only",
+  "any",
+  "but",
+  "they",
+  "them",
+  "was",
+  "were",
+  "been",
+  "being",
+  "does",
+  "don",
+  "doesn",
+  "let",
+  "get",
+  "set",
+  "one",
+  "out",
+  "about",
+  "over",
+  "same",
+  "still",
+  "too",
+  "very"
+]);
+function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUIREMENT_CANDIDATES, requestWords, replaced = NOTHING_REPLACED) {
+  const topic = new Set(pathTopicWords(relativePath));
+  const request = new Set(requestWords?.filter((word) => !topic.has(word)));
+  const scored = [];
+  for (const head of requirements) {
+    if (RETIRED_STATUS.test(String(head.status)))
+      continue;
+    if (replaced.has(head.id))
+      continue;
+    const titleWords = words(head.title);
+    const pathHits = titleWords.filter((word) => topic.has(word));
+    const requestHits = titleWords.filter((word) => request.has(word));
+    const shared = new Set(pathHits).size;
+    const asked = new Set(requestHits).size;
+    if (shared > 0 || asked >= 2) {
+      scored.push({
+        head,
+        closed: isClosed(head) ? 1 : 0,
+        shared,
+        asked,
+        uses: pathHits.length + requestHits.length
+      });
+    }
+  }
+  scored.sort((a, b) => a.closed - b.closed || b.shared - a.shared || b.asked - a.asked || b.uses - a.uses || a.head.id.localeCompare(b.head.id));
+  return scored.slice(0, limit).map((entry) => entry.head);
+}
+function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES, requestWords) {
+  if (pathTopicWords(relativePath).length === 0 && (requestWords?.length ?? 0) < 2)
+    return [];
+  const directory = path4.join(workspaceRoot, REQUIREMENTS_DIR);
+  let names;
+  try {
+    names = fs4.readdirSync(directory).filter((name) => name.endsWith(".md"));
+  } catch {
+    return [];
+  }
+  if (names.length > MAX_SCANNED)
+    return [];
+  const heads = names.map((name) => readHead(path4.join(directory, name))).filter((head) => head !== undefined);
+  const closed = new Set(rankRequirementCandidates(relativePath, heads, heads.length, requestWords).filter(isClosed).map((head) => head.id));
+  const replaced = closed.size > 0 ? replacedRequirements(workspaceRoot, heads, closed) : NOTHING_REPLACED;
+  return rankRequirementCandidates(relativePath, heads, limit, requestWords, replaced);
+}
+
 // ../agent-core/dist/snippets.js
+import fs5 from "node:fs";
 var MAX_REQUIREMENTS = 4;
 var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
@@ -1440,7 +1460,7 @@ function fileKnowledgeSnippet(input) {
   }
   const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
   const next = [
-    leadId ? `kb_query({id:${jsonString(leadId)}}) returns full requirement text` : undefined,
+    leadId ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text and why it exists` : undefined,
     `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
   ].filter((part) => part !== undefined);
   lines.push(`Next layer: ${next.join("; ")}.`);
@@ -1585,6 +1605,12 @@ function signoffReminder() {
 // ../agent-core/dist/kb-mcp-tools.js
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function canonicalKbToolName(toolName) {
+  const trimmed = String(toolName).trim();
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
 }
 var KIBI_WORKSPACE_ARGUMENT = "workspaceRoot";
 function isKibiMcpToolName(toolName) {
@@ -1899,9 +1925,11 @@ var REJECTED_CATEGORIES = new Set([
   "entity_validation_failed",
   "firm_decision_locked",
   "generated_artifacts_stale",
+  "git_conflicts_unresolved",
   "incomplete_propositions",
   "input_read_failed",
   "integration_failed",
+  "inventory_ingestion_failed",
   "invalid_project_config",
   "invalid_relationship",
   "legacy_branch_storage",
@@ -2485,10 +2513,8 @@ function strings(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string" && item.length > 0) : [];
 }
 function canonicalKbOperation(toolName) {
-  const name = `${toolName}`.trim();
-  const lastSegment = name.split("__").at(-1);
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return /^kb_[a-z_]+$/.test(operation) ? operation : undefined;
+  const operation = canonicalKbToolName(toolName);
+  return /^kb_[a-z_]+$/.test(String(operation)) ? operation : undefined;
 }
 function payloadOf(toolInput) {
   if (!isRecord3(toolInput))

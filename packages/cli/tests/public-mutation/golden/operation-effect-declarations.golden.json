@@ -1,0 +1,1058 @@
+{
+  "kb_skills_list": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_skills_load": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_skills_read": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_query": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_search": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_status": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_find_gaps": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_coverage": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_graph": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_sparql_remote": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": true
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_semantic_advisor": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_model_requirement": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_suggest_predicates": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_plan_bootstrap": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_validate_upsert": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_upsert": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    }
+  ],
+  "kb_delete": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    }
+  ],
+  "kb_check": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_prepare_impact_review": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_compile_intent": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_apply_plan": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    }
+  ],
+  "kb_ingest_proof": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_skills": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
+  "kb_model": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ]
+}

@@ -1,4 +1,3 @@
-// implements REQ-mcp-tool-check
 import { describe, expect, test } from "bun:test";
 import type { Violation } from "../../src/public/check-types.js";
 import type { ChangedFileImpactResult } from "../../src/public/impact-diagnostics.js";

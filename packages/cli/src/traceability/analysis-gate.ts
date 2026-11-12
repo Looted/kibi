@@ -10,7 +10,6 @@ const NON_LOCAL_ANALYSIS_MARKER =
 
 type LineRange = Readonly<{ startLine: number; endLine: number }>;
 
-// implements REQ-source-analysis-v2
 export type GateAnalysis<Range extends LineRange> = Readonly<{
   status: "ok" | "partial" | "unsupported" | "failed";
   diagnosticCodes: readonly string[];
@@ -59,7 +58,6 @@ function rangesTouchingHunks<Range extends LineRange>(
  *   project lists the grammar plugin and only its kibi-lang pack is missing or
  *   another version: that blocks, so a missing install never disarms the gate.
  */
-// implements REQ-source-analysis-v2
 export function analysisObligation<Range extends LineRange>(
   side: "before" | "after",
   analysis: GateAnalysis<Range> | null | undefined,
@@ -71,7 +69,6 @@ export function analysisObligation<Range extends LineRange>(
 }
 
 /** {@link analysisObligation} for the after side of a changed file. */
-// implements REQ-source-analysis-v2
 export function afterAnalysisObligation<Range extends LineRange>(
   analysis: GateAnalysis<Range> | null | undefined,
   newHunkRanges: readonly HunkRange[],

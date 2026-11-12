@@ -1,7 +1,7 @@
 ---
 id: TEST-008
 title: End-to-end init then sync then query then check pipeline passes
-status: active
+status: passing
 created_at: 2026-02-18T13:12:25.000Z
 updated_at: 2026-02-18T13:12:25.000Z
 priority: must
@@ -18,26 +18,26 @@ proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof
   required_proofs:
-    - symbol_id: SYM-e2e-test-008
+    - symbol_id: SYM-e2e-init-sync-check
       target: default
   success_policy: all_required_first_attempt
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-f53e066b28c24d15ebb2437d
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-ab1a6002d7520a29a7c21dcb
     test_id: TEST-008
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
-    contract_hash: 28866a73da4d9b432c2834175d9e1eece0a8877ddbc4972bbf43d432db12f531
-    binding_hash: e52cbb5232cad4031f5720af6f18b9ecfb1bd04971bbcf1edd9beab77a7e7033
-    fingerprint: f76f64260b21f39ce4c5a37bee01a627ed3189fe67ef326c013faff11dca4b77
+    code_snapshot: b95fa37681e8a263f7711717a0c81ed6eb85ba81a6d11a9483e6acc81f4800fc
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-10T15:16:44.569Z'
+    finished_at: '2026-11-10T15:17:12.092Z'
+    artifact_digest: ed8acc8fc57878cc4c1cd958e5c70b6961fad628e12b80f21a5c0d397ca15e01
+    contract_hash: 4aeddfd893b85de667338165458ac8dfc908d633d6a4117ff137a3fd26d0f919
+    binding_hash: a81b4b6dbbba3c82d469dc2bb290dc07a27177635f10802297bd416040d41519
+    fingerprint: b306bd9de40a1467df2971230e0d6da3dddf85f413772e7f94361ed531556ac1
     fingerprint_components:
-      contract: 28866a73da4d9b432c2834175d9e1eece0a8877ddbc4972bbf43d432db12f531
+      contract: 4aeddfd893b85de667338165458ac8dfc908d633d6a4117ff137a3fd26d0f919
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -50,12 +50,14 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-008
+      - symbol_id: SYM-e2e-init-sync-check
         target: default
         outcome: passed
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: kibi migrate v5->v6

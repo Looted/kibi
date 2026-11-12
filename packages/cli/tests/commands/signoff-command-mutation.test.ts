@@ -1,4 +1,3 @@
-// implements REQ-kibi-signoff-views
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import * as crypto from "node:crypto";
 import * as fs from "node:fs";

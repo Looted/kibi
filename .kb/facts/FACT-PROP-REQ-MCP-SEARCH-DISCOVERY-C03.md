@@ -5,12 +5,12 @@ tags:
   - strict-lane
 fact_kind: property_value
 subject_key: mcp.discovery
-property_key: clause_03_the_discovery_surface_must_offer_freshness_and_snapshot_insp
+property_key: offers_status_inspection
 operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-canonical_key: req.req_mcp_search_discovery.clause_03_the_discovery_surface_must_offer_freshness_and_snapshot_insp.eq.true
+canonical_key: req.req_mcp_search_discovery.offers_status_inspection.eq.true
 claim_key: CLAIM-4A03C560B5A16652
 claim_text: The discovery surface must offer freshness and snapshot inspection with kb_status and kibi status
 origin:

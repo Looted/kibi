@@ -144,10 +144,6 @@ type LegacyMigrationPlanDependencies = {
   readonly diagnostics?: readonly string[];
 };
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
 function stringList(value: unknown): string[] {
   if (typeof value === "string") return [stripKbEntityPrefix(value)];
   if (!Array.isArray(value)) return [];
@@ -167,17 +163,17 @@ function clampInteger(
   maximum: number,
 ): number {
   if (!Number.isInteger(value)) return fallback;
-  return Math.min(maximum, Math.max(minimum, value ?? fallback));
+  return Math.min(maximum, Math.max(minimum, value as number));
 }
 
 function clampScore(value: number | undefined): number {
-  if (typeof value !== "number" || !Number.isFinite(value)) return 0.35;
-  return Math.min(1, Math.max(0, value));
+  if (!Number.isFinite(value)) return 0.35;
+  return Math.min(1, Math.max(0, value as number));
 }
 
 function stableValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stableValue);
-  if (!isRecord(value)) return value;
+  if (value === null || typeof value !== "object") return value;
   return Object.fromEntries(
     Object.entries(value)
       .sort(([left], [right]) => left.localeCompare(right))
@@ -239,6 +235,9 @@ function predicateCatalog(
   return result;
 }
 
+/** Project-local schemas rank before built-in ones of the same score. */
+const ORIGIN_RANK = { project_local: 0, built_in: 1 } as const;
+
 function rankPredicateCandidates(
   claimText: string,
   catalog: ReturnType<typeof predicateCatalog>,
@@ -256,11 +255,7 @@ function rankPredicateCandidates(
     .sort(
       (left, right) =>
         right.score - left.score ||
-        (left.origin === right.origin
-          ? 0
-          : left.origin === "project_local"
-            ? -1
-            : 1) ||
+        ORIGIN_RANK[left.origin] - ORIGIN_RANK[right.origin] ||
         left.schema.predicate_name.localeCompare(right.schema.predicate_name) ||
         left.schema.id.localeCompare(right.schema.id),
     )
@@ -355,8 +350,8 @@ async function buildBatch(
     requirement.semantic_text.trim()
       ? requirement.semantic_text.trim()
       : null;
-  const sourceHash = sourceText ? semanticSourceHash(sourceText) : null;
-  const sourceMissing = requirement === undefined || !sourceText;
+  // A requirement absent from the KB has no source text either.
+  const sourceMissing = !sourceText;
   const sourceConflict =
     !sourceMissing &&
     existingSemanticText !== null &&
@@ -381,7 +376,7 @@ async function buildBatch(
     );
   }
 
-  if (!requirement || !sourceText || !sourceHash) {
+  if (!sourceText) {
     return {
       id: `legacy-migration-${requirementId}`,
       requirementId,
@@ -393,14 +388,13 @@ async function buildBatch(
         status: sourceStatus,
         sourceFile,
         sourceKind: "authored_markdown_body",
-        sourceHash,
-        sourceByteLength: sourceText
-          ? Buffer.byteLength(sourceText, "utf8")
-          : 0,
+        sourceHash: null,
+        sourceByteLength: 0,
         persistedField: null,
         existingTextRef,
         existingSemanticText,
-        reason: diagnostics[0] ?? "Authored requirement source is unavailable.",
+        // A missing source always has its diagnostic.
+        reason: diagnostics[0] as string,
       },
       sourceText,
       claimDelta: { preserved: [], added: [], stale: [] },
@@ -410,14 +404,16 @@ async function buildBatch(
     };
   }
 
-  const existingLogicClaims = stringList(requirement.logic_claims);
+  const found = requirement as Readonly<Record<string, unknown>>;
+  const sourceHash = semanticSourceHash(sourceText);
+  const existingLogicClaims = stringList(found.logic_claims);
   const analysis = analyzeSemanticAdvisorInput({
     payload: {
       type: "req",
       id: requirementId,
       properties: {
-        title: requirement.title,
-        status: requirement.status,
+        title: found.title,
+        status: found.status,
         source: sourceFile ?? undefined,
         semantic_text: sourceText,
         logic_claims: existingLogicClaims,
@@ -493,12 +489,13 @@ async function buildBatch(
       sourceFile,
       sourceKind: "authored_markdown_body",
       sourceHash,
-      sourceByteLength: Buffer.byteLength(sourceText, "utf8"),
+      sourceByteLength: Buffer.byteLength(sourceText),
       persistedField: sourceConflict ? null : "semantic_text",
       existingTextRef,
       existingSemanticText,
       reason: sourceConflict
-        ? (diagnostics[0] ?? "Existing semantic_text has drifted from source.")
+        ? // A conflict always has its diagnostic.
+          (diagnostics[0] as string)
         : existingTextRef
           ? "Authored Markdown can be reviewed in semantic_text while preserving the independent text_ref evidence."
           : "Authored Markdown can be reviewed in the dedicated semantic_text field.",
@@ -511,7 +508,6 @@ async function buildBatch(
   };
 }
 
-// implements REQ-kibi-legacy-migration-preview-v2
 export async function buildLegacyMigrationPlan(
   repairPlan: RepairPlan,
   input: LegacyMigrationPlanInput,
@@ -529,11 +525,11 @@ export async function buildLegacyMigrationPlan(
   const predicateMinScore = clampScore(input.migrationPredicateMinScore);
   const candidateBatches = migrationRepairBatches(repairPlan);
   const selected = candidateBatches.slice(offset, offset + limit);
+  // Batch requirement ids are text, so an entity without a text id is never
+  // looked up.
   const requirementById = new Map(
-    dependencies.requirements.flatMap((requirement) =>
-      typeof requirement.id === "string"
-        ? [[requirement.id, requirement] as const]
-        : [],
+    dependencies.requirements.map(
+      (requirement) => [requirement.id, requirement] as const,
     ),
   );
   const catalog = predicateCatalog(dependencies.projectPredicateSchemas);
@@ -655,7 +651,6 @@ export async function buildLegacyMigrationPlan(
   };
 }
 
-// implements REQ-kibi-legacy-migration-preview-v2
 export async function buildLegacyMigrationPlanFromContext(
   repairPlan: RepairPlan,
   input: LegacyMigrationPlanInput,

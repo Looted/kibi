@@ -76,7 +76,6 @@ const DEPENDENCY_FIELDS = [
  * pinned to the stamped dev version: a prerelease never satisfies the
  * caret range of its release (`^1.2.0` rejects `1.2.0-dev.x`).
  */
-// implements REQ-020
 export function stampDevVersion(
   manifest: PackageManifest,
   stamped: ReadonlyMap<string, string>,
@@ -98,7 +97,6 @@ export function stampDevVersion(
   return next;
 }
 
-// implements REQ-020
 export function packCatalogPackages(
   options: Readonly<{
     slice?: PackageCatalogSlice;
@@ -158,7 +156,6 @@ export function packCatalogPackages(
   }
 }
 
-// implements REQ-020
 export function runPackPackagesIfMain(
   isMain = import.meta.main,
   argv: readonly string[] = process.argv.slice(2),

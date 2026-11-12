@@ -9,7 +9,6 @@
  * layer's notes and not counted by gap and coverage reports. It stays
  * readable through `kb_query` (filter by this tag).
  */
-// implements REQ-bootstrap-provenance-stubs
 export const PROVENANCE_STUB_TAG = "bootstrap:provenance-stub";
 
 /** Whether `tags` (one tag or a list of them) holds the stub tag. */
@@ -21,7 +20,6 @@ function hasStubTag(tags: unknown): boolean {
 }
 
 /** Whether an entity row (projected or complete) is a provenance stub. */
-// implements REQ-bootstrap-provenance-stubs
 export function isProvenanceStub(
   entity: Readonly<Record<string, unknown>> | null | undefined,
 ): boolean {

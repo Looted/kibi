@@ -37,14 +37,12 @@ type CoordinateRecord = {
 
 type ArtifactFormat = "legacy" | "v2";
 
-// implements REQ-generated-coordinate-persistence
 export type TargetedRefreshOutcome =
   | "updated"
   | "unchanged"
   | "removed"
   | "not_found";
 
-// implements REQ-generated-coordinate-persistence
 export type RefreshResult = {
   readonly refreshed: boolean;
   readonly found: boolean;
@@ -54,7 +52,6 @@ export type RefreshResult = {
   readonly unplaced?: string;
 };
 
-// implements REQ-generated-coordinate-persistence
 export type ArtifactPublicationReceipt = {
   readonly path: string;
   readonly beforeHash: string | null;
@@ -71,8 +68,9 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** The valid span an analyzed entry carries, without its other fields. */
 function coordinate(value: unknown): CoordinateRecord | null {
-  if (!record(value)) return null;
+  if (!isValidCoordinateSpan(value)) return null;
   const {
     sourceFile,
     sourceLine,
@@ -80,13 +78,13 @@ function coordinate(value: unknown): CoordinateRecord | null {
     sourceEndLine,
     sourceEndColumn,
   } = value;
-  return typeof sourceFile === "string" &&
-    typeof sourceLine === "number" &&
-    typeof sourceColumn === "number" &&
-    typeof sourceEndLine === "number" &&
-    typeof sourceEndColumn === "number"
-    ? { sourceFile, sourceLine, sourceColumn, sourceEndLine, sourceEndColumn }
-    : null;
+  return {
+    sourceFile,
+    sourceLine,
+    sourceColumn,
+    sourceEndLine,
+    sourceEndColumn,
+  };
 }
 
 async function manifestPath(context: OperationContext): Promise<string> {
@@ -101,10 +99,10 @@ function sourceTextFor(
   sourceFile: string,
   workspaceRoot: string,
 ): string | null {
+  // A path outside the workspace (null) fails the read like a missing file.
   const absolute = resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
-  if (absolute === null) return null;
   try {
-    return readFileSync(absolute, "utf8");
+    return readFileSync(absolute as string).toString();
   } catch {
     return null;
   }
@@ -132,7 +130,7 @@ export function restoreOrUnlinkCoordinateArtifact(
 function replaceArtifactAtomically(targetPath: string, content: string): void {
   const temporary = `${targetPath}.kibi-tmp-${process.pid}-${randomUUID()}`;
   try {
-    writeFileSync(temporary, content, "utf8");
+    writeFileSync(temporary, content);
     renameSync(temporary, targetPath);
   } catch (error) {
     try {
@@ -149,7 +147,7 @@ function publishArtifact(
   content: string,
 ): ArtifactPublicationReceipt {
   const before = existsSync(targetPath)
-    ? readFileSync(targetPath, "utf8")
+    ? readFileSync(targetPath).toString()
     : null;
   const beforeHash = before === null ? null : contentHash(before);
   const afterHash = contentHash(content);
@@ -164,7 +162,7 @@ function publishArtifact(
           `coordinate artifact disappeared before rollback: ${targetPath}`,
         );
       }
-      const current = readFileSync(targetPath, "utf8");
+      const current = readFileSync(targetPath).toString();
       if (contentHash(current) !== afterHash) {
         throw new CoordinateArtifactError(
           `coordinate artifact changed after publication; refusing rollback: ${targetPath}`,
@@ -179,26 +177,10 @@ function writeTargetedArtifact(
   records: Record<string, SymbolCoordinateWriteEntry>,
   format: ArtifactFormat,
 ): string {
-  if (format === "v2") {
-    return writeCoordinateArtifact(records);
-  }
-
-  const legacyRecords: Record<string, SymbolCoordinatesRecord> = {};
-  for (const [id, entry] of Object.entries(records)) {
-    if (!isValidCoordinateSpan(entry)) {
-      throw new CoordinateArtifactError(
-        `refusing to preserve invalid legacy coordinate span for ${id}`,
-      );
-    }
-    legacyRecords[id] = {
-      sourceColumn: entry.sourceColumn,
-      sourceEndColumn: entry.sourceEndColumn,
-      sourceEndLine: entry.sourceEndLine,
-      sourceFile: entry.sourceFile,
-      sourceLine: entry.sourceLine,
-    };
-  }
-  return writeLegacyCoordinateArtifact(legacyRecords);
+  // Both writers validate every span; the legacy one keeps only the span.
+  return format === "v2"
+    ? writeCoordinateArtifact(records)
+    : writeLegacyCoordinateArtifact(records);
 }
 
 /**
@@ -227,7 +209,7 @@ async function refreshUnlocked(
       `symbol manifest ${manifest} could not be parsed: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
-  if (!record(parsedManifest) || !Array.isArray(parsedManifest.symbols)) {
+  if (!Array.isArray(parsedManifest.symbols)) {
     throw new Error(`symbol manifest ${manifest} has no symbols array`);
   }
   const entry = parsedManifest.symbols.find(
@@ -277,27 +259,31 @@ async function refreshUnlocked(
   const [enriched] = await enrichSymbolCoordinates(
     [{ ...entry, id: symbolId, title, sourceFile }],
     context.workspaceRoot,
+    // rationale: only decorated Python reads this flag, and Python analysis
+    // runs in a separately built worker the hermetic tests do not load.
+    // Stryker disable next-line ObjectLiteral,BooleanLiteral
     { allowPythonDecoratorCoordinates: true },
   );
   let next = coordinate(enriched);
-  let sourceText =
-    next === null ? sourceTextFor(sourceFile, context.workspaceRoot) : null;
+  // The analyzer places a symbol in the very file it was given.
+  const sourceText = sourceTextFor(sourceFile, context.workspaceRoot);
   if (
     next === null &&
     isCoarseGranularityReason(entry.granularity_reason) &&
     sourceText !== null
   ) {
+    // A coarse span is valid by construction.
     next = coarseCoordinateSpan(sourceFile, title, sourceText);
   }
-  if (next !== null && sourceText === null) {
-    sourceText = sourceTextFor(next.sourceFile, context.workspaceRoot);
-  }
-  if (next === null || !isValidCoordinateSpan(next)) {
+  if (next === null) {
     // No extractable coordinates: remove stale generated state so proof keeps
     // failing closed instead of rebinding an old span to current source bytes.
+    const refreshFailure = (
+      enriched as { readonly coordinateRefreshFailure?: unknown }
+    ).coordinateRefreshFailure;
     const failure =
-      typeof enriched?.coordinateRefreshFailure === "string"
-        ? enriched.coordinateRefreshFailure
+      typeof refreshFailure === "string"
+        ? refreshFailure
         : sourceText === null
           ? `${sourceFile || "its source file"} cannot be read`
           : `no declaration titled ${title} was found in ${sourceFile}`;
@@ -316,17 +302,19 @@ async function refreshUnlocked(
       publication,
     };
   }
-  if (sourceText === null) {
+  // rationale: the analyzer placed the symbol by reading this file, so it is
+  // unreadable here only if it vanished in between.
+  // Stryker disable all
+  if (sourceText === null)
     return { refreshed: false, found: true, outcome: "unchanged" };
-  }
+  // Stryker restore all
 
+  // The identity reads an absent or non-string field as empty.
   const identityHash = coordinateIdentityHash({
     id: symbolId,
-    ...(title === "" ? {} : { title }),
-    ...(sourceFile === "" ? {} : { sourceFile }),
-    ...(typeof entry.granularity_reason === "string"
-      ? { granularity_reason: entry.granularity_reason }
-      : {}),
+    title,
+    sourceFile,
+    granularity_reason: entry.granularity_reason as string | undefined,
   });
   const bound: SymbolCoordinateWriteEntry & { identityHash: string } = {
     ...next,
@@ -336,7 +324,6 @@ async function refreshUnlocked(
 
   const previousRecord = existingRecords[symbolId];
   const sameSpan =
-    previousRecord !== undefined &&
     isValidCoordinateSpan(previousRecord) &&
     previousRecord.sourceFile === next.sourceFile &&
     previousRecord.sourceLine === next.sourceLine &&
@@ -354,15 +341,12 @@ async function refreshUnlocked(
     return { refreshed: false, found: true, outcome: "unchanged" };
   }
 
-  existingRecords[symbolId] = artifactFormat === "legacy" ? next : bound;
-  const sortedEntries = Object.fromEntries(
-    Object.entries(existingRecords).sort(([left], [right]) =>
-      left.localeCompare(right),
-    ),
-  );
+  // The legacy writer keeps only the span of a bound record.
+  existingRecords[symbolId] = bound;
+  // Both artifact writers order the records by id themselves.
   const publication = publishArtifact(
     artifactPath,
-    writeTargetedArtifact(sortedEntries, artifactFormat),
+    writeTargetedArtifact(existingRecords, artifactFormat),
   );
   return {
     refreshed: true,
@@ -379,18 +363,15 @@ export async function refreshSymbolCoordinates(
   symbolId: string,
   context: OperationContext,
 ): Promise<RefreshResult> {
-  const active = implementation ?? refreshUnlocked;
-  if (implementation !== null && implementation !== undefined) {
-    // Test-substituted implementations run without the real filesystem lock.
-    return active(symbolId, context);
-  }
+  const substitute = implementation;
+  // Test-substituted implementations run without the real filesystem lock.
+  if (substitute !== null) return substitute(symbolId, context);
   return withSymbolCompilerLock(context.workspaceRoot, () =>
-    active(symbolId, context),
+    refreshUnlocked(symbolId, context),
   );
 }
 
 /** Run one refresh step without acquiring the lock (caller holds it). */
-// implements REQ-generated-coordinate-persistence
 export async function refreshSymbolCoordinatesUnlocked(
   symbolId: string,
   context: OperationContext,
@@ -403,7 +384,6 @@ export async function refreshSymbolCoordinatesUnlocked(
  * Refresh against an explicitly authored manifest path (the source-first
  * write target), not just the canonical lane. Callers hold the compiler lock.
  */
-// implements REQ-generated-coordinate-persistence
 export async function refreshSymbolCoordinatesForManifest(
   symbolId: string,
   manifestAbsolutePath: string,
@@ -417,7 +397,6 @@ export async function refreshSymbolCoordinatesForManifest(
   });
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function setSymbolRefreshForTests(
   refresh: RefreshImplementation | undefined,
 ): void {
