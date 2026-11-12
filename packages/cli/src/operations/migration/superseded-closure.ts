@@ -154,7 +154,6 @@ function readRequirementsAndEdges(workspaceRoot: string): {
  * Ids of the requirements another requirement supersedes, read from authored
  * Markdown and relationship shards. Read-only.
  */
-// implements REQ-kb-requirement-retired-status
 export function supersededRequirementIds(workspaceRoot: string): Set<string> {
   return new Set(
     readRequirementsAndEdges(workspaceRoot).edges.map(([, to]) => to),

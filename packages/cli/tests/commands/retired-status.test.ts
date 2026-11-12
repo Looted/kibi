@@ -16,7 +16,6 @@ import type {
 } from "../../src/public/operations/migration-plan.js";
 import { spawnSync } from "../helpers/isolated-env.js";
 
-// implements REQ-kb-requirement-retired-status
 
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 240_000;

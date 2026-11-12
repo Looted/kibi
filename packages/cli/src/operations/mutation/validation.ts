@@ -339,7 +339,6 @@ function validateSymbolSourceFile(
  * reason the behavior is gone (mirrored by the retired-reason-missing check
  * rule for hand-edited sources).
  */
-// implements REQ-kb-requirement-retired-status
 function validateRetiredReason(
   entity: Readonly<Record<string, unknown>>,
 ): void {

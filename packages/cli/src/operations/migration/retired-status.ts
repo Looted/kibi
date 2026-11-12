@@ -41,30 +41,24 @@ import { supersededRequirementIds } from "./superseded-closure.js";
  */
 
 /** The KB schema that adds the retired requirement status. */
-// implements REQ-kb-requirement-retired-status
 export const RETIRED_STATUS_SCHEMA_VERSION = 14;
 
 /** The requirement status for intent whose behavior no longer exists. */
-// implements REQ-kb-requirement-retired-status
 export const RETIRED_REQUIREMENT_STATUS = "retired";
 
 /** Migration action code of a suggested retirement. */
-// implements REQ-kb-requirement-retired-status
 export const REQ_RETIRED_STATUS_SUGGEST_CODE = "req_retired_status_suggest";
 
 /** Migration action id prefix of a suggested retirement. */
-// implements REQ-kb-requirement-retired-status
 export const REQ_RETIRED_STATUS_ACTION_PREFIX = "req-retired-status-";
 
 /** Where a closed requirement's source says it was retired. */
-// implements REQ-kb-requirement-retired-status
 export type RetiredSignal = Readonly<{
   field: "proof_exempt_reason" | "body" | "tags" | "title";
   text: string;
 }>;
 
 /** A closed requirement whose own source says it was retired. */
-// implements REQ-kb-requirement-retired-status
 export type RetiredStatusSuggestion = Readonly<{
   requirementId: string;
   path: string;
@@ -128,7 +122,6 @@ function reasonOf(signal: RetiredSignal): string {
  * Closed requirements no other requirement supersedes whose proof exemption,
  * body, historical-status tag or title says they were retired. Read-only.
  */
-// implements REQ-kb-requirement-retired-status
 export function planRetiredStatusSuggestions(
   workspaceRoot: string,
 ): RetiredStatusSuggestion[] {
@@ -164,7 +157,6 @@ export function planRetiredStatusSuggestions(
  * editing only those two front matter lines. Refuses when the requirement is
  * no longer closed or the edit would change any other field.
  */
-// implements REQ-kb-requirement-retired-status
 export function applyRetiredStatus(
   workspaceRoot: string,
   relativePath: string,

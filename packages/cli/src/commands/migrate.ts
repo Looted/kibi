@@ -687,7 +687,6 @@ function stateFolderImpliedTypes(cwd: string, dryRun: boolean): number {
  * never retires a requirement on its own: each is a review action a person
  * approves by id, so this is a note, not remaining migration work.
  */
-// implements REQ-kb-requirement-retired-status
 async function printRetiredStatusSuggestions(cwd: string): Promise<void> {
   const { planRetiredStatusSuggestions, REQ_RETIRED_STATUS_ACTION_PREFIX } =
     await import("../operations/migration/retired-status.js");

@@ -484,7 +484,6 @@ export function requirementStatusActions(
  * retired (KB schema 14): approving it by id sets status retired with the
  * quoted retired_reason. Kibi never retires a requirement on its own.
  */
-// implements REQ-kb-requirement-retired-status
 export function retiredStatusActions(workspaceRoot: string): MigrationAction[] {
   return planRetiredStatusSuggestions(workspaceRoot).map(
     (suggestion: RetiredStatusSuggestion) => {

@@ -24,7 +24,6 @@ import {
 } from "../../../src/operations/migration/schema6.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../../../src/utils/schema-version.js";
 
-// implements REQ-kb-requirement-retired-status
 
 function write(root: string, relative: string, content: string): string {
   const file = path.join(root, relative);

@@ -2498,7 +2498,6 @@ req_status_vocabulary_violation(violation(
     violation_source(ReqId, req, Source).
 
 %% check_retired_reason_missing(-Violations)
-% implements REQ-kb-requirement-retired-status
 % A requirement with status retired no longer governs, so it must say why:
 % retired_reason names why the behavior is gone. Without it a requirement
 % could drop out of search, the proof ladder and every current-intent rule
@@ -2530,7 +2529,6 @@ retired_reason(Props, Reason) :-
     Reason \== "".
 
 %% check_retired_owner_only(-Violations)
-% implements REQ-kb-requirement-retired-status
 % A current fact, scenario or test whose every owning requirement is retired
 % describes behavior that no longer exists, yet search and coverage still
 % read it as current. Owners: the requirements that ground a fact
