@@ -1,10 +1,10 @@
 {
-  "release": "2026.11.2",
+  "release": "2026.11.3",
   "date": "2026-11-12",
   "packages": {
-    "kibi-core": "0.32.0",
+    "kibi-core": "0.32.1",
     "kibi-plugin-sdk": "0.7.2",
-    "kibi-agent-core": "0.13.0",
+    "kibi-agent-core": "0.13.1",
     "kibi-plugin-builtin": "0.6.0",
     "kibi-plugin-jev": "0.3.7",
     "kibi-plugin-ui": "0.1.3",
@@ -27,12 +27,12 @@
     "kibi-lang-python": "1.0.0",
     "kibi-lang-prolog": "1.1.0",
     "kibi-plugin-treesitter": "3.2.0",
-    "kibi-runtime": "2.31.0",
-    "kibi-cli": "2.43.0",
-    "kibi-mcp": "3.27.0",
+    "kibi-runtime": "2.31.1",
+    "kibi-cli": "2.43.1",
+    "kibi-mcp": "3.27.1",
     "kibi-opencode": "3.3.0",
-    "kibi-codex": "2.12.1",
-    "kibi-cursor": "2.13.1"
+    "kibi-codex": "2.12.2",
+    "kibi-cursor": "2.13.2"
   },
   "compatibility": {
     "kbSchema": {
