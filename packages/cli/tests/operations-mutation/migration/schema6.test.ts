@@ -448,6 +448,7 @@ describe("the schema 6 action codes", () => {
     expect([...SCHEMA6_APPROVABLE_REVIEW_CODES]).toEqual([
       "semantic_inventory_rederive_drop_grounding",
       "req_status_vocabulary_map",
+      "req_retired_status_suggest",
       "semantic_inventory_rederive",
     ]);
   });

@@ -374,7 +374,7 @@ describe("kibi migrate lifecycle repairs", () => {
       const audit = JSON.parse(read(root, ".kb/migrations/main.json"));
       expect(audit).toMatchObject({
         fromVersion: 5,
-        toVersion: 13,
+        toVersion: 14,
         supersededRequirementsClosed: 1,
         sourcePathsRewritten: 1,
         sourcePathsRemoved: 3,

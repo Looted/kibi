@@ -349,7 +349,8 @@
         "skipped",
         "proposed",
         "accepted",
-        "removed"
+        "removed",
+        "retired"
       ]
     },
     "created_at": {
@@ -437,6 +438,12 @@
       "type": "string",
       "minLength": 1,
       "description": "Requirement-only. Required when proof_exempt is true; surfaces as the applicability reason in coverage rows."
+    },
+    "retired_reason": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Requirement-only. Required when status is retired: why the behavior no longer exists, with the date or change that retired it. A retired requirement no longer governs, and nothing current may be owned only by it."
     },
     "approved_by": {
       "type": "string",
@@ -1810,6 +1817,9 @@
             },
             {
               "required": ["proof_exempt_reason"]
+            },
+            {
+              "required": ["retired_reason"]
             },
             {
               "required": ["approved_by"]

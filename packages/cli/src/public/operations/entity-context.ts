@@ -56,6 +56,7 @@ const RETIRED_STATUSES = new Set([
   "superseded",
   "archived",
   "removed",
+  "retired",
 ]);
 
 /** One authored entity document, front matter and body kept apart. */

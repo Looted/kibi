@@ -39049,6 +39049,83 @@ symbols:
         target: REQ-kb-dependency-read-scope
       - type: covered_by
         target: TEST-kb-dependencies-git
+  - id: SYM-test-kb-requirement-retired-status
+    title: Retired requirement status suite
+    status: active
+    sourceFile: packages/cli/tests/commands/retired-status.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:31:31.132Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-requirement-retired-status
+  - id: SYM-core-check-retired-reason-missing
+    title: check_retired_reason_missing
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:41:39.673Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-core-check-retired-owner-only
+    title: check_retired_owner_only
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:41:45.098Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-retired-status-plan-retired-status-suggestions
+    title: planRetiredStatusSuggestions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/retired-status.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:41:50.040Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-retired-status-apply-retired-status
+    title: applyRetiredStatus
+    status: active
+    sourceFile: packages/cli/src/operations/migration/retired-status.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:41:55.486Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-schema6-retired-status-actions
+    title: retiredStatusActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:42:00.978Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
   - id: SYM-cli-inline-implements-parse
     title: parseInlineImplementsComment
     sourceFile: packages/cli/src/operations/migration/inline-implements-comments.ts

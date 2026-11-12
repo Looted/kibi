@@ -154,6 +154,7 @@ export interface ExtractedEntity {
   verification_perspective?: "internal" | "consumer";
   proof_exempt?: boolean;
   proof_exempt_reason?: string;
+  retired_reason?: string;
   approved_by?: string;
   approval_ref?: string;
   failure_side_waiver?: string;
@@ -798,6 +799,24 @@ function extractFromMarkdownContent(
         );
       }
       entity.proof_exempt_reason = data.proof_exempt_reason;
+    }
+    // Why a retired requirement no longer governs; retired-reason-missing
+    // reads it.
+    if (type === "req" && data.retired_reason !== undefined) {
+      if (
+        typeof data.retired_reason !== "string" ||
+        data.retired_reason.trim() === ""
+      ) {
+        throw new FrontmatterError(
+          "Invalid retired_reason; expected a non-empty string",
+          filePath,
+          {
+            classification: "Invalid Retired Reason",
+            hint: "Set retired_reason to why the behavior no longer exists, with the date or change that retired it, or remove the field.",
+          },
+        );
+      }
+      entity.retired_reason = data.retired_reason;
     }
     // Human approval of an exception requirement; only an approved exception
     // makes a success scenario feasible.

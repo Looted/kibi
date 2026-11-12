@@ -53,22 +53,24 @@ const REQUIREMENT_STATUSES = new Set([
   "open",
   "in_progress",
   "closed",
+  "retired",
   "active",
   "approved",
 ]);
 
 /**
  * Suggested current status for ADR or lifecycle vocabulary found on
- * requirements: decided or still-proposed intent stays `open`; retired
- * intent is `closed`.
+ * requirements: decided or still-proposed intent stays `open`; superseded
+ * intent is `closed` (its successor governs); deprecated or rejected intent
+ * is `retired`, which then needs a retired_reason (retired-reason-missing).
  */
 export const SUGGESTED_REQUIREMENT_STATUS: Readonly<Record<string, string>> = {
   accepted: "open",
   proposed: "open",
   draft: "open",
-  deprecated: "closed",
+  deprecated: "retired",
   superseded: "closed",
-  rejected: "closed",
+  rejected: "retired",
 };
 
 /** The tag that keeps a delivered legacy requirement's meaning once closed. */

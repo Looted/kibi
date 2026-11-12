@@ -34,7 +34,7 @@
           "status": "bogus"
         }
       },
-      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for req entities: open, in_progress, closed, deprecated\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
+      "expected": "{\"code\":\"ENTITY_VALIDATION_FAILED\",\"message\":\"Entity validation failed: /status: must be equal to one of the allowed values. Allowed values for req entities: open, in_progress, closed, retired\",\"issues\":[{\"rule\":\"enum\",\"field\":\"status\"}]}"
     },
     {
       "input": {

@@ -646,8 +646,8 @@ describe("buildActionsFromCoverage", () => {
 
 const CURRENT: MigrationConfigStatus = {
   status: "current",
-  currentVersion: 13,
-  latestVersion: 13,
+  currentVersion: 14,
+  latestVersion: 14,
   needsMigration: false,
   warning: null,
   configHash: "hash",
@@ -661,7 +661,7 @@ describe("readMigrationConfigStatus", () => {
     expect(status).toMatchObject({
       status: "older",
       currentVersion: 12,
-      latestVersion: 13,
+      latestVersion: 14,
       needsMigration: true,
       warning: null,
     });
@@ -673,7 +673,7 @@ describe("readMigrationConfigStatus", () => {
     expect(readMigrationConfigStatus(root)).toStrictEqual({
       status: "missing",
       currentVersion: null,
-      latestVersion: 13,
+      latestVersion: 14,
       needsMigration: true,
       warning:
         "Kibi lifecycle manifest is missing; run 'kibi init' or 'kibi migrate' to create it.",

@@ -207,7 +207,7 @@
       "safety": "review",
       "invocation": {
         "kind": "review",
-        "instruction": "5 symbol(s) implement only superseded or deprecated requirements; these 2 come first: SYM-1, SYM-2. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page."
+        "instruction": "5 symbol(s) implement only superseded, deprecated or retired requirements; these 2 come first: SYM-1, SYM-2. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page."
       },
       "affectedEntityIds": ["SYM-1", "SYM-2"],
       "affectedFiles": ["s1.ts", "s2.ts"],

@@ -84,7 +84,7 @@ The same check applies when the store does not hold the requirement but its file
 
 ## Uncompiled authored source (`source-relationship-parity`, `source_extraction_failed`)
 
-`<file> cannot be compiled, so the entities and relationships it declares are missing from the KB: <error>` means `kibi sync` could not extract an authored `.kb/` file, so `kb_query`, `kb_coverage` and `kb_upsert` do not see what it declares. `kb_check` reports it as a blocking `source-relationship-parity` violation, and `kb_status` reports the stale reason `source_extraction_failed` (and `dirty: true`) until the file compiles. An error on `/status` usually means a legacy requirement status: run `kibi migrate --yes`, which maps `implemented`, `done` and `completed` to `closed` with the tag `implemented`, or set `open`, `in_progress` or `closed` in the file. For any other error, fix the named front matter field (edit the file, or rewrite the entity with `kb_upsert` so the write replaces the failing field), then run `kibi sync`.
+`<file> cannot be compiled, so the entities and relationships it declares are missing from the KB: <error>` means `kibi sync` could not extract an authored `.kb/` file, so `kb_query`, `kb_coverage` and `kb_upsert` do not see what it declares. `kb_check` reports it as a blocking `source-relationship-parity` violation, and `kb_status` reports the stale reason `source_extraction_failed` (and `dirty: true`) until the file compiles. An error on `/status` usually means a legacy requirement status: run `kibi migrate --yes`, which maps `implemented`, `done` and `completed` to `closed` with the tag `implemented`, or set `open`, `in_progress`, `closed` or `retired` (with `retired_reason`) in the file. For any other error, fix the named front matter field (edit the file, or rewrite the entity with `kb_upsert` so the write replaces the failing field), then run `kibi sync`.
 
 `Upsert of <ID> refused: <ID> exists in <file> but is not compiled (<error>), and this write would leave the file uncompilable: <error>` means the write merges into that existing file and the result still would not compile. Send the field that fixes the error (for example a valid `status`). `... exists but kibi sync cannot compile it (...), and its front matter does not parse` means the YAML itself is broken; fix it in the file. A successful write into such a file returns the warning `<ID> was not in the compiled KB; this write updated its authored file <file>...`; run `kibi sync` to compile it.
 
@@ -148,6 +148,14 @@ The check runs at commit time (`stage=contradiction_check`), after every validat
 ## Superseded requirement still open (`superseded-requirement-open`)
 
 `kibi check` blocks a requirement that another requirement `supersedes` while its status is not `closed`. Upsert it with `status: closed`, or run `kibi migrate` (action `close_superseded_requirements`), which edits only the status line. If the requirement still states current intent, delete the `supersedes` link instead. A finding that starts with `Supersession cycle:` names requirements that supersede each other; nothing closes them automatically. Decide which one is current, delete the `supersedes` link that points at it, then close the others.
+
+## Retired requirement without a reason (`retired-reason-missing`)
+
+`status retired requires retired_reason` (from `kb_upsert`) and the blocking `retired-reason-missing` finding (from `kibi check`) mean a requirement says it is retired but not why. Add `retired_reason`: why the behavior no longer exists, with the date or change that retired it. If the requirement still states current intent, set its status back to `closed` or `open` instead.
+
+## Current entity owned only by retired requirements (`retired-owner-only`)
+
+A current fact, scenario or test is owned only by retired requirements, so it describes behavior that no longer exists while search and coverage still read it as current. Link it to the current requirement that took over the behavior (for a fact, a grounding link such as `constrains`; for a scenario, `specified_by`; for a test, `verified_by` or `validates`), archive a fact or scenario with `status: deprecated`, or delete a test whose behavior is gone with `kb_delete`. The finding's `evidence.owners` lists the retired requirements.
 
 ## Entity has no body context (`entity-context-missing`)
 

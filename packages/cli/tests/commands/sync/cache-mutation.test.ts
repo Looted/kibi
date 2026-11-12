@@ -178,7 +178,7 @@ describe("extraction failure records", () => {
 
   test("names the right repair", () => {
     expect(sourceExtractionRemediation("r.md", "data/status must be")).toBe(
-      "Run 'kibi migrate --yes' to map a legacy requirement status (implemented, done and completed become closed with the tag implemented), or set status in r.md to a status Kibi knows (open, in_progress or closed for a requirement); then run kibi sync.",
+      "Run 'kibi migrate --yes' to map a legacy requirement status (implemented, done and completed become closed with the tag implemented), or set status in r.md to a status Kibi knows (open, in_progress, closed or retired for a requirement); then run kibi sync.",
     );
     for (const message of ["data/statuses x", "status bad", "x/title"]) {
       expect(sourceExtractionRemediation("r.md", message)).toBe(

@@ -261,6 +261,15 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 12,
     to: 13,
   },
+  // Accept status retired (with retired_reason) on requirements and block
+  // current facts, scenarios and tests owned only by retired requirements.
+  // No source is rewritten: closed requirements whose source says they were
+  // retired are listed for a person to approve (req_retired_status_suggest).
+  {
+    id: "retired-status-v14",
+    from: 13,
+    to: 14,
+  },
 ];
 
 function migrationStepsFor(
@@ -674,6 +683,21 @@ function stateFolderImpliedTypes(cwd: string, dryRun: boolean): number {
 }
 
 /**
+ * Name the closed requirements whose own source says they were retired. Kibi
+ * never retires a requirement on its own: each is a review action a person
+ * approves by id, so this is a note, not remaining migration work.
+ */
+async function printRetiredStatusSuggestions(cwd: string): Promise<void> {
+  const { planRetiredStatusSuggestions, REQ_RETIRED_STATUS_ACTION_PREFIX } =
+    await import("../operations/migration/retired-status.js");
+  const suggestions = planRetiredStatusSuggestions(cwd);
+  if (suggestions.length === 0) return;
+  console.log(
+    `${suggestions.length} closed requirement(s) say they were retired: ${suggestions.map((suggestion) => suggestion.requirementId).join(", ")}. A closed requirement still governs; to retire one, approve ${REQ_RETIRED_STATUS_ACTION_PREFIX}<id> from kibi migrate --format json with kibi migrate --apply-safe, or set status: retired and retired_reason in the file.`,
+  );
+}
+
+/**
  * Print what a `kibi migrate --yes` run left for a person, naming the
  * requirements kibi sync cannot compile first. Returns false when nothing
  * remains, so the caller may call the migration complete.
@@ -698,7 +722,7 @@ function printRemainingMigrationWork(remaining: {
   );
   for (const finding of uncompiled) {
     console.log(
-      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}). Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync.`,
+      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}). Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync.`,
     );
   }
   if (manualInventories > 0)
@@ -707,7 +731,7 @@ function printRemainingMigrationWork(remaining: {
     );
   for (const finding of skipped) {
     console.log(
-      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a requirement status, so the proof ladder skips it. ${finding.suggestedStatus === null ? "Set status to open, in_progress or closed in the file" : `Approve req-status-vocabulary-map-${finding.requirementId} (${finding.status} -> ${finding.suggestedStatus}) with kibi migrate --apply-safe, or set the status in the file`}.`,
+      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a requirement status, so the proof ladder skips it. ${finding.suggestedStatus === null ? "Set status to open, in_progress, closed or retired in the file" : `Approve req-status-vocabulary-map-${finding.requirementId} (${finding.status} -> ${finding.suggestedStatus}) with kibi migrate --apply-safe, or set the status in the file`}.`,
     );
   }
   if (manualLifecycle > 0)
@@ -1067,6 +1091,7 @@ export async function migrateCommand(
     mapLegacyRequirementStatuses(cwd, true);
     rederiveDriftedInventories(cwd, true);
     repairLifecycleFindings(cwd, true);
+    await printRetiredStatusSuggestions(cwd);
     console.log(
       `dry run: would write migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
     );
@@ -1266,6 +1291,7 @@ export async function migrateCommand(
   console.log(
     `Wrote migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
   );
+  await printRetiredStatusSuggestions(cwd);
   const incomplete = printRemainingMigrationWork({
     statuses: statuses.review,
     manualInventories: drift.manual,

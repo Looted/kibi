@@ -50,9 +50,9 @@ describe("status vocabularies", () => {
       accepted: "open",
       proposed: "open",
       draft: "open",
-      deprecated: "closed",
+      deprecated: "retired",
       superseded: "closed",
-      rejected: "closed",
+      rejected: "retired",
     });
     expect(DELIVERED_REQUIREMENT_TAG).toBe("implemented");
     expect(DELIVERED_REQUIREMENT_STATUS).toStrictEqual({
@@ -130,12 +130,12 @@ describe("planRequirementStatusMappings", () => {
     ).toStrictEqual({
       accepted: "open",
       completed: "closed",
-      deprecated: "closed",
+      deprecated: "retired",
       done: "closed",
       draft: "open",
       implemented: "closed",
       proposed: "open",
-      rejected: "closed",
+      rejected: "retired",
       superseded: "closed",
     });
   });

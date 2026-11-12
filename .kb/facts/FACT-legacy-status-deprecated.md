@@ -1,15 +1,15 @@
 ---
-title: A requirement marked deprecated shall be migrated as closed
+title: A requirement marked deprecated shall be migrated as retired
 status: active
 fact_kind: property_value
 subject_key: kibi.migration.suggested_status
-claim_key: CLAIM-B15A113A1B7C5377
-claim_text: A requirement marked deprecated shall be migrated as closed
+claim_key: CLAIM-38995D2450ABEABA
+claim_text: A requirement marked deprecated shall be migrated as retired
 text_ref: REQ-cli-migration-suggested-status
 property_key: deprecated_suggested_status
 operator: eq
 value_type: string
-value_string: closed
+value_string: retired
 origin:
   kind: agent
   recorded_at: '2026-10-29T10:39:25.429Z'

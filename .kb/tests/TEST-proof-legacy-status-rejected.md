@@ -1,5 +1,5 @@
 ---
-title: A requirement marked rejected shall be migrated as closed, by a regex proof
+title: A requirement marked rejected shall be migrated as retired, by a regex proof
 status: passing
 tags:
   - proof
@@ -19,7 +19,7 @@ proof_contract:
     symbol_id: SYM-migration-suggested-requirement-status
     export: SUGGESTED_REQUIREMENT_STATUS.rejected
   proves:
-    - CLAIM-0A2412C4CAB9F99B
+    - CLAIM-356408991377FEF1
 origin:
   kind: agent
   recorded_at: '2026-10-29T10:43:21.006Z'
@@ -27,20 +27,20 @@ id: TEST-proof-legacy-status-rejected
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b08539d3966f0dfe619e3389
+    receipt_id: PR-576b8997154363b98130e521
     test_id: TEST-proof-legacy-status-rejected
     scope: unit
     outcome: passed
-    code_snapshot: faf065f2781c1044c030ed22ef2de1f9fa5ba7e2c43b903b7407837a816cfb65
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:45:36.883Z'
-    finished_at: '2026-10-29T10:45:37.138Z'
-    artifact_digest: 5799b536d7a3591b9cb377f94582882a0b13b60d35f9be860d64a9195a32ade4
-    contract_hash: ddfc1d9e51fb2747b88dabb04f7c80f0dc00796836c67ed4b1d7f9cd14b939d0
-    binding_hash: 6a84d592fca3bc350ca3e029fc0184559f7d5102588b47a919c7ad1cb20e885d
-    fingerprint: 6312224a9834500a7c4909f19e24083f5cc5a10e624b9657d0ade98f185bd493
+    code_snapshot: 75ff4ee7acf59364e64a28468f6c5c8a520cf004ae0ba78422da28d17aa0b332
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-11T18:11:09.814Z'
+    finished_at: '2026-11-11T18:11:09.973Z'
+    artifact_digest: 84de899f685a081b1804545ca39a57dc332ddd3302bed7f94437d85879221ab2
+    contract_hash: e9b978927eecd5c24d4cebf10f1de58d043ada4c81465d534cf4df3288eea63a
+    binding_hash: 63b9b48ef7935861bda980e1cd554bdbdde4e7d89ee5893f86aafdc4d6bbb6ca
+    fingerprint: 1706329061766fc93c589dc02ed291fd2b0e485df61161f40de2a8adddfa51ec
     fingerprint_components:
-      contract: ddfc1d9e51fb2747b88dabb04f7c80f0dc00796836c67ed4b1d7f9cd14b939d0
+      contract: e9b978927eecd5c24d4cebf10f1de58d043ada4c81465d534cf4df3288eea63a
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -68,10 +68,10 @@ proof_receipts:
       pattern:
         symbol_id: SYM-migration-suggested-requirement-status
         type: string
-        value: closed
-    certificate_digest: 497b3222a6426e69a049e069513cb205cfbc4312d81b7479ade6a86fd7ce5245
+        value: retired
+    certificate_digest: c28ba9619a38d5caf2321a1714393e62d43488186f15906308798b5eb367c5d9
     claim_bindings:
-      - claim_key: CLAIM-0A2412C4CAB9F99B
+      - claim_key: CLAIM-356408991377FEF1
         requirement_id: REQ-cli-migration-suggested-status
         fact_id: FACT-legacy-status-rejected
         binding: derived
@@ -80,6 +80,6 @@ proof_receipts:
           kind: string_constraint
           operator: eq
           polarity: require
-          value: closed
+          value: retired
 ---
-Proves that a requirement marked rejected shall be migrated as closed, against the code Kibi reads at ingest.
+Proves that a requirement marked rejected shall be migrated as retired, against the code Kibi reads at ingest.

@@ -246,7 +246,7 @@ export function sourceExtractionRemediation(
   message: string,
 ): string {
   if (/\/status\b/.test(message))
-    return `Run 'kibi migrate --yes' to map a legacy requirement status (implemented, done and completed become closed with the tag implemented), or set status in ${file} to a status Kibi knows (open, in_progress or closed for a requirement); then run kibi sync.`;
+    return `Run 'kibi migrate --yes' to map a legacy requirement status (implemented, done and completed become closed with the tag implemented), or set status in ${file} to a status Kibi knows (open, in_progress, closed or retired for a requirement); then run kibi sync.`;
   return `Fix the front matter of ${file} named in the error (edit the file, or rewrite the entity with kb_upsert so the write replaces the failing field), then run kibi sync.`;
 }
 

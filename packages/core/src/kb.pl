@@ -2582,8 +2582,9 @@ deprecated_no_successor(Id) :-
     \+ kb_relationship(supersedes, _, Id).
 
 %% current_req(+Id)
-% Requirement is current when not deprecated and not superseded by another requirement.
-% Canonical statuses: open, in_progress, closed.
+% Requirement is current when not retired and not superseded by another requirement.
+% Canonical current statuses: open, in_progress, closed. A retired requirement
+% (status retired) no longer governs: the behavior it stated is gone.
 % Legacy statuses accepted for backwards compatibility: active, approved.
 current_req(Id) :-
     kb_entity(Id, req, Props),
