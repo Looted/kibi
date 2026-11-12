@@ -136,7 +136,12 @@ describe.skipIf(process.platform !== "linux")(
       const holderPid = await killEngine(store);
       ws.json(["status"], {});
 
-      const doctor = ws.kibi(["doctor", "--format", "json"]);
+      // With auto-sync on, doctor only warns about the uncompiled store, since
+      // the next command compiles it; the takeover is reported as a failure
+      // when nothing will compile the store.
+      const doctor = ws.kibi(["doctor", "--format", "json"], {
+        env: { ...process.env, KIBI_AUTO_SYNC: "0" },
+      });
       const report = JSON.parse(doctor.stdout) as {
         checks: Array<{
           name: string;
