@@ -1728,36 +1728,6 @@ symbols:
         target: TEST-cli-symbol-quality-diagnostics
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
-  - id: SYM-cli-impact-createBroadRequirementDiagnostics
-    title: createBroadRequirementDiagnostics
-    sourceFile: packages/cli/src/public/impact/requirement-quality.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-kibi-broad-requirement-review
-      - type: covered_by
-        target: TEST-e2e-check-review-rules
-  - id: SYM-cli-impact-createCoarseAnchorQualityDiagnostics
-    title: createCoarseAnchorQualityDiagnostics
-    sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-kibi-coarse-anchor-review
-      - type: covered_by
-        target: TEST-e2e-check-review-rules
-  - id: SYM-ingest-proof-enforceNativeCaseBindings
-    title: enforceNativeCaseBindings
-    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-kibi-playwright-native-id
-      - type: covered_by
-        target: TEST-e2e-check-review-rules
   - id: SYM-cli-impact-createCoverageDepthQualityDiagnostics
     title: createCoverageDepthQualityDiagnostics
     sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
@@ -8636,6 +8606,16 @@ symbols:
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
         target: REQ-skillopt-paid-matrix-infrastructure
+  - id: SYM-skillopt-cli-main
+    title: main
+    sourceFile: scripts/skillopt-eval/cli.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-harness-selection
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
   - id: SYM-skillopt-cli-workflow-tests
     title: CLI workflow tests
     sourceFile: scripts/skillopt-eval/tests/cli-workflow.test.ts
@@ -8775,6 +8755,16 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-e2e-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-codex-violations
+    title: CODEX_VIOLATIONS
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-harness-shared-scoring
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
   - id: SYM-skillopt-complete-held-out-evaluation
     title: isCompleteHeldOutEvaluation
     sourceFile: scripts/skillopt-eval/held-out-completeness.ts
@@ -9426,6 +9416,16 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-paid-launch-accounting
+  - id: SYM-skillopt-normalize-codex-jsonl
+    title: normalizeCodexJsonl
+    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-harness-shared-scoring
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
   - id: SYM-skillopt-one-shot-variant
     title: oneShotVariant
     sourceFile: scripts/skillopt-eval/training-setup.ts
@@ -9953,6 +9953,18 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
+  - id: SYM-skillopt-run-workflow-command
+    title: runWorkflowCommand
+    sourceFile: scripts/skillopt-eval/cli-workflow.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-infrastructure-failure-no-go
+      - type: implements
+        target: REQ-skillopt-adoption-requires-external-verdict
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
   - id: SYM-skillopt-runtime-config-tests
     title: runtime config tests
     sourceFile: scripts/skillopt-eval/tests/runtime-config.test.ts
@@ -10734,6 +10746,40 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
+  - id: SYM-skillopt-assert-cell-infrastructure-healthy
+    title: assertCellInfrastructureHealthy
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-infrastructure-failure-no-go
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-evaluation-infrastructure-payload
+    title: evaluationInfrastructurePayload
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-infrastructure-failure-no-go
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+  - id: SYM-skillopt-parse-evaluation-infrastructure-marker
+    title: parseEvaluationInfrastructureMarker
+    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-infrastructure-failure-no-go
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
   - id: SYM-skillopt-supervisor-parent-fixture
     title: supervisorParentFixture
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
@@ -14873,6 +14919,16 @@ symbols:
         target: TEST-skillopt-cursor-compat
       - type: implements
         target: REQ-skillopt-cursor-compat
+  - id: SYM-skillopt-cursor-parse-args
+    title: parseCursorArgs
+    sourceFile: scripts/skillopt-eval/cursor-operator.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-cursor-compat
+      - type: covered_by
+        target: TEST-skillopt-cursor-compat
   - id: SYM-skillopt-cursor-main
     title: main
     status: active
@@ -16825,15 +16881,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-plan-compiler-hash
-  - id: SYM-e2e-test-check-review-rules
-    title: check-review-rules.test
-    status: active
-    sourceFile: documentation/tests/e2e/packed/check-review-rules.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-e2e-check-review-rules
   - id: SYM-e2e-test-cli-schema-version-surface
     title: cli-schema-version-surface.test
     status: active
@@ -17358,36 +17405,6 @@ symbols:
         target: TEST-e2e-capability-plugins
   - id: SYM-cap-plugin-createbuiltinsemanticclassifier-31116572
     title: createBuiltinSemanticClassifier
-    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-builtin-semantic-classifier
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-  - id: SYM-cap-plugin-builtinsemanticclassifier-classify
-    title: BuiltinSemanticClassifier.classify
-    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-builtin-semantic-classifier
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-  - id: SYM-cap-plugin-builtin-detectsignals
-    title: detectSignals
-    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
-    status: active
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-builtin-semantic-classifier
-      - type: covered_by
-        target: TEST-e2e-capability-plugins
-  - id: SYM-cap-plugin-builtin-chooselane
-    title: chooseLane
     sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
     status: active
     symbol_role: behavioral
@@ -20557,17 +20574,6 @@ symbols:
         target: TEST-kibi-local-proof-parity
       - type: implements
         target: REQ-kibi-local-proof-parity
-  - id: SYM-kb-zero-findings-gate
-    title: kb-zero-findings.sh
-    status: active
-    sourceFile: scripts/kb-zero-findings.sh
-    symbol_role: config
-    granularity_reason: config-artifact
-    relationships:
-      - type: implements
-        target: REQ-kibi-own-kb-zero-findings
-      - type: covered_by
-        target: TEST-prolog-bundled-ci
   - id: SYM-mcp-release-package-metadata
     title: package.json
     status: active
@@ -21615,6 +21621,16 @@ symbols:
         target: TEST-mcp-workspace-routing
       - type: implements
         target: REQ-mcp-workspace-routing
+  - id: SYM-mcp-kibiWorkspaceFor
+    title: kibiWorkspaceFor
+    status: active
+    sourceFile: packages/mcp/src/server/workspace-router.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-manifest-initialized-signal
+      - type: covered_by
+        target: TEST-mcp-workspace-routing
   - id: SYM-mcp-setWorkspaceRouter
     title: setWorkspaceRouter
     status: active
@@ -27626,6 +27642,36 @@ symbols:
         target: REQ-skillopt-harness-selection
       - type: covered_by
         target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-extract-host-option
+    title: extractHostOption
+    sourceFile: scripts/skillopt-eval/cli.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-harness-selection
+      - type: covered_by
+        target: TEST-e2e-skillopt-claude-code-host
+  - id: SYM-skillopt-campaign-evaluation-host
+    title: campaignEvaluationHost
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-run-harness-binding
+      - type: covered_by
+        target: TEST-e2e-skillopt-host-neutral-optimization
+  - id: SYM-skillopt-assert-evaluation-host
+    title: assertEvaluationHost
+    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-skillopt-run-harness-binding
       - type: covered_by
         target: TEST-e2e-skillopt-host-neutral-optimization
   - id: SYM-skillopt-offline-contract-version
@@ -38383,6 +38429,176 @@ symbols:
         target: TEST-cli-doctor-workflows
       - type: implements
         target: REQ-cli-doctor
+  - id: SYM-kibi-negative-path-facts-query
+    title: queryNegativePathFacts
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-facts-goal
+    title: negativePathFactsGoal
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-title
+    title: negativePathTitle
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-marker
+    title: negativePathMarker
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-prefix
+    title: NEGATIVE_PATH_PREFIX
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-core-kb-negative-path-facts
+    title: kb_negative_path_facts
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-test-kibi-negative-path-facts-marked
+    title: kb_search negative-path facts suite
+    status: active
+    sourceFile: packages/cli/tests/negative-path-facts.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-negative-path-facts-marked
+  - id: SYM-cli-impact-createBroadRequirementDiagnostics
+    title: createBroadRequirementDiagnostics
+    sourceFile: packages/cli/src/public/impact/requirement-quality.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-broad-requirement-review
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
+  - id: SYM-cli-impact-createCoarseAnchorQualityDiagnostics
+    title: createCoarseAnchorQualityDiagnostics
+    sourceFile: packages/cli/src/public/impact/coverage-depth-quality.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-coarse-anchor-review
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
+  - id: SYM-ingest-proof-enforceNativeCaseBindings
+    title: enforceNativeCaseBindings
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    symbol_role: behavioral
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-kibi-playwright-native-id
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
+  - id: SYM-e2e-test-check-review-rules
+    title: check-review-rules.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/check-review-rules.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-check-review-rules
+  - id: SYM-cap-plugin-builtinsemanticclassifier-classify
+    title: BuiltinSemanticClassifier.classify
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-builtin-semantic-classifier
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+  - id: SYM-cap-plugin-builtin-detectsignals
+    title: detectSignals
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-builtin-semantic-classifier
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+  - id: SYM-cap-plugin-builtin-chooselane
+    title: chooseLane
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-builtin-semantic-classifier
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+  - id: SYM-kb-zero-findings-gate
+    title: kb-zero-findings.sh
+    status: active
+    sourceFile: scripts/kb-zero-findings.sh
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: implements
+        target: REQ-kibi-own-kb-zero-findings
+      - type: covered_by
+        target: TEST-prolog-bundled-ci
   - id: SYM-opencode-analyzeCodeFile
     title: analyzeCodeFile
     status: active
@@ -38682,16 +38898,6 @@ symbols:
         target: REQ-kibi-manifest-initialized-signal
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
-  - id: SYM-mcp-kibiWorkspaceFor
-    title: kibiWorkspaceFor
-    status: active
-    sourceFile: packages/mcp/src/server/workspace-router.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-manifest-initialized-signal
-      - type: covered_by
-        target: TEST-mcp-workspace-routing
   - id: SYM-unit-test-cli-supersedes-history
     title: relationships.test
     status: active
@@ -38809,26 +39015,6 @@ symbols:
         target: REQ-kibi-proof-e2e-evidence-chain
       - type: covered_by
         target: TEST-e2e-coverage-proof-status
-  - id: SYM-skillopt-campaign-evaluation-host
-    title: campaignEvaluationHost
-    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-run-harness-binding
-      - type: covered_by
-        target: TEST-e2e-skillopt-host-neutral-optimization
-  - id: SYM-skillopt-assert-evaluation-host
-    title: assertEvaluationHost
-    sourceFile: scripts/skillopt-eval/campaign-workflow.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-run-harness-binding
-      - type: covered_by
-        target: TEST-e2e-skillopt-host-neutral-optimization
   - id: SYM-skillopt-protocol-failure-schema
     title: ProtocolFailureSchema
     sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
@@ -38889,16 +39075,6 @@ symbols:
         target: REQ-skillopt-harness-selection
       - type: covered_by
         target: TEST-e2e-skillopt-claude-code-host
-  - id: SYM-skillopt-extract-host-option
-    title: extractHostOption
-    sourceFile: scripts/skillopt-eval/cli.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-harness-selection
-      - type: covered_by
-        target: TEST-e2e-skillopt-claude-code-host
   - id: SYM-skillopt-host-registry-table
     title: SKILLOPT_HOST_REGISTRY
     sourceFile: scripts/skillopt-eval/runtime/skillopt-host-registry.ts
@@ -38909,82 +39085,6 @@ symbols:
         target: REQ-skillopt-harness-selection
       - type: covered_by
         target: TEST-e2e-skillopt-claude-code-host
-  - id: SYM-skillopt-cli-main
-    title: main
-    sourceFile: scripts/skillopt-eval/cli.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-harness-selection
-      - type: covered_by
-        target: TEST-e2e-skillopt-claude-code-host
-  - id: SYM-skillopt-normalize-codex-jsonl
-    title: normalizeCodexJsonl
-    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-harness-shared-scoring
-      - type: covered_by
-        target: TEST-e2e-skillopt-claude-code-host
-  - id: SYM-skillopt-codex-violations
-    title: CODEX_VIOLATIONS
-    sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-harness-shared-scoring
-      - type: covered_by
-        target: TEST-e2e-skillopt-claude-code-host
-  - id: SYM-skillopt-assert-cell-infrastructure-healthy
-    title: assertCellInfrastructureHealthy
-    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-infrastructure-failure-no-go
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
-      - type: covered_by
-        target: TEST-e2e-skillopt-host-neutral-optimization
-  - id: SYM-skillopt-evaluation-infrastructure-payload
-    title: evaluationInfrastructurePayload
-    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-infrastructure-failure-no-go
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-skillopt-parse-evaluation-infrastructure-marker
-    title: parseEvaluationInfrastructureMarker
-    sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-infrastructure-failure-no-go
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
-      - type: covered_by
-        target: TEST-e2e-skillopt-host-neutral-optimization
-  - id: SYM-skillopt-run-workflow-command
-    title: runWorkflowCommand
-    sourceFile: scripts/skillopt-eval/cli-workflow.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-infrastructure-failure-no-go
-      - type: implements
-        target: REQ-skillopt-adoption-requires-external-verdict
-      - type: covered_by
-        target: TEST-e2e-skillopt-trust-boundaries
   - id: SYM-skillopt-read-complete-campaign-evaluation
     title: readCompleteCampaignEvaluation
     sourceFile: scripts/skillopt-eval/campaign-workflow.ts
@@ -38997,16 +39097,6 @@ symbols:
         target: TEST-e2e-skillopt-host-neutral-optimization
       - type: covered_by
         target: TEST-e2e-skillopt-trust-boundaries
-  - id: SYM-skillopt-cursor-parse-args
-    title: parseCursorArgs
-    sourceFile: scripts/skillopt-eval/cursor-operator.ts
-    symbol_role: behavioral
-    status: active
-    relationships:
-      - type: implements
-        target: REQ-skillopt-cursor-compat
-      - type: covered_by
-        target: TEST-skillopt-cursor-compat
   - id: SYM-maintenance-verifyApprovedSourceAnalyzer
     title: verifyApprovedSourceAnalyzer
     sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
