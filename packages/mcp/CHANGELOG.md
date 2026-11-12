@@ -1,5 +1,71 @@
 # kibi-mcp
 
+## 3.27.0
+
+### Minor Changes
+
+- 8263dea: A project can now read the KB of another repository it depends on, such as a library or a service it calls. Declare the repository and a tag, branch or commit in `.kb/dependencies.json`, pin it with `kibi deps lock`, and reads named with `kb` (MCP) or `--kb` (CLI) answer from that repository's own KB at the pinned commit. The dependency's KB is a read-only copy in a shared cache outside the repository: it never mixes with the project's KB, never slows its own checks, and can stay on an older KB schema (6 or later) until its owners upgrade.
+  - New `kibi deps lock [names...]` (with `--update`), `kibi deps fetch` and `kibi deps status`. The lock file `.kb/dependencies.lock.json` records each commit and its KB schema; `status` exits 1 when a dependency needs locking.
+  - `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage` and `kb_graph` accept an optional `kb` argument; the CLI commands `search`, `query`, `status`, `find-gaps`, `coverage` and `graph` accept `--kb <name>`, and their `--input` JSON routes accept `kb`.
+  - Over MCP, a dependency read runs in its own routed child server, so the attached project's server and store are untouched. Write tools take no `kb` argument and refuse a call that names one, so a dependency is never written and a write meant for it never lands in the project's KB.
+  - A dependency read ignores `KIBI_BRANCH`, which names a branch of the project, not of the dependency's pinned checkout.
+  - The cache lives in `KIBI_DEPENDENCY_CACHE`, else `$XDG_CACHE_HOME/kibi/dependencies`, else `~/.cache/kibi/dependencies`.
+  - `kibi sync --quiet` no longer prints the symbol-coordinate refresh line.
+
+- 0a490cd: The MCP server now checks each Kibi operation's input against the same contract as the CLI JSON route. A field the operation does not define is refused instead of being silently dropped, and a value of the wrong type comes back as the coded `VALIDATION_FAILED` error envelope instead of a bare protocol message. Clients that sent extra fields must drop them. kibi-runtime exports `prepareOperationInput` for adapters.
+- 2b7ede7: A requirement whose behavior no longer exists can now say so: set `status: retired` with a `retired_reason`. Until now `closed` meant both "done and still valid" and "retired", so a retired requirement without a successor kept being served as governing by search, hooks and every current-intent check. A retired requirement stops governing, and `kibi check` makes sure nothing current is left hanging off it. This is KB schema 14: run `kibi migrate --yes`, then review the requirements it suggests retiring.
+  - New requirement status `retired`, with the required field `retired_reason`. `kb_upsert` refuses `status: retired` without a reason. A retired requirement is out of proof scope ("requirement is retired"), listed under `notGoverning` by `kb_search`, and treated as retired by `symbol-owner-superseded` and the context check.
+  - New blocking check rule `retired-reason-missing`: a retired requirement must state why.
+  - New blocking check rule `retired-owner-only`: a current fact, scenario or test whose every owning requirement is retired must be relinked to the current owner, archived (`status: deprecated` for facts and scenarios) or deleted (tests).
+  - `kibi migrate` (KB schema 14) lists every `closed` requirement that nothing supersedes and whose own source says it was retired (its proof exemption, title, body or a `historical-status:` tag) as a `req_retired_status_suggest` review action. Approving one by id sets `status: retired` and a `retired_reason` quoting those words. Kibi never retires a requirement on its own.
+  - `kibi migrate` now suggests `retired` instead of `closed` for requirements with the legacy statuses `deprecated` and `rejected`, and `kb_upsert` lists `retired` instead of `deprecated` as a requirement status.
+  - The `kibi-usage` skill explains when to retire a requirement instead of closing it.
+
+### Patch Changes
+
+- 51a228e: kibi-mcp starts again when kibi-cli is not installed next to it. The server read its telemetry signals from `kibi-cli/telemetry-details`, but kibi-cli is only a development dependency of kibi-mcp, so a project or global install of kibi-mcp alone failed at startup with `ERR_MODULE_NOT_FOUND: Cannot find package 'kibi-cli'` (and with `ERR_PACKAGE_PATH_NOT_EXPORTED` beside an older kibi-cli). kibi-runtime now exports `operationTelemetrySignals`, and kibi-mcp reads it from there, from the same bundle that raises the operation's errors, so MCP telemetry also recognizes a rejected write by its class.
+
+  Packing a package now fails when its published files import another package by name that is not in its `dependencies`, `peerDependencies` or `optionalDependencies`, and the release contract installs kibi-mcp without kibi-cli and checks that it answers `initialize`.
+
+- 644b209: A proof receipt recorded before a proof integration's command, artifact, targets, options or producer changed is now reported as `stale_proof_receipt`, as the proving guide already described, and `kibi prove`, `kibi coverage`, `kb_coverage` and `kibi proof explain` name which fingerprint components changed (`fingerprintDrift`). After upgrading, run `kibi prove --stale` if coverage reports a stale receipt for a test whose integration changed since its last proof. Behaviour change: such receipts no longer count as current evidence.
+
+  Coverage hands the engine each test's current execution fingerprint components under a reserved key of the per-contract bindings, so a Kibi CLI and engine of different versions keep working: an engine without the key ignores it and a CLI without it skips the check. `kibi prove` also appends the drifted component names to the fingerprint-mismatch error. Usage diagnostics list `fingerprintDrift` in coverage receipt gap details.
+
+- df02251: When the Kibi engine cannot start, anonymous telemetry now says why in a fixed word, so start failures can be told apart without sending any message text. Every `kibi sync` refusal now has its own error code, so a refusal you can act on (unresolved Git conflicts, a requirement that failed proposition-complete ingestion) is counted as a rejection and not as a Kibi failure.
+  - The engine daemon writes its start diagnostic as one JSON line: a fixed failure kind (the error's own code such as `swipl_not_found`, or `already_listening`, `store_locked`, `journal_unreadable`, `prolog_module_load_failed`, `branch_attach_failed`, `invalid_branch`, `daemon_error`) and the message. The client still accepts a plain-text diagnostic and raises `ENGINE_START_FAILED` with the same message as before, plus a `startFailure` property. A daemon that exits without a diagnostic reports `daemon_exited`, and an unreadable diagnostic reports `diagnostic_unreadable`. Telemetry sends this kind as `rejection_code`.
+  - `SyncError`s that had no code now have one: `GIT_CONFLICTS_UNRESOLVED`, `INVENTORY_INGESTION_FAILED`, `LEGACY_BRANCH_STORAGE`, `BRANCH_RESOLUTION_FAILED`, `ENGINE_SOCKET_UNREACHABLE`, `KB_SAVE_FAILED`, `STAGING_ATTACH_FAILED`, `STAGING_SAVE_FAILED`, `RELATIONSHIP_SHARD_CLEAR_FAILED`, `SYNC_CHECKPOINT_FAILED`, `SYNC_CACHE_KEY_INVALID`, `SNAPSHOT_COMPILE_REFUSED`, `RECOVERY_TARGET_MISSING` and `RECOVERY_BACKUP_EXISTS`. `git_conflicts_unresolved` and `inventory_ingestion_failed` count as rejections.
+  - The MCP error classifier recognizes a missing SWI-Prolog (`swipl_not_found`), a failed engine start (`engine_start_failed`) and an engine that never accepted connections (`engine_connect_timeout`) instead of reporting them as `handler_error`.
+
+- 6411b83: Telemetry now names the error underneath a plain wrapper such as "Upsert execution failed: …": the event carries the wrapped error's code, class and crash frame instead of a generic `operation_failed` from the wrapper. The engine client also stops waiting when the daemon it started exits without listening (reporting `ENGINE_START_FAILED` with the exit code or signal after a one-second grace, instead of waiting out the two-minute start timeout), and a start that does time out reports `ENGINE_CONNECT_TIMEOUT` instead of an uncategorized error.
+
+  On native Windows, Kibi now finds a system SWI-Prolog on the search path: it looks for `swipl.exe` and reads the `Path` variable whatever its case. Before, it looked only for an extensionless `swipl` under `PATH`, so doctor and every Prolog-backed command reported that no SWI-Prolog was installed.
+
+  The engine daemon now starts on Windows named pipes: it no longer tries to create the pipe namespace as a directory, and its start diagnostic and publication lock are written to the runtime directory instead of beside the pipe, where no file can exist.
+
+  Escape backslashes in the file paths Kibi passes to SWI-Prolog, so loading the core modules and attaching a KB work on Windows paths such as `C:\Users\...`.
+
+  SWI-Prolog's standard output and error now use LF line ends on every platform, so queries complete on Windows, where SWI-Prolog otherwise writes CRLF.
+
+  The engine flushes its journal through writable file handles on Windows, where fsync on a read-only handle fails with EPERM.
+
+- Updated dependencies [3e0e613]
+- Updated dependencies [0087d57]
+- Updated dependencies [d65ab84]
+- Updated dependencies [30d56b9]
+- Updated dependencies [8263dea]
+- Updated dependencies [3c6809e]
+- Updated dependencies [0a490cd]
+- Updated dependencies [51a228e]
+- Updated dependencies [3d41cbb]
+- Updated dependencies [644b209]
+- Updated dependencies [c6d1600]
+- Updated dependencies [2b7ede7]
+- Updated dependencies [df02251]
+- Updated dependencies [6411b83]
+  - kibi-agent-core@0.13.0
+  - kibi-core@0.32.0
+  - kibi-runtime@2.31.0
+
 ## 3.26.0
 
 ### Minor Changes

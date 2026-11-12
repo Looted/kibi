@@ -1,5 +1,44 @@
 # kibi-core
 
+## 0.32.0
+
+### Minor Changes
+
+- 3d41cbb: `kb_search` no longer presents a forbidden situation as if it were true. A negative-path fact (a fact that a scenario expecting rejection or error assumes, such as "Building a migration plan changes a tracked file") used to appear as a plain, unmarked result or as the top search hint for an unrelated question. It is now marked as a forbidden situation everywhere search shows it and ranks below the requirement it guards. Authored titles are unchanged and nothing needs migrating.
+  - kibi-core: `kb_negative_path_facts/2` returns the negative-path facts among a set of ids, each with the current requirements whose rejecting scenarios assume it.
+  - kibi-cli: intent-v1 results carry `negativePath` (`polarity: "forbidden"`, `guards`) on such a fact and rank it directly below a guarded requirement that also matched; it no longer counts as that requirement's rival for `ambiguous`. The text digest names it as a forbidden situation, the `kibi search` table and an answer-layer `ungoverned` entry title it `Forbidden: …`, and a search hint on it is shown as the requirement it guards (`via` names the fact), or as itself titled `Forbidden: …` when it guards no current requirement. MCP and CLI share the same operation, so every agent host and the plain CLI get the same marking.
+
+- 644b209: A proof receipt recorded before a proof integration's command, artifact, targets, options or producer changed is now reported as `stale_proof_receipt`, as the proving guide already described, and `kibi prove`, `kibi coverage`, `kb_coverage` and `kibi proof explain` name which fingerprint components changed (`fingerprintDrift`). After upgrading, run `kibi prove --stale` if coverage reports a stale receipt for a test whose integration changed since its last proof. Behaviour change: such receipts no longer count as current evidence.
+
+  Coverage hands the engine each test's current execution fingerprint components under a reserved key of the per-contract bindings, so a Kibi CLI and engine of different versions keep working: an engine without the key ignores it and a CLI without it skips the check. `kibi prove` also appends the drifted component names to the fingerprint-mismatch error. Usage diagnostics list `fingerprintDrift` in coverage receipt gap details.
+
+- 2b7ede7: A requirement whose behavior no longer exists can now say so: set `status: retired` with a `retired_reason`. Until now `closed` meant both "done and still valid" and "retired", so a retired requirement without a successor kept being served as governing by search, hooks and every current-intent check. A retired requirement stops governing, and `kibi check` makes sure nothing current is left hanging off it. This is KB schema 14: run `kibi migrate --yes`, then review the requirements it suggests retiring.
+  - New requirement status `retired`, with the required field `retired_reason`. `kb_upsert` refuses `status: retired` without a reason. A retired requirement is out of proof scope ("requirement is retired"), listed under `notGoverning` by `kb_search`, and treated as retired by `symbol-owner-superseded` and the context check.
+  - New blocking check rule `retired-reason-missing`: a retired requirement must state why.
+  - New blocking check rule `retired-owner-only`: a current fact, scenario or test whose every owning requirement is retired must be relinked to the current owner, archived (`status: deprecated` for facts and scenarios) or deleted (tests).
+  - `kibi migrate` (KB schema 14) lists every `closed` requirement that nothing supersedes and whose own source says it was retired (its proof exemption, title, body or a `historical-status:` tag) as a `req_retired_status_suggest` review action. Approving one by id sets `status: retired` and a `retired_reason` quoting those words. Kibi never retires a requirement on its own.
+  - `kibi migrate` now suggests `retired` instead of `closed` for requirements with the legacy statuses `deprecated` and `rejected`, and `kb_upsert` lists `retired` instead of `deprecated` as a requirement status.
+  - The `kibi-usage` skill explains when to retire a requirement instead of closing it.
+
+### Patch Changes
+
+- 0087d57: Kibi no longer reads `// implements REQ-...` comments in source code as traceability links. The symbol manifest (`.kb/symbols.yaml`) is now the only record of which requirements a symbol implements, so a comment can no longer pass `kibi check --staged` on its own, and a stale comment can no longer hide that the manifest links a symbol to something else. `kibi migrate` lists the comments left in your repository so you can move each link that still holds into the manifest and delete the comment.
+  - `kibi check --staged` takes a changed symbol's requirement links only from the manifest. Before, a leading `implements` comment replaced the manifest links of that symbol for the staged gate. The failure message no longer suggests writing a comment.
+  - The ts-morph and tree-sitter extractors no longer collect comment text. `SourceSymbolAnalysis.directiveText` in `kibi-plugin-sdk` is deprecated and ignored by every host; extractors that still send it keep validating.
+  - OpenCode's risk classifier counts a code file as traced when a manifest symbol of that file has an `implements` link, not when the file contains an `implements` comment. Cursor's post-edit guidance, the bundled skills, `AGENTS.md`-style guidance and the docs no longer recommend comments.
+  - `kibi migrate` adds one `review_inline_implements_comment` review action that lists each comment's file, line, the ids it names and `manifestLinked` (ids a manifest symbol of the same file already implements). It never edits source code.
+
+  ## Migration
+
+  This is a hard change: a commit that touches a symbol whose only requirement link was a comment now fails `kibi check --staged` with "fewer than 1 requirement link(s)".
+  1. Run `kibi migrate` (or `kibi migrate --format json`) and open the `review_inline_implements_comment` action.
+  2. For each listed comment whose `manifestLinked` does not cover every id it names, and whose code still implements that requirement, add the link with `kb_upsert` (CLI: `kibi upsert --input -`): the symbol's `title`, `sourceFile` and `implements -> REQ-...`.
+  3. Delete the comments. They have no effect any more.
+
+- d65ab84: `kibi check` now fails when your `.kb/` sources declare one entity id twice, for example two `.kb/symbols.yaml` records that a merge without the Kibi merge driver left behind. Until now a full check passed while `kibi check --staged` refused every commit over the copy, so CI never caught it. The finding names every copy and how to keep one. `kibi doctor` also stops telling you to add `.gitattributes` lines that are already there and names only the setup step that is missing.
+  - `source-relationship-parity` reports one blocking violation per entity id declared more than once across authored entity files and `.kb/symbols.yaml` (evidence `direction: duplicate_entity` with each declaration's source, title and status). A `kb_upsert` of the id merges copies that differ only in their links. The rule registry description says so.
+  - `mergeDriverSetup` takes the gaps `manifestMergeDriverGaps` found and names only the missing steps; `kibi doctor` and the `kibi migrate` tip pass them.
+
 ## 0.31.0
 
 ### Minor Changes
