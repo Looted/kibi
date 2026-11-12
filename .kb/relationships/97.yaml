@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0f7004c118b8
+  - type: assumes
+    from: SCEN-NEG-dead-implements-comment-deletion-FIRM-EDIT-ASKED
+    to: FACT-NEG-dead-implements-comment-deletion-FIRM-EDIT-ASKED
+    created_at: 2026-11-12T14:41:39.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2e11ee4d155
+  - type: verified_by
+    from: SCEN-NEG-dead-implements-comment-deletion-FIRM-EDIT-ASKED
+    to: TEST-dead-implements-comment-deletion
+    created_at: 2026-11-12T14:41:39.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c67520ad9a9

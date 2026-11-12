@@ -23,7 +23,10 @@ import {
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import type { Violation } from "../check-types.js";
-import { collectFullKbQualityDiagnostics } from "../impact-diagnostics.js";
+import {
+  type ChangedFileImpactResult,
+  collectFullKbQualityDiagnostics,
+} from "../impact-diagnostics.js";
 import {
   type CheckDiagnostic,
   type CheckEvaluated,
@@ -146,6 +149,7 @@ async function migrationPlanForCheck(
   violations: readonly Violation[],
   qualityDiagnostics: readonly Readonly<Record<string, unknown>>[],
   statusPlan?: ReturnType<typeof buildMigrationPlan>,
+  impactResult?: ChangedFileImpactResult,
 ) {
   const checkPlan = buildMigrationPlan({
     expected: {
@@ -158,6 +162,9 @@ async function migrationPlanForCheck(
         Record<string, unknown>
       >[],
       qualityDiagnostics,
+      ...(impactResult !== undefined
+        ? { impactDiagnostics: new Set<object>(impactResult.impactDiagnostics) }
+        : {}),
     }),
   });
   return statusPlan ? mergeMigrationPlans([statusPlan, checkPlan]) : checkPlan;
@@ -356,6 +363,7 @@ export async function executeCheck(
           Record<string, unknown>
         >[],
         statusPlan,
+        impactResult,
       );
       const evaluated = { rules: [] };
       return {
@@ -510,6 +518,7 @@ export async function executeCheck(
         (diagnostic) => diagnostic.id !== SCOPED_CHECK_OMITTED_ID,
       ) as unknown as readonly Readonly<Record<string, unknown>>[],
       statusPlan,
+      impactResult,
     );
     return {
       content: [

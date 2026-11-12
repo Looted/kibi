@@ -150,6 +150,7 @@ describe("KB dependency routing", () => {
       server: fakeServer,
       workspaceRoot: attached,
       env: { PATH: process.env.PATH ?? "" },
+      isRoutable: (root) => root === worktree,
       resolveDependency: (root, name) => {
         bases.push(root);
         return dependency(checkout, name);
@@ -167,7 +168,58 @@ describe("KB dependency routing", () => {
       kb: "billing",
       [WORKSPACE_ROOT_ARGUMENT]: os.tmpdir(),
     });
-    expect(bases).toEqual([worktree, attached]);
+    await router.routeKbDependency("kb_status", "billing", {
+      kb: "billing",
+      [WORKSPACE_ROOT_ARGUMENT]: attached,
+    });
+    expect(bases).toEqual([worktree, attached, attached]);
+  });
+
+  test("refuses the dependencies of a workspace routing would not reach", async () => {
+    const attached = kibiWorkspace("kibi-dep-project-");
+    const other = kibiWorkspace("kibi-dep-other-");
+    const checkout = kibiWorkspace("kibi-dep-checkout-");
+    const bases: string[] = [];
+    const resolveDependency = (root: string, name: string) => {
+      bases.push(root);
+      return dependency(checkout, name);
+    };
+    const pinned = new WorkspaceRouter({
+      server: fakeServer,
+      workspaceRoot: attached,
+      env: { PATH: process.env.PATH ?? "", KIBI_WORKSPACE: attached },
+      isRoutable: () => true,
+      resolveDependency,
+      resolveChildCommand: () => fakeChild(),
+      log: () => undefined,
+    });
+    const unpinned = new WorkspaceRouter({
+      server: fakeServer,
+      workspaceRoot: attached,
+      env: { PATH: process.env.PATH ?? "" },
+      isRoutable: () => false,
+      resolveDependency,
+      resolveChildCommand: () => fakeChild(),
+      log: () => undefined,
+    });
+    routers.push(pinned, unpinned);
+    await expect(
+      pinned.routeKbDependency("kb_search", "billing", {
+        kb: "billing",
+        [WORKSPACE_ROOT_ARGUMENT]: other,
+      }),
+    ).rejects.toThrow(
+      `this server reads only the dependencies of its own workspace ${attached}`,
+    );
+    await expect(
+      unpinned.routeKbDependency("kb_search", "billing", {
+        kb: "billing",
+        [WORKSPACE_ROOT_ARGUMENT]: other,
+      }),
+    ).rejects.toThrow(
+      "that workspace is neither a worktree of this server's repository",
+    );
+    expect(bases).toEqual([]);
   });
 
   test("reports dependency errors and a child that cannot start", async () => {

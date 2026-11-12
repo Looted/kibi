@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e122c9e61ba
+  - type: implements
+    from: SYM-agent-core-is-dead-implements-comment
+    to: REQ-dead-implements-comment-deletion
+    created_at: 2026-11-12T13:31:29.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c54ad4b2b09b
+  - type: covered_by
+    from: SYM-agent-core-is-dead-implements-comment
+    to: TEST-dead-implements-comment-deletion
+    created_at: 2026-11-12T13:31:29.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe94f6c5105c

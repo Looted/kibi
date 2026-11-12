@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import type { EntitySummary, IndexedSymbol } from "./knowledge-index.js";
+import { extractPatchTexts, normalizeWorkspacePath } from "./path-policy.js";
 import { requestTopicWords } from "./requirement-candidates.js";
 import {
   type LineRange,
@@ -40,7 +41,10 @@ export function firmRequirementsTouched(input: {
   wholeFile: boolean;
   summarize: Summarize;
   confirmed?: ReadonlySet<string>;
+  /** The edit only removes dead `implements` comments, so it changes none. */
+  commentOnly?: boolean;
 }): { ids: string[]; symbol: IndexedSymbol | undefined } {
+  if (input.commentOnly === true) return { ids: [], symbol: undefined };
   const touched = input.wholeFile
     ? input.symbols
     : focusedSymbols(input.symbols, input.focus);
@@ -50,6 +54,253 @@ export function firmRequirementsTouched(input: {
     return summary.firmness === "firm" && !isRetiredStatus(summary.status);
   });
   return { ids, symbol: input.wholeFile ? undefined : touched[0] };
+}
+
+/** Files larger than this are not compared for a whole-file write. */
+const MAX_COMMENT_ONLY_BYTES = 2 * 1024 * 1024;
+
+/**
+ * A line that holds nothing but an `implements` comment naming entity ids
+ * (`// implements REQ-a, REQ-b`, `# implements: REQ-a`, ` * implements REQ-a`).
+ * Kibi stopped reading these comments as links, so removing one changes no
+ * behavior and no recorded link.
+ */
+const DEAD_IMPLEMENTS_LINE =
+  /^\s*(?:\/\/+|#+|%+|\/\*+|\*|--)\s*(?:implements|Implements|IMPLEMENTS)(?:\s*:\s*|\s+)[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+(?:\s*,\s*[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+)*\s*(?:\*\/)?\s*$/;
+
+/** True for a line that is only a dead `implements` comment. */
+export function isDeadImplementsComment(line: string): boolean {
+  return DEAD_IMPLEMENTS_LINE.test(line);
+}
+
+/**
+ * A dead `implements` comment that trails code, from the whitespace (or the
+ * code's own `;`) before its comment marker to the end of the line.
+ */
+const TRAILING_DEAD_IMPLEMENTS =
+  /^\s*(?:\/\/+|#+|%+|\/\*+|--)\s*(?:implements|Implements|IMPLEMENTS)(?:\s*:\s*|\s+)[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+(?:\s*,\s*[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+)*\s*(?:\*\/)?\s*$/;
+
+/**
+ * Whether every quote character in `code` is closed: an even count of each
+ * unescaped `'`, `"` and backquote. Text that fails may end inside a string,
+ * where the "comment" after it would be part of the string.
+ */
+function quotesClosed(code: string): boolean {
+  const unescaped = code.replace(/\\./g, "");
+  return ["'", '"', "`"].every(
+    (quote) => unescaped.split(quote).length % 2 === 1,
+  );
+}
+
+/**
+ * True when `after` is the line `before` with only a trailing dead
+ * `implements` comment cut off: the code before it is kept exactly (trailing
+ * whitespace aside), and it closes every quote it opens, so the cut text
+ * cannot be part of a string.
+ */
+export function removesTrailingDeadImplementsComment(
+  before: string,
+  after: string,
+): boolean {
+  const code = after.trimEnd();
+  if (code.trim() === "" || !before.startsWith(code)) return false;
+  const cut = before.slice(code.length);
+  if (!TRAILING_DEAD_IMPLEMENTS.test(cut)) return false;
+  // The marker needs whitespace or the code's own `;` before it, as for
+  // `x(); // implements REQ-a` or `x();// implements REQ-a`.
+  if (!/^\s/.test(cut) && !code.endsWith(";")) return false;
+  return quotesClosed(code);
+}
+
+/**
+ * True when `after` is `before` with one or more dead comments removed:
+ * whole comment lines, or comments cut off the end of a code line.
+ */
+function removesOnlyDeadComments(before: string, after: string): boolean {
+  const kept = before.split("\n");
+  const wanted = after.split("\n");
+  let removed = 0;
+  let next = 0;
+  for (const line of kept) {
+    const target = wanted[next];
+    if (target === line) {
+      next += 1;
+    } else if (isDeadImplementsComment(line)) {
+      removed += 1;
+    } else if (
+      target !== undefined &&
+      removesTrailingDeadImplementsComment(line, target)
+    ) {
+      removed += 1;
+      next += 1;
+    } else {
+      return false;
+    }
+  }
+  return removed > 0 && next === wanted.length;
+}
+
+type PatchSection = {
+  kind: string;
+  path: string;
+  moved: boolean;
+  lines: string[];
+};
+
+const PATCH_SECTION_HEADER = /^\*\*\* (Update|Add|Delete) File: (.+)$/;
+
+/**
+ * The file sections of an `apply_patch` envelope, or undefined when the text
+ * is not one envelope from `*** Begin Patch` to `*** End Patch`.
+ */
+function parsePatchSections(patch: string): PatchSection[] | undefined {
+  const lines = patch.trim().split(/\r?\n/);
+  if (lines[0]?.trim() !== "*** Begin Patch") return undefined;
+  if (lines.at(-1)?.trim() !== "*** End Patch") return undefined;
+  const sections: PatchSection[] = [];
+  let current: PatchSection | undefined;
+  for (const line of lines.slice(1, -1)) {
+    const header = PATCH_SECTION_HEADER.exec(line.trim());
+    if (header?.[1] && header[2]) {
+      current = {
+        kind: header[1],
+        path: normalizeWorkspacePath(header[2]),
+        moved: false,
+        lines: [],
+      };
+      sections.push(current);
+    } else if (current === undefined) {
+      return undefined;
+    } else if (line.startsWith("*** Move to:")) {
+      current.moved = true;
+    } else {
+      current.lines.push(line);
+    }
+  }
+  return sections.length > 0 ? sections : undefined;
+}
+
+/**
+ * True for an `Update File` section that stays in place, removes at least
+ * one dead comment, and changes nothing else: each removed line is a dead
+ * comment line, or a code line directly replaced by itself without its
+ * trailing dead comment.
+ */
+function patchSectionRemovesOnlyDeadComments(section: PatchSection): boolean {
+  if (section.kind !== "Update" || section.moved) return false;
+  let removed = 0;
+  const lines = section.lines;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index] as string;
+    if (line.startsWith("-")) {
+      const replacement = lines[index + 1];
+      if (isDeadImplementsComment(line.slice(1))) {
+        removed += 1;
+      } else if (
+        replacement?.startsWith("+") &&
+        removesTrailingDeadImplementsComment(
+          line.slice(1),
+          replacement.slice(1),
+        )
+      ) {
+        removed += 1;
+        index += 1;
+      } else {
+        return false;
+      }
+    } else if (
+      !(
+        line.startsWith(" ") ||
+        line.startsWith("@@") ||
+        line === "" ||
+        line === "*** End of File"
+      )
+    ) {
+      // An added line, or anything the envelope format does not hold.
+      return false;
+    }
+  }
+  return removed > 0;
+}
+
+/**
+ * Whether the patch envelopes only delete dead comments from `absolutePath`.
+ * With `base`, the sections whose path resolves to the file against it are
+ * judged; without it every section in the patch must qualify.
+ */
+function patchesRemoveOnlyDeadComments(
+  absolutePath: string,
+  patches: readonly string[],
+  base: string | undefined,
+): boolean {
+  const target = path.resolve(absolutePath);
+  const relevant: PatchSection[] = [];
+  for (const patch of patches) {
+    const sections = parsePatchSections(patch);
+    if (sections === undefined) return false;
+    relevant.push(
+      ...(base === undefined
+        ? sections
+        : sections.filter(
+            (section) => path.resolve(base, section.path) === target,
+          )),
+    );
+  }
+  return (
+    relevant.length > 0 && relevant.every(patchSectionRemovesOnlyDeadComments)
+  );
+}
+
+/**
+ * Whether an edit only deletes `implements` comments Kibi no longer reads:
+ * every replacement of an Edit or MultiEdit (`old_string`/`new_string`, or
+ * the camel-case spelling), a whole-file write (`content`) compared with the
+ * file on disk, or an `apply_patch` envelope whose section for the file only
+ * removes such lines. `base` is the directory relative patch paths resolve
+ * against (the event cwd); without it every section of the patch must only
+ * remove such lines. Such an edit keeps every requirement the code
+ * implements, so it is not put to the person. Any other shape of edit,
+ * including one made by a shell command or a patch that adds, deletes or
+ * moves the file, answers false.
+ */
+export function removesOnlyDeadImplementsComments(
+  absolutePath: string,
+  toolInput: unknown,
+  base?: string,
+): boolean {
+  type Fields = Record<string, unknown>;
+  const input = (toolInput ?? {}) as Fields;
+  const edits: unknown[] = Array.isArray(input.edits) ? input.edits : [];
+  const records = [input, ...edits.map((edit) => (edit ?? {}) as Fields)];
+  const pairs: [string, string][] = [];
+  for (const entry of records) {
+    const before = entry.old_string ?? entry.oldString;
+    const after = entry.new_string ?? entry.newString;
+    if (before === undefined && after === undefined) continue;
+    if (typeof before !== "string" || typeof after !== "string") return false;
+    pairs.push([before, after]);
+  }
+  const patches = extractPatchTexts(toolInput);
+  if (patches.length > 0) {
+    // A patch beside replacements or content is a shape no host sends.
+    return (
+      pairs.length === 0 &&
+      input.content === undefined &&
+      patchesRemoveOnlyDeadComments(absolutePath, patches, base)
+    );
+  }
+  if (pairs.length === 0) {
+    if (typeof input.content !== "string") return false;
+    try {
+      if (fs.statSync(absolutePath).size > MAX_COMMENT_ONLY_BYTES) return false;
+      pairs.push([fs.readFileSync(absolutePath, "utf8"), input.content]);
+    } catch {
+      return false;
+    }
+  }
+  return pairs.every(([before, after]) =>
+    removesOnlyDeadComments(before, after),
+  );
 }
 
 /**

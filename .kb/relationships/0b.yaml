@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a566cc6c684
+  - type: implements
+    from: SYM-cli-check-format-impact-text
+    to: REQ-kb-check-impact-diagnostics-once
+    created_at: 2026-11-12T13:31:58.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67594de2bf64
+  - type: covered_by
+    from: SYM-cli-check-format-impact-text
+    to: TEST-kb-check-impact-diagnostics-once
+    created_at: 2026-11-12T13:31:58.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-450fadc27eea

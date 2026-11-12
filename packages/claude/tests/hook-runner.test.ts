@@ -156,7 +156,9 @@ describe("pre-read snippets", () => {
       "REQ-currency-display (superseded): Totals display with a currency symbol — formatTotal",
     );
     expect(text).toContain("Covered by: TEST-checkout-rounding.");
-    expect(text).toContain('kb_query({id:"REQ-checkout-rounding", includeBody:true})');
+    expect(text).toContain(
+      'kb_query({id:"REQ-checkout-rounding", includeBody:true})',
+    );
     expect(text).toContain('sourceLocations:[{path:"src/checkout.ts"}]');
 
     expect(
@@ -758,7 +760,9 @@ describe("shell commands", () => {
       command: "cd src && sed -n 1,20p checkout.ts | head",
     });
     expect(text).toContain("REQ-checkout-rounding");
-    expect(text).toContain('kb_query({id:"REQ-checkout-rounding", includeBody:true})');
+    expect(text).toContain(
+      'kb_query({id:"REQ-checkout-rounding", includeBody:true})',
+    );
     expect(await pre("Bash", { command: "cat src/checkout.ts" })).toBe(
       undefined,
     );
@@ -995,6 +999,34 @@ describe("firm requirement confirmation", () => {
       "Kibi asked the person to confirm this edit because it changes code that implements firm requirement REQ-checkout-rounding.",
     );
     expect(JSON.stringify(output)).not.toMatch(/"(?:deny|allow)"/);
+  });
+
+  test("deleting implements comments Kibi no longer reads is not put to the person", async () => {
+    const fixture = createKibiWorkspace();
+    const { raw } = firmSession(fixture);
+    const file = path.join(fixture.root, "src/checkout.ts");
+    fs.writeFileSync(
+      file,
+      fs
+        .readFileSync(file, "utf8")
+        .replace(
+          "let total = 0;",
+          "// implements REQ-checkout-rounding\n  let total = 0;",
+        ),
+    );
+    const removal = {
+      file_path: "src/checkout.ts",
+      old_string: "  // implements REQ-checkout-rounding\n  let total = 0;",
+      new_string: "  let total = 0;",
+    };
+    expect(
+      (await raw("Edit", removal)).hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
+    // The same edit with a code change in it is still asked about.
+    expect(
+      (await raw("Edit", { ...removal, new_string: "  let total = 1;" }))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
   });
 
   test("once an edit was allowed the requirement is not asked about again; a declined edit is asked again", async () => {

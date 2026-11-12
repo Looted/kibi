@@ -18,6 +18,7 @@ import {
   acceptUnitResultsLedger,
   createTestFileReuse,
   groupProofSteps,
+  orderProofGroups,
   proofStepConcurrency,
   reusableBunTestFiles,
   runProofProducer,
@@ -284,6 +285,75 @@ test("proof producer runs an identical argv once and fans the attempt out", asyn
   ]);
   assert.equal(grouped.groups.length, 2);
   assert.equal(grouped.groups[0].slots.length, 2);
+});
+
+test("proof groups keep each contract's step order", () => {
+  const { groups } = groupProofSteps([
+    { test_id: "TEST-L", steps: [["build"], ["use"], ["check"]] },
+    { test_id: "TEST-M", steps: [["other"]] },
+  ]);
+  // Preferred order puts the dependent steps first.
+  const byKey = new Map(groups.map((group) => [group.command[0], group]));
+  const ordered = orderProofGroups([
+    byKey.get("check"),
+    byKey.get("use"),
+    byKey.get("other"),
+    byKey.get("build"),
+  ]);
+  assert.deepEqual(
+    ordered.map((group) => group.command[0]),
+    ["other", "build", "use", "check"],
+  );
+  assert.deepEqual(
+    ordered.map((group) => group.waitFor.length),
+    [0, 0, 1, 1],
+  );
+  // Contracts that order the same commands both ways break the cycle at the
+  // preferred group, which then waits for nothing.
+  const cyclic = groupProofSteps([
+    { test_id: "TEST-X", steps: [["x"], ["y"]] },
+    { test_id: "TEST-Y", steps: [["y"], ["x"]] },
+  ]).groups;
+  const broken = orderProofGroups(cyclic);
+  assert.deepEqual(
+    broken.map((group) => [group.command[0], group.waitFor.length]),
+    [
+      ["x", 0],
+      ["y", 1],
+    ],
+  );
+});
+
+test("a later step of a contract starts only after its earlier steps finish", async () => {
+  const running = new Set();
+  const startedWhile = [];
+  const result = await runProofProducer({
+    testIds: ["TEST-L", "TEST-M"],
+    entries: [
+      { test_id: "TEST-L", steps: [["build"], ["use"]] },
+      { test_id: "TEST-M", steps: [["other"]] },
+    ],
+    env: { ...process.env, KIBI_PROOF_STEP_CONCURRENCY: "3" },
+    spawnProcess: (command) => {
+      startedWhile.push([command, [...running].sort()]);
+      running.add(command);
+      const child = new EventEmitter();
+      child.pid = 1;
+      setTimeout(() => {
+        running.delete(command);
+        child.emit("close", 0, null);
+      }, 20);
+      return child;
+    },
+    write: () => undefined,
+  });
+  assert.equal(result.exitCode, 0);
+  const use = startedWhile.find(([command]) => command === "use");
+  assert.ok(use);
+  assert.ok(!use[1].includes("build"));
+  // The unrelated step still overlaps the first one.
+  const other = startedWhile.find(([command]) => command === "other");
+  assert.ok(other[1].includes("build") || startedWhile[0][0] === "other");
 });
 
 test("proof step concurrency stays sequential unless configured", () => {

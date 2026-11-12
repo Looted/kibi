@@ -109,8 +109,26 @@ export const defaultGitRunner: GitRunner = (args, cwd) =>
     stdio: ["ignore", "pipe", "pipe"],
     timeout: 300_000,
     // A credential prompt would hang an agent or CI forever.
-    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+    env: gitFetchEnvironment(process.env),
   });
+
+/**
+ * The environment dependency fetches run git under: no credential prompt,
+ * and the `ext` transport, which runs a command named by the URL, stays off
+ * whatever the user's git config says. The setting is appended to any
+ * GIT_CONFIG_* entries already in the environment.
+ */
+export function gitFetchEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const parsed = Number.parseInt(env.GIT_CONFIG_COUNT ?? "0", 10);
+  const count = Number.isInteger(parsed) && parsed > 0 ? parsed : 0;
+  return {
+    ...env,
+    GIT_TERMINAL_PROMPT: "0",
+    GIT_CONFIG_COUNT: String(count + 1),
+    [`GIT_CONFIG_KEY_${count}`]: "protocol.ext.allow",
+    [`GIT_CONFIG_VALUE_${count}`]: "never",
+  };
+}
 
 export interface KbDependencyOptions {
   readonly git?: GitRunner;
@@ -135,6 +153,25 @@ function optionalText(
     );
   }
   return value.trim();
+}
+
+/**
+ * A repository URL or ref that git cannot read as a command-line option.
+ * Both values come from files the repository itself carries, so a value such
+ * as `--upload-pack=<command>` must never reach git as an argument.
+ */
+function safeGitArgument(value: string, key: string, where: string): string {
+  const hasControlCharacter = [...value].some((character) => {
+    const code = character.charCodeAt(0);
+    return code < 0x20 || code === 0x7f;
+  });
+  if (value.startsWith("-") || hasControlCharacter) {
+    throw new KbDependencyError(
+      "DEPENDENCIES_INVALID",
+      `${where}: '${key}' must not start with '-' or contain control characters.`,
+    );
+  }
+  return value;
 }
 
 function safeDirectory(
@@ -207,7 +244,9 @@ export function readKbDependencies(workspaceRoot: string): KbDependencySpec[] {
           `${where}: 'git' is required (a repository URL or path).`,
         );
       }
+      safeGitArgument(git, "git", where);
       const ref = optionalText(raw, "ref", where);
+      if (ref !== undefined) safeGitArgument(ref, "ref", where);
       const directory = safeDirectory(
         optionalText(raw, "directory", where),
         where,
@@ -251,6 +290,9 @@ export function readKbDependencyLock(workspaceRoot: string): KbDependencyLock {
         `${KB_DEPENDENCIES_LOCK_PATH} entry '${name}' is malformed; run 'kibi deps lock --update ${name}'.`,
       );
     }
+    const where = `${KB_DEPENDENCIES_LOCK_PATH} entry '${name}'`;
+    safeGitArgument(raw.git, "git", where);
+    if (typeof raw.ref === "string") safeGitArgument(raw.ref, "ref", where);
     lock[name] = {
       git: raw.git,
       ...(typeof raw.ref === "string" ? { ref: raw.ref } : {}),
@@ -305,12 +347,20 @@ export function resolveGitRef(
   git: GitRunner = defaultGitRunner,
 ): string {
   const wanted = ref ?? "HEAD";
+  safeGitArgument(url, "git", "KB dependency");
+  safeGitArgument(wanted, "ref", "KB dependency");
   if (COMMIT_PATTERN.test(wanted)) return wanted;
   let output: string;
   try {
     // Patterns match by suffix; the peeled `^{}` line of an annotated tag
     // is only listed when asked for.
-    output = git(["ls-remote", url, wanted, `${wanted}^{}`]);
+    output = git([
+      "ls-remote",
+      "--end-of-options",
+      url,
+      wanted,
+      `${wanted}^{}`,
+    ]);
   } catch (error) {
     throw new KbDependencyError(
       "DEPENDENCY_FETCH_FAILED",
@@ -408,6 +458,13 @@ export function materializeKbDependency(
   options: KbDependencyOptions = {},
 ): string {
   const git = options.git ?? defaultGitRunner;
+  safeGitArgument(url, "git", "KB dependency");
+  if (!COMMIT_PATTERN.test(commit)) {
+    throw new KbDependencyError(
+      "DEPENDENCIES_INVALID",
+      `KB dependency commit '${commit}' is not a full commit id.`,
+    );
+  }
   const checkout = kbDependencyCheckoutPath(
     kbDependencyCacheRoot(options.env),
     url,
@@ -419,7 +476,10 @@ export function materializeKbDependency(
   try {
     git(["init", "-q", staging]);
     try {
-      git(["fetch", "-q", "--depth", "1", url, commit], staging);
+      git(
+        ["fetch", "-q", "--depth", "1", "--end-of-options", url, commit],
+        staging,
+      );
     } catch {
       // Servers that refuse a fetch by commit id still serve its history.
       try {
@@ -427,6 +487,7 @@ export function materializeKbDependency(
           [
             "fetch",
             "-q",
+            "--end-of-options",
             url,
             "+refs/heads/*:refs/remotes/origin/*",
             "+refs/tags/*:refs/tags/*",

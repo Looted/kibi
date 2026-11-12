@@ -241,3 +241,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0da43488298
+  - type: verified_by
+    from: SCEN-NEG-kb-dependency-untrusted-input
+    to: TEST-kb-dependency-untrusted-input
+    created_at: 2026-11-12T13:46:28.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85b2176ea941
+  - type: assumes
+    from: SCEN-NEG-kb-dependency-untrusted-input
+    to: FACT-NEG-kb-dependency-untrusted-input-HYPHEN-ACCEPTED
+    created_at: 2026-11-12T14:41:27.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd75ef985160
+  - type: assumes
+    from: SCEN-NEG-kb-dependency-untrusted-input
+    to: FACT-NEG-kb-dependency-untrusted-input-CHECKOUT-CONFIG-LOADED
+    created_at: 2026-11-12T14:41:27.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-894ded19cc53

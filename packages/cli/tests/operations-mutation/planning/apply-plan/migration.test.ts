@@ -599,16 +599,15 @@ describe("migration action execution", () => {
     const review = [
       ...schema6Module.SCHEMA6_APPROVABLE_REVIEW_CODES,
     ][0] as string;
-    const s = setup([
-      { id: "m1", code: automatic },
-      {
-        id: "m2",
-        code: review,
-        safety: "review",
-        autoApplicable: false,
-        invocation: { kind: "cli", command: "kibi" } as never,
-      },
-    ]);
+    const sync = stubSync(true);
+    const reviewAction = {
+      id: "m2",
+      code: review,
+      safety: "review",
+      autoApplicable: false,
+      invocation: { kind: "cli", command: "kibi" } as never,
+    } as const;
+    const s = setup([{ id: "m1", code: automatic }, reviewAction]);
     await s.run();
     expect(
       apply.mock.calls.map((call) => (call[0] as { id: string }).id),
@@ -617,6 +616,69 @@ describe("migration action execution", () => {
       workspaceRoot: s.root,
       sourceMutationLockHeld: true,
     });
+    // An approved source change is compiled once, after the last action.
+    expect(sync.mock.calls).toEqual([[{ workspaceRoot: s.root }]]);
+    sync.mockRestore();
+
+    // A compile action after it leaves nothing to compile.
+    const compiled = stubSync(true);
+    await setup([reviewAction, { id: "m3", code: "freshness_resync" }]).run();
+    expect(compiled.mock.calls).toHaveLength(1);
+    compiled.mockRestore();
+
+    stubSync(false);
+    expect((await setup([reviewAction]).run()).structuredContent).toMatchObject(
+      {
+        actionResults: [
+          { actionId: "m2", outcome: "applied" },
+          {
+            actionId: "post-apply-sync",
+            outcome: "failed",
+            detail:
+              "Recompiling the applied sources failed (kibi sync did not complete successfully); run kibi sync.",
+          },
+        ],
+      },
+    );
+  });
+
+  test("a post-apply compile that throws is reported as failed", async () => {
+    statuses(live());
+    track(
+      spyOn(schema6Module, "applySchema6MigrationAction").mockImplementation(
+        async () => undefined as never,
+      ),
+    );
+    const review = [
+      ...schema6Module.SCHEMA6_APPROVABLE_REVIEW_CODES,
+    ][0] as string;
+    for (const thrown of [new Error("not a git repository"), "boom"]) {
+      const sync = track(
+        spyOn(syncModule, "syncCommand").mockImplementation(async () => {
+          throw thrown;
+        }),
+      );
+      const result = await setup([
+        {
+          id: "m2",
+          code: review,
+          safety: "review",
+          autoApplicable: false,
+          invocation: { kind: "cli", command: "kibi" } as never,
+        },
+      ]).run();
+      expect(result.structuredContent).toMatchObject({
+        actionResults: [
+          { actionId: "m2", outcome: "applied" },
+          {
+            actionId: "post-apply-sync",
+            outcome: "failed",
+            detail: `Recompiling the applied sources failed (${thrown instanceof Error ? thrown.message : thrown}); run kibi sync.`,
+          },
+        ],
+      });
+      sync.mockRestore();
+    }
   });
 });
 

@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4cbaf3f18cbc
+  - type: assumes
+    from: SCEN-NEG-proof-step-order-OUT-OF-ORDER
+    to: FACT-NEG-proof-step-order-OUT-OF-ORDER
+    created_at: 2026-11-12T16:09:13.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0ba4f4d81d7
+  - type: verified_by
+    from: SCEN-NEG-proof-step-order-OUT-OF-ORDER
+    to: TEST-proof-step-order
+    created_at: 2026-11-12T16:09:13.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2573320a07a

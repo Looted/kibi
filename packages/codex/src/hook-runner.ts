@@ -15,6 +15,7 @@ import {
   isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
+  removesOnlyDeadImplementsComments,
   requestWords,
   rulePromptNote,
   settleFirmRequirements,
@@ -145,7 +146,8 @@ function isKnownEditTool(toolName: string | undefined): boolean {
   return toolName !== undefined && editableTools.has(toolName);
 }
 
-type EditTarget = { relative: string; absolute: string };
+/** `base` is the directory the call's relative paths resolve against. */
+type EditTarget = { relative: string; absolute: string; base: string };
 
 /** Workspace files an edit call targets, including `apply_patch` headers. */
 function editTargets(
@@ -163,6 +165,7 @@ function editTargets(
     .map((target) => ({
       relative: target.workspaceRelative,
       absolute: target.absolute,
+      base: input.cwd ?? workspaceRoot,
     }));
 }
 
@@ -276,6 +279,11 @@ function firmNotice(
       wholeFile: focus === undefined,
       summarize,
       confirmed: settled,
+      commentOnly: removesOnlyDeadImplementsComments(
+        target.absolute,
+        input.toolInput,
+        target.base,
+      ),
     });
     if (ids.length === 0) continue;
     settleFirmRequirements(session, ids);

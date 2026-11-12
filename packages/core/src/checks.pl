@@ -2534,8 +2534,11 @@ retired_reason(Props, Reason) :-
 % read it as current. Owners: the requirements that ground a fact
 % (constrains, requires_property, requires_predicate, requires_rule), that
 % specify a scenario (specified_by), and that a test verifies directly
-% (verified_by, validates) or through a scenario it verifies. Entities
-% without any owner are left to the coverage and dangling rules.
+% (verified_by, validates) or through a scenario it verifies. An owner that
+% is superseded or deprecated is no current owner either, so a dependent
+% whose owners mix retired with superseded or deprecated requirements is
+% reported too; one with no retired owner is left to the supersession rules.
+% Entities without any owner are left to the coverage and dangling rules.
 check_retired_owner_only(Violations) :-
     findall(ReqId,
         (   kb_entity(ReqId, req, Props),
@@ -2545,21 +2548,30 @@ check_retired_owner_only(Violations) :-
     sort(Retired0, Retired),
     (   Retired == []
     ->  Violations = []
-    ;   findall(Type-Id-Owners,
-            retired_only_dependent(Retired, Type, Id, Owners),
+    ;   requirement_sets(_, Past),
+        findall(Type-Id-Owners-Kind,
+            retired_only_dependent(Retired, Past, Type, Id, Owners, Kind),
             Found0),
         sort(Found0, Found),
         maplist(retired_owner_only_violation, Found, Violations)
     ).
 
-retired_only_dependent(Retired, Type, Id, Owners) :-
+%% retired_only_dependent(+Retired, +Past, -Type, -Id, -Owners, -Kind)
+% Kind is retired when every owner is retired, and mixed when every owner is
+% retired, superseded or deprecated and at least one is retired.
+retired_only_dependent(Retired, Past, Type, Id, Owners, Kind) :-
     member(Type, [fact, scenario, test]),
     kb_entity(Id, Type, Props),
     live_dependent(Type, Props),
     findall(ReqId, dependent_owner(Type, Id, ReqId), Owners0),
     sort(Owners0, Owners),
     Owners \== [],
-    ord_subtract(Owners, Retired, []).
+    ord_subtract(Owners, Past, []),
+    ord_intersect(Owners, Retired),
+    (   ord_subtract(Owners, Retired, [])
+    ->  Kind = retired
+    ;   Kind = mixed
+    ).
 
 %% live_dependent(+Type, +Props)
 % A fact or scenario is archived once its status is deprecated (or a legacy
@@ -2588,7 +2600,7 @@ dependent_owner(test, TestId, ReqId) :-
     ),
     kb_entity(ReqId, req, _).
 
-retired_owner_only_violation(Type-Id-Owners, violation(
+retired_owner_only_violation(Type-Id-Owners-Kind, violation(
     'retired-owner-only',
     Id,
     Description,
@@ -2597,11 +2609,16 @@ retired_owner_only_violation(Type-Id-Owners, violation(
     _{entityType: Type, owners: Owners}
 )) :-
     atomic_list_concat(Owners, ', ', OwnerText),
+    retired_owner_only_owners(Kind, OwnersText),
     format(string(Description),
-        "Current ~w ~w is owned only by retired requirements (~w), so it describes behavior that no longer exists",
-        [Type, Id, OwnerText]),
+        "Current ~w ~w is owned only by ~w (~w), so it describes behavior that no longer exists",
+        [Type, Id, OwnersText, OwnerText]),
     retired_owner_only_suggestion(Type, Suggestion),
     violation_source(Id, Type, Source).
+
+retired_owner_only_owners(retired, "retired requirements").
+retired_owner_only_owners(mixed,
+    "retired requirements and requirements that are superseded or deprecated").
 
 retired_owner_only_suggestion(test,
     "Link the test to the current requirement or scenario whose behavior it still checks, or delete it (kb_delete) if that behavior is gone").

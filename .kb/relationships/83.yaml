@@ -283,3 +283,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f02812f3433f
+  - type: verified_by
+    from: REQ-kb-dependency-untrusted-input
+    to: TEST-kb-dependency-untrusted-input
+    created_at: 2026-11-12T13:31:03.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f103bb473058
+  - type: specified_by
+    from: REQ-kb-dependency-untrusted-input
+    to: SCEN-NEG-kb-dependency-untrusted-input
+    created_at: 2026-11-12T13:47:34.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da2f60e4c818
+  - type: constrains
+    from: REQ-kb-dependency-untrusted-input
+    to: FACT-SUBJECT-kibi-kb-dependency
+    created_at: 2026-11-12T14:40:08.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db5135b5a530
+  - type: requires_property
+    from: REQ-kb-dependency-untrusted-input
+    to: FACT-kb-dependency-untrusted-input-hyphen-value-refused
+    created_at: 2026-11-12T14:40:09.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21d9a7e5e9cc
+  - type: requires_property
+    from: REQ-kb-dependency-untrusted-input
+    to: FACT-kb-dependency-untrusted-input-checkout-config-ignored
+    created_at: 2026-11-12T14:40:09.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bd524e15cf4

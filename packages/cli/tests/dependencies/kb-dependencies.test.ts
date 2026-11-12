@@ -17,6 +17,7 @@ import {
   KB_DEPENDENCY_CACHE_ENV,
   KbDependencyError,
   defaultGitRunner,
+  gitFetchEnvironment,
   kbDependencyCacheRoot,
   kbDependencyCheckoutPath,
   kbDependencyStatus,
@@ -138,6 +139,12 @@ describe("dependency list", () => {
     ["absolute directory", { a: { git: "x", directory: "/etc" } }],
     ["escaping directory", { a: { git: "x", directory: "../up" } }],
     ["parent directory", { a: { git: "x", directory: ".." } }],
+    [
+      "a git url git would read as an option",
+      { a: { git: "--upload-pack=x" } },
+    ],
+    ["a ref git would read as an option", { a: { git: "x", ref: "--foo" } }],
+    ["a git url with a control character", { a: { git: "x\ny" } }],
   ])("rejects %s", (_label, dependencies) => {
     expect(codeOf(() => readKbDependencies(project(dependencies)))).toBe(
       "DEPENDENCIES_INVALID",
@@ -149,6 +156,24 @@ describe("dependency list", () => {
     [
       "malformed entry",
       { lockVersion: 1, dependencies: { a: { git: "x", commit: "nope" } } },
+    ],
+    [
+      "pinned to an option-like git url",
+      {
+        lockVersion: 1,
+        dependencies: {
+          a: { git: "--upload-pack=x", commit: "a".repeat(40), kbSchema: 14 },
+        },
+      },
+    ],
+    [
+      "pinned to an option-like ref",
+      {
+        lockVersion: 1,
+        dependencies: {
+          a: { git: "x", ref: "-x", commit: "a".repeat(40), kbSchema: 14 },
+        },
+      },
     ],
   ])("rejects a lock that is %s", (_label, lock) => {
     const root = project({});
@@ -192,6 +217,114 @@ describe("ref resolution", () => {
       throw new Error("spawn failed");
     };
     expect(() => resolveGitRef("x", "main", failing)).toThrow("spawn failed");
+  });
+});
+
+describe("git argument safety", () => {
+  const forbidden: GitRunner = () => {
+    throw new Error("git must not run");
+  };
+
+  test("a url or ref that git would read as an option never reaches git", () => {
+    const marker = path.join(dir("marker"), "ran");
+    const injection = `--upload-pack=touch ${marker};`;
+    expect(codeOf(() => resolveGitRef(injection, "."))).toBe(
+      "DEPENDENCIES_INVALID",
+    );
+    expect(codeOf(() => resolveGitRef(".", injection))).toBe(
+      "DEPENDENCIES_INVALID",
+    );
+    expect(
+      codeOf(() =>
+        materializeKbDependency(injection, "a".repeat(40), { env: cacheEnv() }),
+      ),
+    ).toBe("DEPENDENCIES_INVALID");
+    expect(existsSync(marker)).toBe(false);
+  });
+
+  test("a commit that is not a full commit id is refused before git runs", () => {
+    expect(
+      codeOf(() =>
+        materializeKbDependency("x", "--upload-pack=x", {
+          env: cacheEnv(),
+          git: forbidden,
+        }),
+      ),
+    ).toBe("DEPENDENCIES_INVALID");
+  });
+
+  test("a read of a lock pinned to an option-like url runs nothing", () => {
+    const marker = path.join(dir("marker"), "ran");
+    const injection = `--upload-pack=touch ${marker};`;
+    const root = project({ lib: { git: injection } });
+    writeFileSync(
+      path.join(root, KB_DEPENDENCIES_LOCK_PATH),
+      JSON.stringify({
+        lockVersion: 1,
+        dependencies: {
+          lib: { git: injection, commit: "a".repeat(40), kbSchema: 14 },
+        },
+      }),
+    );
+    expect(
+      codeOf(() => resolveKbDependency(root, "lib", { env: cacheEnv() })),
+    ).toBe("DEPENDENCIES_INVALID");
+    expect(codeOf(() => lockKbDependencies(root, { env: cacheEnv() }))).toBe(
+      "DEPENDENCIES_INVALID",
+    );
+    expect(existsSync(marker)).toBe(false);
+  });
+
+  test("git receives the url after --end-of-options", () => {
+    const calls: string[][] = [];
+    const recording: GitRunner = (args, cwd) => {
+      calls.push([...args]);
+      return defaultGitRunner(args, cwd);
+    };
+    const repo = providerRepo();
+    const commit = resolveGitRef(repo, "main", recording);
+    materializeKbDependency(repo, commit, { env: cacheEnv(), git: recording });
+    for (const call of calls.filter(
+      (args) => args[0] === "ls-remote" || args[0] === "fetch",
+    )) {
+      expect(call.indexOf("--end-of-options")).toBe(call.indexOf(repo) - 1);
+    }
+    expect(calls.some((args) => args[0] === "ls-remote")).toBe(true);
+    expect(calls.some((args) => args[0] === "fetch")).toBe(true);
+  });
+
+  test("fetches run with the ext transport off and no credential prompt", () => {
+    expect(gitFetchEnvironment({ A: "1" })).toEqual({
+      A: "1",
+      GIT_TERMINAL_PROMPT: "0",
+      GIT_CONFIG_COUNT: "1",
+      GIT_CONFIG_KEY_0: "protocol.ext.allow",
+      GIT_CONFIG_VALUE_0: "never",
+    });
+    expect(
+      gitFetchEnvironment({
+        GIT_CONFIG_COUNT: "1",
+        GIT_CONFIG_KEY_0: "protocol.ext.allow",
+        GIT_CONFIG_VALUE_0: "always",
+      }),
+    ).toMatchObject({
+      GIT_CONFIG_COUNT: "2",
+      GIT_CONFIG_KEY_0: "protocol.ext.allow",
+      GIT_CONFIG_VALUE_0: "always",
+      GIT_CONFIG_KEY_1: "protocol.ext.allow",
+      GIT_CONFIG_VALUE_1: "never",
+    });
+    expect(
+      gitFetchEnvironment({ GIT_CONFIG_COUNT: "x" }).GIT_CONFIG_COUNT,
+    ).toBe("1");
+  });
+
+  test("an ext transport url runs no command", () => {
+    const marker = path.join(dir("marker"), "ran");
+    expect(
+      codeOf(() => resolveGitRef(`ext::sh -c touch% ${marker}`, "main")),
+    ).toBe("DEPENDENCY_FETCH_FAILED");
+    expect(existsSync(marker)).toBe(false);
   });
 });
 

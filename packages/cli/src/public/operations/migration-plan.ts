@@ -597,6 +597,12 @@ function untrackedSourceActionFromViolations(
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
   qualityDiagnostics?: readonly Readonly<Record<string, unknown>>[];
+  /**
+   * Diagnostics the same result already returns in full under
+   * `impactDiagnostics`. Their review action names the diagnostic instead of
+   * carrying a second copy of it.
+   */
+  impactDiagnostics?: ReadonlySet<object>;
 }): MigrationAction[] {
   const actions: MigrationAction[] = [];
   const violations = input.violations ?? [];
@@ -659,7 +665,15 @@ export function buildActionsFromCheck(input: {
               (value): value is string => typeof value === "string",
             )
           : [],
-        evidence: { diagnostic },
+        evidence: input.impactDiagnostics?.has(diagnostic)
+          ? {
+              diagnostic: {
+                id,
+                ...(entityId ? { entityId } : {}),
+                listedIn: "impactDiagnostics",
+              },
+            }
+          : { diagnostic },
         dispositionRequired: true,
       }),
     );
