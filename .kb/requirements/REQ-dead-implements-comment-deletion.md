@@ -11,7 +11,7 @@ origin:
   kind: agent
   ref: 'Maintainer request, 2026-11-12, after the review of release 2026.11.2 reported the findings: "Well, can you make a PR with a hotfix then?" and "Yes, do all post review work in the hotfix."; wording approved by the maintainer, 2026-11-12: "Approve"'
   approved_by: maintainer
-  recorded_at: '2026-11-12T14:15:24.583Z'
+  recorded_at: '2026-11-12T14:23:49.572Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: bdcee676ea598ae46881479bff12ff07cc020ecbd18bcac9a83e11ee6dbfd565
@@ -27,6 +27,7 @@ logic_claims:
   - CLAIM-3C5CD74267F9A999
 id: REQ-dead-implements-comment-deletion
 type: req
+required_evidence: tested
 ---
 An agent host hook must not treat an edit that only deletes inline implements comments as an edit of a firm requirement's code.
 

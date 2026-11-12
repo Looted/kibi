@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c59ccb60f2e4
+  - type: executable_for
+    from: SYM-kb-dependency-untrusted-input-verifier
+    to: TEST-kb-dependency-untrusted-input
+    created_at: 2026-11-12T14:23:34.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b8773ac6a73
