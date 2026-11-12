@@ -245,11 +245,49 @@ The agent never writes arbitrary Prolog as trusted truth. It works through typed
 
 Kibi maintains a canonical traceability and proof chain:
 
-```text
-Requirement -> Scenario -> Test
-     ^                       ^
-     |                       |
- Production symbol     Executable test symbol
+```mermaid
+%%{init: {"flowchart": {"curve": "basis", "nodeSpacing": 40, "rankSpacing": 70}} }%%
+flowchart LR
+    subgraph code["Your code"]
+        direction TB
+        SYM["⚙️ <b>Production code</b>"]
+        TSYM["🧾 <b>Test code</b>"]
+    end
+
+    subgraph intent["Intent"]
+        direction TB
+        REQ["📋 <b>Requirement</b><br/><small>what it must do, and why</small>"]
+        FACT["🔣 <b>Facts and rules</b><br/><small>typed, Prolog-checked</small>"]
+    end
+
+    subgraph behaviour["Behaviour"]
+        direction TB
+        SCEN["🎬 <b>Scenario</b><br/><small>given / when / then</small>"]
+        TEST["🧪 <b>Test</b>"]
+    end
+
+    EV[("✅ <b>Fresh evidence</b><br/><small>bound to the commit</small>")]
+
+    SYM == implements ==> REQ
+    REQ -- "requires_property<br/>requires_predicate" --> FACT
+    REQ == specified_by ==> SCEN
+    SCEN == verified_by ==> TEST
+    SYM -. covered_by .-> TEST
+    TSYM -- executable_for --> TEST
+    TEST == receipts ==> EV
+
+    classDef intent fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#2e1065
+    classDef behaviour fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#172554
+    classDef code fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#451a03
+    classDef evidence fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#052e16
+    class REQ,FACT intent
+    class SCEN,TEST behaviour
+    class SYM,TSYM code
+    class EV evidence
+    style code fill:transparent,stroke:#d97706,stroke-dasharray:4 4,color:#b45309
+    style intent fill:transparent,stroke:#7c3aed,stroke-dasharray:4 4,color:#6d28d9
+    style behaviour fill:transparent,stroke:#2563eb,stroke-dasharray:4 4,color:#1d4ed8
+    linkStyle default stroke:#64748b
 ```
 
 For a requirement to be tested end to end rather than merely documented:
