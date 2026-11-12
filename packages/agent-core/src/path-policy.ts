@@ -174,6 +174,17 @@ export function extractPatchFilePaths(patch: string): string[] {
 }
 
 /**
+ * The patch texts of an edit tool call: the string values of the fields an
+ * `apply_patch` call carries its envelope in (Codex uses `command`).
+ */
+export function extractPatchTexts(toolInput: unknown): string[] {
+  if (!isRecord(toolInput)) return [];
+  return patchTextKeys
+    .map((key) => toolInput[key])
+    .filter((value): value is string => typeof value === "string");
+}
+
+/**
  * Paths an edit tool call targets: explicit path fields plus the files named
  * in patch text (Codex sends `apply_patch` with the patch in `command`).
  */

@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-667da1c9a8d1
+  - type: executable_for
+    from: SYM-test-kb-dependency-untrusted-input
+    to: TEST-kb-dependency-untrusted-input
+    created_at: 2026-11-12T14:36:00.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66bf597c4175

@@ -419,3 +419,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c85d52cd527
+  - type: verified_by
+    from: REQ-dead-implements-comment-deletion
+    to: TEST-dead-implements-comment-deletion
+    created_at: 2026-11-12T13:31:08.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cc3b386fa0c
+  - type: specified_by
+    from: REQ-dead-implements-comment-deletion
+    to: SCEN-dead-implements-comment-deletion
+    created_at: 2026-11-12T13:47:36.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c9da4457f16
+  - type: constrains
+    from: REQ-dead-implements-comment-deletion
+    to: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
+    created_at: 2026-11-12T14:40:05.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0c15bf84e77
+  - type: requires_property
+    from: REQ-dead-implements-comment-deletion
+    to: FACT-dead-implements-comment-deletion-not-firm-edit
+    created_at: 2026-11-12T14:40:05.063Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab3840dc2464
+  - type: specified_by
+    from: REQ-dead-implements-comment-deletion
+    to: SCEN-NEG-dead-implements-comment-deletion-FIRM-EDIT-ASKED
+    created_at: 2026-11-12T14:41:42.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ea3c23fe313

@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d01e3f2efd9
+  - type: implements
+    from: SYM-cli-serves-kb-dependency
+    to: REQ-kb-dependency-untrusted-input
+    created_at: 2026-11-12T13:31:52.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb434e9a0e4
+  - type: covered_by
+    from: SYM-cli-serves-kb-dependency
+    to: TEST-kb-dependency-untrusted-input
+    created_at: 2026-11-12T13:31:52.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e4c1806589f

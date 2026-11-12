@@ -6,6 +6,7 @@ import {
   describeConfiguredCapabilityPlugins,
   readProjectKibiConfig,
   readProjectPackageJson,
+  servesKbDependency,
 } from "../../src/plugins/project-config.js";
 
 const roots: string[] = [];
@@ -109,6 +110,28 @@ describe("readProjectKibiConfig", () => {
     expect(
       failure(() => readProjectKibiConfig(workspace('{"kibi":3}'))).code,
     ).toBe("INVALID_PROJECT_CONFIG");
+  });
+});
+
+describe("a process serving a KB dependency", () => {
+  const plugins =
+    '{"devDependencies":{"kibi-plugin-x":"1.0.0"},"kibi":{"plugins":[{"package":"kibi-plugin-x","capabilities":{"kibi.search-hints.v1":{"mode":"replace"}}}]}}';
+  afterEach(() => {
+    Reflect.deleteProperty(process.env, "KIBI_KB_DEPENDENCY");
+  });
+
+  test("ignores the plugins the checkout's package.json names", () => {
+    const root = workspace(plugins);
+    expect(readProjectKibiConfig(root).plugins).toHaveLength(1);
+    process.env.KIBI_KB_DEPENDENCY = `lib@${"a".repeat(40)}`;
+    expect(readProjectKibiConfig(root)).toStrictEqual({});
+    expect(describeConfiguredCapabilityPlugins(root)).toStrictEqual([]);
+  });
+
+  test("is recognized only by a non-blank KIBI_KB_DEPENDENCY", () => {
+    expect(servesKbDependency({})).toBe(false);
+    expect(servesKbDependency({ KIBI_KB_DEPENDENCY: "  " })).toBe(false);
+    expect(servesKbDependency({ KIBI_KB_DEPENDENCY: "lib@abc" })).toBe(true);
   });
 });
 

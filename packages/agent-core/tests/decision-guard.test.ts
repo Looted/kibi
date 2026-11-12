@@ -17,9 +17,11 @@ import {
   firmRequirementsTouched,
   hasDecisionFlag,
   holdRuleNote,
+  isDeadImplementsComment,
   isRequirementUpsert,
   markDecisionFlag,
   recordRequest,
+  removesOnlyDeadImplementsComments,
   requestWords,
   rulePromptNote,
   settleFirmRequirements,
@@ -79,6 +81,262 @@ describe("confirmFirmEdits", () => {
     expect(confirmFirmEdits({ KIBI_CONFIRM_FIRM_EDITS: "1" })).toBe(true);
     for (const off of ["0", "false", " OFF ", "False"])
       expect(confirmFirmEdits({ KIBI_CONFIRM_FIRM_EDITS: off })).toBe(false);
+  });
+});
+
+describe("dead implements comments", () => {
+  test("only a line that is nothing but an implements comment counts", () => {
+    for (const line of [
+      "// implements REQ-a",
+      "  # implements REQ-A-1, REQ-b_2",
+      "% implements: REQ-a",
+      " * implements REQ-a",
+      "/* implements REQ-a */",
+      "-- Implements REQ-a",
+    ]) {
+      expect(isDeadImplementsComment(line)).toBe(true);
+    }
+    for (const line of [
+      "",
+      "// this class implements Runnable",
+      "total += 1; // implements REQ-a",
+      "// implements REQ-a and more",
+      "implements REQ-a",
+      "// covered_by TEST-a",
+    ]) {
+      expect(isDeadImplementsComment(line)).toBe(false);
+    }
+  });
+
+  test("an edit that only deletes such comments is recognized", () => {
+    const only = (input: unknown) =>
+      removesOnlyDeadImplementsComments("/nonexistent", input);
+    expect(
+      only({
+        old_string: "# implements REQ-a\ndef f():\n    # implements REQ-b\n",
+        new_string: "def f():\n",
+      }),
+    ).toBe(true);
+    expect(
+      only({
+        edits: [
+          { oldString: "// implements REQ-a\nfn();", newString: "fn();" },
+          { old_string: "x\n// implements REQ-b", new_string: "x" },
+        ],
+      }),
+    ).toBe(true);
+    // Nothing removed, code changed, code removed, or a comment added.
+    expect(only({ old_string: "fn();", new_string: "fn();" })).toBe(false);
+    expect(
+      only({ old_string: "// implements REQ-a\nfn();", new_string: "fn2();" }),
+    ).toBe(false);
+    expect(
+      only({ old_string: "// implements REQ-a\nfn();", new_string: "" }),
+    ).toBe(false);
+    expect(
+      only({ old_string: "fn();", new_string: "// implements REQ-a\nfn();" }),
+    ).toBe(false);
+    expect(
+      only({
+        edits: [
+          { old_string: "// implements REQ-a\nfn();", new_string: "fn();" },
+          { old_string: "a", new_string: "b" },
+        ],
+      }),
+    ).toBe(false);
+    // Half an edit, no edit at all, or a shell command.
+    expect(only({ old_string: "// implements REQ-a" })).toBe(false);
+    expect(only({})).toBe(false);
+    expect(only(undefined)).toBe(false);
+    expect(only({ command: "sed -i /implements/d a.py" })).toBe(false);
+  });
+
+  test("a whole-file write is compared with the file on disk", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-"));
+    dirs.push(dir);
+    const file = path.join(dir, "a.py");
+    fs.writeFileSync(file, "# implements REQ-a\ndef f():\n    return 1\n");
+    expect(
+      removesOnlyDeadImplementsComments(file, {
+        content: "def f():\n    return 1\n",
+      }),
+    ).toBe(true);
+    expect(
+      removesOnlyDeadImplementsComments(file, {
+        content: "def f():\n    return 2\n",
+      }),
+    ).toBe(false);
+    expect(
+      removesOnlyDeadImplementsComments(path.join(dir, "missing.py"), {
+        content: "x",
+      }),
+    ).toBe(false);
+  });
+
+  describe("apply_patch envelopes", () => {
+    const base = path.join(os.tmpdir(), "kibi-guard-patch");
+    const file = path.join(base, "src", "a.ts");
+    const envelope = (...lines: string[]) =>
+      ["*** Begin Patch", ...lines, "*** End Patch"].join("\n");
+    const only = (patch: string, key = "command", at: string | null = base) =>
+      removesOnlyDeadImplementsComments(
+        file,
+        { [key]: patch },
+        at ?? undefined,
+      );
+
+    test("a section that only removes implements comments is recognized", () => {
+      const patch = envelope(
+        "*** Update File: src/a.ts",
+        "@@ export function f() {",
+        "-// implements REQ-a",
+        " export function f() {",
+        "-  // implements REQ-b, REQ-c",
+        "   return 1;",
+        "*** End of File",
+      );
+      expect(only(patch)).toBe(true);
+      // Every field a host carries a patch in, and an absolute header path.
+      for (const key of ["patch", "input", "patchText"]) {
+        expect(only(patch, key)).toBe(true);
+      }
+      expect(
+        only(
+          envelope(
+            `*** Update File: ${file}`,
+            "@@",
+            "-// implements REQ-a",
+            " export const a = 1;",
+          ),
+        ),
+      ).toBe(true);
+    });
+
+    test("a section that also changes code, adds a line or removes nothing is not", () => {
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "@@",
+            "-// implements REQ-a",
+            "-export const a = 1;",
+            "+export const a = 2;",
+          ),
+        ),
+      ).toBe(false);
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "@@",
+            "-// implements REQ-a",
+            "+// implements REQ-b",
+          ),
+        ),
+      ).toBe(false);
+      expect(
+        only(
+          envelope("*** Update File: src/a.ts", "@@", " export const a = 1;"),
+        ),
+      ).toBe(false);
+    });
+
+    test("adding, deleting or moving the file is not", () => {
+      expect(
+        only(envelope("*** Add File: src/a.ts", "+// implements REQ-a")),
+      ).toBe(false);
+      expect(only(envelope("*** Delete File: src/a.ts"))).toBe(false);
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "*** Move to: src/b.ts",
+            "@@",
+            "-// implements REQ-a",
+          ),
+        ),
+      ).toBe(false);
+    });
+
+    test("in a multi-file patch only the section for the file counts", () => {
+      const patch = envelope(
+        "*** Update File: src/a.ts",
+        "@@",
+        "-// implements REQ-a",
+        " export const a = 1;",
+        "*** Update File: src/other.ts",
+        "@@",
+        "-export const b = 1;",
+        "+export const b = 2;",
+        "*** Add File: src/new.ts",
+        "+export const c = 3;",
+      );
+      expect(only(patch)).toBe(true);
+      expect(
+        removesOnlyDeadImplementsComments(
+          path.join(base, "src", "other.ts"),
+          { command: patch },
+          base,
+        ),
+      ).toBe(false);
+      // A patch that does not name the file says nothing about it.
+      expect(
+        removesOnlyDeadImplementsComments(
+          path.join(base, "src", "unnamed.ts"),
+          { command: patch },
+          base,
+        ),
+      ).toBe(false);
+      // Without a base to resolve paths against, every section must qualify.
+      expect(only(patch, "command", null)).toBe(false);
+      expect(
+        only(
+          envelope("*** Update File: src/a.ts", "@@", "-// implements REQ-a"),
+          "command",
+          null,
+        ),
+      ).toBe(true);
+    });
+
+    test("anything that is not one well-formed envelope is not", () => {
+      const section = [
+        "*** Update File: src/a.ts",
+        "@@",
+        "-// implements REQ-a",
+      ];
+      expect(only(section.join("\n"))).toBe(false);
+      expect(only(["*** Begin Patch", ...section].join("\n"))).toBe(false);
+      expect(only(envelope("-// implements REQ-a"))).toBe(false);
+      expect(only(envelope())).toBe(false);
+      expect(only(envelope(...section, "garbage line"))).toBe(false);
+      expect(only(`apply_patch <<'EOF'\n${envelope(...section)}\nEOF`)).toBe(
+        false,
+      );
+      // A patch beside replacement fields is no shape a host sends.
+      expect(
+        removesOnlyDeadImplementsComments(
+          file,
+          {
+            command: envelope(...section),
+            old_string: "// implements REQ-a\n",
+            new_string: "",
+          },
+          base,
+        ),
+      ).toBe(false);
+    });
+  });
+
+  test("a comment-only edit touches no firm requirement", () => {
+    expect(
+      firmRequirementsTouched({
+        symbols: [symbol("SYM-a", 1, 9, ["REQ-firm"])],
+        focus: undefined,
+        wholeFile: true,
+        summarize,
+        commentOnly: true,
+      }),
+    ).toEqual({ ids: [], symbol: undefined });
   });
 });
 

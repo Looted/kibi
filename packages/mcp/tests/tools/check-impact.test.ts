@@ -221,7 +221,7 @@ describe("MCP kb_check impact diagnostics", () => {
     );
   }, 30000);
 
-  test("returns scoped quality diagnostics alongside impact diagnostics", async () => {
+  test("returns each scoped quality diagnostic once, with the impact diagnostics", async () => {
     writeMultiRequirementSource(workspaceRoot);
     writeSymbolsManifest(
       workspaceRoot,
@@ -251,12 +251,17 @@ describe("MCP kb_check impact diagnostics", () => {
     expect(result.structuredContent?.impactDiagnostics).toContainEqual(
       expect.objectContaining({ id: "symbol_semantic_review_needed" }),
     );
-    expect(result.structuredContent?.qualityDiagnostics).toContainEqual(
+    expect(result.structuredContent?.impactDiagnostics).toContainEqual(
       expect.objectContaining({
         id: "multi_requirement_symbol_review",
         entityId: "SYM-MULTI-MCP-001",
       }),
     );
+    expect(
+      (result.structuredContent?.qualityDiagnostics ?? []).filter(
+        (diagnostic) => diagnostic.id === "multi_requirement_symbol_review",
+      ),
+    ).toStrictEqual([]);
     expect(result.structuredContent?.nextActions).toContainEqual(
       expect.stringContaining("kb_search"),
     );
