@@ -27,8 +27,13 @@ type Entity = Readonly<Record<string, unknown>>;
 
 const CURRENT = new Set(["open", "in_progress"]);
 const BROAD_THRESHOLD = 8;
+/**
+ * A sentence that says the reason is missing. Words may sit between "reason"
+ * and the verb ("Reason beyond the naming review not stated", "No further
+ * reason is recorded"), but not across a sentence end.
+ */
 const NOT_STATED =
-  /reason (?:was |is )?(?:not|never) (?:stated|given|recorded|documented)|no (?:stated |recorded )?reason (?:was |is )?(?:stated|given|recorded)/i;
+  /\breasons?\b[^.!?\n]{0,60}?\b(?:(?:was|is|were|are) )?(?:not|never) (?:stated|given|recorded|documented)\b|\bno (?:\w+ ){0,2}reasons? (?:(?:was|is|were|are) )?(?:stated|given|recorded|documented)\b/i;
 const REASON_WORDS =
   /\b(?:because|so that|in order to|to (?:ensure|prevent|avoid|make|allow|keep|let)|this (?:ensures|prevents|allows|makes|keeps))\b/i;
 
@@ -101,9 +106,7 @@ function finalCheckMentions(context: CaseSignalContext, needle: string) {
   for (let index = context.results.length - 1; index >= 0; index -= 1) {
     const request = context.results[index];
     if (request?.tool !== "kb_check") continue;
-    return JSON.stringify(resultPayload(request.result) ?? {}).includes(
-      needle,
-    );
+    return JSON.stringify(resultPayload(request.result) ?? {}).includes(needle);
   }
   return false;
 }
@@ -213,9 +216,7 @@ export function qualitySignalObserved(
         children.length > 0 &&
         children.every((child) => {
           const targets = relationshipTargets(child.specified_by);
-          return (
-            targets.length > 0 && targets.every((id) => scenarios.has(id))
-          );
+          return targets.length > 0 && targets.every((id) => scenarios.has(id));
         })
       );
     }
