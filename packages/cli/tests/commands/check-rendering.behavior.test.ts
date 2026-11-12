@@ -769,7 +769,7 @@ Body.
     expect(io.logText()).not.toContain("Source analysis partial");
   });
 
-  test("records the first audited no-impact override declared in entity-lane markdown", async () => {
+  test("does not treat a no-impact line in entity-lane markdown as evidence", async () => {
     const cwd = prepareWorkspace();
     const entries = [
       stagedPath({
@@ -811,16 +811,7 @@ Body.
 
     expect(result.exitCode).toBe(0);
     const evidence = collect.mock.calls[0]?.[0];
-    const mode = evidence?.mode;
-    expect(mode?.kind).toBe("no_impact_override");
-    if (mode?.kind === "no_impact_override") {
-      expect(mode.override).toMatchObject({
-        path: ".kb/facts/impact-note.md",
-        rationale: "config-only tweak",
-        reason: "non_behavioral_source_edit",
-        sourcePaths: ["src/widget.ts"],
-      });
-    }
+    expect(evidence?.mode).toEqual({ kind: "missing" });
     expect(io.logText()).toContain(
       "No exported symbols or staged entities found in staged files.",
     );

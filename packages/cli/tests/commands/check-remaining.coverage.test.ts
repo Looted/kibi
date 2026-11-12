@@ -218,15 +218,7 @@ describe("checkCommand remaining runtime branches", () => {
       path.join(cwd, "src", "tests", "flow.spec.jsx"),
       "export function spec() { return true; }\n",
     );
-    writeFileSync(
-      path.join(cwd, "impact.md"),
-      "Kibi-Impact: none\nRationale: docs only\n",
-    );
-    writeFileSync(
-      path.join(cwd, "impact-2.md"),
-      "Kibi-Impact: none\nRationale: second override is ignored\n",
-    );
-    git(cwd, "add docs/notes.md src/tests/flow.spec.jsx impact.md impact-2.md");
+    git(cwd, "add docs/notes.md src/tests/flow.spec.jsx");
     const io = captureIo();
     restores.push(io.restore);
     const result = await withCwd(cwd, () =>
@@ -601,29 +593,6 @@ describe("checkCommand remaining runtime branches", () => {
     expect(violations[0]?.description).not.toContain("scenario");
     expect(violations[0]?.suggestion).toContain("Create test");
     expect(violations[0]?.source).toBe("docs/req.md");
-  });
-
-  test("records an audited no-impact override from non-entity markdown", async () => {
-    const cwd = preparedWorkspace();
-    mkdirSync(path.join(cwd, "src"), { recursive: true });
-    writeFileSync(path.join(cwd, "src", "widget.ts"), "const x = 1;\n");
-    writeFileSync(
-      path.join(cwd, "impact.md"),
-      "Kibi-Impact: none\nRationale: comment-only tweak with no behavior change\n",
-    );
-    git(cwd, "add src/widget.ts impact.md");
-    const extract = await import("../../src/traceability/symbol-extract.js");
-    const extractSpy = spyOn(
-      extract,
-      "extractSymbolsFromStagedFileAsync",
-    ).mockResolvedValue([]);
-    restores.push(() => extractSpy.mockRestore());
-    const io = captureIo();
-    restores.push(io.restore);
-    const result = await withCwd(cwd, () =>
-      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
-    );
-    expect([0, 1]).toContain(result.exitCode);
   });
 
   test("returns staged diagnostics when markdown entities exist but no symbols were extracted", async () => {

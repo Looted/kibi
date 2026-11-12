@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
   KIBI_ENTITY_SCHEMA_DOC,
-  KIBI_NO_IMPACT_DECLARATION,
   KIBI_STAGED_IMPACT_EVIDENCE_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
   KIBI_SYMBOL_COORDINATES_PATH,
@@ -13,7 +12,6 @@ import {
   getKbCoveredSourcePaths,
   getKbEvidencePaths,
   getMissingBehaviorSourcePaths,
-  hasOverrideRationale,
 } from "../../src/traceability/evidence-model.js";
 
 function evidence(
@@ -57,26 +55,14 @@ const kbChanges: KibiImpactMode = {
   ],
 };
 
-const override = (rationale: string): KibiImpactMode => ({
-  kind: "no_impact_override",
-  override: {
-    declaration: "Kibi-Impact: none",
-    path: ".kibi/override.md",
-    sourcePaths: ["src/z.ts"],
-    reason: "false_positive",
-    rationale,
-  },
-});
-
 describe("evidence model constants", () => {
-  test("name the canonical docs, paths and declaration", () => {
+  test("name the canonical docs, and paths", () => {
     expect(KIBI_STAGED_IMPACT_EVIDENCE_DOC).toBe(
       "docs/cli-reference.md#staged-impact-evidence",
     );
     expect(KIBI_ENTITY_SCHEMA_DOC).toBe("docs/entity-schema.md");
     expect(KIBI_SYMBOLS_MANIFEST_PATH).toBe(".kb/symbols.yaml");
     expect(KIBI_SYMBOL_COORDINATES_PATH).toBe(".kb/symbol-coordinates.yaml");
-    expect(KIBI_NO_IMPACT_DECLARATION).toBe("Kibi-Impact: none");
   });
 });
 
@@ -92,7 +78,9 @@ describe("evidence model selectors", () => {
       "src/a.ts",
       "src/z.ts",
     ]);
-    expect(getKbCoveredSourcePaths(evidence(override("r")))).toStrictEqual([]);
+    expect(
+      getKbCoveredSourcePaths(evidence({ kind: "missing" })),
+    ).toStrictEqual([]);
   });
 
   test("fresh manifest paths are sorted and only for a fresh manifest", () => {
@@ -124,15 +112,9 @@ describe("evidence model selectors", () => {
       ".kb/requirements/REQ-z.md",
     ]);
     expect(
-      getKbEvidencePaths(evidence(override("r"), { state: "fresh" })),
+      getKbEvidencePaths(evidence({ kind: "missing" }, { state: "fresh" })),
     ).toStrictEqual([".kb/symbols.yaml"]);
     expect(getKbEvidencePaths(evidence({ kind: "missing" }))).toStrictEqual([]);
-  });
-
-  test("override rationale must be non-blank", () => {
-    expect(hasOverrideRationale(evidence(override("because")))).toBe(true);
-    expect(hasOverrideRationale(evidence(override("  ")))).toBe(false);
-    expect(hasOverrideRationale(evidence(kbChanges))).toBe(false);
   });
 
   test("missing paths subtract KB and fresh manifest coverage", () => {
@@ -143,7 +125,10 @@ describe("evidence model selectors", () => {
     ).toStrictEqual(["src/m.ts"]);
     expect(
       getMissingBehaviorSourcePaths(
-        evidence(override("r"), { state: "stale", sourcePaths: ["src/b.ts"] }),
+        evidence(
+          { kind: "missing" },
+          { state: "stale", sourcePaths: ["src/b.ts"] },
+        ),
       ),
     ).toStrictEqual(["src/b.ts", "src/m.ts", "src/z.ts"]);
   });

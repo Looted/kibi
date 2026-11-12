@@ -4,16 +4,12 @@ import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
 export const KIBI_IMPACT_DIAGNOSTIC_IDS = [
   "kibi_impact_evidence_missing",
   "symbols_manifest_stale",
-  "kibi_impact_override_missing_rationale",
 ] as const;
 
 export type KibiImpactDiagnosticId =
   (typeof KIBI_IMPACT_DIAGNOSTIC_IDS)[number];
 
-export type KibiImpactEvidenceKind =
-  | "entity_markdown"
-  | "symbols_manifest"
-  | "audited_no_impact";
+export type KibiImpactEvidenceKind = "entity_markdown" | "symbols_manifest";
 
 export interface KibiImpactDiagnosticContract {
   id: KibiImpactDiagnosticId;
@@ -24,8 +20,6 @@ export interface KibiImpactDiagnosticContract {
 export interface KibiImpactEvidenceInput {
   filePath?: string;
   extractionOutputChanged?: boolean;
-  overrideDeclared?: boolean;
-  overrideRationale?: string | null;
   symbolsManifestPath?: string;
 }
 
@@ -34,16 +28,6 @@ export interface BehaviorSourceEditInput {
   diffText: string;
   intersectsBehaviorBearingSymbol: boolean;
   knownUserFacingSurface?: boolean;
-}
-
-export interface ParsedKibiImpactOverride {
-  declared: boolean;
-  rationale: string | null;
-}
-
-export interface AuditedNoImpactOverrideInput {
-  behaviorSourceEdit: boolean;
-  override: ParsedKibiImpactOverride;
 }
 
 /**
@@ -56,10 +40,9 @@ export interface AuditedNoImpactOverrideInput {
  *   changed lines are not comment-only or formatting-only.
  * - `kibi_impact_evidence` is staged entity markdown under `.kb/`, staged
  *   authored `.kb/symbols.yaml` metadata, a symbol manifest that covers
- *   every declaration of the edited file, or an explicit audited
- *   `Kibi-Impact: none` declaration with rationale for
- *   false positives/non-behavior-only edits.
- * - `Kibi-Impact: none` never satisfies a genuine behavior change.
+ *   every declaration of the edited file.
+ * - No declaration line in a commit message or note waives a behavior edit; a
+ *   false positive is cleared by authoring symbol entries for the file.
  * - Test-only edits do not require new KB evidence unless they introduce
  *   executable test symbols that need traceability.
  *
@@ -89,24 +72,11 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
       "Stage .kb/symbols.yaml in the same change as the behavior edit, then re-run or let the hook run kibi check --staged. Symbol coordinates are derived locally and never staged.",
     ],
   },
-  kibi_impact_override_missing_rationale: {
-    id: "kibi_impact_override_missing_rationale",
-    title: "Kibi no-impact override requires an explicit rationale",
-    resolution: [
-      "Use an audited declaration only for false positives or non-behavioral edits.",
-      "Include both 'Kibi-Impact: none' and a nearby 'Rationale:' line describing why the edit has no behavior impact.",
-      "Re-run or let the hook run kibi check --staged.",
-    ],
-  },
 };
 
 export function classifyKibiImpactEvidence(
   input: KibiImpactEvidenceInput,
 ): KibiImpactEvidenceKind | null {
-  if (input.overrideDeclared && hasText(input.overrideRationale)) {
-    return "audited_no_impact";
-  }
-
   const filePath = input.filePath;
   if (!filePath) {
     return null;
@@ -121,24 +91,6 @@ export function classifyKibiImpactEvidence(
   }
 
   return null;
-}
-
-export function parseKibiImpactOverride(
-  text: string,
-): ParsedKibiImpactOverride {
-  const declared = /^Kibi-Impact:\s*none\s*$/im.test(text);
-  const rationale = (text.match(/^Rationale:\s*(.+)/im)?.[1] ?? "").trim();
-  return { declared, rationale: rationale || null };
-}
-
-export function isAuditedNoImpactOverrideAllowed(
-  input: AuditedNoImpactOverrideInput,
-): boolean {
-  return (
-    input.override.declared &&
-    hasText(input.override.rationale) &&
-    !input.behaviorSourceEdit
-  );
 }
 
 export function isBehaviorSourceEdit(input: BehaviorSourceEditInput): boolean {
@@ -187,10 +139,6 @@ function isEntityEvidenceMarkdown(filePath: string): boolean {
 function isSymbolsManifest(filePath: string): boolean {
   const posix = filePath.replaceAll("\\", "/");
   return isSymbolsManifestPath(posix) || posix === ".kb/symbols.yml";
-}
-
-function hasText(value: string | null | undefined): boolean {
-  return typeof value === "string" && value.trim().length > 0;
 }
 
 type ChangedLine = { kind: "add" | "remove"; text: string };

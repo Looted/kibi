@@ -1208,6 +1208,62 @@ if (RUN_NODE_TEST_SUITE) {
       assert.match(output, /src\/sample\.js/);
     });
 
+    it("does not let a no-impact declaration waive a behavior edit", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
+      assertCommandExit(
+        await run(
+          "git",
+          ["reset", "-q", "--hard", "HEAD"],
+          gitOptions(sandbox),
+        ),
+        0,
+        "discarding the previous case's staged fixture",
+      );
+      assertCommandExit(
+        await run("git", ["clean", "-q", "-fd"], gitOptions(sandbox)),
+        0,
+        "removing the previous case's untracked fixture",
+      );
+      assertCommandExit(
+        await kibi(sandbox, ["sync"], { timeoutMs: CHECK_TIMEOUT_MS }),
+        0,
+        "syncing the committed baseline",
+      );
+      writeSandboxFile(
+        sandbox,
+        "src/sample.js",
+        "export function hello() { return 'ok'; }\nexport function missingLink() { return 1; }\nexport function farewell() { return 'bye'; }\n",
+      );
+      writeSandboxFile(
+        sandbox,
+        "impact.md",
+        "Kibi-Impact: none\nRationale: no behavior change\n",
+      );
+      assertCommandExit(
+        await run(
+          "git",
+          ["add", "--", "src/sample.js", "impact.md"],
+          gitOptions(sandbox),
+        ),
+        0,
+        "staging a behavior edit with a no-impact declaration",
+      );
+      const result = await kibi(sandbox, ["check", "--staged"], {
+        timeoutMs: CHECK_TIMEOUT_MS,
+      });
+      assertCommandExit(
+        result,
+        1,
+        "staged check for a behavior edit with a no-impact declaration",
+      );
+      const output = commandText(result);
+      assert.match(output, /kibi_impact_evidence_missing/);
+      assert.doesNotMatch(output, /kibi_impact_override_missing_rationale/);
+    });
+
     it("treats a comment-only staged edit as non-behavioral and checks staged knowledge in an overlay without touching the branch store", async (testContext) => {
       if (!hasProlog) {
         testContext.skip("SWI-Prolog is unavailable");

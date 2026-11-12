@@ -4604,18 +4604,6 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-mcp-cli-help
-  - id: SYM-KIBI-NO-IMPACT-DECLARATION
-    title: KIBI_NO_IMPACT_DECLARATION
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: covered_by
-        target: TEST-proof-no-impact-declaration
-      - type: implements
-        target: REQ-staged-impact-identifiers
   - id: SYM-KIBI-REFRESH-TREE-COMMAND
     title: KIBI_REFRESH_TREE_COMMAND
     sourceFile: packages/vscode/src/extensionIds.ts
@@ -32410,20 +32398,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-impact-diagnostic-ids
-  - id: SYM-proof-no-impact-declaration
-    title: noImpactDeclarationCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - regex
-    origin:
-      kind: agent
-      recorded_at: 2026-10-28T18:57:11.124Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-no-impact-declaration
   - id: SYM-proof-symbols-manifest-path
     title: symbolsManifestPathCertificate
     status: active
