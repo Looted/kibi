@@ -165,7 +165,6 @@ function cacheDirectory(workspaceRoot: string): string {
  * whose rejecting scenarios assume it, and, when none is current, as itself
  * marked as a situation that must not happen.
  */
-// implements REQ-kibi-search-hints-host, REQ-kibi-negative-path-facts-marked
 async function liftToRequirements(
   prolog: Pick<PrologPort, "query">,
   hints: readonly { readonly id: string; readonly score: number }[],

@@ -1291,7 +1291,6 @@ export async function buildSearchAnswer(
   const governingFacts = plans.flatMap((plan) =>
     rowsOf(plan.facts).map((fact) => ({ fact, requirement: plan.req.id })),
   );
-  // implements REQ-kibi-negative-path-facts-marked
   const negativePathOf = new Map(
     seeds.flatMap((match) =>
       match.negativePath !== undefined

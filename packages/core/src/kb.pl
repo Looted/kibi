@@ -2113,7 +2113,6 @@ kb_relationship_edges(Types, Ids, Edges) :-
             Edges).
 
 %% kb_negative_path_facts(+Ids, -Rows)
-% implements REQ-kibi-negative-path-facts-marked
 % The negative-path facts among Ids, each as [FactId, Guarded]. A
 % negative-path fact describes a situation that must not happen: a scenario
 % expecting rejection or error assumes it, and no requirement grounds a claim

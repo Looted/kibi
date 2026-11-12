@@ -52,7 +52,6 @@ function renderSearchTable(payload: Readonly<Record<string, unknown>>): string {
     const reasons = Array.isArray(match.reasons)
       ? match.reasons.join(", ")
       : "";
-    // implements REQ-kibi-negative-path-facts-marked
     // A negative-path fact's title states a situation that must not happen.
     const title = isFields(match.negativePath)
       ? negativePathTitle(stringifyCell(entity.title))

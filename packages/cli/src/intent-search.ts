@@ -772,7 +772,6 @@ export async function rankIntentEntities(
   workspaceRoot: string,
   graphEdges: readonly GraphEdge[] = NO_GRAPH_EDGES,
   bodyCache: MarkdownBodyCache = new Map(),
-  // implements REQ-kibi-negative-path-facts-marked
   negativePathFacts: NegativePathFacts = new Map(),
 ): Promise<IntentSearchResult> {
   const query = topicText(options.query, options.sourceLocations);
@@ -936,7 +935,6 @@ export async function rankIntentEntities(
  * of leading the results. A fact whose guards did not match keeps its own
  * score and is still marked. Other matches rank by their own score.
  */
-// implements REQ-kibi-negative-path-facts-marked
 function negativePathRankScores(
   ranked: readonly IntentSearchMatch[],
 ): Map<IntentSearchMatch, number> {

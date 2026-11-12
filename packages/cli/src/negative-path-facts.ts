@@ -13,15 +13,12 @@ import type { PrologPort } from "./public/operations/runtime-types.js";
  * opposite of what the requirement it guards says. Search, its hints and its
  * answer mark them and rank them below what they guard.
  */
-// implements REQ-kibi-negative-path-facts-marked
 export type NegativePathFacts = ReadonlyMap<string, readonly string[]>;
 
 /** The prefix a rendered negative-path fact's title carries. */
-// implements REQ-kibi-negative-path-facts-marked
 export const NEGATIVE_PATH_PREFIX = "Forbidden: ";
 
 /** The marker a search row, hint or answer entry carries for one. */
-// implements REQ-kibi-negative-path-facts-marked
 export type NegativePathMarker = Readonly<{
   /** Always "forbidden": the fact describes a situation that must not happen. */
   polarity: "forbidden";
@@ -29,7 +26,6 @@ export type NegativePathMarker = Readonly<{
   guards: readonly string[];
 }>;
 
-// implements REQ-kibi-negative-path-facts-marked
 export function negativePathFactsGoal(ids: readonly string[]): string {
   const idList = ids.map((id) => `'${escapeAtom(id)}'`).join(",");
   return `kb_negative_path_facts([${idList}], Rows)`;
@@ -40,7 +36,6 @@ export function negativePathFactsGoal(ids: readonly string[]): string {
  * An engine that cannot answer (an older core) leaves every fact unmarked
  * rather than failing the search.
  */
-// implements REQ-kibi-negative-path-facts-marked
 export async function queryNegativePathFacts(
   prolog: Pick<PrologPort, "query">,
   ids: readonly string[],
@@ -61,14 +56,12 @@ export async function queryNegativePathFacts(
 }
 
 /** The title with the forbidden-situation prefix, added once. */
-// implements REQ-kibi-negative-path-facts-marked
 export function negativePathTitle(title: string): string {
   return title.startsWith(NEGATIVE_PATH_PREFIX)
     ? title
     : `${NEGATIVE_PATH_PREFIX}${title}`;
 }
 
-// implements REQ-kibi-negative-path-facts-marked
 export function negativePathMarker(
   guards: readonly string[],
 ): NegativePathMarker {

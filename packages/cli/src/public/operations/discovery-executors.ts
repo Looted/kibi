@@ -975,7 +975,6 @@ async function searchHintsFor(
  * A top match as the text digest names it. A negative-path fact describes a
  * situation that must not happen, so the digest says so beside its id.
  */
-// implements REQ-kibi-negative-path-facts-marked
 function topMatchLabel(match: {
   readonly entity: Record<string, unknown>;
   readonly negativePath?: NegativePathMarker;
