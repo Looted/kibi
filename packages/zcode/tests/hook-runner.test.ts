@@ -1682,6 +1682,42 @@ describe("ZCode decision guard", () => {
     ).toStartWith(FIRM_NOTICE);
   });
 
+  test("a patch that only deletes implements comments gets no firm-edit notice; the same patch with a code change does", async () => {
+    const { event, fixture } = session();
+    writeFile(
+      fixture.cwd,
+      "src/checkout.ts",
+      "export function computeTotal() {\n  // implements REQ-checkout-rounding\n  return 1;\n}\n",
+    );
+    const patch = (...change: string[]) => ({
+      hook_event_name: "PreToolUse",
+      tool_name: "apply_patch",
+      tool_input: {
+        patchText: [
+          "*** Begin Patch",
+          "*** Update File: src/checkout.ts",
+          "@@ export function computeTotal() {",
+          "-  // implements REQ-checkout-rounding",
+          ...change,
+          "*** End Patch",
+        ].join("\n"),
+      },
+    });
+
+    const commentOnly = expectAdditionalContext(
+      await event(patch("   return 1;"), "comments-1"),
+      "PreToolUse",
+    );
+    expect(commentOnly).toStartWith("Kibi knowledge for src/checkout.ts");
+    expect(commentOnly).not.toContain("which implements a firm requirement");
+    expect(
+      expectAdditionalContext(
+        await event(patch("-  return 1;", "+  return 2;"), "comments-2"),
+        "PreToolUse",
+      ),
+    ).toContain("which implements a firm requirement");
+  });
+
   test("KIBI_CONFIRM_FIRM_EDITS=0 turns the firm-edit notice off", async () => {
     const { event, edit } = session({ KIBI_CONFIRM_FIRM_EDITS: "0" });
     const context = expectAdditionalContext(await event(edit), "PreToolUse");

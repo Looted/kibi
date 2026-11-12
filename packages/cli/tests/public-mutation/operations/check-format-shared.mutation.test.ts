@@ -9,6 +9,7 @@ import {
   formatImpactText,
   formatQualityDiagnosticsText,
   formatViolationText,
+  qualityDiagnosticsBesideImpact,
 } from "../../../src/public/operations/check-format-shared.js";
 
 function impact(
@@ -58,6 +59,110 @@ describe("formatImpactText", () => {
       ),
     ).toBe(
       "2 impact diagnostics found\n- I1 | error | a.ts, b.ts | m1 Suggestion: s1\n- I2 | warning | unknown-source | m2 Suggestion: s2",
+    );
+  });
+});
+
+describe("a suggestion shared by several impact diagnostics", () => {
+  const review = (message: string, extra: Record<string, unknown> = {}) => ({
+    id: "symbol_semantic_review_needed",
+    severity: "warning",
+    files: ["w.py"],
+    message,
+    suggestion: "review",
+    ...extra,
+  });
+
+  test("is written once, above the messages it applies to", () => {
+    expect(
+      formatImpactText(
+        impact([
+          review("a"),
+          { ...review("only"), id: "I9" },
+          review("b"),
+          review("c"),
+        ]),
+      ),
+    ).toBe(
+      [
+        "4 impact diagnostics found",
+        "- symbol_semantic_review_needed | warning | w.py | 3 diagnostics. Suggestion for each: review",
+        "  - a",
+        "  - b",
+        "  - c",
+        "- I9 | warning | w.py | only Suggestion: review",
+      ].join("\n"),
+    );
+  });
+
+  test("is not shared across severities, files or suggestions", () => {
+    expect(
+      formatImpactText(
+        impact([
+          review("a"),
+          review("b", { severity: "error" }),
+          review("c", { files: ["x.py"] }),
+          review("d", { suggestion: "other" }),
+        ]),
+      ),
+    ).toBe(
+      [
+        "4 impact diagnostics found",
+        "- symbol_semantic_review_needed | warning | w.py | a Suggestion: review",
+        "- symbol_semantic_review_needed | error | w.py | b Suggestion: review",
+        "- symbol_semantic_review_needed | warning | x.py | c Suggestion: review",
+        "- symbol_semantic_review_needed | warning | w.py | d Suggestion: other",
+      ].join("\n"),
+    );
+  });
+});
+
+describe("a diagnostic the impact analysis reported", () => {
+  const reported = {
+    id: "symbol_semantic_review_needed",
+    severity: "warning",
+    blocking: false,
+    category: "symbol",
+    files: ["w.py"],
+    message: "m",
+    suggestion: "s",
+  };
+  const other = quality();
+  const result = impact([reported]);
+  const both = [other, reported as unknown as QualityDiagnostic];
+
+  test("is listed under impactDiagnostics only", () => {
+    expect(qualityDiagnosticsBesideImpact(both, undefined)).toBe(both);
+    expect(qualityDiagnosticsBesideImpact(both, result)).toStrictEqual([other]);
+    const content = buildStructuredContent({
+      violations: [],
+      evaluated: { rules: [] },
+      diagnostics: [],
+      qualityDiagnostics: both,
+      impactResult: result,
+    });
+    expect(content.qualityDiagnostics).toStrictEqual([other]);
+    expect(content.impactDiagnostics).toStrictEqual([reported] as never);
+    expect(
+      buildStructuredContent({
+        violations: [],
+        evaluated: { rules: [] },
+        diagnostics: [],
+        qualityDiagnostics: [reported as unknown as QualityDiagnostic],
+        impactResult: result,
+      }),
+    ).not.toHaveProperty("qualityDiagnostics");
+  });
+
+  test("is written once in the summary", () => {
+    expect(
+      buildSummary({
+        violations: [],
+        impactResult: result,
+        qualityDiagnostics: [reported as unknown as QualityDiagnostic],
+      }),
+    ).toBe(
+      "No violations found\n1 impact diagnostics found\n- symbol_semantic_review_needed | warning | w.py | m Suggestion: s",
     );
   });
 });
@@ -277,8 +382,9 @@ describe("buildSummary", () => {
         "No structural violations found. The changed code implements REQ-1; Kibi did not compare the code with its statement (quoted under requirement_statement_unverified below), so confirm the change still does what each says, and ask the person before keeping a change that contradicts one",
         "Evaluated 1 rule.",
         "3 impact diagnostics found",
-        "- requirement_statement_unverified | info | unknown-source | m Suggestion: s",
-        "- requirement_statement_unverified | info | unknown-source | m Suggestion: s",
+        "- requirement_statement_unverified | info | unknown-source | 2 diagnostics. Suggestion for each: s",
+        "  - m",
+        "  - m",
         "- other | info | unknown-source | m Suggestion: s",
         "1 quality diagnostic found",
         "- Q-1 | warning | symbol | msg",

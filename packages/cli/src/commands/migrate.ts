@@ -1809,10 +1809,19 @@ export function isBacklogAction(
   );
 }
 
+/**
+ * INLINE_IMPLEMENTS_REVIEW_CODE of the inline-implements-comments module,
+ * which this command loads only when it scans for the comments.
+ */
+const INLINE_IMPLEMENTS_COMMENT_REVIEW = "review_inline_implements_comment";
+
 /** Review actions that belong to the schema or storage migration itself. */
 const MIGRATION_REVIEW_CODES: ReadonlySet<string> = new Set([
   "review_source_path_dangling",
   "review_supersession_cycle",
+  // Left behind by the upgrade that stopped reading the comments, and it
+  // changes what the staged check accepts, so it is not hidden in a count.
+  INLINE_IMPLEMENTS_COMMENT_REVIEW,
 ]);
 
 function printPlanText(plan: MigrationPlan, listBacklog: boolean): void {
@@ -1831,6 +1840,11 @@ function printPlanText(plan: MigrationPlan, listBacklog: boolean): void {
     console.log(
       `- ${action.state} ${action.safety} ${action.code}: ${action.id}`,
     );
+    if (
+      action.code === INLINE_IMPLEMENTS_COMMENT_REVIEW &&
+      action.invocation.kind === "review"
+    )
+      console.log(`  ${action.invocation.instruction}`);
   }
   if (backlog.length > 0) {
     console.log(

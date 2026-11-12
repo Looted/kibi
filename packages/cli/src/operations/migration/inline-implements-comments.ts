@@ -205,7 +205,7 @@ export function inlineImplementsReviewAction(
     safety: "review",
     invocation: {
       kind: "review",
-      instruction: `${comments.length} inline implements comment(s) in ${files.length} source file(s) name requirements, and Kibi no longer reads them: only .kb/symbols.yaml links a symbol to a requirement, so kibi check --staged now blocks a changed symbol whose only link was a comment. ${alreadyLinked} of them name only requirements a manifest symbol of the same file already implements. For each comment, when the code under it still implements a requirement that manifestLinked does not list, kb_upsert that symbol (title, sourceFile, implements -> the requirement); then delete the comment. Kibi does not edit source code, so the comments stay until you remove them.`,
+      instruction: `${comments.length} inline implements comment(s) in ${files.length} source file(s) name requirements, and Kibi no longer reads them: only .kb/symbols.yaml links a symbol to a requirement, so kibi check --staged now blocks a changed symbol whose only link was a comment. ${alreadyLinked} of them name only requirements a manifest symbol of the same file already implements. For each comment, when the code under it still implements a requirement that manifestLinked does not list, kb_upsert that symbol (title, sourceFile, implements -> the requirement); then delete the comment. Kibi does not edit source code, so the comments stay until you remove them. An editor edit that only deletes these comments is not a change to the requirements they name, so the firm-requirement confirmation does not apply to it.`,
     },
     affectedEntityIds: requirements,
     affectedFiles: files,

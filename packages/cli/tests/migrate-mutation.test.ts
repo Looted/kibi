@@ -29,6 +29,7 @@ import * as entityBodyContext from "../src/operations/migration/entity-body-cont
 import * as entityType from "../src/operations/migration/entity-type.js";
 import * as evidenceFloor from "../src/operations/migration/evidence-floor.js";
 import * as firmSupersede from "../src/operations/migration/firm-supersede.js";
+import { INLINE_IMPLEMENTS_REVIEW_CODE } from "../src/operations/migration/inline-implements-comments.js";
 import * as inventory from "../src/operations/migration/inventory-rederive.js";
 import * as originBackfill from "../src/operations/migration/origin-backfill.js";
 import * as polarity from "../src/operations/migration/polarity-values.js";
@@ -2029,12 +2030,46 @@ describe("plan text", () => {
     expect(logs).toHaveLength(3);
   });
 
+  test("print what to do about inline implements comments", async () => {
+    statusPlan([
+      migrationAction({
+        id: "review-inline-implements-comments",
+        code: INLINE_IMPLEMENTS_REVIEW_CODE,
+        safety: "review",
+        invocation: { kind: "review", instruction: "Move the links." },
+      } as never),
+      migrationAction({
+        id: "r3",
+        code: "review_source_path_dangling",
+        safety: "review",
+        invocation: { kind: "review", instruction: "not printed" },
+      } as never),
+      migrationAction({
+        id: "odd",
+        code: INLINE_IMPLEMENTS_REVIEW_CODE,
+        invocation: { kind: "cli", command_argv: ["kibi", "sync"] },
+      } as never),
+    ]);
+    logs = [];
+    await migrateCommand({ workspaceRoot: cwd });
+    expect(logs.slice(1, -1)).toStrictEqual([
+      "Migration: 3 action(s); automatic-ready: 0",
+      "- ready review review_inline_implements_comment: odd",
+      "- ready review review_source_path_dangling: r3",
+      "- ready review review_inline_implements_comment: review-inline-implements-comments",
+      "  Move the links.",
+    ]);
+  });
+
   test("classify backlog codes", () => {
     expect(isBacklogAction({ code: "quality_a" })).toBe(true);
     expect(isBacklogAction({ code: "coverage_a" })).toBe(true);
     expect(isBacklogAction({ code: "review_a" })).toBe(true);
     expect(isBacklogAction({ code: "review_supersession_cycle" })).toBe(false);
     expect(isBacklogAction({ code: "review_source_path_dangling" })).toBe(
+      false,
+    );
+    expect(isBacklogAction({ code: INLINE_IMPLEMENTS_REVIEW_CODE })).toBe(
       false,
     );
     expect(isBacklogAction({ code: "schema_quality_x" })).toBe(false);

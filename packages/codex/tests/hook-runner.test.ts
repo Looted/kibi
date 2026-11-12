@@ -788,6 +788,51 @@ describe("Codex decision guard", () => {
     expect(contextOf(await event(patch, "guard-2"))).toContain(FIRM_NOTICE);
   });
 
+  test("a patch that only deletes implements comments gets no firm-edit notice; the same patch with a code change does", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(
+      cwd,
+      "src/checkout.ts",
+      "// implements REQ-checkout-rounding\nexport const computeTotal = 1;\n",
+    );
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const patch = (...change: string[]) => ({
+      hook_event_name: "PreToolUse",
+      tool_name: "apply_patch",
+      tool_input: {
+        command: [
+          "*** Begin Patch",
+          "*** Update File: src/checkout.ts",
+          "@@",
+          "-// implements REQ-checkout-rounding",
+          ...change,
+          "*** End Patch",
+        ].join("\n"),
+      },
+    });
+    const run = (payload: Record<string, unknown>, sessionId: string) =>
+      runHook({ session_id: sessionId, cwd, ...payload }, { pluginData });
+
+    const commentOnly = contextOf(
+      await run(patch(" export const computeTotal = 1;"), "comments-1"),
+    );
+    expect(commentOnly).not.toContain(FIRM_NOTICE);
+    // The knowledge snippet still shows, so the file is the governed one.
+    expect(commentOnly).toContain("Kibi knowledge for src/checkout.ts");
+    expect(
+      contextOf(
+        await run(
+          patch(
+            "-export const computeTotal = 1;",
+            "+export const computeTotal = 2;",
+          ),
+          "comments-2",
+        ),
+      ),
+    ).toContain(FIRM_NOTICE);
+  });
+
   test("KIBI_CONFIRM_FIRM_EDITS=0 turns the firm-edit notice off", async () => {
     const event = session({ KIBI_CONFIRM_FIRM_EDITS: "0" });
     const context = contextOf(

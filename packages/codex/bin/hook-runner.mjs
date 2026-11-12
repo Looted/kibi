@@ -56,16 +56,232 @@ function missingHooksNote(workspaceRoot) {
 // ../agent-core/dist/decision-guard.js
 import { createHash as createHash3 } from "node:crypto";
 import fs5 from "node:fs";
-import path5 from "node:path";
+import path6 from "node:path";
+
+// ../agent-core/dist/path-policy.js
+import path2 from "node:path";
+var codeExtensions = new Set([
+  ".c",
+  ".cc",
+  ".cjs",
+  ".cpp",
+  ".cs",
+  ".css",
+  ".go",
+  ".h",
+  ".hpp",
+  ".html",
+  ".java",
+  ".js",
+  ".jsx",
+  ".kt",
+  ".lua",
+  ".mjs",
+  ".mts",
+  ".cts",
+  ".php",
+  ".pl",
+  ".py",
+  ".rb",
+  ".rs",
+  ".scala",
+  ".sh",
+  ".swift",
+  ".ts",
+  ".tsx",
+  ".vue",
+  ".svelte"
+]);
+var ignoredSegments = new Set([
+  "node_modules",
+  "dist",
+  "build",
+  "out",
+  "coverage",
+  "vendor",
+  "target",
+  ".git",
+  ".next",
+  ".turbo",
+  ".cache",
+  "__pycache__"
+]);
+var testSegments = new Set([
+  "test",
+  "tests",
+  "__tests__",
+  "spec",
+  "specs",
+  "e2e",
+  "__mocks__",
+  "fixtures"
+]);
+var testBasename = /(\.|_)(test|spec|e2e)\.[^.]+$|^test_[^/]+\.py$/;
+var documentationExtensions = new Set([".md", ".mdx", ".rst", ".txt"]);
+var documentationSegments = new Set(["docs", "documentation"]);
+var canonicalKbKnowledgeLanes = new Set([
+  "requirements",
+  "scenarios",
+  "tests",
+  "facts",
+  "adr",
+  "flags",
+  "events"
+]);
+var canonicalKbKnowledgeFiles = new Set([
+  "symbols.yaml",
+  "symbol-coordinates.yaml"
+]);
+var explicitPathKeys = new Set([
+  "absolute_path",
+  "file",
+  "file_path",
+  "filepath",
+  "new_path",
+  "old_path",
+  "path",
+  "paths",
+  "relative_path",
+  "target_path"
+]);
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function normalizeWorkspacePath(candidate) {
+  return candidate.trim().replaceAll("\\", "/");
+}
+function pathSegments(candidate) {
+  return normalizeWorkspacePath(candidate).split("/").filter(Boolean);
+}
+function collectPathValues(value, output) {
+  if (typeof value === "string") {
+    const normalized = normalizeWorkspacePath(value);
+    if (normalized.length > 0)
+      output.push(normalized);
+    return;
+  }
+  if (!Array.isArray(value))
+    return;
+  for (const item of value)
+    collectPathValues(item, output);
+}
+function visitExplicitPathFields(value, output) {
+  if (Array.isArray(value)) {
+    for (const item of value)
+      visitExplicitPathFields(item, output);
+    return;
+  }
+  if (!isRecord(value))
+    return;
+  for (const [key, child] of Object.entries(value)) {
+    if (explicitPathKeys.has(key.toLowerCase()))
+      collectPathValues(child, output);
+    visitExplicitPathFields(child, output);
+  }
+}
+function extractExplicitPathFields(input) {
+  const paths = [];
+  visitExplicitPathFields(input, paths);
+  return [...new Set(paths)];
+}
+var patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)/;
+var patchTextKeys = ["command", "patch", "input", "patchText"];
+function extractPatchFilePaths(patch) {
+  const paths = [];
+  for (const line of patch.split(/\r?\n/)) {
+    const match = patchFileHeader.exec(line.trim());
+    const candidate = match?.[1] ? normalizeWorkspacePath(match[1]) : "";
+    if (candidate.length > 0)
+      paths.push(candidate);
+  }
+  return [...new Set(paths)];
+}
+function extractPatchTexts(toolInput) {
+  if (!isRecord(toolInput))
+    return [];
+  return patchTextKeys.map((key) => toolInput[key]).filter((value) => typeof value === "string");
+}
+function extractEditedPaths(toolInput) {
+  const paths = extractExplicitPathFields(toolInput);
+  if (isRecord(toolInput)) {
+    for (const key of patchTextKeys) {
+      const value = toolInput[key];
+      if (typeof value === "string") {
+        paths.push(...extractPatchFilePaths(value));
+      }
+    }
+  }
+  return [...new Set(paths)];
+}
+function canonicalizeWorkspacePath(workspaceRoot, options) {
+  const trimmed = normalizeWorkspacePath(options.rawPath);
+  const base = options.base ?? options.eventCwd ?? workspaceRoot;
+  const absolute = path2.isAbsolute(trimmed) ? path2.resolve(trimmed) : path2.resolve(base, trimmed);
+  const workspaceRelative = path2.relative(workspaceRoot, absolute).replaceAll("\\", "/");
+  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path2.isAbsolute(workspaceRelative)) {
+    return;
+  }
+  return { workspaceRelative, absolute };
+}
+function classifyPath(relativePath) {
+  const segments = pathSegments(relativePath);
+  if (segments[0] === ".kb")
+    return "kb";
+  if (segments.some((segment) => ignoredSegments.has(segment)))
+    return "other";
+  if (segments.some((segment) => documentationSegments.has(segment))) {
+    return "other";
+  }
+  const basename = segments.at(-1);
+  if (basename === undefined)
+    return "other";
+  const extension = path2.extname(basename).toLowerCase();
+  if (!codeExtensions.has(extension))
+    return "other";
+  if (testBasename.test(basename) || segments.some((segment) => testSegments.has(segment))) {
+    return "test";
+  }
+  return "source";
+}
+function isKbPath(candidate) {
+  return pathSegments(candidate).includes(".kb");
+}
+function isCanonicalKbKnowledgePath(segments) {
+  const lane = segments[segments.indexOf(".kb") + 1];
+  return canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane);
+}
+function isMeaningfulTrackedPath(candidate) {
+  const segments = pathSegments(candidate);
+  if (segments.some((segment) => ignoredSegments.has(segment)))
+    return false;
+  if (segments.includes(".kb"))
+    return isCanonicalKbKnowledgePath(segments);
+  const basename = segments.at(-1);
+  if (basename === undefined)
+    return false;
+  const extension = path2.extname(basename).toLowerCase();
+  if (basename === "README.md")
+    return true;
+  if (segments.some((segment) => documentationSegments.has(segment))) {
+    return documentationExtensions.has(extension);
+  }
+  if (testBasename.test(basename) || segments.some((segment) => testSegments.has(segment))) {
+    return codeExtensions.has(extension) || documentationExtensions.has(extension);
+  }
+  return codeExtensions.has(extension);
+}
+function isSourceImpactRelevantPath(candidate) {
+  return classifyPath(normalizeWorkspacePath(candidate)) === "source";
+}
 
 // ../agent-core/dist/requirement-candidates.js
 import fs3 from "node:fs";
-import path3 from "node:path";
+import path4 from "node:path";
 
 // ../agent-core/dist/knowledge-index.js
 import { createHash, randomUUID } from "node:crypto";
 import fs2 from "node:fs";
-import path2 from "node:path";
+import path3 from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 var SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
 var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v2";
@@ -473,7 +689,7 @@ function readText(filePath) {
 }
 function writeCacheAtomically(cachePath, payload) {
   try {
-    fs2.mkdirSync(path2.dirname(cachePath), { recursive: true });
+    fs2.mkdirSync(path3.dirname(cachePath), { recursive: true });
     const temporary = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
     fs2.writeFileSync(temporary, payload);
     fs2.renameSync(temporary, cachePath);
@@ -494,13 +710,13 @@ function scanKnowledgeIndex(symbolsPath, coordinatesPath, options) {
   return buildKnowledgeIndex(records, coordinatesText === undefined ? {} : scanSymbolCoordinates(coordinatesText), options, manifestStateOf(symbolsText, records.length));
 }
 function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
-  const symbolsPath = path2.join(workspaceRoot, SYMBOLS_MANIFEST);
-  const coordinatesPath = path2.join(workspaceRoot, SYMBOL_COORDINATES);
+  const symbolsPath = path3.join(workspaceRoot, SYMBOLS_MANIFEST);
+  const coordinatesPath = path3.join(workspaceRoot, SYMBOL_COORDINATES);
   if (!cacheDir)
     return scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
   const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = path2.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
+  const cachePath = path3.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
   const cached = readCachedIndex(cachePath, signature);
   if (cached !== undefined)
     return cached;
@@ -571,7 +787,7 @@ var RELATIONSHIPS_DIR = ".kb/relationships";
 var shardCache = new Map;
 function shardPathFor(workspaceRoot, entityId) {
   const shard = createHash("sha256").update(entityId).digest("hex");
-  return path2.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
+  return path3.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
 }
 function shardLinksFrom(workspaceRoot, entityId) {
   const shardPath = shardPathFor(workspaceRoot, entityId);
@@ -607,7 +823,7 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   let head;
   try {
-    const descriptor = fs2.openSync(path2.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
+    const descriptor = fs2.openSync(path3.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
       const buffer = Buffer.alloc(8192);
       const bytes = fs2.readSync(descriptor, buffer, 0, buffer.length, 0);
@@ -741,7 +957,7 @@ function readEntitySummary(workspaceRoot, entityId) {
 }
 
 // ../agent-core/dist/requirement-candidates.js
-var REQUIREMENTS_DIR = path3.join(".kb", "requirements");
+var REQUIREMENTS_DIR = path4.join(".kb", "requirements");
 var HEAD_BYTES = 4096;
 var MAX_SCANNED = 2000;
 var MAX_REQUIREMENT_CANDIDATES = 3;
@@ -981,7 +1197,7 @@ function rankRequirementCandidates(relativePath, requirements, limit = MAX_REQUI
 function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_REQUIREMENT_CANDIDATES, requestWords) {
   if (pathTopicWords(relativePath).length === 0 && (requestWords?.length ?? 0) < 2)
     return [];
-  const directory = path3.join(workspaceRoot, REQUIREMENTS_DIR);
+  const directory = path4.join(workspaceRoot, REQUIREMENTS_DIR);
   let names;
   try {
     names = fs3.readdirSync(directory).filter((name) => name.endsWith(".md"));
@@ -990,7 +1206,7 @@ function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_R
   }
   if (names.length > MAX_SCANNED)
     return [];
-  const heads = names.map((name) => readHead(path3.join(directory, name))).filter((head) => head !== undefined);
+  const heads = names.map((name) => readHead(path4.join(directory, name))).filter((head) => head !== undefined);
   const closed = new Set(rankRequirementCandidates(relativePath, heads, heads.length, requestWords).filter(isClosed).map((head) => head.id));
   const replaced = closed.size > 0 ? replacedRequirements(workspaceRoot, heads, closed) : NOTHING_REPLACED;
   return rankRequirementCandidates(relativePath, heads, limit, requestWords, replaced);
@@ -999,7 +1215,7 @@ function requirementCandidatesForPath(workspaceRoot, relativePath, limit = MAX_R
 // ../agent-core/dist/snippets.js
 import { createHash as createHash2 } from "node:crypto";
 import fs4 from "node:fs";
-import path4 from "node:path";
+import path5 from "node:path";
 var MAX_REQUIREMENTS = 4;
 var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
@@ -1323,9 +1539,9 @@ function editKnowledgeContext(input) {
 function claimSnippetSlot(stateDir, key) {
   if (!stateDir)
     return true;
-  const marker = path4.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
+  const marker = path5.join(stateDir, "shown-snippets", createHash2("sha256").update(key).digest("hex").slice(0, 32));
   try {
-    fs4.mkdirSync(path4.dirname(marker), { recursive: true });
+    fs4.mkdirSync(path5.dirname(marker), { recursive: true });
     fs4.writeFileSync(marker, "", { flag: "wx" });
     return true;
   } catch {
@@ -1340,6 +1556,8 @@ function confirmFirmEdits(env) {
   return !(value === "0" || value === "false" || value === "off");
 }
 function firmRequirementsTouched(input) {
+  if (input.commentOnly === true)
+    return { ids: [], symbol: undefined };
   const touched = input.wholeFile ? input.symbols : focusedSymbols(input.symbols, input.focus);
   const ids = implementedRequirementIds(touched).filter((id) => {
     if (input.confirmed?.has(id))
@@ -1348,6 +1566,143 @@ function firmRequirementsTouched(input) {
     return summary.firmness === "firm" && !isRetiredStatus(summary.status);
   });
   return { ids, symbol: input.wholeFile ? undefined : touched[0] };
+}
+var MAX_COMMENT_ONLY_BYTES = 2 * 1024 * 1024;
+var DEAD_IMPLEMENTS_LINE = /^\s*(?:\/\/+|#+|%+|\/\*+|\*|--)\s*(?:implements|Implements|IMPLEMENTS)(?:\s*:\s*|\s+)[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+(?:\s*,\s*[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+)*\s*(?:\*\/)?\s*$/;
+function isDeadImplementsComment(line) {
+  return DEAD_IMPLEMENTS_LINE.test(line);
+}
+var TRAILING_DEAD_IMPLEMENTS = /^\s*(?:\/\/+|#+|%+|\/\*+|--)\s*(?:implements|Implements|IMPLEMENTS)(?:\s*:\s*|\s+)[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+(?:\s*,\s*[A-Z][A-Z0-9_]*-[A-Za-z0-9_-]+)*\s*(?:\*\/)?\s*$/;
+function quotesClosed(code) {
+  const unescaped = code.replace(/\\./g, "");
+  return ["'", '"', "`"].every((quote) => unescaped.split(quote).length % 2 === 1);
+}
+function removesTrailingDeadImplementsComment(before, after) {
+  const code = after.trimEnd();
+  if (code.trim() === "" || !before.startsWith(code))
+    return false;
+  const cut = before.slice(code.length);
+  if (!TRAILING_DEAD_IMPLEMENTS.test(cut))
+    return false;
+  if (!/^\s/.test(cut) && !code.endsWith(";"))
+    return false;
+  return quotesClosed(code);
+}
+function removesOnlyDeadComments(before, after) {
+  const kept = before.split(`
+`);
+  const wanted = after.split(`
+`);
+  let removed = 0;
+  let next = 0;
+  for (const line of kept) {
+    const target = wanted[next];
+    if (target === line) {
+      next += 1;
+    } else if (isDeadImplementsComment(line)) {
+      removed += 1;
+    } else if (target !== undefined && removesTrailingDeadImplementsComment(line, target)) {
+      removed += 1;
+      next += 1;
+    } else {
+      return false;
+    }
+  }
+  return removed > 0 && next === wanted.length;
+}
+var PATCH_SECTION_HEADER = /^\*\*\* (Update|Add|Delete) File: (.+)$/;
+function parsePatchSections(patch) {
+  const lines = patch.trim().split(/\r?\n/);
+  if (lines[0]?.trim() !== "*** Begin Patch")
+    return;
+  if (lines.at(-1)?.trim() !== "*** End Patch")
+    return;
+  const sections = [];
+  let current;
+  for (const line of lines.slice(1, -1)) {
+    const header = PATCH_SECTION_HEADER.exec(line.trim());
+    if (header?.[1] && header[2]) {
+      current = {
+        kind: header[1],
+        path: normalizeWorkspacePath(header[2]),
+        moved: false,
+        lines: []
+      };
+      sections.push(current);
+    } else if (current === undefined) {
+      return;
+    } else if (line.startsWith("*** Move to:")) {
+      current.moved = true;
+    } else {
+      current.lines.push(line);
+    }
+  }
+  return sections.length > 0 ? sections : undefined;
+}
+function patchSectionRemovesOnlyDeadComments(section) {
+  if (section.kind !== "Update" || section.moved)
+    return false;
+  let removed = 0;
+  const lines = section.lines;
+  for (let index = 0;index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.startsWith("-")) {
+      const replacement = lines[index + 1];
+      if (isDeadImplementsComment(line.slice(1))) {
+        removed += 1;
+      } else if (replacement?.startsWith("+") && removesTrailingDeadImplementsComment(line.slice(1), replacement.slice(1))) {
+        removed += 1;
+        index += 1;
+      } else {
+        return false;
+      }
+    } else if (!(line.startsWith(" ") || line.startsWith("@@") || line === "" || line === "*** End of File")) {
+      return false;
+    }
+  }
+  return removed > 0;
+}
+function patchesRemoveOnlyDeadComments(absolutePath, patches, base) {
+  const target = path6.resolve(absolutePath);
+  const relevant = [];
+  for (const patch of patches) {
+    const sections = parsePatchSections(patch);
+    if (sections === undefined)
+      return false;
+    relevant.push(...base === undefined ? sections : sections.filter((section) => path6.resolve(base, section.path) === target));
+  }
+  return relevant.length > 0 && relevant.every(patchSectionRemovesOnlyDeadComments);
+}
+function removesOnlyDeadImplementsComments(absolutePath, toolInput, base) {
+  const input = toolInput ?? {};
+  const edits = Array.isArray(input.edits) ? input.edits : [];
+  const records = [input, ...edits.map((edit) => edit ?? {})];
+  const pairs = [];
+  for (const entry of records) {
+    const before = entry.old_string ?? entry.oldString;
+    const after = entry.new_string ?? entry.newString;
+    if (before === undefined && after === undefined)
+      continue;
+    if (typeof before !== "string" || typeof after !== "string")
+      return false;
+    pairs.push([before, after]);
+  }
+  const patches = extractPatchTexts(toolInput);
+  if (patches.length > 0) {
+    return pairs.length === 0 && input.content === undefined && patchesRemoveOnlyDeadComments(absolutePath, patches, base);
+  }
+  if (pairs.length === 0) {
+    if (typeof input.content !== "string")
+      return false;
+    try {
+      if (fs5.statSync(absolutePath).size > MAX_COMMENT_ONLY_BYTES)
+        return false;
+      pairs.push([fs5.readFileSync(absolutePath, "utf8"), input.content]);
+    } catch {
+      return false;
+    }
+  }
+  return pairs.every(([before, after]) => removesOnlyDeadComments(before, after));
 }
 var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
 function statedRule(prompt) {
@@ -1382,14 +1737,14 @@ function sessionPath(session, name) {
   if (!session.stateDir)
     throw new Error;
   const key = createHash3("sha256").update(session.sessionId?.trim() || "unattributed").digest("hex").slice(0, 32);
-  return path5.join(session.stateDir, "decision-guard", key, name);
+  return path6.join(session.stateDir, "decision-guard", key, name);
 }
 function writeMarker(file, content) {
-  fs5.mkdirSync(path5.dirname(file), { recursive: true });
+  fs5.mkdirSync(path6.dirname(file), { recursive: true });
   fs5.writeFileSync(file, content);
 }
 function touchMarker(file, flag) {
-  fs5.mkdirSync(path5.dirname(file), { recursive: true });
+  fs5.mkdirSync(path6.dirname(file), { recursive: true });
   fs5.closeSync(fs5.openSync(file, flag));
 }
 function readMarker(session, name) {
@@ -1437,7 +1792,7 @@ function requestWords(session) {
 function claimCaptureReminder(session) {
   return hasDecisionFlag(session, "source-edited") && !hasDecisionFlag(session, "kb-recorded") && claimDecisionFlag(session, "capture-asked");
 }
-var SIGNOFF_LATEST_JSON = path5.join(".kb", "briefs", "signoff", "latest.json");
+var SIGNOFF_LATEST_JSON = path6.join(".kb", "briefs", "signoff", "latest.json");
 function record(value) {
   return typeof value === "object" && !Array.isArray(value) ? value : undefined;
 }
@@ -1457,7 +1812,7 @@ function claimSignoffReminder(session, workspaceRoot) {
   const recorded = mtimeMs(() => sessionPath(session, "requirement-recorded"));
   if (Number.isNaN(recorded))
     return false;
-  const shown = mtimeMs(() => path5.join(workspaceRoot, SIGNOFF_LATEST_JSON));
+  const shown = mtimeMs(() => path6.join(workspaceRoot, SIGNOFF_LATEST_JSON));
   if (shown >= recorded)
     return false;
   return claimDecisionFlag(session, "signoff-asked");
@@ -1491,7 +1846,7 @@ import fs8 from "node:fs";
 import path9 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
-function isRecord(value) {
+function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readString(record, keys) {
@@ -1525,7 +1880,7 @@ function readStringArray(record, keys) {
 function readRecord(record, keys) {
   for (const key of keys) {
     const value = record[key];
-    if (isRecord(value)) {
+    if (isRecord2(value)) {
       return value;
     }
   }
@@ -1551,16 +1906,16 @@ function isKibiMcpToolName(toolName) {
 function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
   if (!workspaceRoot || !isKibiMcpToolName(toolName))
     return;
-  const base = isRecord(toolInput) ? toolInput : {};
+  const base = isRecord2(toolInput) ? toolInput : {};
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
 var TOOL_NAME_KEYS = ["toolName", "tool_name", "name"];
 function extractKbMcpToolCall(toolName, toolInput) {
-  const input = isRecord(toolInput) ? toolInput : {};
+  const input = isRecord2(toolInput) ? toolInput : {};
   let name = canonicalKbToolName(toolName) ?? readString(input, TOOL_NAME_KEYS);
   if (!name?.startsWith("kb_")) {
     const nested = input.arguments ?? input.args;
-    const nestedTool = isRecord(nested) ? readString(nested, TOOL_NAME_KEYS) : undefined;
+    const nestedTool = isRecord2(nested) ? readString(nested, TOOL_NAME_KEYS) : undefined;
     return nestedTool?.startsWith("kb_") ? { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] } : undefined;
   }
   const payload = readRecord(input, ["arguments", "args"]) ?? input;
@@ -1604,221 +1959,10 @@ function hostKbOperation(toolName, toolInput) {
   const mcp = canonicalKbToolName(toolName);
   if (/kb_[a-z_]+$/.test(String(mcp)))
     return mcp;
-  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord(toolInput)) {
+  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord2(toolInput)) {
     return;
   }
   return kibiCliOperation(toolInput.command);
-}
-
-// ../agent-core/dist/path-policy.js
-import path6 from "node:path";
-var codeExtensions = new Set([
-  ".c",
-  ".cc",
-  ".cjs",
-  ".cpp",
-  ".cs",
-  ".css",
-  ".go",
-  ".h",
-  ".hpp",
-  ".html",
-  ".java",
-  ".js",
-  ".jsx",
-  ".kt",
-  ".lua",
-  ".mjs",
-  ".mts",
-  ".cts",
-  ".php",
-  ".pl",
-  ".py",
-  ".rb",
-  ".rs",
-  ".scala",
-  ".sh",
-  ".swift",
-  ".ts",
-  ".tsx",
-  ".vue",
-  ".svelte"
-]);
-var ignoredSegments = new Set([
-  "node_modules",
-  "dist",
-  "build",
-  "out",
-  "coverage",
-  "vendor",
-  "target",
-  ".git",
-  ".next",
-  ".turbo",
-  ".cache",
-  "__pycache__"
-]);
-var testSegments = new Set([
-  "test",
-  "tests",
-  "__tests__",
-  "spec",
-  "specs",
-  "e2e",
-  "__mocks__",
-  "fixtures"
-]);
-var testBasename = /(\.|_)(test|spec|e2e)\.[^.]+$|^test_[^/]+\.py$/;
-var documentationExtensions = new Set([".md", ".mdx", ".rst", ".txt"]);
-var documentationSegments = new Set(["docs", "documentation"]);
-var canonicalKbKnowledgeLanes = new Set([
-  "requirements",
-  "scenarios",
-  "tests",
-  "facts",
-  "adr",
-  "flags",
-  "events"
-]);
-var canonicalKbKnowledgeFiles = new Set([
-  "symbols.yaml",
-  "symbol-coordinates.yaml"
-]);
-var explicitPathKeys = new Set([
-  "absolute_path",
-  "file",
-  "file_path",
-  "filepath",
-  "new_path",
-  "old_path",
-  "path",
-  "paths",
-  "relative_path",
-  "target_path"
-]);
-function isRecord2(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function normalizeWorkspacePath(candidate) {
-  return candidate.trim().replaceAll("\\", "/");
-}
-function pathSegments(candidate) {
-  return normalizeWorkspacePath(candidate).split("/").filter(Boolean);
-}
-function collectPathValues(value, output) {
-  if (typeof value === "string") {
-    const normalized = normalizeWorkspacePath(value);
-    if (normalized.length > 0)
-      output.push(normalized);
-    return;
-  }
-  if (!Array.isArray(value))
-    return;
-  for (const item of value)
-    collectPathValues(item, output);
-}
-function visitExplicitPathFields(value, output) {
-  if (Array.isArray(value)) {
-    for (const item of value)
-      visitExplicitPathFields(item, output);
-    return;
-  }
-  if (!isRecord2(value))
-    return;
-  for (const [key, child] of Object.entries(value)) {
-    if (explicitPathKeys.has(key.toLowerCase()))
-      collectPathValues(child, output);
-    visitExplicitPathFields(child, output);
-  }
-}
-function extractExplicitPathFields(input) {
-  const paths = [];
-  visitExplicitPathFields(input, paths);
-  return [...new Set(paths)];
-}
-var patchFileHeader = /^\*\*\* (?:Update|Add|Delete) File: (.+)/;
-var patchTextKeys = ["command", "patch", "input", "patchText"];
-function extractPatchFilePaths(patch) {
-  const paths = [];
-  for (const line of patch.split(/\r?\n/)) {
-    const match = patchFileHeader.exec(line.trim());
-    const candidate = match?.[1] ? normalizeWorkspacePath(match[1]) : "";
-    if (candidate.length > 0)
-      paths.push(candidate);
-  }
-  return [...new Set(paths)];
-}
-function extractEditedPaths(toolInput) {
-  const paths = extractExplicitPathFields(toolInput);
-  if (isRecord2(toolInput)) {
-    for (const key of patchTextKeys) {
-      const value = toolInput[key];
-      if (typeof value === "string") {
-        paths.push(...extractPatchFilePaths(value));
-      }
-    }
-  }
-  return [...new Set(paths)];
-}
-function canonicalizeWorkspacePath(workspaceRoot, options) {
-  const trimmed = normalizeWorkspacePath(options.rawPath);
-  const base = options.base ?? options.eventCwd ?? workspaceRoot;
-  const absolute = path6.isAbsolute(trimmed) ? path6.resolve(trimmed) : path6.resolve(base, trimmed);
-  const workspaceRelative = path6.relative(workspaceRoot, absolute).replaceAll("\\", "/");
-  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path6.isAbsolute(workspaceRelative)) {
-    return;
-  }
-  return { workspaceRelative, absolute };
-}
-function classifyPath(relativePath) {
-  const segments = pathSegments(relativePath);
-  if (segments[0] === ".kb")
-    return "kb";
-  if (segments.some((segment) => ignoredSegments.has(segment)))
-    return "other";
-  if (segments.some((segment) => documentationSegments.has(segment))) {
-    return "other";
-  }
-  const basename = segments.at(-1);
-  if (basename === undefined)
-    return "other";
-  const extension = path6.extname(basename).toLowerCase();
-  if (!codeExtensions.has(extension))
-    return "other";
-  if (testBasename.test(basename) || segments.some((segment) => testSegments.has(segment))) {
-    return "test";
-  }
-  return "source";
-}
-function isKbPath(candidate) {
-  return pathSegments(candidate).includes(".kb");
-}
-function isCanonicalKbKnowledgePath(segments) {
-  const lane = segments[segments.indexOf(".kb") + 1];
-  return canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane);
-}
-function isMeaningfulTrackedPath(candidate) {
-  const segments = pathSegments(candidate);
-  if (segments.some((segment) => ignoredSegments.has(segment)))
-    return false;
-  if (segments.includes(".kb"))
-    return isCanonicalKbKnowledgePath(segments);
-  const basename = segments.at(-1);
-  if (basename === undefined)
-    return false;
-  const extension = path6.extname(basename).toLowerCase();
-  if (basename === "README.md")
-    return true;
-  if (segments.some((segment) => documentationSegments.has(segment))) {
-    return documentationExtensions.has(extension);
-  }
-  if (testBasename.test(basename) || segments.some((segment) => testSegments.has(segment))) {
-    return codeExtensions.has(extension) || documentationExtensions.has(extension);
-  }
-  return codeExtensions.has(extension);
-}
-function isSourceImpactRelevantPath(candidate) {
-  return classifyPath(normalizeWorkspacePath(candidate)) === "source";
 }
 
 // ../agent-core/dist/telemetry-signals.js
@@ -2957,7 +3101,8 @@ function editTargets(workspaceRoot, input) {
     rawPath
   })).filter((target) => target !== undefined).map((target) => ({
     relative: target.workspaceRelative,
-    absolute: target.absolute
+    absolute: target.absolute,
+    base: input.cwd ?? workspaceRoot
   }));
 }
 function preEditContext(workspaceRoot, stateDir, input, env, trace = {}) {
@@ -3008,7 +3153,8 @@ function firmNotice(targets, files, summarize, session, input, env) {
       focus,
       wholeFile: focus === undefined,
       summarize,
-      confirmed: settled
+      confirmed: settled,
+      commentOnly: removesOnlyDeadImplementsComments(target.absolute, input.toolInput, target.base)
     });
     if (ids.length === 0)
       continue;

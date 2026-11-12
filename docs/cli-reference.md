@@ -1298,7 +1298,14 @@ read-only, at pinned commits. Declare them in `.kb/dependencies.json`:
 `git` is any URL or path `git` can fetch; `ref` is a tag, branch or commit (the
 remote `HEAD` when absent); `directory` names the subdirectory that holds the
 Kibi workspace in a monorepo. Names use lowercase letters, digits, `.`, `_`
-and `-`.
+and `-`. A `git` or `ref` value that starts with `-` or holds a control
+character is refused (`DEPENDENCIES_INVALID`), so it cannot reach git as an
+option.
+
+A dependency is pinned, not trusted: Kibi reads its `.kb/` sources and nothing
+else. The process that serves a dependency does not load the plugins its
+`package.json#kibi` names or its `.env.kibi` and `.env` files, and fetches run
+with git's `ext` transport disabled.
 
 - `kibi deps lock [names...]` resolves each ref to a commit, fetches it, checks
   that it holds a Kibi KB of schema 6 or newer, and writes

@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5229c539b250
+  - type: implements
+    from: SYM-proof-producer-runProofProducer
+    to: REQ-proof-step-order
+    created_at: 2026-11-12T16:09:30.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f94c9509ec5
+  - type: covered_by
+    from: SYM-proof-producer-runProofProducer
+    to: TEST-proof-step-order
+    created_at: 2026-11-12T16:09:30.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c6fb5037077

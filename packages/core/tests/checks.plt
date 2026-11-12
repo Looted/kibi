@@ -2485,6 +2485,40 @@ test(retired_owner_only) :-
     chk_retired_only(test, 'TEST-VIA-SCEN', ['REQ-R1'], V5),
     chk_same(Violations, [V1, V2, V3, V4, V5]).
 
+% Owners that mix retired with superseded or deprecated requirements leave
+% no current owner either; a current owner, or no retired one, still does.
+test(retired_owner_only_mixed_owners) :-
+    chk_kb((
+        chk_req('REQ-R1', [status=retired, retired_reason="Gone"]),
+        chk_req('REQ-OLD', [status=closed]),
+        chk_req('REQ-NEW'),
+        chk_rel(supersedes, 'REQ-NEW', 'REQ-OLD'),
+        chk_req('REQ-DEP', [status=deprecated]),
+        chk_req('REQ-LIVE'),
+        chk_ent(fact, 'FACT-MIXED', []),
+        chk_rel(constrains, 'REQ-R1', 'FACT-MIXED'),
+        chk_rel(constrains, 'REQ-OLD', 'FACT-MIXED'),
+        chk_ent(scenario, 'SCEN-MIXED', []),
+        chk_rel(specified_by, 'REQ-R1', 'SCEN-MIXED'),
+        chk_rel(specified_by, 'REQ-DEP', 'SCEN-MIXED'),
+        chk_ent(fact, 'FACT-HELD', []),
+        chk_rel(constrains, 'REQ-R1', 'FACT-HELD'),
+        chk_rel(constrains, 'REQ-OLD', 'FACT-HELD'),
+        chk_rel(constrains, 'REQ-LIVE', 'FACT-HELD'),
+        chk_ent(fact, 'FACT-NO-RETIRED', []),
+        chk_rel(constrains, 'REQ-OLD', 'FACT-NO-RETIRED'),
+        chk_rel(constrains, 'REQ-DEP', 'FACT-NO-RETIRED'),
+        check_retired_owner_only(Violations)
+    )),
+    Mixed = "retired requirements and requirements that are superseded or deprecated",
+    format(string(D1), "Current fact FACT-MIXED is owned only by ~w (REQ-OLD, REQ-R1), so it describes behavior that no longer exists", [Mixed]),
+    format(string(D2), "Current scenario SCEN-MIXED is owned only by ~w (REQ-DEP, REQ-R1), so it describes behavior that no longer exists", [Mixed]),
+    S = "Link it to the current requirement that took over this behavior, or archive it with status: deprecated",
+    chk_same(Violations, [
+        violation('retired-owner-only', 'FACT-MIXED', D1, S, 'FACT-MIXED.md', _{entityType: fact, owners: ['REQ-OLD', 'REQ-R1']}),
+        violation('retired-owner-only', 'SCEN-MIXED', D2, S, 'SCEN-MIXED.md', _{entityType: scenario, owners: ['REQ-DEP', 'REQ-R1']})
+    ]).
+
 test(retired_owner_only_without_retired, Violations == []) :-
     chk_kb((
         chk_req('REQ-DEP', [status=deprecated]),

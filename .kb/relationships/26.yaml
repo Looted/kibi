@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d48a7ed22dbd
+  - type: implements
+    from: SYM-kb-dependencies-git-fetch-environment
+    to: REQ-kb-dependency-untrusted-input
+    created_at: 2026-11-12T13:31:41.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eff4ad8e5d44
+  - type: covered_by
+    from: SYM-kb-dependencies-git-fetch-environment
+    to: TEST-kb-dependency-untrusted-input
+    created_at: 2026-11-12T13:31:41.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3c38ae26e65

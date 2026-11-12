@@ -445,8 +445,10 @@ export class WorkspaceRouter {
    * the call is about (its `workspaceRoot`, else the attached one). The
    * dependency's pinned checkout is served by its own kibi-mcp child, started
    * from this server's entry and marked with the dependency, so its engine,
-   * store and lifetime stay apart from this workspace's KB. Routing switches
-   * and pins do not apply: the caller named the dependency explicitly.
+   * store and lifetime stay apart from this workspace's KB. Another
+   * workspace's dependencies are read only where ordinary routing could reach
+   * that workspace: a pinned server reads only its own, and an unpinned one
+   * only those of a routable workspace.
    */
   async routeKbDependency(
     toolName: string,
@@ -462,7 +464,7 @@ export class WorkspaceRouter {
       typeof requestedRaw === "string" && requestedRaw.trim().length > 0
         ? this.resolveWorkspace(requestedRaw.trim())
         : null;
-    const base = requested ?? this.attachedRoot;
+    const base = await this.dependencyBase(name, requested);
     const dependency = (this.options.resolveDependency ?? resolveKbDependency)(
       base,
       name,
@@ -479,6 +481,31 @@ export class WorkspaceRouter {
     const decision = await this.callChild(child, toolName, rest);
     // callChild always answers remotely.
     return (decision as { result: CallToolResult }).result;
+  }
+
+  /**
+   * The workspace whose dependency `name` is read: the attached one, or a
+   * requested one ordinary routing could reach from here. A workspace this
+   * server would not route to is refused rather than read.
+   */
+  private async dependencyBase(
+    name: string,
+    requested: string | null,
+  ): Promise<string> {
+    if (requested === null) return this.attachedRoot;
+    const target = realpathOrSelf(requested);
+    if (target === this.attachedRoot) return this.attachedRoot;
+    if (!this.enabled) {
+      throw new Error(
+        `KB dependency '${name}' of ${requested} cannot be read here: this server reads only the dependencies of its own workspace ${this.attachedRoot}. Drop workspaceRoot, or run the Kibi CLI from that workspace.`,
+      );
+    }
+    if (!this.isRoutable(target, await this.clientRoots())) {
+      throw new Error(
+        `KB dependency '${name}' of ${requested} cannot be read here: that workspace is neither a worktree of this server's repository nor under the client's MCP roots or KIBI_MCP_ROUTABLE_ROOTS.`,
+      );
+    }
+    return target;
   }
 
   /** Polls for a job started in a child go to that child. */

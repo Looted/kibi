@@ -290,3 +290,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b6836a7318f9
+  - type: verified_by
+    from: SCEN-dead-implements-comment-deletion
+    to: TEST-dead-implements-comment-deletion
+    created_at: 2026-11-12T13:47:29.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e50b39383574

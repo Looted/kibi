@@ -16,7 +16,6 @@ import type {
 } from "../../src/public/operations/migration-plan.js";
 import { spawnSync } from "../helpers/isolated-env.js";
 
-
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 240_000;
 
@@ -259,6 +258,11 @@ describe("retired requirements", () => {
         root,
       );
       expect(approved.status, `${approved.stdout}\n${approved.stderr}`).toBe(0);
+      // The retirement is compiled: the store answers from it at once.
+      const status = JSON.parse(
+        runKibi(["status", "--format", "json"], root).stdout,
+      ) as { data?: { syncState?: string }; syncState?: string };
+      expect((status.data ?? status).syncState).toBe("fresh");
       expect(read(root, RETIRED)).toBe(
         `${before
           .replace("status: closed\n", "status: retired\n")

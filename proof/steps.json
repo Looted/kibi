@@ -7552,5 +7552,60 @@
         "./packages/cli/tests/operations/migration/retired-status.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-dead-implements-comment-deletion",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/agent-core/tests/decision-guard.test.ts",
+        "./packages/claude/tests/hook-runner.test.ts",
+        "./packages/codex/tests/hook-runner.test.ts",
+        "./packages/zcode/tests/hook-runner.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kb-check-impact-diagnostics-once",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/public-mutation/operations/check-format-shared.mutation.test.ts",
+        "./packages/cli/tests/public/operations/migration-plan-coverage.test.ts",
+        "./packages/mcp/tests/tools/check-impact.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kb-dependency-untrusted-input",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/dependencies/kb-dependencies.test.ts",
+        "./packages/cli/tests/plugins/project-config.test.ts",
+        "./packages/cli/tests/env/bootstrap.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-step-order",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./scripts/tests/run-proof-producer.test.mjs"
+      ]
+    ]
   }
 ]

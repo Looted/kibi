@@ -258,3 +258,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b16108d77337
+  - type: verified_by
+    from: REQ-kb-check-impact-diagnostics-once
+    to: TEST-kb-check-impact-diagnostics-once
+    created_at: 2026-11-12T13:31:13.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af8c766e2a5a
+  - type: specified_by
+    from: REQ-kb-check-impact-diagnostics-once
+    to: SCEN-kb-check-impact-diagnostics-once
+    created_at: 2026-11-12T13:47:39.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d02c071a8059
+  - type: constrains
+    from: REQ-kb-check-impact-diagnostics-once
+    to: FACT-SUBJ-MCP-KB-CHECK
+    created_at: 2026-11-12T14:40:07.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84d61e329475
+  - type: requires_property
+    from: REQ-kb-check-impact-diagnostics-once
+    to: FACT-kb-check-impact-diagnostics-once-listing
+    created_at: 2026-11-12T14:40:07.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd01d5b7b923
+  - type: specified_by
+    from: REQ-kb-check-impact-diagnostics-once
+    to: SCEN-NEG-kb-check-impact-diagnostics-once-REPEATED
+    created_at: 2026-11-12T14:41:44.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a53b0e175fb

@@ -20,6 +20,7 @@ import {
   CONFIRM_FIRM_EDITS_ENV,
   confirmFirmEdits,
   firmRequirementsTouched,
+  removesOnlyDeadImplementsComments,
 } from "kibi-agent-core/decision-guard";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import {
@@ -363,14 +364,22 @@ function preToolUse(
     toolName === "Edit" || toolName === "MultiEdit"
       ? editFocus(target.absolute, input.toolInput)
       : undefined;
-  const firm = firmEdit(
-    relativePath,
-    symbols,
-    focus,
-    toolName === "Write",
-    state,
-    workspace,
-  );
+  // Deleting `implements` comments Kibi no longer reads keeps every
+  // requirement, so it is never put to the person.
+  const firm = removesOnlyDeadImplementsComments(
+    target.absolute,
+    input.toolInput,
+    input.cwd ?? workspace.root,
+  )
+    ? undefined
+    : firmEdit(
+        relativePath,
+        symbols,
+        focus,
+        toolName === "Write",
+        state,
+        workspace,
+      );
   const output = editPreToolUse(
     relativePath,
     kind,

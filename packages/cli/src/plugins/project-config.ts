@@ -64,6 +64,16 @@ export function readProjectPackageJson(
 }
 
 /**
+ * Whether this process answers reads of a KB dependency (KIBI_KB_DEPENDENCY,
+ * set by the dependency scope and the MCP dependency router).
+ */
+export function servesKbDependency(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return (env.KIBI_KB_DEPENDENCY?.trim() ?? "") !== "";
+}
+
+/**
  * Read and validate `package.json#kibi` for capability-plugin activation.
  * Missing package.json, `kibi`, or `kibi.plugins` yields empty config
  * (builtin-only), matching historical workspaces without a package manifest.
@@ -71,6 +81,12 @@ export function readProjectPackageJson(
 export function readProjectKibiConfig(
   workspaceRoot: string,
 ): ProjectKibiConfig {
+  // A process serving a KB dependency runs inside another repository's
+  // checkout. That repository's package.json must not choose code to load:
+  // a dependency is read with the built-in providers only.
+  if (servesKbDependency()) {
+    return {};
+  }
   const packageJsonPath = join(workspaceRoot, "package.json");
   if (!fs.existsSync(packageJsonPath)) {
     return {};
