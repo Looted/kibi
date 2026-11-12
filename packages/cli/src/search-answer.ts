@@ -5,6 +5,10 @@ import {
   isClosedRequirement,
 } from "./intent-search.js";
 import {
+  type NegativePathMarker,
+  negativePathTitle,
+} from "./negative-path-facts.js";
+import {
   escapeAtom,
   normalizeEntityId,
   parseAtomList,
@@ -170,6 +174,12 @@ export type SearchAnswerUngoverned = SearchAnswerFact &
       requirement: string;
       claim?: string;
     }>;
+    /**
+     * Set on a negative-path fact: a rejecting scenario assumes it, so it
+     * describes a situation that must not happen. Its title carries the
+     * "Forbidden: " prefix.
+     */
+    negativePath?: NegativePathMarker;
   }>;
 
 // implements REQ-kibi-search-answer-layer-v2, REQ-search-answer-hygiene
@@ -1304,6 +1314,26 @@ export async function buildSearchAnswer(
   const governingFacts = plans.flatMap((plan) =>
     rowsOf(plan.facts).map((fact) => ({ fact, requirement: plan.req.id })),
   );
+  // implements REQ-kibi-negative-path-facts-marked
+  const negativePathOf = new Map(
+    seeds.flatMap((match) =>
+      match.negativePath !== undefined
+        ? [[text(match.entity.id), match.negativePath] as const]
+        : [],
+    ),
+  );
+  const markNegativePath = (
+    entry: SearchAnswerUngoverned,
+  ): SearchAnswerUngoverned => {
+    const marker = negativePathOf.get(entry.id);
+    return marker === undefined
+      ? entry
+      : {
+          ...entry,
+          title: negativePathTitle(entry.title),
+          negativePath: marker,
+        };
+  };
   const ungovernedAnswer: SearchAnswerUngoverned[] = ungoverned
     .map((entry) => {
       const row = entry.type === "fact" ? graph.row(entry.id) : null;
@@ -1330,6 +1360,7 @@ export async function buildSearchAnswer(
         },
       };
     })
+    .map(markNegativePath)
     .sort((left, right) => left.rank - right.rank);
   const answer: SearchAnswer = {
     version: "kibi.search-answer.v1",

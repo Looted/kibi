@@ -1,6 +1,12 @@
 import path from "node:path";
 
 import { bodySnippetLine } from "./entity-body-context.js";
+import {
+  type NegativePathFacts,
+  type NegativePathMarker,
+  negativePathMarker,
+  queryNegativePathFacts,
+} from "./negative-path-facts.js";
 import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
 import { isProvenanceStub } from "./provenance-stub.js";
 import {
@@ -74,6 +80,11 @@ export type IntentSearchEvidence = Readonly<{
 // implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchMatch = SearchMatch & {
   readonly evidence: IntentSearchEvidence;
+  /**
+   * Set on a negative-path fact: it describes a situation that must not
+   * happen, so its title does not state something true.
+   */
+  readonly negativePath?: NegativePathMarker;
 };
 
 // implements REQ-kibi-intent-aware-source-discovery
@@ -778,6 +789,8 @@ export async function rankIntentEntities(
   workspaceRoot: string,
   graphEdges: readonly GraphEdge[] = NO_GRAPH_EDGES,
   bodyCache: MarkdownBodyCache = new Map(),
+  // implements REQ-kibi-negative-path-facts-marked
+  negativePathFacts: NegativePathFacts = new Map(),
 ): Promise<IntentSearchResult> {
   const query = topicText(options.query, options.sourceLocations);
   const queryTokens = tokens(query);
@@ -864,11 +877,15 @@ export async function rankIntentEntities(
         ? "implemented at the source location"
         : reason,
     );
+    const guards = negativePathFacts.get(String(entity.id ?? ""));
     ranked.push({
       entity,
       score: scored.score,
       reasons: Array.from(new Set(reasons)),
       ...(snippet !== undefined ? { snippet } : {}),
+      ...(guards !== undefined
+        ? { negativePath: negativePathMarker(guards) }
+        : {}),
       evidence: {
         normalizedScore: scored.score,
         matchedFacets: scored.matchedFacets,
@@ -880,11 +897,20 @@ export async function rankIntentEntities(
       },
     });
   }
+  const rankScore = negativePathRankScores(ranked);
   ranked.sort((left, right) => {
     const stubOrder =
       Number(isProvenanceStub(left.entity)) -
       Number(isProvenanceStub(right.entity));
     if (stubOrder !== 0) return stubOrder;
+    const leftScore = rankScore.get(left) ?? left.score;
+    const rightScore = rankScore.get(right) ?? right.score;
+    if (rightScore !== leftScore) return rightScore - leftScore;
+    // At the same rank a negative-path fact follows what it guards.
+    const negativeOrder =
+      Number(left.negativePath !== undefined) -
+      Number(right.negativePath !== undefined);
+    if (negativeOrder !== 0) return negativeOrder;
     if (right.score !== left.score) return right.score - left.score;
     const typeOrder = String(left.entity.type ?? "").localeCompare(
       String(right.entity.type ?? ""),
@@ -922,6 +948,34 @@ export async function rankIntentEntities(
 }
 
 /**
+ * The score a negative-path fact is ranked by: never above the best match
+ * among the requirements it guards, so it follows that requirement instead
+ * of leading the results. A fact whose guards did not match keeps its own
+ * score and is still marked. Other matches rank by their own score.
+ */
+// implements REQ-kibi-negative-path-facts-marked
+function negativePathRankScores(
+  ranked: readonly IntentSearchMatch[],
+): Map<IntentSearchMatch, number> {
+  const scoreById = new Map<string, number>();
+  for (const match of ranked) {
+    const id = String(match.entity.id ?? "");
+    scoreById.set(id, Math.max(scoreById.get(id) ?? 0, match.score));
+  }
+  const scores = new Map<IntentSearchMatch, number>();
+  for (const match of ranked) {
+    const guards = match.negativePath?.guards ?? [];
+    const guardScores = guards.flatMap((id) => {
+      const score = scoreById.get(id);
+      return score === undefined ? [] : [score];
+    });
+    if (guardScores.length > 0)
+      scores.set(match, Math.min(match.score, Math.max(...guardScores)));
+  }
+  return scores;
+}
+
+/**
  * A requirement and its own scenario, facts or tests score alike on the
  * same words without being rival answers: the rival is the best match the
  * top match is not linked to.
@@ -937,9 +991,15 @@ function rivalOf(
     if (edge.from === topId) linkedToTop.add(edge.to);
     if (edge.to === topId) linkedToTop.add(edge.from);
   }
+  // A negative-path fact is the failure side of the requirements it guards,
+  // not a rival answer to them.
   return ranked
     .slice(1)
-    .find((match) => !linkedToTop.has(String(match.entity.id ?? "")));
+    .find(
+      (match) =>
+        !linkedToTop.has(String(match.entity.id ?? "")) &&
+        !match.negativePath?.guards.includes(topId),
+    );
 }
 
 // implements REQ-kibi-intent-aware-source-discovery
@@ -1131,12 +1191,21 @@ export async function executeIntentSearch(
       candidates.push(entity);
     }
   }
+  // Only facts the ranking can accept are asked about: the first pass's
+  // matches and the graph neighbours added for the second.
+  const negativePathFacts = await queryNegativePathFacts(
+    prolog,
+    [...firstPass.matches.map((match) => match.entity), ...related]
+      .filter((entity) => entity.type === "fact")
+      .map((entity) => String(entity.id ?? "")),
+  );
   return rankIntentEntities(
     candidates,
     options,
     workspaceRoot,
     graphEdges,
     bodies,
+    negativePathFacts,
   );
 }
 

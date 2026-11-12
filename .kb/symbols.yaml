@@ -39109,3 +39109,93 @@ symbols:
         target: REQ-kb-dependency-read-scope
       - type: covered_by
         target: TEST-kb-dependencies-git
+  - id: SYM-kibi-negative-path-facts-query
+    title: queryNegativePathFacts
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-facts-goal
+    title: negativePathFactsGoal
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-title
+    title: negativePathTitle
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-marker
+    title: negativePathMarker
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-prefix
+    title: NEGATIVE_PATH_PREFIX
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-core-kb-negative-path-facts
+    title: kb_negative_path_facts
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-test-kibi-negative-path-facts-marked
+    title: kb_search negative-path facts suite
+    status: active
+    sourceFile: packages/cli/tests/negative-path-facts.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-negative-path-facts-marked
