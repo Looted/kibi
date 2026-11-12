@@ -490,6 +490,38 @@ describe("proofReceiptCurrentBindingErrors", () => {
       "proof receipt contract_hash does not match the current proof_contract",
       "proof receipt fingerprint does not match the current effective execution fingerprint",
     ]);
+    const hex = (char: string) => char.repeat(64);
+    const stored = {
+      contract: hex("1"),
+      integration: hex("2"),
+      command: hex("3"),
+      bindings: hex("4"),
+      producer: hex("5"),
+    };
+    const drifted = { ...stored, integration: hex("a"), command: hex("b") };
+    const receipt = {
+      test_id: "T",
+      scope: "unit",
+      contract_hash: proofContractHash(contract),
+      fingerprint: "g",
+      fingerprint_components: stored,
+    };
+    expect(
+      proofReceiptCurrentBindingErrors("T", "unit", receipt, contract, "f", drifted),
+    ).toEqual([
+      "proof receipt fingerprint does not match the current effective execution fingerprint (changed: integration, command)",
+    ]);
+    for (const quiet of [
+      [receipt, undefined],
+      [{ ...receipt, fingerprint_components: { contract: "x" } }, drifted],
+      [receipt, stored],
+    ] as const) {
+      expect(
+        proofReceiptCurrentBindingErrors("T", "unit", quiet[0], contract, "f", quiet[1]),
+      ).toEqual([
+        "proof receipt fingerprint does not match the current effective execution fingerprint",
+      ]);
+    }
     expect(
       proofReceiptCurrentBindingErrors(
         "T",

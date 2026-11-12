@@ -100,6 +100,11 @@ export type RequirementProofExplainView = {
   readonly evidenceLevel?: string;
   /** Tests whose receipt claimed proved but whose certificate no longer re-checks. */
   readonly certificateRejections?: readonly { test: string; reason: string }[];
+  /** Tests whose newest receipt was proven under another execution fingerprint. */
+  readonly fingerprintDrift?: readonly {
+    test: string;
+    components: readonly string[];
+  }[];
   /** Claims a proof refuted: the test and what it read that breaks the claim. */
   readonly refutations?: readonly ClaimRefutation[];
   /** Proof-bearing symbols without source coordinates. */
@@ -343,6 +348,7 @@ export function projectRequirementExplain(
           }),
         }
       : {}),
+    ...fingerprintDriftField(stages),
     ...refutationFields(proof, stages),
     ...claimFields(proof),
     scenarios,
@@ -563,6 +569,24 @@ function refutationFields(
   };
 }
 
+/** Receipt evidence rows that name drifted fingerprint components. */
+function fingerprintDriftField(stages: Record<string, unknown>): {
+  fingerprintDrift?: { test: string; components: string[] }[];
+} {
+  const evidence = asRecord(stages.passingE2e).receiptEvidence;
+  const rows = Array.isArray(evidence)
+    ? evidence.flatMap((item) => {
+        const row = asRecord(item);
+        const components = asStringArray(row.fingerprintDrift);
+        return components.length > 0
+          ? [{ test: asString(row.testId), components }]
+          : [];
+      })
+    : [];
+  rows.sort((left, right) => left.test.localeCompare(right.test));
+  return rows.length > 0 ? { fingerprintDrift: rows } : {};
+}
+
 /** Why each gap keeps a requirement from being tested end to end. */
 const GAP_REASONS: Readonly<Record<string, string>> = {
   missing_passing_e2e:
@@ -587,7 +611,10 @@ const GAP_REASONS: Readonly<Record<string, string>> = {
 /** One plain clause per gap, naming what it is about where Kibi knows. */
 export function gapReason(
   gap: string,
-  view: Pick<RequirementProofExplainView, "missingCoordinateSymbols">,
+  view: Pick<
+    RequirementProofExplainView,
+    "missingCoordinateSymbols" | "fingerprintDrift"
+  >,
 ): string {
   if (gap === "missing_symbol_coordinates") {
     const symbols = view.missingCoordinateSymbols ?? [];
@@ -596,7 +623,19 @@ export function gapReason(
     return `${gap}: ${named}${symbols.length > 1 ? "have" : "has"} no source coordinates, so Kibi cannot tie the proof to its code (kibi sync --refresh-symbol-coordinates places ${symbols.length > 1 ? "them" : "it"}; kibi check says why a symbol cannot be placed)`;
   }
   const reason = GAP_REASONS[gap];
-  return reason ? `${gap}: ${reason}` : gap;
+  if (!reason) return gap;
+  const drifted = view.fingerprintDrift ?? [];
+  if (
+    drifted.length > 0 &&
+    (gap === "stale_proof_receipt" || gap === "proof_contract_mismatch")
+  ) {
+    const named = drifted
+      .slice(0, 3)
+      .map((row) => `${row.test} (${row.components.join(", ")})`)
+      .join(", ");
+    return `${gap}: ${reason}; execution fingerprint changed for ${named}`;
+  }
+  return `${gap}: ${reason}`;
 }
 
 function claimFields(proof: Record<string, unknown>): {
@@ -739,6 +778,10 @@ function renderRequirementExplain(view: RequirementProofExplainView): string {
       : [`evidenceLevel: ${view.evidenceLevel}`]),
     ...(view.certificateRejections ?? []).map(
       (row) => `certificate rejected for ${row.test}: ${row.reason}`,
+    ),
+    ...(view.fingerprintDrift ?? []).map(
+      (row) =>
+        `fingerprint drift for ${row.test}: ${row.components.join(", ")}`,
     ),
     ...renderRefutations(view),
     ...renderClaims(view),

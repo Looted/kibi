@@ -46,7 +46,10 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Contex
 % was proven on) or per_contract (a receipt carrying a binding_hash is current
 % while its contract + receipt-stripped test document are unchanged, via the
 % TestBindings dict TestId -> BindingHash; receipts without a binding_hash
-% still fall back to the snapshot match).
+% still fall back to the snapshot match). The reserved key
+% '$fingerprint_components' of TestBindings carries each test's current
+% execution fingerprint components: a receipt whose components differ is stale
+% and the evidence names the drifted components in fingerprintDrift.
 requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
                           BindingMode, TestBindings, Context) :-
     check_domain_contradictions_and_witnesses(Contradictions, ContradictionWitnesses),
@@ -1357,16 +1360,67 @@ receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, Context, Eviden
     receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts),
     (   SnapshotReceipts == []
     ->  length(Receipts, Count),
-        Evidence = _{testId: TestId, state: stale, scope: Scope, receiptCount: Count}
+        newest_receipt_drift(Context, TestId, Receipts, Drift),
+        evidence_with_drift(_{testId: TestId, state: stale, scope: Scope, receiptCount: Count}, Drift, Evidence)
     ;   proof_contract_binding(Props, ContractBinding),
         include(receipt_matches_current_binding(Scope, ContractBinding), SnapshotReceipts, CurrentReceipts),
         (   CurrentReceipts == []
-        ->  receipt_contract_mismatch_evidence(TestId, Scope, SnapshotReceipts, ContractBinding, Evidence)
-        ;   latest_receipt(CurrentReceipts, Latest, FinishedStamp),
-            receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
-            receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
+        ->  receipt_contract_mismatch_evidence(TestId, Scope, SnapshotReceipts, ContractBinding, Evidence0),
+            newest_receipt_drift(Context, TestId, SnapshotReceipts, Drift),
+            evidence_with_drift(Evidence0, Drift, Evidence)
+        ;   include(receipt_matches_current_fingerprint(Context, TestId), CurrentReceipts, FingerprintReceipts),
+            (   FingerprintReceipts == []
+            ->  length(Receipts, Count),
+                newest_receipt_drift(Context, TestId, CurrentReceipts, Drift),
+                evidence_with_drift(_{testId: TestId, state: stale, scope: Scope, receiptCount: Count}, Drift, Evidence)
+            ;   latest_receipt(FingerprintReceipts, Latest, FinishedStamp),
+                receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
+                receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
+            )
         )
     ).
+
+% The current execution fingerprint components of each test travel in the
+% TestBindings dict under the reserved key '$fingerprint_components' (a dict
+% TestId -> components). A test without an entry, or a context without the key,
+% is not checked, so a caller that does not send it keeps the earlier behaviour.
+current_fingerprint_components(Context, TestId, Components) :-
+    get_dict('$fingerprint_components', Context.proofTestBindings, All),
+    get_dict(TestId, All, Components).
+
+fingerprint_component_names([contract, integration, command, bindings, producer]).
+
+% Drift is the ordered list of components whose stored value differs from the
+% current one; [] when nothing is known to differ.
+receipt_fingerprint_drift(Context, TestId, Receipt, Drift) :-
+    (   current_fingerprint_components(Context, TestId, Current),
+        inventory_entry_field(Receipt, fingerprint_components, Stored)
+    ->  fingerprint_component_names(Names),
+        include(fingerprint_component_differs(Stored, Current), Names, Drift)
+    ;   Drift = []
+    ).
+
+fingerprint_component_differs(Stored, Current, Name) :-
+    get_dict(Name, Current, CurrentValue),
+    normalize_receipt_atom(CurrentValue, CurrentAtom),
+    (   inventory_entry_field(Stored, Name, StoredValue)
+    ->  normalize_receipt_atom(StoredValue, StoredAtom),
+        StoredAtom \== CurrentAtom
+    ;   true
+    ).
+
+receipt_matches_current_fingerprint(Context, TestId, Receipt) :-
+    receipt_fingerprint_drift(Context, TestId, Receipt, []).
+
+newest_receipt_drift(Context, TestId, Receipts, Drift) :-
+    (   latest_receipt(Receipts, Newest, _)
+    ->  receipt_fingerprint_drift(Context, TestId, Newest, Drift)
+    ;   Drift = []
+    ).
+
+evidence_with_drift(Evidence, [], Evidence) :- !.
+evidence_with_drift(Evidence0, Drift, Evidence) :-
+    put_dict(fingerprintDrift, Evidence0, Drift, Evidence).
 
 receipt_history_well_formed(TestId-Receipts, WellFormed) :-
     (   forall(member(Receipt, Receipts), valid_receipt_shape(TestId, Receipt)),
@@ -2136,7 +2190,7 @@ explanation_reason_text_def(test_scope_is_unit, "Test verification_scope is unit
 explanation_reason_text_def(test_scope_is_non_e2e, "Test verification_scope is not end_to_end").
 explanation_reason_text_def(proof_snapshot_unavailable, "Workspace snapshot is unavailable so receipt currency cannot be proven").
 explanation_reason_text_def(missing_proof_receipt, "Scenario-backed E2E test has no kibi.proof-receipt.v1").
-explanation_reason_text_def(receipt_snapshot_mismatch, "Receipts exist but none match the current snapshot or binding").
+explanation_reason_text_def(receipt_snapshot_mismatch, "Receipts exist but none match the current snapshot, binding or execution fingerprint").
 explanation_reason_text_def(stale_proof_receipt, "Current-snapshot receipt is older than the allowed proof age").
 explanation_reason_text_def(receipt_contract_mismatch, "Receipt does not match the current proof contract hash or fingerprint").
 explanation_reason_text_def(invalid_proof_receipt, "Receipt evidence is malformed or otherwise uncheckable").

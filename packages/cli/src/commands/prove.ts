@@ -518,6 +518,18 @@ function certificateRejectionLines(result: IngestProofResult): string[] {
   );
 }
 
+// One line per test whose execution fingerprint changed since its previous
+// receipt: earlier receipts no longer count as its evidence.
+function fingerprintDriftLines(result: IngestProofResult): string[] {
+  return result.results.flatMap((row) =>
+    row.fingerprintDrift === undefined || row.fingerprintDrift.length === 0
+      ? []
+      : [
+          `${row.testId}: execution fingerprint changed since its previous receipt (${row.fingerprintDrift.join(", ")}); earlier receipts no longer count`,
+        ],
+  );
+}
+
 // A test whose run passed but whose certificate or claim binding Kibi
 // rejected is refused, not passed: it proves nothing about the code.
 function refusedCount(result: IngestProofResult): number {
@@ -816,6 +828,7 @@ export async function proveCommand(
       );
       for (const line of [
         ...certificateRejectionLines(merged),
+        ...fingerprintDriftLines(merged),
         ...claimBindingLines(merged),
       ])
         process.stderr.write(`prove: ${line}\n`);

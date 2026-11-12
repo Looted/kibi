@@ -757,7 +757,7 @@ test(explanation_reason_texts) :-
                         test_scope_is_non_e2e-"Test verification_scope is not end_to_end",
                         proof_snapshot_unavailable-"Workspace snapshot is unavailable so receipt currency cannot be proven",
                         missing_proof_receipt-"Scenario-backed E2E test has no kibi.proof-receipt.v1",
-                        receipt_snapshot_mismatch-"Receipts exist but none match the current snapshot or binding",
+                        receipt_snapshot_mismatch-"Receipts exist but none match the current snapshot, binding or execution fingerprint",
                         stale_proof_receipt-"Current-snapshot receipt is older than the allowed proof age",
                         receipt_contract_mismatch-"Receipt does not match the current proof contract hash or fingerprint",
                         invalid_proof_receipt-"Receipt evidence is malformed or otherwise uncheckable",
@@ -2542,6 +2542,34 @@ test(receipts_follow_the_binding_mode) :-
     once(requirement_proof:receipt_for_binding([h0, h1], Bound)),
     \+ requirement_proof:receipt_for_binding([h0], Bound),
     once(requirement_proof:receipt_for_binding(h1, Bound)).
+
+test(receipts_report_fingerprint_drift) :-
+    Same = _{contract: c, integration: i, command: m, bindings: b, producer: p},
+    Ctx = _{proofTestBindings: _{'$fingerprint_components': _{'T-1': Same}}},
+    Stored = _{fingerprint_components: _{contract: c, integration: i0, command: m0, bindings: b, producer: p}},
+    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1', Stored, Drift),
+    Drift == [integration, command],
+    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1', _{fingerprint_components: Same}, []),
+    requirement_proof:receipt_matches_current_fingerprint(Ctx, 'T-1', _{fingerprint_components: Same}),
+    \+ requirement_proof:receipt_matches_current_fingerprint(Ctx, 'T-1', Stored),
+    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-9', Stored, []),
+    requirement_proof:receipt_fingerprint_drift(_{proofTestBindings: _{'T-1': h1}}, 'T-1', Stored, []),
+    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1', _{}, []),
+    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1',
+        _{fingerprint_components: _{contract: c}}, Partial),
+    Partial == [integration, command, bindings, producer],
+    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1',
+        [fingerprint_components=[contract=c, integration=i, command=m, bindings=b, producer=p0]], ListDrift),
+    ListDrift == [producer].
+
+test(drift_is_attached_to_evidence_only_when_present) :-
+    requirement_proof:evidence_with_drift(_{state: stale}, [], E0),
+    \+ get_dict(fingerprintDrift, E0, _),
+    get_dict(state, E0, stale),
+    requirement_proof:evidence_with_drift(_{state: stale}, [command], E1),
+    get_dict(fingerprintDrift, E1, [command]),
+    get_dict(state, E1, stale),
+    requirement_proof:newest_receipt_drift(_{proofTestBindings: _{}}, 'T-1', [], []).
 
 test(attempt_status_matches_the_entries) :-
     requirement_proof:valid_attempt_status(unavailable, _{}),

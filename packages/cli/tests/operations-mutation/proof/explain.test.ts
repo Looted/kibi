@@ -220,6 +220,40 @@ describe("projectRequirementExplain", () => {
     ]);
   });
 
+  test("projects drifted fingerprint components sorted by test", () => {
+    const view = projectRequirementExplain({
+      proofStages: {
+        passingE2e: {
+          receiptEvidence: [
+            { testId: "T-b", fingerprintDrift: ["command"] },
+            { testId: "T-a", fingerprintDrift: ["integration", 1, "command"] },
+            { testId: "T-c", fingerprintDrift: [] },
+            { testId: "T-d", fingerprintDrift: "command" },
+            { testId: "T-e" },
+            null,
+          ],
+        },
+      },
+    });
+    expect(view.fingerprintDrift).toStrictEqual([
+      { test: "T-a", components: ["integration", "command"] },
+      { test: "T-b", components: ["command"] },
+    ]);
+    expect(renderProofExplain(view)).toContain(
+      "fingerprint drift for T-a: integration, command\nfingerprint drift for T-b: command",
+    );
+    expect(
+      projectRequirementExplain({
+        proofStages: { passingE2e: { receiptEvidence: "none" } },
+      }).fingerprintDrift,
+    ).toBeUndefined();
+    expect(
+      projectRequirementExplain({
+        proofStages: { passingE2e: { receiptEvidence: [] } },
+      }).fingerprintDrift,
+    ).toBeUndefined();
+  });
+
   test("an empty proof has only the required fields", () => {
     expect(projectRequirementExplain({})).toStrictEqual({
       kind: "requirement",
@@ -736,6 +770,30 @@ describe("gapReason", () => {
       "uncovered_case: an edge case of the claim has no scenario",
       "something_else",
     ]);
+  });
+
+  test("names the drifted fingerprint components for stale and mismatched receipts", () => {
+    const rows = (count: number) =>
+      Array.from({ length: count }, (_, index) => ({
+        test: `T${index + 1}`,
+        components: ["integration", "command"],
+      }));
+    expect(
+      gapReason("stale_proof_receipt", { fingerprintDrift: rows(4) }),
+    ).toBe(
+      "stale_proof_receipt: a proof receipt is older than the current code; execution fingerprint changed for T1 (integration, command), T2 (integration, command), T3 (integration, command)",
+    );
+    expect(
+      gapReason("proof_contract_mismatch", { fingerprintDrift: rows(1) }),
+    ).toBe(
+      "proof_contract_mismatch: a proof receipt was recorded for an older proof contract; execution fingerprint changed for T1 (integration, command)",
+    );
+    expect(
+      gapReason("failed_proof_receipt", { fingerprintDrift: rows(1) }),
+    ).toBe("failed_proof_receipt: a proof receipt records a failed run");
+    expect(gapReason("stale_proof_receipt", { fingerprintDrift: [] })).toBe(
+      "stale_proof_receipt: a proof receipt is older than the current code",
+    );
   });
 
   test("names up to three symbols without coordinates", () => {

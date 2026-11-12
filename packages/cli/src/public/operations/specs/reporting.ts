@@ -259,6 +259,9 @@ export const findGapsSpec = {
  * KIBI_PROOF_BINDING_MODE=strict-snapshot opts out (receipts then match only
  * against the whole-workspace snapshot they were produced on).
  */
+/** Reserved key of the bindings dict that carries current fingerprint components. */
+export const FINGERPRINT_COMPONENTS_BINDING_KEY = "$fingerprint_components";
+
 export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
   return process.env.KIBI_PROOF_BINDING_MODE?.trim() === "strict-snapshot"
     ? "strict_snapshot"
@@ -270,6 +273,15 @@ export async function perContractTestBindings(
 ): Promise<string | null> {
   if (currentProofBindingMode() !== "per_contract") return null;
   const { loadEntities } = await import("../discovery-entities.js");
+  const { currentFingerprintComponents } = await import(
+    "../../../operations/proof/current-fingerprint.js"
+  );
+  const { loadProofIntegrations } = await import(
+    "../../../proof/integrations.js"
+  );
+  const { FINGERPRINT_COMPONENT_NAMES } = await import(
+    "../../proof-fingerprint.js"
+  );
   const { currentReceiptBindingHashes, loadCoveredBySymbolsByTest } =
     await import("../../../operations/proof/code-scope.js");
   // Only the contract, scoped code, and authored source feed the binding
@@ -291,6 +303,8 @@ export async function perContractTestBindings(
     ? await loadCoveredBySymbolsByTest(requireProlog(context))
     : new Map<string, readonly string[]>();
   const entries: string[] = [];
+  const fingerprintEntries: string[] = [];
+  const integrations = loadProofIntegrations(context.workspaceRoot);
   const fs = context.fs;
   for (const test of tests) {
     const testId = typeof test.id === "string" ? test.id : "";
@@ -298,6 +312,17 @@ export async function perContractTestBindings(
     // The same computation ingest uses to write binding_hash. Unreadable or
     // non-markdown documents keep strict snapshot semantics for that test;
     // without fs every read fails, so no test is bound.
+    // The execution fingerprint a receipt must have been proven under; a test
+    // without a resolvable one keeps the receipt's other freshness checks.
+    const components = integrations.available
+      ? currentFingerprintComponents(test, integrations.integrations)
+      : undefined;
+    if (components !== undefined) {
+      const parts = FINGERPRINT_COMPONENT_NAMES.map(
+        (name) => `${name}: ${toPrologAtom(components[name])}`,
+      );
+      fingerprintEntries.push(`${toPrologAtom(testId)}: _{${parts.join(", ")}}`);
+    }
     const bindings = await currentReceiptBindingHashes({
       workspaceRoot: context.workspaceRoot,
       readFile: (absolute) =>
@@ -316,6 +341,10 @@ export async function perContractTestBindings(
       entries.push(`${toPrologAtom(testId)}: ${value}`);
     }
   }
+  if (fingerprintEntries.length > 0)
+    entries.push(
+      `${toPrologAtom(FINGERPRINT_COMPONENTS_BINDING_KEY)}: _{${fingerprintEntries.join(", ")}}`,
+    );
   if (entries.length === 0) return null;
   return `_{${entries.join(", ")}}`;
 }

@@ -1,6 +1,7 @@
 import {
   type ProofFingerprintComponents,
   canonicalJson,
+  fingerprintDrift,
   proofContractHash,
 } from "./proof-fingerprint.js";
 import {
@@ -342,7 +343,10 @@ function validReceiptProofResult(value: unknown): boolean {
   );
 }
 
-function validFingerprintComponents(value: unknown): boolean {
+/** Narrows a stored value to the five fingerprint component hashes. */
+export function validFingerprintComponents(
+  value: unknown,
+): value is ProofFingerprintComponents {
   const row = isRecord(value) ? value : null;
   if (!row) return false;
   return (
@@ -532,6 +536,7 @@ export function proofReceiptCurrentBindingErrors(
   receipt: Readonly<Record<string, unknown>>,
   contract?: ProofContract,
   fingerprint?: string,
+  components?: ProofFingerprintComponents,
 ): readonly string[] {
   const errors: string[] = [];
   if (receipt.test_id !== testId) {
@@ -558,8 +563,15 @@ export function proofReceiptCurrentBindingErrors(
       typeof receipt.fingerprint === "string" &&
       receipt.fingerprint !== fingerprint
     ) {
+      const drift =
+        components !== undefined &&
+        validFingerprintComponents(receipt.fingerprint_components)
+          ? fingerprintDrift(receipt.fingerprint_components, components)
+          : [];
       errors.push(
-        "proof receipt fingerprint does not match the current effective execution fingerprint",
+        `proof receipt fingerprint does not match the current effective execution fingerprint${
+          drift.length > 0 ? ` (changed: ${drift.join(", ")})` : ""
+        }`,
       );
     }
   }

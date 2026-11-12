@@ -21,6 +21,8 @@ import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapsho
 import {
   environmentHash as canonicalEnvironmentHash,
   effectiveProofFingerprint,
+  fingerprintDrift,
+  type ProofFingerprintComponents,
   jsonDigest,
   proofContractHash,
 } from "../../public/proof-fingerprint.js";
@@ -30,14 +32,13 @@ import {
   type ProofBinding,
   type ProofContract,
   type ProofRunArtifact,
-  optionalProofContractFields,
-  proofBindingsErrors,
   proofRunArtifactErrors,
 } from "../../public/proof-protocol.js";
 import {
   MAX_PROOF_RECEIPTS,
   type ClaimBinding,
   type ProofReceipt,
+  validFingerprintComponents,
   proofReceiptCurrentBindingErrors,
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
@@ -55,6 +56,7 @@ import {
   releaseWorkspaceMutationLock,
 } from "../mutation/workspace-mutation-lock.js";
 import { MutationRollbackFailureError } from "../mutation/saga.js";
+import { parseBindings, parseContract } from "./current-fingerprint.js";
 import { patchReceiptsIntoDocument } from "./receipt-document.js";
 import { judgeClaimBindings, receiptEvidenceLevel } from "./claim-bindings.js";
 import { checkCodeCertificate } from "./code-certificates.js";
@@ -85,6 +87,8 @@ export type IngestProofTestResult = Readonly<{
   certificateRejection?: string;
   /** The receipt's verification scope (unit, integration or end_to_end). */
   scope?: string;
+  /** Fingerprint components that changed since the test's previous receipt. */
+  fingerprintDrift?: readonly string[];
 }>;
 
 export type IngestProofResult = Readonly<{
@@ -162,67 +166,7 @@ function requiredString(value: unknown, label: string): string {
   return result;
 }
 
-function parseContract(test: Record<string, unknown>): ProofContract {
-  const contract = record(test.proof_contract);
-  const candidate: Record<string, unknown> = contract ?? {};
-  const { version, integration, required_proofs, success_policy } =
-    candidate as Record<string, unknown>;
-  const normalized: ProofContract = {
-    version: version as ProofContract["version"],
-    integration: String(integration ?? ""),
-    required_proofs: Array.isArray(required_proofs)
-      ? (required_proofs.map((entry) => {
-          const row = record(entry);
-          return {
-            symbol_id: String(row?.symbol_id ?? ""),
-            target: String(row?.target ?? ""),
-          };
-        }) as ProofContract["required_proofs"])
-      : [],
-    success_policy: success_policy as ProofContract["success_policy"],
-    ...optionalProofContractFields(candidate),
-  };
-  if (!contract || contract.version !== PROOF_CONTRACT_VERSION)
-    throw new Error(
-      `Proof ingest failed: test ${String(test.id)} has no proof_contract (${PROOF_CONTRACT_VERSION})`,
-    );
-  return normalized;
-}
-
-function parseBindings(test: Record<string, unknown>): ProofBinding[] {
-  const raw = test.proof_bindings;
-  if (raw === undefined || raw === null) return [];
-  if (!Array.isArray(raw))
-    throw new Error(
-      `Proof ingest failed: test ${String(test.id)} proof_bindings must be an array`,
-    );
-  const errors = proofBindingsErrors(raw);
-  if (errors.length > 0)
-    throw new Error(
-      `Proof ingest failed: test ${String(test.id)} ${errors.join("; ")}`,
-    );
-  // proofBindingsErrors accepted every row: an object with non-empty
-  // symbol_id and target strings.
-  return raw.map((entry) => {
-    const row = entry as Record<string, unknown>;
-    return {
-      symbol_id: String(row.symbol_id),
-      target: String(row.target),
-      ...(row.native_id !== undefined
-        ? { native_id: String(row.native_id) }
-        : {}),
-      ...(row.aliases !== undefined
-        ? { aliases: (row.aliases as unknown[]).map(String) }
-        : {}),
-      ...(row.source_file !== undefined
-        ? { source_file: String(row.source_file) }
-        : {}),
-      ...(row.line !== undefined ? { line: Number(row.line) } : {}),
-    };
-  });
-}
-
-/** Whether a binding names a native case id, as its own id or an alias. */
+export /** Whether a binding names a native case id, as its own id or an alias. */
 function ownsNativeId(binding: ProofBinding, nativeId: string): boolean {
   return binding.native_id === nativeId || binding.aliases?.includes(nativeId) === true;
 }
@@ -285,6 +229,17 @@ export function enforceNativeCaseBindings(
       );
     }
   }
+}
+
+/** The components that differ between the newest earlier receipt and now. */
+function previousFingerprintDrift(
+  existing: readonly Record<string, unknown>[],
+  components: ProofFingerprintComponents,
+): readonly string[] {
+  const previous = existing.at(-1)?.fingerprint_components;
+  return validFingerprintComponents(previous)
+    ? fingerprintDrift(previous, components)
+    : [];
 }
 
 function existingReceipts(
@@ -393,6 +348,8 @@ async function executeIngestProofUnlocked(
     evaluation: ReturnType<typeof evaluateContractAgainstRun>;
     receipt: ProofReceipt;
     existing: Record<string, unknown>[];
+    components: ProofFingerprintComponents;
+    drift: readonly string[];
   };
   // Loaded outside the per-test binding try/catch: an engine failure must fail
   // the ingest, not silently write receipts without a binding hash.
@@ -489,13 +446,16 @@ async function executeIngestProofUnlocked(
       evidence_level: receiptEvidenceLevel(verdict.evidence_level, claimBindings),
       ...(claimBindings !== undefined ? { claim_bindings: claimBindings } : {}),
     };
+    const existing = existingReceipts(test);
     prepared.push({
       testId,
       test,
       contract,
       evaluation,
       receipt,
-      existing: existingReceipts(test),
+      existing,
+      components,
+      drift: previousFingerprintDrift(existing, components),
     });
   }
 
@@ -519,6 +479,7 @@ async function executeIngestProofUnlocked(
           ? { certificateRejection: entry.receipt.certificate_rejection }
           : {}),
         scope: entry.receipt.scope,
+        ...(entry.drift.length > 0 ? { fingerprintDrift: entry.drift } : {}),
       },
     ]),
   );
@@ -564,6 +525,7 @@ async function executeIngestProofUnlocked(
       receipt as unknown as Record<string, unknown>,
       contract,
       receipt.fingerprint,
+      entry.components,
     );
     const receiptErrors = [...historyErrors, ...bindingErrors];
     if (receiptErrors.length > 0)
