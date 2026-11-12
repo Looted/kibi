@@ -8,8 +8,9 @@ tags:
 semantic_text: Kibi must refuse a KB dependency whose git URL or ref starts with a hyphen. A Kibi process that serves a KB dependency must not load the plugins or the env files that the dependency's checkout declares.
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-11-12, after the review of release 2026.11.2 reported the findings: "Well, can you make a PR with a hotfix then?" and "Yes, do all post review work in the hotfix."'
-  recorded_at: '2026-11-12T13:47:33.975Z'
+  ref: 'Maintainer request, 2026-11-12, after the review of release 2026.11.2 reported the findings: "Well, can you make a PR with a hotfix then?" and "Yes, do all post review work in the hotfix."; wording approved by the maintainer, 2026-11-12: "Approve"'
+  approved_by: maintainer
+  recorded_at: '2026-11-12T14:15:22.058Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 441abe1a6c5fe9358986527686d3e4c78c9ca909d3d437f340faa18302085a0c

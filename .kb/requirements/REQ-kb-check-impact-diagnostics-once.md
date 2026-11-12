@@ -9,8 +9,9 @@ tags:
 semantic_text: A kb_check result must list a diagnostic of its impact analysis under impactDiagnostics only.
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-11-12, after the review of release 2026.11.2 reported the findings: "Well, can you make a PR with a hotfix then?" and "Yes, do all post review work in the hotfix."'
-  recorded_at: '2026-11-12T13:47:39.247Z'
+  ref: 'Maintainer request, 2026-11-12, after the review of release 2026.11.2 reported the findings: "Well, can you make a PR with a hotfix then?" and "Yes, do all post review work in the hotfix."; wording approved by the maintainer, 2026-11-12: "Approve"'
+  approved_by: maintainer
+  recorded_at: '2026-11-12T14:15:27.076Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 74f07a6c5db4a9d067ae9ca131aeaa1e524983806075cbb473abbd1047555995
