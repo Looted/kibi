@@ -39,6 +39,26 @@ runs only in a full `kibi check`. A firm requirement staged without an
 end-to-end proof passes the commit and fails that check later (see
 `kibi-decisions` for `required_evidence`).
 
+## Choosing the owner
+
+The gate asks that each listed declaration has a manifest entry; which
+requirement it implements is your judgment, and the next agent reads it as
+the rule for that code.
+
+- `kb_query` the candidate requirement and read its statement. Link the
+  symbol only when its body decides that behavior.
+- A new function that decides something no requirement states is a new
+  behavior: record the requirement and scenario (`kibi-usage`, Safe
+  workflow), then link.
+- A helper split out of an owned function serves the same behavior: link it
+  to that function's requirement and say so in the report. If that takes the
+  requirement past 8 implementing symbols, do not move the link to a
+  requirement with room and do not tag the requirement `umbrella`; undo the
+  split when the task did not need it, or report the requirement as broad
+  and propose its split (`kibi-usage/resources/kb-quality.md`).
+- A symbol that would implement a third requirement points at a symbol or a
+  requirement that is too broad; report it instead of adding the link.
+
 ## Advisory findings
 
 These warn but do not block. Read them; they are often the real review.
