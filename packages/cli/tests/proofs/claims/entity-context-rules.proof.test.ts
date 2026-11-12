@@ -10,8 +10,6 @@ import { ENTITY_CONTEXT_RULES } from "../../../src/public/operations/entity-cont
 import { CONTEXT_MISSING_TAG } from "../../../src/entity-body-context.js";
 import { BODY_CONTEXT_SCHEMA_VERSION } from "../../../src/operations/migration/schema6.js";
 
-// implements REQ-kb-entity-context-rule-ids
-
 /**
  * The check rules, review tag and schema version of the entity body context check.
  * Kibi reads each constant itself at ingest, so the certificate is checked against the code.

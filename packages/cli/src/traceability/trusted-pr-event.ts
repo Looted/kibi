@@ -27,7 +27,6 @@ type PullRequestPayload = Readonly<{
 const OBJECT_ID = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
 
 /** Run git in a repository and return its trimmed stdout. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export type TrustedGitRunner = (
   root: string,
   args: readonly string[],

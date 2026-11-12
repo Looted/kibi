@@ -52,7 +52,6 @@ export function manifestVersion(
   return undefined;
 }
 
-// implements REQ-engine-daemon-package-versions
 /** The bundled kibi-cli version, else the one beside `directory` (src/ or dist/). */
 export function cliVersion(directory: string = moduleDirectory): string {
   if (typeof __KIBI_CLI_VERSION__ === "string") return __KIBI_CLI_VERSION__;
@@ -91,11 +90,9 @@ export function coreVersion(
  * daemon compare them, so a daemon left running by another install is
  * replaced instead of serving this client.
  */
-// implements REQ-engine-daemon-package-versions
 export const KIBI_BUILT_PACKAGE_VERSIONS = `kibi-cli@${cliVersion()},kibi-core@${coreVersion()}`;
 
 /** KIBI_PACKAGE_VERSIONS when set (an explicit override), else the built versions. */
-// implements REQ-engine-daemon-package-versions
 export function kibiPackageVersions(): string {
   return process.env.KIBI_PACKAGE_VERSIONS || KIBI_BUILT_PACKAGE_VERSIONS;
 }

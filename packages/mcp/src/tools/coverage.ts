@@ -29,7 +29,6 @@ export interface CoverageResult {
   };
 }
 
-// implements REQ-002, REQ-013
 export async function handleKbCoverage(
   prolog: ReportingProlog,
   args: CoverageArgs,

@@ -221,7 +221,6 @@ describe("proveCommand", () => {
     });
   });
 
-  // implements REQ-kibi-code-proof-kinds
   test("counts certified receipts apart from passed ones, refuses a rejected certificate and names it", async () => {
     await withTempWorkspace(async (dir) => {
       writeIntegrations(dir, [
@@ -309,7 +308,6 @@ describe("proveCommand", () => {
     });
   });
 
-  // implements REQ-kibi-claim-bound-proofs
   test("names each claim binding and refuses a passed test whose claim binding was rejected", async () => {
     await withTempWorkspace(async (dir) => {
       writeIntegrations(dir, [

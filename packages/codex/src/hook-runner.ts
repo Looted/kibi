@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// implements REQ-codex-kibi-plugin-v1
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -174,7 +173,6 @@ function editTargets(
  * unless the manifest itself could not be read, which is said once per
  * session rather than calling the file unlinked.
  */
-// implements REQ-codex-kibi-plugin-v1
 function preEditContext(
   workspaceRoot: string,
   stateDir: string | undefined,
@@ -254,7 +252,6 @@ function preEditContext(
   return parts.join("\n\n") || undefined;
 }
 
-// implements REQ-agent-hosts-decision-guard
 /**
  * Codex's pre-tool hook cannot put a call to the person, so an edit of code
  * that implements a firm requirement gets a notice telling the agent to ask
@@ -321,7 +318,6 @@ function editTelemetryTraces(
  * telemetry metric: Kibi lookups through MCP or the CLI, and edits with the
  * requirements the edited files implement.
  */
-// implements REQ-codex-kibi-plugin-v1
 function recordToolTelemetry(
   workspaceRoot: string,
   stateDir: string | undefined,
@@ -418,7 +414,6 @@ export async function runHook(
 
   try {
     switch (input.event) {
-      // implements REQ-kibi-fresh-clone-setup
       case "SessionStart": {
         trace.action = "session_start";
         const note = missingHooksNote(workspace.root);
@@ -432,7 +427,6 @@ export async function runHook(
         };
       }
 
-      // implements REQ-agent-hosts-decision-guard
       case "UserPromptSubmit": {
         const rule = recordRequest(
           { stateDir, sessionId: input.sessionId },
@@ -554,7 +548,6 @@ export async function runHook(
           : kbUsageTrace(input.toolName, input.toolInput)?.kbOperation;
         if (kbOperation === "kb_upsert") {
           markDecisionFlag(session, "kb-recorded");
-          // implements REQ-kibi-signoff-views
           if (isRequirementUpsert(input.toolInput)) {
             markDecisionFlag(session, "requirement-recorded");
           }
@@ -578,7 +571,6 @@ export async function runHook(
           .filter(
             (sourcePath) => !state.impactCheckedPaths.includes(sourcePath),
           );
-        // implements REQ-agent-hosts-decision-guard
         // Source changed and nothing was recorded: continue the turn once with
         // the capture request, before the context that holds the decision ends.
         const session = { stateDir, sessionId: input.sessionId };
@@ -593,7 +585,6 @@ export async function runHook(
           trace.action = "stop_capture_reminder";
           return { continue: true, decision: "block", reason };
         }
-        // implements REQ-kibi-signoff-views
         // Requirements were written and the person has not seen them as a
         // signoff view: continue once with the request to show `kibi signoff`.
         if (
@@ -673,7 +664,6 @@ export async function main(): Promise<void> {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-// implements REQ-codex-kibi-plugin-v1
 export function isInvokedAsCli(
   argv1: string | undefined,
   moduleUrl: string,

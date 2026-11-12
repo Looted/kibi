@@ -127,7 +127,6 @@ function requireFiniteNumber(value: unknown, field: string): number {
   return value as number;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function isCapabilityId(value: string): value is CapabilityId {
   return (
     value === SEMANTIC_CLASSIFIER_CAPABILITY_ID ||
@@ -141,12 +140,10 @@ export function isCapabilityId(value: string): value is CapabilityId {
   );
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function isPluginMode(value: string): value is PluginMode {
   return (PLUGIN_MODES as readonly string[]).includes(value);
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function validatePermissions(value: unknown): PluginPermissions {
   if (!isRecord(value)) {
     throw new PluginValidationError(
@@ -193,7 +190,6 @@ function validateSemanticClassifier(value: unknown): SemanticClassifierV1 {
   };
 }
 
-// implements REQ-capability-plugin-protocol-v1
 function optionalClassifierModel(value: unknown): string | undefined {
   if (value === undefined) return undefined;
   if (typeof value !== "string" || value.trim() === "") {
@@ -289,7 +285,6 @@ function validateSymbolExtractorV2(value: unknown): SymbolExtractorV2 {
   };
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function validateKibiPlugin(value: unknown): KibiPluginV1 {
   if (!isRecord(value)) {
     throw new PluginValidationError(
@@ -412,7 +407,6 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
   };
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
   if (value === undefined) return {};
   if (!isRecord(value)) {
@@ -637,7 +631,6 @@ function validateDeclinedLanguagePacks(value: unknown): string[] | undefined {
   });
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function validateSemanticClassifierResult(
   value: unknown,
   options?: Readonly<{ expectedClaimKeys?: readonly string[] }>,
@@ -756,7 +749,6 @@ export function validateSemanticClassifierResult(
   return { decisions };
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function validatePredicateSchema(
   value: unknown,
 ): PredicateSchemaDefinition {
@@ -827,7 +819,6 @@ export function validatePredicateSchema(
   };
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function validateOntologyMatchCandidate(
   value: unknown,
   schemas: readonly PredicateSchemaDefinition[],
@@ -910,7 +901,6 @@ export function validateOntologyMatchCandidate(
   };
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function validateSourceAnalysisResult(
   value: unknown,
 ): SourceAnalysisResult {
@@ -1049,7 +1039,6 @@ export function validateSourceAnalysisResult(
 }
 
 /** Ensure analysis sourceFile matches the requested path when provided. */
-// implements REQ-capability-plugin-protocol-v1
 export function validateSourceAnalysisResultForPath(
   value: unknown,
   requestedPath: string,
@@ -1086,7 +1075,6 @@ function requireUnitInterval(value: unknown, field: string): number {
  * choice must be one of that clause's candidates or `new_subject`; unknown or
  * duplicate claim keys are rejected so a provider cannot invent subjects.
  */
-// implements REQ-kibi-vocabulary-alignment-capability
 export function validateRankSubjectsResult(
   value: unknown,
   clauses: readonly {
@@ -1160,7 +1148,6 @@ export function validateRankSubjectsResult(
 }
 
 /** Validate a compareClaims result against the pairs that were sent. */
-// implements REQ-kibi-vocabulary-alignment-capability
 export function validateCompareClaimsResult(
   value: unknown,
   pairKeys: readonly string[],
@@ -1346,7 +1333,6 @@ function validateOptionalV2String(
  * supplied to the extractor. Columns use JavaScript UTF-16 code units and
  * line splitting preserves CRLF boundaries.
  */
-// implements REQ-capability-plugin-protocol-v1
 export function validateSourceAnalysisResultV2(
   value: unknown,
   input: SymbolExtractorV2AnalyzeInput,
@@ -1817,7 +1803,6 @@ function uniqueRuleIds(
  * Validate a `kibi.check-policy.v1` document. Kibi runs this on the data it
  * reads from a plugin package before any rule uses it.
  */
-// implements REQ-capability-check-policy
 export function validateCheckPolicyDocument(
   value: unknown,
 ): CheckPolicyDocument {

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// implements REQ-kb-dependencies-git
 import {
   KB_DEPENDENCIES_LOCK_PATH,
   KB_DEPENDENCIES_PATH,

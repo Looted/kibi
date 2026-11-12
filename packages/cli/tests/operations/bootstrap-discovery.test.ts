@@ -232,7 +232,6 @@ describe("bootstrap discovery", () => {
     expect(summary.reason?.toLowerCase()).toContain("vendored");
   });
 
-  // implements REQ-legacy-kb-first-step-migrate
   it("names kibi migrate --yes, not kibi init, for a legacy .kb/config.json without a manifest", async () => {
     if (!fixture) throw new Error("missing fixture");
     createColdStartRepo(fixture.root);

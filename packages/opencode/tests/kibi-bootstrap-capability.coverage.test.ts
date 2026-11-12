@@ -99,7 +99,6 @@ describe("kibi-bootstrap capability remaining runtime branches", () => {
   });
 
   test("dogfood host with versioned plugin and sibling SDK is discovered after cache reset", () => {
-    // implements REQ-KIBI-BOOTSTRAP-PLAN
     const root = makeTempDir("kibi-bootstrap-dogfood-");
     cleanup.push(root);
     writeDogfoodHost(root, {

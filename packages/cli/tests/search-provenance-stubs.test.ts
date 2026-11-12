@@ -1,4 +1,3 @@
-// implements REQ-bootstrap-provenance-stubs
 import { describe, expect, test } from "bun:test";
 import type { IntentSearchMatch } from "../src/intent-search.js";
 import { rankIntentEntities } from "../src/intent-search.js";

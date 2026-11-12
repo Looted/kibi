@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 // Verifies the distribution artifacts a ZCode marketplace install and an npm
 // pack actually produce — copied/packed bytes, not development-tree layout.
 import { execSync } from "node:child_process";

@@ -43,7 +43,7 @@ export interface ExtractedSymbol {
     endLine: number;
   };
   hunkRanges: HunkRange[]; // intersecting hunks from staged file
-  reqLinks: string[]; // requirement IDs from directive comments
+  reqLinks: string[]; // requirement IDs the symbol manifest links with implements
   relationships?: TraceabilityRelationship[];
 }
 
@@ -55,7 +55,6 @@ export interface ManifestLookupEntry {
 export type ManifestLookup = Map<string, ManifestLookupEntry>;
 
 export function createManifestLookupSentinelKey(manifestPath: string): string {
-  // implements REQ-cli-staged-impact-enforcement
   return `${MANIFEST_SENTINEL_PREFIX}${manifestPath}`;
 }
 
@@ -179,7 +178,6 @@ function buildSymbolResult(
   name: string,
   kind: ExtractedSymbol["kind"],
   span: { startLine: number; endLine: number },
-  inlineReqLinks: string[],
   manifestLookup: ManifestLookup | undefined,
   nestedSpans: readonly HunkLineRange[],
 ): ExtractedSymbol {
@@ -188,9 +186,9 @@ function buildSymbolResult(
     name,
     manifestLookup,
   );
-  const manifestReqLinks = getRequirementLinks(relationships);
-  const mergedReqLinks =
-    inlineReqLinks.length > 0 ? inlineReqLinks : manifestReqLinks;
+  // Source comments are never read: the symbol manifest is the only record
+  // of which requirements a symbol implements.
+  const reqLinks = getRequirementLinks(relationships);
 
   return {
     id,
@@ -203,7 +201,7 @@ function buildSymbolResult(
       endLine: span.endLine,
     },
     hunkRanges: ownedHunks(span, nestedSpans, stagedFile.hunkRanges),
-    reqLinks: mergedReqLinks,
+    reqLinks,
     ...(relationships !== undefined ? { relationships } : {}),
   };
 }
@@ -225,30 +223,6 @@ function computeContentSha(content: string): string {
   return h.digest("hex");
 }
 
-function parseReqDirectives(text: string | undefined): string[] {
-  // look for lines containing implements REQ-123 or implements: REQ-1, REQ-2
-  // Stop at end-of-line and only accept IDs starting with an uppercase letter
-  // to avoid capturing tokens like `export`, `function`, etc.
-  const REQ_ID = "[A-Za-z][A-Za-z0-9\\-_]*";
-  const regex = new RegExp(
-    `implements\\s*:?\\s*(${REQ_ID}(?:\\s*,\\s*${REQ_ID})*)\\s*$`,
-    "gim",
-  );
-  const reqs = new Set<string>();
-  let m: RegExpExecArray | null;
-  while (true) {
-    // A symbol without directive text reads as the text "undefined", which
-    // holds no directive.
-    m = regex.exec(String(text));
-    if (!m) break;
-    // The list starts and ends with an ID, so splitting on the separators
-    // leaves no empty or padded part.
-    for (const part of (m[1] as string).split(/[,\s]+/)) reqs.add(part);
-  }
-  return Array.from(reqs);
-}
-
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type ExtractSymbolsOptions = Readonly<{
   /**
    * Host-owned analysis. Prefer SourceAnalysisService / capability registry.
@@ -270,7 +244,6 @@ function analyzeWithBuiltinFallback(
 }
 
 export function extractSymbolsFromStagedFile(
-  // implements REQ-cli-staged-impact-enforcement
   stagedFile: StagedFile,
   manifestLookup?: ManifestLookup,
   options?: ExtractSymbolsOptions,
@@ -315,7 +288,6 @@ export function extractSymbolsFromStagedFile(
  * Async extraction from supplied snapshot bytes. Maintenance callers inject the
  * shared, host-approved v2 analysis; legacy direct callers retain v1 behavior.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export async function extractSymbolsFromStagedFileAsync(
   stagedFile: StagedFile,
   manifestLookup: ManifestLookup | undefined,
@@ -359,7 +331,6 @@ type HunkLineRange = { startLine: number; endLine: number };
  * Whether a partial result still places its declarations: every gap is local
  * (no parser, timeout or integrity finding) and no output cap hid symbols.
  */
-// implements REQ-cli-staged-impact-enforcement
 export function partialAnalysisSymbolsUsable(analysis: {
   status?: string;
   diagnostics?: readonly { code: string }[];
@@ -419,7 +390,6 @@ function symbolsFromAnalysis(
         ),
         symbol.kind as ExtractedSymbol["kind"],
         { startLine: symbol.startLine, endLine: symbol.endLine },
-        parseReqDirectives(symbol.directiveText),
         manifestLookup,
         nestedSpans(symbol, analysis.symbols),
       ),
@@ -480,7 +450,6 @@ function ownedHunks(
   });
 }
 
-// implements REQ-cli-staged-impact-enforcement
 function sourceSymbolLocator(
   symbol: SdkSourceAnalysisResult["symbols"][number] & {
     qualifiedName?: string;

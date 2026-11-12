@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import assert from "node:assert";
 import { readFileSync, writeFileSync } from "node:fs";
 import type { Server } from "node:http";

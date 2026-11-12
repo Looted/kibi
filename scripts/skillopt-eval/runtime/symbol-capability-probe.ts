@@ -48,7 +48,6 @@ function resultText(result: unknown): string {
  * A dry-run upsert must also report the payload as valid: the staged runtime
  * reports module-load failures as invalid payloads.
  */
-// implements REQ-skillopt-codex-optimization
 export function symbolProbeFailure(
   tool: "kb_upsert" | "kb_coverage",
   result: unknown,
@@ -84,7 +83,6 @@ function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
  * every coverage read; this probe rejects such a runtime before paid work.
  * The fixture's own engine must already be stopped.
  */
-// implements REQ-skillopt-codex-optimization
 export async function probeStagedSymbolCapability(
   workspaceTarget: string,
   sourceWorktree: string,

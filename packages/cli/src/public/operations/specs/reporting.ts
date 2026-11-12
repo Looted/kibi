@@ -43,7 +43,6 @@ const ENTITY_TYPE_SET: ReadonlySet<string> = new Set(ENTITY_TYPES);
  * branch name); meta.branch carries the branch name, as kb_status does, and
  * the key moves to meta.branchStoreKey.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function withBranchName<
   T extends { readonly meta?: Readonly<Record<string, unknown>> },
 >(payload: T, context: Pick<OperationContext, "branchAttachment">): T {
@@ -260,14 +259,12 @@ export const findGapsSpec = {
  * KIBI_PROOF_BINDING_MODE=strict-snapshot opts out (receipts then match only
  * against the whole-workspace snapshot they were produced on).
  */
-// implements REQ-kibi-verification-evidence-contract
 export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
   return process.env.KIBI_PROOF_BINDING_MODE?.trim() === "strict-snapshot"
     ? "strict_snapshot"
     : "per_contract";
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export async function perContractTestBindings(
   context: OperationContext,
 ): Promise<string | null> {
@@ -331,7 +328,6 @@ export async function perContractTestBindings(
  */
 export const COVERAGE_ROW_PAGE_SIZE = 10;
 
-// implements REQ-kibi-verification-evidence-contract
 export async function readCoveragePages(
   prolog: NonNullable<OperationContext["prolog"]>,
   goalFor: (limit: number, offset: number) => string,

@@ -451,7 +451,6 @@ describe("runEngineDaemon in-process", () => {
     expect(exitSpy).toHaveBeenCalled();
   }, 20_000);
 
-  // implements REQ-core-journaled-engine-persistence
   test("a stopped daemon leaves no rdf lock or ownership journal behind", async () => {
     const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
     process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "60000";

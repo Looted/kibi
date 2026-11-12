@@ -17,7 +17,6 @@
 */
 import { splitTopLevel } from "kibi-runtime";
 
-// implements REQ-002
 export function parseAtomList(raw: string): string[] {
   // An empty list ("[]" or blank) splits into one empty token, which the
   // filter drops, so it needs no early return.
@@ -26,7 +25,6 @@ export function parseAtomList(raw: string): string[] {
     .filter((token) => token.length > 0);
 }
 
-// implements REQ-002
 export function parsePairList(raw: string): Array<[string, string]> {
   const pairs: Array<[string, string]> = [];
   for (const row of listRows(raw)) {

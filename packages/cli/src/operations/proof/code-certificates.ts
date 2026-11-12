@@ -69,7 +69,6 @@ import {
  * What a receipt records about its contract's kind: the evidence level it
  * supports and, for a certificate kind, the certificate and its re-check.
  */
-// implements REQ-kibi-code-proof-kinds
 export type CertificateVerdict = Readonly<{
   kind: ProofKind;
   evidence_level: "proved" | "tested";
@@ -124,7 +123,6 @@ const IMPORT_SPECIFIER =
  * names the predicate and loads its file (use_module, ensure_loaded, consult
  * or a load list), or is the plunit file beside it (`x.plt` for `x.pl`).
  */
-// implements REQ-kibi-code-proof-kinds
 export function importsDomain(
   source: string,
   sourcePath: string,
@@ -266,7 +264,6 @@ function parseJsonc(text: string): unknown {
  * using the nearest tsconfig.json above the path. Null when no tsconfig
  * declares an `outDir` that contains it.
  */
-// implements REQ-kibi-code-proof-kinds
 export function compiledToSourcePath(
   workspaceRoot: string,
   relativePath: string,
@@ -391,7 +388,6 @@ else:
  * files); a Python domain (`.py`) loads with the first interpreter
  * pythonDomainInterpreters finds.
  */
-// implements REQ-kibi-code-proof-kinds
 export function evaluateDomain(
   workspaceRoot: string,
   sourceFile: string,
@@ -421,7 +417,6 @@ export function evaluateDomain(
  * The number a value_source export holds, read the same way as a domain. A
  * Prolog constant is a predicate with a single solution holding a number.
  */
-// implements REQ-kibi-claim-bound-proofs
 export function evaluateScalar(
   workspaceRoot: string,
   sourceFile: string,
@@ -520,7 +515,6 @@ function evaluateExport(
  * Whether an exhaustive certificate covers the domain Kibi evaluated: the
  * same members when they are primitive values, else the same count.
  */
-// implements REQ-kibi-code-proof-kinds
 export function domainCoverageProblem(
   exportName: string,
   evaluated: Readonly<{ count: number; members: readonly string[] | null }>,
@@ -670,7 +664,6 @@ function hasExhaustivenessCheck(
  * strict, so a lax project tsconfig cannot make the never check vacuous. It
  * accepts the witness only with no errors in it.
  */
-// implements REQ-kibi-code-proof-kinds
 export function compileWitness(
   workspaceRoot: string,
   witnessPath: string,
@@ -834,7 +827,6 @@ export function smtAssertion(
  * same way as a domain (a count measure is the collection's size), or why
  * one cannot be read.
  */
-// implements REQ-kibi-claim-bound-proofs
 export async function valueSourceValues(
   context: OperationContext,
   contract: ProofContract,
@@ -956,7 +948,6 @@ async function constraintSourceProblem(
 }
 
 /** The solver re-run behind an smt certificate; unsat is the only proof. */
-// implements REQ-kibi-code-proof-kinds
 export function rerunSmtQuery(
   solver: string,
   query: string,
@@ -1104,7 +1095,6 @@ async function workspaceProblem(
  * a model it carries must be what Kibi reads; either way the stored model is
  * Kibi's own read, so the proof never rests on members the test listed.
  */
-// implements REQ-kibi-source-proof-kinds
 export async function completeSourceCertificate(
   context: OperationContext,
   testId: string,
@@ -1187,7 +1177,6 @@ export {
  * the workspace file, that the solver still answers unsat, and that a rule
  * table, state machine or pattern is what Kibi itself reads from the code.
  */
-// implements REQ-kibi-code-proof-kinds
 export async function checkCodeCertificate(
   context: OperationContext,
   input: Readonly<{

@@ -15,7 +15,6 @@ export type {
 } from "../../../operations/bootstrap/types.js";
 export { executePlanBootstrap } from "../../../operations/bootstrap/generate.js";
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export const planBootstrapSpec = {
   name: "kb_plan_bootstrap",
   cliName: "plan-bootstrap",

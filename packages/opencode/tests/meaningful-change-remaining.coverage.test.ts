@@ -1,4 +1,3 @@
-// implements REQ-opencode-enforcement
 import { afterEach, describe, expect, test } from "bun:test";
 import { isSafeDocsUnknownPath } from "../src/meaningful-change-classifier.js";
 

@@ -45,7 +45,6 @@ export interface FileOperationState {
 // ---------------------------------------------------------------------------
 
 export function createFileOperationState(opts: {
-  // implements REQ-opencode-file-context-guidance-v1
   worktree: string;
   /** Custom clock for testing. Defaults to Date.now. */
   now?: () => number;

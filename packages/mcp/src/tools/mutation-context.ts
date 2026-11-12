@@ -7,7 +7,6 @@ import type {
 import type { PrologProcess } from "kibi-runtime";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
-// implements REQ-kibi-operation-interface-parity
 export function createMutationContext(
   prolog?: PrologProcess,
 ): OperationContext {

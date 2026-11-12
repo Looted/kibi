@@ -10,8 +10,6 @@ import {
   SIGNOFF_GATE_LABELS,
 } from "../../../src/signoff/model.js";
 
-// implements REQ-kibi-signoff-labels
-
 /**
  * The gates and change kinds a signoff view names, and the label shown for each. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

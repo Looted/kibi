@@ -124,7 +124,6 @@ export type {
   EntityDeletionPlan,
 } from "./apply-plan-types.js";
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 export const PLAN_APPLY_RESULT_VERSION = "kibi.plan-apply-result.v1" as const;
 
 const ENTITY_TYPES = new Set([
@@ -192,7 +191,6 @@ function asUpsert(step: PlanStep): UpsertInput {
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 /**
  * Why a plan that is not ready cannot be applied, with the remedy for its
  * status. The leading sentence stays the same for every status.
@@ -390,7 +388,6 @@ function validateBootstrapPlanShape(
   return orderBootstrapActions(plan.actions);
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 function preflightBootstrapActions(
   actions: readonly BootstrapAction[],
   context: OperationContext,
@@ -410,7 +407,6 @@ function preflightBootstrapActions(
   }
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 function isDeterministicBootstrapFailure(error: unknown): boolean {
   const detail = error instanceof Error ? error.message : String(error);
   return (
@@ -527,7 +523,6 @@ function validateMigrationPlanShape(
  * `--approved-action` selects only automatic actions, so these never run on
  * their own.
  */
-// implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
 function isApprovableReviewAction(action: MigrationAction): boolean {
   return (
     action.safety === "review" &&
@@ -1121,7 +1116,6 @@ type BootstrapJournalCarry = Readonly<{
  * The bootstrap plan's live-state checks: branch, KB snapshot, workspace
  * snapshot and declared source hashes must still match the plan.
  */
-// implements REQ-bootstrap-apply-long-running
 async function assertBootstrapPlanCurrent(
   args: Extract<ApplyPlanArgs, { plan: BootstrapPlanV1 }>,
   operationContext: OperationContext,
@@ -1167,7 +1161,6 @@ async function assertBootstrapPlanCurrent(
  * receipt, so input and stale-plan errors fail the call instead of the job.
  * The apply itself repeats every check under the workspace lock.
  */
-// implements REQ-mcp-apply-plan-async-preflight
 export async function preflightApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1589,7 +1582,6 @@ async function executeBootstrapPlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 async function executeApplyPlanUnlocked(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1622,7 +1614,6 @@ async function executeApplyPlanUnlocked(
  * Only then may recovery attribute drift since the last checkpoint to the
  * action and re-apply it; every other drift stays a refusal.
  */
-// implements REQ-bootstrap-apply-long-running
 function interruptedBootstrapAction(
   journal: Readonly<{
     state?: string;
@@ -1637,7 +1628,6 @@ function interruptedBootstrapAction(
   return active;
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-agent-guided-migration-orchestration
 async function dispatchApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1905,7 +1895,6 @@ type ValidatedPlanStep = Readonly<{
   relationships: readonly RelationshipInput[];
 }>;
 
-// implements REQ-kibi-truthful-consistency
 /**
  * Run every step through the validation chain executeUpsert runs. Each step
  * is validated against the live store plus what the earlier steps will have
@@ -1960,7 +1949,6 @@ type MutablePlanFileWrite = {
  * executeUpsert would write it, in step order. `sources` maps a step index to
  * its document, which becomes the committed entity's `source`.
  */
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 async function planFileWrites(
   context: OperationContext,
   prolog: PrologPort,
@@ -2125,7 +2113,6 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 /**
  * Apply a validated compile plan all-or-nothing:
  * 1. journal every file change (exact bytes) and every store upsert, plus a
@@ -2424,7 +2411,6 @@ async function commitCompilePlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 async function executeCompilePlan(
   args: Extract<ApplyPlanArgs, { plan: CompilePlanV1 }>,
   context: OperationContext,
@@ -2486,7 +2472,6 @@ async function executeCompilePlan(
     args.plan.expected.sourceHashes,
   );
   const steps = args.plan.steps.map((step) => asUpsert(step));
-  // implements REQ-kibi-truthful-consistency
   // Run every step through the same validation chain executeUpsert runs,
   // then stage all of them together in a rolled-back transaction, before the
   // first write. A step executeUpsert would reject, or a final state that
@@ -2625,7 +2610,6 @@ async function executeCompilePlan(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 /** The kb_apply_plan result for a plan journal this call recovered or found finished. */
 async function planJournalRecoveryResult(
   context: OperationContext,
@@ -2701,7 +2685,6 @@ async function planJournalRecoveryResult(
   };
 }
 
-// implements REQ-kibi-change-to-proof-plan-compiler-v2, REQ-core-atomic-upsert-persistence
 async function executePlanJournalRecovery(
   journalId: string,
   context: OperationContext,
@@ -2813,7 +2796,6 @@ function withRecoveryReport(
  * journal is still `applying` (its process died mid-plan). Only such a
  * recovery may reclaim a lock whose holder process is dead.
  */
-// implements REQ-bootstrap-apply-long-running
 async function applyingBootstrapJournal(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -2841,7 +2823,6 @@ async function applyingBootstrapJournal(
 }
 
 /** Record reclaimed dead lock holders in the bootstrap journal. */
-// implements REQ-bootstrap-apply-long-running
 async function recordBootstrapLockReclaims(
   context: OperationContext,
   journalPath: string,
@@ -2876,7 +2857,6 @@ async function recordBootstrapLockReclaims(
   );
 }
 
-// implements REQ-agent-guided-migration-orchestration, REQ-cli-canonical-runtime, REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-change-to-proof-plan-compiler-v2, REQ-kibi-predicate-vocabulary-migration
 export async function executeApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -3194,7 +3174,6 @@ async function applyMigrationAction(
     case "missing_exact_branch_store":
       await branchEnsureCommand({ workspaceRoot: context.workspaceRoot });
       return;
-    // implements REQ-cli-status-pre-first-sync
     case BRANCH_STORE_NOT_COMPILED: {
       const result = await syncCommand({
         workspaceRoot: context.workspaceRoot,
@@ -3205,7 +3184,6 @@ async function applyMigrationAction(
         );
       return;
     }
-    // implements REQ-cli-status-pre-first-sync
     case FRESHNESS_RESYNC: {
       const result = await syncCommand({
         workspaceRoot: context.workspaceRoot,
@@ -3225,7 +3203,6 @@ async function applyMigrationAction(
     case "schema_version_upgrade":
     case "invalid_schema_version":
     case "legacy_storage_migration": {
-      // implements REQ-agent-guided-migration-orchestration
       const run = await migrateCommand({
         yes: true,
         workspaceRoot: context.workspaceRoot,
@@ -3250,7 +3227,6 @@ async function applyMigrationAction(
     case PREDICATE_SCHEMA_ALIGNMENT_CODE:
       await applyPredicateSchemaAlignment(action, context);
       return;
-    // implements REQ-kibi-verification-evidence-contract
     case PROOF_INTEGRATION_CONFIGURE:
       applyProofIntegrationAction(action, context.workspaceRoot);
       return;
@@ -3272,7 +3248,6 @@ async function applyMigrationAction(
  * Replay the planned kb_upsert for one predicate fact after confirming the
  * fact still has the namespace and alias spellings the plan was built from.
  */
-// implements REQ-kibi-predicate-vocabulary-migration
 async function applyPredicateSchemaAlignment(
   action: MigrationAction,
   context: OperationContext,

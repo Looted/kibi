@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";

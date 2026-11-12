@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -27,11 +26,11 @@ describe("symbol-extract leftover declaration kinds", () => {
     roots.push(root);
     const file = "src/widget.ts";
     const content = `
-/** implements REQ-WIDGET */
+/** Widget entry. */
 export function exportedFn() {}
 function hidden() {}
 
-/** implements REQ-CLASS */
+/** Widget class. */
 export class Widget {
   value = 1;
   get label() { return "w"; }

@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import {
   afterAll,
   afterEach,

@@ -1,4 +1,3 @@
-// implements REQ-model-predicates-participant-not-subject
 import { describe, expect, test } from "bun:test";
 import { unnamedParticipantArguments } from "../../src/operations/modeling/predicate-binding-hints.js";
 import {

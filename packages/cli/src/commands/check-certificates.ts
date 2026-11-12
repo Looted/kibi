@@ -33,7 +33,6 @@ type RejectedCertificate = Readonly<{
   group?: unknown;
 }>;
 
-// implements REQ-kibi-kb-certificates
 export type VerificationReport = Readonly<{
   version: string;
   status: "verified" | "rejected";
@@ -73,7 +72,6 @@ function prologPath(filePath: string): string {
   return escapeAtom(path.resolve(filePath).replaceAll("\\", "/"));
 }
 
-// implements REQ-kibi-kb-certificates
 /**
  * The exit code for re-checking a saved bundle: 0 only when every certificate
  * re-verifies and no theorem is disproved. An unresolved theorem does not
@@ -111,7 +109,6 @@ function describeGroup(entry: unknown): string {
   return JSON.stringify(entry);
 }
 
-// implements REQ-kibi-kb-certificates
 export function renderVerification(report: VerificationReport): string {
   const lines: string[] = [];
   lines.push(
@@ -193,7 +190,6 @@ function prologOf(context: OperationContext) {
   return context.prolog;
 }
 
-// implements REQ-kibi-kb-certificates
 /** Re-check a saved kibi.certificates.v1 bundle against the current KB. */
 export async function recheckCertificates(
   bundlePath: string,
@@ -208,7 +204,6 @@ export async function recheckCertificates(
   );
 }
 
-// implements REQ-kibi-kb-certificates
 /** `kibi check --certificates <file>`: print the re-check report. */
 export async function checkCertificatesCommand(options: {
   certificates: string;
@@ -225,7 +220,6 @@ export async function checkCertificatesCommand(options: {
   return { exitCode: certificatesExitCode(report) };
 }
 
-// implements REQ-kibi-kb-certificates
 /**
  * `kibi check --write-certificates <file>`: save the bundle the
  * kb-consistency rule re-checked, so another checker can re-check it.

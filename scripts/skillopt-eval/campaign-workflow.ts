@@ -101,7 +101,6 @@ import { initializeTargetEpisodeBudget } from "./target-episode-budget";
  * Campaign cohort hashes and stored evaluations bind to it, so a profile change
  * between campaign commands is rejected as a model mismatch.
  */
-// implements REQ-skillopt-paid-launch-accounting
 export function campaignModelProfile(): SkillOptModelConfig {
   const config = activeSkillOptModelConfig();
   return {
@@ -116,7 +115,6 @@ export function campaignModelProfile(): SkillOptModelConfig {
  * The agent harness a campaign command ran on, with the host CLI version its
  * preflight captured (`null` for commands without a preflight).
  */
-// implements REQ-skillopt-operator-selected-harness
 export type CampaignHostRecord = Readonly<{
   id: SkillOptHost;
   cliVersion: string | null;
@@ -849,7 +847,6 @@ export async function readCompleteCampaignEvaluation(
  * The harness an evaluation's cells ran on. Evaluations written before the
  * host was recorded fall back to the newest run's preflight receipt.
  */
-// implements REQ-skillopt-host-neutral-optimization
 export async function campaignEvaluationHost(
   evaluation: CampaignEvaluation,
 ): Promise<SkillOptHost | undefined> {
@@ -871,7 +868,6 @@ export async function campaignEvaluationHost(
 }
 
 /** Refuses evidence produced on a different harness than this run's. */
-// implements REQ-skillopt-host-neutral-optimization
 export async function assertEvaluationHost(
   evaluation: CampaignEvaluation,
   host: SkillOptHost,
@@ -1651,7 +1647,6 @@ async function buildEvaluation(
  * arm and family, the cells whose protocol failed on a missing required
  * call, named by public tool and position only.
  */
-// implements REQ-skillopt-host-neutral-optimization
 export function campaignPublicFeedback(
   evaluation: Pick<CampaignEvaluation, "cells">,
 ): PublicFeedback {

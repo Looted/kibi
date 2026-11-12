@@ -163,7 +163,6 @@ This comes after assignment and should not be a docstring either.
     assert.equal(result, null);
   });
 
-  // implements REQ-opencode-comment-routing
   test("ignores assignment-backed triple-quoted strings inside class bodies", () => {
     const pyFile = path.join(tmpDir, "class-assignment-docstring.py");
     fs.writeFileSync(
@@ -194,7 +193,6 @@ class Example:
     assert.equal(result, null);
   });
 
-  // implements REQ-opencode-comment-routing
   test("non-docstring triple-quote after code prevents later module docstring detection", () => {
     const pyFile = path.join(tmpDir, "non-docstring-blocks-docstring.py");
     fs.writeFileSync(
@@ -219,7 +217,6 @@ So it must also be ignored.
     assert.equal(result, null);
   });
 
-  // implements REQ-opencode-comment-routing
   test("treats a failed first module docstring extraction as non-docstring content", () => {
     const pyFile = path.join(tmpDir, "unterminated-module-triple-quote.py");
     fs.writeFileSync(

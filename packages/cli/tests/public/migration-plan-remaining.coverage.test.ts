@@ -1,4 +1,3 @@
-// implements REQ-kibi-legacy-migration-preview-v2
 import { afterEach, describe, expect, test } from "bun:test";
 import { compareReadyActionIds } from "../../src/public/operations/migration-plan.js";
 

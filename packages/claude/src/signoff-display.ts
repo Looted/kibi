@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// implements REQ-kibi-signoff-views
 /**
  * Claude Code `MessageDisplay` hook for Kibi signoff views. Agents paste
  * `kibi signoff` output as a fenced block (```kibi-signoff or
@@ -35,7 +34,6 @@ export type DisplayResult = Readonly<{
   open: boolean;
 }>;
 
-// implements REQ-kibi-signoff-views
 /**
  * Remove signoff fence lines from one batch. `open` says whether a fence was
  * left open by an earlier batch of the same message.
@@ -88,7 +86,6 @@ function parseBatch(raw: string): DisplayBatch | undefined {
   return undefined;
 }
 
-// implements REQ-kibi-signoff-views
 /** Handle one `MessageDisplay` call; returns the hook's JSON output. */
 export function handleDisplayBatch(
   raw: string,

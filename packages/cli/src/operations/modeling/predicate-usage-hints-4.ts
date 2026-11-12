@@ -1,6 +1,5 @@
 import type { PredicateUsageHints } from "./predicate-types.js";
 
-// implements REQ-mcp-suggest-predicates
 export const PREDICATE_USAGE_HINTS_4: Record<string, PredicateUsageHints> = {
   fail_closed_authorization_rule: {
     use_when: [
@@ -81,7 +80,6 @@ export const PREDICATE_USAGE_HINTS_4: Record<string, PredicateUsageHints> = {
     do_not_use_when: [
       "Do not use for soft deletion or data preservation rules without an operational switch.",
     ],
-    // implements REQ-mcp-suggest-predicates
   },
   ui_pattern: {
     use_when: [

@@ -22,10 +22,8 @@ import {
 } from "./catalog.js";
 import { terminalDemoHtml } from "./terminal-demo.js";
 
-// implements REQ-docs-site-root-pages
 export type Section = "guide" | "reference";
 
-// implements REQ-docs-site-root-pages
 export type PageShell = {
   /** Relative prefix from this page to the site root: "" or "../". */
   root: string;
@@ -48,7 +46,6 @@ export type PageShell = {
   analyticsId: string | null;
 };
 
-// implements REQ-docs-site-root-pages
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -59,7 +56,6 @@ export function escapeHtml(value: string): string {
 }
 
 /** Strip fixed dimensions from a canonical mark so CSS controls its size. */
-// implements REQ-docs-site-root-pages
 export function prepareMark(svg: string, variant: "logo" | "wordmark"): string {
   return svg
     .replace(/\swidth="[^"]*"/, "")
@@ -97,7 +93,6 @@ const CLOSING_RAIL_SVG = `<svg class="closing-rail" viewBox="0 0 520 40" aria-hi
   <circle cx="500" cy="20" r="7" fill="#63c99a"/>
 </svg>`;
 
-// implements REQ-docs-site-root-pages
 export const styles = String.raw`
 :root {
   --deep: #111318;
@@ -890,7 +885,6 @@ figure.code.hero-copy {
 }
 `;
 
-// implements REQ-docs-site-root-pages
 export const clientScript = String.raw`
 (function () {
   "use strict";
@@ -1446,7 +1440,6 @@ export const clientScript = String.raw`
 })();
 `;
 
-// implements REQ-docs-site-root-pages
 export function landingContent(args: {
   root: string;
   reportUrl: string | null;
@@ -1834,7 +1827,6 @@ ${reportStrip}
 </div>`;
 }
 
-// implements REQ-docs-site-root-pages
 export function layout(page: PageShell): string {
   const {
     root,

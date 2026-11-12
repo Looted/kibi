@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// implements REQ-zcode-kibi-plugin-v1
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -165,7 +164,6 @@ function editTargets(
  * the edit targets, shown once per file per ZCode session, after the
  * firm-requirement notice when the edit touches one.
  */
-// implements REQ-zcode-kibi-plugin-v1
 function preEditContext(
   workspaceRoot: string,
   stateDir: string | undefined,
@@ -210,7 +208,6 @@ function preEditContext(
     .join("\n\n");
 }
 
-// implements REQ-agent-hosts-decision-guard
 /**
  * The ZCode plugin's hooks stay advisory, so an edit of code that implements
  * a firm requirement gets a notice telling the agent to ask the person
@@ -256,7 +253,6 @@ const packageVersion = readPackageVersion(
  * telemetry metric: Kibi lookups through MCP or the CLI, and edits with the
  * requirements the edited files implement.
  */
-// implements REQ-zcode-kibi-plugin-v1
 function recordToolTelemetry(
   workspaceRoot: string,
   stateDir: string | undefined,
@@ -372,7 +368,6 @@ export async function runHook(
     switch (input.event) {
       case "SessionStart":
         trace.action = "session_start";
-        // implements REQ-kibi-fresh-clone-setup
         return contextResult(
           input.event,
           [SESSION_START_CONTEXT, missingHooksNote(workspace.root)]
@@ -380,7 +375,6 @@ export async function runHook(
             .join("\n"),
         );
 
-      // implements REQ-agent-hosts-decision-guard
       case "UserPromptSubmit": {
         const rule = input.prompt
           ? recordRequest(session, input.prompt)
@@ -503,7 +497,6 @@ export async function runHook(
           : kbUsageTrace(input.toolName, input.toolInput)?.kbOperation;
         if (kbOperation === "kb_upsert") {
           markDecisionFlag(session, "kb-recorded");
-          // implements REQ-kibi-signoff-views
           if (isRequirementUpsert(input.toolInput)) {
             markDecisionFlag(session, "requirement-recorded");
           }
@@ -521,13 +514,11 @@ export async function runHook(
           .filter(
             (sourcePath) => !state.impactCheckedPaths.includes(sourcePath),
           );
-        // implements REQ-agent-hosts-decision-guard
         // Source changed and nothing was recorded: ask once per session for
         // the decision behind the change, with any impact-check reminder.
         const capture = claimCaptureReminder(session)
           ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
           : undefined;
-        // implements REQ-kibi-signoff-views
         // Requirements were written without a signoff view since: ask once.
         // A recorded requirement also marks the KB as recorded, so this never
         // claims the signoff reminder in a Stop that shows the capture one.
@@ -612,7 +603,6 @@ export async function main(): Promise<void> {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-// implements REQ-zcode-kibi-plugin-v1
 export function isInvokedAsCli(
   argv1: string | undefined,
   moduleUrl: string,

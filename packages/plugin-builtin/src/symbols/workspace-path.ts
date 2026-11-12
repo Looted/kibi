@@ -19,7 +19,6 @@ import { realpathSync } from "node:fs";
 import path from "node:path";
 
 /** Return null when `candidate` escapes `workspaceRoot`. */
-// implements REQ-symbol-sourcefile-workspace-confinement
 export function resolveWorkspaceSourceAbsolute(
   workspaceRoot: string,
   sourceFile: string,

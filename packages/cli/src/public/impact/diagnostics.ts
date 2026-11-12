@@ -117,7 +117,6 @@ function isChangedBehavioralReviewCandidate(symbol: ExtractedSymbol): boolean {
   return symbol.hunkRanges.length > 0;
 }
 
-// implements REQ-cli-staged-impact-enforcement, REQ-cli-check
 export function createSymbolGranularityDiagnostics(
   options: SymbolGranularityDiagnosticsOptions,
 ): KibiImpactDiagnostic[] {

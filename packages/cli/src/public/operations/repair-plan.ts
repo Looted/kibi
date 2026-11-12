@@ -332,7 +332,6 @@ type SkeletonEntity = {
   }[];
 };
 
-// implements REQ-kibi-case-coverage
 /**
  * An upsert-ready draft scenario for one uncovered case: the fact it assumes
  * (the case's value class) and the scenario that expects the predicted

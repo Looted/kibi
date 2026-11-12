@@ -26,7 +26,6 @@ function walkSourceDirectory(root: string, directory: string): string[] {
   return files;
 }
 
-// implements REQ-014
 export function collectProductionSourceFiles(workspaceRoot: string): string[] {
   const packagesRoot = join(workspaceRoot, PACKAGE_ROOT);
   if (!existsSync(packagesRoot)) return [];
@@ -44,14 +43,12 @@ export function collectProductionSourceFiles(workspaceRoot: string): string[] {
   return sourceFiles.sort();
 }
 
-// implements REQ-014
 export function sourceFilesInLcov(lcov: string): Set<string> {
   return new Set(
     [...lcov.matchAll(/^SF:(.+)$/gm)].map((match) => match[1] ?? ""),
   );
 }
 
-// implements REQ-014
 export function writeCoverageManifestAudit(
   workspaceRoot: string,
   coverageDir: string,
@@ -73,7 +70,6 @@ export function writeCoverageManifestAudit(
   return missingFiles;
 }
 
-// implements REQ-014
 // covered_by TEST-scripts-unit-coverage-runner
 export async function runCoverageManifestCli(
   argv: string[] = process.argv,

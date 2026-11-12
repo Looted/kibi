@@ -8,7 +8,6 @@ import { DECISION_IDS } from "../runtime/decision-seeds";
  * family defaults in evaluator.ts.
  */
 
-// implements REQ-skillopt-codex-optimization
 export type FixtureSetupMode =
   | "none"
   | "generated_coordinate_divergence"
@@ -34,7 +33,6 @@ export type FixtureSetupMode =
   | "seeded_merge_commit_kb";
 
 /** A regex over one final workspace source file. */
-// implements REQ-skillopt-codex-optimization
 export type WorkspaceAssertion = Readonly<{
   key: string;
   /** Workspace-relative path under `src/`. */
@@ -45,14 +43,12 @@ export type WorkspaceAssertion = Readonly<{
   expectMatch: boolean;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type RequiredCall = Readonly<{
   tool: string;
   /** Subset predicate: every listed field must match the call's arguments. */
   args?: Readonly<Record<string, unknown>>;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type CaseContract = Readonly<{
   fixtureSetup: FixtureSetupMode;
   /** Ordered catalog operations scored by the protocol rubric. */
@@ -67,7 +63,6 @@ export type CaseContract = Readonly<{
  * Format instruction appended to answer-scored prompts. It fixes the shape of
  * the answer, not its content: the vocabulary lists every verdict.
  */
-// implements REQ-skillopt-codex-optimization
 export const KIBI_ANSWER_FORMAT_INSTRUCTION =
   ' Put your user-facing answer in the final "answer" field and end it with a fenced ```kibi-answer block holding one JSON object: {"verdict": "governed" | "conflict" | "infeasible" | "unknown" | "no_knowledge" | "analysis_incomplete" | "unresolved" | "no_conflict", "governing": [current requirement IDs], "conflict": string or null, "unknowns": [strings], "nextStep": string or null, "proof": "tested" | "unresolved" | "missing" | "not_applicable" | null}.';
 
@@ -119,7 +114,6 @@ const LONG_NAMES_REJECTED: WorkspaceAssertion = {
   expectMatch: true,
 };
 
-// implements REQ-skillopt-codex-optimization
 export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
   {
     onboarding_evidence_review: {
@@ -364,7 +358,6 @@ export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
   };
 
 /** Objectives whose prompt carries the `kibi-answer` format instruction. */
-// implements REQ-skillopt-codex-optimization
 export function answerScoredObjective(objectiveCode: string): boolean {
   return (
     objectiveCode !== "onboarding_evidence_review" &&

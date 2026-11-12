@@ -20,7 +20,6 @@ import {
   RunStateSchema,
 } from "./contracts/workflow";
 
-// implements REQ-skillopt-codex-optimization
 export class RunStore {
   private held = false;
 

@@ -133,7 +133,6 @@ function conflicts(
   return result;
 }
 
-// implements REQ-bootstrap-claim-kinds-and-conflicts
 export function normalizeBootstrapContext(
   input?: BootstrapContext,
 ): BootstrapDeclaredContext {
@@ -171,7 +170,6 @@ function payoff(
  * Suppressions per reason, most frequent first, so a plan with hundreds of
  * suppressed rows still reads as a handful of lines.
  */
-// implements REQ-bootstrap-discovered-candidate-budget
 export function suppressionCounts(
   rows: readonly Readonly<Record<string, unknown>>[],
 ): readonly { readonly reason: string; readonly count: number }[] {
@@ -210,7 +208,6 @@ const EXISTING_REASONS = ["entity_exists"];
 const FILTERED_REASONS = ["filtered_by_entity_type", "below_min_confidence"];
 
 /** Declared claims per knowledge source against what the plan writes. */
-// implements REQ-bootstrap-intent-claim-accounting
 function claimAccounting(
   declared: BootstrapDeclaredContext,
   candidates: readonly Candidate[],
@@ -292,7 +289,6 @@ function claimAccounting(
 }
 
 /** One diagnostic line per source that names why claims were not planned. */
-// implements REQ-bootstrap-intent-claim-accounting
 function accountingLine(
   row: ClaimAccounting,
   activation: ActivationPolicy,
@@ -322,7 +318,6 @@ function accountingLine(
   return `Knowledge source ${row.source.id} (${row.source.authority}): ${row.declared} declared claim(s), ${row.planned} planned, ${row.existing} already in the KB, ${row.filtered} filtered out, ${notPlanned} not planned${reasons.length > 0 ? `: ${reasons.join("; ")}` : ""}.`;
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-bootstrap-discovered-candidate-budget, REQ-bootstrap-provenance-stubs
 export function presentBootstrap(input: {
   readonly root: string;
   readonly activation: ActivationPolicy;

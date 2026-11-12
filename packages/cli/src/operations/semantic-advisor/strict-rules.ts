@@ -67,7 +67,6 @@ const NEVER_VERBS: Readonly<Record<string, string>> = {
  * nullable field, members a set must stay within, and references the code
  * must never make.
  */
-// implements REQ-kibi-source-proof-kinds
 export function detectSourceShape(
   payload: Payload,
   statement: string,
@@ -279,7 +278,6 @@ export function detectSourceShape(
   return null;
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function detectStrictSuggestion(
   payload: Payload,
   statement: string,
@@ -455,7 +453,6 @@ export function detectStrictSuggestion(
       );
   }
 
-  // implements REQ-kibi-non-numeric-proof-kinds
   const pattern = groupsOf<"slash" | "subject" | "tick">(
     statement,
     /^(?<subject>.+?)\s(?:must|shall|should)\s+(?:always\s+)?match\s+(?:the\s+(?:pattern|regular\s+expression|regex)\s+)?(?:`(?<tick>[^`]+)`|\/(?<slash>.+)\/)\.?$/i,
@@ -501,7 +498,6 @@ export function detectStrictSuggestion(
   const sourceShape = detectSourceShape(payload, statement);
   if (sourceShape !== null) return sourceShape;
 
-  // implements REQ-kibi-non-numeric-proof-kinds
   const enumSet = groupsOf<"subject" | "values">(
     statement,
     /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+one\s+of\s+(?<values>.+?)\.?$/i,

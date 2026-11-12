@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { OPERATION_CATALOG } from "../../../src/public/operations/catalog.js";
 
-// implements REQ-kibi-operation-catalog-names
-
 /**
  * The operations Kibi's catalog defines, read from the name of each catalog entry. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

@@ -16,6 +16,13 @@ import {
   queryGraphEdges,
 } from "./intent-search.js";
 import {
+  type NegativePathFacts,
+  type NegativePathMarker,
+  negativePathMarker,
+  negativePathTitle,
+  queryNegativePathFacts,
+} from "./negative-path-facts.js";
+import {
   type SearchHintsDiagnostic,
   composeSearchHints,
 } from "./plugins/compose-search-hints.js";
@@ -31,10 +38,8 @@ import { tokenSourceHash } from "./search-token-cache.js";
  * below it, against 6 of 30 gold questions it got right. Host-owned, so no
  * provider can move it.
  */
-// implements REQ-kibi-search-hints-host
 export const SEARCH_HINT_WEAK_SCORE = 0.44;
 /** Requirements shown as hints. */
-// implements REQ-kibi-search-hints-host
 export const SEARCH_HINT_LIMIT = 10;
 /** Entities asked of the provider before they are lifted to requirements. */
 const PROVIDER_LIMIT = 20;
@@ -46,19 +51,21 @@ const WARM_CALL_TIMEOUT_MS = 500;
 /** Providers that answered once in this process; later calls get less time. */
 const warmedProviders = new WeakSet<object>();
 
-// implements REQ-kibi-search-hints-host
 export type SearchHintsTrigger = "abstained" | "weak";
 
-// implements REQ-kibi-search-hints-host
 export type SearchHintItem = Readonly<{
   id: string;
   title: string;
   score: number;
   /** The entity the provider matched, when the hint is its requirement. */
   via?: string;
+  /**
+   * Set when the hint is a negative-path fact no current requirement could
+   * be shown for; its title carries the "Forbidden: " prefix.
+   */
+  negativePath?: NegativePathMarker;
 }>;
 
-// implements REQ-kibi-search-hints-host
 export type SearchHintsAnalysis = Readonly<{
   trigger: SearchHintsTrigger;
   provider: PluginProviderStamp | null;
@@ -71,7 +78,6 @@ export type SearchHintsAnalysis = Readonly<{
 }>;
 
 /** Why a lexical answer needs hints, or null when it is strong enough. */
-// implements REQ-kibi-search-hints-host
 export function searchHintsTrigger(
   analysis: IntentSearchAnalysis,
 ): SearchHintsTrigger | null {
@@ -118,7 +124,6 @@ function entityText(
 }
 
 /** The current entities a provider may hint at, as the search loaded them. */
-// implements REQ-kibi-search-hints-host
 export function searchHintsEntities(
   entities: readonly Record<string, unknown>[],
   bodies: MarkdownBodyCache,
@@ -155,7 +160,10 @@ function cacheDirectory(workspaceRoot: string): string {
 /**
  * A hint on a scenario, test, fact or ADR is shown as the current
  * requirement it belongs to, so the agent re-asks about what governs; an
- * entity no current requirement links to is shown as itself.
+ * entity no current requirement links to is shown as itself. A negative-path
+ * fact is linked to no requirement directly: it is shown as the requirements
+ * whose rejecting scenarios assume it, and, when none is current, as itself
+ * marked as a situation that must not happen.
  */
 async function liftToRequirements(
   prolog: Pick<PrologPort, "query">,
@@ -166,7 +174,15 @@ async function liftToRequirements(
   const seeds = new Set(
     hints.map((hint) => hint.id).filter((id) => !isRequirement(id)),
   );
+  const negativePath: NegativePathFacts = await queryNegativePathFacts(
+    prolog,
+    [...seeds].filter((id) => byId.get(id)?.type === "fact"),
+  );
   const requirementsOf = new Map<string, Set<string>>();
+  for (const [fact, guards] of negativePath) {
+    const shown = guards.filter(isRequirement);
+    if (shown.length > 0) requirementsOf.set(fact, new Set(shown));
+  }
   for (const edge of await queryGraphEdges(prolog, [...seeds]))
     for (const [seed, other] of [
       [edge.from, edge.to],
@@ -184,11 +200,16 @@ async function liftToRequirements(
     for (const target of linked ? [...linked].sort() : [hint.id]) {
       if (shown.has(target)) continue;
       shown.add(target);
+      const title = (byId.get(target) as SearchHintsEntity).title;
+      const guards = target === hint.id ? negativePath.get(target) : undefined;
       items.push({
         id: target,
-        title: (byId.get(target) as SearchHintsEntity).title,
+        title: guards !== undefined ? negativePathTitle(title) : title,
         score: hint.score,
         ...(target !== hint.id ? { via: hint.id } : {}),
+        ...(guards !== undefined
+          ? { negativePath: negativePathMarker(guards) }
+          : {}),
       });
     }
   }
@@ -201,7 +222,6 @@ async function liftToRequirements(
  * answer is strong or no provider is configured. Hints never change the
  * ranked results, the governing answer or abstention.
  */
-// implements REQ-kibi-search-hints-host
 export async function buildSearchHints(
   options: Readonly<{
     query: string;
@@ -264,7 +284,6 @@ export async function buildSearchHints(
 }
 
 /** The sentence a search answer's text adds when hints are shown. */
-// implements REQ-kibi-search-hints-host
 export function searchHintsNote(
   hints: SearchHintsAnalysis | undefined,
 ): string {

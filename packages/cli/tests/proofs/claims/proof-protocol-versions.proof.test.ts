@@ -13,8 +13,6 @@ import {
   PROOF_RUN_VERSION,
 } from "../../../src/public/proof-protocol.js";
 
-// implements REQ-kibi-proof-protocol-versions
-
 /**
  * The version strings and run outcomes of Kibi's proof protocol. Kibi reads each
  * constant itself at ingest, so the certificate is checked against the code.

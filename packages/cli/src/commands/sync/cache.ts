@@ -67,7 +67,6 @@ export type SyncCache = {
 };
 
 /** One authored source the last sync could not extract. */
-// implements REQ-kibi-uncompiled-source-visibility
 export type SourceExtractionFailure = {
   /** SHA-256 of the bytes that failed. */
   hash: string;
@@ -87,7 +86,6 @@ export type SourceExtractionFailure = {
   semanticContract?: boolean;
 };
 
-// implements REQ-kibi-uncompiled-source-semantic-baseline
 /**
  * Whether a requirement source the last sync could not extract is still
  * accepted without a complete proposition inventory once it compiles with
@@ -131,7 +129,6 @@ function readExtractionFailures(
  * What the last sync recorded about an authored source it could not extract,
  * the record the next sync judges the source by; undefined when it compiled.
  */
-// implements REQ-kibi-uncompiled-source-semantic-baseline
 export function sourceExtractionFailure(
   workspaceRoot: string,
   storePath: string,
@@ -160,7 +157,6 @@ export const SYNC_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
  * would otherwise keep that lossy compilation forever. A cache stamped with a
  * different fingerprint is discarded, which re-imports every source once.
  */
-// implements REQ-cli-canonical-runtime
 export const SYNC_COMPILER_FINGERPRINT = createHash("sha256")
   .update(JSON.stringify(entitySchema))
   .digest("hex");
@@ -170,7 +166,6 @@ export const SYNC_COMPILER_FINGERPRINT = createHash("sha256")
  * compiler contract than the running CLI. Status reports it so a lossy store is
  * visible before the next sync repairs it.
  */
-// implements REQ-cli-canonical-runtime
 export function compilerFingerprintReason(
   storePath: string,
   deps?: Partial<SyncCacheDeps>,
@@ -202,7 +197,6 @@ export function compilerFingerprintReason(
 }
 
 /** Stale-reason code for an authored source the last sync could not extract. */
-// implements REQ-kibi-uncompiled-source-visibility
 export const SOURCE_EXTRACTION_FAILED = "source_extraction_failed";
 
 /**
@@ -212,7 +206,6 @@ export const SOURCE_EXTRACTION_FAILED = "source_extraction_failed";
  * edited since then is reported by the changed-source reasons instead, and a
  * deleted one by nothing.
  */
-// implements REQ-kibi-uncompiled-source-visibility
 export function sourceExtractionFailureReasons(
   workspaceRoot: string,
   storePath: string,
@@ -248,7 +241,6 @@ export function sourceExtractionFailureReasons(
 }
 
 /** How to make an authored source that sync cannot extract compile. */
-// implements REQ-kibi-uncompiled-source-visibility
 export function sourceExtractionRemediation(
   file: string,
   message: string,
@@ -267,7 +259,6 @@ export function toCacheKey(workspaceRoot: string, filePath: string): string {
 }
 
 export function hashFile(
-  // implements REQ-003
   workspaceRoot: string,
   filePath: string,
   deps?: Partial<SyncCacheDeps>,
@@ -301,7 +292,6 @@ export function hashNormalized(value: unknown): string {
  * existence, emptiness, content, and deletion must all change the effective
  * source hash even though the authored YAML bytes stay identical.
  */
-// implements REQ-generated-coordinate-persistence
 export function hashManifestWithCoordinates(
   workspaceRoot: string,
   manifestPath: string,
@@ -408,7 +398,6 @@ const OPTIONAL_CACHE_FIELDS = [
 ] as const;
 
 export function readSyncCache(
-  // implements REQ-003
   cachePath: string,
   deps?: Partial<SyncCacheDeps>,
   options: {
@@ -449,7 +438,6 @@ export function readSyncCache(
 }
 
 export function writeSyncCache(
-  // implements REQ-003
   cachePath: string,
   cache: SyncCache,
   deps?: Partial<SyncCacheDeps>,
@@ -469,7 +457,6 @@ export function writeSyncCache(
 }
 
 export function copySyncCache(
-  // implements REQ-003
   livePath: string,
   stagingPath: string,
   deps?: Partial<SyncCacheDeps>,

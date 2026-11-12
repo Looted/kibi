@@ -12,8 +12,6 @@ import * as path from "node:path";
 import { withSemanticInventory } from "../helpers/inventory-fixture.js";
 import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
-// implements REQ-cli-migration-first-commit
-
 const kibiBin = path.resolve(__dirname, "../../src/cli.ts");
 const TEST_TIMEOUT_MS = 120_000;
 

@@ -2,7 +2,6 @@ import type { GitChangeSnapshot } from "./git-change-snapshot.js";
 import { isGitObjectId } from "./impact-review.js";
 
 /** Read Git tree rows and blobs from a captured snapshot. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export type TreeEntry = Readonly<{
   mode: string;
   type: string;
@@ -34,7 +33,6 @@ function parseTreeRows(bytes: Buffer): TreeEntry[] {
   return rows;
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function entriesForTree(
   snapshot: GitChangeSnapshot,
   tree: string,
@@ -42,7 +40,6 @@ export function entriesForTree(
   return parseTreeRows(snapshot.readGit(["ls-tree", "-r", "-z", tree]));
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function treeEntry(
   snapshot: GitChangeSnapshot,
   tree: string,
@@ -58,7 +55,6 @@ export function treeEntry(
   return parseTreeRows(output).find((entry) => entry.path === path);
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function blobBytes(
   snapshot: GitChangeSnapshot,
   entry: TreeEntry,

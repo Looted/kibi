@@ -4,7 +4,6 @@ import type { OperationName } from "./public/operations/types.js";
 import { noteCliErrorCategory } from "./usage-telemetry.js";
 
 /** Operations whose CLI command has its own flags instead of the JSON-only route. */
-// implements REQ-kibi-operation-interface-parity
 export const INTEGRATED_OPERATIONS: ReadonlySet<string> =
   new Set<OperationName>([
     "kb_query",
@@ -16,7 +15,6 @@ export const INTEGRATED_OPERATIONS: ReadonlySet<string> =
     "kb_check",
   ]);
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * The error for a JSON-only command run without `--input`: it names both
  * ways to pass the document and where to read the fields it takes.
@@ -25,7 +23,6 @@ export function missingInputMessage(commandName: string): string {
   return `Error [MISSING_INPUT]: The --input option is required for this command. Pass a JSON file path, or '-' to read standard input, for example: echo '{}' | kibi ${commandName} --input -. Run 'kibi ${commandName} --schema' to print the input fields it accepts.\n`;
 }
 
-// implements REQ-kibi-operation-interface-parity
 /** Print an operation's JSON input schema, the contract `--input` is validated against. */
 export async function printOperationInputSchema(
   operationName: OperationName,
@@ -37,8 +34,6 @@ export async function printOperationInputSchema(
   );
 }
 
-// implements REQ-kibi-operation-interface-parity
-// implements REQ-test-journaled-engine-harness
 export function registerJsonOnlyCommands(program: Command): void {
   for (const metadata of CLI_OPERATION_METADATA) {
     if (INTEGRATED_OPERATIONS.has(metadata.name)) continue;

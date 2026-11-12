@@ -28,7 +28,6 @@ function groupsOf(match: RegExpMatchArray): HeuristicGroups {
   return match.groups as HeuristicGroups;
 }
 
-// implements REQ-002
 export function buildFallbackClaim(
   statement: string,
   source: string,
@@ -52,7 +51,6 @@ export function buildFallbackClaim(
   };
 }
 
-// implements REQ-002
 export function extractHeuristicClaim(
   statement: string,
   source: string,

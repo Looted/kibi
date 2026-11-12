@@ -24,7 +24,6 @@
  */
 
 /** Heading words whose sections hold context rather than normative text. */
-// implements REQ-kb-entity-body-context
 export const CONTEXT_HEADING_WORDS = [
   "context",
   "rationale",
@@ -36,15 +35,12 @@ export const CONTEXT_HEADING_WORDS = [
 ] as const;
 
 /** A context section needs at least this many words of prose. */
-// implements REQ-kb-entity-body-context
 export const MIN_CONTEXT_WORDS = 12;
 
 /** Token-set Jaccard at or above this value counts as a restatement. */
-// implements REQ-kb-entity-body-context
 export const RESTATEMENT_JACCARD = 0.8;
 
 /** Tag that marks legacy entities acknowledged as lacking context. */
-// implements REQ-kb-entity-body-context
 export const CONTEXT_MISSING_TAG = "review:context-missing";
 
 const HEADING_LINE = /^\s{0,3}(#{1,6})(?:[ \t]+(.*?))?[ \t]*$/;
@@ -54,7 +50,6 @@ const CONTEXT_HEADING = new RegExp(
 );
 
 /** One body section; the preamble before the first heading has level 0. */
-// implements REQ-kb-entity-body-context
 export type BodySection = Readonly<{
   level: number;
   heading: string;
@@ -64,7 +59,6 @@ export type BodySection = Readonly<{
 }>;
 
 /** True when a heading's text starts with a context heading word. */
-// implements REQ-kb-entity-body-context
 export function isContextHeading(heading: string): boolean {
   return CONTEXT_HEADING.test(heading.replace(/^[*_`\s]+/, ""));
 }
@@ -116,7 +110,6 @@ function classifyLines(body: string): ClassifiedLine[] {
 }
 
 /** Split a Markdown body (front matter removed) into sections by ATX headings. */
-// implements REQ-kb-entity-body-context
 export function parseBodySections(body: string): BodySection[] {
   const sections: BodySection[] = [];
   let current: { level: number; heading: string; isContext: boolean } = {
@@ -150,7 +143,6 @@ export function parseBodySections(body: string): BodySection[] {
  * The body with every line of its context sections removed (other lines are
  * untouched), for deriving the checked meaning.
  */
-// implements REQ-kb-entity-body-context
 export function withoutContextSections(body: string): string {
   return classifyLines(body)
     .filter((row) => !row.inContext)
@@ -159,7 +151,6 @@ export function withoutContextSections(body: string): string {
 }
 
 /** Text of the context sections of a body, headings excluded. */
-// implements REQ-kb-entity-body-context
 export function contextSectionText(body: string): string {
   return parseBodySections(body)
     .filter((section) => section.isContext && section.text !== "")
@@ -168,7 +159,6 @@ export function contextSectionText(body: string): string {
 }
 
 /** The entity fields the context rules read. */
-// implements REQ-kb-entity-body-context
 export type ContextEntity = Readonly<{
   title?: unknown;
   semantic_text?: unknown;
@@ -176,7 +166,6 @@ export type ContextEntity = Readonly<{
 }>;
 
 /** Types whose entities must carry body context. */
-// implements REQ-kb-entity-body-context
 export const CONTEXT_REQUIRED_TYPES = [
   "req",
   "scenario",
@@ -190,7 +179,6 @@ export const CONTEXT_REQUIRED_TYPES = [
  * facts of any fact_kind other than observation or meta (their front matter
  * is the content).
  */
-// implements REQ-kb-entity-body-context
 export function isContextExempt(type: string, entity: ContextEntity): boolean {
   if (type === "fact") {
     return entity.fact_kind !== "observation" && entity.fact_kind !== "meta";
@@ -210,7 +198,6 @@ function proseWithoutHeadings(body: string): string {
  * context headings. Scenarios, tests, ADRs and observation or meta facts:
  * all body prose outside headings.
  */
-// implements REQ-kb-entity-body-context
 export function contextProse(
   type: string,
   body: string,
@@ -227,7 +214,6 @@ function tokens(text: string): string[] {
 }
 
 /** Normalized token-set Jaccard similarity of two texts (0 when both empty). */
-// implements REQ-kb-entity-body-context
 export function tokenSetJaccard(left: string, right: string): number {
   const a = new Set(tokens(left));
   const b = new Set(tokens(right));
@@ -237,7 +223,6 @@ export function tokenSetJaccard(left: string, right: string): number {
   return union === 0 ? 0 : shared / union;
 }
 
-// implements REQ-kb-entity-body-context
 export type ContextAssessment = Readonly<{
   ok: boolean;
   /** Why the context does not count; absent when it does. */
@@ -250,7 +235,6 @@ export type ContextAssessment = Readonly<{
  * context prose that do not restate the title (or, for requirements, the
  * semantic text). Exempt types always pass.
  */
-// implements REQ-kb-entity-body-context
 export function assessContext(
   type: string,
   body: string,
@@ -277,7 +261,6 @@ export function assessContext(
 }
 
 /** True when the entity's body states context that is not a restatement. */
-// implements REQ-kb-entity-body-context
 export function hasContext(
   type: string,
   body: string,
@@ -294,7 +277,6 @@ const TYPE_LABEL: Record<string, string> = {
   fact: "observation fact",
 };
 
-// implements REQ-kb-entity-body-context
 export type ContextFinding = Readonly<{
   type: string;
   id: string;
@@ -311,7 +293,6 @@ export type ContextFinding = Readonly<{
  * the tag alone never exempts). The strict check and the kb_upsert warning
  * share it.
  */
-// implements REQ-kb-entity-body-context
 export function contextFinding(
   type: string,
   id: string,
@@ -332,13 +313,11 @@ export function contextFinding(
 }
 
 /** True when the entity's tags acknowledge missing context as legacy. */
-// implements REQ-kb-entity-body-context
 export function isContextAcknowledged(tags: unknown): boolean {
   return Array.isArray(tags) && tags.includes(CONTEXT_MISSING_TAG);
 }
 
 /** What is missing for a type, in the words the check and warnings use. */
-// implements REQ-kb-entity-body-context
 export function missingContextDescription(
   type: string,
   reason: ContextAssessment["reason"],
@@ -357,17 +336,14 @@ export function missingContextDescription(
 }
 
 /** Hint shared by the check finding and the kb_upsert warning. */
-// implements REQ-kb-entity-body-context
 export const CONTEXT_MISSING_HINT =
   "Add a '## Context' section (requirements) or a prose body (scenarios, tests, ADRs, observation facts) stating why this exists, who asked, the source and anything that does not fit the front matter. Never invent a reason the requester did not give: write who asked, the source and 'Reason not stated' in the Context section instead.";
 
 /** Suggestion for a review:context-missing tag the schema 8 migration did not set. */
-// implements REQ-kb-entity-body-context
 export const RESERVED_TAG_HINT =
   "review:context-missing is reserved for entities acknowledged by the schema 8 migration; add context instead: write who asked, the source and 'Reason not stated' in the Context section, and remove the tag.";
 
 /** Where an entity's statement came from, for the `## Source` section. */
-// implements REQ-kb-entity-body-context
 export type BodySource = Readonly<{
   /** Verbatim text from the source; rendered as a blockquote. */
   excerpt?: string | undefined;
@@ -407,7 +383,6 @@ function sourceSectionBlock(source: BodySource | undefined): string | null {
  * `## Source` when given. The statement stays the first, heading-free block
  * so it remains the derived meaning when no `semantic_text` is pinned.
  */
-// implements REQ-kb-entity-body-context
 export function renderRequirementBody(input: {
   statement: string;
   context?: string | undefined;
@@ -428,7 +403,6 @@ export function renderRequirementBody(input: {
  * supplied source replaces the `## Source` section (each is appended when the
  * body had none).
  */
-// implements REQ-kb-entity-body-context
 export function reviseRequirementBody(input: {
   existingBody: string;
   statement: string;
@@ -496,7 +470,6 @@ function firstLine(text: string): string | undefined {
  * prose when the body has any, else the first non-blank body line. With a
  * statement-only body the first line would repeat the title.
  */
-// implements REQ-kb-entity-body-context
 export function bodySnippetLine(
   type: string,
   body: string,

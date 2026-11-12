@@ -1,4 +1,3 @@
-// implements REQ-bootstrap-subject-key-shape
 import { describe, expect, test } from "bun:test";
 import { buildIntentClaimCandidates } from "../../src/operations/bootstrap/intent-claims.js";
 import { markdownComponentHint } from "../../src/operations/bootstrap/markdown-candidates.js";

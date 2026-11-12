@@ -927,7 +927,6 @@ function arrayName(target: string): string {
 }
 
 /** Read one extract of a parsed Bash file. */
-// implements REQ-kibi-tree-sitter-script-references
 export function bashReferences(
   root: Node,
   extract: BashExtract,

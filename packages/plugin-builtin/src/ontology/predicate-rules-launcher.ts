@@ -9,7 +9,6 @@ import {
  * propositions. Generic words such as "error" or "workspace" are not enough
  * to route a requirement into this family.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export const LAUNCHER_PREDICATE_RULES = [
   {
     pattern:
@@ -111,7 +110,6 @@ export const LAUNCHER_PREDICATE_RULES = [
  * interpretation. Non-exact prose deliberately returns null and must remain
  * reviewable through explicit argument bindings.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function exactLauncherPredicateArgs(
   predicateName: string,
   text: string,

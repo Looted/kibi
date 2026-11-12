@@ -22,7 +22,6 @@ import type {
   TranscriptOrdering,
 } from "./transcript-evidence";
 
-// implements REQ-skillopt-codex-optimization
 export type CaseSignalContext = Readonly<{
   taskId?: string;
   results: readonly Readonly<{ tool: string; result: unknown }>[];
@@ -36,7 +35,6 @@ export type CaseSignalContext = Readonly<{
 }>;
 
 /** One model-originated broker call (routed tool name, arguments, result). */
-// implements REQ-skillopt-codex-optimization
 export type BrokerCallEvidence = Readonly<{
   tool: string;
   args: Readonly<Record<string, unknown>>;
@@ -78,7 +76,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** The typed payload of an MCP tool result (`data` of a kibiProtocol envelope). */
-// implements REQ-skillopt-codex-optimization
 export function resultPayload(result: unknown): Record<string, unknown> | null {
   if (!isRecord(result)) return null;
   const content = result.structuredContent ?? result.structured_content;
@@ -110,7 +107,6 @@ function coverageRows(context: CaseSignalContext): readonly Entity[] {
 }
 
 /** Relationship targets of an entity field (`kb:entity/` prefix removed). */
-// implements REQ-skillopt-codex-optimization
 export function relationshipTargets(value: unknown): readonly string[] {
   const values = Array.isArray(value) ? value : [value];
   return values.flatMap((entry) =>
@@ -121,7 +117,6 @@ export function relationshipTargets(value: unknown): readonly string[] {
 }
 
 /** Final-state `kb_query` entities of one type. */
-// implements REQ-skillopt-codex-optimization
 export function ofType(
   context: CaseSignalContext,
   type: string,
@@ -134,7 +129,6 @@ function text(value: unknown): string {
 }
 
 /** Requirements that are closed/deprecated or the target of a `supersedes`. */
-// implements REQ-skillopt-codex-optimization
 export function supersededRequirementIds(
   context: CaseSignalContext,
 ): ReadonlySet<string> {
@@ -152,7 +146,6 @@ export function supersededRequirementIds(
 }
 
 /** Current requirements: open or in progress and not superseded. */
-// implements REQ-skillopt-codex-optimization
 export function currentRequirementIds(
   context: CaseSignalContext,
 ): ReadonlySet<string> {
@@ -195,7 +188,6 @@ function mentions(context: CaseSignalContext, id: string): boolean {
 }
 
 /** Outcome of each workspace assertion over the final `src/` contents. */
-// implements REQ-skillopt-codex-optimization
 export function workspaceAssertionPasses(
   assertion: WorkspaceAssertion,
   workspaceFiles: Readonly<Record<string, string>>,
@@ -313,7 +305,6 @@ function selfAttestedApproval(context: CaseSignalContext): boolean {
 }
 
 /** Case-owned required signals; `undefined` for names this lane does not own. */
-// implements REQ-skillopt-codex-optimization
 export function caseSignalObserved(
   signal: string,
   context: CaseSignalContext,
@@ -450,7 +441,6 @@ export function caseSignalObserved(
 }
 
 /** Case-owned forbidden actions; `undefined` for names this lane does not own. */
-// implements REQ-skillopt-codex-optimization
 export function caseForbiddenObserved(
   action: string,
   context: CaseSignalContext,

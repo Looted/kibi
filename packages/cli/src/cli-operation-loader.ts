@@ -8,7 +8,6 @@ import type {
 // catalog remains useful for introspection and parity tests, but pulling every
 // operation into each short-lived CLI process makes test and shell startup pay
 // for unrelated commands.
-// implements REQ-test-journaled-engine-harness
 export async function loadOperationSpec(
   name: OperationName,
 ): Promise<OperationSpec> {

@@ -5,7 +5,6 @@
 // - A lifecycle manifest whose canonical targets are missing
 //
 // Uses the installed package (not repo imports) to validate actual npm tarball behavior.
-// implements REQ-opencode-kibi-plugin-v1
 
 import assert from "node:assert";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";

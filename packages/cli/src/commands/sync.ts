@@ -155,7 +155,10 @@ export function relationshipKey(relationship: ExtractedRelationship): string {
 export function relationshipFromKey(key: string): ExtractedRelationship {
   const parts = key.split("\0");
   if (parts.length < 3) {
-    throw new SyncError(`Invalid cached relationship key: ${key}`);
+    throw new SyncError(
+      `Invalid cached relationship key: ${key}`,
+      "SYNC_CACHE_KEY_INVALID",
+    );
   }
   const [type, from, to] = parts as [string, string, string];
   return { type, from, to };
@@ -181,6 +184,7 @@ export function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
   if (conflicted.length > 0) {
     throw new SyncError(
       `Unresolved Git conflicts block Kibi compilation; resolve these authored files first: ${conflicted.join(", ")}`,
+      "GIT_CONFLICTS_UNRESOLVED",
     );
   }
 }
@@ -194,7 +198,6 @@ export function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
  * commit (or outside Git) there is no history to tell apart, and the set is
  * empty.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 export function stagedNewSourceKeys(workspaceRoot: string): Set<string> {
   // Git prints forward-slash paths on every platform.
   return new Set(
@@ -356,7 +359,6 @@ export function normalizedEntityHash(result: ExtractionResult): string {
   });
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
 export function semanticBoundaryRelationships(
   result: ExtractionResult,
   shardRelationships: readonly ExtractedRelationship[],
@@ -384,6 +386,7 @@ export async function checkpointNoopSync(
     if (!checkpoint.success) {
       throw new SyncError(
         `Failed to publish the no-op sync checkpoint: ${checkpoint.error ?? "Unknown error"}`,
+        "SYNC_CHECKPOINT_FAILED",
       );
     }
   } finally {
@@ -392,7 +395,6 @@ export async function checkpointNoopSync(
 }
 
 /** Whether the branch's compiled store already holds any of `ids`. */
-// implements REQ-cli-status-pre-first-sync
 export async function storeHoldsAnyEntity(
   workspaceRoot: string,
   branch: string,
@@ -419,7 +421,6 @@ export async function storeHoldsAnyEntity(
   }
 }
 
-// implements REQ-003, REQ-007
 export interface SyncResult extends SyncSummary {
   exitCode?: number;
 }
@@ -452,7 +453,6 @@ export function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
  * endpoint is declared in a source sync cannot see (untracked by Git and
  * without a pending-source receipt): staging that file is the fix.
  */
-// implements REQ-core-persistence
 export function reportDanglingRelationships(
   workspaceRoot: string,
   validationErrors: ReturnType<typeof validateRelationships>,
@@ -537,7 +537,6 @@ export function warnFailedSourceHash(file: string, error: unknown): void {
   console.warn(`Warning: Failed to hash ${file}: ${message}`);
 }
 
-// implements REQ-003, REQ-007
 export function rememberChangedSourceOrWarn(
   file: string,
   apply: () => void,
@@ -568,6 +567,7 @@ export function assertRelationshipsCleared(result: {
   if (!result.success) {
     throw new SyncError(
       `Failed to clear changed relationship shards: ${result.error || "Unknown error"}`,
+      "RELATIONSHIP_SHARD_CLEAR_FAILED",
     );
   }
 }
@@ -656,7 +656,6 @@ export function compiledSyncCache(
   };
 }
 
-// implements REQ-003, REQ-007
 export async function syncCommand(
   options: {
     validateOnly?: boolean;
@@ -738,6 +737,7 @@ export async function syncCommand(
     ) {
       throw new SyncError(
         "Only a detached HEAD snapshot attachment can be compiled explicitly",
+        "SNAPSHOT_COMPILE_REFUSED",
       );
     }
     const branchResult =
@@ -753,12 +753,16 @@ export async function syncCommand(
       const diagnostic = branchErrorToDiagnostic(branchResult.code, reason);
       diagnostics.push(diagnostic);
       console.error(`Failed to resolve active branch: ${reason}`);
-      throw new SyncError(`Failed to resolve active branch: ${reason}`);
+      throw new SyncError(
+        `Failed to resolve active branch: ${reason}`,
+        "BRANCH_RESOLUTION_FAILED",
+      );
     }
 
     if (branchResult.migrationRequired && !validateOnly) {
       throw new SyncError(
         `Sync blocked: KB is attached through legacy branch storage for '${branchResult.gitBranch}'. Run 'kibi branch migrate --from ${branchResult.kbBranch} --to ${branchResult.gitBranch} --apply' first.`,
+        "LEGACY_BRANCH_STORAGE",
       );
     }
 
@@ -772,7 +776,6 @@ export async function syncCommand(
       ensureBranchStoreManifest(workspaceRoot, currentBranch);
       await ensureJournaledBranchStoreAsync(livePathForEngine);
     }
-    // implements REQ-cli-status-pre-first-sync
     // An untracked symbol manifest that only kb_upsert ever wrote (older Kibi
     // left it without a pending-source receipt) gets the receipt here, so
     // this sync compiles it and records its content hash. Without it the
@@ -826,6 +829,7 @@ export async function syncCommand(
         ) {
           throw new SyncError(
             `Kibi engine socket remains present but is not reachable: ${engineSocketPath(workspaceRoot, currentBranch)}`,
+            "ENGINE_SOCKET_UNREACHABLE",
           );
         }
       } finally {
@@ -954,7 +958,6 @@ export async function syncCommand(
       // A declared source analyzer that is missing or not the qualified
       // build would drop every coordinate it places; refuse the refresh and
       // keep the stored coordinates instead of reporting success.
-      // implements REQ-symbol-coordinates-derived-locally
       const installProblems = sourceAnalyzerInstallProblems(workspaceRoot);
       if (installProblems.length > 0)
         throw new SyncError(
@@ -1142,7 +1145,6 @@ export async function syncCommand(
       workspaceRoot,
     );
     const { failedCacheKeys, errors } = extraction;
-    // implements REQ-kibi-uncompiled-source-visibility
     // Sources sync could not extract stay out of the store; record them so
     // kb_status can say so. A source that failed in the store's first
     // compilation (and in every sync since) is legacy content that missed the
@@ -1251,7 +1253,6 @@ export async function syncCommand(
       ? extractedResults.filter(({ entity }) => changedEntityIds.has(entity.id))
       : extractedResults;
 
-    // implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
     // Every drifted inventory is reported in one run, not one per sync attempt.
     const inventoryFailures: string[] = [];
     // Requirements with no inventory at all: kibi migrate re-derives only an
@@ -1324,6 +1325,7 @@ export async function syncCommand(
               ]
             : []),
         ].join("\n"),
+        "INVENTORY_INGESTION_FAILED",
       );
     }
 
@@ -1389,7 +1391,6 @@ export async function syncCommand(
       livePath,
     );
 
-    // implements REQ-core-journaled-engine-persistence
     // Normal syncs are compiled directly into the long-lived single-writer
     // engine. Rebuilds retain generation replacement semantics, and injected
     // Prolog runtimes keep the staging path used by the contract fixtures.
@@ -1471,6 +1472,7 @@ export async function syncCommand(
                   "kb_retract_all_relationships",
                   `Failed to clear changed relationship shards: ${cleared.error || "Unknown error"}`,
                 ),
+                "RELATIONSHIP_SHARD_CLEAR_FAILED",
               );
             }
           };
@@ -1547,6 +1549,7 @@ export async function syncCommand(
               "kb_save",
               `Failed to save journaled KB: ${saveResult.error || "Unknown error"}`,
             ),
+            "KB_SAVE_FAILED",
           );
         }
 
@@ -1623,6 +1626,7 @@ export async function syncCommand(
       await prolog.terminate();
       throw new SyncError(
         `Failed to attach to staging KB: ${attachResult.error || "Unknown error"}`,
+        "STAGING_ATTACH_FAILED",
       );
     }
     await runtime.afterAttach?.(runtimeContext);
@@ -1710,6 +1714,7 @@ export async function syncCommand(
     if (!saveResult.success) {
       throw new SyncError(
         `Failed to save staging KB: ${saveResult.error || "Unknown error"}`,
+        "STAGING_SAVE_FAILED",
       );
     }
     await prolog.query("kb_detach");
@@ -1720,11 +1725,13 @@ export async function syncCommand(
       if (!existsSync(livePath)) {
         throw new SyncError(
           `Recovery target disappeared before publication: ${livePath}`,
+          "RECOVERY_TARGET_MISSING",
         );
       }
       if (existsSync(recoveryBackupPath)) {
         throw new SyncError(
           `Recovery backup path already exists: ${recoveryBackupPath}`,
+          "RECOVERY_BACKUP_EXISTS",
         );
       }
       mkdirSync(path.dirname(recoveryBackupPath), { recursive: true });

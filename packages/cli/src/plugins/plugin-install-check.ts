@@ -11,7 +11,6 @@ import { resolveProjectLocalPackage } from "./resolve-package.js";
  * proof that needs the plugin is refused. Resolution reads package.json and
  * hashes the pinned files; it never imports plugin code.
  */
-// implements REQ-cli-doctor, REQ-capability-plugin-activation-disclosure-v1
 export function pluginInstallProblems(
   workspaceRoot: string,
   packages: readonly string[],
@@ -56,7 +55,6 @@ export function pluginInstallProblems(
  * for symbol extraction. An explicit coordinate refresh refuses on any of
  * them rather than replacing every coordinate those plugins place.
  */
-// implements REQ-symbol-coordinates-derived-locally
 export function sourceAnalyzerInstallProblems(
   workspaceRoot: string,
 ): { problem: string; fix: string }[] {

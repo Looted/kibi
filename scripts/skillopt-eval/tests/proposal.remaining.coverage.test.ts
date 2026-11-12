@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { buildProposal } from "../proposal";

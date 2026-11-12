@@ -11,8 +11,6 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
-// implements REQ-symbol-coordinates-derived-locally
-
 const kibiBin = path.resolve(__dirname, "../../src/cli.ts");
 const TEST_TIMEOUT_MS = 180_000;
 const COORDINATES = ".kb/symbol-coordinates.yaml";

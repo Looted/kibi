@@ -125,7 +125,6 @@ function stableValue(value: unknown, root = true): unknown {
   );
 }
 
-// implements REQ-agent-guided-migration-orchestration
 export function migrationPlanHash(value: unknown): string {
   return createHash("sha256")
     .update(JSON.stringify(stableValue(value)))
@@ -244,7 +243,6 @@ function summarize(actions: readonly MigrationAction[]) {
   };
 }
 
-// implements REQ-agent-guided-migration-orchestration
 export function buildMigrationPlan(input: PlanInput = {}): MigrationPlan {
   // An id names one action, as in a merged plan: a later definition of the
   // same id replaces the earlier one instead of being ordered twice.
@@ -365,7 +363,6 @@ export type MigrationPlanDigest = Readonly<{
  * plan comes from status, check and coverage, so a response stays small even
  * when hundreds of actions remain.
  */
-// implements REQ-agent-guided-migration-orchestration
 export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
   const groups = new Map<
     string,
@@ -438,7 +435,6 @@ export function digestMigrationPlan(plan: MigrationPlan): MigrationPlanDigest {
  * The same plan without the actions whose code another planner owns, e.g.
  * lifecycle repairs `kibi migrate` plans from authored sources.
  */
-// implements REQ-agent-guided-migration-orchestration
 export function withoutActionCodes(
   plan: MigrationPlan,
   codes: ReadonlySet<string>,
@@ -492,7 +488,6 @@ export function migrationAction(
  * automatic action carrying the exact kb_upsert input, so it is reviewable in
  * the plan and replayable through either surface.
  */
-// implements REQ-kibi-predicate-vocabulary-migration
 function predicateSchemaAlignmentAction(
   diagnostic: Readonly<Record<string, unknown>>,
 ): MigrationAction | null {
@@ -550,7 +545,6 @@ export const UNTRACKED_KNOWLEDGE_SOURCES_CODE = "untracked_knowledge_sources";
  * that can be thousands of relationships, so they become one review action
  * naming the files instead of one per relationship.
  */
-// implements REQ-agent-guided-migration-orchestration, REQ-kibi-source-relationship-parity
 function untrackedSourceActionFromViolations(
   violations: readonly Readonly<Record<string, unknown>>[],
 ): { action: MigrationAction; consumed: ReadonlySet<number> } | null {
@@ -600,7 +594,6 @@ function untrackedSourceActionFromViolations(
   };
 }
 
-// implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration, REQ-cli-schema-migration
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
   qualityDiagnostics?: readonly Readonly<Record<string, unknown>>[];
@@ -803,7 +796,6 @@ export function readMigrationConfigStatus(
     ...schemaStatus,
     currentVersion: normalizeSchemaVersion(legacySchemaVersion),
     configHash: null,
-    // implements REQ-legacy-kb-first-step-migrate
     // A legacy KB is migrated, never initialized: name the step kb_status's
     // bootstrap.nextAction and kibi doctor name.
     warning:
@@ -835,11 +827,9 @@ function readLegacySchemaVersion(
   }
 }
 
-// implements REQ-agent-guided-migration-orchestration
 /** Migration action code of the automatic recompile of changed sources. */
 export const FRESHNESS_RESYNC = "freshness_resync";
 
-// implements REQ-cli-status-pre-first-sync
 /**
  * Stale reasons one `kibi sync` clears: sources whose content changed since
  * the last compilation, and a store compiled under another compiler contract
@@ -930,7 +920,6 @@ export function buildActionsFromStatus(input: {
   // Legacy storage is evaluated whether or not the legacy config survives:
   // legacy copies left beside a migrated .kb/ (moved, identical or stale)
   // are the same finding 'kibi doctor' and 'kibi migrate' report.
-  // implements REQ-cli-schema-migration
   const legacyStorage = planLegacyStorageMigration(input.workspaceRoot);
   const legacyStorageMigrationRequired =
     legacyConfigExists(input.workspaceRoot) ||
@@ -975,7 +964,6 @@ export function buildActionsFromStatus(input: {
   if (configStatus.needsMigration || legacyStorageMigrationRequired) {
     const operatorOnly =
       configStatus.status === "newer" || legacyStorageBlocked;
-    // implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
     // The source rewrites the migrate run performs (legacy-link marks, origin
     // backfill, lifecycle repairs, ...) are planned as their own actions with
     // their own files, and the upgrade waits on them, so approving it means
@@ -1048,7 +1036,6 @@ export function buildActionsFromStatus(input: {
     );
   }
 
-  // implements REQ-cli-status-pre-first-sync
   // A branch store that was never compiled while .kb/ holds authored sources
   // is fixed only by compiling it: `kibi branch ensure` alone leaves an empty
   // manifest. The compile step runs after the store exists and after any
@@ -1083,7 +1070,6 @@ export function buildActionsFromStatus(input: {
     );
   }
 
-  // implements REQ-cli-status-pre-first-sync
   // Sources whose content changed since the last compilation (kb_status has
   // already dropped mtime-only reasons) are fixed by recompiling them: one
   // automatic `kibi sync`, not a review per file. A store compiled under

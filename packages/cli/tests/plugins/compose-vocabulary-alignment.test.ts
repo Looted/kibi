@@ -14,8 +14,6 @@ import type {
   CapabilityProviderBinding,
 } from "../../src/plugins/registry.js";
 
-// implements REQ-kibi-vocabulary-alignment-capability
-
 type Choices = Record<string, string>;
 
 function provider(

@@ -107,7 +107,6 @@ afterEach(() => {
 });
 
 describe("kibi signoff summary", () => {
-  // implements REQ-kibi-signoff-views
   test("lists new, rewritten, retired and code-affected requirements with their statements", async () => {
     writeRequirement(
       "REQ-refunds-approval",
@@ -282,7 +281,6 @@ describe("kibi signoff summary", () => {
     ]);
   });
 
-  // implements REQ-kibi-signoff-views
   test("an agent requirement is approved by origin.approved_by, not by the exception approved_by", async () => {
     const agentRequirement = (approval: string) =>
       `---\nid: REQ-refunds-agent\ntitle: REQ-refunds-agent title\nstatus: open\nsemantic_text: Refunds are capped at the order total.\norigin:\n  kind: agent\n${approval}---\nRefunds are capped at the order total.\n\n## Context\n\nWhy this rule exists, in enough words for the context rule.\n`;

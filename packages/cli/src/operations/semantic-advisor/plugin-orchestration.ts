@@ -47,7 +47,6 @@ import type {
   SemanticProposition,
 } from "./types.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type SemanticPluginOrchestrationResult = Readonly<{
   analysis: SemanticAdvisorAnalysisResult;
   classification: ComposedSemanticClassifierResult | null;
@@ -90,7 +89,6 @@ function toolForLane(lane: SemanticAdvisorLane): string {
  * active, those suggestions must not survive into the public receipt —
  * including when the replace pack abstains with a valid empty match set.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function stripSyncBuiltinOntologySuggestions(
   analysis: SemanticAdvisorAnalysisResult,
 ): SemanticAdvisorAnalysisResult {
@@ -121,7 +119,6 @@ export function stripSyncBuiltinOntologySuggestions(
  * stripped). When false (augment/builtin), matches only fill claims that
  * lack a suggestion.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function applyOntologyMatchSuggestions(
   analysis: SemanticAdvisorAnalysisResult,
   ontologyMatches: readonly StampedOntologyCandidate[],
@@ -223,7 +220,6 @@ export function applyOntologyMatchSuggestions(
  * propositions, erase assertive unresolved obligations, downgrade modeled
  * completeness, manufacture typed grounding, or invent mutation/proof.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function applyClassificationRouting(
   analysis: SemanticAdvisorAnalysisResult,
   classification: ComposedSemanticClassifierResult,
@@ -413,7 +409,6 @@ export function applyClassificationRouting(
  * Async orchestration for allowlisted semantic operations.
  * Maintenance paths must keep calling sync `analyzeSemanticAdvisorInput`.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export async function analyzeSemanticAdvisorInputWithPlugins(
   input: SemanticAdvisorInput,
   options: Readonly<{
@@ -534,7 +529,6 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
  * Run allowlisted semantic classifier composition without re-running advisor
  * analysis.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export async function composeSemanticClassificationForOperation(
   context: OperationContext | undefined,
   operationName: string,
@@ -548,7 +542,6 @@ export async function composeSemanticClassificationForOperation(
   return composeSemanticClassification(resolution, input, { operationName });
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export async function composeOntologyCatalogForOperation(
   context: OperationContext | undefined,
   operationName: string,

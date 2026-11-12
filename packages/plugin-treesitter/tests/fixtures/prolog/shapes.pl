@@ -4,7 +4,7 @@
 %!  area(+Shape, -Area) is det.
 %
 %   Area of a shape.
-% implements REQ-demo-shape-area
+%   Only squares and circles have an area.
 area(square(Side), Area) :-
     Area is Side * Side.
 area(circle(R), Area) :-

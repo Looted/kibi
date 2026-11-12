@@ -17,7 +17,6 @@ type ContractSeed = {
   readonly entities: readonly ContractEntity[];
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type ParityWorkspace = {
   readonly root: string;
   readonly cleanup: () => Promise<void>;
@@ -98,7 +97,6 @@ Seed entity for semantic parity tests.
 `;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function createParityWorkspace(): Promise<ParityWorkspace> {
   const root = await mkdtemp(path.join(os.tmpdir(), "kibi-parity-"));
   try {
@@ -275,7 +273,6 @@ function normalizeString(
     .replaceAll(/\b(?:prolog\s*)?pid\s*[=:]\s*\d+\b/gi, "pid=<pid>");
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function normalizeParityValue(
   value: unknown,
   workspaceRoots: readonly string[],

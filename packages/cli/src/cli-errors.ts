@@ -1,7 +1,5 @@
 import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
-// implements REQ-kibi-operation-interface-parity
 export class InputError extends Error {
-  // implements REQ-kibi-operation-interface-parity
   readonly exitCode = 2;
   readonly retryable = false;
 
@@ -14,9 +12,7 @@ export class InputError extends Error {
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export class OperationError extends Error {
-  // implements REQ-kibi-operation-interface-parity
   readonly exitCode = 1;
 
   constructor(
@@ -29,7 +25,6 @@ export class OperationError extends Error {
   }
 }
 
-// implements REQ-kibi-telemetry-expected-outcomes, REQ-kibi-telemetry-agent-signals
 /**
  * A KB operation refusing its input or the workspace state: a payload that
  * fails validation, a contradiction, an id that does not exist. The message
@@ -51,7 +46,6 @@ export class KbRejection extends Error {
   }
 }
 
-// implements REQ-kibi-telemetry-expected-outcomes
 /**
  * Wrap a failure in a message prefix such as `Upsert execution failed: `,
  * keeping a rejection's code so the refusal is not counted as a fault, and
@@ -65,7 +59,6 @@ export function prefixedFailure(prefix: string, error: unknown): Error {
     : new Error(message, { cause: error });
 }
 
-// implements REQ-kibi-telemetry-expected-outcomes
 export type KbRejectionCode =
   | "ENTITY_NOT_FOUND"
   | "ENTITY_VALIDATION_FAILED"
@@ -80,7 +73,6 @@ export type KbRejectionCode =
   | "VALIDATION_FAILED";
 
 /** The error envelope fields a thrown Kibi error carries. */
-// implements REQ-mcp-coded-error-envelope
 export type CodedErrorFields = {
   readonly code: string;
   readonly message: string;
@@ -96,7 +88,6 @@ const ERROR_CODE = /^[A-Z][A-Z0-9_]*$/;
  * fails `instanceof`, so an error with the same name and a code-shaped `code`
  * counts too. Any other error carries no Kibi code and returns null.
  */
-// implements REQ-mcp-coded-error-envelope
 export function codedErrorOf(error: unknown): CodedErrorFields | null {
   if (error instanceof InputError || error instanceof OperationError)
     return {

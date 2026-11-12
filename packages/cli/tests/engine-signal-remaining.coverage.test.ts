@@ -1,4 +1,3 @@
-// implements REQ-test-journaled-engine-harness
 import { afterEach, describe, expect, test } from "bun:test";
 import { requestEngineSignalShutdown } from "../src/engine.js";
 

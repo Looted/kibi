@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import {
   afterAll,
   afterEach,

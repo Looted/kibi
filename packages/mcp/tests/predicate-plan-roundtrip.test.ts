@@ -1,4 +1,3 @@
-// implements REQ-model-predicates-plan-roundtrip, REQ-check-strict-pairing-predicate-grounding-v2, REQ-model-predicates-requirement-subject-v2
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";

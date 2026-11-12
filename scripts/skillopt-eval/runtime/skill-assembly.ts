@@ -179,7 +179,6 @@ function verifyAssembledDescription(
   return canonicalHash(assembled.manifest);
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function assembleCanonicalSkills(
   input: Readonly<{
     sourceRepoRoot: string;

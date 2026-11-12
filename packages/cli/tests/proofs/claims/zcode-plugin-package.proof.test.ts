@@ -7,8 +7,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import type { SourceSpec } from "../../../src/public/proof-sources.js";
 
-// implements REQ-zcode-plugin-package
-
 /**
  * The kibi-zcode package parts, proved against the files the package ships.
  * Kibi reads each source itself at ingest; the tests check the same reads.

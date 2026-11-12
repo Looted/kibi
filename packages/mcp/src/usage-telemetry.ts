@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import {
   type TelemetrySource,
   detectTelemetryHost,
@@ -8,7 +7,7 @@ import {
   telemetryErrorClass,
   telemetryRootError,
 } from "kibi-agent-core/usage-telemetry";
-import { operationTelemetrySignals } from "kibi-cli/telemetry-details";
+import { operationTelemetrySignals } from "kibi-runtime";
 
 import { classifyDiagnosticError } from "./diagnostics-helpers.js";
 import { readMcpPackageVersion } from "./diagnostics.js";
@@ -51,7 +50,6 @@ function resultErrorCode(result: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
-// implements REQ-kibi-telemetry-expected-outcomes
 /**
  * The category of a thrown error: the diagnostic classification, unless it
  * found nothing more specific than `handler_error` and the error carries its
@@ -69,7 +67,6 @@ function thrownErrorCategory(error: unknown): string {
   return typeof code === "string" && code !== "" ? code : classified;
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 export function recordMcpToolTelemetry(input: {
   readonly operation: string;
   readonly startedAt: Date;
@@ -96,7 +93,6 @@ export function recordMcpToolTelemetry(input: {
           : undefined,
     // No thrown error has no class.
     errorClass: telemetryErrorClass(input.error) ?? undefined,
-    // implements REQ-kibi-telemetry-agent-signals
     signals: operationTelemetrySignals({
       operation: input.operation,
       args: input.args,
@@ -106,7 +102,6 @@ export function recordMcpToolTelemetry(input: {
   });
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Show the one-time notice on stderr and send the queue every minute. */
 export function startMcpTelemetry(): void {
   const notice = takeTelemetryNotice();
@@ -116,7 +111,6 @@ export function startMcpTelemetry(): void {
   }, FLUSH_INTERVAL_MS).unref();
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** Send everything still queued before the server exits. */
 export async function flushMcpTelemetry(): Promise<void> {
   await flushTelemetry({ force: true });

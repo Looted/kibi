@@ -45,7 +45,6 @@ export type TrainerRequestPayload = Readonly<{
   developmentDescriptors: TrainingInput["developmentDescriptors"];
 }>;
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function skilloptModuleArgv(
   moduleArgs: readonly string[],
@@ -64,7 +63,6 @@ export function skilloptModuleArgv(
   ];
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function buildTrainerRequest(
   input: TrainingInput,
@@ -85,7 +83,6 @@ export function buildTrainerRequest(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function seedTrainerInitialSkill(
   outRoot: string,
@@ -103,7 +100,6 @@ export async function seedTrainerInitialSkill(
   return initialSkillPath;
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function trainerBridgeEnvironment(
   input: TrainingInput,
@@ -119,7 +115,6 @@ export function trainerBridgeEnvironment(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function trainerProcessInfrastructureError(
   result: ProcessResult,
@@ -135,7 +130,6 @@ export function trainerProcessInfrastructureError(
   });
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function trainerProcessTimeoutMs(
   input: Pick<
@@ -158,7 +152,6 @@ export function trainerProcessTimeoutMs(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function trainerProcessThrownInfrastructureError(
   error: unknown,
@@ -179,7 +172,6 @@ export function trainerProcessThrownInfrastructureError(
   });
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const defaultTrain: RealOptimizationDependencies["train"] = async (
   input: TrainingInput,
@@ -255,7 +247,6 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
   };
 };
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateDevelopment"] =
   async (input): Promise<DevelopmentEvaluation> => {
@@ -348,7 +339,6 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
     };
   };
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const oneShotVariant: RealOptimizationDependencies["oneShot"] = async (
   input,

@@ -193,7 +193,6 @@ export function createManifestFile(kbDir: string): void {
 
 /** Adds the canonical derived entries to .gitignore; true when it changed the file. */
 export function updateGitIgnore(cwd: string): boolean {
-  // implements REQ-cli-init-canonical
   const gitignorePath = path.join(cwd, ".gitignore");
   const gitignoreContent = existsSync(gitignorePath)
     ? readFileSync(gitignorePath, "utf8")
@@ -273,7 +272,6 @@ function stripLegacyKibiGitIgnoreStanza(content: string): string {
   return kept.map((line) => `${line}\n`).join("");
 }
 
-// implements REQ-003
 export function ensureSymbolsManifestFile(cwd: string): void {
   const symbolsRelPath = KB_PATHS.symbolsManifest;
   const symbolsPath = path.join(cwd, symbolsRelPath);
@@ -341,7 +339,6 @@ export const MANAGED_HOOK_NAMES = [
 
 export type ManagedHookName = (typeof MANAGED_HOOK_NAMES)[number];
 
-// implements REQ-git-hook-effective-install
 export function isManagedHookName(value: string): value is ManagedHookName {
   return (MANAGED_HOOK_NAMES as readonly string[]).includes(value);
 }
@@ -353,7 +350,6 @@ export function isManagedHookName(value: string): value is ManagedHookName {
  * does not put node_modules/.bin on PATH, and every command propagates its
  * failure so the delegation is never weaker than the template it replaces.
  */
-// implements REQ-git-hook-effective-install
 export function hookDelegationSnippet(hook: ManagedHookName): string {
   const header = [
     `# Kibi ${hook} delegation (printed by 'kibi init --print-hook ${hook}').`,
@@ -397,7 +393,6 @@ export function installHook(
   hookPath: string,
   content: string,
 ): InstallHookResult {
-  // implements REQ-git-hook-effective-install
   const kibiSection = `${KIBI_HOOK_BEGIN}\n${content}\n${KIBI_HOOK_END}`;
 
   let hookStats: Stats;
@@ -483,7 +478,6 @@ function managedHookBody(template: string): string {
  * CLI installs, such as a pre-commit gate written before `check-generated`
  * joined it. User-authored hooks without kibi markers are not reported.
  */
-// implements REQ-cli-doctor
 export function outdatedManagedHooks(hooksDir: string): string[] {
   const managed = new RegExp(
     `${KIBI_HOOK_BEGIN}\\n([\\s\\S]*?)\\n${KIBI_HOOK_END}`,
@@ -497,7 +491,6 @@ export function outdatedManagedHooks(hooksDir: string): string[] {
 }
 
 /** Whether any hook in the directory carries a kibi-managed section. */
-// implements REQ-cli-doctor
 export function hasManagedHooks(hooksDir: string): boolean {
   return MANAGED_HOOK_TEMPLATES.some(([hook]) => {
     const hookPath = path.join(hooksDir, hook);
@@ -516,7 +509,6 @@ export function installGitHooks(
     log?: (message: string) => void;
   } = {},
 ): GitHookInstallResult[] {
-  // implements REQ-git-hook-effective-install
   const log = options.log ?? ((message: string) => console.log(message));
   mkdirSync(hooksDir, { recursive: true });
 
@@ -568,7 +560,6 @@ export function installGitHooks(
  * under the current worktree root (repository-local relative core.hooksPath).
  * Anything else — global configs, other repositories, external directories —
  * must never receive auto-installed hooks.
- * implements REQ-git-hook-effective-install
  */
 export function isRepositoryManagedHooksDir(
   context: GitRepositoryContext,

@@ -2,10 +2,14 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { IntentSearchMatch } from "../src/intent-search.js";
+import {
+  CLOSED_REQUIREMENT_FACTOR,
+  type IntentSearchMatch,
+} from "../src/intent-search.js";
 import type { PrologQueryResult } from "../src/public/operations/runtime-types.js";
 import {
   SEARCH_ANSWER_LIMITS,
+  SUCCESSOR_PULL_RATIO,
   type SearchAnswer,
   adrExcerpt,
   buildSearchAnswer,
@@ -241,6 +245,83 @@ describe("search answer layer", () => {
     expect(answer.observations.map((note) => note.id)).toEqual(["FACT-NOTE"]);
   });
 
+  test("a weak match on a superseded requirement does not pull its replacement in", async () => {
+    const entities: Record<string, Row> = {
+      ...ENTITIES,
+      "REQ-OTHER": {
+        id: "REQ-OTHER",
+        type: "req",
+        title: "Receipts list every discounted line",
+        status: "open",
+      },
+    };
+    const weak = await buildSearchAnswer(fakeKb(entities, EDGES), [
+      match(entities["REQ-OTHER"] as Row, 0.6),
+      match(entities["REQ-OLD"] as Row, 0.6 * SUCCESSOR_PULL_RATIO - 0.01),
+    ]);
+    expect(weak.governing.map((req) => req.id)).toEqual(["REQ-OTHER"]);
+    // The old requirement still says what replaced it.
+    expect(weak.notGoverning).toEqual([
+      expect.objectContaining({ id: "REQ-OLD", supersededBy: "REQ-NEW" }),
+    ]);
+    const strong = await buildSearchAnswer(fakeKb(entities, EDGES), [
+      match(entities["REQ-OTHER"] as Row, 0.6),
+      match(entities["REQ-OLD"] as Row, 0.6 * SUCCESSOR_PULL_RATIO),
+    ]);
+    expect(strong.governing.map((req) => req.id)).toEqual([
+      "REQ-OTHER",
+      "REQ-NEW",
+    ]);
+  });
+
+  test("a closed requirement reached through its fact ranks below a current one reached as well", async () => {
+    const entities: Record<string, Row> = {
+      "REQ-DONE": {
+        id: "REQ-DONE",
+        type: "req",
+        title: "Audit log records every mutation",
+        status: "closed",
+      },
+      "REQ-LIVE": {
+        id: "REQ-LIVE",
+        type: "req",
+        title: "Usage metrics record every command",
+        status: "open",
+      },
+      "FACT-DONE": {
+        id: "FACT-DONE",
+        type: "fact",
+        title: "No mutation is missing from the audit log",
+        status: "active",
+        fact_kind: "rule",
+      },
+      "FACT-LIVE": {
+        id: "FACT-LIVE",
+        type: "fact",
+        title: "No command is missing from usage metrics",
+        status: "active",
+        fact_kind: "rule",
+      },
+    };
+    const edges = [
+      ["requires_rule", "REQ-DONE", "FACT-DONE"],
+      ["requires_rule", "REQ-LIVE", "FACT-LIVE"],
+    ] as const;
+    const answer = await buildSearchAnswer(fakeKb(entities, edges), [
+      match(entities["FACT-DONE"] as Row, 0.6),
+      match(entities["FACT-LIVE"] as Row, 0.55),
+    ]);
+    expect(answer.governing.map((req) => [req.id, req.score])).toEqual([
+      ["REQ-LIVE", 0.55 * 0.9],
+      ["REQ-DONE", 0.6 * 0.9 * CLOSED_REQUIREMENT_FACTOR],
+    ]);
+    // A matched closed requirement already carries the factor.
+    const matched = await buildSearchAnswer(fakeKb(entities, edges), [
+      match(entities["REQ-DONE"] as Row, 0.5),
+    ]);
+    expect(matched.governing.map((req) => req.score)).toEqual([0.5]);
+  });
+
   test("reaches the owning requirement from a matched scenario", async () => {
     const answer = await buildSearchAnswer(fakeKb(ENTITIES, EDGES), [
       match(ENTITIES["SCEN-FREE"] as Row, 0.5),
@@ -250,7 +331,6 @@ describe("search answer layer", () => {
     ]);
   });
 
-  // implements REQ-search-answer-hygiene
   test("a top-ranked fact no requirement owns is named instead of passing lower hits off as its requirement", async () => {
     const entities: Record<string, Row> = {
       ...ENTITIES,
@@ -330,7 +410,6 @@ describe("search answer layer", () => {
     ]);
   });
 
-  // implements REQ-search-answer-hygiene
   test("an unlinked fact that disagrees with a governing fact names the fact that holds", async () => {
     const rule = (actor: string, resource: string, decision: string) => ({
       type: "fact",
@@ -442,7 +521,6 @@ describe("search answer layer", () => {
     expect(answer.note).toContain("not evidence");
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("linked typed facts state their claim and the kb_query that asks about them", async () => {
     const entities: Record<string, Row> = {
       "REQ-ROLES": {
@@ -526,7 +604,6 @@ describe("search answer layer", () => {
     expect(answer.truncated).toBe(false);
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("grounding facts come before the constrained subject, and facts over the limit are counted with the ask that lists them", async () => {
     const entities: Record<string, Row> = {
       "REQ-ADMIN": {
@@ -698,7 +775,6 @@ describe("search answer layer", () => {
     ).toHaveLength(1);
   });
 
-  // implements REQ-kibi-query-fact-filters
   test("a schema lookup the engine cannot run leaves the asks positional", async () => {
     const entities: Record<string, Row> = {
       "REQ-ROLES": {
@@ -1070,7 +1146,6 @@ describe("search answer rationale excerpts", () => {
     ]);
   });
 
-  // implements REQ-kb-decision-firmness
   test("requirements and ADRs say how firmly they were decided; other rows do not", async () => {
     const answer = await buildSearchAnswer(
       fakeKb(
@@ -1094,7 +1169,6 @@ describe("search answer rationale excerpts", () => {
     expect(current?.tests[0]?.firmness).toBeUndefined();
   });
 
-  // implements REQ-kb-decision-firmness-from-origin
   test("a decision without firmness is default only when an agent wrote it", async () => {
     const answer = await buildSearchAnswer(
       fakeKb(

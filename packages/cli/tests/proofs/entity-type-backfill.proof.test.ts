@@ -21,8 +21,6 @@ import {
 } from "../../src/public/proof-certificates.js";
 import { ENTITY_LANES, KB_PATHS } from "../../src/utils/kb-paths.js";
 
-// implements REQ-cli-migrate-entity-type-backfill
-
 /** Every KB schema version a workspace can be at when kibi migrate runs. */
 const SCHEMA_VERSIONS = Array.from({ length: 11 }, (_, index) => index + 1);
 

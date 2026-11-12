@@ -33,7 +33,6 @@ import {
 } from "./ts-morph-shared.js";
 import { resolveWorkspaceSourceAbsolute } from "./workspace-path.js";
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export interface SymbolCoordinates {
   sourceLine: number;
   sourceColumn: number;
@@ -42,7 +41,6 @@ export interface SymbolCoordinates {
   coordinatesGeneratedAt: string;
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export interface ManifestSymbolEntry {
   id: string;
   title: string;
@@ -80,7 +78,6 @@ type ResolvedEntry =
       readonly error: unknown;
     };
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export async function enrichSymbolCoordinatesWithTsMorph(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
@@ -373,7 +370,6 @@ function findNamedDeclaration(
  * Public members only: the symbol extractor skips private class members, so
  * a coordinate refresh must not bind a span to one either.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 function findClassMember(
   declaration: ClassLike,
   name: string,
@@ -392,7 +388,6 @@ function findClassMember(
  * True when the title names a private member of a class in this file (as
  * `Class.member` or as a bare member name), which the extractor never emits.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 function namesPrivateClassMember(
   sourceFile: SourceFile,
   title: string,

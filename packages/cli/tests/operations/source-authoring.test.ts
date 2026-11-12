@@ -241,7 +241,6 @@ describe("source-first authoring", () => {
     }
   });
 
-  // implements REQ-kb-upsert-statement-follows-semantic-text
   test("a changed semantic_text replaces the body statement and keeps its context", async () => {
     const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
     workspaces.push(workspace);

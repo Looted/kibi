@@ -8,7 +8,6 @@
 % listed: calendar units (month, year) have no fixed length and stay as-is.
 % Unknown units are never equated with anything but themselves.
 %
-% implements REQ-kibi-unit-canonicalization
 
 :- module(units, [
     canonical_quantity/6,   % +ValueType, +Value, +Unit, -CanonType, -CanonValue, -CanonUnit

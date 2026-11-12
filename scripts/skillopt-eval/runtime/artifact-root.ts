@@ -21,7 +21,6 @@ function unavailable(error: unknown): boolean {
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function resolveArtifactRoot(
   configuredRoot?: string,
   options: ArtifactRootResolutionOptions = {

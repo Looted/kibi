@@ -1,6 +1,6 @@
 ---
 title: The symbols.yaml manifest is authoritative; inline implements comments are hints
-status: accepted
+status: superseded
 priority: must
 tags:
   - vscode

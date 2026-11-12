@@ -42,7 +42,6 @@ function text(value: unknown): string | undefined {
  * project-local schema declares. An alias is rejected too, with the declared
  * constant to use instead, so new facts never need migrating.
  */
-// implements REQ-kibi-predicate-argument-constants
 export async function assertPredicateArgumentVocabulary(
   prolog: Pick<PrologPort, "query">,
   entity: Readonly<Record<string, unknown>>,

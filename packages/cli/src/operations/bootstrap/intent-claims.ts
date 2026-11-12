@@ -64,7 +64,6 @@ function digest(...parts: readonly string[]): string {
  * claim's reference. The external source (a ticket, a page) may be gone by the
  * next migration; the body is what remains.
  */
-// implements REQ-kb-entity-body-context
 function claimBody(
   source: BootstrapKnowledgeSource,
   claim: BootstrapIntentClaim,
@@ -85,7 +84,6 @@ function claimBody(
  * cited source; no context tag is added, so a claim whose source states no
  * reason is reported by entity-context-missing instead of being acknowledged.
  */
-// implements REQ-kb-entity-body-context
 function withClaimBody(
   step: Readonly<Record<string, unknown>>,
   body: string,
@@ -94,7 +92,6 @@ function withClaimBody(
 }
 
 /** Carry the claim's stated rationale onto the requirement step. */
-// implements REQ-bootstrap-subject-key-shape
 function withRationale(
   step: Readonly<Record<string, unknown>>,
   rationale: string | undefined,
@@ -114,7 +111,6 @@ function withRationale(
  * human, not a requirement: it becomes a cited, non-blocking observation fact
  * so the plan keeps it without entering the contradiction lane.
  */
-// implements REQ-bootstrap-claim-kinds-and-conflicts
 function reviewClaimCandidate(
   source: BootstrapKnowledgeSource,
   claim: BootstrapIntentClaim,
@@ -159,7 +155,6 @@ function reviewClaimCandidate(
  * tagged review:conflict that cites every conflicting claim, so the
  * disagreement stays explicit in the KB instead of an external report.
  */
-// implements REQ-bootstrap-claim-kinds-and-conflicts
 function conflictCandidates(
   declared: BootstrapDeclaredContext,
   sources: ReadonlyMap<string, BootstrapKnowledgeSource>,
@@ -277,7 +272,6 @@ function conflictCandidates(
  * current requirement: kept, but named so the reviewer can drop it or link
  * the two with restates or supersedes.
  */
-// implements REQ-bootstrap-claim-restatement
 function nearRestatementDiagnostic(
   source: BootstrapKnowledgeSource,
   claim: BootstrapIntentClaim,
@@ -296,7 +290,6 @@ function nearRestatementDiagnostic(
  * excerpt restates a current requirement is already in the KB and is counted
  * as such instead of being planned again under a new id.
  */
-// implements REQ-kibi-bootstrap-knowledge-sources, REQ-bootstrap-claim-kinds-and-conflicts, REQ-bootstrap-claim-restatement
 export function buildIntentClaimCandidates(
   declared: BootstrapDeclaredContext,
   existingIds: ReadonlySet<string>,

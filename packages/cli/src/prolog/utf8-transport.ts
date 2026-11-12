@@ -18,7 +18,6 @@
 
 import { StringDecoder } from "node:string_decoder";
 
-// implements REQ-prolog-utf8-text
 /**
  * Prolog goal that switches the child's standard streams and its default
  * file encoding to UTF-8. SWI-Prolog otherwise follows the process locale,
@@ -30,7 +29,6 @@ import { StringDecoder } from "node:string_decoder";
 export const PROLOG_UTF8_STREAMS_GOAL =
   "set_prolog_flag(encoding, utf8), set_stream(user_input, encoding(utf8)), set_stream(user_output, encoding(utf8)), set_stream(user_error, encoding(utf8)), set_stream(user_output, newline(posix)), set_stream(user_error, newline(posix))";
 
-// implements REQ-prolog-utf8-text
 /**
  * Encode a goal for an environment variable. SWI-Prolog decodes environment
  * values with the process locale, so non-ASCII goal text travels as base64
@@ -40,13 +38,11 @@ export function encodeGoalForEnv(goal: string): string {
   return Buffer.from(goal, "utf8").toString("base64");
 }
 
-// implements REQ-prolog-utf8-text
 /** Prolog goal that binds `Atom` to the goal stored by `encodeGoalForEnv`. */
 export function decodeGoalFromEnvGoal(variable: string, atom: string): string {
   return `getenv('${variable}', ${atom}Encoded), base64_encoded(${atom}, ${atom}Encoded, [encoding(utf8), as(atom)])`;
 }
 
-// implements REQ-prolog-utf8-text
 /**
  * A UTF-8 decoder for one child stream that keeps a character split across
  * two chunks whole instead of decoding each half to U+FFFD.

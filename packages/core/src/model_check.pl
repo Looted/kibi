@@ -1,5 +1,4 @@
 % Module: model_check
-% implements REQ-kibi-non-numeric-proof-kinds
 %
 % Decides a claim's obligation against the finite model a rule or
 % state_machine certificate records, by enumerating every case.  Nothing is
@@ -254,7 +253,6 @@ machine_projection(reachable_pairs, machine(States, Edges, _), Members) :-
 edge_text(From, To, Text) :-
     format(string(Text), "~w->~w", [From, To]).
 
-% implements REQ-kibi-source-proof-kinds
 % Whether "from->to via mid" holds: to is reachable from from, and not once
 % mid is taken out of the machine.  Holds is true or false(Why).  When mid
 % is from or to, taking it out cuts every path, so the waypoint holds.
@@ -679,7 +677,6 @@ obligation_result("route_middleware", Obligation, model(_, _, source(_, _, Route
     ->  Result = problem(Reason)
     ;   Result = ok
     ).
-% implements REQ-kibi-source-proof-kinds
 obligation_result("sequence_precedes", Obligation, model(_, _, source(_, _, _, Sequence, _)), Result) :- !,
     (   is_list(Sequence)
     ->  true

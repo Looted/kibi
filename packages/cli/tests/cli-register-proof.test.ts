@@ -1,4 +1,3 @@
-// implements REQ-kibi-verification-evidence-contract
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import {
   parseCommandOption,

@@ -8,8 +8,6 @@ import type {
 } from "./predicate-corpus";
 import { DETERMINISTIC_CANDIDATES } from "./predicate-corpus";
 
-// implements REQ-skillopt-predicate-first-requirements
-
 class PredicateMaterializationError extends Error {
   readonly name = "PredicateMaterializationError";
 }

@@ -8,7 +8,6 @@ import type {
 import type { Definition } from "./task-definition-types";
 
 /** A per-slot case override, keyed `skill/family/split/index`. */
-// implements REQ-skillopt-codex-optimization
 export type DogfoodCase = Readonly<{
   prompt: string;
   objectiveCode: string;
@@ -48,7 +47,6 @@ function seededDefinition(
  * overridden in SUPPLEMENTAL_CASES; the definition supplies the shared
  * activation, repository and source-file shape.
  */
-// implements REQ-skillopt-codex-optimization
 export const SUPPLEMENTAL_DEFINITIONS: Readonly<
   Partial<Record<CanonicalSkill, Readonly<Record<string, Definition>>>>
 > = {
@@ -145,7 +143,6 @@ function preApprovalCase(prompt: string): DogfoodCase {
  * Prompts state the task only; expectations live in OBJECTIVE_WORKFLOWS and
  * OBJECTIVE_CASE_CONTRACTS.
  */
-// implements REQ-skillopt-codex-optimization
 export const SUPPLEMENTAL_CASES: Readonly<Record<string, DogfoodCase>> = {
   // C1.1: the requested change contradicts the current requirement.
   "kibi-usage/intent-consult/train/0": readOnlyCase(

@@ -85,7 +85,6 @@ function automationName(env: Env, keys: readonly string[]): string | undefined {
 /** This module's file; the worker sits next to it with the same extension. */
 const MODULE_FILE = fileURLToPath(import.meta.url);
 
-// implements REQ-kibi-update-notice
 /**
  * Why the update check is off, or undefined when it runs. `KIBI_UPDATE_CHECK=0`
  * and the common `NO_UPDATE_NOTIFIER` convention turn it off, and so do CI and
@@ -107,12 +106,10 @@ export function updateCheckOffReason(
   return undefined;
 }
 
-// implements REQ-kibi-update-notice
 export function updateCachePath(env: Env = process.env): string {
   return path.join(telemetryDirectory(env), UPDATE_CACHE_FILE);
 }
 
-// implements REQ-kibi-update-notice
 export function readUpdateCache(env: Env = process.env): UpdateCache {
   try {
     const parsed: unknown = JSON.parse(
@@ -128,7 +125,6 @@ export function readUpdateCache(env: Env = process.env): UpdateCache {
   }
 }
 
-// implements REQ-kibi-update-notice
 /** Write the cache atomically, so a reader never sees a torn file. */
 export function writeUpdateCache(
   cache: UpdateCache,
@@ -148,7 +144,6 @@ function releaseParts(version: string): [number, number, number] | undefined {
   return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
 
-// implements REQ-kibi-update-notice
 /**
  * Whether `latest` is a newer release than `current`. Prereleases and local
  * dev builds (`2.41.0-dev.abc`) on either side never count as an update.
@@ -173,7 +168,6 @@ function isDue(
   return !Number.isFinite(at) || at > now || now - at >= intervalMs;
 }
 
-// implements REQ-kibi-update-notice
 export function updateCheckDue(
   cache: UpdateCache,
   now: number = Date.now(),
@@ -185,7 +179,6 @@ function existsFile(file: string): boolean {
   return fs.statSync(file, { throwIfNoEntry: false })?.isFile() === true;
 }
 
-// implements REQ-kibi-update-notice
 /**
  * The command that updates this install: the project's own package manager
  * for a project dependency, `npx kibi-cli@latest` for an npx cache, and a
@@ -232,7 +225,6 @@ function newerKbSchema(
   return schema > currentKbSchema ? schema : undefined;
 }
 
-// implements REQ-kibi-update-notice
 /**
  * The one-line notice for a newer cached version, or null when the cache
  * names none. A newer KB schema is called out with the migrate step.
@@ -255,7 +247,6 @@ export function formatUpdateNotice(input: {
   return `Kibi update available: kibi-cli ${input.currentVersion} -> ${latest}. Update with '${input.installCommand}'.${schemaNote} (KIBI_UPDATE_CHECK=0 turns this off)`;
 }
 
-// implements REQ-kibi-update-notice
 export function registryUrl(env: Env = process.env): string {
   const configured =
     env.KIBI_UPDATE_REGISTRY?.trim() ||
@@ -265,7 +256,6 @@ export function registryUrl(env: Env = process.env): string {
   return `${configured.replace(/\/+$/, "")}/${PACKAGE_NAME}/latest`;
 }
 
-// implements REQ-kibi-update-notice
 /**
  * The latest version and its KB schema from a registry manifest, or
  * undefined when the manifest has no release version. kibi-cli declares the
@@ -287,7 +277,6 @@ export function parseLatestManifest(
   };
 }
 
-// implements REQ-kibi-update-notice
 /**
  * Ask the registry for the latest kibi-cli and store the answer. Returns the
  * updated cache; a failed request keeps the previous answer. Never throws.
@@ -345,7 +334,6 @@ export async function refreshUpdateCache(
 /** Run this module with this argument to refresh the cache and exit. */
 export const UPDATE_REFRESH_ARGUMENT = "--kibi-update-refresh";
 
-// implements REQ-kibi-update-notice
 /**
  * Start the refresh in a detached process, so the command exits without
  * waiting on the network. A process that fails to start is ignored; the next
@@ -379,7 +367,6 @@ export interface UpdateCommandContext {
   readonly machineOutput: boolean;
 }
 
-// implements REQ-kibi-update-notice
 /** Whether a command's options ask for machine-readable output. */
 export function hasMachineOutput(options: Record<string, unknown>): boolean {
   return (
@@ -389,7 +376,6 @@ export function hasMachineOutput(options: Record<string, unknown>): boolean {
   );
 }
 
-// implements REQ-kibi-update-notice
 /** Remember the command that ran and whether it prints JSON for a program. */
 export function trackUpdateCommand(
   program: Command,
@@ -413,7 +399,6 @@ export function trackUpdateCommand(
   return () => context;
 }
 
-// implements REQ-kibi-update-notice
 /**
  * At the end of a CLI command: print the notice when the cache names a newer
  * version (at most once a day per version), and start a background refresh
@@ -494,7 +479,6 @@ export interface UpdateDoctorResult {
   details: Record<string, unknown>;
 }
 
-// implements REQ-kibi-update-notice
 /**
  * The `kibi doctor` row: whether a newer kibi-cli is published. Uses the
  * cached answer when it is under a day old and asks the registry otherwise.
@@ -569,7 +553,6 @@ export async function checkKibiUpdates(input: {
   };
 }
 
-// implements REQ-kibi-update-notice
 /**
  * The detached background process spawnUpdateRefresh starts: when this
  * module runs with the refresh argument, make one registry request, write

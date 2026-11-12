@@ -1,4 +1,3 @@
-// implements REQ-mcp-apply-plan-async-preflight
 import { afterEach, describe, expect, test } from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 

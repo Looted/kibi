@@ -3,9 +3,7 @@ import { withExitCode } from "./cli-command.js";
 import type { usageMetricsCommand } from "./commands/usage-metrics.js";
 import type { usageRemediationCommand } from "./commands/usage-remediation.js";
 
-// implements REQ-kibi-operation-interface-parity
 export function registerMaintenanceCommands(program: Command): void {
-  // implements REQ-kb-dependencies-git
   const deps = program
     .command("deps")
     .description(

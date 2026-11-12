@@ -114,7 +114,6 @@ function frozenCandidateHashes(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldOut"] =
   async (input): Promise<HeldOutEvaluation> => {

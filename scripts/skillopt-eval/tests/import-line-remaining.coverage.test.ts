@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, test } from "bun:test";
 import * as cliOptions from "../cli-options";
 import * as paidLaunchReceipts from "../contracts/paid-launch-receipts";

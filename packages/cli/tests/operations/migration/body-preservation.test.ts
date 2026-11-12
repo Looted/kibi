@@ -17,8 +17,6 @@ import {
   writeManifest,
 } from "../../helpers/schema6-fixture.js";
 
-// implements REQ-kb-entity-body-context
-
 const roots: string[] = [];
 const restores: Array<() => void> = [];
 

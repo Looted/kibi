@@ -1,5 +1,4 @@
 // executable_for TEST-kibi-upsert-review-lanes
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-review-observation-claim-text-v2
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,

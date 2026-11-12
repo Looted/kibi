@@ -27,14 +27,11 @@ const WORKSPACE_ENV_KEYS = [
 ] as const;
 
 /** Preferred project-local Kibi env file (harness-independent). */
-// implements REQ-kibi-env-bootstrap
 export const KIBI_PROJECT_ENV_FILE = ".env.kibi";
 
 /** Legacy generic dotenv still loaded for compatibility only. */
-// implements REQ-kibi-env-bootstrap
 export const KIBI_LEGACY_ENV_FILE = ".env";
 
-// implements REQ-kibi-env-bootstrap
 export type EnvValueSource =
   | "process"
   | "project_env"
@@ -42,7 +39,6 @@ export type EnvValueSource =
   | "legacy_env"
   | "missing";
 
-// implements REQ-kibi-env-bootstrap
 export type BootstrapKibiEnvironmentResult = Readonly<{
   workspaceRoot: string;
   userEnvPath: string;
@@ -55,7 +51,6 @@ export type BootstrapKibiEnvironmentResult = Readonly<{
   keysLoadedFromLegacy: readonly string[];
 }>;
 
-// implements REQ-kibi-env-bootstrap
 export type BootstrapKibiEnvironmentOptions = Readonly<{
   env?: NodeJS.ProcessEnv;
   startDir?: string;
@@ -79,7 +74,6 @@ let lastDefaultBootstrap: BootstrapKibiEnvironmentResult | null = null;
 /**
  * Test-only: clear remembered process-key snapshot and last bootstrap result.
  */
-// implements REQ-kibi-env-bootstrap
 export function resetKibiEnvironmentBootstrapStateForTests(): void {
   rememberedInitialNonEmptyKeys = null;
   lastDefaultBootstrap = null;
@@ -88,7 +82,6 @@ export function resetKibiEnvironmentBootstrapStateForTests(): void {
 /**
  * Last bootstrap against the real `process.env`, if any.
  */
-// implements REQ-kibi-env-bootstrap
 export function getLastBootstrapResult(): BootstrapKibiEnvironmentResult | null {
   return lastDefaultBootstrap;
 }
@@ -124,7 +117,6 @@ function findUpwards(startDir: string, marker: string): string | null {
  * Canonical workspace root for Kibi env files and KB attachment.
  * Uses KIBI_WORKSPACE / KIBI_PROJECT_ROOT / KIBI_ROOT, then .kb / .git discovery.
  */
-// implements REQ-kibi-env-bootstrap
 export function resolveKibiWorkspaceRoot(
   startDir: string = process.cwd(),
   env: NodeJS.ProcessEnv = process.env,
@@ -141,7 +133,6 @@ export function resolveKibiWorkspaceRoot(
   return path.resolve(startDir);
 }
 
-// implements REQ-kibi-env-bootstrap
 export function resolveEnvFilePath(
   envFileName: string,
   workspaceRoot: string,
@@ -151,7 +142,6 @@ export function resolveEnvFilePath(
 }
 
 /** User-wide Kibi env file: $XDG_CONFIG_HOME/kibi/env or ~/.config/kibi/env. */
-// implements REQ-kibi-env-bootstrap
 export function resolveKibiUserEnvPath(
   options: Readonly<{
     homedir?: string | undefined;
@@ -167,7 +157,6 @@ export function resolveKibiUserEnvPath(
   return path.join(xdg, "kibi", "env");
 }
 
-// implements REQ-kibi-env-bootstrap
 export function resolveKibiProjectEnvPath(
   workspaceRoot: string,
   env: NodeJS.ProcessEnv = process.env,
@@ -177,7 +166,6 @@ export function resolveKibiProjectEnvPath(
   return resolveEnvFilePath(KIBI_PROJECT_ENV_FILE, workspaceRoot);
 }
 
-// implements REQ-kibi-env-bootstrap
 export function parseEnvContent(content: string): EnvEntry[] {
   const entries: EnvEntry[] = [];
   for (const rawLine of content.split(/\r?\n/)) {
@@ -254,7 +242,6 @@ function resolveInitialNonEmptyKeys(
  * Legacy `.env` only gap-fills and is attributed as `legacy_env`.
  * Call only from CLI/MCP entrypoints — not on library import.
  */
-// implements REQ-kibi-env-bootstrap
 export function bootstrapKibiEnvironment(
   options: BootstrapKibiEnvironmentOptions = {},
 ): BootstrapKibiEnvironmentResult {
@@ -354,7 +341,6 @@ export function bootstrapKibiEnvironment(
  * Resolve a secret source label from an actual bootstrap result.
  * Never reconstructs attribution by re-reading files alone.
  */
-// implements REQ-kibi-env-bootstrap
 export function secretSourceFromBootstrap(
   key: string,
   bootstrap: BootstrapKibiEnvironmentResult,
@@ -367,7 +353,6 @@ export function secretSourceFromBootstrap(
   return nonEmpty(env[key]) ? "process" : "missing";
 }
 
-// implements REQ-kibi-env-bootstrap
 export type InspectSecretSourceOptions = BootstrapKibiEnvironmentOptions &
   Readonly<{
     /** @deprecated Prefer bootstrap result sources; kept for targeted tests. */
@@ -379,7 +364,6 @@ export type InspectSecretSourceOptions = BootstrapKibiEnvironmentOptions &
  * Prefer `secretSourceFromBootstrap` with the real entrypoint bootstrap result.
  * Never returns secret values.
  */
-// implements REQ-kibi-env-bootstrap
 export function inspectSecretSource(
   key: string,
   options: InspectSecretSourceOptions = {},
@@ -417,7 +401,6 @@ export function inspectSecretSource(
  * Whether a secret is available for provider use (non-empty after resolution).
  * Blank values are unset.
  */
-// implements REQ-kibi-env-bootstrap
 export function isSecretAvailable(
   key: string,
   options: InspectSecretSourceOptions = {},

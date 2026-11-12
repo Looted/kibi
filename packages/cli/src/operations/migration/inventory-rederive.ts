@@ -84,7 +84,6 @@ type InventoryEntry = {
 };
 
 /** What re-derivation changed for one claim. */
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryClaimChange = Readonly<{
   claim_key: string;
   change:
@@ -100,7 +99,6 @@ export type InventoryClaimChange = Readonly<{
   after?: Readonly<{ role: string; status: string }>;
 }>;
 
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryRederivationSummary = Readonly<{
   keptModeled: number;
   roleChanges: number;
@@ -110,7 +108,6 @@ export type InventoryRederivationSummary = Readonly<{
 }>;
 
 /** The re-derived inventory contract written to the requirement. */
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryContract = Readonly<{
   semantic_inventory_version: string;
   semantic_source_field: string;
@@ -119,7 +116,6 @@ export type InventoryContract = Readonly<{
   logic_claims: readonly string[];
 }>;
 
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryRederivation = Readonly<{
   requirementId: string;
   path: string;
@@ -147,7 +143,6 @@ export type InventoryRederivation = Readonly<{
 }>;
 
 /** A grounding link the re-derived inventory no longer supports. */
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type OrphanedGroundingLink = Readonly<{
   type: string;
   target: string;
@@ -516,7 +511,6 @@ function readShardRelationships(
  * reports all of them instead of stopping at the first. `onlyId` limits the
  * scan to one requirement.
  */
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export function planInventoryRederivation(
   workspaceRoot: string,
   onlyId?: string,
@@ -675,7 +669,6 @@ function rewriteContract(
   return `${slice.prefix}${rendered}${slice.suffix}`;
 }
 
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export type InventoryRederivationOutcome = Readonly<{
   requirementId: string;
   path: string;
@@ -689,7 +682,6 @@ export type InventoryRederivationOutcome = Readonly<{
  * still produce exactly that contract. A requirement that no longer drifts is
  * left unchanged, so repeated runs are no-ops.
  */
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export function applyInventoryRederivation(
   workspaceRoot: string,
   requirementId: string,
@@ -753,7 +745,6 @@ function linkKeys(
  * the rewritten requirement must pass ingestion before anything is written;
  * the grounding facts themselves are left alone.
  */
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export function applyInventoryRederivationDroppingGrounding(
   workspaceRoot: string,
   requirementId: string,
@@ -808,7 +799,6 @@ export function applyInventoryRederivationDroppingGrounding(
 }
 
 /** Apply every safe re-derivation; unsafe ones are returned untouched. */
-// implements REQ-kibi-proposition-complete-ingestion, REQ-cli-schema-migration
 export function applySafeInventoryRederivations(workspaceRoot: string): {
   rederived: InventoryRederivationOutcome[];
   manual: InventoryRederivation[];

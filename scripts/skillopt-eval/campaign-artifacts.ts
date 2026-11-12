@@ -44,7 +44,6 @@ const OptimizerModelSourceSchema = z.enum([
   "runClaudeSkillOptStep",
 ]);
 
-// implements REQ-skillopt-claude-code-host
 export type CampaignOptimizerModelSource = z.infer<
   typeof OptimizerModelSourceSchema
 >;
@@ -191,7 +190,6 @@ function composePlan(
  * source body. Applying offsets in descending order makes composition
  * independent of the other insertions; the inverse pass proves exact recovery.
  */
-// implements REQ-skillopt-codex-optimization; narrow campaign MR ownership.
 export function composeCampaignManifest(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -276,7 +274,6 @@ export function composeCampaignManifest(
   return manifest;
 }
 
-// implements REQ-skillopt-codex-optimization; narrow campaign MR ownership.
 export function validateCampaignManifestAgainstSurface(
   manifest: CampaignManifest,
   surface: CampaignSourceSurface,
@@ -317,7 +314,6 @@ export function validateCampaignManifestAgainstSurface(
 }
 
 /** Freeze a reviewed full-body revision without claiming optimizer provenance. */
-// implements REQ-skillopt-codex-optimization
 export function replaceCampaignBody(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -348,7 +344,6 @@ export function replaceCampaignBody(
  * other frontmatter field stays bound to the baseline the candidate was
  * composed against.
  */
-// implements REQ-skillopt-description-candidates
 export function candidateFrontmatterHash(
   baseline: Readonly<SkillManifest>,
   description: string,
@@ -408,7 +403,6 @@ function validateDescribedRevision(
  * Agents decide whether to load a skill from its description, so this is the
  * only frontmatter field a candidate may change; resources stay frozen.
  */
-// implements REQ-skillopt-description-candidates
 export function replaceCampaignBodyAndDescription(
   input: Readonly<{
     skill: CanonicalSkill;
@@ -448,7 +442,6 @@ export function replaceCampaignBodyAndDescription(
  * binds its frontmatter, so equal bodies with different descriptions (or a
  * description-only change) never collide with each other or with baseline.
  */
-// implements REQ-skillopt-description-candidates
 export function campaignCandidateHash(manifest: CampaignManifest): string {
   if (manifest.candidateFrontmatterHash === undefined)
     return manifest.frozenBodyHash;
@@ -461,7 +454,6 @@ export function campaignCandidateHash(manifest: CampaignManifest): string {
 }
 
 /** The assembly override a manifest requests: its body and, for 1.2.0, its description. */
-// implements REQ-skillopt-description-candidates
 export function campaignCandidateSurface(
   manifest: CampaignManifest,
 ): Readonly<{ body: string; description?: string }> {
@@ -528,7 +520,6 @@ function rejectPrivateFeedback(value: unknown): void {
   }
 }
 
-// implements REQ-skillopt-codex-optimization; narrow campaign MR ownership.
 export function parsePublicFeedback(value: unknown): PublicFeedback {
   rejectPrivateFeedback(value);
   return PublicFeedbackSchema.parse(value);
@@ -562,7 +553,6 @@ export type SourceFence = Readonly<{
   files: number;
 }>;
 
-// implements REQ-skillopt-codex-optimization; narrow campaign MR ownership.
 export async function defaultSourceFence(root: string): Promise<SourceFence> {
   const [headResult, treeResult] = await Promise.all([
     runBoundedProcess({

@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, test } from "bun:test";
 import { JsonValueSchema, contractHash } from "../contracts/common";
 import type { EpisodeRequest } from "../contracts/episode";

@@ -10,7 +10,6 @@
  * refuses the read, so a proof never rests on a guess.
  */
 
-// implements REQ-kibi-tree-sitter-references
 export const REFERENCE_EXTRACTS = [
   "env",
   "imports",
@@ -20,16 +19,13 @@ export const REFERENCE_EXTRACTS = [
   "property",
 ] as const;
 
-// implements REQ-kibi-tree-sitter-references
 export type ReferenceExtract = (typeof REFERENCE_EXTRACTS)[number];
 
-// implements REQ-kibi-tree-sitter-references
 export interface ReferenceExtractorV1SupportsInput {
   /** Workspace-relative POSIX path. */
   readonly path: string;
 }
 
-// implements REQ-kibi-tree-sitter-references
 export interface ReferenceExtractorV1Input {
   /** Workspace-relative POSIX path. */
   readonly path: string;
@@ -43,7 +39,6 @@ export interface ReferenceExtractorV1Input {
   readonly timeoutMs?: number;
 }
 
-// implements REQ-kibi-tree-sitter-references
 export interface UnresolvedReferenceV1 {
   /** 1-based line of the construct the provider cannot read statically. */
   readonly line: number;
@@ -51,7 +46,6 @@ export interface UnresolvedReferenceV1 {
   readonly text: string;
 }
 
-// implements REQ-kibi-tree-sitter-references
 export type ReferenceExtractionResultV1 =
   | Readonly<{
       contractVersion: "kibi.reference-extractor.v1";
@@ -69,7 +63,6 @@ export type ReferenceExtractionResultV1 =
       message: string;
     }>;
 
-// implements REQ-kibi-tree-sitter-references
 export interface ReferenceExtractorV1 {
   readonly id: string;
   /** Whether the provider reads references of this file at all. */

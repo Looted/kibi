@@ -57,7 +57,6 @@ function sameJsonValue(left: unknown, right: unknown): boolean {
 // constrain the condition. The CLI validates the same schemas with ajv, so
 // this must stay faithful: a mismatch makes MCP reject payloads the CLI
 // accepts (or the reverse).
-// implements REQ-002, REQ-mcp-conditional-input-validation
 export function matchesJsonSchemaCondition(
   value: unknown,
   schema: unknown,
@@ -213,7 +212,6 @@ function describeGuardBranch(branch: JsonRecord): string {
   return parts.join(" ");
 }
 
-// implements REQ-002, REQ-mcp-oneof-guard-input-validation
 export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   // A missing or primitive schema has none of the keywords below, so it
   // becomes an undescribed z.any().

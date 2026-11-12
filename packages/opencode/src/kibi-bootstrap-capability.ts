@@ -7,7 +7,7 @@ import { buildKibiBootstrapAlias } from "./kibi-bootstrap-alias.js";
 export const KIBI_BOOTSTRAP_COMMAND_NAME = "kibi-bootstrap";
 export const KIBI_BOOTSTRAP_COMMAND_TEMPLATE = buildKibiBootstrapAlias();
 export const KIBI_BOOTSTRAP_COMMAND_DESCRIPTION =
-  "Bootstrap Kibi knowledge for an existing repository."; // implements REQ-001
+  "Bootstrap Kibi knowledge for an existing repository.";
 
 export interface OpenCodeCommandDefinition {
   template: string;
@@ -320,12 +320,10 @@ export function getKibiBootstrapCommandCapability(): KibiBootstrapCommandCapabil
   return cachedCapability;
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function _resetKibiBootstrapCapabilityCacheForTests(): void {
   cachedCapability = null;
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function registerKibiBootstrapCommand(
   configInput: unknown,
   capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),

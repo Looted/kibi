@@ -21,7 +21,6 @@ const MAX_NAMED_SYMBOLS = 4;
 const RETIRED_STATUS =
   /supersed|deprecat|reject|obsolete|retired|archived|removed|closed/i;
 
-// implements REQ-kb-check-unverified-requirement-statements
 export type RequirementStatementDiagnosticsOptions = {
   readonly workspaceRoot: string;
   readonly symbolsByFile: ReadonlyMap<string, readonly ExtractedSymbol[]>;
@@ -45,7 +44,6 @@ function truncate(text: string, limit: number): string {
   return flat.length > limit ? `${flat.slice(0, limit - 1)}…` : flat;
 }
 
-// implements REQ-kb-check-unverified-requirement-statements
 /**
  * One `requirement_statement_unverified` warning per current requirement that
  * a changed behavioral symbol implements, quoting the requirement's statement
@@ -128,7 +126,6 @@ export function createRequirementStatementDiagnostics(
   return diagnostics;
 }
 
-// implements REQ-kb-check-unverified-requirement-statements
 /**
  * Whether Git reports any change (staged, unstaged or untracked) to a
  * workspace file against HEAD. Outside a repository nothing counts as changed.
@@ -156,7 +153,6 @@ export function workspaceFileChanged(
   }
 }
 
-// implements REQ-kb-check-unverified-requirement-statements
 /**
  * Read a requirement from its canonical document in the working tree
  * (`.kb/requirements/<id>.md`).

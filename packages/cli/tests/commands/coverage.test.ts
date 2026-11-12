@@ -325,7 +325,6 @@ tags: [authentication, session]
     );
   });
 
-  // implements REQ-kibi-evidence-floors
   test("shows each row's evidence floor and counts floors with the proof group", () => {
     const row = {
       evidenceLevel: "asserted",

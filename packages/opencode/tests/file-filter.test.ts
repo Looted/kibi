@@ -8,7 +8,6 @@ import {
   shouldHandleFile,
   stripToRoot,
 } from "../src/file-filter";
-// implements REQ-opencode-kibi-plugin-v1
 
 describe("file-filter shouldHandleFile", () => {
   it("matches documentation markdown under configured directories", () => {
@@ -101,7 +100,6 @@ describe("file-filter shouldHandleFile", () => {
   });
 });
 
-// implements REQ-opencode-kibi-plugin-v1
 describe("stripToRoot", () => {
   it("strips /** glob patterns", () => {
     assert.equal(stripToRoot("kibi-docs/**/*.md"), "kibi-docs");
@@ -143,7 +141,6 @@ describe("stripToRoot", () => {
   });
 });
 
-// implements REQ-opencode-kibi-plugin-v1
 describe("getKbExistenceTargets normalization contract", () => {
   it("reports canonical .kb/ lanes regardless of leftover config.json paths", () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-norm-1-"));

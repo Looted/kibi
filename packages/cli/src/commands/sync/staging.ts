@@ -70,7 +70,6 @@ function resolveDeps(overrides?: Partial<StagingDeps>): StagingDeps {
   };
 }
 
-// implements REQ-003
 export function createUniqueStagingPath(
   currentBranch: string,
   rootDir: string,
@@ -91,7 +90,6 @@ export function abandonedStagingBranch(
   return branch ? branch : undefined;
 }
 
-// implements REQ-003
 export async function cleanupAbandonedStagingDirectories(
   stagingPath: string,
   deps?: Partial<StagingDeps>,
@@ -147,7 +145,6 @@ export async function cleanupAbandonedStagingDirectories(
 }
 
 export async function prepareStagingEnvironment(
-  // implements REQ-003
   stagingPath: string,
   livePath: string,
   rebuild: boolean,
@@ -240,7 +237,6 @@ async function copySchemaToStaging(
 }
 
 export function atomicPublish(
-  // implements REQ-003
   stagingPath: string,
   livePath: string,
   deps?: Partial<StagingDeps>,
@@ -333,7 +329,6 @@ export function atomicPublishGeneration(
 }
 
 export function cleanupStaging(
-  // implements REQ-003
   stagingPath: string,
   deps?: Partial<StagingDeps>,
 ): void {

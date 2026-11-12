@@ -30,16 +30,13 @@ const LANE_CRITERIA = {
   none: "Not a machine-checkable modeling obligation",
 } as const satisfies Record<SemanticLane, string>;
 
-// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
 // covered_by TEST-e2e-capability-plugins
 export const JEV_DEFAULT_MODEL = "jev-latest" as const;
 
 /** Upper bound for `KIBI_JEV_TIMEOUT_MS` and programmatic `timeoutMs`. */
-// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
 // covered_by TEST-e2e-capability-plugins
 export const JEV_MAX_TIMEOUT_MS = 120_000;
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export type JevSemanticClassifierOptions = Readonly<{
   clientFactory?: JevClientFactory;
   apiKey?: string;
@@ -51,7 +48,6 @@ export type JevSemanticClassifierOptions = Readonly<{
   model?: string;
 }>;
 
-// implements REQ-capability-plugin-jev-fallback-v1
 function timeoutConfigError(
   source: string,
   received: string,
@@ -66,7 +62,6 @@ function timeoutConfigError(
 /**
  * Programmatic `model` wins. Blank options and blank `KIBI_JEV_MODEL` are unset.
  */
-// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
 // covered_by TEST-e2e-capability-plugins
 export function resolveJevModel(
   explicit: string | undefined,
@@ -83,7 +78,6 @@ export function resolveJevModel(
  * Programmatic `timeoutMs` wins. Blank `KIBI_JEV_TIMEOUT_MS` is unset.
  * Any other value must be a positive integer within `JEV_MAX_TIMEOUT_MS`.
  */
-// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
 // covered_by TEST-e2e-capability-plugins
 export function resolveJevTimeoutMs(
   explicit: number | undefined,
@@ -101,7 +95,6 @@ export function resolveJevTimeoutMs(
   return assertTimeoutMs(Number(trimmed), "KIBI_JEV_TIMEOUT_MS");
 }
 
-// implements REQ-capability-plugin-jev-fallback-v1
 function assertTimeoutMs(value: number, source: string): number {
   if (!Number.isSafeInteger(value) || value < 1 || value > JEV_MAX_TIMEOUT_MS) {
     throw timeoutConfigError(source, String(value));
@@ -113,7 +106,6 @@ function isLane(value: string): value is SemanticLane {
   return (SEMANTIC_LANES as readonly string[]).includes(value);
 }
 
-// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
 // covered_by TEST-e2e-capability-plugins
 export function createJevSemanticClassifier(
   options: JevSemanticClassifierOptions = {},

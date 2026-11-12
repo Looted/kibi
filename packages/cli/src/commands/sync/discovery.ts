@@ -113,7 +113,6 @@ function readPendingReceipt(receiptPath: string): PendingReceipt | null {
  * bytes are the authored input, and the caller retires that receipt. Only a
  * receipt for a still-untracked file can refuse the sync on hash drift.
  */
-// implements REQ-core-atomic-upsert-persistence
 function pendingSourcePaths(
   cwd: string,
   recoverMissing: boolean,

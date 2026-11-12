@@ -37,7 +37,6 @@ function pricingFor(model: string): ModelPricing | null {
   throw new Error(`model_pricing_missing:${model}`);
 }
 
-// implements REQ-skillopt-codex-optimization
 export function estimatePriceEquivalent(
   model: string,
   usage: Readonly<{
@@ -73,7 +72,6 @@ export function estimatePriceEquivalent(
 type BudgetBucket = keyof typeof BUDGET_LIMITS;
 type BucketSnapshot = { limit: number; reserved: number; spent: number };
 
-// implements REQ-skillopt-codex-optimization
 export class BudgetLedger {
   private readonly buckets: Record<BudgetBucket, BucketSnapshot>;
   private readonly reservations = new Map<
@@ -150,7 +148,6 @@ export type OfflineWorkflowResult = Readonly<{
   completedSkills: readonly CanonicalSkill[];
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export async function runOfflineWorkflow(
   input: Readonly<{
     root: string;

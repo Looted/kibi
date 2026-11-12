@@ -39,10 +39,8 @@ import type {
   CapabilityProviderBinding,
 } from "./registry.js";
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export type VocabularyAlignmentDiagnostic = SemanticClassifierDiagnostic;
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export type ComposedVocabularyResult<T> = Readonly<{
   results: readonly T[];
   stamps: readonly PluginProviderStamp[];
@@ -225,7 +223,6 @@ const COMPARE_CLAIMS: Strategy<CompareClaimsInput, ClaimComparisonJudgment> = {
 };
 
 /** Choose an existing subject (or new_subject) for each clause. */
-// implements REQ-kibi-vocabulary-alignment-capability
 export function composeSubjectRanking(
   resolution: CapabilityModeResolution<VocabularyAlignmentV1>,
   input: RankSubjectsInput,
@@ -235,7 +232,6 @@ export function composeSubjectRanking(
 }
 
 /** Judge claim pairs; true judgments are review candidates, never verdicts. */
-// implements REQ-kibi-vocabulary-alignment-capability
 export function composeClaimComparison(
   resolution: CapabilityModeResolution<VocabularyAlignmentV1>,
   input: CompareClaimsInput,

@@ -1,4 +1,3 @@
-// implements REQ-kibi-source-relationship-parity
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as discovery from "../../src/commands/sync/discovery.js";
 import * as extraction from "../../src/commands/sync/extraction.js";

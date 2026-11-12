@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { LEGACY_KB_MIGRATION_COMMAND } from "../../../src/utils/config.js";
 
-// implements REQ-legacy-kb-migrate-command
-
 /**
  * The command Kibi names as the first step for a legacy KB. Kibi reads the
  * constant itself at ingest, so the certificate is checked against the code.

@@ -42,7 +42,6 @@ async function executableFile(path: string): Promise<boolean> {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function stageCodexRuntime(
   runtimeRoot: string,
@@ -102,7 +101,6 @@ export async function stageCodexRuntime(
   return { codexExecutable, bwrapExecutable, codeModeHostExecutable };
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function createCodexRuntimeLease(
   options: Readonly<{ artifactRoot: string }>,

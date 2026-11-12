@@ -19,7 +19,6 @@ import type { SkillOptHost } from "./skillopt-host";
  * replaces. Adding a harness means one module implementing this shape and
  * one entry in `SKILLOPT_HOST_REGISTRY`.
  */
-// implements REQ-skillopt-operator-selected-harness
 export type SkillOptHostImplementation = Readonly<{
   id: SkillOptHost;
   label: string;
@@ -44,7 +43,6 @@ export type SkillOptHostImplementation = Readonly<{
   legacyWorkflow: boolean;
 }>;
 
-// implements REQ-skillopt-operator-selected-harness
 export const SKILLOPT_HOST_REGISTRY: Readonly<
   Record<SkillOptHost, SkillOptHostImplementation>
 > = {
@@ -67,7 +65,6 @@ export const SKILLOPT_HOST_REGISTRY: Readonly<
   },
 };
 
-// implements REQ-skillopt-operator-selected-harness
 export function skillOptHostImplementation(
   host: SkillOptHost,
 ): SkillOptHostImplementation {

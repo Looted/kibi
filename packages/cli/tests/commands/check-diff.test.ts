@@ -5,7 +5,6 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { checkDiffCommand } from "../../src/commands/check-diff.js";
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 const GATE_ENVIRONMENT = [
   "GITHUB_EVENT_NAME",
   "GITHUB_EVENT_PATH",

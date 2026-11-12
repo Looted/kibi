@@ -10,8 +10,6 @@ import { DECISION_FIRMNESS_RULES } from "../../../src/public/operations/decision
 import { DEFAULT_FIRMNESS } from "../../../src/decision-firmness.js";
 import { DECISION_FIRMNESS_SCHEMA_VERSION } from "../../../src/operations/migration/schema6.js";
 
-// implements REQ-kb-decision-firmness-rule-ids
-
 /**
  * The check rules, default firmness value and schema version of decision firmness.
  * Kibi reads each constant itself at ingest, so the certificate is checked against the code.

@@ -52,7 +52,6 @@ function parsePrologListOfLists(value: string): string[][] {
   return out;
 }
 
-// implements REQ-014
 export async function validateStagedSymbols(
   options: ValidationOptions,
 ): Promise<Violation[]> {
@@ -108,7 +107,6 @@ export async function validateStagedSymbols(
  * manifest entry changed). The Prolog rule is the one `kibi check` runs, so a
  * commit cannot pass the staged gate with coverage the full check rejects.
  */
-// implements REQ-014
 export async function validateStagedSymbolCoverage(options: {
   prolog: PrologProcess;
   extraSymbolIds?: readonly string[];
@@ -132,7 +130,6 @@ export async function validateStagedSymbolCoverage(options: {
 }
 
 /** Text lines for staged symbol-coverage violations, in `kibi check` form. */
-// implements REQ-014
 export function formatCoverageViolations(
   violations: readonly ParsedViolation[],
 ): string {
@@ -151,7 +148,6 @@ export function formatCoverageViolations(
 }
 
 export function formatViolations(violations: Violation[]): string {
-  // implements REQ-014
   if (violations.length === 0) return "";
   const total = violations.length;
   const [first] = violations as [Violation, ...Violation[]];
@@ -167,8 +163,8 @@ export function formatViolations(violations: Violation[]): string {
   lines.push(
     "To link a symbol, give it an owning requirement, stage the change and re-run kibi check --staged:",
     `  - Add a .kb/symbols.yaml entry with kb_upsert (CLI: kibi upsert --input -): title as listed above (e.g. ${JSON.stringify(first.name)}), sourceFile, and the relationship implements -> REQ-<area>-<behavior> for production code or executable_for -> TEST-<area>-<behavior> for executable test code. Stage .kb/symbols.yaml with the code.`,
-    "  - Or write a comment `implements REQ-<area>-<behavior>` directly above the declaration.",
     "  If no requirement fits, find one with kb_search or create it with kb_upsert (type req) first; production symbols also need covered_by -> TEST-<area>-<behavior>.",
+    "  A code comment is never a link: an `implements` comment above the declaration does not count (kibi migrate lists the ones left in the repository).",
   );
   return lines.join("\n");
 }

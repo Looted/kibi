@@ -1,4 +1,3 @@
-// implements REQ-kb-check-unverified-requirement-statements
 import { afterEach, describe, expect, it } from "bun:test";
 import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
@@ -44,15 +43,35 @@ function floorWorkspace(): string {
     root,
     "src/resolver.ts",
     [
-      "// implements REQ-swipl-floor, REQ-swipl-old",
       "export function minimumSwiplMajor(): number {",
       "  return 9;",
       "}",
       "",
-      "// implements REQ-swipl-message",
       "export function notFoundMessage(platform: string): string {",
       "  return `no swipl for ${platform}`;",
       "}",
+      "",
+    ].join("\n"),
+  );
+  write(
+    root,
+    ".kb/symbols.yaml",
+    [
+      "symbols:",
+      "  - id: SYM-minimum-swipl-major",
+      "    title: minimumSwiplMajor",
+      "    sourceFile: src/resolver.ts",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-swipl-floor",
+      "      - type: implements",
+      "        target: REQ-swipl-old",
+      "  - id: SYM-not-found-message",
+      "    title: notFoundMessage",
+      "    sourceFile: src/resolver.ts",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-swipl-message",
       "",
     ].join("\n"),
   );

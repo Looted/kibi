@@ -11,12 +11,10 @@ import {
 const LEADING_DETERMINER =
   /^(?:(?:a|an|the|any|all|every|each|only|its|own|their|his|her)\s+)+/i;
 
-// implements REQ-model-predicates-permission-grants
 function permissionActor(value: string): string {
   return singularize(slug(value.replace(LEADING_DETERMINER, "")) || "actor");
 }
 
-// implements REQ-model-predicates-permission-grants
 // A resource is one noun phrase in its singular form so "analysis requests"
 // and "any analysis request" bind the same permission_rule argument.
 function permissionResource(value: string): string {
@@ -34,7 +32,6 @@ function permissionResource(value: string): string {
   return parts.join("_");
 }
 
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-permission-grants
 export function inferPermissionRuleArgs(text: string): string[] {
   const prohibition = captures(
     text,
@@ -66,7 +63,6 @@ export function inferPermissionRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferGuardArgs(text: string, subject: string): string[] {
   const disabledUntil = captures(
     text,
@@ -89,7 +85,6 @@ export function inferGuardArgs(text: string, subject: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferExceptionRuleArgs(
   text: string,
   subject: string,
@@ -116,7 +111,6 @@ export function inferExceptionRuleArgs(
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferMutualExclusionArgs(text: string): string[] {
   const exclusion = captures(
     text,
@@ -125,7 +119,6 @@ export function inferMutualExclusionArgs(text: string): string[] {
   return [slug(exclusion.left ?? "left"), slug(exclusion.right ?? "right")];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferDependencyRuleArgs(text: string): string[] {
   const dependency = captures(
     text,
@@ -138,7 +131,6 @@ export function inferDependencyRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferOwnershipRuleArgs(text: string): string[] {
   const ownership = captures(
     text,
@@ -150,7 +142,6 @@ export function inferOwnershipRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferRetryPolicyArgs(text: string): string[] {
   const retry = captures(
     text,
@@ -163,7 +154,6 @@ export function inferRetryPolicyArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferEscalationRuleArgs(text: string): string[] {
   const escalation = captures(
     text,
@@ -177,7 +167,6 @@ export function inferEscalationRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferAvailabilitySlaArgs(text: string): string[] {
   const availability = captures(
     text,
@@ -192,7 +181,6 @@ export function inferAvailabilitySlaArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferNotificationRouteArgs(text: string): string[] {
   const notification = captures(
     text,
@@ -205,7 +193,6 @@ export function inferNotificationRouteArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferIdempotencyRuleArgs(text: string): string[] {
   const idempotency = captures(
     text,
@@ -221,7 +208,6 @@ export function inferIdempotencyRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferDataResidencyRuleArgs(text: string): string[] {
   const residency = captures(
     text,
@@ -233,7 +219,6 @@ export function inferDataResidencyRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferAuditEventRuleArgs(text: string): string[] {
   const audit = captures(
     text,
@@ -242,7 +227,6 @@ export function inferAuditEventRuleArgs(text: string): string[] {
   return [slug(audit.subject ?? "subject"), slug(audit.log ?? "audit_log")];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferConsentRuleArgs(text: string): string[] {
   const consent = captures(
     text,
@@ -255,7 +239,6 @@ export function inferConsentRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferLifecycleRuleArgs(text: string): string[] {
   const lifecycle = captures(
     text,

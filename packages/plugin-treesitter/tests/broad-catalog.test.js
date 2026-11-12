@@ -485,9 +485,11 @@ describe("qualified offline Tree-sitter catalog", () => {
     const rubyDirective = await extractor.analyze(rubyDirectiveInput);
     assert.equal(rubyDirective.status, "ok");
     assertValid(rubyDirective, rubyDirectiveInput);
+    // A leading implements comment is not a traceability link, so it is
+    // never passed on.
     assert.equal(
-      symbol(rubyDirective, "Annotated.run")?.directiveText,
-      "# implements REQ-source-analysis-v2",
+      "directiveText" in (symbol(rubyDirective, "Annotated.run") ?? {}),
+      false,
     );
 
     const phpRedefinitionInput = {
@@ -647,7 +649,7 @@ describe("qualified offline Tree-sitter catalog", () => {
       ["area", "function", 4, 11],
     );
     assert.equal(area.nameRange.startLine, 8);
-    assert.equal(area.directiveText, "% implements REQ-demo-shape-area");
+    assert.equal("directiveText" in area, false);
     assert.equal(symbol(source, "area/1").startLine, 13);
 
     const testInput = {

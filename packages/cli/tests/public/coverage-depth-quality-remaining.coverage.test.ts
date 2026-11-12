@@ -1,4 +1,3 @@
-// implements REQ-cli-coverage
 import { afterEach, describe, expect, test } from "bun:test";
 import { uniqueStrings } from "../../src/public/impact/coverage-depth-quality.js";
 

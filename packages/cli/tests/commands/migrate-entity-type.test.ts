@@ -12,8 +12,6 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "../helpers/isolated-env.js";
 
-// implements REQ-cli-migrate-entity-type-backfill, REQ-legacy-kb-first-step-migrate, REQ-cli-sync-summary-kb-totals
-
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 240_000;
 

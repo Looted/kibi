@@ -13,8 +13,6 @@ import {
   KIBI_SYMBOL_COORDINATES_PATH,
 } from "../../../src/traceability/evidence-model.js";
 
-// implements REQ-staged-impact-identifiers
-
 /**
  * The diagnostics, paths and declaration line the staged impact check uses. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

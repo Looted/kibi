@@ -175,13 +175,11 @@ function copyCanonicalSkills(input: WorkspaceInput): void {
   });
 }
 
-// implements REQ-skillopt-logical-evidence-fidelity
 export function fixtureSymbolId(taskId: string): string {
   const suffix = sha256(taskId).slice(0, 12).toUpperCase();
   return `SYM-FIXTURE-${suffix}`;
 }
 
-// implements REQ-skillopt-logical-evidence-fidelity
 export function fixtureEntityIds(taskId: string) {
   const suffix = sha256(taskId).slice(0, 12).toUpperCase();
   return {
@@ -191,7 +189,6 @@ export function fixtureEntityIds(taskId: string) {
   } as const;
 }
 
-// implements REQ-skillopt-logical-evidence-fidelity
 function writeSafeMutationEvidence(input: WorkspaceInput): void {
   if (input.task.taskData.objectiveCode !== "safe_typed_mutation") return;
   const ids = fixtureEntityIds(input.task.id);
@@ -220,7 +217,6 @@ function writeSafeMutationEvidence(input: WorkspaceInput): void {
   });
 }
 
-// implements REQ-skillopt-predicate-first-requirements
 function writePublicPredicateClaim(input: WorkspaceInput): void {
   const semanticCase = predicateCaseById(input.task.id);
   // Public view: claim text + public schema only. Never the expected outcome.
@@ -233,7 +229,6 @@ function writePublicPredicateClaim(input: WorkspaceInput): void {
   });
 }
 
-// implements REQ-skillopt-codex-optimization
 function writeCoordinateRepairObservation(input: WorkspaceInput): void {
   if (
     input.task.taskData.objectiveCode !==
@@ -259,7 +254,6 @@ function writeCoordinateRepairObservation(input: WorkspaceInput): void {
   });
 }
 
-// implements REQ-skillopt-codex-optimization
 export function hashWorkspace(root: string): string {
   const hash = createHash("sha256");
   for (const relativePath of listFiles(root)) {
@@ -271,7 +265,6 @@ export function hashWorkspace(root: string): string {
   return hash.digest("hex");
 }
 
-// implements REQ-skillopt-codex-optimization
 export function writePublicWorkspace(input: WorkspaceInput): string {
   mkdirSync(path.join(input.root, "documentation", "requirements"), {
     recursive: true,

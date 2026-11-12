@@ -2,10 +2,8 @@
  * kibi.symbol-extractor.v1 — language-specific source symbol analysis.
  */
 
-// implements REQ-capability-plugin-protocol-v1
 export type SourceAnalysisMode = "parser" | "fallback";
 
-// implements REQ-capability-plugin-protocol-v1
 export type SourceSymbolKind =
   | "function"
   | "class"
@@ -18,7 +16,6 @@ export type SourceSymbolKind =
   | "variable"
   | "unknown";
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceSymbolAnalysis {
   readonly name: string;
   readonly kind: SourceSymbolKind;
@@ -26,10 +23,15 @@ export interface SourceSymbolAnalysis {
   readonly startColumn: number;
   readonly endLine: number;
   readonly endColumn: number;
+  /**
+   * @deprecated Kibi hosts ignore this field. Source comments are not a
+   * traceability source: the symbol manifest is the only record of which
+   * requirements a symbol implements. Kept so existing extractors that still
+   * send it keep validating.
+   */
   readonly directiveText?: string;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceModuleAnalysis {
   readonly title: string;
   readonly language: string;
@@ -37,7 +39,6 @@ export interface SourceModuleAnalysis {
   readonly fallbackReason?: string;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceAnalysisResult {
   readonly sourceFile: string;
   readonly language: string;
@@ -46,7 +47,6 @@ export interface SourceAnalysisResult {
 }
 
 /** A source span with 1-based lines and 0-based UTF-16 columns. Ends are exclusive. */
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceAnalysisRangeV2 {
   readonly startLine: number;
   readonly startColumn: number;
@@ -54,14 +54,12 @@ export interface SourceAnalysisRangeV2 {
   readonly endColumn: number;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export type SourceAnalysisStatusV2 =
   | "ok"
   | "partial"
   | "unsupported"
   | "failed";
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceSymbolAnalysisV2 extends SourceSymbolAnalysis {
   readonly qualifiedName?: string;
   readonly containerName?: string;
@@ -70,19 +68,16 @@ export interface SourceSymbolAnalysisV2 extends SourceSymbolAnalysis {
   readonly nameRange?: SourceAnalysisRangeV2;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceAnalysisDiagnosticV2 {
   readonly code: string;
   readonly message: string;
   readonly range?: SourceAnalysisRangeV2;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceAnalysisUncoveredRangeV2 extends SourceAnalysisRangeV2 {
   readonly reason: string;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceAnalysisResultV2
   extends Omit<SourceAnalysisResult, "symbols"> {
   readonly contractVersion: "kibi.symbol-extractor.v2";
@@ -93,27 +88,22 @@ export interface SourceAnalysisResultV2
 }
 
 /** Maximum source size accepted for ranged v2 analysis, measured in UTF-16 code units. */
-// implements REQ-capability-plugin-protocol-v1
 export const SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS = 5 * 1024 * 1024;
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SymbolExtractorSupportsInput {
   readonly path: string;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SymbolExtractorAnalyzeInput {
   readonly path: string;
   readonly content: string;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SymbolExtractorV2SupportsInput {
   readonly path: string;
   readonly language?: string;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export interface SymbolExtractorV2AnalyzeInput
   extends SymbolExtractorV2SupportsInput {
   readonly content: string;
@@ -129,7 +119,6 @@ export interface SymbolExtractorV2AnalyzeInput
  * Public symbol extractor capability. The host stamps provider identity;
  * plugins must not self-author trusted provenance fields.
  */
-// implements REQ-capability-plugin-protocol-v1
 export interface SymbolExtractorV1 {
   readonly id: string;
   supports(input: SymbolExtractorSupportsInput): boolean;
@@ -137,7 +126,6 @@ export interface SymbolExtractorV1 {
 }
 
 /** Asynchronous, source-bound symbol analysis with explicit coverage status. */
-// implements REQ-capability-plugin-protocol-v1
 export interface SymbolExtractorV2 {
   readonly id: string;
   supports(input: SymbolExtractorV2SupportsInput): boolean;
@@ -150,21 +138,18 @@ export interface SymbolExtractorV2 {
  * Limits applied while validating untrusted v2 extractor output. The defaults
  * are 100,000 symbols and 5 Mi UTF-16 code units of input content.
  */
-// implements REQ-capability-plugin-protocol-v1
 export interface ValidateSourceAnalysisResultV2Options {
   readonly maxSymbols?: number;
   readonly maxInputSize?: number;
 }
 
 /** Host-facing provider adapter used by Kibi core before stamping. */
-// implements REQ-capability-plugin-protocol-v1
 export interface SourceAnalysisProvider {
   readonly id: string;
   supportsFile(filePath: string): boolean;
   analyzeText(filePath: string, content: string): SourceAnalysisResult;
 }
 
-// implements REQ-capability-plugin-protocol-v1
 export function toSourceAnalysisProvider(
   extractor: SymbolExtractorV1,
 ): SourceAnalysisProvider {
@@ -180,7 +165,6 @@ export function toSourceAnalysisProvider(
 }
 
 /** Adapt a synchronous v1 extractor to the explicit asynchronous v2 contract. */
-// implements REQ-capability-plugin-protocol-v1
 export function createSymbolExtractorV2Adapter(
   extractor: SymbolExtractorV1,
 ): SymbolExtractorV2 {

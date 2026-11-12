@@ -1,4 +1,3 @@
-// implements REQ-skillopt-logical-evidence-fidelity
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";

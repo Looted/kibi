@@ -10,7 +10,6 @@ import * as path from "node:path";
 const CANONICAL_SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 const CANONICAL_SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
 
-// implements REQ-vscode-traceability
 /**
  * Resolves the manifest path for symbols.yaml using the canonical .kb/ layout.
  *

@@ -13,8 +13,6 @@ import {
   fingerprintBytes,
 } from "../../src/traceability/impact-review.js";
 
-// implements REQ-impact-policy-stage-e-content-bound-review
-
 type Entry = {
   path: string;
   content?: string | Buffer;

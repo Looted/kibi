@@ -70,7 +70,6 @@ function row(overrides: Readonly<Record<string, unknown>> = {}) {
 }
 
 describe("dependency-ordered requirement repair plans", () => {
-  // implements REQ-kibi-case-coverage
   test("an uncovered_case repair carries a draft scenario per uncovered case", () => {
     const uncovered = {
       caseId: "CASE-0123456789AB",

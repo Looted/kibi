@@ -1136,7 +1136,7 @@ describe("temp-kb", () => {
       }
     });
 
-    it("keeps inline overlay requirement facts layered on top of projected entities", async () => {
+    it("keeps manifest-resolved overlay requirement facts layered on top of projected entities", async () => {
       const ctx = await createTempKb(baseKbDir);
 
       try {

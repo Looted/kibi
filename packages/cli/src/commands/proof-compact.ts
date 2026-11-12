@@ -19,14 +19,12 @@
 import { executeCompactReceipts } from "../operations/proof/compact-receipts.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofCompactOptions = Readonly<{
   test?: string;
   dryRun?: boolean;
   json?: boolean;
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function proofCompactCommand(
   options: ProofCompactOptions,
 ): Promise<{ exitCode: number }> {

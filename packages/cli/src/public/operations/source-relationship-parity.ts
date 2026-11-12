@@ -32,7 +32,6 @@ function relationshipLabel(relationship: RelationshipParityRecord): string {
   return `${relationship.type} ${relationship.from}->${relationship.to}`;
 }
 
-// implements REQ-kibi-source-relationship-parity
 export function compareRelationshipParity(
   authored: readonly RelationshipParityRecord[],
   compiled: readonly RelationshipParityRecord[],
@@ -174,7 +173,6 @@ function authoredRelationship(
  * receipt repair tool: a rewrite through kb_upsert republishes a receipt,
  * and `kibi branch recover` retires receipts of files removed on purpose.
  */
-// implements REQ-kibi-source-relationship-parity
 function sourceDiscoverySuggestion(message: string): string {
   if (/Pending source hash drift/.test(message)) {
     return "A pending-source receipt no longer matches its untracked file. Rewrite that entity with kb_upsert (its current title and status are enough) so the receipt is republished against the file's current bytes, or 'git add' the file to retire the receipt; then rerun kb_check. Do not ignore missing authored inputs.";
@@ -185,7 +183,6 @@ function sourceDiscoverySuggestion(message: string): string {
   return "Repair the authored sources named in the message (restore or rewrite the entity with kb_upsert, or run 'kibi branch recover --apply' for sources removed on purpose), then rerun kb_check; do not ignore missing authored inputs.";
 }
 
-// implements REQ-kibi-source-relationship-parity
 export async function collectSourceRelationshipParityViolations(
   workspaceRoot: string,
   prolog: PrologPort,
@@ -218,7 +215,6 @@ export async function collectSourceRelationshipParityViolations(
     true,
     workspaceRoot,
   );
-  // implements REQ-kibi-uncompiled-source-visibility
   // A source sync cannot extract is missing from the compiled KB with every
   // entity and relationship it declares: one blocking finding per file names
   // it, the extraction error and the fix.
@@ -275,7 +271,6 @@ export async function collectSourceRelationshipParityViolations(
  * refuses every commit over it. One blocking finding per id names each
  * declaration and the fix.
  */
-// implements REQ-kibi-duplicate-entity-declarations
 export function duplicateEntityViolations(
   workspaceRoot: string,
   results: readonly ExtractionResult[],
@@ -324,7 +319,6 @@ export function duplicateEntityViolations(
  * that `kibi init` created and kb_upsert appended to before receipts covered
  * existing untracked files). Name that file and the fix.
  */
-// implements REQ-kibi-source-relationship-parity
 function explainUntrackedEndpoints(
   workspaceRoot: string,
   violations: Violation[],

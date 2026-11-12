@@ -1,4 +1,3 @@
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-review-observation-claim-text-v2
 import { describe, expect, test } from "bun:test";
 import { withStoredRequirementSemantics } from "../../src/operations/mutation/requirement-semantics.js";
 import type {

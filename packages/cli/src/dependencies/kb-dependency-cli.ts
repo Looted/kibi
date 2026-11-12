@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// implements REQ-kb-dependencies-git
 import { InputError } from "../cli-errors.js";
 import { KbDependencyError } from "./kb-dependencies.js";
 import {

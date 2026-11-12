@@ -140,7 +140,6 @@ if (RUN_NODE_TEST_SUITE) {
       },
     );
 
-    // implements REQ-opencode-kibi-plugin-v1
     it(
       "does not emit bootstrap warning for a healthy canonical .kb/ layout",
       { timeout: 30000 },
@@ -196,7 +195,6 @@ if (RUN_NODE_TEST_SUITE) {
       },
     );
 
-    // implements REQ-opencode-kibi-plugin-v1
     it(
       "emits bootstrap warning when canonical targets are missing",
       { timeout: 30000 },
@@ -240,7 +238,6 @@ if (RUN_NODE_TEST_SUITE) {
       },
     );
 
-    // implements REQ-opencode-kibi-plugin-v1
     it(
       "toast behavior uses structured client contract",
       { timeout: 30000 },

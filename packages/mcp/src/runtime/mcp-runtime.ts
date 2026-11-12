@@ -28,7 +28,6 @@ import {
  * read-only snapshot compiled from the checkout, which the shared session
  * engine then serves.
  */
-// implements REQ-branch-store-recovery-v4
 function resolveMcpAttachment(
   workspaceRoot: string,
   spec: Parameters<typeof resolveOperationAttachment>[1] & {
@@ -58,7 +57,6 @@ function resolveMcpAttachment(
   });
 }
 
-// implements REQ-kibi-operation-interface-parity
 export interface McpSession<TProlog = PrologPort> {
   readonly workspaceRoot: string;
   readonly activeBranchName?: () => string | Promise<string>;
@@ -98,7 +96,6 @@ function resolvePluginsOption(
   return async () => plugins;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function createMcpRuntime<TProlog = PrologPort>(
   session: McpSession<TProlog>,
 ): McpOperationRuntime<TProlog> {
@@ -170,7 +167,6 @@ export function createMcpRuntime<TProlog = PrologPort>(
       if (options.prolog) {
         return attachedContextWithProlog(withAttachment, options.prolog);
       }
-      // implements REQ-kibi-fresh-clone-setup
       if (!("error" in attachment)) {
         await ensureBranchStoreCompiled(
           context.workspaceRoot,

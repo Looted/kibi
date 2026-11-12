@@ -34,7 +34,6 @@ import { readTargetEpisodeBudget } from "./target-episode-budget";
 import { defaultEvaluateDevelopment } from "./training-setup";
 import { createBaselineVariant, freezeCandidateVariant } from "./variants";
 
-// implements REQ-skillopt-codex-optimization
 export function parseScreenArgs(args: readonly string[]) {
   const hashes: string[] = [];
   let allowPaid = false;
@@ -93,7 +92,6 @@ export function parseScreenArgs(args: readonly string[]) {
   return { hashes, skill, repeats, maxCells, historyRoot };
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function main(args: readonly string[]): Promise<number> {
   if (args.length === 1 && args[0] === "--help") {
     process.stdout.write(

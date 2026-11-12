@@ -33,9 +33,7 @@ import {
  * states the folder-implied type instead, at any schema version, so that
  * line lands in the migration commit.
  */
-// implements REQ-cli-migrate-entity-type-backfill
 export const ENTITY_TYPE_BACKFILL_CODE = "entity_type_backfill";
-// implements REQ-cli-migrate-entity-type-backfill
 export const ENTITY_TYPE_BACKFILL_ACTION_ID = "entity-type-backfill";
 
 /**
@@ -44,7 +42,6 @@ export const ENTITY_TYPE_BACKFILL_ACTION_ID = "entity-type-backfill";
  * `requirements/` directory must not turn its facts into tests.
  */
 /** The entity type each canonical lane holds. */
-// implements REQ-cli-migrate-entity-type-backfill
 export const LANE_TYPES: Readonly<Record<EntityLane, string>> = {
   requirements: "req",
   scenarios: "scenario",
@@ -56,7 +53,6 @@ export const LANE_TYPES: Readonly<Record<EntityLane, string>> = {
 };
 
 /** One authored entity file without `type` in its front matter. */
-// implements REQ-cli-migrate-entity-type-backfill
 export type EntityTypeBackfillTarget = Readonly<{
   id: string;
   /** The type the entity's lane implies. */
@@ -65,10 +61,8 @@ export type EntityTypeBackfillTarget = Readonly<{
   after: string;
 }>;
 
-// implements REQ-cli-migrate-entity-type-backfill
 export type EntityTypeBackfillSkip = Readonly<{ path: string; reason: string }>;
 
-// implements REQ-cli-migrate-entity-type-backfill
 export type EntityTypeBackfillPlan = Readonly<{
   targets: readonly EntityTypeBackfillTarget[];
   skipped: readonly EntityTypeBackfillSkip[];
@@ -80,7 +74,6 @@ export type EntityTypeBackfillPlan = Readonly<{
  * and changes no other byte. Files that do not parse are left to the checks
  * that report them. Read-only.
  */
-// implements REQ-cli-migrate-entity-type-backfill
 export function planEntityTypeBackfill(
   workspaceRoot: string,
 ): EntityTypeBackfillPlan {
@@ -123,7 +116,6 @@ export function planEntityTypeBackfill(
 }
 
 /** State the folder-implied type on every authored entity file without one. */
-// implements REQ-cli-migrate-entity-type-backfill
 export function applyEntityTypeBackfill(
   workspaceRoot: string,
 ): EntityTypeBackfillPlan {

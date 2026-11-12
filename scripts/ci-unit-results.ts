@@ -46,7 +46,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** Why CI unit results must not be fetched for this run, or null to fetch. */
-// implements REQ-kibi-verification-evidence-contract
 export function fetchRefusal(input: FetchInput): string | null {
   if (!/^[\w.-]+\/[\w.-]+$/.test(input.repository))
     return "repository is unknown";
@@ -57,7 +56,6 @@ export function fetchRefusal(input: FetchInput): string | null {
 }
 
 /** The newest CI run of this repository for `sha`, from a runs response. */
-// implements REQ-kibi-verification-evidence-contract
 export function latestCiRun(response: unknown, sha: string): CiRun | null {
   if (!isRecord(response) || !Array.isArray(response.workflow_runs))
     throw new Error("CI run lookup is malformed");
@@ -72,7 +70,6 @@ export function latestCiRun(response: unknown, sha: string): CiRun | null {
 }
 
 /** The single unexpired results artifact of a run, from an artifacts response. */
-// implements REQ-kibi-verification-evidence-contract
 export function resultsArtifact(response: unknown): Artifact | null {
   if (!isRecord(response) || !Array.isArray(response.artifacts))
     throw new Error("CI artifact lookup is malformed");
@@ -158,7 +155,6 @@ function secondsFromEnv(name: string, fallback: number): number {
  * results, then write them to `out`; otherwise write `{ unavailable }` so the
  * proof producer stops waiting and runs every step itself.
  */
-// implements REQ-kibi-verification-evidence-contract
 export async function fetchUnitResults(
   out: string,
   input: FetchInput,

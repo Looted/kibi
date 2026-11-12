@@ -32,7 +32,6 @@ import type {
 } from "./registry.js";
 import { PluginResolutionError } from "./resolve-package.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type StampedOntologyCandidate = OntologyMatchCandidate &
   Readonly<{
     /** Claim key from the match context that produced this candidate. */
@@ -41,7 +40,6 @@ export type StampedOntologyCandidate = OntologyMatchCandidate &
     stamp: PluginProviderStamp;
   }>;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type ComposedOntologyCatalog = Readonly<{
   schemas: readonly PredicateSchemaDefinition[];
   stamps: readonly PluginProviderStamp[];
@@ -103,7 +101,6 @@ function tryPackOwnedSchemas(
  * - Provider exception / invalid catalog construction falls back to builtin.
  * - Shadow packs are never merged into the canonical catalog.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function composeOntologyCatalog(
   resolution: CapabilityModeResolution<OntologyPackV1>,
 ): ComposedOntologyCatalog {
@@ -254,7 +251,6 @@ function runPackMatches(
  * set so a canonical candidate never suppresses the corresponding shadow
  * comparison.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export function composeOntologyMatches(
   resolution: CapabilityModeResolution<OntologyPackV1>,
   context: OntologyMatchContext,

@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as discovery from "../../src/public/operations/discovery-executors.js";
 import * as legacy from "../../src/public/operations/legacy-migration-plan.js";

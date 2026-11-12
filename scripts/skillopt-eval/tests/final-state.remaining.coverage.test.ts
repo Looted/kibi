@@ -1,4 +1,3 @@
-// implements REQ-skillopt-predicate-first-requirements
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {

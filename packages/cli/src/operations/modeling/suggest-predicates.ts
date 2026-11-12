@@ -252,7 +252,6 @@ function unquoted(value: unknown): string {
  * predicate fact, by the recommended candidate's canonical_key (the same
  * predicate tuple stated in other words).
  */
-// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-grounding-guards
 export async function existingClaimGrounding(
   prolog: PrologPort | null,
   requirementId: string | undefined,
@@ -311,7 +310,6 @@ function hasSubjectHint(value: string | undefined): boolean {
  * contradiction checks by subject see the predicate and the subject fact as
  * one subject.
  */
-// implements REQ-model-predicates-requirement-subject-v2
 async function constrainedSubjectKeys(
   prolog: PrologPort | null,
   requirementId: string | undefined,
@@ -338,7 +336,6 @@ async function constrainedSubjectKeys(
   }
 }
 
-// implements REQ-mcp-suggest-predicates
 export async function handleKbSuggestPredicates(
   prolog: PrologPort | null,
   args: SuggestPredicatesArgs,
@@ -506,7 +503,6 @@ export async function handleKbSuggestPredicates(
     warnings,
   );
   const alreadyGrounded = existingGrounding.length > 0;
-  // implements REQ-model-predicates-grounding-guards
   // The requirement already grounds the very predicate tuple the candidate
   // names (in other words, or the same text again): nothing to write or
   // swap, whatever the candidate's binding status.
@@ -531,7 +527,6 @@ export async function handleKbSuggestPredicates(
   // be extended first.
   const ledgerMissing =
     ledgerLacksClaim && completeCandidate !== undefined && !alreadyGrounded;
-  // implements REQ-model-predicates-participant-not-subject
   // A schema whose participant argument (actor, role, owner) the claim never
   // names does not fit the claim: no binding the agent could supply would be
   // read from the claim. When every unbound argument of the recommended
@@ -767,7 +762,6 @@ export async function handleKbSuggestPredicates(
  * Whether the stored requirement's proposition ledger is known to lack the
  * claim: false when the requirement or its ledger is not readable.
  */
-// implements REQ-model-predicates-grounding-guards
 export function ledgerState(
   stored: Record<string, unknown> | null,
   claimKey: string,
@@ -785,7 +779,6 @@ export function ledgerState(
  * the candidate on every key argument and decide the opposite: the pairs
  * the domain-contradictions rule would report once the candidate is linked.
  */
-// implements REQ-model-predicates-grounding-guards
 export async function candidateDecisionConflicts(
   prolog: PrologPort | null,
   candidate: PredicateSuggestion,
@@ -849,7 +842,6 @@ function restatedRequirementFields(
  * a subject the requirement constrains, so kb_check would keep reporting
  * strict-req-fact-pairing after the link.
  */
-// implements REQ-model-predicates-requirement-subject-v2
 function unpairedSubjectWarning(
   candidate: PredicateSuggestion,
   args: SuggestPredicatesArgs,
@@ -873,7 +865,6 @@ const RESTATED_REQUIREMENT_FIELDS = [
   "tags",
 ] as const;
 
-// implements REQ-model-what-if-planned-facts
 /**
  * The hash-bound plan behind applyPlan + relationshipPlan: the predicate fact,
  * then the requirement restated with the merged logic_claims manifest and the
@@ -974,7 +965,6 @@ const STORED_LEDGER_FIELDS = [
   "logic_claims",
 ] as const;
 
-// implements REQ-model-what-if-planned-facts
 /**
  * The stored requirement as a plan step restates it: title, status and
  * metadata plus its proposition ledger, so the upsert kb_apply_plan runs is
@@ -1008,7 +998,6 @@ async function storedRequirementContract(
  * that keeps the stored metadata. The stored proposition ledger and text_ref
  * are merged by kb_upsert itself.
  */
-// implements REQ-model-predicates-plan-roundtrip
 async function storedRequirementProperties(
   prolog: PrologPort | null,
   requirementId: string,
@@ -1049,7 +1038,6 @@ async function storedRequirementProperties(
  * transient diagnostics and `rollback` restores the old link when kb_check
  * after the last step is not clean.
  */
-// implements REQ-model-predicates-grounding-aware-v2, REQ-model-predicates-plan-roundtrip, REQ-model-predicates-replacement-diagnostics
 export function buildGroundingReplacementPlan(
   requirementId: string,
   factId: string,

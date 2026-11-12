@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import * as fs from "node:fs";

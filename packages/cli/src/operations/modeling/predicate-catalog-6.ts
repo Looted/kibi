@@ -6,7 +6,6 @@ import type { PredicateSchemaCandidate } from "./predicate-types.js";
  * shell it sits in. `kibi-plugin-ui` enforces these through its check policy;
  * without that plugin they are ordinary predicates.
  */
-// implements REQ-mcp-suggest-predicates, REQ-ui-pattern-vocabulary
 export const PREDICATE_CATALOG_6: PredicateSchemaCandidate[] = [
   {
     id: "FACT-SCHEMA-UI-PATTERN",

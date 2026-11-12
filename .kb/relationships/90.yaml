@@ -518,6 +518,27 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-9b52d26bb2a7
   - type: implements
+    from: SYM-cli-engine-start-diagnostic
+    to: REQ-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-11T18:09:59.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-884106507eac
+  - type: covered_by
+    from: SYM-cli-engine-start-diagnostic
+    to: TEST-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-11T18:09:59.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0a792635cd9
+  - type: covered_by
+    from: SYM-cli-engine-start-diagnostic
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-11-11T18:21:12.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16216839fef2
+  - type: implements
     from: SYM-execute-ingest-proof
     to: REQ-kibi-verification-receipts-v2
     created_at: 2026-09-26T09:58:53.103Z

@@ -8,8 +8,6 @@ import {
 import type { RepoPosture } from "../src/repo-posture";
 import type { RiskClass } from "../src/risk-classifier";
 
-// implements REQ-opencode-kibi-plugin-v1
-
 function makeKey(overrides: Partial<CacheKey> = {}): CacheKey {
   return {
     workspaceRoot: "/workspace/project",

@@ -7,8 +7,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import type { SourceSpec } from "../../../src/public/proof-sources.js";
 
-// implements REQ-cursor-plugin-package
-
 /**
  * What the published kibi-cursor package contains.
  * Each certificate reads a package file and proves one claim of REQ-cursor-plugin-package.

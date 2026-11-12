@@ -13,7 +13,6 @@ export function isPathOutOfBounds(pathLike: string): boolean {
     normalized.includes("/../")
   );
 }
-// implements REQ-reusable-skill-subsystem
 export function isWithinRoot(rootDir: string, candidatePath: string): boolean {
   const rel = relative(rootDir, candidatePath);
   // An empty rel (candidate === root) already satisfies both checks below.

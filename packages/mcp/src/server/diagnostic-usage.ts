@@ -20,7 +20,6 @@ type DiagnosticErrorResetState = {
   readonly resetError: string | null;
 };
 
-// implements REQ-002
 export async function appendDiagnosticSuccessUsage<TProlog>(
   input: DiagnosticUsageBase<TProlog> & { readonly result: unknown },
 ): Promise<void> {
@@ -59,7 +58,6 @@ export async function appendDiagnosticSuccessUsage<TProlog>(
   });
 }
 
-// implements REQ-002
 export async function appendDiagnosticErrorUsage<TProlog>(
   input: DiagnosticUsageBase<TProlog> & {
     readonly error: unknown;

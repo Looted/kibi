@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 import { describe, expect, test } from "bun:test";
 import { Readable } from "node:stream";
 import { fileURLToPath, pathToFileURL } from "node:url";

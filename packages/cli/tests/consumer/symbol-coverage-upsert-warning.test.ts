@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import path from "node:path";

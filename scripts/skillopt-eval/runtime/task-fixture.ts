@@ -83,7 +83,6 @@ function locateTask(runRoot: string, taskId: string): FixtureLocation {
   return match;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function resolveTaskFixture(input: {
   readonly fixtureRunRoot: string;
   readonly taskId: string;

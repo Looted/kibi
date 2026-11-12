@@ -7,7 +7,6 @@ import {
 } from "../../utils/strict-modeling.js";
 import type { Candidate } from "./types.js";
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function normalizeClaimStatement(statement: string): string {
   return statement
     .replace(/^\s*(?:[-*+]|\d+[.)])\s/, "")
@@ -214,7 +213,6 @@ function trimStopWords(words: readonly string[]): string[] {
  * noun phrase keeps its head noun. An aspect that already fits is returned
  * unchanged.
  */
-// implements REQ-bootstrap-claim-name-length
 export function shortenSubjectAspect(aspect: string): string {
   const words = aspect.split("_").filter(Boolean);
   if (fitsAspect(words)) return aspect;
@@ -275,7 +273,6 @@ function withShortAspect(
  * no component can be named the claim is not resolved, so the caller reports
  * it instead of writing a malformed key.
  */
-// implements REQ-bootstrap-subject-key-shape, REQ-bootstrap-claim-name-length
 export function resolveBootstrapSubjectKey(
   subject: string,
   propertyKey: string,
@@ -315,7 +312,6 @@ export function resolveBootstrapSubjectKey(
  * different subjects onto one key, the later one gets a third segment from
  * its own wording (or a short digest) instead of colliding.
  */
-// implements REQ-bootstrap-claim-name-length
 export class SubjectKeyRegistry {
   private readonly owners = new Map<string, string>();
   private readonly assigned = new Map<string, string>();
@@ -360,7 +356,6 @@ function digest(value: string): string {
  * Resolve a claim's subject key for a plan and describe any renaming as a
  * plan diagnostic, so the operator can pick a better name before applying.
  */
-// implements REQ-bootstrap-claim-name-length
 export function planSubjectKey(
   subject: string,
   propertyKey: string,
@@ -442,7 +437,6 @@ function retargetStep(
  * key is reported as a subject-key-shared diagnostic. The result depends only
  * on the candidate order, so the plan hash stays deterministic.
  */
-// implements REQ-bootstrap-subject-fact-shared
 export function shareSubjectFacts(candidates: readonly Candidate[]): {
   readonly candidates: Candidate[];
   readonly diagnostics: string[];

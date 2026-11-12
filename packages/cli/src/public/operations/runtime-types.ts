@@ -5,11 +5,9 @@ import type { BranchAttachment } from "../../utils/branch-resolver.js";
 import type { OperationEffect } from "./types.js";
 
 export type { OperationEffect } from "./types.js";
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type { CapabilityRegistry } from "../../plugins/registry.js";
 
 /** Lazy or pre-materialized capability-plugin registry for an operation. */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type OperationPlugins =
   | CapabilityRegistry
   | (() => Promise<CapabilityRegistry>);
@@ -106,7 +104,6 @@ export interface EnginePort {
   ): Promise<T>;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export interface PrologPort {
   query(goal: string, signal?: AbortSignal): Promise<PrologQueryResult>;
   /** True when each query is isolated and must include its module load. */
@@ -250,7 +247,6 @@ export type OperationOutcome =
   | { readonly status: "success"; readonly result: unknown }
   | { readonly status: "error"; readonly error: unknown };
 
-// implements REQ-kibi-operation-interface-parity
 export interface OperationRuntime {
   open(
     spec: RuntimeOperationSpec<unknown, unknown>,
@@ -263,7 +259,6 @@ export interface OperationRuntime {
   close(context: OperationContext, outcome: OperationOutcome): Promise<void>;
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function executeOperation<TInput, TResult>(
   runtime: OperationRuntime,
   spec: RuntimeOperationSpec<TInput, TResult>,

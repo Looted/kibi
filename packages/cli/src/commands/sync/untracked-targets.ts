@@ -55,7 +55,6 @@ const defaultDeps: UntrackedTargetsDeps = {
  * Best effort by design: any git or filesystem failure yields no matches so
  * the diagnostic can never break a sync run.
  */
-// implements REQ-core-persistence
 export function findUntrackedDocumentMatches(
   workspaceRoot: string,
   missingIds: readonly string[],
@@ -134,7 +133,6 @@ export function findUntrackedDocumentMatches(
  * symbols the store never saw keeps the tracked-only boundary and sync's
  * "stage this file" note. Returns whether a receipt was written.
  */
-// implements REQ-cli-status-pre-first-sync, REQ-core-persistence
 export async function adoptUpsertOnlySymbolManifest(
   workspaceRoot: string,
   isStored: (ids: readonly string[]) => Promise<boolean>,

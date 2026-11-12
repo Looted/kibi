@@ -16,7 +16,6 @@ export async function handleKbSearch(
   args: SearchArgs,
   context?: OperationContext,
 ): Promise<SearchResult> {
-  // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
   // The runtime context carries the branch attachment the answer layer
   // names as the branch it answered from.
   return searchSpec.execute(args, createDiscoveryContext(prolog, context));

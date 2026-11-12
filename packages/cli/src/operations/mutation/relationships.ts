@@ -231,7 +231,6 @@ async function supersededSource(
     : "";
 }
 
-// implements REQ-011
 export async function validateSupersedesSourceHistory(
   prolog: PrologPort,
   entity: Readonly<Record<string, unknown>>,

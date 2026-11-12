@@ -8,7 +8,6 @@ const packageJson = createRequire(import.meta.url)("../package.json") as {
   version: string;
 };
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export {
   createJevSemanticClassifier,
   JEV_DEFAULT_MODEL,
@@ -17,15 +16,12 @@ export {
   resolveJevTimeoutMs,
   type JevSemanticClassifierOptions,
 } from "./semantic-classifier.js";
-// implements REQ-kibi-vocabulary-alignment-capability
 export {
   createJevVocabularyAlignment,
   JEV_SUBJECT_TOP_K,
   type JevVocabularyAlignmentOptions,
 } from "./vocabulary-alignment.js";
-// implements REQ-capability-plugin-jev-fallback-v1
 export { createTypeSafeJevClient } from "./typesafe-client.js";
-// implements REQ-capability-plugin-jev-fallback-v1
 export {
   JevProviderError,
   mapJevError,
@@ -37,7 +33,6 @@ export {
  * Named plugin export required by the Kibi host loader.
  * Importing this module must not create a TypeSafe client or make network calls.
  */
-// implements REQ-capability-plugin-jev-fallback-v1
 export const kibiPlugin = defineKibiPlugin({
   apiVersion: KIBI_PLUGIN_API_VERSION,
   id: "kibi-plugin-jev",
@@ -53,7 +48,6 @@ export const kibiPlugin = defineKibiPlugin({
   },
 });
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export function createJevPlugin(options: JevSemanticClassifierOptions = {}) {
   return defineKibiPlugin({
     ...kibiPlugin,
@@ -64,5 +58,4 @@ export function createJevPlugin(options: JevSemanticClassifierOptions = {}) {
   });
 }
 
-// implements REQ-capability-plugin-jev-fallback-v1
 export default kibiPlugin;

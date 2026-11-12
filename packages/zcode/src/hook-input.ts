@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 export type HookEvent =
   | "SessionStart"
   | "UserPromptSubmit"

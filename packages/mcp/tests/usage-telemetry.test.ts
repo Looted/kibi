@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -115,7 +114,6 @@ describe("MCP anonymous usage telemetry", () => {
     expect(text).not.toContain("REQ-secret");
   });
 
-  // implements REQ-kibi-telemetry-expected-outcomes
   test("counts refusals as rejected and faults as errors with their class", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);
@@ -176,7 +174,6 @@ describe("MCP anonymous usage telemetry", () => {
     expect(text).not.toContain("REQ-secret");
   });
 
-  // implements REQ-kibi-telemetry-expected-outcomes
   test("a thrown error's own code counts only when the classifier names nothing and it is a non-empty string on an object", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);
@@ -222,7 +219,6 @@ describe("MCP anonymous usage telemetry", () => {
     ]);
   });
 
-  // implements REQ-kibi-telemetry-agent-signals
   test("derives struggle signals from the tool's arguments and result", () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-"));
     temporaryRoots.push(directory);

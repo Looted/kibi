@@ -12,8 +12,6 @@ import {
   QUERY_LIMIT_EXCEEDED_CODE,
 } from "../../../src/engine-limits.js";
 
-// implements REQ-core-engine-read-limit-settings
-
 /**
  * The names and cap of the engine read limits. Kibi reads each constant itself
  * at ingest, so every certificate is checked against the code.

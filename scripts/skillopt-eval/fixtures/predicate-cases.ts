@@ -1,7 +1,5 @@
 import type { TaskSplit } from "../catalog";
 
-// implements REQ-skillopt-predicate-first-requirements
-
 /**
  * Semantically distinct predicate-modeling cases. Each case carries a distinct
  * human claim (public) and a distinct expected modeling outcome (private).

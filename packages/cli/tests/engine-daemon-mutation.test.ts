@@ -116,7 +116,7 @@ describe("runEngineDaemonCli", () => {
     expect(errors).toStrictEqual(["Missing --workspace argument"]);
     expect(process.exitCode).toBe(1);
     expect(readFileSync(`${socket}.error`, "utf8")).toBe(
-      "Missing --workspace argument\n",
+      '{"kind":"daemon_error","message":"Missing --workspace argument"}\n',
     );
     expect(statSync(`${socket}.error`).mode & 0o777).toBe(0o600);
   });

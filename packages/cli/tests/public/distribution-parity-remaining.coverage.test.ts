@@ -1,4 +1,3 @@
-// implements REQ-kibi-distribution-parity-matrix
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";

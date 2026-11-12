@@ -24,7 +24,6 @@ import { runBoundedProcess } from "./process";
  * run, as the JSON text the Codex optimizer would have written to its
  * last-message file; empty when the run produced none.
  */
-// implements REQ-skillopt-claude-code-host
 export function claudeOptimizerLastMessage(stdout: string): string {
   let last = "";
   for (const line of claudeStreamToCodexJsonl(stdout).split("\n")) {
@@ -54,7 +53,6 @@ export function claudeOptimizerLastMessage(stdout: string): string {
  * step; only the model call differs. The optimizer gets no tools and no MCP
  * server: it sees only the prompt and returns `{ body }` as structured output.
  */
-// implements REQ-skillopt-claude-code-host
 export async function runClaudeSkillOptStep(
   options: CodexOptimizerOptions,
 ): Promise<SkillOptStepResult> {

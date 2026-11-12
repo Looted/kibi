@@ -146,7 +146,6 @@ function renderRulesTs(rules) {
  * JSON source and regenerate.
  */
 
-// implements REQ-006
 export const GENERATED_RULES = [
 ${entries}
 ] as const;
@@ -165,13 +164,11 @@ function renderSpecTs(rules) {
  * JSON source and regenerate.
  */
 
-// implements REQ-006
 /** Every selectable kb_check rule name, registry order. */
 export const SELECTABLE_RULE_NAMES: readonly string[] = [
   ${names.join(",\n  ")},
 ];
 
-// implements REQ-006
 /** Comma-separated "Allowed:" fragment for the kb_check rules description. */
 ${renderTsConst("SELECTABLE_RULES_ALLOWED", allowed)}
 `;

@@ -6,7 +6,6 @@ import { type Document, isSeq, visit } from "yaml";
  * sequence, and kibi-cli before 2.18.0 appended to it, so older manifests
  * keep every symbol on that one line. Returns true when the layout changed.
  */
-// implements REQ-kibi-hooks-flow-manifest, REQ-core-persistence
 export function blockifySymbolManifest(doc: Document): boolean {
   const symbols = doc.get("symbols");
   if (!isSeq(symbols) || symbols.flow !== true) return false;

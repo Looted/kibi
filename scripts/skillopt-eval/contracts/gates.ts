@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// implements REQ-skillopt-codex-optimization
 export const CODEX_GATES = {
   heldOutTasksPerVariant: 16,
   familySlices: 4,
@@ -22,7 +21,6 @@ export const CODEX_GATES = {
   familyGuard: { maxMeanRegression: 3, maxHardPassRegression: 1 },
 } as const;
 
-// implements REQ-skillopt-codex-optimization
 export const CodexGatesSchema = z
   .object({
     heldOutTasksPerVariant: z.literal(16),

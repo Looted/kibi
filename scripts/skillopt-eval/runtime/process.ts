@@ -1,7 +1,6 @@
 import { execFileSync, spawn } from "node:child_process";
 import { z } from "zod";
 
-// implements REQ-skillopt-codex-optimization
 export type ProcessResult = Readonly<{
   argv: readonly string[];
   stdout: string;
@@ -50,7 +49,6 @@ export class JsonLinesError extends Error {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parseJsonLines(stdout: string): readonly JsonLine[] {
   const parsed: JsonLine[] = [];
   const lines = stdout.split("\n");
@@ -166,7 +164,6 @@ function pidAlive(pid: number): boolean {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export function runBoundedProcess(
   options: ProcessOptions,
 ): Promise<ProcessResult> {

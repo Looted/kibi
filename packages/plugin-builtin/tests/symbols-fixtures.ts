@@ -76,8 +76,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 16,
     endLine: 3,
     endColumn: 24,
-    directiveText:
-      "// implements REQ-fn\n/** Doc for run. */\nexport function run() {}\n/** Doc for run. */",
   },
   {
     name: "<anonymous>",
@@ -86,7 +84,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 0,
     endLine: 5,
     endColumn: 29,
-    directiveText: "\nexport default function () {}\n",
   },
   {
     name: "Box",
@@ -95,7 +92,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 13,
     endLine: 18,
     endColumn: 1,
-    directiveText: "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */",
   },
   {
     name: "Box.go",
@@ -104,8 +100,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 2,
     endLine: 10,
     endColumn: 9,
-    directiveText:
-      "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */\n\n  // implements REQ-method\n  go() {}\n",
   },
   {
     name: "Box.size",
@@ -114,8 +108,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 2,
     endLine: 13,
     endColumn: 11,
-    directiveText:
-      "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */\n\n  /** Size doc */\n  size = 1;\n/** Size doc */",
   },
   {
     name: "Box.label",
@@ -124,8 +116,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 6,
     endLine: 15,
     endColumn: 27,
-    directiveText:
-      "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */\n\n  get label() { return 1; }\n",
   },
   {
     name: "Box.label",
@@ -134,8 +124,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 6,
     endLine: 16,
     endColumn: 17,
-    directiveText:
-      "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */\n\n  set label(v) {}\n",
   },
   {
     name: "Shape",
@@ -144,8 +132,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 17,
     endLine: 22,
     endColumn: 37,
-    directiveText:
-      "\n// implements REQ-shape\n/** Shape doc */\n\n/** Shape doc */\nexport interface Shape { id: string }",
   },
   {
     name: "Alias",
@@ -154,7 +140,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 12,
     endLine: 24,
     endColumn: 27,
-    directiveText: "\n\n\nexport type Alias = string;",
   },
   {
     name: "Color",
@@ -163,7 +148,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 12,
     endLine: 26,
     endColumn: 25,
-    directiveText: "\n\n\nexport enum Color { Red }",
   },
   {
     name: "a",
@@ -172,8 +156,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 13,
     endLine: 29,
     endColumn: 18,
-    directiveText:
-      "\n// implements REQ-var\nexport const a = 1, b = class Inner { m() {} private p() {} };\na = 1",
   },
   {
     name: "b",
@@ -182,8 +164,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 20,
     endLine: 29,
     endColumn: 61,
-    directiveText:
-      "\n// implements REQ-var\nexport const a = 1, b = class Inner { m() {} private p() {} };\nb = class Inner { m() {} private p() {} }",
   },
   {
     name: "b.m",
@@ -192,7 +172,6 @@ export const RICH_V1_SYMBOLS = [
     startColumn: 38,
     endLine: 29,
     endColumn: 44,
-    directiveText: " \n\n m() {}\n",
   },
 ];
 export const RICH_V2_SYMBOLS = [
@@ -203,8 +182,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 16,
     endLine: 3,
     endColumn: 24,
-    directiveText:
-      "// implements REQ-fn\n/** Doc for run. */\nexport function run() {}\n/** Doc for run. */",
     qualifiedName: "run",
     nativeKind: "FunctionDeclaration",
     nameRange: { startLine: 3, startColumn: 16, endLine: 3, endColumn: 19 },
@@ -216,7 +193,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 0,
     endLine: 5,
     endColumn: 29,
-    directiveText: "\nexport default function () {}\n",
     qualifiedName: "<anonymous>",
     nativeKind: "FunctionDeclaration",
   },
@@ -227,7 +203,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 13,
     endLine: 18,
     endColumn: 1,
-    directiveText: "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */",
     qualifiedName: "Box",
     nativeKind: "ClassDeclaration",
     nameRange: { startLine: 8, startColumn: 13, endLine: 8, endColumn: 16 },
@@ -239,8 +214,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 2,
     endLine: 10,
     endColumn: 9,
-    directiveText:
-      "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */\n\n  // implements REQ-method\n  go() {}\n",
     qualifiedName: "Box.go",
     containerName: "Box",
     nativeKind: "MethodDeclaration",
@@ -253,8 +226,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 2,
     endLine: 13,
     endColumn: 11,
-    directiveText:
-      "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */\n\n  /** Size doc */\n  size = 1;\n/** Size doc */",
     qualifiedName: "Box.size",
     containerName: "Box",
     nativeKind: "PropertyDeclaration",
@@ -267,8 +238,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 16,
     endColumn: 17,
-    directiveText:
-      "\n/** Box doc */\n// implements REQ-box\n\n/** Box doc */\n\n  get label() { return 1; }\n\n\n  set label(v) {}\n",
     qualifiedName: "Box.label",
     containerName: "Box",
     nativeKind: "AccessorPair",
@@ -281,8 +250,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 17,
     endLine: 22,
     endColumn: 37,
-    directiveText:
-      "\n// implements REQ-shape\n/** Shape doc */\n\n/** Shape doc */\nexport interface Shape { id: string }",
     qualifiedName: "Shape",
     nativeKind: "InterfaceDeclaration",
     nameRange: { startLine: 22, startColumn: 17, endLine: 22, endColumn: 22 },
@@ -294,7 +261,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 12,
     endLine: 24,
     endColumn: 27,
-    directiveText: "\n\n\nexport type Alias = string;",
     qualifiedName: "Alias",
     nativeKind: "TypeAliasDeclaration",
     nameRange: { startLine: 24, startColumn: 12, endLine: 24, endColumn: 17 },
@@ -306,7 +272,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 12,
     endLine: 26,
     endColumn: 25,
-    directiveText: "\n\n\nexport enum Color { Red }",
     qualifiedName: "Color",
     nativeKind: "EnumDeclaration",
     nameRange: { startLine: 26, startColumn: 12, endLine: 26, endColumn: 17 },
@@ -318,8 +283,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 13,
     endLine: 29,
     endColumn: 18,
-    directiveText:
-      "\n// implements REQ-var\nexport const a = 1, b = class Inner { m() {} private p() {} };\na = 1",
     qualifiedName: "a",
     nativeKind: "VariableDeclaration",
     nameRange: { startLine: 29, startColumn: 13, endLine: 29, endColumn: 14 },
@@ -331,8 +294,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 20,
     endLine: 29,
     endColumn: 61,
-    directiveText:
-      "\n// implements REQ-var\nexport const a = 1, b = class Inner { m() {} private p() {} };\nb = class Inner { m() {} private p() {} }",
     qualifiedName: "b",
     nativeKind: "VariableDeclaration",
     nameRange: { startLine: 29, startColumn: 20, endLine: 29, endColumn: 21 },
@@ -344,7 +305,6 @@ export const RICH_V2_SYMBOLS = [
     startColumn: 38,
     endLine: 29,
     endColumn: 44,
-    directiveText: " \n\n m() {}\n",
     qualifiedName: "b.m",
     containerName: "b",
     nativeKind: "MethodDeclaration",
@@ -359,7 +319,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 13,
     endLine: 18,
     endColumn: 1,
-    directiveText: "\n",
     qualifiedName: "Pairs",
     nativeKind: "ClassDeclaration",
     nameRange: { startLine: 1, startColumn: 13, endLine: 1, endColumn: 18 },
@@ -371,7 +330,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 2,
     endLine: 13,
     endColumn: 20,
-    directiveText: "\n\n\n  'quoted name'() {}\n",
     qualifiedName: "Pairs.'quoted name'",
     containerName: "Pairs",
     nativeKind: "MethodDeclaration",
@@ -384,7 +342,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 2,
     endLine: 14,
     endColumn: 9,
-    directiveText: "\n\n\n  42() {}\n",
     qualifiedName: "Pairs.42",
     containerName: "Pairs",
     nativeKind: "MethodDeclaration",
@@ -397,7 +354,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 2,
     endLine: 15,
     endColumn: 24,
-    directiveText: "\n\n\n  [Symbol.iterator]() {}\n",
     qualifiedName: "Pairs.[Symbol.iterator]",
     containerName: "Pairs",
     nativeKind: "MethodDeclaration",
@@ -410,7 +366,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 3,
     endColumn: 26,
-    directiveText: "\n\n\n  set late(v) {}\n\n\n  get late() { return 1; }\n",
     qualifiedName: "Pairs.late",
     containerName: "Pairs",
     nativeKind: "AccessorPair",
@@ -423,7 +378,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 5,
     endColumn: 17,
-    directiveText: "\n\n\n  get early() { return 1; }\n\n\n  set early(v) {}\n",
     qualifiedName: "Pairs.early",
     containerName: "Pairs",
     nativeKind: "AccessorPair",
@@ -436,7 +390,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 6,
     endColumn: 25,
-    directiveText: "\n\n\n  get dup() { return 1; }\n",
     qualifiedName: "Pairs.dup",
     containerName: "Pairs",
     nativeKind: "GetAccessor",
@@ -449,7 +402,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 7,
     endColumn: 25,
-    directiveText: "\n\n\n  get dup() { return 2; }\n",
     qualifiedName: "Pairs.dup",
     containerName: "Pairs",
     nativeKind: "GetAccessor",
@@ -462,7 +414,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 8,
     endColumn: 25,
-    directiveText: "\n\n\n  get tri() { return 1; }\n",
     qualifiedName: "Pairs.tri",
     containerName: "Pairs",
     nativeKind: "GetAccessor",
@@ -475,7 +426,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 10,
     endColumn: 25,
-    directiveText: "\n\n\n  get tri() { return 2; }\n",
     qualifiedName: "Pairs.tri",
     containerName: "Pairs",
     nativeKind: "GetAccessor",
@@ -488,7 +438,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 13,
     endLine: 11,
     endColumn: 34,
-    directiveText: "\n\n\n  static get mixed() { return 1; }\n",
     qualifiedName: "Pairs.mixed",
     containerName: "Pairs",
     nativeKind: "GetAccessor",
@@ -501,7 +450,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 9,
     endColumn: 15,
-    directiveText: "\n\n\n  set tri(v) {}\n",
     qualifiedName: "Pairs.tri",
     containerName: "Pairs",
     nativeKind: "SetAccessor",
@@ -514,7 +462,6 @@ export const PAIRS_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 12,
     endColumn: 17,
-    directiveText: "\n\n\n  set mixed(v) {}\n",
     qualifiedName: "Pairs.mixed",
     containerName: "Pairs",
     nativeKind: "SetAccessor",
@@ -529,7 +476,6 @@ export const ANON_V2_SYMBOLS = [
     startColumn: 0,
     endLine: 6,
     endColumn: 29,
-    directiveText: "\nexport default function () {}\n",
     qualifiedName: "<anonymous>",
     nativeKind: "FunctionDeclaration",
   },
@@ -540,7 +486,6 @@ export const ANON_V2_SYMBOLS = [
     startColumn: 0,
     endLine: 5,
     endColumn: 1,
-    directiveText: "\n",
     qualifiedName: "<anonymous>",
     nativeKind: "ClassDeclaration",
   },
@@ -551,7 +496,6 @@ export const ANON_V2_SYMBOLS = [
     startColumn: 2,
     endLine: 2,
     endColumn: 10,
-    directiveText: "\n\n\n  run() {}\n",
     qualifiedName: "run",
     nativeKind: "MethodDeclaration",
     nameRange: { startLine: 2, startColumn: 2, endLine: 2, endColumn: 5 },
@@ -563,7 +507,6 @@ export const ANON_V2_SYMBOLS = [
     startColumn: 6,
     endLine: 4,
     endColumn: 13,
-    directiveText: "\n\n\n  get g() { return 1; }\n\n\n  set g(v) {}\n",
     qualifiedName: "g",
     nativeKind: "AccessorPair",
     nameRange: { startLine: 3, startColumn: 6, endLine: 3, endColumn: 7 },
@@ -575,8 +518,6 @@ export const ANON_V2_SYMBOLS = [
     startColumn: 13,
     endLine: 7,
     endColumn: 35,
-    directiveText:
-      "\nexport const { left, right } = pair;\n{ left, right } = pair",
     qualifiedName: "{ left, right }",
     nativeKind: "VariableDeclaration",
   },
@@ -623,8 +564,6 @@ export const TYPED_JS_V2 = {
       startColumn: 16,
       endLine: 3,
       endColumn: 1,
-      directiveText:
-        "export function run(value: number): string {\n  return '';\n}\n",
       qualifiedName: "run",
       nativeKind: "FunctionDeclaration",
       nameRange: { startLine: 1, startColumn: 16, endLine: 1, endColumn: 19 },

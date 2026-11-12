@@ -64,7 +64,6 @@ const REQUIREMENT_STATUSES = new Set([
  * intent is `closed` (its successor governs); deprecated or rejected intent
  * is `retired`, which then needs a retired_reason (retired-reason-missing).
  */
-// implements REQ-cli-schema-migration, REQ-kb-requirement-retired-status
 export const SUGGESTED_REQUIREMENT_STATUS: Readonly<Record<string, string>> = {
   accepted: "open",
   proposed: "open",
@@ -75,7 +74,6 @@ export const SUGGESTED_REQUIREMENT_STATUS: Readonly<Record<string, string>> = {
 };
 
 /** The tag that keeps a delivered legacy requirement's meaning once closed. */
-// implements REQ-cli-schema-migration
 export const DELIVERED_REQUIREMENT_TAG = "implemented";
 
 /**
@@ -83,7 +81,6 @@ export const DELIVERED_REQUIREMENT_TAG = "implemented";
  * with the tag `implemented`, which kb.pl reads as a delivered requirement
  * that still owes coverage. `kibi migrate` applies these without review.
  */
-// implements REQ-cli-schema-migration
 export const DELIVERED_REQUIREMENT_STATUS: Readonly<
   Record<string, Readonly<{ status: string; tag: string }>>
 > = {
@@ -93,7 +90,6 @@ export const DELIVERED_REQUIREMENT_STATUS: Readonly<
 };
 
 /** One requirement whose status is outside the vocabulary. */
-// implements REQ-cli-schema-migration
 export type RequirementStatusFinding = Readonly<{
   requirementId: string;
   path: string;
@@ -130,7 +126,6 @@ function statusOf(content: string): unknown {
 }
 
 /** Every requirement whose authored status is outside the vocabulary. */
-// implements REQ-cli-schema-migration
 export function planRequirementStatusMappings(
   workspaceRoot: string,
 ): RequirementStatusFinding[] {
@@ -181,7 +176,6 @@ function hasTag(content: string, tag: string): boolean {
  * `status` line, and add `tag` when given and missing. Refuses when the
  * authored status is no longer `from`.
  */
-// implements REQ-cli-schema-migration
 export function applyRequirementStatusMapping(
   workspaceRoot: string,
   relativePath: string,
@@ -208,7 +202,6 @@ export function applyRequirementStatusMapping(
 }
 
 /** What mapping the delivery statuses changed, and what it could not edit. */
-// implements REQ-cli-schema-migration
 export type DeliveredStatusMappingResult = Readonly<{
   mapped: readonly RequirementStatusFinding[];
   skipped: readonly Readonly<{ path: string; reason: string }>[];
@@ -219,7 +212,6 @@ export type DeliveredStatusMappingResult = Readonly<{
  * the tag `implemented`, front matter only. With `only`, maps just those
  * requirement ids (a plan action applies what it planned). Idempotent.
  */
-// implements REQ-cli-schema-migration
 export function applyDeliveredStatusMappings(
   workspaceRoot: string,
   only?: ReadonlySet<string>,

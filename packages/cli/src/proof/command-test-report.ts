@@ -30,14 +30,11 @@
  * run failed exactly as before.
  */
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export const PROOF_TEST_REPORT_VERSION = "kibi.proof-test-report.v1" as const;
 
 /** Environment variable carrying the report path to a command integration. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export const PROOF_TEST_REPORT_ENV = "KIBI_PROOF_TEST_REPORT" as const;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export const PROOF_TEST_REPORT_OUTCOMES = [
   "passed",
   "failed",
@@ -46,11 +43,9 @@ export const PROOF_TEST_REPORT_OUTCOMES = [
   "interrupted",
 ] as const;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofTestReportOutcome =
   (typeof PROOF_TEST_REPORT_OUTCOMES)[number];
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofTestReportStep = Readonly<{
   step_index: number;
   command: readonly string[];
@@ -58,7 +53,6 @@ export type ProofTestReportStep = Readonly<{
   exit_code: number | null;
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofTestReportEntry = Readonly<{
   test_id: string;
   outcome: ProofTestReportOutcome;
@@ -66,7 +60,6 @@ export type ProofTestReportEntry = Readonly<{
 }>;
 
 /** One failing step, as the `kibi prove` run summary lists it. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type FailedProofStep = Readonly<{
   testId: string;
   stepIndex: number;
@@ -76,7 +69,6 @@ export type FailedProofStep = Readonly<{
 }>;
 
 /** Tests whose own steps ended with the same outcome, evaluated together. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofRunPartition = Readonly<{
   outcome: ProofTestReportOutcome;
   testIds: readonly string[];
@@ -84,7 +76,6 @@ export type ProofRunPartition = Readonly<{
   failedSteps: readonly FailedProofStep[];
 }>;
 
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type ProofRunAttribution =
   | Readonly<{
       attribution: "per_test";
@@ -98,7 +89,6 @@ export type ProofRunAttribution =
     }>;
 
 /** The report path written next to an integration's run artifact. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function proofTestReportPath(artifactPath: string): string {
   return artifactPath.endsWith(".json")
     ? `${artifactPath.slice(0, -".json".length)}.tests.json`
@@ -140,7 +130,6 @@ function parseStep(value: unknown, label: string): ProofTestReportStep {
  * selected test must appear once with at least one step, and a test may only
  * be reported `passed` when every one of its steps passed.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function parseProofTestReport(
   value: unknown,
   selectedTestIds: readonly string[],
@@ -224,7 +213,6 @@ function failedStepsOf(
  * semantics (and is always the answer for a passing process without a
  * report, so a fully green run without a report stays byte-identical).
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function attributeCommandRun(input: {
   readonly selectedTestIds: readonly string[];
   readonly exitCode: number;

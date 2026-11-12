@@ -4,7 +4,6 @@ import {
 } from "../../entity-body-context.js";
 
 /** A current requirement a declared intent claim may restate. */
-// implements REQ-bootstrap-claim-restatement
 export type ExistingRequirement = {
   readonly id: string;
   readonly title: string;
@@ -19,10 +18,8 @@ export type ExistingRequirement = {
  * entity-context check uses to call a context section a restatement of the
  * title. Below it a claim is planned with no signal.
  */
-// implements REQ-bootstrap-claim-restatement
 export const NEAR_RESTATEMENT_JACCARD = RESTATEMENT_JACCARD;
 
-// implements REQ-bootstrap-claim-restatement
 export type RestatementMatch = {
   /** exact: the normalized texts are equal; near: overlap at the threshold. */
   readonly kind: "exact" | "near";
@@ -37,7 +34,6 @@ export type RestatementMatch = {
  * Case, whitespace and punctuation do not change what a sentence says, so
  * they do not count when a claim is compared with a requirement.
  */
-// implements REQ-bootstrap-claim-restatement
 export function normalizeRestatementText(text: string): string {
   return text
     .toLowerCase()
@@ -76,7 +72,6 @@ function references(requirement: ExistingRequirement): readonly {
  * a near restatement: a review signal, never a reason to drop the claim.
  * Requirements are compared in id order, so the answer is deterministic.
  */
-// implements REQ-bootstrap-claim-restatement
 export function findRestatement(
   claimTexts: readonly (string | undefined)[],
   requirements: readonly ExistingRequirement[],

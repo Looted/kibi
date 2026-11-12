@@ -54,7 +54,6 @@ find_gaps_json(TypeFilter, MissingRelationships, PresentRelationships, Tags, Sou
     % Provenance stubs that match the same filters are counted apart
     % (summary.provenanceStubs) whether or not the requested tags let them
     % into the rows, so a caller can tell "no gaps" from "only stubs".
-    % implements REQ-bootstrap-provenance-stubs
     aggregate_all(count, member(_-true, Candidates), StubCount),
     Summary = _{total: Count, provenanceStubs: StubCount},
     status_meta_dict(Meta),
@@ -82,7 +81,6 @@ requirement_proof_json(ReqId, BindingMode, TestBindings, VerificationSnapshot, C
     put_dict(id, Proof, ReqId, ProofWithId),
     dict_json_string(ProofWithId, JsonString).
 
-% implements REQ-kibi-verification-evidence-contract
 % The receipt state of every proof-bearing test under the given binding, as
 % `kibi prove --stale` selects them: passed means a current passing receipt.
 test_receipt_states_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
@@ -140,7 +138,6 @@ symbol_explain_role(SymbolId, Role) :-
 symbol_explain_role(_SymbolId, unknown).
 
 %% search_answer_verdicts_json(+ReqIds, -JsonString)
-% implements REQ-kibi-search-answer-layer-v2
 % What the existing checks report about the requirements a kb_search answer
 % names, in one engine round trip and bounded to those requirements:
 %   contradictions  strict-property and predicate witnesses from
@@ -382,7 +379,6 @@ coverage_evidence_rows_json(Tags, ProofContext, JsonString) :-
     Response = _{rows: Evidences},
     dict_json_string(Response, JsonString).
 
-% implements REQ-kibi-evidence-floors
 % Every current requirement whose evidence level is below its floor, for the
 % evidence-floor check rule: the rows that fail (status below) or that only
 % need kibi prove re-run (status pending_reproof), plus how many current
@@ -411,7 +407,6 @@ evidence_floor_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, 
                 gapDetails: Details
             },
             evidence_floor_gap_details(Proof, Details),
-            % implements REQ-kibi-claim-bound-proofs
             % A claim its proof refuted: the test and what it read.
             (   get_dict(claimBindingRejections, Proof, Refutations),
                 Refutations \== []
@@ -441,7 +436,6 @@ evidence_floor_gap_details(Proof, Details) :-
             Ids \== []
         ),
         Pairs0),
-    % implements REQ-kibi-claim-bound-proofs
     % Under a proved floor, the claims no certificate binding derives.
     (   get_dict(evidenceFloor, Proof, Floor),
         get_dict(required, Floor, proved),
@@ -509,7 +503,6 @@ coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, Includ
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
 
-% implements REQ-kibi-conservative-requirement-proof
 % Proof-status filtered report. The status filter selects requirement rows by
 % proofStatus (tested, missing, unresolved, not_applicable) and replaces the
 % default include-passing filtering, so callers can enumerate exactly one
@@ -622,7 +615,6 @@ graph_expand_json(SeedIds, Relationships, Direction, Depth, EntityTypes, MaxNode
 % distinct values are counted. Rows carry the effective allow/deny decision
 % when the predicate is a decision predicate. An empty answer lists, per
 % bound argument, the values that do exist (suggestions). Read-only.
-% implements REQ-kibi-query-fact-filters
 ask_predicate_json(Namespace, Name, ArgSpec, PolarityFilter, Scope, DistinctArg, Limit, Offset, JsonString) :-
     ask_namespace(Namespace, NamespaceMatch),
     % The schema lookup may bind a namespace; an unnamed namespace must keep
@@ -751,7 +743,6 @@ ask_pattern_arg(Value, Arg) :-
 ask_polarity_match(none, _) :- !.
 ask_polarity_match(Polarity, Polarity).
 
-% implements REQ-kibi-query-fact-filters
 ask_predicate_row(Namespace, Name, ArgPattern, PolarityFilter, Scope, ArgumentNames, Row) :-
     kb:predicate_fact(FactId, Namespace, Name, Args, Polarity),
     ask_pattern_args(ArgPattern, Args),
@@ -925,7 +916,6 @@ ask_distinct(DistinctArg, _ArgumentNames, _Rows, null, [Warning]) :-
 %% ask_property_json(+SubjectKey, +PropertyKey, +Scope, +Limit, +Offset, -JsonString)
 % Typed query over strict property_value facts of one subject key.
 % PropertyKey `none` matches every property of the subject.
-% implements REQ-kibi-query-fact-filters
 ask_property_json(SubjectKey, PropertyKey, Scope, Limit, Offset, JsonString) :-
     kb:normalize_term_atom(SubjectKey, Subject),
     ask_namespace(PropertyKey, PropertyMatch),
@@ -980,7 +970,6 @@ ask_property_value_json(Value, Json) :- source_value_atom(Value, Json).
 % Catalog of the predicates an agent can ask about: every project
 % predicate_schema fact plus built-in decision predicates without a project
 % schema, with argument names, constants, key arguments and fact counts.
-% implements REQ-kibi-query-fact-filters
 ask_schemas_json(Namespace, Name, Limit, Offset, JsonString) :-
     ask_namespace(Namespace, NamespaceMatch),
     ask_namespace(Name, NameMatch),
@@ -1012,7 +1001,6 @@ ask_schema_sort_key(Row, Key) :-
 % Facts of one fact_kind (subject, property_value, predicate, observation,
 % meta, rule, rule_schema) with their identifying typed fields only, so a
 % caller can see what is modeled without paging full entities.
-% implements REQ-kibi-query-fact-filters
 ask_fact_kind_json(Kind, Limit, Offset, JsonString) :-
     findall(Row, ask_fact_kind_row(Kind, Row), Rows0),
     sort_dict_rows(Rows0, SortedRows),
@@ -1053,7 +1041,6 @@ ask_typed_value(Raw, Value) :-
 ask_typed_value(Raw, Value) :-
     source_value_atom(Raw, Value).
 
-% implements REQ-bootstrap-provenance-stubs
 matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Row, Stub) :-
     kb_entity(Id, Type, Props),
     matches_type(TypeFilter, Type),
@@ -1079,7 +1066,6 @@ matching_gap_candidate(TypeFilter, MissingRelationships, PresentRelationships, T
 % A bootstrap provider fact that records only where an entry came from
 % (tagged bootstrap:provenance-stub). It is not knowledge: gap rows and
 % type coverage counts leave it out unless the caller asks for the tag.
-% implements REQ-bootstrap-provenance-stubs
 provenance_stub_props(fact, Props) :-
     memberchk(tags=Tags, Props),
     member(Tag, Tags),
@@ -1090,13 +1076,11 @@ provenance_stub_props(fact, Props) :-
 % inverse as well (docs/entity-schema.md: `validates` is the inverse edge of
 % `verified_by` for req/scenario <-> test links), so a requirement whose test
 % `validates` it is not a `verified_by` gap. relationshipCounts stay per name.
-% implements REQ-mcp-search-discovery
 relationships_missing(_Id, []).
 relationships_missing(Id, [Relationship|Rest]) :-
     linked_relationship_count(Id, Relationship, 0),
     relationships_missing(Id, Rest).
 
-% implements REQ-mcp-search-discovery
 relationships_present(_Id, []).
 relationships_present(Id, [Relationship|Rest]) :-
     linked_relationship_count(Id, Relationship, Count),
@@ -1291,7 +1275,6 @@ coverage_summary(Rows, Summary) :-
         linkCoverageScope: priority_must
     }.
 
-% implements REQ-kibi-claim-bound-proofs
 % The applicable requirement claims across Rows, by the level their evidence
 % reaches: a claim is proved only through a derived certificate binding.
 claim_level_counts(Rows, _{applicable: Applicable, proved: Proved, attested: Attested,
@@ -1311,7 +1294,6 @@ claim_count_sum(Rows, Key, Sum) :-
         ),
         Sum).
 
-% implements REQ-kibi-evidence-floors
 % Current requirements with a floor (required_evidence, or tested for a firm
 % requirement), by whether their evidence level reaches it.  A floor of
 % unverified accepts anything and is not counted.
@@ -1329,7 +1311,6 @@ evidence_floor_status_count(Rows, Status, Count) :-
         ),
         Count).
 
-% implements REQ-kibi-evidence-levels
 evidence_level_counts(Rows, _{proved: Proved, tested: Tested, asserted: Asserted, unverified: Unverified}) :-
     aggregate_all(count, (member(Row, Rows), Row.get(evidenceLevel) == proved), Proved),
     aggregate_all(count, (member(Row, Rows), Row.get(evidenceLevel) == tested), Tested),
@@ -1570,7 +1551,6 @@ must_priority(Priority) :-
     sub_atom(Lowercase, _, 4, 0, must).
 
 % Provenance stubs are counted apart (summary.provenanceStubs), never as facts.
-% implements REQ-bootstrap-provenance-stubs
 type_entity_count(Type, Count) :-
     setof(Id, Props^(kb_entity(Id, Type, Props), \+ provenance_stub_props(Type, Props)), Ids),
     length(Ids, Count).

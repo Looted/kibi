@@ -35,7 +35,6 @@ function hasExplicitClaimFields(args: ModelRequirementArgs): boolean {
   );
 }
 
-// implements REQ-002
 export function estimateNormativeSignalConfidence(
   statement: string,
   heading?: string,
@@ -51,7 +50,6 @@ export function estimateNormativeSignalConfidence(
   return Math.round(Math.min(0.95, confidence) * 100) / 100;
 }
 
-// implements REQ-002
 export function extractRequirementClaim(
   args: ModelRequirementArgs,
 ): ExtractedRequirementClaim & {
@@ -112,7 +110,6 @@ export function extractRequirementClaim(
     };
   }
 
-  // implements REQ-kibi-source-proof-kinds
   // Set and pattern claims (every route uses a middleware, a state can never
   // reach another, a format) take the advisor's strict shapes, so the fact is
   // one a source, state_machine or regex proof can derive.

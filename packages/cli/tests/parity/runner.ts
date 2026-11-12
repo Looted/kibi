@@ -3,20 +3,17 @@ import os from "node:os";
 import path from "node:path";
 import { isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
-// implements REQ-kibi-operation-interface-parity
 export type CliResult = {
   readonly exitCode: number;
   readonly stdout: string;
   readonly stderr: string;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type McpResult = {
   readonly structuredContent: unknown;
   readonly error?: unknown;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type ComparisonResult = {
   readonly parity: boolean;
   readonly diff?: string;
@@ -42,7 +39,6 @@ function isMcpAdapterModule(value: unknown): value is McpAdapterModule {
   );
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function runCliJsonRoute(
   workspaceRoot: string,
   opName: string,
@@ -81,7 +77,6 @@ export async function runCliJsonRoute(
   }
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function runMCPAdapter(
   workspaceRoot: string,
   opName: string,
@@ -132,7 +127,6 @@ function semanticMcpResult(result: McpResult): unknown {
   };
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function compareResults(
   cli: CliResult,
   mcp: McpResult,

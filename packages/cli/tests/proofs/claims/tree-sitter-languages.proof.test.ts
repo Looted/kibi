@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { TREE_SITTER_LANGUAGES } from "../../../../plugin-treesitter/src/catalog.js";
 
-// implements REQ-tree-sitter-language-set
-
 /**
  * The languages the tree-sitter plugin extracts symbols from and the file extensions it claims for some of them. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

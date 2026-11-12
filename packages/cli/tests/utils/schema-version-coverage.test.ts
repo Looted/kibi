@@ -1,4 +1,3 @@
-// implements REQ-003
 import { describe, expect, test } from "bun:test";
 import {
   LATEST_KB_SCHEMA_VERSION,

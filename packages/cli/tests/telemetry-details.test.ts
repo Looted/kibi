@@ -1,4 +1,3 @@
-// implements REQ-kibi-telemetry-agent-signals
 import { describe, expect, test } from "bun:test";
 
 import { KbRejection } from "../src/cli-errors";
@@ -291,6 +290,39 @@ describe("operation signals", () => {
     expect(
       operationTelemetrySignals({ operation: "kb_status", args: 5 }),
     ).toEqual({});
+  });
+});
+
+describe("engine start failures", () => {
+  test("carry the daemon's failure kind through wrapping causes", () => {
+    const failed = Object.assign(new Error("Kibi engine failed to start: x"), {
+      code: "ENGINE_START_FAILED",
+      startFailure: "swipl_not_found",
+    });
+    expect(
+      operationTelemetrySignals({ operation: "sync", error: failed })
+        .rejectionCode,
+    ).toBe("swipl_not_found");
+    const wrapped = new Error("Sync failed", { cause: failed });
+    expect(
+      operationTelemetrySignals({ operation: "kb_check", error: wrapped })
+        .rejectionCode,
+    ).toBe("swipl_not_found");
+    // Only an engine start failure names a kind; another error does not.
+    const other = Object.assign(new Error("x"), {
+      code: "ENGINE_CONNECT_TIMEOUT",
+      startFailure: "store_locked",
+    });
+    expect(
+      operationTelemetrySignals({ operation: "sync", error: other })
+        .rejectionCode,
+    ).toBeUndefined();
+    expect(
+      operationTelemetrySignals({
+        operation: "sync",
+        error: Object.assign(new Error("x"), { code: "ENGINE_START_FAILED" }),
+      }).rejectionCode,
+    ).toBeUndefined();
   });
 });
 

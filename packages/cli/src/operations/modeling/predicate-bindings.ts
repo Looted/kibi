@@ -235,7 +235,6 @@ function matchesConstant(value: string, context: BindingContext): boolean {
  * value: it repeats its own or another argument's name, or it is a bare stop
  * word. Declared constants and the booleans `true`/`false` always pass.
  */
-// implements REQ-model-predicates-binding-placeholders
 export function nameOrStopWordReason(
   value: string,
   context: BindingContext = {},
@@ -280,7 +279,6 @@ const PARTICIPANT_ARGUMENT_TYPES = new Set([
 ]);
 
 /** Whether an argument type names a participant (who acts or owns). */
-// implements REQ-model-predicates-participant-not-subject
 export function isParticipantArgumentType(type: string | undefined): boolean {
   return (
     type !== undefined && PARTICIPANT_ARGUMENT_TYPES.has(bindingToken(type))
@@ -293,7 +291,6 @@ export function isParticipantArgumentType(type: string | undefined): boolean {
  * `actor = <subject key>` would complete a predicate whose actor says
  * nothing the fact's subject_key does not already say.
  */
-// implements REQ-model-predicates-participant-not-subject
 export function subjectKeyParticipantReason(
   value: string,
   context: BindingContext = {},
@@ -320,7 +317,6 @@ export const MAX_NAMING_BINDING_WORDS = 3;
  * Explicit bindings, requirement subjects and declared constants are not
  * judged here.
  */
-// implements REQ-model-predicates-binding-clauses
 export function clauseBindingReason(
   value: string,
   context: BindingContext = {},
@@ -335,7 +331,6 @@ export function clauseBindingReason(
   return `it is a ${words.length}-word clause of the claim, not a short name for this ${type}`;
 }
 
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-binding-placeholders, REQ-model-predicates-binding-clauses, REQ-model-predicates-participant-not-subject
 export function classifyBinding(
   value: string,
   text: string,

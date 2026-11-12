@@ -129,7 +129,6 @@ export function compareMcpResolution(
   running: McpPackageInfo,
   projectLocal: McpPackageInfo | null,
 ): McpResolutionComparison {
-  // implements REQ-cursor-agent-plugin-standard-v1
   const diagnosticText = JSON.stringify({ running, projectLocal });
   const forbiddenVersionObserved = diagnosticText.includes(FORBIDDEN_VERSION);
 

@@ -10,7 +10,6 @@
 import { routedOperationName } from "./mcp-tool-names";
 
 /** Verdict values a `kibi-answer` block may carry. */
-// implements REQ-skillopt-codex-optimization
 export const KIBI_ANSWER_VERDICTS = [
   "governed",
   "conflict",
@@ -22,7 +21,6 @@ export const KIBI_ANSWER_VERDICTS = [
   "no_conflict",
 ] as const;
 
-// implements REQ-skillopt-codex-optimization
 export type KibiAnswer = Readonly<{
   /** Where the structured fields came from. */
   source: "block" | "regex" | "none";
@@ -35,14 +33,12 @@ export type KibiAnswer = Readonly<{
   proof: string | null;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type FinalAnswerEvidence = Readonly<{
   /** The user-facing text of the final agent message ("" when absent). */
   text: string;
   answer: KibiAnswer;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type TranscriptOrdering = Readonly<{
   /** Event index of the first brokered `kb_search` call, or null. */
   firstKbSearchIndex: number | null;
@@ -112,7 +108,6 @@ function userFacingText(message: string): string {
 }
 
 /** The last agent message's user-facing text, or "" when there is none. */
-// implements REQ-skillopt-codex-optimization
 export function lastAgentMessage(transcript: string): string {
   let last: string | null = null;
   for (const event of parseLines(transcript)) {
@@ -224,7 +219,6 @@ function regexAnswer(text: string): KibiAnswer {
 }
 
 /** Parse a fenced `kibi-answer` JSON block, falling back to labelled lines. */
-// implements REQ-skillopt-codex-optimization
 export function parseKibiAnswer(text: string): KibiAnswer {
   return blockAnswer(text) ?? regexAnswer(text);
 }
@@ -259,7 +253,6 @@ function finalTurnProse(transcript: string): readonly string[] {
  * message carries no block, the block from the final turn's prose stands in
  * for it, and labelled-line parsing remains the last fallback.
  */
-// implements REQ-skillopt-codex-optimization
 export function finalAnswerEvidence(transcript: string): FinalAnswerEvidence {
   const text = lastAgentMessage(transcript);
   const parsed = parseKibiAnswer(text);
@@ -347,7 +340,6 @@ function isKibiCli(item: Record<string, unknown>): boolean {
  * `item.started`, `item.updated` and `item.completed`; each item counts once,
  * at its first appearance.
  */
-// implements REQ-skillopt-codex-optimization
 export function transcriptOrdering(transcript: string): TranscriptOrdering {
   const seen = new Set<string>();
   let firstKbSearchIndex: number | null = null;

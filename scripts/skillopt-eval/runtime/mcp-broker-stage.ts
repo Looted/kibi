@@ -19,7 +19,6 @@ export type BrokerStageOptions = Readonly<{
   nodeCommand?: string;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export async function stageKibiMcpBroker(
   workspace: IsolationWorkspace,
   sourceWorktree: string,

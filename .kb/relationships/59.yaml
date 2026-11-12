@@ -13,20 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c060fa10112
-  - type: validates
-    from: TEST-cli-canonical-runtime
-    to: REQ-kibi-canonical-source-authoring
-    created_at: 2026-08-18T16:39:36.606Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-939d6c6d3b8a
-  - type: validates
-    from: TEST-cli-canonical-runtime
-    to: REQ-kibi-sync-canonical-discovery
-    created_at: 2026-08-18T16:39:36.606Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9792087d7a43
   - type: implements
     from: SYM-operation-node-network
     to: REQ-kibi-operation-interface-parity
@@ -279,3 +265,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-66df3a2e2a5a
+  - type: implements
+    from: SYM-cli-parse-engine-start-diagnostic
+    to: REQ-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-11T18:10:04.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-483eb71e6b91
+  - type: covered_by
+    from: SYM-cli-parse-engine-start-diagnostic
+    to: TEST-kibi-anonymous-usage-telemetry
+    created_at: 2026-11-11T18:10:04.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6279f4dd7fb5
+  - type: covered_by
+    from: SYM-cli-parse-engine-start-diagnostic
+    to: TEST-kibi-anonymous-usage-telemetry-cli
+    created_at: 2026-11-11T18:21:17.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a9f5351cae8
+  - type: validates
+    from: TEST-cli-canonical-runtime
+    to: REQ-kibi-canonical-source-authoring
+    created_at: 2026-08-18T16:39:36.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-939d6c6d3b8a
+  - type: validates
+    from: TEST-cli-canonical-runtime
+    to: REQ-kibi-sync-canonical-discovery
+    created_at: 2026-08-18T16:39:36.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9792087d7a43

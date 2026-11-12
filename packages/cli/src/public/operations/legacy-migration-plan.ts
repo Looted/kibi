@@ -508,7 +508,6 @@ async function buildBatch(
   };
 }
 
-// implements REQ-kibi-legacy-migration-preview-v2
 export async function buildLegacyMigrationPlan(
   repairPlan: RepairPlan,
   input: LegacyMigrationPlanInput,
@@ -652,7 +651,6 @@ export async function buildLegacyMigrationPlan(
   };
 }
 
-// implements REQ-kibi-legacy-migration-preview-v2
 export async function buildLegacyMigrationPlanFromContext(
   repairPlan: RepairPlan,
   input: LegacyMigrationPlanInput,

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// implements REQ-003
 // Schema 8 requires body context on current entities and pins requirement
 // semantic_text so context sections never change a requirement's meaning.
 // Schema 9 adds decision firmness on requirements and ADRs and requires a
@@ -47,7 +46,6 @@ export type SchemaVersionSource =
   | null
   | undefined;
 
-// implements REQ-003
 export function normalizeSchemaVersion(
   schemaVersion: number | string | null | undefined,
 ): number | null {
@@ -68,7 +66,6 @@ export function normalizeSchemaVersion(
   return Number.isInteger(parsed) ? parsed : null;
 }
 
-// implements REQ-003
 export function getSchemaVersionStatus(
   config?: SchemaVersionSource,
 ): SchemaVersionStatus {

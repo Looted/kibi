@@ -3,7 +3,6 @@ import { KbRejection } from "../../cli-errors.js";
 import { proofReceiptHistoryErrors } from "../../public/proof-receipt.js";
 import entitySchema from "../../public/schemas/entity.js";
 import relationshipSchema from "../../public/schemas/relationship.js";
-// implements REQ-kibi-operation-interface-parity
 import {
   SYMBOL_ROLES,
   isAllowedGranularityReason,
@@ -123,7 +122,6 @@ function typeRestrictedFields(schemaPath: string): {
   return { fields, types };
 }
 
-// implements REQ-kibi-symbol-link-guidance
 /**
  * The documented status vocabulary of each entity type (docs/entity-schema.md).
  * The schema accepts the union of every type's statuses for older sources, so
@@ -140,7 +138,6 @@ const STATUS_VALUES_BY_TYPE: ReadonlyMap<string, readonly string[]> = new Map([
   ["fact", ["active", "deprecated"]],
 ]);
 
-// implements REQ-upsert-unknown-field-guidance
 function formatEntityErrors(
   entity: Readonly<Record<string, unknown>>,
   errors: readonly ErrorObject[],

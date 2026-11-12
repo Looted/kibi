@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3530760cb91b
+  - type: validates
+    from: TEST-migrate-inline-implements-review
+    to: SCEN-migrate-inline-implements-review
+    created_at: 2026-11-11T05:47:32.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80dca68ac5db

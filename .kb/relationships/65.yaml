@@ -181,3 +181,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0006b958a76
+  - type: executable_for
+    from: SYM-e2e-migrate-lists-inline-implements-comment
+    to: TEST-migrate-inline-implements-review
+    created_at: 2026-11-11T05:57:32.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfaf15c0dbe8

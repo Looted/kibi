@@ -1,4 +1,3 @@
-// implements REQ-mcp-suggest-predicates
 import { afterEach, describe, expect, test } from "bun:test";
 import { evaluateSemanticApplicability } from "../../src/operations/modeling/predicate-applicability.js";
 import type { RankedPredicateSchema } from "../../src/operations/modeling/predicate-ranker.js";

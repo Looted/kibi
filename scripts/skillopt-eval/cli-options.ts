@@ -3,15 +3,12 @@ import { join } from "node:path";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import type { CodexCellRuntime } from "./real-workflow";
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export class CliUsageError extends Error {
-  // implements REQ-skillopt-codex-optimization
   // covered_by TEST-skillopt-codex-optimization
   readonly name = "CliUsageError";
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type WorkflowOptions = Readonly<{
   runId: string;
@@ -33,7 +30,6 @@ function parseSkill(value: string): CanonicalSkill | "all" {
   throw new CliUsageError(`Unknown skill: ${value}`);
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function parseRunId(args: readonly string[], usage: string): string {
   if (args.length !== 2 || args[0] !== "--run-id")
@@ -45,7 +41,6 @@ export function parseRunId(args: readonly string[], usage: string): string {
   return runId;
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function parseWorkflowOptions(
   args: readonly string[],
@@ -137,7 +132,6 @@ export function parseWorkflowOptions(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function printHelp(): void {
   process.stdout.write(

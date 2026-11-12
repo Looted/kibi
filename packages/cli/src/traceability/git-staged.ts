@@ -76,7 +76,6 @@ function runGit(cmd: string, exec: ExecFn): string {
 /**
  * Parse null-separated name-status output from git
  */
-// implements REQ-014
 export function parseNameStatusNull(
   input: string,
 ): Array<{ status: string; parts: string[] }> {
@@ -189,7 +188,6 @@ function normalizeNewFileHunks(ranges: HunkRange[], content: string): void {
  * validation cannot inspect deeply. Blob contents always come from Git rather
  * than the working tree.
  */
-// implements REQ-014
 export function getStagedInventory(exec?: GitArgsExecFn): StagedPath[] {
   // The normal path reads only immutable tree/blob object IDs captured from the
   // index. Keep the injectable reader path for existing callers and tests.
@@ -318,7 +316,6 @@ export function supportedStagedFiles(
  * Parse unified diff hunks (new-file coordinates) from git diff output
  */
 export function parseHunksFromDiff(
-  // implements REQ-014
   diffText: string,
   isNewFile = false,
 ): HunkRange[] {
@@ -346,7 +343,6 @@ export function parseHunksFromDiff(
 /**
  * Get staged files with statuses, hunks and content.
  */
-// implements REQ-014
 export function getStagedFiles(exec: ExecFn = defaultExec): StagedFile[] {
   // 1. get staged name-status -z
   let nameStatus: string;

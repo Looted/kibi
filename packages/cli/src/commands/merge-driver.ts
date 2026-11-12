@@ -170,7 +170,6 @@ function mergeRecord(
  * symbol. Anything else both sides changed differently is a real conflict
  * and is reported rather than guessed.
  */
-// implements REQ-cli-kb-merge-driver
 export function mergeKbManifests(
   baseContent: string,
   oursContent: string,
@@ -279,7 +278,6 @@ function readOptional(filePath: string): string {
  * the file carries ordinary conflict markers, then exits 1 so Git keeps the
  * path unmerged.
  */
-// implements REQ-cli-kb-merge-driver
 export async function mergeDriverCommand(
   basePath: string,
   currentPath: string,

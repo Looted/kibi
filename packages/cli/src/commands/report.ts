@@ -226,7 +226,6 @@ const KB_CERTIFICATES_VERSION = "kibi.certificates.v1";
  * Read a saved kibi check --write-certificates bundle, so the report can
  * publish it next to the page and say how many certificates it holds.
  */
-// implements REQ-kibi-kb-certificates
 async function readKbCertificates(
   bundlePath: string,
 ): Promise<{ raw: string; certificates: readonly unknown[] }> {
@@ -262,7 +261,6 @@ function certificateKinds(
   return kinds;
 }
 
-// implements REQ-kibi-html-health-report
 export async function reportCommand(
   options: ReportOptions,
   deps: ReportCommandDeps = {},
@@ -326,7 +324,6 @@ export async function reportCommand(
       Array.isArray(row.proofGaps) &&
       row.proofGaps.includes("blocking_contradiction"),
   );
-  // implements REQ-kibi-evidence-floors
   // A requirement below its evidence floor fails kibi check, like a
   // contradiction, so the badge turns red whatever the tested share.
   const belowFloor = coverage.requirements.rows.some((row) => {

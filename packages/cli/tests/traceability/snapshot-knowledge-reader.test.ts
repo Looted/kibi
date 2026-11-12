@@ -1,8 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { readSnapshotKnowledge } from "../../src/traceability/snapshot-knowledge.js";
 
-// implements REQ-014
-
 type Entry = {
   path: string;
   content?: string;

@@ -16,8 +16,6 @@ import {
   hasOverrideRationale,
 } from "../../src/traceability/evidence-model.js";
 
-// implements REQ-cli-staged-impact-enforcement
-
 function evidence(
   mode: KibiImpactMode,
   symbolsManifest: Partial<KibiImpactSymbolsManifest> = {},

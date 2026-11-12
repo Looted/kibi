@@ -1,4 +1,3 @@
-// implements REQ-mcp-suggest-predicates, REQ-model-predicates-permission-grants
 import { describe, expect, test } from "bun:test";
 import { inferPermissionRuleArgs } from "../../src/operations/modeling/predicate-inference-1.js";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";

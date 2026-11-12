@@ -1,4 +1,3 @@
-// implements REQ-kibi-change-to-proof-plan-compiler-v2
 import { describe, expect, test } from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 

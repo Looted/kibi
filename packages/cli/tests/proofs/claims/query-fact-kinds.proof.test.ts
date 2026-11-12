@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { FACT_KINDS } from "../../../src/public/operations/discovery-executors.js";
 
-// implements REQ-kibi-query-fact-kinds
-
 /**
  * The fact kinds a typed fact query accepts. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

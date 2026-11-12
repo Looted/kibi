@@ -15,7 +15,6 @@ export function optionalPredicateName(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-// implements REQ-mcp-suggest-predicates
 export function schemaForCandidate(schema: PredicateSchemaCandidate): Omit<
   PredicateSchemaCandidate,
   "keywords"
@@ -55,7 +54,6 @@ export function schemaForCandidate(schema: PredicateSchemaCandidate): Omit<
   };
 }
 
-// implements REQ-mcp-suggest-predicates
 export async function loadExistingPredicateSchemas(
   prolog: PrologPort | null,
   includeExistingSchemas: boolean,
@@ -88,7 +86,6 @@ export async function loadExistingPredicateSchemas(
   }
 }
 
-// implements REQ-mcp-suggest-predicates
 export function predicateSchemaFromEntity(
   entity: Record<string, unknown>,
 ): PredicateSchemaCandidate[] {
@@ -161,7 +158,6 @@ export function predicateSchemaFromEntity(
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function usageHintsFromEntity(
   entity: Record<string, unknown>,
 ): PredicateUsageHints | undefined {
@@ -173,7 +169,6 @@ export function usageHintsFromEntity(
   return { use_when: useWhen, do_not_use_when: doNotUseWhen };
 }
 
-// implements REQ-mcp-suggest-predicates
 export function stringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((item) => {

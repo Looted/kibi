@@ -29,10 +29,8 @@ import {
 } from "../public/operations/entity-context.js";
 
 /** A staged requirement whose semantic inventory no longer matches its prose. */
-// implements REQ-kibi-proposition-complete-ingestion
 export const STAGED_INVENTORY_DRIFT_RULE = "semantic-inventory-drift";
 
-// implements REQ-kibi-proposition-complete-ingestion
 export type StagedInventoryDriftViolation = Readonly<{
   rule: typeof STAGED_INVENTORY_DRIFT_RULE;
   entityId: string;
@@ -93,7 +91,6 @@ function baseResult(
  * source whose semantic hash changed. Other requirements without a contract,
  * such as a Context-only edit, are left to sync's baseline.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 export function stagedInventoryDriftViolations(input: {
   stagedPaths: ReadonlySet<string>;
   snapshotEntities: readonly ExtractionResult[];
@@ -148,10 +145,8 @@ export function stagedInventoryDriftViolations(input: {
  * A staged requirement whose body statement changed while its pinned
  * `semantic_text` did not.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 export const STAGED_STATEMENT_DRIFT_RULE = "requirement-statement-drift";
 
-// implements REQ-kibi-proposition-complete-ingestion
 export type StagedStatementDriftViolation = Readonly<{
   rule: typeof STAGED_STATEMENT_DRIFT_RULE;
   entityId: string;
@@ -179,7 +174,6 @@ function pinnedSemanticText(data: Readonly<Record<string, unknown>>): string {
  * edit must restate `semantic_text` (whose inventory the drift rule above
  * then re-checks) or move the new text into a context section.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 export function stagedStatementDriftViolations(input: {
   stagedFiles: readonly Readonly<{ path: string; content?: string }>[];
   readBase: (path: string) => string | null;

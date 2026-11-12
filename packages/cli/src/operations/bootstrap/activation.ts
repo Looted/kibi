@@ -10,7 +10,6 @@ import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
 import type { ActivationPolicy, ActivationState, Candidate } from "./types.js";
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 // covered_by TEST-KIBI-BOOTSTRAP-PLAN-APPLY
 export function missingManifestActivation(
   vendored: boolean,
@@ -26,7 +25,6 @@ export function missingManifestActivation(
  * older Kibi: it is migrated, never initialized, so the first step is the one
  * `kibi doctor` names.
  */
-// implements REQ-legacy-kb-first-step-migrate
 export function legacyKbActivation(): ActivationPolicy {
   return {
     activationState: "root_partial",
@@ -109,7 +107,6 @@ function activationFor(state: ActivationState): ActivationPolicy {
  * deduplicated against the existing KB. Such a plan is applicable like a thin
  * bootstrap plan; a seeded plan holding anything else stays a handoff.
  */
-// implements REQ-bootstrap-discovered-candidate-budget
 // covered_by TEST-KIBI-BOOTSTRAP-PLAN-APPLY
 export function claimPlanActivation(
   policy: ActivationPolicy,
@@ -183,7 +180,6 @@ function sourceCoverageState(files: readonly string[]): ActivationState {
   );
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function classifyActivation(
   context: OperationContext,
   files?: readonly string[],

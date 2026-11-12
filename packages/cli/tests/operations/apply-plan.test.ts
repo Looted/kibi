@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-014
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -922,7 +921,6 @@ describe("bootstrap deterministic write failures", () => {
   });
 });
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-014
 describe("apply plan source recovery and migration", () => {
   function sha(value: string): string {
     return createHash("sha256").update(value).digest("hex");
@@ -1228,7 +1226,6 @@ describe("apply plan source recovery and migration", () => {
 
   describe("validateMigrationPlanShape remaining errors", () => {
     test("rejects a non-SHA-256 approvedPlanHash", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const plan = buildMigrationPlan({ actions: [automaticAction()] });
       const planAction = plan.actions[0];
@@ -1247,7 +1244,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("rejects a planHash that does not match the canonical body", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const ready = buildMigrationPlan({ actions: [automaticAction()] });
       const readyAction = ready.actions[0];
@@ -1267,7 +1263,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("rejects a non-array approvedActionIds list", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const plan = buildMigrationPlan({ actions: [automaticAction()] });
       await expect(
@@ -1285,7 +1280,6 @@ describe("apply plan source recovery and migration", () => {
 
   describe("source journal recovery and write rollback", () => {
     test("ignores a corrupt journal and reapplies when after-images drifted", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const before = "before body\n";
       const after = "after body\n";
@@ -1340,7 +1334,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("treats a missing after-image on a committed journal as incomplete", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const after = "recreate me\n";
       const writes = [
@@ -1391,7 +1384,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("ignores unreadable and rolled-back journals, then applies", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const body = "fresh write\n";
       const plan = compilePlan({
@@ -1467,7 +1459,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("rejects absolute paths, symlink escapes, and beforeHash mismatches", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const body = "payload\n";
       const absolute = compilePlan({
@@ -1548,7 +1539,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("rolls back originals when publish fails and keeps the original error", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const existing = "keep me\n";
       mkdirSync(path.join(root, "docs"), { recursive: true });
@@ -1579,7 +1569,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("unlinks a newly created file and swallows rollback journal write failures", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const body = "new file\n";
       const plan = compilePlan({
@@ -1620,7 +1609,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("swallows markSourceJournal read failures after a successful compile apply", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const body = "marked\n";
       const plan = compilePlan({
@@ -1654,7 +1642,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("replays a compiled_published journal and counts missing entityCounts as zero", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const body = "replayed\n";
       const planHash = "d".repeat(64);
@@ -1711,7 +1698,6 @@ describe("apply plan source recovery and migration", () => {
 
   describe("bootstrap apply checkpoints and recovery flatten", () => {
     test("rejects a missing status payload and live binding drift", async () => {
-      // implements REQ-KIBI-BOOTSTRAP-PLAN
       const root = makeTempDir();
       const plan = await thinBootstrap();
       track(
@@ -1789,7 +1775,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("filters non-record repair payloads and stringifies non-Error action failures", async () => {
-      // implements REQ-KIBI-BOOTSTRAP-PLAN
       const root = makeTempDir();
       const plan = await thinBootstrap();
       track(
@@ -1864,7 +1849,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("resumes from failed and skipped journal rows without replaying them", async () => {
-      // implements REQ-KIBI-BOOTSTRAP-PLAN
       const root = makeTempDir();
       const plan = await thinBootstrap();
       const kbSnapshotId = bootstrapEmptyKbSnapshotId({
@@ -1928,7 +1912,6 @@ describe("apply plan source recovery and migration", () => {
 
   describe("compile plan remaining commit and readback paths", () => {
     test("rejects missing status, drifted snapshots, and unavailable workspaces", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const plan = compilePlan();
       track(
@@ -1966,7 +1949,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("refuses a malformed step before any write and rolls back a commit that never reached the store", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const commits: string[] = [];
       const recordingProlog = (
@@ -2026,7 +2008,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("keeps the commit when final status has no payload or workspace readback fails", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const body = "readback\n";
       const plan = compilePlan({
@@ -2119,7 +2100,6 @@ describe("apply plan source recovery and migration", () => {
 
   describe("entity deletion source writes", () => {
     test("marks compiled_published after a successful deletion with source writes", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       mkdirSync(path.join(root, "docs"), { recursive: true });
       writeFileSync(path.join(root, "docs", "fact.md"), "remove\n");
@@ -2159,7 +2139,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("returns repair nextActions when deletion compiled retract fails after source writes", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       mkdirSync(path.join(root, "docs"), { recursive: true });
       writeFileSync(path.join(root, "docs", "fact.md"), "remove\n");
@@ -2203,7 +2182,6 @@ describe("apply plan source recovery and migration", () => {
 
   describe("migration apply remaining executors and closeout", () => {
     test("rejects missing initial or final status and a missing final workspace", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       const plan = buildMigrationPlan({
         actions: [automaticAction({ id: "mig-status" })],
@@ -2265,7 +2243,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("applies automatic executors and records closeout from mocked status", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       track(
         spyOn(branchModule, "branchMigrateCommand").mockResolvedValue(
@@ -2389,7 +2366,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("merges post-apply remaining plans and maps proof closeout states", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       track(
         spyOn(branchModule, "branchEnsureCommand").mockResolvedValue(undefined),
@@ -2514,7 +2490,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("records post-apply readback failure and mixed or unresolved proof states", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       track(
         spyOn(branchModule, "branchEnsureCommand").mockResolvedValue(undefined),
@@ -2591,7 +2566,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("maps mixed and unresolved proof closeout from coverage summaries", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       track(
         spyOn(branchModule, "branchEnsureCommand").mockResolvedValue(undefined),
@@ -2679,7 +2653,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("surfaces schema and coordinate executor failures", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       track(
         spyOn(migrateModule, "migrateCommand").mockResolvedValue({
@@ -2774,7 +2747,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("rejects a compile plan relationship missing type, from, or to", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       track(
         spyOn(discoveryExecutors, "executeStatus").mockResolvedValue(
@@ -2834,7 +2806,6 @@ describe("apply plan source recovery and migration", () => {
     });
 
     test("rejects a migration plan when expected.configHash has drifted", async () => {
-      // implements REQ-014
       const root = makeTempDir();
       track(
         spyOn(discoveryExecutors, "executeStatus").mockResolvedValue(

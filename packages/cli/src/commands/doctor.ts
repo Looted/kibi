@@ -96,13 +96,12 @@ import {
   outdatedManagedHooks,
 } from "./init-helpers.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
-import { readSetupChoices } from "./setup-choices.js";
+import { autoSyncEnabled, readSetupChoices } from "./setup-choices.js";
 
 /**
  * First-party plugin diagnostics known without importing the package.
  * Generic third-party plugins report package/capability/mode/declared only.
  */
-// implements REQ-kibi-env-bootstrap, REQ-capability-plugin-configuration-v1
 const FIRST_PARTY_PLUGIN_SECRETS: Readonly<Record<string, readonly string[]>> =
   {
     "kibi-plugin-jev": ["TYPESAFE_API_KEY"],
@@ -131,9 +130,7 @@ export interface DoctorOptions {
   format?: "json" | "table";
 }
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** `doctor:capability_plugins+git_hooks` for the checks that failed. */
-// implements REQ-kibi-anonymous-usage-telemetry
 export function doctorFailureCategory(
   results: readonly { name: string; passed: boolean }[],
 ): string | undefined {
@@ -148,7 +145,6 @@ export function doctorFailureCategory(
   return failed.length === 0 ? undefined : `doctor:${failed.join("+")}`;
 }
 
-// implements REQ-003
 export async function doctorCommand(
   options: DoctorOptions = {},
 ): Promise<{ exitCode: number }> {
@@ -543,7 +539,6 @@ const SWIPL_SOURCE_LABELS = {
   path: "PATH",
 } as const;
 
-// implements REQ-prolog-doctor-runtime-report
 function checkSWIProlog(): DoctorCheckResult {
   let resolved: ResolvedSwipl;
   try {
@@ -614,9 +609,7 @@ function checkSWIProlog(): DoctorCheckResult {
  * Read-only view of package.json plugin activation.
  * Does not import or execute plugin packages (no loadPluginPackage / dynamic import).
  */
-// implements REQ-capability-plugin-configuration-v1, REQ-kibi-env-bootstrap
 function checkCapabilityPlugins(): {
-  // implements REQ-cli-doctor, REQ-capability-plugin-observable-behavior-v1
   passed: boolean;
   warning?: boolean;
   message: string;
@@ -745,7 +738,6 @@ function formatSecretSourcePart(
 /**
  * Static first-party Jev diagnostics — mirrors plugin resolve helpers without importing.
  */
-// implements REQ-kibi-env-bootstrap, REQ-capability-plugin-configuration-v1
 function formatJevStaticConfigParts(
   env: NodeJS.ProcessEnv = process.env,
 ): string[] {
@@ -768,7 +760,6 @@ function formatJevStaticConfigParts(
  * differs from what that release lists. A mixed install still works when the
  * semver ranges allow it, so it is a warning, not a failure.
  */
-// implements REQ-kibi-release-version
 export function checkKibiRelease(
   release: KibiReleaseManifest | null = readKibiRelease() ?? null,
   installedVersion: (name: string) => string | undefined = (name) => {
@@ -830,7 +821,6 @@ export function checkKibiRelease(
  * daemon with other versions is replaced by the next Kibi command, so it is
  * reported, not failed.
  */
-// implements REQ-engine-daemon-package-versions
 async function checkEngineDaemon(): Promise<DoctorCheckResult> {
   const workspaceRoot = path.resolve(
     process.env.KIBI_WORKSPACE ??
@@ -1037,7 +1027,6 @@ function checkGitRepository(): {
  * merge-driver` resolves them by record id, but only when Git routes the
  * file to it. A warning, not a failure: merges still work without it.
  */
-// implements REQ-cli-doctor
 function checkManifestMergeDriver(): DoctorCheckResult {
   const gaps = manifestMergeDriverGaps(process.cwd());
   if (gaps === null) {
@@ -1061,7 +1050,6 @@ function checkManifestMergeDriver(): DoctorCheckResult {
  * per branch and never copied, so a branch created without the post-checkout
  * hook starts empty until `kibi sync`.
  */
-// implements REQ-cli-doctor
 function checkBranchStore(): DoctorCheckResult {
   const workspaceRoot = process.cwd();
   let attachment: ReturnType<typeof resolveBranchAttachment>;
@@ -1090,7 +1078,6 @@ function checkBranchStore(): DoctorCheckResult {
     };
   }
   const compilation = branchStoreCompilation(store);
-  // implements REQ-core-journaled-engine-persistence
   const takeover = storeLockTakeoverReason(store.path);
   // A takeover is reported whether or not the store holds a compilation yet.
   const withTakeover = (message: string): string =>
@@ -1121,16 +1108,37 @@ function checkBranchStore(): DoctorCheckResult {
       details: { ...details, ...takeoverDetails },
     };
   }
+  const reasonDetails = {
+    ...details,
+    generation: compilation.generation,
+    authoredSources: reason.authoredSources,
+    ...takeoverDetails,
+  };
+  // A fresh clone or a branch created without the post-checkout hook: with
+  // auto-sync on, the next Kibi command compiles this store before it runs
+  // (ensureBranchStoreCompiled), so nothing is broken yet.
+  if (
+    attachment.kind !== "detached_snapshot" &&
+    attachment.readOnly === undefined &&
+    !attachment.migrationRequired &&
+    autoSyncEnabled(workspaceRoot)
+  ) {
+    return {
+      passed: true,
+      warning: true,
+      message: withTakeover(
+        `Not compiled yet for ${branch}; the next Kibi query or check compiles it from ${String(reason.authoredSources)} authored source file(s)`,
+      ),
+      remediation:
+        "Nothing to do, or run kibi sync now to compile it ahead of the first query",
+      details: { ...reasonDetails, autoSync: true },
+    };
+  }
   return {
     passed: false,
     message: withTakeover(String(reason.detail)),
     remediation: "Run: kibi sync",
-    details: {
-      ...details,
-      generation: compilation.generation,
-      authoredSources: reason.authoredSources,
-      ...takeoverDetails,
-    },
+    details: reasonDetails,
   };
 }
 
@@ -1140,7 +1148,6 @@ function checkBranchStore(): DoctorCheckResult {
  * instructions every host reads, the prepare step that installs the hooks
  * and the pull-request gate. Each gap is a warning; `kibi init` repairs it.
  */
-// implements REQ-kibi-fresh-clone-setup
 function checkFreshCloneSetup(): DoctorCheckResult {
   const root = doctorRepositoryContext()?.worktreeRoot ?? process.cwd();
   if (!existsSync(path.join(root, ".kb", "manifest.json"))) {
@@ -1204,7 +1211,6 @@ function checkFreshCloneSetup(): DoctorCheckResult {
 // Hook health must be diagnosed against the hooks directory Git actually
 // executes (resolved via git rev-parse --git-path hooks, honoring
 // core.hooksPath and linked worktrees), not against <cwd>/.git/hooks.
-// implements REQ-git-hook-effective-install
 let cachedRepositoryContext:
   | { cwd: string; context: GitRepositoryContext | null }
   | undefined;
@@ -1251,7 +1257,6 @@ function hooksPathSuffix(): string {
  * hooks. Its hook files are generated runners, so the commands they run are
  * read from the manager's configuration instead of the files Git executes.
  */
-// implements REQ-git-hook-manager-integration
 function doctorHookManager(): {
   manager: DetectedHookManager;
   worktreeRoot: string;
@@ -1266,7 +1271,6 @@ function doctorHookManager(): {
   return manager ? { manager, worktreeRoot: context.worktreeRoot } : null;
 }
 
-// implements REQ-git-hook-manager-integration
 function checkHookManagerDelegation(
   {
     manager,
@@ -1319,7 +1323,6 @@ function checkHookManagerDelegation(
  * (the pre-commit `check-generated` step, for example), and the other hook
  * checks only confirm that kibi is invoked at all.
  */
-// implements REQ-cli-doctor
 function checkManagedHookSections(): {
   passed: boolean;
   message: string;
@@ -1367,7 +1370,6 @@ function checkGitHooks(): DoctorCheckResult {
 
   // An existing pre-commit is hard enforcement; the companions being absent
   // must not downgrade the summary to "optional".
-  // implements REQ-cli-doctor
   // Without the hooks kibi init installs, a new branch starts with an empty
   // store (post-checkout compiles it) and commits skip kibi check --staged.
   if (!postCheckoutExists && !postMergeExists && !existsSync(preCommitPath)) {
@@ -1413,7 +1415,6 @@ function checkGitHooks(): DoctorCheckResult {
   };
 }
 
-// implements REQ-git-hook-effective-install
 function checkCustomPreCommitHook(
   content: string,
   executable: boolean,
@@ -1597,7 +1598,6 @@ function checkPostRewriteHook(): DoctorCheckResult {
     const content = readFileSync(postRewritePath, "utf-8");
 
     // A custom hook (no kibi-managed section) is never edited by init.
-    // implements REQ-git-hook-effective-install
     if (!content.includes(KIBI_HOOK_BEGIN)) {
       if (missingKibiHookCommands("post-rewrite", [content]).length > 0) {
         return {

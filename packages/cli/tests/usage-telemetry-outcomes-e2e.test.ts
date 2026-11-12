@@ -1,4 +1,3 @@
-// implements REQ-kibi-telemetry-expected-outcomes
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -122,7 +121,6 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
         "{}",
       );
       expect(malformed.exitCode).toBe(2);
-      // implements REQ-kibi-telemetry-agent-signals
       // The same entity again: a retry after a refusal.
       const retried = await runKibi(
         ["upsert", "--input", "-"],
@@ -205,7 +203,6 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
     }
   }, 240_000);
 
-  // implements REQ-kibi-telemetry-agent-signals
   test("a retry marker stays on the machine as a one-way hash, never the raw entity id", async () => {
     const workspace = gitWorkspace();
     const state = temporaryDirectory("kibi-outcome-state-");

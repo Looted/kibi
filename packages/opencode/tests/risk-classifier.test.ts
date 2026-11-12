@@ -7,8 +7,6 @@ import {
   classifyRisk,
 } from "../src/risk-classifier";
 
-// implements REQ-opencode-kibi-plugin-v1
-
 /** Helper to build params with sensible defaults. */
 function makeParams(
   overrides: Partial<ClassifyRiskParams> & Pick<ClassifyRiskParams, "pathKind">,
@@ -18,6 +16,7 @@ function makeParams(
     hasMustPriority: false,
     hasDurableComment: false,
     fileContent: "",
+    hasManifestLinks: false,
     ...overrides,
   };
 }
@@ -31,16 +30,6 @@ const CODE_WITHOUT_EXPORTS = `
 const x = 1;
 const y = x + 1;
 console.log(y);
-`;
-
-const CODE_WITH_TRACEABILITY = `
-// implements REQ-001
-export function handleLogin() { return true; }
-`;
-
-const CODE_WITH_SLUG_TRACEABILITY = `
-// implements REQ-opencode-smart-enforcement-v1
-export function handlePrompt() { return true; }
 `;
 
 const CODE_WITH_CLASS = `
@@ -209,7 +198,7 @@ describe("risk-classifier classifyRisk", () => {
       );
       assert.equal(result.riskClass, "traceability_candidate");
       assert.ok(
-        result.reasons.some((r) => r.includes("REQ-<area>-<behavior>")),
+        result.reasons.some((r) => r.includes("symbol manifest")),
         "Should mention missing traceability",
       );
     });
@@ -232,7 +221,8 @@ describe("risk-classifier classifyRisk", () => {
       const result = classifyRisk(
         makeParams({
           pathKind: "code",
-          fileContent: CODE_WITH_TRACEABILITY,
+          fileContent: CODE_WITH_EXPORTS,
+          hasManifestLinks: true,
           hasDurableComment: true,
         }),
       );
@@ -261,16 +251,10 @@ describe("risk-classifier classifyRisk", () => {
   describe("behavior_candidate", () => {
     it("classifies code with exports and traceability present", () => {
       const result = classifyRisk(
-        makeParams({ pathKind: "code", fileContent: CODE_WITH_TRACEABILITY }),
-      );
-      assert.equal(result.riskClass, "behavior_candidate");
-    });
-
-    it("accepts slug-style REQ identifiers in traceability comments", () => {
-      const result = classifyRisk(
         makeParams({
           pathKind: "code",
-          fileContent: CODE_WITH_SLUG_TRACEABILITY,
+          fileContent: CODE_WITH_EXPORTS,
+          hasManifestLinks: true,
         }),
       );
       assert.equal(result.riskClass, "behavior_candidate");
@@ -287,7 +271,8 @@ describe("risk-classifier classifyRisk", () => {
       const result = classifyRisk(
         makeParams({
           pathKind: "code",
-          fileContent: CODE_WITH_TRACEABILITY,
+          fileContent: CODE_WITH_EXPORTS,
+          hasManifestLinks: true,
           hasDurableComment: false,
         }),
       );
@@ -361,29 +346,32 @@ describe("risk-classifier classifyRisk", () => {
       );
     });
 
-    it("comment with implements REQ- is detected as traceable", () => {
-      const content = `
-// implements REQ-042
-export function myFunc() {}
-`;
+    it("an implements comment is not traceability", () => {
+      // Built from parts so this fixture is not itself a comment in the file.
+      const content = [
+        "// implements",
+        "REQ-042",
+        "\nexport function myFunc() {}",
+      ].join(" ");
       const result = classifyRisk(
         makeParams({ pathKind: "code", fileContent: content }),
       );
-      assert.equal(result.riskClass, "behavior_candidate");
+      assert.equal(result.riskClass, "traceability_candidate");
     });
 
-    it("implements REQ- in multiline comment is detected", () => {
-      const content = `
-/* implements REQ-099 */
-export function myFunc() {}
-`;
+    it("an implements block comment is not traceability", () => {
+      const content = [
+        "/* implements",
+        "REQ-099 */",
+        "\nexport function myFunc() {}",
+      ].join(" ");
       const result = classifyRisk(
         makeParams({ pathKind: "code", fileContent: content }),
       );
-      assert.equal(result.riskClass, "behavior_candidate");
+      assert.equal(result.riskClass, "traceability_candidate");
     });
 
-    it("implements req- (lowercase) is detected", () => {
+    it("a lowercase implements comment is not traceability", () => {
       const content = `
 // implements req-123
 export class MyClass {}
@@ -391,7 +379,7 @@ export class MyClass {}
       const result = classifyRisk(
         makeParams({ pathKind: "code", fileContent: content }),
       );
-      assert.equal(result.riskClass, "behavior_candidate");
+      assert.equal(result.riskClass, "traceability_candidate");
     });
 
     it("plain import statement does not trigger behavior detection", () => {
@@ -456,7 +444,8 @@ const el = document.querySelector('.my-class');
         classifyRisk(
           makeParams({
             pathKind: "code",
-            fileContent: CODE_WITH_TRACEABILITY,
+            fileContent: CODE_WITH_EXPORTS,
+            hasManifestLinks: true,
           }),
         ).riskClass,
       );

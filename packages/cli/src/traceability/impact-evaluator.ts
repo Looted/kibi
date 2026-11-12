@@ -88,7 +88,6 @@ export type ImpactEvaluation = Readonly<{
  * machine or Node version. Bump IMPACT_EVALUATOR_VERSION whenever decision
  * semantics change so reviews bound to the old evaluator become stale.
  */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function fingerprintImpactEvaluator(): Fingerprint {
   return fingerprint({
     contractVersion: "kibi.impact-evaluator-identity.v2",

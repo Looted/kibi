@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
+  CLOSED_REQUIREMENT_FACTOR,
   executeIntentSearch,
   questionPaths,
   rankIntentEntities,
@@ -129,6 +130,54 @@ describe("intent-v1 search ranking", () => {
     expect(result.analysis.ambiguous).toBe(false);
   });
 
+  test("ranks a closed requirement below an equally matching current one", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-CLOSED", "Checkout total policy", { status: " Closed " }),
+        entity("REQ-OPEN", "Checkout total policy", { status: "open" }),
+        entity("FACT-CLOSED", "Checkout total policy", {
+          type: "fact",
+          status: "closed",
+        }),
+      ],
+      { query: "checkout total policy" },
+      workspaceRoot,
+      [],
+    );
+    const byId = new Map(
+      result.matches.map((match) => [String(match.entity.id), match]),
+    );
+    const open = byId.get("REQ-OPEN");
+    const closed = byId.get("REQ-CLOSED");
+    expect(result.matches[0]?.entity.id).not.toBe("REQ-CLOSED");
+    expect(closed?.reasons).toContain("demoted: closed");
+    expect(closed?.score).toBeCloseTo(
+      (open?.score ?? 0) * CLOSED_REQUIREMENT_FACTOR,
+    );
+    // Only a requirement's status says it is done; other types keep theirs.
+    expect(byId.get("FACT-CLOSED")?.score).toBe(open?.score);
+    expect(byId.get("FACT-CLOSED")?.reasons).not.toContain("demoted: closed");
+  });
+
+  test("a closed requirement that is also superseded is demoted once, as superseded", async () => {
+    const result = await rankIntentEntities(
+      [
+        entity("REQ-OLD", "Checkout total policy", { status: "closed" }),
+        entity("REQ-NEW", "Checkout total policy", { status: "open" }),
+      ],
+      { query: "checkout total policy" },
+      workspaceRoot,
+      [{ relationship: "supersedes", from: "REQ-NEW", to: "REQ-OLD" }],
+    );
+    const old = result.matches.find((match) => match.entity.id === "REQ-OLD");
+    const current = result.matches.find(
+      (match) => match.entity.id === "REQ-NEW",
+    );
+    expect(old?.reasons).toContain("demoted: superseded");
+    expect(old?.reasons).not.toContain("demoted: closed");
+    expect(old?.score).toBeCloseTo((current?.score ?? 0) * 0.5);
+  });
+
   test("flags near-tied leading matches as ambiguous", async () => {
     const result = await rankIntentEntities(
       [
@@ -142,7 +191,6 @@ describe("intent-v1 search ranking", () => {
     expect(result.analysis.ambiguous).toBe(true);
   });
 
-  // implements REQ-search-answer-hygiene
   test("a requirement tying with its own scenario is not ambiguous; a tie with another requirement is", async () => {
     const requirement = entity("REQ-A", "Invoice retention period");
     const scenario = {
@@ -177,7 +225,6 @@ describe("intent-v1 search ranking", () => {
     expect(rival.analysis.ambiguous).toBe(true);
   });
 
-  // implements REQ-search-answer-hygiene
   test("a requirement implemented by a source-located symbol surfaces without lexical overlap", async () => {
     const symbol = {
       id: "SYM-CAN-EXPORT",

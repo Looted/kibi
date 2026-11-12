@@ -43,12 +43,15 @@ import {
   enginePublicationLockPath,
   engineSidecarPath,
   engineSocketPath,
+  engineStartDiagnostic,
+  engineStartFailureKind,
   engineStartLockPath,
   engineSwiplIdentity,
   ensureJournaledBranchStoreAsync,
   formatEngineAttachmentMismatch,
   fsyncJournaledBranchStore,
   parseEngineAttachmentIdentity,
+  parseEngineStartDiagnostic,
   readEngineAttachmentIdentity,
   readJournalGeneration,
   requestEngineSignalShutdown,
@@ -4086,18 +4089,87 @@ describe("engine client start", () => {
     expect([
       (error as Error).message,
       (error as { code?: string }).code,
+      (error as { startFailure?: string }).startFailure,
     ]).toStrictEqual([
       "Kibi engine failed to start: store_locked",
       "ENGINE_START_FAILED",
+      "store_locked",
     ]);
     mock.restore();
     onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
     fakeSpawn(() => mkdirSync(`${socketPath}.error`));
+    const unreadable = (await client(workspace)
+      .start()
+      .catch((e: unknown) => e)) as Error & { startFailure?: string };
+    expect(unreadable.message).toStartWith(
+      "Kibi engine failed to start: EISDIR",
+    );
+    expect(unreadable.startFailure).toBe("diagnostic_unreadable");
+  });
+
+  test("read the failure kind a daemon recorded with its message", async () => {
+    const workspace = tempDir();
+    const socketPath = engineSocketPath(workspace, "main");
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    fakeSpawn(() =>
+      writeFileSync(
+        `${socketPath}.error`,
+        engineStartDiagnostic(
+          Object.assign(new Error("no swipl\nInstall it"), {
+            code: "swipl_not_found",
+          }),
+        ),
+      ),
+    );
+    const error = (await client(workspace)
+      .start()
+      .catch((e: unknown) => e)) as Error & {
+      code?: string;
+      startFailure?: string;
+    };
+    expect([error.message, error.code, error.startFailure]).toStrictEqual([
+      "Kibi engine failed to start: no swipl\nInstall it",
+      "ENGINE_START_FAILED",
+      "swipl_not_found",
+    ]);
+  });
+
+  test("classify why an engine daemon failed to start", () => {
+    const kind = (error: unknown) => engineStartFailureKind(error);
     expect(
-      await client(workspace)
-        .start()
-        .catch((e: Error) => e.message),
-    ).toStartWith("Kibi engine failed to start: EISDIR");
+      kind(Object.assign(new Error("x"), { code: "SWIPL_NOT_FOUND" })),
+    ).toBe("swipl_not_found");
+    // A code that is not a plain identifier is ignored, not sent.
+    expect(kind(Object.assign(new Error("x"), { code: "a b" }))).toBe(
+      "daemon_error",
+    );
+    expect(kind(new Error("A Kibi engine is already listening at /s"))).toBe(
+      "already_listening",
+    );
+    expect(kind(new Error("attach failed: store_locked"))).toBe("store_locked");
+    expect(kind(new Error("Unreadable journal head in /store"))).toBe(
+      "journal_unreadable",
+    );
+    expect(kind(new Error("Failed to load Kibi core module"))).toBe(
+      "prolog_module_load_failed",
+    );
+    expect(kind(new Error("Failed to attach branch KB"))).toBe(
+      "branch_attach_failed",
+    );
+    expect(kind(new Error("Invalid Kibi engine branch name: ../x"))).toBe(
+      "invalid_branch",
+    );
+    expect(kind("something else")).toBe("daemon_error");
+    expect(parseEngineStartDiagnostic("store_locked")).toStrictEqual({
+      kind: "store_locked",
+      message: "store_locked",
+    });
+    expect(
+      parseEngineStartDiagnostic('{"kind":1,"message":"m"}'),
+    ).toStrictEqual({
+      kind: "daemon_error",
+      message: '{"kind":1,"message":"m"}',
+    });
   });
 
   test("keep waiting past an empty diagnostic", async () => {
@@ -4160,6 +4232,9 @@ describe("engine client start", () => {
       `Kibi engine exited (exit code 3) before it accepted connections at ${socketPath}`,
     );
     expect(error.code).toBe("ENGINE_START_FAILED");
+    expect((error as { startFailure?: string }).startFailure).toBe(
+      "daemon_exited",
+    );
     expect(children).toHaveLength(1);
     expect(elapsed).toBeGreaterThanOrEqual(1000);
     expect(elapsed).toBeLessThan(5000);

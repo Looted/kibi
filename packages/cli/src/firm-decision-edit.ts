@@ -20,7 +20,6 @@ import { effectiveFirmness, firmnessRef } from "./decision-firmness.js";
 import { requirementSemanticText } from "./extractors/markdown.js";
 
 /** A requirement or ADR as authored: front matter and Markdown body. */
-// implements REQ-kb-firm-decision-edit
 export type DecisionDocument = Readonly<{
   type: string;
   data: Readonly<Record<string, unknown>>;
@@ -28,7 +27,6 @@ export type DecisionDocument = Readonly<{
 }>;
 
 /** The parts of a decision's claim an in-place edit may change. */
-// implements REQ-kb-firm-decision-edit
 export type DecisionClaimField = "title" | "statement" | "body" | "firmness";
 
 function normalized(value: unknown): string {
@@ -52,7 +50,6 @@ function requirementStatement(document: DecisionDocument): string {
  * body derives (context sections may change freely); an ADR's claim is its
  * title and whole body. Lowering a firm decision's firmness changes it too.
  */
-// implements REQ-kb-firm-decision-edit
 export function decisionClaimChanges(
   before: DecisionDocument,
   after: DecisionDocument,
@@ -85,7 +82,6 @@ export function decisionClaimChanges(
  * gave for this change. Kibi checks that a new reference is present, not that
  * it is genuine.
  */
-// implements REQ-kb-firm-decision-edit
 export function citesNewHumanWords(
   before: DecisionDocument,
   after: DecisionDocument,
@@ -102,7 +98,6 @@ export function citesNewHumanWords(
  * human words; empty when the edit is allowed. Only a decision that is firm
  * before the edit is guarded.
  */
-// implements REQ-kb-firm-decision-edit
 export function unapprovedFirmEdit(
   before: DecisionDocument,
   after: DecisionDocument,
@@ -117,7 +112,6 @@ export function unapprovedFirmEdit(
 }
 
 /** What to do instead of editing a firm decision in place. */
-// implements REQ-kb-firm-decision-edit
 export function firmEditGuidance(type: string): string {
   return `Ask the person who stated it. If they agree, either write the change with ${type === "req" ? "origin.ref or approval_ref" : "origin.ref"} pointing at their words, or supersede it with a new firmness: firm decision that cites them; otherwise leave it and propose the change`;
 }

@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { createPublicKey, verify } from "node:crypto";
 
 export function rethrowIfNotError(error: unknown): void {

@@ -34,7 +34,6 @@ export function hasNormativeAssertion(text: string): boolean {
 
 const NORMATIVE_MODALITIES = new Set(["oblige", "forbid", "permit"]);
 
-// implements REQ-kibi-truthful-consistency
 // Role for a clause that was just modeled. A deontic rule modality is decisive;
 // otherwise the same assertion pattern the semantic advisor uses decides, so a
 // modeled inventory entry never disagrees with the advisor's own analysis.
@@ -77,7 +76,6 @@ const NON_GROUNDING_FACT_KINDS = new Set(["observation", "meta"]);
  * against the derived one by the entity validators. Observation and meta
  * facts quote a claim without owning it, so they stay keyless.
  */
-// implements REQ-kibi-review-observation-claim-text-v2
 export function deriveFactClaimKey(entity: Record<string, unknown>): void {
   if (entity.type !== "fact") return;
   if (entity.claim_key !== undefined) return;

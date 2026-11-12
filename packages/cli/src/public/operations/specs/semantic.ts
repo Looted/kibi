@@ -41,7 +41,6 @@ function optionalString(value: unknown): string | undefined {
  * A store that cannot be read is not an analysis failure, so the warning is
  * simply absent then.
  */
-// implements REQ-kibi-proposition-complete-ingestion
 async function storedLedgerWarning(
   args: SemanticAdvisorArgs,
   text: string,

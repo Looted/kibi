@@ -9,8 +9,6 @@ import { BUILTIN_SUBJECT_REUSE_THRESHOLD } from "../../../../plugin-builtin/src/
 import { JEV_SUBJECT_TOP_K } from "../../../../plugin-jev/src/vocabulary-alignment.js";
 import { NEW_SUBJECT_CHOICE } from "../../../../plugin-sdk/src/capabilities/vocabulary-alignment.js";
 
-// implements REQ-kibi-vocabulary-alignment-limits
-
 /**
  * When the built-in aligner reuses an existing key, how many candidates the Jev aligner ranks, and the choice that asks for a new key. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

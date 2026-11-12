@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity, REQ-002
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as impact from "../../src/public/impact-diagnostics.js";
 import { executeCheck } from "../../src/public/operations/check-executor.js";

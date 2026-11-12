@@ -1,5 +1,3 @@
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
-
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 
@@ -47,7 +45,6 @@ function serializeKey(key: CacheKey): string {
  * v1: in-memory only, no disk persistence.
  */
 export class GuidanceCache {
-  // implements REQ-opencode-kibi-plugin-v1
   private entries = new Map<string, CacheEntry>();
   private ttlMs: number;
   private idleResetMs: number;
@@ -175,13 +172,11 @@ export function getGuidanceCache(
   ttlMs?: number,
   idleResetMs?: number,
 ): GuidanceCache {
-  // implements REQ-opencode-kibi-plugin-v1
   if (ttlMs !== undefined) globalCache.setTtlMs(ttlMs);
   if (idleResetMs !== undefined) globalCache.setIdleResetMs(idleResetMs);
   return globalCache;
 }
 
 export function resetGuidanceCache(ttlMs?: number, idleResetMs?: number): void {
-  // implements REQ-opencode-kibi-plugin-v1
   globalCache = new GuidanceCache(ttlMs, idleResetMs);
 }

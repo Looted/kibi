@@ -17,8 +17,6 @@ import {
   type ClaimBindingVerdict,
 } from "../../src/public/proof-receipt.js";
 
-// implements REQ-kibi-claim-bound-proofs
-
 const CLAIM = "CLAIM-0000000000000C01";
 const MEMBERS = ["blue", "green", "red"];
 

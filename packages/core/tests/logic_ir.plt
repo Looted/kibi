@@ -104,7 +104,6 @@ test(accepts_positive_stored_style_rules_without_generating_arities) :-
     Rule = rule(rule, assert, Head, Body, [], scope('', '', []), '', '', '', []),
     once(logic_rules_stratified([Rule])).
 
-% implements REQ-kibi-truthful-consistency
 checkout_head(atom(default, checkout, [var('C', cart)], positive, false)).
 cart_total(Name, atom(cart, total, [var('C', cart), var(Name, money)], positive, false)).
 checkout_variables(Name, [variable('C', cart, forall), variable(Name, money, forall)]).
@@ -139,7 +138,6 @@ test(conflict_witness_uses_the_given_functional_declarations) :-
     logic_rule_conflict_witness(Rule, Large, [functional(cart, total, 2, [1])], Witness),
     Witness.status == disjoint.
 
-% implements REQ-kibi-scenario-feasibility-v2
 test(property_form_reads_rule_conditions_as_property_constraints) :-
     forbid_unless_positive(Rule),
     logic_rule_property_form(Rule, property_form(forbid, Head, '', '', '', [cart-total], [cond(cart-total, lte, number(0, none), money)])),

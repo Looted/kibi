@@ -111,7 +111,6 @@ export const ENGINE_PROLOG_EXIT_GRACE_MS = 1000;
  * own in the handshake; a daemon with other versions is replaced, never
  * reused.
  */
-// implements REQ-engine-daemon-package-versions
 export function enginePackageVersions(): string {
   return kibiPackageVersions();
 }
@@ -124,7 +123,6 @@ export const ENGINE_PACKAGE_VERSIONS = kibiPackageVersions();
  * The daemon and every client compare it; a daemon running a different
  * resolved Prolog is replaced, never reused.
  */
-// implements REQ-prolog-daemon-runtime-identity
 export function engineSwiplIdentity(): string {
   return swiplIdentity(resolveSwipl());
 }
@@ -144,7 +142,6 @@ export function requestEngineSignalShutdown(
 }
 
 export function readJournalGeneration(branchPath: string): string {
-  // implements REQ-core-journaled-engine-persistence
   const currentPath = path.join(branchPath, "CURRENT");
   if (!existsSync(currentPath)) return "";
   return readFileSync(currentPath, "utf8").trim();
@@ -153,7 +150,6 @@ export function readJournalGeneration(branchPath: string): string {
 export function readEngineAttachmentIdentity(
   branchPath: string,
 ): EngineAttachmentIdentity | null {
-  // implements REQ-core-journaled-engine-persistence
   if (!existsSync(branchPath)) return null;
   const stats = statSync(branchPath);
   let resolved = path.resolve(branchPath);
@@ -173,7 +169,6 @@ export function readEngineAttachmentIdentity(
 export function parseEngineAttachmentIdentity(
   statusJson: string | undefined,
 ): EngineAttachmentIdentity | null {
-  // implements REQ-core-journaled-engine-persistence
   try {
     // A missing status (undefined) fails to parse like any other.
     const decoded = JSON.parse(JSON.parse(statusJson as string)) as Record<
@@ -203,7 +198,6 @@ export function engineAttachmentsMatch(
   expected: EngineAttachmentIdentity | null,
   attached: EngineAttachmentIdentity | null,
 ): boolean {
-  // implements REQ-core-journaled-engine-persistence
   if (expected === null || attached === null) return false;
   if (expected.path !== attached.path) return false;
   if (expected.ino !== 0 && attached.ino !== 0) {
@@ -220,7 +214,6 @@ export function formatEngineAttachmentMismatch(
   expected: EngineAttachmentIdentity | null,
   attached: EngineAttachmentIdentity | null,
 ): string {
-  // implements REQ-core-journaled-engine-persistence
   return [
     `operation=${operation}`,
     `branchStore=${expected?.path ?? "missing"}`,
@@ -520,7 +513,15 @@ function fsyncJournalTree(
   platform: NodeJS.Platform,
 ): string[] {
   const directories: string[] = [];
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+  // readdir order depends on the filesystem; sort it so the barrier syncs
+  // in the same order everywhere: a directory's files, then its
+  // subdirectories, each by name.
+  const entries = readdirSync(directory, { withFileTypes: true }).sort(
+    (left, right) =>
+      Number(left.isDirectory()) - Number(right.isDirectory()) ||
+      (left.name < right.name ? -1 : left.name > right.name ? 1 : 0),
+  );
+  for (const entry of entries) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory())
       directories.push(...fsyncJournalTree(entryPath, platform));
@@ -538,7 +539,6 @@ function fsyncJournalTree(
  * stream; fsyncing the journal and atomic CURRENT pointer makes that flush
  * survive a host crash as well as a process crash.
  */
-// implements REQ-core-journaled-engine-persistence
 export function fsyncJournaledBranchStore(
   branchPath: string,
   platform: NodeJS.Platform = process.platform,
@@ -558,7 +558,6 @@ export function fsyncJournaledBranchStore(
   }
 }
 
-// implements REQ-core-journaled-engine-persistence
 export function engineSocketPath(
   workspaceRoot: string,
   branch: string,
@@ -583,7 +582,6 @@ const WINDOWS_PIPE_PREFIX = "\\\\.\\pipe\\";
  * A Windows named pipe lives in the pipe namespace, where no file can be
  * written, so its files go to the runtime directory under the pipe's name.
  */
-// implements REQ-core-journaled-engine-persistence
 export function engineSidecarPath(socketPath: string, suffix: string): string {
   if (socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
     return path.join(
@@ -770,7 +768,6 @@ function releaseStartLock(lockPath: string, descriptor: number): void {
   }
 }
 
-// implements REQ-core-journaled-engine-persistence
 function recoverStaleJournalLock(branchPath: string): void {
   const lockPath = path.join(branchPath, "rdf", "lock");
   // A missing lock reads as no pid.
@@ -878,6 +875,57 @@ function connectSocket(
  */
 const DAEMON_EXIT_GRACE_MS = 1000;
 
+/**
+ * Why an engine daemon failed to start, as a fixed category for telemetry:
+ * the error's own code when it has one (for example `swipl_not_found`),
+ * else a category read from the known daemon failures, else
+ * `daemon_error`. Never the message itself.
+ */
+export function engineStartFailureKind(error: unknown): string {
+  const code = (error as { code?: unknown } | null | undefined)?.code;
+  if (typeof code === "string" && /^[A-Za-z0-9_]{1,60}$/.test(code)) {
+    return code.toLowerCase();
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (/already listening/i.test(message)) return "already_listening";
+  if (/store_locked/i.test(message)) return "store_locked";
+  if (/journal/i.test(message)) return "journal_unreadable";
+  if (/failed to load kibi .*module|module load failed/i.test(message)) {
+    return "prolog_module_load_failed";
+  }
+  if (/failed to attach branch kb/i.test(message))
+    return "branch_attach_failed";
+  if (/invalid kibi engine branch name/i.test(message)) return "invalid_branch";
+  return "daemon_error";
+}
+
+/**
+ * The diagnostic a daemon that failed to start leaves for its client: one
+ * JSON line with the fixed failure kind and the message.
+ */
+export function engineStartDiagnostic(error: unknown): string {
+  return `${JSON.stringify({
+    kind: engineStartFailureKind(error),
+    message: error instanceof Error ? error.message : String(error),
+  })}\n`;
+}
+
+/** Reads a daemon diagnostic; plain text (an older daemon) has no kind. */
+export function parseEngineStartDiagnostic(text: string): {
+  kind: string;
+  message: string;
+} {
+  try {
+    const parsed = JSON.parse(text) as { kind?: unknown; message?: unknown };
+    if (typeof parsed.kind === "string" && typeof parsed.message === "string") {
+      return { kind: parsed.kind, message: parsed.message };
+    }
+  } catch {
+    // Not JSON: the whole text is the message.
+  }
+  return { kind: engineStartFailureKind(new Error(text)), message: text };
+}
+
 async function connectWithRetry(
   socketPath: string,
   timeoutMs: number,
@@ -890,15 +938,20 @@ async function connectWithRetry(
   while (Date.now() < deadline) {
     const errorPath = engineSidecarPath(socketPath, ".error");
     if (existsSync(errorPath)) {
+      let failure: { kind: string; message: string } | null;
       try {
         const diagnostic = readFileSync(errorPath, "utf8").trim();
-        if (diagnostic) throw new Error(diagnostic);
+        failure = diagnostic ? parseEngineStartDiagnostic(diagnostic) : null;
       } catch (error) {
+        failure = {
+          kind: "diagnostic_unreadable",
+          message: error instanceof Error ? error.message : String(error),
+        };
+      }
+      if (failure !== null) {
         throw Object.assign(
-          new Error(
-            `Kibi engine failed to start: ${error instanceof Error ? error.message : String(error)}`,
-          ),
-          { code: "ENGINE_START_FAILED" },
+          new Error(`Kibi engine failed to start: ${failure.message}`),
+          { code: "ENGINE_START_FAILED", startFailure: failure.kind },
         );
       }
     }
@@ -912,7 +965,7 @@ async function connectWithRetry(
           new Error(
             `Kibi engine exited (${exit}) before it accepted connections at ${socketPath}`,
           ),
-          { code: "ENGINE_START_FAILED" },
+          { code: "ENGINE_START_FAILED", startFailure: "daemon_exited" },
         );
       }
     }
@@ -975,7 +1028,6 @@ function entityPage(
 }
 
 /** PrologPort-compatible client used by CLI and MCP operation runtimes. */
-// implements REQ-core-journaled-engine-persistence
 export class EngineClient {
   private readonly workspaceRoot: string;
   private readonly branch: string;
@@ -1423,7 +1475,6 @@ export class EngineClient {
    * The identity a live daemon reports, without starting one; null when no
    * daemon serves this workspace and branch. The connection is closed again.
    */
-  // implements REQ-engine-daemon-package-versions
   async inspectLiveDaemon(): Promise<EngineDaemonIdentity | null> {
     const wasConnected = this.isRunning();
     await this.connect(false);
@@ -1454,7 +1505,6 @@ export class EngineClient {
    * by another install, for example one a git hook started), the daemon is
    * stopped and replaced; it is never reused.
    */
-  // implements REQ-prolog-daemon-runtime-identity, REQ-engine-daemon-package-versions
   // start() runs both checks only on a fresh connection; the requests made
   // while replacing a daemon find it connected and run neither again.
   private async reconcileRuntime(): Promise<void> {
@@ -1565,7 +1615,6 @@ export class EngineClient {
   }
 }
 
-// implements REQ-core-journaled-engine-persistence
 export async function ensureJournaledBranchStoreAsync(
   branchPath: string,
 ): Promise<void> {
@@ -1806,7 +1855,6 @@ const USE_MODULE_GOAL = /^use_module\('(?:[^']|'')*'\)$/u;
  * modules) instead of letting the port degrade into isolated one-shot
  * processes that have lost the attachment and module state.
  */
-// implements REQ-core-journaled-engine-persistence
 export class EngineSession {
   private readonly modules: { goal: string; label: string }[] = [];
 
@@ -1892,7 +1940,6 @@ export class EngineSession {
   }
 }
 
-// implements REQ-core-journaled-engine-persistence
 export async function runEngineDaemon(requestedOptions: {
   readonly workspaceRoot: string;
   readonly branch: string;
@@ -1993,7 +2040,6 @@ export async function runEngineDaemon(requestedOptions: {
     { mode: 0o600 },
   );
   const server = net.createServer();
-  // implements REQ-core-journaled-engine-persistence
   // Idle exit compares wall-clock time: a one-shot timer does not advance
   // while the host (a VM, a laptop) is suspended, so a daemon would outlive
   // its idle budget by the whole suspension.
@@ -2526,7 +2572,6 @@ export async function runEngineDaemon(requestedOptions: {
         // Shutdown remains best effort. Request-time writes fail closed if
         // their durability barrier cannot complete.
       }
-      // implements REQ-core-journaled-engine-persistence
       // Release the store the way the one-shot path does: kb_detach removes
       // rdf/lock and the ownership journal. A SIGTERM'd SWI process never
       // runs its at_halt cleanup, so skipping this left a dead lock behind
@@ -2564,7 +2609,6 @@ export async function runEngineDaemon(requestedOptions: {
 
   // Detached engines must cross the same durability boundary when a service
   // manager or a test harness terminates them as they do for an RPC stop.
-  // implements REQ-test-journaled-engine-harness
   const requestSignalShutdown = requestEngineSignalShutdown(shutdown);
   process.once("SIGTERM", requestSignalShutdown);
   process.once("SIGINT", requestSignalShutdown);

@@ -4,7 +4,6 @@ import {
   normalizePredicateToken,
 } from "./predicate-rule.js";
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export const POLICY_PREDICATE_RULES = [
   {
     pattern:
