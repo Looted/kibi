@@ -520,9 +520,13 @@ function fsyncJournalTree(
   platform: NodeJS.Platform,
 ): string[] {
   const directories: string[] = [];
-  // Sorted, so the order does not depend on the filesystem's listing order.
+  // readdir order depends on the filesystem; sort it so the barrier syncs
+  // in the same order everywhere: a directory's files, then its
+  // subdirectories, each by name.
   const entries = readdirSync(directory, { withFileTypes: true }).sort(
-    (left, right) => (left.name < right.name ? -1 : 1),
+    (left, right) =>
+      Number(left.isDirectory()) - Number(right.isDirectory()) ||
+      (left.name < right.name ? -1 : left.name > right.name ? 1 : 0),
   );
   for (const entry of entries) {
     const entryPath = path.join(directory, entry.name);
