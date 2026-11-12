@@ -1,5 +1,13 @@
 # kibi-plugin-ui
 
+## 0.1.3
+
+### Patch Changes
+
+- 8b37f2d: Remove the `// implements REQ-...` comments from the plugin sources. Kibi no longer reads them; behavior is unchanged.
+- Updated dependencies [0087d57]
+  - kibi-plugin-sdk@0.7.2
+
 ## 0.1.2
 
 ### Patch Changes

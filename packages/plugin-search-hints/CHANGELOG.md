@@ -1,5 +1,11 @@
 # kibi-plugin-search-hints
 
+## 0.1.3
+
+### Patch Changes
+
+- 8b37f2d: Remove the `// implements REQ-...` comments from the plugin sources. Kibi no longer reads them; behavior is unchanged.
+
 ## 0.1.2
 
 ### Patch Changes

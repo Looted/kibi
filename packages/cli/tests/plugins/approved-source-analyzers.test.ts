@@ -20,7 +20,7 @@ describe("approved source analyzers", () => {
       "kibi-plugin-treesitter",
     ]);
     const [analyzer] = APPROVED_SOURCE_ANALYZERS;
-    expect(analyzer.version).toBe("3.1.0");
+    expect(analyzer.version).toBe("3.2.0");
     expect(Object.keys(analyzer.files)).toStrictEqual([
       "SBOM.spdx.json",
       "THIRD_PARTY_NOTICES.md",
