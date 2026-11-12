@@ -57,6 +57,7 @@ required_evidence: tested
 rationale: Shared links to the site render as a large preview that shows what Kibi is, and a move to a custom domain stays a one-constant change.
 origin:
   kind: agent
+  approved_by: maintainer
   recorded_at: '2026-11-12T18:27:09.099Z'
 id: REQ-docs-site-link-preview
 type: req
