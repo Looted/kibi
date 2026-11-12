@@ -21,6 +21,8 @@ import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapsho
 import {
   environmentHash as canonicalEnvironmentHash,
   effectiveProofFingerprint,
+  fingerprintDrift,
+  type ProofFingerprintComponents,
   jsonDigest,
   proofContractHash,
 } from "../../public/proof-fingerprint.js";
@@ -38,6 +40,7 @@ import {
   MAX_PROOF_RECEIPTS,
   type ClaimBinding,
   type ProofReceipt,
+  validFingerprintComponents,
   proofReceiptCurrentBindingErrors,
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
@@ -59,6 +62,7 @@ import { patchReceiptsIntoDocument } from "./receipt-document.js";
 import { judgeClaimBindings, receiptEvidenceLevel } from "./claim-bindings.js";
 import { checkCodeCertificate } from "./code-certificates.js";
 
+// implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
   snapshot: string;
   artifact: Readonly<Record<string, unknown>>;
@@ -85,8 +89,11 @@ export type IngestProofTestResult = Readonly<{
   certificateRejection?: string;
   /** The receipt's verification scope (unit, integration or end_to_end). */
   scope?: string;
+  /** Fingerprint components that changed since the test's previous receipt. */
+  fingerprintDrift?: readonly string[];
 }>;
 
+// implements REQ-kibi-verification-evidence-contract
 export type IngestProofResult = Readonly<{
   artifactDigest: string;
   environmentHash: string;
@@ -162,7 +169,7 @@ function requiredString(value: unknown, label: string): string {
   return result;
 }
 
-function parseContract(test: Record<string, unknown>): ProofContract {
+export function parseContract(test: Record<string, unknown>): ProofContract {
   const contract = record(test.proof_contract);
   const candidate: Record<string, unknown> = contract ?? {};
   const { version, integration, required_proofs, success_policy } =
@@ -189,7 +196,7 @@ function parseContract(test: Record<string, unknown>): ProofContract {
   return normalized;
 }
 
-function parseBindings(test: Record<string, unknown>): ProofBinding[] {
+export function parseBindings(test: Record<string, unknown>): ProofBinding[] {
   const raw = test.proof_bindings;
   if (raw === undefined || raw === null) return [];
   if (!Array.isArray(raw))
@@ -227,7 +234,7 @@ function ownsNativeId(binding: ProofBinding, nativeId: string): boolean {
   return binding.native_id === nativeId || binding.aliases?.includes(nativeId) === true;
 }
 
-export function enforceNativeCaseBindings(
+function enforceNativeCaseBindings(
   testId: string,
   contract: ProofContract,
   bindings: readonly ProofBinding[],
@@ -287,6 +294,17 @@ export function enforceNativeCaseBindings(
   }
 }
 
+/** The components that differ between the newest earlier receipt and now. */
+function previousFingerprintDrift(
+  existing: readonly Record<string, unknown>[],
+  components: ProofFingerprintComponents,
+): readonly string[] {
+  const previous = existing.at(-1)?.fingerprint_components;
+  return validFingerprintComponents(previous)
+    ? fingerprintDrift(previous, components)
+    : [];
+}
+
 function existingReceipts(
   test: Record<string, unknown>,
 ): Record<string, unknown>[] {
@@ -295,6 +313,7 @@ function existingReceipts(
     : [];
 }
 
+// implements REQ-kibi-verification-evidence-contract
 async function executeIngestProofUnlocked(
   args: IngestProofArgs,
   context: OperationContext,
@@ -393,6 +412,8 @@ async function executeIngestProofUnlocked(
     evaluation: ReturnType<typeof evaluateContractAgainstRun>;
     receipt: ProofReceipt;
     existing: Record<string, unknown>[];
+    components: ProofFingerprintComponents;
+    drift: readonly string[];
   };
   // Loaded outside the per-test binding try/catch: an engine failure must fail
   // the ingest, not silently write receipts without a binding hash.
@@ -489,17 +510,21 @@ async function executeIngestProofUnlocked(
       evidence_level: receiptEvidenceLevel(verdict.evidence_level, claimBindings),
       ...(claimBindings !== undefined ? { claim_bindings: claimBindings } : {}),
     };
+    const existing = existingReceipts(test);
     prepared.push({
       testId,
       test,
       contract,
       evaluation,
       receipt,
-      existing: existingReceipts(test),
+      existing,
+      components,
+      drift: previousFingerprintDrift(existing, components),
     });
   }
 
   const results: IngestProofTestResult[] = [];
+  // implements REQ-kibi-code-proof-kinds
   // What each receipt says about its proof kind, evidence level, certificate
   // and claim bindings, so the caller sees a rejected certificate at ingest.
   const bindingsOf = new Map(
@@ -519,6 +544,7 @@ async function executeIngestProofUnlocked(
           ? { certificateRejection: entry.receipt.certificate_rejection }
           : {}),
         scope: entry.receipt.scope,
+        ...(entry.drift.length > 0 ? { fingerprintDrift: entry.drift } : {}),
       },
     ]),
   );
@@ -564,6 +590,7 @@ async function executeIngestProofUnlocked(
       receipt as unknown as Record<string, unknown>,
       contract,
       receipt.fingerprint,
+      entry.components,
     );
     const receiptErrors = [...historyErrors, ...bindingErrors];
     if (receiptErrors.length > 0)
@@ -725,6 +752,7 @@ async function executeIngestProofUnlocked(
   };
 }
 
+// implements REQ-kibi-verification-evidence-contract
 export async function executeIngestProof(
   args: IngestProofArgs,
   context: OperationContext,

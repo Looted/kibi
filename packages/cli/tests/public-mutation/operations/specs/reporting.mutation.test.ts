@@ -281,6 +281,43 @@ describe("perContractTestBindings", () => {
     expect(await perContractTestBindings(noFs)).toBeNull();
   });
 
+  test("carries each test's current fingerprint components under the reserved key", async () => {
+    Reflect.deleteProperty(process.env, "KIBI_PROOF_BINDING_MODE");
+    const doc = "---\nid: T-1\nproof_contract: {}\n---\nBody.\n";
+    const fingerprintContract = {
+      version: "kibi.proof-contract.v1",
+      integration: "bun",
+      required_proofs: [{ symbol_id: "SYM-a", target: "default" }],
+      success_policy: "all_required_first_attempt",
+    };
+    const integrations = JSON.stringify({
+      version: "kibi.proof-integration.v1",
+      integrations: [{ id: "bun", producer: "bun", command: ["bun", "test"] }],
+    });
+    const rows: [string, Record<string, unknown>][] = [
+      ["T-1", { source: "tests/T-1.md", proof_contract: fingerprintContract }],
+      ["T-2", { source: "tests/T-1.md", proof_contract: contract }],
+    ];
+    const { ctx } = setup(rows, {
+      "tests/T-1.md": doc,
+      ".kb/proof/integrations.json": integrations,
+    });
+    const value = await perContractTestBindings(ctx);
+    const hex = "'[0-9a-f]{64}'";
+    const components = ["contract", "integration", "command", "bindings", "producer"]
+      .map((name) => `${name}: ${hex}`)
+      .join(", ");
+    expect(value).toMatch(
+      new RegExp(
+        `^_\\{'T-1': ${hex}, 'T-2': ${hex}, '\\$fingerprint_components': _\\{'T-1': _\\{${components}\\}, 'T-2': _\\{${components}\\}\\}\\}$`,
+      ),
+    );
+    const { ctx: unconfigured } = setup(rows, { "tests/T-1.md": doc });
+    expect(await perContractTestBindings(unconfigured)).toMatch(
+      /^_\{'T-1': '[0-9a-f]{64}', 'T-2': '[0-9a-f]{64}'\}$/,
+    );
+  });
+
   test("skips a test whose id is not text", async () => {
     Reflect.deleteProperty(process.env, "KIBI_PROOF_BINDING_MODE");
     const doc = "---\nid: T-1\nproof_contract: {}\n---\nBody.\n";

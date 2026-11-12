@@ -1,3 +1,4 @@
+// implements REQ-kibi-telemetry-acceptance-gate-v2
 export type TelemetryMetricStatus =
   | "passed"
   | "failed"
@@ -43,6 +44,10 @@ export interface TelemetryUsageEvent {
     readonly requirementId: string;
     readonly testIds: readonly string[];
     readonly codes: readonly string[];
+    readonly fingerprintDrift?: readonly Readonly<{
+      readonly testId: string;
+      readonly components: readonly string[];
+    }>[];
   }>[];
   readonly coverage_receipt_gap_total?: number;
   readonly coverage_receipt_gaps_truncated?: boolean;

@@ -1450,9 +1450,24 @@ container digest, lockfile digest, database image, device, deployment).
 Kibi canonicalizes the object and derives `environment_hash` itself.
 
 Each receipt stores the effective **execution fingerprint** and its
-components (contract, integration, command, bindings, producer). Diagnostics
-can therefore name exactly which execution semantic drifted, e.g.
-`command_argv`.
+components (contract, integration, command, bindings, producer). A receipt
+whose components differ from the test's current execution is stale, and the
+drifted components are named:
+
+- `kibi prove` prints `execution fingerprint changed since its previous
+  receipt (integration, command)` for each re-proven test, and the JSON summary
+  carries `fingerprintDrift` on that test's row.
+- `kibi coverage` and `kb_coverage` list the same names as `fingerprintDrift`
+  on the test's `receiptEvidence` row, beside the `stale_proof_receipt` gap.
+- `kibi proof explain` prints `fingerprint drift for TEST-x: integration,
+  command` and names the tests in the stale gap's reason.
+
+A test whose contract, bindings or integration cannot be resolved is not
+checked for drift; other rules report those. With
+`KIBI_PROOF_BINDING_MODE=strict-snapshot` only `kibi prove` names the drift,
+because every tracked change already stales a receipt by snapshot there.
+After upgrading, a receipt recorded before an integration edit reports
+`stale_proof_receipt`; run `kibi prove --stale` to refresh it.
 
 ## Receipt freshness scope
 

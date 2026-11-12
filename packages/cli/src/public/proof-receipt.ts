@@ -1,6 +1,7 @@
 import {
   type ProofFingerprintComponents,
   canonicalJson,
+  fingerprintDrift,
   proofContractHash,
 } from "./proof-fingerprint.js";
 import {
@@ -21,12 +22,14 @@ export const PROOF_RECEIPT_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
  * (Kibi checked it against the claim's fact; the only verdict that proves),
  * attested (the fact has no derivation; the author vouches) or rejected.
  */
+// implements REQ-kibi-claim-bound-proofs
 export const CLAIM_BINDING_VERDICTS = [
   "derived",
   "attested",
   "rejected",
 ] as const;
 
+// implements REQ-kibi-claim-bound-proofs
 export type ClaimBindingVerdict = (typeof CLAIM_BINDING_VERDICTS)[number];
 
 export const PROOF_RECEIPT_OUTCOMES = [
@@ -260,6 +263,7 @@ export type ProofReceipt = Readonly<{
 }>;
 
 /** How one certificate binds to one requirement claim, judged at ingest. */
+// implements REQ-kibi-claim-bound-proofs
 export type ClaimBinding = Readonly<{
   claim_key: string;
   requirement_id?: string;
@@ -342,7 +346,10 @@ function validReceiptProofResult(value: unknown): boolean {
   );
 }
 
-function validFingerprintComponents(value: unknown): boolean {
+/** Narrows a stored value to the five fingerprint component hashes. */
+export function validFingerprintComponents(
+  value: unknown,
+): value is ProofFingerprintComponents {
   const row = isRecord(value) ? value : null;
   if (!row) return false;
   return (
@@ -427,6 +434,7 @@ export function validProofReceiptShape(
   return !finishedAtPrecedesStartedAt(startedAt, finishedAt);
 }
 
+// implements REQ-kibi-code-proof-kinds
 function validV2Fields(row: Record<string, unknown>): boolean {
   if (!(PROOF_KINDS as readonly unknown[]).includes(row.kind)) return false;
   if (row.evidence_level !== "proved" && row.evidence_level !== "tested")
@@ -456,6 +464,7 @@ function validV2Fields(row: Record<string, unknown>): boolean {
   return true;
 }
 
+// implements REQ-kibi-claim-bound-proofs
 function validClaimBindings(value: unknown): boolean {
   return (
     Array.isArray(value) &&
@@ -532,6 +541,7 @@ export function proofReceiptCurrentBindingErrors(
   receipt: Readonly<Record<string, unknown>>,
   contract?: ProofContract,
   fingerprint?: string,
+  components?: ProofFingerprintComponents,
 ): readonly string[] {
   const errors: string[] = [];
   if (receipt.test_id !== testId) {
@@ -558,8 +568,15 @@ export function proofReceiptCurrentBindingErrors(
       typeof receipt.fingerprint === "string" &&
       receipt.fingerprint !== fingerprint
     ) {
+      const drift =
+        components !== undefined &&
+        validFingerprintComponents(receipt.fingerprint_components)
+          ? fingerprintDrift(receipt.fingerprint_components, components)
+          : [];
       errors.push(
-        "proof receipt fingerprint does not match the current effective execution fingerprint",
+        `proof receipt fingerprint does not match the current effective execution fingerprint${
+          drift.length > 0 ? ` (changed: ${drift.join(", ")})` : ""
+        }`,
       );
     }
   }
