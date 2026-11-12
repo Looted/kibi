@@ -39578,3 +39578,68 @@ symbols:
         target: TEST-proof-step-order
       - type: implements
         target: REQ-proof-step-order
+  - id: SYM-docs-site-theme-linkPreviewMeta
+    title: linkPreviewMeta
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:29:58.627Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-link-preview
+  - id: SYM-docs-site-catalog-OG_IMAGE
+    title: OG_IMAGE
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:30:01.434Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-link-preview
+  - id: SYM-docs-site-catalog-publishedOgImageHref
+    title: publishedOgImageHref
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:30:03.755Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-link-preview
+  - id: SYM-docs-site-catalog-publishedLandingHref
+    title: publishedLandingHref
+    status: active
+    sourceFile: docs-site/catalog.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:30:06.045Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-link-preview
+  - id: SYM-docs-site-build-copyLinkPreviewImage
+    title: copyLinkPreviewImage
+    status: active
+    sourceFile: docs-site/build.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:33:33.061Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-link-preview
