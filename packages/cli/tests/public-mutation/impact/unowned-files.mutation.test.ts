@@ -182,6 +182,30 @@ describe("createUnownedFileDiagnostics", () => {
     ]);
   });
 
+  test("names closed requirements last and leaves out those a current one supersedes", () => {
+    const root = workspace({
+      ".kb/requirements/REQ-a.md":
+        "---\nid: REQ-a\ntitle: Upload upload upload\nstatus: closed\n---\n",
+      ".kb/requirements/REQ-b.md":
+        "---\nid: REQ-b\ntitle: Upload retries\nstatus:  Closed \n---\n",
+      ".kb/requirements/REQ-c.md":
+        "---\nid: REQ-c\ntitle: Upload\nstatus: open\nlinks:\n  - type: supersedes\n    target: REQ-b\n---\n",
+      ".kb/requirements/REQ-d.md":
+        "---\nid: REQ-d\ntitle: Payments\nstatus: open\n---\n",
+    });
+    const [diagnostic] = createUnownedFileDiagnostics({
+      workspaceRoot: root,
+      requestedFiles: ["src/upload.ts"],
+      linkedSourceFiles: new Set(),
+    });
+    expect(diagnostic?.evidence).toStrictEqual({
+      candidates: [
+        { id: "REQ-c", title: "Upload" },
+        { id: "REQ-a", title: "Upload upload upload" },
+      ],
+    });
+  });
+
   test("reads trimmed, unquoted frontmatter values", () => {
     const root = workspace({
       ".kb/requirements/REQ-a.md":

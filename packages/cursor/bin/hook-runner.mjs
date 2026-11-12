@@ -60,165 +60,12 @@ import fs4 from "node:fs";
 import path4 from "node:path";
 
 // ../agent-core/dist/requirement-candidates.js
-import path2 from "node:path";
-var REQUIREMENTS_DIR = path2.join(".kb", "requirements");
-var LAYOUT_WORDS = stems([
-  "src",
-  "app",
-  "apps",
-  "lib",
-  "libs",
-  "source",
-  "page",
-  "component",
-  "view",
-  "screen",
-  "package",
-  "main",
-  "index",
-  "shared",
-  "common",
-  "core",
-  "util",
-  "helper",
-  "public",
-  "static",
-  "asset",
-  "web",
-  "client",
-  "server",
-  "frontend",
-  "backend",
-  "module",
-  "feature",
-  "internal",
-  "service",
-  "test",
-  "spec",
-  "dist",
-  "build",
-  "html",
-  "htm",
-  "tsx",
-  "jsx",
-  "mjs",
-  "cjs",
-  "vue",
-  "svelte",
-  "css",
-  "scss",
-  "less",
-  "json",
-  "yaml",
-  "yml",
-  "java",
-  "swift",
-  "php"
-]);
-var FILLER_WORDS = stems([
-  "the",
-  "and",
-  "for",
-  "with",
-  "must",
-  "should",
-  "shall",
-  "may",
-  "can",
-  "are",
-  "its",
-  "their",
-  "that",
-  "this",
-  "from",
-  "into",
-  "when",
-  "each",
-  "every",
-  "all",
-  "not",
-  "req",
-  "auto"
-]);
-function words(text) {
-  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().match(/[a-z0-9]+/g)?.filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word) ?? [];
-}
-function stems(list) {
-  return new Set(list.flatMap(words));
-}
-function requestTopicWords(text, limit = 40) {
-  const found = words(text).filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
-  return [...new Set(found)].slice(0, limit);
-}
-var REQUEST_FILLER_WORDS = stems([
-  "please",
-  "could",
-  "would",
-  "you",
-  "your",
-  "our",
-  "have",
-  "has",
-  "make",
-  "sure",
-  "change",
-  "update",
-  "add",
-  "fix",
-  "now",
-  "need",
-  "want",
-  "like",
-  "also",
-  "just",
-  "then",
-  "than",
-  "there",
-  "here",
-  "what",
-  "which",
-  "why",
-  "how",
-  "will",
-  "use",
-  "using",
-  "new",
-  "file",
-  "code",
-  "never",
-  "always",
-  "only",
-  "any",
-  "but",
-  "they",
-  "them",
-  "was",
-  "were",
-  "been",
-  "being",
-  "does",
-  "don",
-  "doesn",
-  "let",
-  "get",
-  "set",
-  "one",
-  "out",
-  "about",
-  "over",
-  "same",
-  "still",
-  "too",
-  "very"
-]);
-
-// ../agent-core/dist/snippets.js
-import fs3 from "node:fs";
+import path3 from "node:path";
 
 // ../agent-core/dist/knowledge-index.js
 import { createHash, randomUUID } from "node:crypto";
 import fs2 from "node:fs";
-import path3 from "node:path";
+import path2 from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 var SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
 var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v2";
@@ -626,7 +473,7 @@ function readText(filePath) {
 }
 function writeCacheAtomically(cachePath, payload) {
   try {
-    fs2.mkdirSync(path3.dirname(cachePath), { recursive: true });
+    fs2.mkdirSync(path2.dirname(cachePath), { recursive: true });
     const temporary = `${cachePath}.${process.pid}.${randomUUID()}.tmp`;
     fs2.writeFileSync(temporary, payload);
     fs2.renameSync(temporary, cachePath);
@@ -647,13 +494,13 @@ function scanKnowledgeIndex(symbolsPath, coordinatesPath, options) {
   return buildKnowledgeIndex(records, coordinatesText === undefined ? {} : scanSymbolCoordinates(coordinatesText), options, manifestStateOf(symbolsText, records.length));
 }
 function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
-  const symbolsPath = path3.join(workspaceRoot, SYMBOLS_MANIFEST);
-  const coordinatesPath = path3.join(workspaceRoot, SYMBOL_COORDINATES);
+  const symbolsPath = path2.join(workspaceRoot, SYMBOLS_MANIFEST);
+  const coordinatesPath = path2.join(workspaceRoot, SYMBOL_COORDINATES);
   if (!cacheDir)
     return scanKnowledgeIndex(symbolsPath, coordinatesPath, options);
   const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
   const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = path3.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
+  const cachePath = path2.join(cacheDir, options.cacheFileName ?? CACHE_FILE);
   const cached = readCachedIndex(cachePath, signature);
   if (cached !== undefined)
     return cached;
@@ -724,7 +571,7 @@ var RELATIONSHIPS_DIR = ".kb/relationships";
 var shardCache = new Map;
 function shardPathFor(workspaceRoot, entityId) {
   const shard = createHash("sha256").update(entityId).digest("hex");
-  return path3.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
+  return path2.join(workspaceRoot, RELATIONSHIPS_DIR, `${shard.slice(0, 2)}.yaml`);
 }
 function shardLinksFrom(workspaceRoot, entityId) {
   const shardPath = shardPathFor(workspaceRoot, entityId);
@@ -760,7 +607,7 @@ function readEntitySummary(workspaceRoot, entityId) {
     return { id: entityId };
   let head;
   try {
-    const descriptor = fs2.openSync(path3.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
+    const descriptor = fs2.openSync(path2.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
       const buffer = Buffer.alloc(8192);
       const bytes = fs2.readSync(descriptor, buffer, 0, buffer.length, 0);
@@ -893,7 +740,161 @@ function readEntitySummary(workspaceRoot, entityId) {
   return summary;
 }
 
+// ../agent-core/dist/requirement-candidates.js
+var REQUIREMENTS_DIR = path3.join(".kb", "requirements");
+var LAYOUT_WORDS = stems([
+  "src",
+  "app",
+  "apps",
+  "lib",
+  "libs",
+  "source",
+  "page",
+  "component",
+  "view",
+  "screen",
+  "package",
+  "main",
+  "index",
+  "shared",
+  "common",
+  "core",
+  "util",
+  "helper",
+  "public",
+  "static",
+  "asset",
+  "web",
+  "client",
+  "server",
+  "frontend",
+  "backend",
+  "module",
+  "feature",
+  "internal",
+  "service",
+  "test",
+  "spec",
+  "dist",
+  "build",
+  "html",
+  "htm",
+  "tsx",
+  "jsx",
+  "mjs",
+  "cjs",
+  "vue",
+  "svelte",
+  "css",
+  "scss",
+  "less",
+  "json",
+  "yaml",
+  "yml",
+  "java",
+  "swift",
+  "php"
+]);
+var FILLER_WORDS = stems([
+  "the",
+  "and",
+  "for",
+  "with",
+  "must",
+  "should",
+  "shall",
+  "may",
+  "can",
+  "are",
+  "its",
+  "their",
+  "that",
+  "this",
+  "from",
+  "into",
+  "when",
+  "each",
+  "every",
+  "all",
+  "not",
+  "req",
+  "auto"
+]);
+function words(text) {
+  return text.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase().match(/[a-z0-9]+/g)?.filter((word) => word.length >= 3 && !/\d/.test(word)).map((word) => word.length > 4 && word.endsWith("s") && !word.endsWith("ss") ? word.slice(0, -1) : word) ?? [];
+}
+function stems(list) {
+  return new Set(list.flatMap(words));
+}
+var NOTHING_REPLACED = new Set;
+function requestTopicWords(text, limit = 40) {
+  const found = words(text).filter((word) => !FILLER_WORDS.has(word) && !REQUEST_FILLER_WORDS.has(word));
+  return [...new Set(found)].slice(0, limit);
+}
+var REQUEST_FILLER_WORDS = stems([
+  "please",
+  "could",
+  "would",
+  "you",
+  "your",
+  "our",
+  "have",
+  "has",
+  "make",
+  "sure",
+  "change",
+  "update",
+  "add",
+  "fix",
+  "now",
+  "need",
+  "want",
+  "like",
+  "also",
+  "just",
+  "then",
+  "than",
+  "there",
+  "here",
+  "what",
+  "which",
+  "why",
+  "how",
+  "will",
+  "use",
+  "using",
+  "new",
+  "file",
+  "code",
+  "never",
+  "always",
+  "only",
+  "any",
+  "but",
+  "they",
+  "them",
+  "was",
+  "were",
+  "been",
+  "being",
+  "does",
+  "don",
+  "doesn",
+  "let",
+  "get",
+  "set",
+  "one",
+  "out",
+  "about",
+  "over",
+  "same",
+  "still",
+  "too",
+  "very"
+]);
+
 // ../agent-core/dist/snippets.js
+import fs3 from "node:fs";
 var MAX_REQUIREMENTS = 4;
 var MAX_SYMBOLS_PER_REQUIREMENT = 3;
 var MAX_TESTS = 3;
@@ -1772,9 +1773,11 @@ var REJECTED_CATEGORIES = new Set([
   "entity_validation_failed",
   "firm_decision_locked",
   "generated_artifacts_stale",
+  "git_conflicts_unresolved",
   "incomplete_propositions",
   "input_read_failed",
   "integration_failed",
+  "inventory_ingestion_failed",
   "invalid_project_config",
   "invalid_relationship",
   "legacy_branch_storage",

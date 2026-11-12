@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { readEntitySummary } from "./knowledge-index.js";
 
 /**
  * Requirements that may govern a file no symbol links yet, found by the words
@@ -183,6 +184,35 @@ function readHead(file: string): RequirementHead | undefined {
 const RETIRED_STATUS =
   /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
 
+const NOTHING_REPLACED: ReadonlySet<string> = new Set();
+
+/**
+ * A closed requirement may be done and still hold, or retired with nothing
+ * to replace it, so it is offered only after every current one.
+ */
+function isClosed(head: RequirementHead): boolean {
+  return String(head.status).trim().toLowerCase() === "closed";
+}
+
+/**
+ * Requirements among `closed` that a current requirement replaces: the
+ * targets of `supersedes` links, from front matter or relationship shards,
+ * of requirements that are neither closed nor retired.
+ */
+export function replacedRequirements(
+  workspaceRoot: string,
+  requirements: readonly RequirementHead[],
+  closed: ReadonlySet<string>,
+): Set<string> {
+  const replaced = new Set<string>();
+  for (const head of requirements) {
+    if (isClosed(head) || RETIRED_STATUS.test(String(head.status))) continue;
+    for (const link of readEntitySummary(workspaceRoot, head.id).links ?? [])
+      if (link.type === "supersedes" && closed.has(link.target))
+        replaced.add(link.target);
+  }
+  return replaced;
+}
 /**
  * Topic words of the person's request (`Users must not delete the last
  * owner` -> `user`, `delete`, `last`, `owner`), for ranking requirements an
@@ -270,17 +300,20 @@ export function rankRequirementCandidates(
   requirements: readonly RequirementHead[],
   limit: number = MAX_REQUIREMENT_CANDIDATES,
   requestWords?: readonly string[],
+  replaced: ReadonlySet<string> = NOTHING_REPLACED,
 ): RequirementHead[] {
   const topic = new Set(pathTopicWords(relativePath));
   const request = new Set(requestWords?.filter((word) => !topic.has(word)));
   const scored: {
     head: RequirementHead;
+    closed: number;
     shared: number;
     asked: number;
     uses: number;
   }[] = [];
   for (const head of requirements) {
     if (RETIRED_STATUS.test(String(head.status))) continue;
+    if (replaced.has(head.id)) continue;
     const titleWords = words(head.title);
     const pathHits = titleWords.filter((word) => topic.has(word));
     const requestHits = titleWords.filter((word) => request.has(word));
@@ -289,6 +322,7 @@ export function rankRequirementCandidates(
     if (shared > 0 || asked >= 2) {
       scored.push({
         head,
+        closed: isClosed(head) ? 1 : 0,
         shared,
         asked,
         uses: pathHits.length + requestHits.length,
@@ -297,6 +331,7 @@ export function rankRequirementCandidates(
   }
   scored.sort(
     (a, b) =>
+      a.closed - b.closed ||
       b.shared - a.shared ||
       b.asked - a.asked ||
       b.uses - a.uses ||
@@ -337,5 +372,26 @@ export function requirementCandidatesForPath(
   const heads = names
     .map((name) => readHead(path.join(directory, name)))
     .filter((head): head is RequirementHead => head !== undefined);
-  return rankRequirementCandidates(relativePath, heads, limit, requestWords);
+  // Successors are looked up only for closed requirements the words reach,
+  // since that reads every current requirement's links.
+  const closed = new Set(
+    rankRequirementCandidates(relativePath, heads, heads.length, requestWords)
+      .filter(isClosed)
+      .map((head) => head.id),
+  );
+  // rationale: a shortcut only; with no closed candidate nothing can be
+  // replaced, but the links of every current requirement go unread.
+  // Stryker disable ConditionalExpression,EqualityOperator
+  const replaced =
+    closed.size > 0
+      ? replacedRequirements(workspaceRoot, heads, closed)
+      : NOTHING_REPLACED;
+  // Stryker restore ConditionalExpression,EqualityOperator
+  return rankRequirementCandidates(
+    relativePath,
+    heads,
+    limit,
+    requestWords,
+    replaced,
+  );
 }

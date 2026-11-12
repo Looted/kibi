@@ -330,6 +330,30 @@ test(relationship_edges_match_the_findall_they_replace, [setup(setup_kb), cleanu
     kb_relationship_edges(Types, ['REQ-EDGES-MISSING'], None),
     assertion(None == []).
 
+test(negative_path_facts_are_assumed_by_rejecting_scenarios_and_ground_nothing,
+     [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-NEGP', "Plans never write", active, []),
+    assert_fixture_entity(req, 'REQ-NEGP-OLD', "Plans never wrote", deprecated, []),
+    assert_fixture_entity(scenario, 'SCEN-NEGP-REJECT', "A plan that writes is refused", active, [expects=rejection]),
+    assert_fixture_entity(scenario, 'SCEN-NEGP-ERROR', "A plan that writes errors", active, [expects=error]),
+    assert_fixture_entity(scenario, 'SCEN-NEGP-OK', "A plan is built", active, [expects=success]),
+    forall(member(Id, ['FACT-NEGP-WRITES', 'FACT-NEGP-ERRORS', 'FACT-NEGP-OK',
+                       'FACT-NEGP-CLAIM', 'FACT-NEGP-ALONE']),
+           assert_fixture_entity(fact, Id, "Fixture fact", active, [])),
+    kb_assert_relationship(specified_by, 'REQ-NEGP', 'SCEN-NEGP-REJECT', []),
+    kb_assert_relationship(specified_by, 'REQ-NEGP-OLD', 'SCEN-NEGP-REJECT', []),
+    kb_assert_relationship(assumes, 'SCEN-NEGP-REJECT', 'FACT-NEGP-WRITES', []),
+    kb_assert_relationship(assumes, 'SCEN-NEGP-ERROR', 'FACT-NEGP-ERRORS', []),
+    kb_assert_relationship(assumes, 'SCEN-NEGP-OK', 'FACT-NEGP-OK', []),
+    % A fact a requirement grounds a claim on states what must hold.
+    kb_assert_relationship(assumes, 'SCEN-NEGP-REJECT', 'FACT-NEGP-CLAIM', []),
+    kb_assert_relationship(requires_property, 'REQ-NEGP', 'FACT-NEGP-CLAIM', []),
+    kb_negative_path_facts(['FACT-NEGP-ALONE', 'FACT-NEGP-ERRORS', 'FACT-NEGP-OK',
+                            'FACT-NEGP-CLAIM', 'FACT-NEGP-WRITES', 'REQ-NEGP',
+                            'FACT-NEGP-WRITES', 'FACT-NEGP-MISSING'], Rows),
+    assertion(Rows == [['FACT-NEGP-ERRORS', []],
+                       ['FACT-NEGP-WRITES', ['REQ-NEGP']]]).
+
 test(reporting_batch_keeps_valid_links_and_names_failures, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     forall(member(Id, ['REQ-BATCH-A', 'REQ-BATCH-B', 'REQ-BATCH-C']),
            assert_fixture_entity(req, Id, "Batch fixture", active, [])),

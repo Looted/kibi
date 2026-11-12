@@ -101,6 +101,38 @@ describe("unowned files in a scoped kb_check", () => {
     expect(unowned[0]?.suggestion).toContain("kb_query each candidate");
   });
 
+  it("names closed candidates last and leaves out one a current requirement supersedes", async () => {
+    const root = coachWorkspace();
+    write(
+      root,
+      ".kb/requirements/REQ-coach-done.md",
+      "---\nid: REQ-coach-done\ntitle: Coach dashboard counts pending requests\nstatus: closed\n---\n\nBody.\n",
+    );
+    write(
+      root,
+      ".kb/requirements/REQ-coach-replaced.md",
+      "---\nid: REQ-coach-replaced\ntitle: Coach dashboard lists coach sessions\nstatus: closed\n---\n\nBody.\n",
+    );
+    write(
+      root,
+      ".kb/requirements/REQ-coach-sessions.md",
+      "---\nid: REQ-coach-sessions\ntitle: Sessions are grouped by week\nstatus: open\nlinks:\n  - type: supersedes\n    target: REQ-coach-replaced\n---\n\nBody.\n",
+    );
+    const result = await analyzeChangedFileImpact({
+      workspaceRoot: root,
+      sourceFiles: [COACH_PAGE],
+      includeImpactDiagnostics: true,
+    });
+    const unowned = result.impactDiagnostics.find(
+      (diagnostic) => diagnostic.id === "source_file_unowned",
+    );
+    expect(
+      (unowned?.evidence as { candidates: { id: string }[] }).candidates.map(
+        (candidate) => candidate.id,
+      ),
+    ).toEqual(["REQ-AUTO-E1EE", "REQ-coach-done"]);
+  });
+
   it("points at kb_search when no requirement shares the path words", async () => {
     const root = coachWorkspace();
     write(root, "src/billing/invoice.ts", "export const total = 1;\n");

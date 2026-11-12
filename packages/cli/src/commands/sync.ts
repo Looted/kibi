@@ -155,7 +155,10 @@ export function relationshipKey(relationship: ExtractedRelationship): string {
 export function relationshipFromKey(key: string): ExtractedRelationship {
   const parts = key.split("\0");
   if (parts.length < 3) {
-    throw new SyncError(`Invalid cached relationship key: ${key}`);
+    throw new SyncError(
+      `Invalid cached relationship key: ${key}`,
+      "SYNC_CACHE_KEY_INVALID",
+    );
   }
   const [type, from, to] = parts as [string, string, string];
   return { type, from, to };
@@ -181,6 +184,7 @@ export function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
   if (conflicted.length > 0) {
     throw new SyncError(
       `Unresolved Git conflicts block Kibi compilation; resolve these authored files first: ${conflicted.join(", ")}`,
+      "GIT_CONFLICTS_UNRESOLVED",
     );
   }
 }
@@ -382,6 +386,7 @@ export async function checkpointNoopSync(
     if (!checkpoint.success) {
       throw new SyncError(
         `Failed to publish the no-op sync checkpoint: ${checkpoint.error ?? "Unknown error"}`,
+        "SYNC_CHECKPOINT_FAILED",
       );
     }
   } finally {
@@ -562,6 +567,7 @@ export function assertRelationshipsCleared(result: {
   if (!result.success) {
     throw new SyncError(
       `Failed to clear changed relationship shards: ${result.error || "Unknown error"}`,
+      "RELATIONSHIP_SHARD_CLEAR_FAILED",
     );
   }
 }
@@ -731,6 +737,7 @@ export async function syncCommand(
     ) {
       throw new SyncError(
         "Only a detached HEAD snapshot attachment can be compiled explicitly",
+        "SNAPSHOT_COMPILE_REFUSED",
       );
     }
     const branchResult =
@@ -746,12 +753,16 @@ export async function syncCommand(
       const diagnostic = branchErrorToDiagnostic(branchResult.code, reason);
       diagnostics.push(diagnostic);
       console.error(`Failed to resolve active branch: ${reason}`);
-      throw new SyncError(`Failed to resolve active branch: ${reason}`);
+      throw new SyncError(
+        `Failed to resolve active branch: ${reason}`,
+        "BRANCH_RESOLUTION_FAILED",
+      );
     }
 
     if (branchResult.migrationRequired && !validateOnly) {
       throw new SyncError(
         `Sync blocked: KB is attached through legacy branch storage for '${branchResult.gitBranch}'. Run 'kibi branch migrate --from ${branchResult.kbBranch} --to ${branchResult.gitBranch} --apply' first.`,
+        "LEGACY_BRANCH_STORAGE",
       );
     }
 
@@ -818,6 +829,7 @@ export async function syncCommand(
         ) {
           throw new SyncError(
             `Kibi engine socket remains present but is not reachable: ${engineSocketPath(workspaceRoot, currentBranch)}`,
+            "ENGINE_SOCKET_UNREACHABLE",
           );
         }
       } finally {
@@ -1313,6 +1325,7 @@ export async function syncCommand(
               ]
             : []),
         ].join("\n"),
+        "INVENTORY_INGESTION_FAILED",
       );
     }
 
@@ -1459,6 +1472,7 @@ export async function syncCommand(
                   "kb_retract_all_relationships",
                   `Failed to clear changed relationship shards: ${cleared.error || "Unknown error"}`,
                 ),
+                "RELATIONSHIP_SHARD_CLEAR_FAILED",
               );
             }
           };
@@ -1535,6 +1549,7 @@ export async function syncCommand(
               "kb_save",
               `Failed to save journaled KB: ${saveResult.error || "Unknown error"}`,
             ),
+            "KB_SAVE_FAILED",
           );
         }
 
@@ -1611,6 +1626,7 @@ export async function syncCommand(
       await prolog.terminate();
       throw new SyncError(
         `Failed to attach to staging KB: ${attachResult.error || "Unknown error"}`,
+        "STAGING_ATTACH_FAILED",
       );
     }
     await runtime.afterAttach?.(runtimeContext);
@@ -1698,6 +1714,7 @@ export async function syncCommand(
     if (!saveResult.success) {
       throw new SyncError(
         `Failed to save staging KB: ${saveResult.error || "Unknown error"}`,
+        "STAGING_SAVE_FAILED",
       );
     }
     await prolog.query("kb_detach");
@@ -1708,11 +1725,13 @@ export async function syncCommand(
       if (!existsSync(livePath)) {
         throw new SyncError(
           `Recovery target disappeared before publication: ${livePath}`,
+          "RECOVERY_TARGET_MISSING",
         );
       }
       if (existsSync(recoveryBackupPath)) {
         throw new SyncError(
           `Recovery backup path already exists: ${recoveryBackupPath}`,
+          "RECOVERY_BACKUP_EXISTS",
         );
       }
       mkdirSync(path.dirname(recoveryBackupPath), { recursive: true });

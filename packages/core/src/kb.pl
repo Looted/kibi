@@ -28,6 +28,7 @@
     kb_query_entities/8,
     kb_search_entities/6,
     kb_relationship_edges/3,
+    kb_negative_path_facts/2,
     kb_list_search_candidates/5,
     kb_list_search_candidates/6,
     kb_entity_ids/1,
@@ -2110,6 +2111,53 @@ kb_relationship_edges(Types, Ids, Edges) :-
               entity_uri_to_id(FromURI, From),
               entity_uri_to_id(ToURI, To) ),
             Edges).
+
+%% kb_negative_path_facts(+Ids, -Rows)
+% implements REQ-kibi-negative-path-facts-marked
+% The negative-path facts among Ids, each as [FactId, Guarded]. A
+% negative-path fact describes a situation that must not happen: a scenario
+% expecting rejection or error assumes it, and no requirement grounds a claim
+% on it (requires_property, requires_predicate, requires_rule, constrains).
+% Read alone its title states the forbidden situation as if it held, so
+% search marks it and ranks it below what it guards. Guarded is the sorted
+% current requirements that specify one of those scenarios. Rows follow the
+% order of Ids, each fact once.
+kb_negative_path_facts(Ids, Rows) :-
+    findall([Id, Guarded],
+            ( member(Id, Ids),
+              negative_path_fact(Id, Guarded) ),
+            Rows0),
+    rows_first_per_id(Rows0, Rows).
+
+negative_path_fact(FactId, Guarded) :-
+    kb_entity(FactId, fact, _),
+    findall(ScenarioId,
+            ( kb_relationship(assumes, ScenarioId, FactId),
+              rejecting_scenario(ScenarioId) ),
+            Scenarios0),
+    Scenarios0 \== [],
+    \+ ( member(Link, [requires_property, requires_predicate, requires_rule, constrains]),
+          kb_relationship(Link, _, FactId) ),
+    sort(Scenarios0, Scenarios),
+    findall(ReqId,
+            ( member(ScenarioId, Scenarios),
+              kb_relationship(specified_by, ReqId, ScenarioId),
+              current_req(ReqId) ),
+            Guarded0),
+    sort(Guarded0, Guarded).
+
+rejecting_scenario(ScenarioId) :-
+    kb_entity(ScenarioId, scenario, Props),
+    memberchk(expects=Raw, Props),
+    normalize_term_atom(Raw, Outcome),
+    memberchk(Outcome, [rejection, error]).
+
+rows_first_per_id([], []).
+rows_first_per_id([[Id, Guarded]|Rest], [[Id, Guarded]|Rows]) :-
+    exclude(row_for_id(Id), Rest, Others),
+    rows_first_per_id(Others, Rows).
+
+row_for_id(Id, [Id, _]).
 
 % Helper predicates
 

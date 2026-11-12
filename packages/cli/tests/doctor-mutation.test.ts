@@ -1353,6 +1353,7 @@ describe("branch store check", () => {
       detail: "Store is empty.",
       authoredSources: 3,
     });
+    s.choices.mockReturnValue(choices({ autoSync: false }) as never);
     expect(await check("Branch store")).toStrictEqual({
       name: "Branch store",
       passed: false,
@@ -1374,6 +1375,7 @@ describe("branch store check", () => {
       generation: "g0",
     } as never);
     s.uncompiled.mockReturnValue({ detail: "Empty", authoredSources: 2 });
+    s.choices.mockReturnValue(choices({ autoSync: false }) as never);
     expect(await check("Branch store")).toStrictEqual({
       name: "Branch store",
       passed: false,
@@ -1396,6 +1398,55 @@ describe("branch store check", () => {
       state: "ready",
       path: "/store",
     });
+  });
+
+  test("warn, without failing, when auto-sync compiles the store on the next command", async () => {
+    s.compilation.mockReturnValue({
+      compiled: false,
+      generation: "g0",
+    } as never);
+    s.uncompiled.mockReturnValue({ detail: "Empty", authoredSources: 2 });
+    expect(await check("Branch store")).toStrictEqual({
+      name: "Branch store",
+      passed: true,
+      warning: true,
+      message:
+        "Not compiled yet for main; the next Kibi query or check compiles it from 2 authored source file(s)",
+      remediation:
+        "Nothing to do, or run kibi sync now to compile it ahead of the first query",
+      details: {
+        branch: "main",
+        path: "/store",
+        state: "ready",
+        generation: "g0",
+        authoredSources: 2,
+        autoSync: true,
+      },
+    });
+  });
+
+  test("fail an uncompiled store that auto-sync does not compile", async () => {
+    s.compilation.mockReturnValue({ compiled: false } as never);
+    s.uncompiled.mockReturnValue({ detail: "Empty", authoredSources: 2 });
+    const failsWith = async (attachment: Record<string, unknown>) => {
+      s.attach.mockReturnValue({ kbBranch: "main", ...attachment } as never);
+      const result = await check("Branch store");
+      expect(result?.passed).toBe(false);
+      expect(result?.remediation).toBe("Run: kibi sync");
+    };
+    await failsWith({ kind: "detached_snapshot" });
+    await failsWith({ readOnly: { reason: "detached" } });
+    await failsWith({ migrationRequired: true });
+    s.attach.mockReturnValue({ kbBranch: "main" } as never);
+    const previous = process.env.KIBI_AUTO_SYNC;
+    process.env.KIBI_AUTO_SYNC = "0";
+    try {
+      expect((await check("Branch store"))?.passed).toBe(false);
+    } finally {
+      if (previous === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_AUTO_SYNC");
+      else process.env.KIBI_AUTO_SYNC = previous;
+    }
   });
 });
 

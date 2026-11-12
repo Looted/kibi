@@ -44,7 +44,7 @@ npm install --save-dev kibi-core kibi-cli kibi-mcp
 npm exec -- kibi init
 ```
 
-If anything looks off, `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using (`bundled`, `KIBI_SWIPL`, or `PATH`), whether its required libraries load, and which Kibi package versions the running engine daemon was started with; a daemon left by another install is replaced by the next Kibi command. It also fails when the current branch's authored knowledge was never compiled into its store (fix: `kibi sync`) warns when Kibi's Git hooks are not installed, because commits then skip Kibi's check (`kibi hooks install` installs them), and warns when a recorded setup choice, such as the `AGENTS.md` section, is not in place. pnpm, Yarn, and Bun equivalents are in the [installation guide](install.md#manual-project-local-install).
+If anything looks off, `npm exec -- kibi doctor` reports which SWI-Prolog Kibi is using (`bundled`, `KIBI_SWIPL`, or `PATH`), whether its required libraries load, and which Kibi package versions the running engine daemon was started with; a daemon left by another install is replaced by the next Kibi command. It also reports when the current branch's authored knowledge was never compiled into its store: a warning when auto-sync compiles it on the next Kibi command, a failure (fix: `kibi sync`) when auto-sync is off. It warns when Kibi's Git hooks are not installed, because commits then skip Kibi's check (`kibi hooks install` installs them), and warns when a recorded setup choice, such as the `AGENTS.md` section, is not in place. pnpm, Yarn, and Bun equivalents are in the [installation guide](install.md#manual-project-local-install).
 
 Then [connect your coding agent](connect-an-agent.md) and ask it:
 

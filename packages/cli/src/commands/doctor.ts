@@ -96,7 +96,7 @@ import {
   outdatedManagedHooks,
 } from "./init-helpers.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
-import { readSetupChoices } from "./setup-choices.js";
+import { autoSyncEnabled, readSetupChoices } from "./setup-choices.js";
 
 /**
  * First-party plugin diagnostics known without importing the package.
@@ -1108,16 +1108,37 @@ function checkBranchStore(): DoctorCheckResult {
       details: { ...details, ...takeoverDetails },
     };
   }
+  const reasonDetails = {
+    ...details,
+    generation: compilation.generation,
+    authoredSources: reason.authoredSources,
+    ...takeoverDetails,
+  };
+  // A fresh clone or a branch created without the post-checkout hook: with
+  // auto-sync on, the next Kibi command compiles this store before it runs
+  // (ensureBranchStoreCompiled), so nothing is broken yet.
+  if (
+    attachment.kind !== "detached_snapshot" &&
+    attachment.readOnly === undefined &&
+    !attachment.migrationRequired &&
+    autoSyncEnabled(workspaceRoot)
+  ) {
+    return {
+      passed: true,
+      warning: true,
+      message: withTakeover(
+        `Not compiled yet for ${branch}; the next Kibi query or check compiles it from ${String(reason.authoredSources)} authored source file(s)`,
+      ),
+      remediation:
+        "Nothing to do, or run kibi sync now to compile it ahead of the first query",
+      details: { ...reasonDetails, autoSync: true },
+    };
+  }
   return {
     passed: false,
     message: withTakeover(String(reason.detail)),
     remediation: "Run: kibi sync",
-    details: {
-      ...details,
-      generation: compilation.generation,
-      authoredSources: reason.authoredSources,
-      ...takeoverDetails,
-    },
+    details: reasonDetails,
   };
 }
 

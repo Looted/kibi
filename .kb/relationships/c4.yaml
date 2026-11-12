@@ -293,6 +293,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65c9fe78e2fa
+  - type: implements
+    from: SYM-cli-unowned-files-rankrequirementcandidates
+    to: REQ-unowned-file-closed-candidates
+    created_at: 2026-11-11T17:34:56.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bbcf4b72114
   - type: assumes
     from: SCEN-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE
     to: FACT-NEG-skillopt-infrastructure-failure-no-go-MISSING-EXECUTABLE

@@ -16,6 +16,13 @@ import {
   queryGraphEdges,
 } from "./intent-search.js";
 import {
+  type NegativePathFacts,
+  type NegativePathMarker,
+  negativePathMarker,
+  negativePathTitle,
+  queryNegativePathFacts,
+} from "./negative-path-facts.js";
+import {
   type SearchHintsDiagnostic,
   composeSearchHints,
 } from "./plugins/compose-search-hints.js";
@@ -52,6 +59,11 @@ export type SearchHintItem = Readonly<{
   score: number;
   /** The entity the provider matched, when the hint is its requirement. */
   via?: string;
+  /**
+   * Set when the hint is a negative-path fact no current requirement could
+   * be shown for; its title carries the "Forbidden: " prefix.
+   */
+  negativePath?: NegativePathMarker;
 }>;
 
 export type SearchHintsAnalysis = Readonly<{
@@ -148,8 +160,12 @@ function cacheDirectory(workspaceRoot: string): string {
 /**
  * A hint on a scenario, test, fact or ADR is shown as the current
  * requirement it belongs to, so the agent re-asks about what governs; an
- * entity no current requirement links to is shown as itself.
+ * entity no current requirement links to is shown as itself. A negative-path
+ * fact is linked to no requirement directly: it is shown as the requirements
+ * whose rejecting scenarios assume it, and, when none is current, as itself
+ * marked as a situation that must not happen.
  */
+// implements REQ-kibi-search-hints-host, REQ-kibi-negative-path-facts-marked
 async function liftToRequirements(
   prolog: Pick<PrologPort, "query">,
   hints: readonly { readonly id: string; readonly score: number }[],
@@ -159,7 +175,15 @@ async function liftToRequirements(
   const seeds = new Set(
     hints.map((hint) => hint.id).filter((id) => !isRequirement(id)),
   );
+  const negativePath: NegativePathFacts = await queryNegativePathFacts(
+    prolog,
+    [...seeds].filter((id) => byId.get(id)?.type === "fact"),
+  );
   const requirementsOf = new Map<string, Set<string>>();
+  for (const [fact, guards] of negativePath) {
+    const shown = guards.filter(isRequirement);
+    if (shown.length > 0) requirementsOf.set(fact, new Set(shown));
+  }
   for (const edge of await queryGraphEdges(prolog, [...seeds]))
     for (const [seed, other] of [
       [edge.from, edge.to],
@@ -177,11 +201,16 @@ async function liftToRequirements(
     for (const target of linked ? [...linked].sort() : [hint.id]) {
       if (shown.has(target)) continue;
       shown.add(target);
+      const title = (byId.get(target) as SearchHintsEntity).title;
+      const guards = target === hint.id ? negativePath.get(target) : undefined;
       items.push({
         id: target,
-        title: (byId.get(target) as SearchHintsEntity).title,
+        title: guards !== undefined ? negativePathTitle(title) : title,
         score: hint.score,
         ...(target !== hint.id ? { via: hint.id } : {}),
+        ...(guards !== undefined
+          ? { negativePath: negativePathMarker(guards) }
+          : {}),
       });
     }
   }

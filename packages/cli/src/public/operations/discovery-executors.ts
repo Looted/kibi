@@ -16,6 +16,7 @@ import {
   questionPaths,
   validateIntentSearchInput,
 } from "../../intent-search.js";
+import type { NegativePathMarker } from "../../negative-path-facts.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
 import { type SearchAnswer, buildSearchAnswer } from "../../search-answer.js";
@@ -970,6 +971,19 @@ async function searchHintsFor(
   });
 }
 
+/**
+ * A top match as the text digest names it. A negative-path fact describes a
+ * situation that must not happen, so the digest says so beside its id.
+ */
+// implements REQ-kibi-negative-path-facts-marked
+function topMatchLabel(match: {
+  readonly entity: Record<string, unknown>;
+  readonly negativePath?: NegativePathMarker;
+}): string {
+  const id = String(match.entity.id ?? "");
+  return match.negativePath === undefined ? id : `${id} (forbidden situation)`;
+}
+
 export async function executeSearch(
   input: SearchInput,
   context: OperationContext,
@@ -1070,7 +1084,7 @@ export async function executeSearch(
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
           : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'${intentResult.analysis.ambiguous ? " (top matches are close; confirm before relying on one)" : ""}. Top: ${paginated
               .slice(0, 5)
-              .map((match) => String(match.entity.id ?? ""))
+              .map((match) => topMatchLabel(match))
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`

@@ -283,3 +283,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-45fcf51d5287
+  - type: executable_for
+    from: SYM-test-search-closed-requirements
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:34:17.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a6b573c7653
