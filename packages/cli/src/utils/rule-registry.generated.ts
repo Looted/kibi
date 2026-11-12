@@ -428,9 +428,16 @@ export const GENERATED_RULES = [
   {
     name: "evidence-floor",
     description:
-      "Every current requirement's computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot",
+      "Every current requirement's computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement or one a person approved (origin.approved_by) that states no firmness, and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot",
     enforcementClass: "canonical",
     category: "integrity",
+  },
+  {
+    name: "agent-requirement-unapproved-implemented",
+    description:
+      "A current priority must requirement authored by an agent (origin.kind agent) that production symbols implement must have a human approval (origin.approved_by) once it is older than 14 days by created_at; a missing created_at counts as older (KB schema 15)",
+    enforcementClass: "canonical",
+    category: "lifecycle",
   },
   {
     name: "proof-contract-claims",

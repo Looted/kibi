@@ -88,6 +88,7 @@ describe("planning the source-derived migration actions", () => {
           "supersedes-reason-acknowledge",
           "firm-supersede-acknowledge",
           "evidence-floor-pin",
+          "approval-floor-pin",
           "proof-contract-claims-pin",
           "proof-contract-claims-review-TEST-R1",
           "entity-origin-backfill",
@@ -105,6 +106,7 @@ describe("planning the source-derived migration actions", () => {
           "supersedes-reason-acknowledge",
           "firm-supersede-acknowledge",
           "evidence-floor-pin",
+          "approval-floor-pin",
           "proof-contract-claims-pin",
           "proof-contract-claims-review-TEST-R1",
           "entity-origin-backfill",
@@ -122,6 +124,7 @@ describe("planning the source-derived migration actions", () => {
           "supersedes-reason-acknowledge",
           "firm-supersede-acknowledge",
           "evidence-floor-pin",
+          "approval-floor-pin",
           "proof-contract-claims-pin",
           "proof-contract-claims-review-TEST-R1",
         ],
@@ -135,6 +138,7 @@ describe("planning the source-derived migration actions", () => {
           "supersedes-reason-acknowledge",
           "firm-supersede-acknowledge",
           "evidence-floor-pin",
+          "approval-floor-pin",
           "proof-contract-claims-pin",
           "proof-contract-claims-review-TEST-R1",
         ],
@@ -146,6 +150,7 @@ describe("planning the source-derived migration actions", () => {
           "supersedes-reason-acknowledge",
           "firm-supersede-acknowledge",
           "evidence-floor-pin",
+          "approval-floor-pin",
           "proof-contract-claims-pin",
           "proof-contract-claims-review-TEST-R1",
         ],
@@ -156,6 +161,7 @@ describe("planning the source-derived migration actions", () => {
         [
           "firm-supersede-acknowledge",
           "evidence-floor-pin",
+          "approval-floor-pin",
           "proof-contract-claims-pin",
           "proof-contract-claims-review-TEST-R1",
         ],
@@ -165,6 +171,7 @@ describe("planning the source-derived migration actions", () => {
         10,
         [
           "evidence-floor-pin",
+          "approval-floor-pin",
           "proof-contract-claims-pin",
           "proof-contract-claims-review-TEST-R1",
         ],
@@ -172,11 +179,17 @@ describe("planning the source-derived migration actions", () => {
       ],
       [
         11,
-        ["proof-contract-claims-pin", "proof-contract-claims-review-TEST-R1"],
+        [
+          "approval-floor-pin",
+          "proof-contract-claims-pin",
+          "proof-contract-claims-review-TEST-R1",
+        ],
         undefined,
       ],
-      [12, [], undefined],
-      [13, [], undefined],
+      [12, ["approval-floor-pin"], undefined],
+      [13, ["approval-floor-pin"], undefined],
+      [14, ["approval-floor-pin"], undefined],
+      [15, [], undefined],
     ] as const) {
       const result = fragment(FULL, version, { claimCandidates: [{}] });
       expect([
@@ -437,6 +450,7 @@ describe("the schema 6 action codes", () => {
       "supersedes_reason_acknowledge",
       "firm_supersede_acknowledge",
       "evidence_floor_pin",
+      "approval_floor_pin",
       "semantic_inventory_rederive",
       "req_status_delivered_map",
       "entity_origin_backfill",
@@ -523,9 +537,21 @@ describe("applying a schema 6 action", () => {
         ["REQ-1", "below"],
         ["REQ-2", "below"],
       ]),
+      { firm: true, approved: false },
     );
     await apply("evidence_floor_pin", { affectedEntityIds: undefined });
-    expect(spy.mock.calls[1]).toEqual(["/workspace", new Map()]);
+    expect(spy.mock.calls[1]).toEqual([
+      "/workspace",
+      new Map(),
+      { firm: true, approved: false },
+    ]);
+    // The schema 15 action pins approved requirements only.
+    await apply("approval_floor_pin", { affectedEntityIds: ["REQ-3"] });
+    expect(spy.mock.calls[2]).toEqual([
+      "/workspace",
+      new Map([["REQ-3", "below"]]),
+      { firm: false, approved: true },
+    ]);
   });
 
   test("re-derives the planned inventory, with its contract hash when recorded", async () => {

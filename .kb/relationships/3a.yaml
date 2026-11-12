@@ -349,3 +349,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-855fa94d284e
+  - type: requires_property
+    from: REQ-kibi-unapproved-implemented-requirement
+    to: FACT-kibi-unapproved-implemented-blocks
+    created_at: 2026-11-12T18:08:51.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-742f3bdc6e38
+  - type: specified_by
+    from: REQ-kibi-unapproved-implemented-requirement
+    to: SCEN-kibi-approval-evidence-floor
+    created_at: 2026-11-12T18:08:51.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71dfed8e76c4
+  - type: relates_to
+    from: REQ-kibi-unapproved-implemented-requirement
+    to: REQ-kibi-evidence-floors
+    created_at: 2026-11-12T18:08:51.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64e2e64c5b76
+  - type: verified_by
+    from: REQ-kibi-unapproved-implemented-requirement
+    to: TEST-kibi-approval-evidence-floor
+    created_at: 2026-11-12T18:09:21.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-105449981c1c
+  - type: constrains
+    from: REQ-kibi-unapproved-implemented-requirement
+    to: FACT-SUBJECT-kibi-unapproved-implemented-requirement
+    created_at: 2026-11-12T18:25:28.063Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f6efac423e4
+  - type: specified_by
+    from: REQ-kibi-unapproved-implemented-requirement
+    to: SCEN-NEG-kibi-unapproved-implemented-OLD-UNREPORTED
+    created_at: 2026-11-12T18:25:28.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bedd0c01c8ad
