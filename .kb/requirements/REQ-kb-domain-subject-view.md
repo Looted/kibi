@@ -6,7 +6,6 @@ required_evidence: tested
 tags:
   - kb
   - domain-subjects
-  - contradiction-review
   - migration
 semantic_text: A kb_query for a subject must list every current requirement about that subject or a narrower subject. Kibi migrate must plan a suggested claim subject as a review action.
 semantic_inventory_version: kibi.semantic-inventory.v1

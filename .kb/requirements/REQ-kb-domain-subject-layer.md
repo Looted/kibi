@@ -6,7 +6,6 @@ required_evidence: tested
 tags:
   - kb
   - domain-subjects
-  - contradiction-review
   - migration
 semantic_text: Kibi must report an active subject fact whose body does not define its subject as a subject-definition-missing violation. Kibi must report two active subject facts whose key and title words read as one subject as a subject-duplicate violation. Kibi must report an unmodeled normative claim of a current requirement that names no subject as a claim-subject-missing violation. Kibi must report a requirement claim that names a subject no active subject fact defines as a claim-subject-undefined violation.
 semantic_inventory_version: kibi.semantic-inventory.v1
