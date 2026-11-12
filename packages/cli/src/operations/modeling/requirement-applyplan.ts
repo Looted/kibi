@@ -29,6 +29,9 @@ export function strictWriteSetToApplyPlan(
       id: writeSet.subjectFact.id,
       properties: writeSet.subjectFact.properties,
       relationships: [],
+      ...(writeSet.subjectFact.body === undefined
+        ? {}
+        : { document: { body: writeSet.subjectFact.body } }),
     },
     {
       type: writeSet.propertyFact.type,

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 
+import { notStatedDefinition } from "../../utils/subject-definition.js";
 import { previewCases } from "./case-preview.js";
 import { semanticClaimKey } from "./clauses.js";
 import type {
@@ -215,6 +216,14 @@ export function strictSuggestion(
           tags: ["lane:strict", "semantic-advisor-suggestion"],
         },
         relationships: [],
+        document: {
+          body: notStatedDefinition(
+            claim.subject_key,
+            claimText.trim() === ""
+              ? `requirement ${reqId}`
+              : `requirement ${reqId} ("${claimText}")`,
+          ),
+        },
       },
       {
         type: "fact",

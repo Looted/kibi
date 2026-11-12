@@ -25,6 +25,7 @@ import {
   CANONICAL_ENTITY_PATHS,
   isDerivedKbPath,
 } from "../../utils/kb-paths.js";
+import { isNotStatedDefinition } from "../../utils/subject-definition.js";
 import { blockifySymbolManifest } from "../../utils/symbol-manifest-layout.js";
 import type { RelationshipInput, UpsertInput } from "./types.js";
 
@@ -542,8 +543,15 @@ function renderEntityDocument(
   const existing = existingContent
     ? bodyAndFrontmatter(existingContent)
     : { frontmatter: {}, body: "" };
+  // A generated "Definition not stated" body never replaces a subject's
+  // authored definition.
+  const keepsDefinition =
+    input.document?.body !== undefined &&
+    isNotStatedDefinition(input.document.body) &&
+    existing.body.trim() !== "" &&
+    !isNotStatedDefinition(existing.body);
   const body =
-    input.document?.body !== undefined
+    input.document?.body !== undefined && !keepsDefinition
       ? input.document.body
       : existingContent !== undefined
         ? bodyForStatement(input.type, entity, existing)

@@ -23,10 +23,21 @@ import {
 } from "../../entity-body-context.js";
 import type { Violation } from "../../utils/rule-registry.js";
 import {
+  DEFINITION_NOT_STATED_PREFIX,
+  isNotStatedDefinition,
+  notStatedDefinition,
+} from "../../utils/subject-definition.js";
+import {
   type AuthoredEntity,
   authoredSupersededIds,
   listContextAuthoredEntities,
 } from "./entity-context.js";
+
+export {
+  DEFINITION_NOT_STATED_PREFIX,
+  isNotStatedDefinition,
+  notStatedDefinition,
+};
 
 /** An active subject fact must define its subject in its body (blocking). */
 export const SUBJECT_DEFINITION_MISSING_RULE = "subject-definition-missing";
@@ -154,8 +165,8 @@ function definitionProblem(reason: DefinitionAssessment["reason"]): string {
     : reason === "template"
       ? "is a template other subjects repeat with only the key or title changed"
       : reason === "too_short"
-      ? `is shorter than ${MIN_DEFINITION_WORDS} words`
-      : "is missing";
+        ? `is shorter than ${MIN_DEFINITION_WORDS} words`
+        : "is missing";
 }
 
 function escapeRegExp(value: string): string {
@@ -198,7 +209,12 @@ export function templatedDefinitionIds(
 ): Set<string> {
   const byTemplate = new Map<string, string[]>();
   for (const subject of subjects) {
-    if (subject.definition.trim() === "") continue;
+    // Recorded gaps look alike by design; they are not boilerplate definitions.
+    if (
+      subject.definition.trim() === "" ||
+      isNotStatedDefinition(subject.definition)
+    )
+      continue;
     const template = definitionTemplate(subject);
     byTemplate.set(template, [...(byTemplate.get(template) ?? []), subject.id]);
   }
@@ -307,21 +323,20 @@ export function subjectDuplicatePairs(
 export function subjectDuplicateViolations(
   subjects: readonly SubjectEntry[],
 ): Violation[] {
-  return subjectDuplicatePairs(subjects).map(
-    ({ left, right, similarity }) => ({
-      rule: SUBJECT_DUPLICATE_RULE,
-      entityId: left.id,
-      description: `Subjects ${left.subjectKey} (${left.id}) and ${right.subjectKey} (${right.id}) read as one thing defined twice (word similarity ${similarity}), so requirements about it are split across two subjects that never meet`,
-      suggestion: `If they are one subject, keep one subject fact, point every constrains link, claim anchor and subject_key at its key and archive the other. If they differ, add the other key to distinct_from on either fact (or part_of or kind_of when one is a part or kind of the other) and say in its definition how they differ`,
-      source: left.path,
-      evidence: {
-        subjectKey: left.subjectKey,
-        other: right.subjectKey,
-        otherId: right.id,
-        similarity,
-      },
-    }),
-  );
+  return subjectDuplicatePairs(subjects).map(({ left, right, similarity }) => ({
+    rule: SUBJECT_DUPLICATE_RULE,
+    entityId: left.id,
+    description: `Subjects ${left.subjectKey} (${left.id}) and ${right.subjectKey} (${right.id}) read as one thing defined twice (word similarity ${similarity}), so requirements about it are split across two subjects that never meet`,
+    suggestion:
+      "If they are one subject, keep one subject fact, point every constrains link, claim anchor and subject_key at its key and archive the other. If they differ, add the other key to distinct_from on either fact (or part_of or kind_of when one is a part or kind of the other) and say in its definition how they differ",
+    source: left.path,
+    evidence: {
+      subjectKey: left.subjectKey,
+      other: right.subjectKey,
+      otherId: right.id,
+      similarity,
+    },
+  }));
 }
 
 /** Evaluate the selected subject-layer rules over authored entities. */

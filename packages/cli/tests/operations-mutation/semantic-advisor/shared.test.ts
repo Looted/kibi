@@ -261,6 +261,9 @@ describe("strictSuggestion", () => {
             tags: ["lane:strict", "semantic-advisor-suggestion"],
           },
           relationships: [],
+          document: {
+            body: 'Definition not stated: the subject cart is named by requirement REQ-1 ("Cart holds at most 2 items"). The people who own that source can say what it is in the product and what it is not.\n',
+          },
         },
         {
           type: "fact",

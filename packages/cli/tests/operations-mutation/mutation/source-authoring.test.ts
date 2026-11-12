@@ -488,6 +488,31 @@ describe("new Markdown documents", () => {
   });
 });
 
+describe("subject definitions in existing documents", () => {
+  const fact = { id: "F-1", type: "fact", fact_kind: "subject" };
+  const existing = (body: string) => `---\nid: F-1\ntype: fact\n---\n${body}`;
+  const gap =
+    "Definition not stated: the subject shop.cart is named by REQ-A.\n";
+
+  test("a generated gap never replaces an authored definition", () => {
+    const authored = "The cart a signed-in customer fills before checkout.\n";
+    expect(
+      markdown("fact", fact, existing(authored), { document: { body: gap } }),
+    ).toEndWith(`---\n${authored}`);
+  });
+
+  test("a gap fills an empty body and replaces an earlier gap", () => {
+    expect(
+      markdown("fact", fact, existing(""), { document: { body: gap } }),
+    ).toEndWith(gap);
+    expect(
+      markdown("fact", fact, existing("Definition not stated: old.\n"), {
+        document: { body: gap },
+      }),
+    ).toEndWith(gap);
+  });
+});
+
 describe("requirement statements in existing documents", () => {
   const existing = (frontmatter: string, body: string) =>
     `---\nid: REQ-1\ntype: req\n${frontmatter}---${body}`;

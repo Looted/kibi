@@ -168,6 +168,7 @@ describe("buildStrictWriteSet", () => {
           subject_key: "auth.session",
           canonical_key: "auth.session",
         },
+        body: `Definition not stated: the subject auth.session is named by requirement ${ids.reqId} ("Sessions time out."). The people who own that source can say what it is in the product and what it is not.\n`,
       },
       propertyFact: {
         type: "fact",

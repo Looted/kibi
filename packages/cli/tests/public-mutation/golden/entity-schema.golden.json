@@ -578,6 +578,14 @@
           "reason": {
             "type": "string"
           },
+          "subjects": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
           "dimension": {
             "type": "object",
             "required": ["quantifier", "rewrites"],
@@ -1524,6 +1532,30 @@
         "type": "string"
       }
     },
+    "part_of": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "kind_of": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "distinct_from": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "predicate_args": {
       "type": "array",
       "items": {
@@ -1710,6 +1742,15 @@
             },
             {
               "required": ["examples"]
+            },
+            {
+              "required": ["part_of"]
+            },
+            {
+              "required": ["kind_of"]
+            },
+            {
+              "required": ["distinct_from"]
             },
             {
               "required": ["predicate_args"]

@@ -17,6 +17,8 @@ import {
   definitionTemplate,
   evaluateSubjectLayer,
   isKeyPrefix,
+  isNotStatedDefinition,
+  notStatedDefinition,
   subjectDuplicatePairs,
   templatedDefinitionIds,
 } from "../../src/public/operations/subject-layer.js";
@@ -73,7 +75,11 @@ describe("subject definitions", () => {
 
   test("a definition needs enough words that do not restate the title or key", () => {
     expect(
-      assessDefinition({ subjectKey: "shop.cart", title: "Cart", definition: "" }),
+      assessDefinition({
+        subjectKey: "shop.cart",
+        title: "Cart",
+        definition: "",
+      }),
     ).toEqual({ ok: false, reason: "none", words: 0 });
     expect(
       assessDefinition({
@@ -157,6 +163,34 @@ describe("subject definitions", () => {
       distinctFrom: ["shop.cart"],
       broader: ["shop", "shop.list"],
     });
+  });
+});
+
+describe("subjects nobody has defined", () => {
+  test("a generated body records where the subject is named and passes", () => {
+    const body = notStatedDefinition(
+      "shop.cart",
+      'requirement REQ-A ("The cart keeps its lines")',
+    );
+    expect(body).toStartWith(
+      'Definition not stated: the subject shop.cart is named by requirement REQ-A ("The cart keeps its lines").',
+    );
+    expect(isNotStatedDefinition(`  ${body}`)).toBe(true);
+    expect(isNotStatedDefinition(DEFINITION)).toBe(false);
+    expect(
+      assessDefinition({
+        subjectKey: "shop.cart",
+        title: "Shop cart",
+        definition: body,
+      }),
+    ).toMatchObject({ ok: true });
+  });
+
+  test("recorded gaps are never counted as a shared template", () => {
+    const gaps = ["a.one", "b.two", "c.three"].map((key, index) =>
+      entry(`F-${index}`, key, notStatedDefinition(key, "the same source")),
+    );
+    expect([...templatedDefinitionIds(gaps)]).toEqual([]);
   });
 });
 
