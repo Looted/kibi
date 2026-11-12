@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-migration-schema-codes-component
 type: fact
 ---
-The kibi.migration.schema_codes component, as the structural requirements that name it constrain it.
+
+Codes and version boundaries of schema migrations, such as entity origins arriving with KB schema 6 and the entity-origin-backfill action. They identify steps, not the migration flow.

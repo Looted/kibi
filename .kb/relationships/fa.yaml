@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60cce5194010
+  - type: implements
+    from: SYM-domain-subjects-check-claim-subject-missing
+    to: REQ-kb-domain-subject-layer
+    created_at: 2026-11-12T18:44:45.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddf36f26ef9b
+  - type: covered_by
+    from: SYM-domain-subjects-check-claim-subject-missing
+    to: TEST-kb-domain-subject-layer
+    created_at: 2026-11-12T18:44:45.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65efde5ecbf5

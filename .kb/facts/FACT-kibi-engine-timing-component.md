@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-engine-timing-component
 type: fact
 ---
-The kibi.engine.timing component, as the structural requirements that name it constrain it.
+
+Engine daemon timing constants: it checks for idleness every 30000 milliseconds and gives Prolog 1000 milliseconds to exit on shutdown. They are timings, not the protocol.

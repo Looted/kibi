@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-decisions
   id: kibi-decisions
-  version: 1.5.0
+  version: 1.6.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -58,6 +58,11 @@ name the missing capability. Never read or edit `.kb/` files directly.
    - `exploratory`: a flagged guess; revisit it when you touch the area.
 3. Compare the request with the statement. A request is not evidence against
    a rule.
+4. For each subject the request is about, `kb_query
+   {"factKind":"subject","subjectKey":"<key>"}` lists every current
+   requirement on it, prose ones included. Read them all: one that forbids or
+   restricts what the request describes is a conflict even when no check
+   reports it.
 
 ## Decide
 

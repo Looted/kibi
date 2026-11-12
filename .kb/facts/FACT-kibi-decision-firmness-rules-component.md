@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-decision-firmness-rules-component
 type: fact
 ---
-The kibi.decision_firmness.rules component, as the structural requirements that name it constrain it.
+
+The check rules that enforce decision firmness, such as decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited and supersedes-reason-missing, and the default firmness value. It names the rules, not the firmness concept.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-predicates-applicability-component
 type: fact
 ---
-The kibi.predicates.applicability component, as the structural requirements that name it constrain it.
+
+The applicability score of 0.8 at or above which a predicate suggestion counts as strong. It is distinct from the 0.62 threshold for any suggestion at all.

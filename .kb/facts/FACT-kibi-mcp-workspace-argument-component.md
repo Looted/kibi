@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-mcp-workspace-argument-component
 type: fact
 ---
-The kibi.mcp.workspace_argument component, as the structural requirements that name it constrain it.
+
+The workspaceRoot argument by which the MCP server routes each call to a workspace. It is the routing argument, not the env variables plugins use.

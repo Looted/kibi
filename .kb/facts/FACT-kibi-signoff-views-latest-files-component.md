@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-signoff-views-latest-files-component
 type: fact
 ---
-The kibi.signoff_views.latest_files component, as the structural requirements that name it constrain it.
+
+The files holding the most recent signoff views, such as .kb/briefs/signoff/latest.json and latest.md. They locate the latest views, not their history.

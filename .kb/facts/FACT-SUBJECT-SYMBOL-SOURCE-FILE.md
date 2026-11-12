@@ -13,3 +13,5 @@ claim_text: Symbol sourceFile values must be workspace-relative paths. Coordinat
 id: FACT-SUBJECT-SYMBOL-SOURCE-FILE
 type: fact
 ---
+
+The sourceFile path a symbol entity records for where its code lives, which must stay inside the workspace: absolute or parent-escaping paths are refused. It is the path field, not symbol coordinates.

@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The agent-guided flow around kibi migrate: status, check and coverage expose one hash-bound migration plan without writing, and applying it needs the approved plan hash and explicit action ids. It is the orchestration, not the individual schema steps.

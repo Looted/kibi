@@ -1,6 +1,6 @@
 ---
 title: Kibi entity body context
-status: active
+status: archived
 fact_kind: subject
 subject_key: kibi.entity_body.context
 canonical_key: kibi_entity_body_context
@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-entity-body-context-component
 type: fact
 ---
-Kibi entity body context, named kibi.entity_body.context in the structural requirements that constrain it.
+
+The settings of entity body context (which entity types must carry context, the context headings and the word limits), formerly a separate subject key kibi.entity_body.context. They now belong to kibi.entity_body_context, defined by FACT-SUBJECT-KIBI-ENTITY-BODY-CONTEXT, so this fact is archived.

@@ -10,3 +10,5 @@ subject_key: mcp.coded_error_envelope
 id: FACT-mcp-coded-error-envelope-subject
 type: fact
 ---
+
+The shape of a failed MCP tool call that carries a Kibi error code: the same code, message and retryability the CLI's JSON route returns for that failure. It covers coded failures only, not successful results or transport errors.

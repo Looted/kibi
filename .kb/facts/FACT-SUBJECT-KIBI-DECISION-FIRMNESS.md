@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-DECISION-FIRMNESS
 type: fact
 ---
+
+The firmness of a recorded decision: whether a requirement is firm (from human words or cited rules) and so cannot be edited in place without new human words, with supersession needing a reason and replacement of an origin-firm decision reported unless a migration acknowledged it. It is not requirement priority.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-perf-trace-limits-component
 type: fact
 ---
-The kibi.perf_trace.limits component, as the structural requirements that name it constrain it.
+
+Settings and limits of performance tracing: KIBI_PERF_TIMINGS to turn timings on, KIBI_PERF_TRACE_DIR for the trace folder and caps on trace size. Tracing is a diagnostic aid, off by default.

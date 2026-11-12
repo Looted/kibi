@@ -2,7 +2,7 @@
 title: The context section headings shall be context, rationale, why, background, source, notes and evidence
 status: active
 fact_kind: property_value
-subject_key: kibi.entity_body.context
+subject_key: kibi.entity_body_context
 claim_key: CLAIM-07E2F041C92FF4E3
 claim_text: The context section headings shall be context, rationale, why, background, source, notes and evidence
 text_ref: REQ-kb-entity-body-context-settings

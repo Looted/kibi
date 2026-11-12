@@ -31,6 +31,9 @@ semantic_inventory:
     claim_text: kibi-opencode must load on both OpenCode v1 and OpenCode v2 from a single package
     role: normative
     status: ontology_gap
+    subjects:
+      - opencode.kibi_plugin
+      - opencode.plugin.package_root
     span:
       start: 0
       end: 81
@@ -38,6 +41,8 @@ semantic_inventory:
     claim_text: The default export must be a plugin definition object with a non-empty id, a server function for OpenCode v1, and a setup function for OpenCode v2
     role: normative
     status: ontology_gap
+    subjects:
+      - opencode.plugin.package_root
     span:
       start: 83
       end: 229
@@ -52,6 +57,8 @@ semantic_inventory:
     claim_text: The TUI entry must export a definition with id, tui, and setup
     role: normative
     status: ontology_gap
+    subjects:
+      - opencode.kibi_plugin
     span:
       start: 278
       end: 340
@@ -59,6 +66,8 @@ semantic_inventory:
     claim_text: On OpenCode v2, a hook registration failure must not prevent the remaining hooks from registering and must be reported
     role: normative
     status: ontology_gap
+    subjects:
+      - opencode.kibi_plugin
     span:
       start: 342
       end: 460

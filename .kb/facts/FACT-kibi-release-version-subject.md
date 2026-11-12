@@ -16,3 +16,5 @@ origin:
 id: FACT-kibi-release-version-subject
 type: fact
 ---
+
+The calendar version that names one Kibi release (YYYY.M.N) together with the manifest listing the version of each package in it. It is distinct from each package's own semver, which kibi --version prints beside it.

@@ -96,6 +96,9 @@ const FACT_STRING_ARRAY_FIELDS = [
   "examples",
   "predicate_args",
   "value_set",
+  "part_of",
+  "kind_of",
+  "distinct_from",
 ] as const;
 const FACT_ONLY_FIELDS = [
   ...FACT_STRING_FIELDS,
@@ -217,6 +220,9 @@ export interface ExtractedEntity {
   aliases?: string[];
   examples?: string[];
   predicate_args?: string[];
+  part_of?: string[];
+  kind_of?: string[];
+  distinct_from?: string[];
   rule_ir?: Record<string, unknown>;
   argument_constants?: Record<string, string[]>;
   argument_aliases?: Record<string, Record<string, string>>;

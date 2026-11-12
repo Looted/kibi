@@ -49,6 +49,7 @@ import { collectCheckPolicyViolations } from "./check-policy-rules.js";
 import { collectDecisionFirmnessViolations } from "./decision-firmness.js";
 import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
+import { collectSubjectLayerViolations } from "./subject-layer.js";
 import { collectEvidenceFloorViolations } from "./evidence-floor.js";
 import {
   buildActionsFromCheck,
@@ -432,6 +433,10 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const subjectLayerFindings = collectSubjectLayerViolations(
+      rulesAllowlist,
+      workspaceRoot,
+    );
     const decisionFirmnessFindings = collectDecisionFirmnessViolations(
       rulesAllowlist,
       workspaceRoot,
@@ -462,6 +467,7 @@ export async function executeCheck(
       ...predicateConformanceFindings,
       ...originReviewFindings,
       ...entityContextFindings,
+      ...subjectLayerFindings,
       ...decisionFirmnessFindings,
       ...checkPolicyFindings,
       ...evidenceFloorFindings,

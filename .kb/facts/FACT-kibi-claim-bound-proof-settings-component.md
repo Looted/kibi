@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-claim-bound-proof-settings-component
 type: fact
 ---
-The kibi.claim_bound_proof.settings component, as the structural requirements that name it constrain it.
+
+Fixed values for claim-bound proofs: the receipt outcomes (passed, failed, errored, cancelled, skipped, timed_out, interrupted), the rule name and the KB schema version 12 where claim binding starts. They are constants, not the binding procedure.

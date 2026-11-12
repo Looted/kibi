@@ -16,3 +16,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The declared knowledge sources a bootstrap interview names (documents, tickets, chats) and how bootstrap consolidates their cited intent, keeping observations, open questions and declared conflicts as cited review facts and skipping sources marked stale. It is about sources and citations, not code discovery.

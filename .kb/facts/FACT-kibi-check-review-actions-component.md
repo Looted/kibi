@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-check-review-actions-component
 type: fact
 ---
-The kibi.check.review_actions component, as the structural requirements that name it constrain it.
+
+The stable ids and codes of review actions kb_check returns, such as review-agent-requirements-unapproved, so agents and tools can match them. They name the actions, not when they are raised.

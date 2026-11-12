@@ -7607,5 +7607,20 @@
         "./scripts/tests/run-proof-producer.test.mjs"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kb-domain-subject-layer",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/consumer/domain-subjects.test.ts",
+        "./packages/cli/tests/operations/migration/domain-subjects.test.ts",
+        "./packages/cli/tests/public/subject-layer.test.ts",
+        "./packages/cli/tests/operations-mutation/mutation/subject-warnings.test.ts"
+      ]
+    ]
   }
 ]

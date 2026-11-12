@@ -12,3 +12,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The Prolog coverage run in Kibi's test tooling and the rule that it includes, annotates and fails on every selected Prolog test file. It is coverage measurement for the core's Prolog tests, not the tests themselves.

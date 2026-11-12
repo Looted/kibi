@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The CLI command that summarizes the local diagnostic usage log, surfacing patterns such as repeated kb_upsert failures. It reads local events; it is not the remote telemetry channel.

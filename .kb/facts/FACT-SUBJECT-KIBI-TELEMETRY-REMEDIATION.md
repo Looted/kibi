@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-TELEMETRY-REMEDIATION
 type: fact
 ---
+
+The kibi usage-remediation report that lists every unmatched telemetry event and missing evidence as exact repairs, counting advisor and preflight evidence only within the same session and actor across CLI and MCP. It diagnoses; it does not change records.

@@ -10,3 +10,5 @@ origin:
 id: FACT-bootstrap-intent-claim-accounting-subject
 type: fact
 ---
+
+The bookkeeping a bootstrap plan keeps for intent claims: every declared claim is kept and accounted for per source, discovered candidates get their own budget, and suppressed candidates are summarized by reason. It covers counting and budgets, not how a claim is written.

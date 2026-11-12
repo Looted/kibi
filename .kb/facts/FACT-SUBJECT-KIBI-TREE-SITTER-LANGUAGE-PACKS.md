@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-TREE-SITTER-LANGUAGE-PACKS
 type: fact
 ---
+
+The per-language kibi-lang packs that install Tree-sitter grammars, verified by kibi-plugin-treesitter against SHA-256 hashes its release pins, with generated paths declared in package.json excluded. It is grammar distribution, not the reference readers.

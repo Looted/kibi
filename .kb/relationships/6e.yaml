@@ -127,7 +127,7 @@ relationships:
     id: rel-f6490067ca2e
   - type: constrains
     from: REQ-kb-entity-body-context-settings
-    to: FACT-kibi-entity-body-context-component
+    to: FACT-SUBJECT-KIBI-ENTITY-BODY-CONTEXT
     created_at: 2026-10-28T14:36:45.447Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert

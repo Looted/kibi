@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Kibi's onboarding flow for a project: kb_plan_bootstrap reads the repository and returns a deterministic, read-only, hash-bound plan of candidate entities, and only an approved plan is applied, in order, with a repair journal. Every host adapter routes to this one shared planner.

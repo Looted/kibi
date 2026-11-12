@@ -317,6 +317,26 @@ links:
     expect(call?.logic_claims).toEqual([numeric.claim_key, review.claim_key]);
     expect(call?.requires_property).toBe("kb:entity/FACT-QUOTA-POSITIVE");
 
+    // The reclassified clause names no subject yet; the migration suggests the
+    // quota subject its words match, and a person approves it by id.
+    const anchoring = planActions(ws);
+    const anchorId = `claim-subject-anchor-REQ-QUOTA-CALL-${review.claim_key}`;
+    expect(anchoring.actions.get(anchorId)).toMatchObject({
+      code: "claim_subject_anchor_suggest",
+      evidence: { subjects: ["client.call_quota"] },
+    });
+    ws.json([
+      "migrate",
+      "--apply-safe",
+      "--approved-plan-hash",
+      String(anchoring.plan.planHash),
+      "--approved-action",
+      anchorId,
+      "--format",
+      "json",
+    ]);
+    ws.sync();
+
     // The migrated KB checks clean.
     const check = ws.json(["check", "--format", "json"]);
     expect((check.structuredContent as Json).violations).toEqual([]);

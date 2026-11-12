@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-kb-layout-paths-component
 type: fact
 ---
-The kibi.kb_layout.paths component, as the structural requirements that name it constrain it.
+
+The KB root folder .kb and its derived folders (branches, recovery, proof/runs, briefs and migrations). It is the top-level layout, distinct from kibi.kb_layout.entity_paths, which covers the authored entity folders.

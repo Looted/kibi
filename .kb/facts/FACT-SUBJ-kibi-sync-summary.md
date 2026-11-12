@@ -11,3 +11,5 @@ origin:
 id: FACT-SUBJ-kibi-sync-summary
 type: fact
 ---
+
+The summary kibi sync prints after a run: entities imported from changed sources only, labelled as such, beside the total count of each entity type the KB holds afterwards. It is output, not the sync algorithm.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-migration-suggested-status-component
 type: fact
 ---
-The kibi.migration.suggested_status component, as the structural requirements that name it constrain it.
+
+The status kibi migrate suggests for each legacy requirement status word (accepted, proposed, draft, deprecated, superseded, rejected), for example accepted becoming open. It is the suggestion table, not the delivered-status rewrite.

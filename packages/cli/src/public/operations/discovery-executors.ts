@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { definitionQuote, readSubjectDomain, type SubjectDomain } from "./subject-domain.js";
 import path from "node:path";
 import {
   compilerFingerprintReason,
@@ -99,12 +100,14 @@ export type QueryNextCall = Readonly<{ call: string; why: string }>;
  * itself and the follow-up calls that make sense next.
  */
 export type FactQueryPayload = Readonly<{
-  mode: "predicate" | "property" | "schemas" | "fact_kind";
+  mode: "predicate" | "property" | "schemas" | "fact_kind" | "subject";
   predicate?: Record<string, unknown>;
   property?: Record<string, unknown>;
   factKind?: string;
   schema?: Record<string, unknown> | null;
   subjectFacts?: readonly string[];
+  /** mode subject: the subject's definition and everything that governs it. */
+  domain?: SubjectDomain;
   distinct?: Record<string, unknown> | null;
   suggestions?: Record<string, unknown> | null;
   warnings: readonly string[];
@@ -162,6 +165,7 @@ const MODE_FILTERS: Record<FactQueryPayload["mode"], ReadonlySet<string>> = {
   ]),
   property: new Set(["subjectKey", "propertyKey", "scope"]),
   fact_kind: new Set(["factKind"]),
+  subject: new Set(["factKind", "subjectKey"]),
 };
 
 const TYPED_FACT_FILTERS = [
@@ -609,6 +613,9 @@ async function executeFactQuery(
   ) {
     throw new Error("limit and offset must be non-negative numbers.");
   }
+  if (input.factKind === "subject" && input.subjectKey !== undefined) {
+    return executeSubjectDomainQuery(input, context, prolog);
+  }
   const page = `${Math.trunc(limit)}, ${Math.trunc(offset)}`;
   const namespace =
     input.namespace === undefined
@@ -722,6 +729,93 @@ async function executeFactQuery(
   return {
     content: [{ type: "text", text: lines.join("\n") }],
     structuredContent: { entities: rows, count, factQuery },
+  };
+}
+
+/**
+ * kb_query factKind subject + subjectKey: the domain view of one subject. Its
+ * definition, broader and narrower subjects, every current requirement about
+ * it (through constrains links, grounding facts or claim anchors), the claims
+ * on it and the scenarios that assume them.
+ */
+async function executeSubjectDomainQuery(
+  input: QueryInput,
+  context: OperationContext,
+  prolog: ReturnType<typeof requireProlog>,
+): Promise<OperationResult<QueryPayload>> {
+  const unused = TYPED_FACT_FILTERS.filter(
+    (key) => input[key] !== undefined && !MODE_FILTERS.subject.has(key),
+  );
+  if (unused.length > 0) {
+    throw new Error(
+      `${unused.join(", ")} do${unused.length === 1 ? "es" : ""} not apply to a subject question; allowed with it: factKind, subjectKey.`,
+    );
+  }
+  const subjectKey = requireAtomString(input.subjectKey, "subjectKey");
+  const domain = await readSubjectDomain(
+    prolog,
+    context.workspaceRoot,
+    subjectKey,
+  );
+  const warnings = domain.defined
+    ? domain.subjectFacts.some((fact) => fact.definition === "")
+      ? [
+          `Subject ${subjectKey} has no definition in its fact body; requirements that name it can mean different things by it.`,
+        ]
+      : []
+    : [
+        `No active subject fact defines ${subjectKey}. Define it (fact_kind subject) before claims or requirements name it.`,
+      ];
+  const next: QueryNextCall[] = [
+    ...domain.broader.map((key) => ({
+      call: callText({ factKind: "subject", subjectKey: key }),
+      why: "the broader subject's rules also apply here",
+    })),
+    ...(domain.claims.length > 0
+      ? [
+          {
+            call: callText({ subjectKey }),
+            why: "typed values of the property claims on this subject",
+          },
+        ]
+      : []),
+  ];
+  const factQuery: FactQueryPayload = {
+    mode: "subject",
+    subjectFacts: domain.subjectFacts.map((fact) => fact.id),
+    domain,
+    warnings,
+    next,
+  };
+  const definition = definitionQuote(domain);
+  const lines = [
+    domain.defined
+      ? `Subject ${subjectKey}${definition === "" ? "" : `: ${definition}`}`
+      : `Subject ${subjectKey} is not defined.`,
+    ...(domain.broader.length > 0
+      ? [`Broader: ${domain.broader.join(", ")}`]
+      : []),
+    ...(domain.narrower.length > 0
+      ? [`Narrower: ${domain.narrower.join(", ")}`]
+      : []),
+    ...(domain.distinctFrom.length > 0
+      ? [`Distinct from: ${domain.distinctFrom.join(", ")}`]
+      : []),
+    `${domain.requirements.length} current requirement(s) govern it${domain.requirements.length === 0 ? "." : `: ${domain.requirements.map((req) => `${req.id} (${req.title}; ${[...new Set(req.via.map((via) => `${via.link} ${via.subjectKey}`))].join(", ")})`).join("; ")}`}`,
+    `${domain.claims.length} claim(s), ${domain.scenarios.length} scenario(s) assuming them.`,
+    ...warnings.map((warning) => `Warning: ${warning}`),
+    ...next.map((entry) => `Next: ${entry.call} (${entry.why})`),
+  ];
+  const rows = domain.subjectFacts.map((fact) => ({
+    id: fact.id,
+    type: "fact",
+    title: fact.title,
+    subjectKey,
+    definition: fact.definition,
+  }));
+  return {
+    content: [{ type: "text", text: lines.join("\n") }],
+    structuredContent: { entities: rows, count: rows.length, factQuery },
   };
 }
 

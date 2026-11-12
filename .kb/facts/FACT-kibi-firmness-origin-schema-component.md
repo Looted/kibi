@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-firmness-origin-schema-component
 type: fact
 ---
-The kibi.firmness.origin_schema component, as the structural requirements that name it constrain it.
+
+The KB schema version, 10, from which decision firmness is read from an entity's origin record. It is a single version boundary, not the firmness rules.

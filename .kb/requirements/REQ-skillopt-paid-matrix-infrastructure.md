@@ -26,6 +26,9 @@ semantic_inventory:
     claim_text: Repository proof runs execute these paths only through fixture-level integration contracts with deterministic-test-fixture signatures (signatureProvenance deterministic-test-fixture and externallySigned false), because the full paths require paid model launches, root-installed verifier infrastructure, and supervisor parent processes
     role: normative
     status: ontology_gap
+    subjects:
+      - skillopt.paid_launch.fixture_signer
+      - kibi.skillopt.paid_launch
     span:
       start: 219
       end: 553

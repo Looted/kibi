@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-engine-protocol-component
 type: fact
 ---
-The kibi.engine.protocol component, as the structural requirements that name it constrain it.
+
+The protocol between Kibi clients and the Prolog engine daemon: protocol version 1 and an idle timeout of 600000 milliseconds after which the daemon stops. It is the wire contract, not the queries.

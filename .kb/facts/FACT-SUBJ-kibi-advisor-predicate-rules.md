@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-advisor-predicate-rules
 type: fact
 ---
+
+The semantic advisor's suggestions of predicate facts for requirement sentences that match a core, policy or product predicate rule. It covers predicate suggestions only, not suggestions of property or count facts.

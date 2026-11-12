@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The signers of fixtures used in paid SkillOpt launches, whose signatures must declare deterministic, non-external provenance so the launch's trust and ledger accounting hold. They sign test fixtures, not production releases.

@@ -11,3 +11,5 @@ origin:
 id: FACT-SUBJ-kibi-contradiction-review
 type: fact
 ---
+
+The current requirements that the contradiction check could not compare with newly declared intent because they are prose only, named for review instead of being counted as no conflict. It is the list of uncompared requirements, not the verdict on any pair.

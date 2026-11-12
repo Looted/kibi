@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The kibi check --staged pre-commit check: it inventories every path in the git index, requires Kibi impact evidence for behavior edits and blocks consistency violations the commit introduces. It looks at the commit, not the whole KB.

@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eddf032ab87c
+  - type: assumes
+    from: SCEN-NEG-kb-domain-subject-layer-DOMAIN-VIEW-INCOMPLETE
+    to: FACT-NEG-kb-domain-subject-layer-DOMAIN-VIEW-INCOMPLETE
+    created_at: 2026-11-12T18:44:42.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b728e5d94982
+  - type: verified_by
+    from: SCEN-NEG-kb-domain-subject-layer-DOMAIN-VIEW-INCOMPLETE
+    to: TEST-kb-domain-subject-layer
+    created_at: 2026-11-12T18:44:42.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c96a712133ab

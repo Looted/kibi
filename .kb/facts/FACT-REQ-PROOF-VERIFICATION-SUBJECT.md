@@ -18,5 +18,4 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
-Subject anchor for contracted end-to-end verification evidence.
-
+How proof-bearing tests are bound to stable proof obligations: each obligation has a stable symbol identity, executable test symbols connect to it, and only fresh matching receipts count, while retries, skips, failures and mismatched fingerprints stay non-proof. It is the binding, not receipt storage.

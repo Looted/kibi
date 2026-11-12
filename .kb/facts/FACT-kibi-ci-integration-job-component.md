@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-ci-integration-job-component
 type: fact
 ---
-Kibi CI integration job, named kibi.ci.integration_job in the structural requirements that constrain it.
+
+The ci-integration job in Kibi's own CI workflow, which runs against the system SWI-Prolog by setting KIBI_SWIPL to system. It is a job in this repository's CI, not a consumer setting.

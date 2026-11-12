@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-UPSERT-FIELD-GUIDANCE
 type: fact
 ---
+
+The kb_upsert validation errors that name every unknown entity property and say where prose belongs instead, such as the document body. It is error wording for field mistakes, not the schema itself.
