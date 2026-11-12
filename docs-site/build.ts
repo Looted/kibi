@@ -504,6 +504,27 @@ function readSource(spec: DocSpec): string {
   return readFileSync(file, "utf8");
 }
 
+/**
+ * Publishes the link-preview image at the site root. Pages declare its size in
+ * og:image:width/height, so the build fails when the committed PNG does not
+ * have exactly that size (for example after a 2x re-render).
+ */
+function copyLinkPreviewImage(): void {
+  const source = path.join(REPO_ROOT, OG_IMAGE.source);
+  const png = readFileSync(source);
+  const isPng = png.subarray(1, 4).toString("latin1") === "PNG";
+  const width = isPng ? png.readUInt32BE(16) : 0;
+  const height = isPng ? png.readUInt32BE(20) : 0;
+  if (width !== OG_IMAGE.width || height !== OG_IMAGE.height) {
+    console.error(
+      `Link-preview image ${OG_IMAGE.source} must be a ${OG_IMAGE.width}x${OG_IMAGE.height} PNG; found ${isPng ? `${width}x${height}` : "a non-PNG file"}.`,
+    );
+    rmSync(outDir, { recursive: true, force: true });
+    process.exit(1);
+  }
+  copyFileSync(source, path.join(outDir, OG_IMAGE.path));
+}
+
 function main(): void {
   for (const spec of DOCS) readSource(spec);
 
@@ -561,10 +582,7 @@ function main(): void {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(path.join(outDir, "index.html"), layout(landing));
   writeFileSync(path.join(outDir, "search-index.js"), searchIndexJson);
-  copyFileSync(
-    path.join(REPO_ROOT, OG_IMAGE.source),
-    path.join(outDir, OG_IMAGE.path),
-  );
+  copyLinkPreviewImage();
   written.push("index.html", "search-index.js", OG_IMAGE.path);
 
   for (const page of pages.values()) {

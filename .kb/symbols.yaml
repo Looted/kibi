@@ -39630,3 +39630,16 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-link-preview
+  - id: SYM-docs-site-build-copyLinkPreviewImage
+    title: copyLinkPreviewImage
+    status: active
+    sourceFile: docs-site/build.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:33:33.061Z
+    relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
+      - type: implements
+        target: REQ-docs-site-link-preview

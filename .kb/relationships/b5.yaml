@@ -454,3 +454,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-edf749ce22e8
+  - type: specified_by
+    from: REQ-docs-site-link-preview
+    to: SCEN-NEG-docs-site-link-preview-WRONG-IMAGE-SIZE
+    created_at: 2026-11-12T18:33:30.266Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7b3aa1e6f2a

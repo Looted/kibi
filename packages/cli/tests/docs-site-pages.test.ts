@@ -181,6 +181,28 @@ describe("documentation site pages", () => {
     } finally {
       rmSync(out, { recursive: true, force: true });
     }
+
+    // A preview image of another size would contradict the declared
+    // og:image dimensions, so the build refuses it.
+    const image = path.join(repoRoot, "assets/og-image.png");
+    const original = readFileSync(image);
+    const resized = Buffer.from(original);
+    resized.writeUInt32BE(2400, 16);
+    resized.writeUInt32BE(1260, 20);
+    const refusedOut = mkdtempSync(
+      path.join(tmpdir(), "kibi-docs-site-preview-size-"),
+    );
+    try {
+      writeFileSync(image, resized);
+      const refused = runDocsSite(refusedOut);
+      expect(refused.status).toBe(1);
+      expect(refused.stderr).toContain(
+        "Link-preview image assets/og-image.png must be a 1200x630 PNG; found 2400x1260.",
+      );
+    } finally {
+      writeFileSync(image, original);
+      rmSync(refusedOut, { recursive: true, force: true });
+    }
   });
 
   test("builds without analytics by default and loads Umami scoped to the published host when given a website ID", () => {

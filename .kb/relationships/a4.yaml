@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ea3c23fe313
+  - type: implements
+    from: SYM-docs-site-build-copyLinkPreviewImage
+    to: REQ-docs-site-link-preview
+    created_at: 2026-11-12T18:33:33.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36aa07126bb3
+  - type: covered_by
+    from: SYM-docs-site-build-copyLinkPreviewImage
+    to: TEST-docs-site-pages
+    created_at: 2026-11-12T18:33:33.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57e9a2b334a2
