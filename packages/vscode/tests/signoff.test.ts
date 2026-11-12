@@ -97,7 +97,6 @@ afterAll(() => {
 });
 
 describe("requirements signoff view", () => {
-  // implements REQ-kibi-signoff-views
   test("announces open decisions and summaries, not answered questions", () => {
     expect(
       signoffAnnouncement(

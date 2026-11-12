@@ -339,3 +339,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a91dd0475b70
+  - type: validates
+    from: TEST-traceability-manifest-only-links
+    to: SCEN-traceability-manifest-only-links
+    created_at: 2026-11-11T05:47:30.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-926d0e8279a7

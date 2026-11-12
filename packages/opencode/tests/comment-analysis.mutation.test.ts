@@ -1,5 +1,4 @@
 /// <reference types="bun-types" />
-// implements REQ-opencode-comment-routing
 import { afterAll, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";

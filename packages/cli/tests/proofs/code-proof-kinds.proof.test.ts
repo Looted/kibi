@@ -26,8 +26,6 @@ import {
 } from "../../src/public/proof-protocol.js";
 import { prologCases } from "./prolog-cases.js";
 
-// implements REQ-kibi-code-proof-kinds
-
 const TEST_ID = "TEST-KIND";
 const SHA = "a".repeat(64);
 const z3Available =

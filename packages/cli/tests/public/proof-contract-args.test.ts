@@ -1,4 +1,3 @@
-// implements REQ-kibi-multilingual-code-proofs
 import { describe, expect, test } from "bun:test";
 import {
   optionalProofContractFields,

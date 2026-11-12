@@ -11,8 +11,6 @@
 //   5. Invokes the system.transform hook to get the injected prompt
 //   6. Asserts the prompt contains specific FACT/ADR/REQ routing guidance
 //
-// implements REQ-opencode-comment-routing
-// implements TEST-opencode-python-comment-routing
 
 import assert from "node:assert";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
@@ -511,7 +509,6 @@ class Account:
         },
       );
 
-      // implements REQ-opencode-file-context-guidance-v1
       it(
         "shows file-context guidance once per path in a session",
         { timeout: 60000 },

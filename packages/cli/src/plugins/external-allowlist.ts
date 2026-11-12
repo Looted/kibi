@@ -4,19 +4,16 @@
  * proof / doctor / coverage / suggest-predicates must never import a
  * third-party plugin module — allowlisting the classifier call is not enough.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
 export const EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS = [
   "kb_semantic_advisor",
   "kb_compile_intent",
 ] as const;
 
-// implements REQ-capability-plugin-activation-disclosure-v1
 export type ExternalSemanticClassifierOperation =
   (typeof EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS)[number];
 
 const ALLOWED = new Set<string>(EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS);
 
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function allowsExternalSemanticClassifier(
   operationName: string,
 ): boolean {
@@ -28,12 +25,10 @@ export function allowsExternalSemanticClassifier(
  * kb_check and every other operation stay builtin-only: vocabulary alignment is
  * modeling-time advice and never participates in pass/fail checks.
  */
-// implements REQ-kibi-vocabulary-alignment-capability
 export const EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS = [
   "kb_model_requirement",
 ] as const;
 
-// implements REQ-kibi-vocabulary-alignment-capability
 export function allowsExternalVocabularyAlignment(
   operationName: string,
 ): boolean {
@@ -47,10 +42,8 @@ export function allowsExternalVocabularyAlignment(
  * advice next to a search answer; checks, proofs and every write stay
  * builtin-only.
  */
-// implements REQ-kibi-search-hints-host
 export const EXTERNAL_SEARCH_HINTS_OPERATIONS = ["kb_search"] as const;
 
-// implements REQ-kibi-search-hints-host
 export function allowsExternalSearchHints(operationName: string): boolean {
   return (EXTERNAL_SEARCH_HINTS_OPERATIONS as readonly string[]).includes(
     operationName,

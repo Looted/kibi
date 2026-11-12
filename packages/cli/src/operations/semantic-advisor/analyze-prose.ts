@@ -63,7 +63,6 @@ export function stringLogicClaims(value: unknown): string[] {
     : [];
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 function proseOf(payload: Payload): string {
   const properties = propertiesOf(payload);
   // text_ref is the prose only while semantic_text is unset (the ingestion
@@ -102,8 +101,6 @@ const GROUNDING_TYPES = [
  * With no assertive claim there is no grounding to count, so the type check
  * below fails and nothing is reported as modeled.
  */
-// implements REQ-kibi-logical-requirement-coverage
-// implements REQ-skillopt-logical-evidence-fidelity
 function isModeled(
   payload: Payload,
   expectedClaimKeys: readonly string[],
@@ -315,7 +312,6 @@ function ruleSuggestion(
   };
 }
 
-// implements REQ-kibi-truthful-consistency
 // "X may happen only when C" and "X must not happen unless C" are conditional
 // requirements: they restrict an action, not a property of every situation.
 // Route them to the rule lane as a typed forbid-unless rule, so scenario
@@ -338,7 +334,6 @@ function conditionalRuleSuggestion(
   );
 }
 
-// implements REQ-kibi-truthful-consistency
 // A conditional clause that is neither a translatable rule nor a catalog
 // predicate stays an ontology gap (unresolved), never a strict property or an
 // observation that looks modeled: the strict lane would drop the condition.
@@ -865,7 +860,6 @@ function interpretationResults(
   return { results, warnings };
 }
 
-// implements REQ-kibi-dimension-gap
 /**
  * The first quantifier over a collection or cardinality bound in a clause,
  * and the typed groundings that represent it. The proof ladder's

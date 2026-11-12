@@ -68,6 +68,33 @@ export function classifyDiagnosticError(error: unknown): DiagnosticErrorFields {
   const err = error instanceof Error ? error : new Error(String(error));
   const lower = err.message.toLowerCase();
 
+  // The engine could not start or be reached. These come first: the daemon's
+  // own diagnostic, quoted in the message, can name any other failure.
+  if (lower.includes("could not find a usable swi-prolog"))
+    return buildErrorFields(
+      err,
+      "swipl_not_found",
+      "prolog_lifecycle",
+      "No usable SWI-Prolog was found; install one or set KIBI_SWIPL, then restart the MCP server.",
+    );
+  if (lower.startsWith("kibi engine failed to start"))
+    return buildErrorFields(
+      err,
+      "engine_start_failed",
+      "engine_lifecycle",
+      "The Kibi engine daemon failed to start; run kibi doctor for the cause.",
+    );
+  if (
+    lower.startsWith("unable to connect to kibi engine") ||
+    (lower.startsWith("kibi engine exited") &&
+      lower.includes("before it accepted connections"))
+  )
+    return buildErrorFields(
+      err,
+      "engine_connect_timeout",
+      "engine_lifecycle",
+      "The Kibi engine daemon did not accept connections; run kibi engine stop and retry.",
+    );
   if (lower.includes("stale_snapshot"))
     return buildErrorFields(
       err,

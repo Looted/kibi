@@ -26,76 +26,55 @@ import type { MigrationAction } from "./migration-plan.js";
  * action, and findings that share a fix collapse into one action.
  */
 
-// implements REQ-cli-schema-migration, REQ-kibi-schema6-migration
 export type MigrationActionInput = Partial<MigrationAction> &
   Pick<MigrationAction, "id" | "code">;
 
 /** Review: an exception that exempts nothing until a human approves it. */
-// implements REQ-kibi-entity-origin, REQ-kibi-schema6-migration
 export const EXCEPTION_UNAPPROVED_REVIEW_CODE = "review_exception_unapproved";
 /** Review: an agent-recorded exception approval nobody corroborated. */
-// implements REQ-kibi-entity-origin, REQ-kibi-schema6-migration
 export const EXCEPTION_SELF_ATTESTED_REVIEW_CODE =
   "review_exception_approval_self_attested";
 /** Review: a predicate whose missing key_arguments leave rule pairs open. */
-// implements REQ-kibi-schema6-migration
 export const PREDICATE_KEY_ARGUMENTS_REVIEW_CODE =
   "review_predicate_key_arguments";
 /** Review: a success scenario whose feasibility cannot be decided. */
-// implements REQ-kibi-schema6-migration
 export const SCENARIO_FEASIBILITY_REVIEW_CODE =
   "review_scenario_feasibility_unknown";
 /** Review: agent-authored requirements no human has approved (one action). */
-// implements REQ-kibi-entity-origin, REQ-kibi-schema6-migration
 export const AGENT_REQUIREMENTS_REVIEW_CODE =
   "review_agent_requirements_unapproved";
-// implements REQ-kibi-entity-origin, REQ-kibi-schema6-migration
 export const AGENT_REQUIREMENTS_REVIEW_ACTION_ID =
   "review-agent-requirements-unapproved";
 
 /** Automatic: close superseded requirements that are not closed. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export const CLOSE_SUPERSEDED_REQUIREMENTS_CODE =
   "close_superseded_requirements";
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export const CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID =
   "close-superseded-requirements";
 /** Review: requirements that supersede each other (no automatic fix). */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export const SUPERSESSION_CYCLE_REVIEW_CODE = "review_supersession_cycle";
 /**
  * Automatic: repair redundant or dead authored `source` values. A moved
  * knowledge file is rewritten to its `.kb/` path; a value naming the
  * entity's own file or nothing Kibi can map is removed.
  */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export const SOURCE_PATH_REWRITE_CODE = "source_path_rewrite";
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export const SOURCE_PATH_REWRITE_ACTION_ID = "source-path-rewrite";
 /** Review: a source value Kibi cannot edit safely (the automatic fix's fallback). */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export const SOURCE_PATH_REVIEW_CODE = "review_source_path_dangling";
 /** Review: symbols whose every owning requirement is retired (one queue). */
-// implements REQ-kibi-schema6-migration
 export const SYMBOL_OWNER_REVIEW_CODE = "review_symbol_owner_superseded";
-// implements REQ-kibi-schema6-migration
 export const SYMBOL_OWNER_REVIEW_ACTION_ID = "review-symbol-owner-superseded";
 /** Review: an accepted ADR nothing links to. */
-// implements REQ-kibi-schema6-migration
 export const ADR_UNLINKED_REVIEW_CODE = "review_adr_unlinked";
 /** Review: an ADR still proposed. */
-// implements REQ-kibi-schema6-migration
 export const ADR_PROPOSED_REVIEW_CODE = "review_adr_proposed";
 /** Review: human- or agent-authored requirements with no rationale (one queue). */
-// implements REQ-kibi-schema6-migration
 export const RATIONALE_REVIEW_CODE = "review_requirement_rationale_missing";
-// implements REQ-kibi-schema6-migration
 export const RATIONALE_REVIEW_ACTION_ID =
   "review-requirement-rationale-missing";
 /** Automatic: recompile sources rewritten by earlier migration actions. */
-// implements REQ-cli-schema-migration, REQ-kibi-schema6-migration
 export const MIGRATION_SYNC_CODE = "migration_sync";
-// implements REQ-cli-schema-migration, REQ-kibi-schema6-migration
 export const MIGRATION_SYNC_ACTION_ID = "migration-sync";
 
 const MIGRATE_YES = {
@@ -103,7 +82,6 @@ const MIGRATE_YES = {
   command_argv: ["kibi", "migrate", "--yes"],
 } as const;
 
-// implements REQ-kibi-entity-origin, REQ-kibi-schema6-migration
 export function exceptionUnapprovedActionId(exceptionId: string): string {
   return `review-exception-unapproved-${exceptionId}`;
 }
@@ -113,7 +91,6 @@ function stableIdPart(value: string): string {
 }
 
 /** The sync that recompiles sources rewritten by earlier actions. */
-// implements REQ-cli-schema-migration, REQ-kibi-schema6-migration
 export function migrationSyncActionInput(
   dependsOn: readonly string[],
 ): MigrationActionInput {
@@ -134,7 +111,6 @@ export function migrationSyncActionInput(
   };
 }
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SupersededClosureInput = Readonly<{
   id: string;
   path?: string;
@@ -143,7 +119,6 @@ export type SupersededClosureInput = Readonly<{
 }>;
 
 /** One automatic action that closes every listed superseded requirement. */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function closeSupersededRequirementsActionInput(
   closures: readonly SupersededClosureInput[],
 ): MigrationActionInput {
@@ -176,7 +151,6 @@ export function closeSupersededRequirementsActionInput(
 }
 
 /** Review: requirements that supersede each other; a person picks the current one. */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function supersessionCycleReviewActionInput(cycle: {
   members: readonly string[];
   edges: readonly (readonly [string, string])[];
@@ -204,7 +178,6 @@ export function supersessionCycleReviewActionInput(cycle: {
   };
 }
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRewriteInput = Readonly<{
   entityId: string;
   file: string;
@@ -214,7 +187,6 @@ export type SourcePathRewriteInput = Readonly<{
   to: string;
 }>;
 
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export type SourcePathRemovalInput = Readonly<{
   entityId: string;
   file: string;
@@ -237,7 +209,6 @@ function byEntityThenFile(
  * One automatic action that rewrites every listed moved source and removes
  * every listed redundant or dead one.
  */
-// implements REQ-kibi-schema6-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function sourcePathRewriteActionInput(
   input: Readonly<{
     rewrites: readonly SourcePathRewriteInput[];
@@ -274,7 +245,6 @@ export function sourcePathRewriteActionInput(
  * Review: a source value Kibi would rewrite or remove but cannot edit
  * safely (it spans several lines, or the edit would change other fields).
  */
-// implements REQ-kibi-schema6-migration, REQ-core-validation-rules, REQ-kibi-kb-lifecycle-integrity
 export function sourcePathReviewActionInput(source: {
   entityId: string;
   /** The field to repair; absent means `source`. */
@@ -350,7 +320,6 @@ type Violation = Readonly<Record<string, unknown>>;
  * only for a value Kibi cannot edit safely), plus the sync that recompiles
  * what they rewrite.
  */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export function lifecycleActionsFromViolations(
   violations: readonly Violation[],
 ): { actions: MigrationActionInput[]; consumed: ReadonlySet<number> } {
@@ -447,7 +416,6 @@ export function lifecycleActionsFromViolations(
 }
 
 /** Action codes `kibi migrate` plans itself from authored sources. */
-// implements REQ-kibi-schema6-migration, REQ-kibi-kb-lifecycle-integrity
 export const SOURCE_PLANNED_LIFECYCLE_CODES: ReadonlySet<string> = new Set([
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
   SUPERSESSION_CYCLE_REVIEW_CODE,
@@ -457,7 +425,6 @@ export const SOURCE_PLANNED_LIFECYCLE_CODES: ReadonlySet<string> = new Set([
 ]);
 
 /** Exception review shared by the source scan and the exception-unapproved rule. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function exceptionUnapprovedActionInput(input: {
   exceptionId: string;
   exempts: readonly string[];
@@ -514,7 +481,6 @@ const PREDICATE_SIGNATURE =
  * Map the schema 6 review findings of one check to stable review actions.
  * Returns the actions and the indexes of the diagnostics they replace.
  */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-schema6-migration
 export function schema6ReviewActionsFromCheck(
   diagnostics: readonly Diagnostic[],
 ): { actions: MigrationActionInput[]; consumed: ReadonlySet<number> } {
@@ -690,7 +656,7 @@ export function schema6ReviewActionsFromCheck(
       safety: "review",
       invocation: {
         kind: "review",
-        instruction: `${total} symbol(s) implement only superseded or deprecated requirements${total > listed.length ? `; these ${listed.length} come first` : ""}: ${listed.join(", ")}. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page.`,
+        instruction: `${total} symbol(s) implement only superseded, deprecated or retired requirements${total > listed.length ? `; these ${listed.length} come first` : ""}: ${listed.join(", ")}. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page.`,
       },
       affectedEntityIds: listed,
       affectedFiles: [...new Set(symbolOwners.files)].sort(),

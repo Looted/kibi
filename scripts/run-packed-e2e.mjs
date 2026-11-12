@@ -109,7 +109,6 @@ export async function runPackedE2E(options = {}) {
 
     // Prepare before Node creates isolated test-file workers so every worker
     // inherits the same immutable consumer prefix and tarball source.
-    // implements REQ-test-journaled-engine-harness
     const childArguments = [
       "--test",
       "--test-concurrency=1",

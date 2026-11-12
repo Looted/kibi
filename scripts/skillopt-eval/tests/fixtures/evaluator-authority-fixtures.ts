@@ -1,14 +1,12 @@
 import type { PredicateCaseSnapshot } from "../../contracts/evidence";
 import { parsePrivateEvaluatorManifest } from "../../fixtures/private";
 
-// implements REQ-skillopt-predicate-first-requirements
 export const evaluatorRoots = {
   publicManifestHash: "a".repeat(64),
   workspaceHash: "b".repeat(64),
   fixtureSeedHash: "c".repeat(64),
 } as const;
 
-// implements REQ-skillopt-predicate-first-requirements
 export function evaluatorManifest(
   expectedLane: "predicate" | "ontology_gap_observation",
 ) {
@@ -115,7 +113,6 @@ export function evaluatorManifest(
   );
 }
 
-// implements REQ-skillopt-predicate-first-requirements
 export function evaluatorEvidence(snapshot: unknown) {
   return {
     finalState: {
@@ -139,7 +136,6 @@ export function evaluatorEvidence(snapshot: unknown) {
   };
 }
 
-// implements REQ-skillopt-predicate-first-requirements
 export function predicateSnapshot(
   overrides: Partial<PredicateCaseSnapshot> = {},
 ): PredicateCaseSnapshot {

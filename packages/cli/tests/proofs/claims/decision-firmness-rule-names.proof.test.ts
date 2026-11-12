@@ -11,8 +11,6 @@ import {
   SUPERSEDES_REASON_MISSING_RULE,
 } from "../../../../cli/src/public/operations/decision-firmness.js";
 
-// implements REQ-kb-decision-firmness-rule-names
-
 /**
  * The names kibi check reports decision firmness findings under. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

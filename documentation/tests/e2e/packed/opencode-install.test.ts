@@ -9,7 +9,6 @@
 // This is hermetic (no network, no LLM provider, no opencode binary required) and
 // mirrors what OpenCode does internally when it auto-installs a plugin from opencode.json.
 //
-// implements REQ-opencode-kibi-plugin-v1
 
 import assert from "node:assert";
 import { existsSync, readFileSync, rmSync } from "node:fs";

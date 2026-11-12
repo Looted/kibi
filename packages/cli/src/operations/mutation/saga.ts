@@ -27,7 +27,6 @@
  * list backwards exactly once.
  */
 
-// implements REQ-014
 export type SagaStep = Readonly<{
   /** Stable identifier used in rollback diagnostics. */
   name: string;
@@ -45,14 +44,12 @@ export type SagaStep = Readonly<{
   onError?: "swallow" | "capture";
 }>;
 
-// implements REQ-014
 export type SagaRollbackFailure = Readonly<{
   step: string;
   error: unknown;
 }>;
 
 /** A mutation failed before commit and at least one compensation also failed. */
-// implements REQ-014
 export class MutationRollbackFailureError extends AggregateError {
   constructor(
     errors: readonly unknown[],
@@ -64,7 +61,6 @@ export class MutationRollbackFailureError extends AggregateError {
   }
 }
 
-// implements REQ-014
 export class MutationSaga {
   // rationale: rollback() swallows the TypeError a non-step entry throws, so
   // a seeded initial entry is unobservable.
@@ -74,7 +70,6 @@ export class MutationSaga {
   private committedAt: number | null = null;
 
   /** Register a completed step. Call only after the step fully succeeded. */
-  // implements REQ-014
   add(step: SagaStep): void {
     this.steps.push(step);
   }
@@ -84,12 +79,10 @@ export class MutationSaga {
    * compiled KB holds the change and post-commit failures surface as
    * committed-with-repairs results instead of undoing committed state.
    */
-  // implements REQ-014
   markCommitted(): void {
     this.committedAt = this.steps.length;
   }
 
-  // implements REQ-014
   get committed(): boolean {
     return this.committedAt !== null;
   }
@@ -99,7 +92,6 @@ export class MutationSaga {
    * errors never throw; capture-policy failures are returned so the caller
    * can decide whether to aggregate them into the propagated error.
    */
-  // implements REQ-014
   async rollback(): Promise<readonly SagaRollbackFailure[]> {
     if (this.rollbackCompleted || this.committedAt !== null) return [];
     this.rollbackCompleted = true;

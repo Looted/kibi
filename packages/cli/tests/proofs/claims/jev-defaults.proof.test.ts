@@ -7,8 +7,6 @@ import {
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
 
-// implements REQ-capability-plugin-jev-defaults
-
 /**
  * The Jev plugin's defaults. Kibi reads JEV_DEFAULT_MODEL (pattern_source)
  * and JEV_MAX_TIMEOUT_MS (value_source) from the plugin source at ingest, so

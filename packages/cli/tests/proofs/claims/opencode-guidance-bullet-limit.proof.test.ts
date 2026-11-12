@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { MAX_BULLETS } from "../../../../opencode/src/prompt.js";
 
-// implements REQ-opencode-guidance-bullet-limit
-
 /**
  * How many bullets one OpenCode Kibi guidance block holds. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

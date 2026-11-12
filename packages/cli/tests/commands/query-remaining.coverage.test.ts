@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as discovery from "../../src/commands/discovery-shared.js";
 import { queryCommand } from "../../src/commands/query.js";

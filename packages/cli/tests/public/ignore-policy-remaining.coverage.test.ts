@@ -1,4 +1,3 @@
-// implements REQ-cli-canonical-runtime
 import { afterEach, describe, expect, test } from "bun:test";
 import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";

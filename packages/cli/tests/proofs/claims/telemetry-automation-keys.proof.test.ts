@@ -11,8 +11,6 @@ import {
   TEST_ENV_KEYS,
 } from "../../../../agent-core/src/usage-telemetry.js";
 
-// implements REQ-kibi-telemetry-automation-keys
-
 /**
  * Where anonymous usage statistics go by default, and the environment variables that mark a run as automated so it stays silent. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

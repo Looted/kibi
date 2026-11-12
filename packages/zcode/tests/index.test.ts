@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 import { expect, test } from "bun:test";
 
 import zcodePlugin, { adapterKind, packageName } from "../src/index";

@@ -1,4 +1,3 @@
-// implements REQ-skillopt-predicate-first-requirements
 import { afterEach, describe, expect, test } from "bun:test";
 import { rmSync } from "node:fs";
 import {

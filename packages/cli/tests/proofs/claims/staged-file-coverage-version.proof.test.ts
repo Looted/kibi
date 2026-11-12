@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { STAGED_FILE_COVERAGE_RESULT_VERSION } from "../../../src/traceability/staged-file-coverage.js";
 
-// implements REQ-staged-file-coverage-version
-
 /**
  * The version of the staged file coverage result. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

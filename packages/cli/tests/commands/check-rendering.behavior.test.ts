@@ -456,7 +456,6 @@ Body.
     );
   });
 
-  // implements REQ-impact-policy-stage-e-content-bound-review
   test.each([
     { label: "overlaps", startLine: 2, endLine: 2, reviews: true },
     { label: "does not overlap", startLine: 9, endLine: 12, reviews: false },
@@ -548,7 +547,6 @@ Body.
     },
   );
 
-  // implements REQ-impact-policy-stage-e-content-bound-review
   test("without an impact policy, a non-local after-side gap still fails the staged validation", async () => {
     const cwd = prepareWorkspace();
     const entry = stagedPath({
@@ -613,7 +611,6 @@ Body.
     ).toContain("Source analysis partial for src/broken.py: bad syntax");
   });
 
-  // implements REQ-cli-staged-impact-enforcement
   test("checks an edit inside a placed declaration of a partially analyzed file against that symbol", async () => {
     const cwd = prepareWorkspace();
     const entry = stagedPath({
@@ -709,7 +706,6 @@ Body.
     expect(messages).not.toContain("Partial source analysis");
   });
 
-  // implements REQ-impact-policy-stage-e-content-bound-review
   test("does not block a staged fix because the committed side analyzes as partial", async () => {
     const cwd = prepareWorkspace();
     const entry = stagedPath({

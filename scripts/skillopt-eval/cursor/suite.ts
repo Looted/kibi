@@ -45,7 +45,6 @@ export type CursorGateInput = Readonly<{
   timeoutMs?: number;
 }>;
 
-// implements REQ-skillopt-cursor-compat
 export function summarizeCursorCells(
   cells: readonly CursorCellReceipt[],
 ): readonly CursorVariantSummary[] {
@@ -75,7 +74,6 @@ export function summarizeCursorCells(
   });
 }
 
-// implements REQ-skillopt-cursor-compat
 export function evaluateCursorVerdict(input: {
   phase: "development" | "held-out";
   qualification: CursorQualificationReceipt;
@@ -172,7 +170,6 @@ function variantsForPhase(
   return candidates.filter((candidate) => candidate.variant === "skillopt");
 }
 
-// implements REQ-skillopt-cursor-compat
 export async function runCursorCompatibilityGate(
   input: CursorGateInput,
 ): Promise<CursorCompatibilityReport> {

@@ -11,8 +11,6 @@ import {
   IMPACT_REVIEW_VERSION,
 } from "../../../src/traceability/impact-review.js";
 
-// implements REQ-impact-review-identifiers
-
 /**
  * The versions and policy file path of a content-bound impact review. Kibi reads
  * every constant itself at ingest, so the certificate is checked against the code.

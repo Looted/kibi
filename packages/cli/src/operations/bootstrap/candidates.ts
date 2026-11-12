@@ -69,7 +69,6 @@ function typedCandidates(
  * `bootstrap:provenance-stub` instead of an observation that search, gap and
  * coverage reports would otherwise read as knowledge.
  */
-// implements REQ-bootstrap-provenance-stubs
 export function providerClaim(item: BootstrapEvidence): string | undefined {
   const claim =
     typeof item.data.claim === "string" ? item.data.claim.trim() : "";
@@ -77,7 +76,6 @@ export function providerClaim(item: BootstrapEvidence): string | undefined {
 }
 
 /** Whether a planned candidate writes a provenance stub. */
-// implements REQ-bootstrap-provenance-stubs
 export function isProvenanceStubCandidate(candidate: Candidate): boolean {
   return candidate.applyPlan.some((payload) => {
     // Scalar properties have no tags field, so only null needs care.
@@ -87,7 +85,6 @@ export function isProvenanceStubCandidate(candidate: Candidate): boolean {
   });
 }
 
-// implements REQ-bootstrap-provenance-stubs
 function providerCandidate(
   item: BootstrapEvidence,
   existingIds: ReadonlySet<string>,
@@ -163,8 +160,6 @@ function providerCandidate(
   ];
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-operation-interface-parity
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function buildBootstrapCandidates(
   evidence: readonly BootstrapEvidence[],
   existingIds: ReadonlySet<string>,

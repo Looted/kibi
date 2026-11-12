@@ -8,7 +8,6 @@ import {
   boundedContractSchema,
 } from "./common";
 
-// implements REQ-skillopt-codex-optimization
 export const EvidenceEnvelopeSchema = z
   .object({
     sequence: z.int().nonnegative(),
@@ -25,7 +24,6 @@ const EvidenceRootsSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-predicate-first-requirements
 export const EvidenceBindingSchema = z
   .object({
     caseId: z.string().min(1),
@@ -90,7 +88,6 @@ const FinalStateRelationshipSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-predicate-first-requirements
 export const PredicateCaseSnapshotSchema = z
   .object({
     binding: EvidenceBindingSchema,
@@ -101,14 +98,11 @@ export const PredicateCaseSnapshotSchema = z
   })
   .strict();
 
-// implements REQ-skillopt-predicate-first-requirements
 export type EvidenceBinding = Readonly<z.infer<typeof EvidenceBindingSchema>>;
-// implements REQ-skillopt-predicate-first-requirements
 export type PredicateCaseSnapshot = Readonly<
   z.infer<typeof PredicateCaseSnapshotSchema>
 >;
 
-// implements REQ-skillopt-predicate-first-requirements
 export class EvidenceBindingError extends Error {
   readonly name = "EvidenceBindingError";
 
@@ -124,7 +118,6 @@ export class EvidenceBindingError extends Error {
   }
 }
 
-// implements REQ-skillopt-predicate-first-requirements
 export function decodePredicateCaseSnapshot(
   value: unknown,
   expected: EvidenceBinding,
@@ -150,7 +143,6 @@ export function decodePredicateCaseSnapshot(
   return parsed.data;
 }
 
-// implements REQ-skillopt-codex-optimization
 export const EvidenceIndexSchema = boundedContractSchema(
   z
     .object({
@@ -177,5 +169,4 @@ export const EvidenceIndexSchema = boundedContractSchema(
     }),
 );
 
-// implements REQ-skillopt-codex-optimization
 export type EvidenceIndex = Readonly<z.infer<typeof EvidenceIndexSchema>>;

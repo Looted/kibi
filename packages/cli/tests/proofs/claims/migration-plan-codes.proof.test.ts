@@ -11,8 +11,6 @@ import {
   UNTRACKED_KNOWLEDGE_SOURCES_CODE,
 } from "../../../src/public/operations/migration-plan.js";
 
-// implements REQ-agent-migration-plan-codes
-
 /**
  * The version and step codes of a guided migration plan. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

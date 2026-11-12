@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -363,6 +362,40 @@ describe("pre-edit snippets", () => {
     );
     // A superseded requirement is not a candidate.
     expect(text).not.toContain("REQ-currency-display");
+  });
+
+  test("an unowned source file's note names closed requirements last and leaves out replaced ones", async () => {
+    const fixture = createKibiWorkspace();
+    write(
+      fixture.root,
+      ".kb/requirements/REQ-checkout-summary-v1.md",
+      "---\nid: REQ-checkout-summary-v1\ntitle: Checkout summary lists checkout lines\nstatus: closed\n---\n",
+    );
+    write(
+      fixture.root,
+      ".kb/requirements/REQ-checkout-summary-done.md",
+      "---\nid: REQ-checkout-summary-done\ntitle: Checkout summary shows the checkout total\nstatus: closed\n---\n",
+    );
+    write(
+      fixture.root,
+      ".kb/requirements/REQ-checkout-summary-v2.md",
+      "---\nid: REQ-checkout-summary-v2\ntitle: Checkout lines are grouped by seller\nstatus: open\n---\n",
+    );
+    // The successor's supersedes link lives in its relationship shard.
+    write(
+      fixture.root,
+      `.kb/relationships/${shardOf("REQ-checkout-summary-v2")}.yaml`,
+      "relationships:\n  - type: supersedes\n    from: REQ-checkout-summary-v2\n    to: REQ-checkout-summary-v1\n",
+    );
+    const { pre } = session(fixture);
+    const text = await pre("Write", {
+      file_path: "src/checkout/checkout-summary.ts",
+      content: "export {}",
+    });
+    expect(text).toContain(
+      "Requirements whose titles share words with this path or the request: REQ-checkout-rounding: Checkout totals round to cents; REQ-checkout-summary-v2: Checkout lines are grouped by seller; REQ-checkout-summary-done: Checkout summary shows the checkout total.",
+    );
+    expect(text).not.toContain("REQ-checkout-summary-v1");
   });
 
   test("an unowned source file gets one discovery note", async () => {
@@ -924,7 +957,6 @@ describe("session memory fallback", () => {
   });
 });
 
-// implements REQ-claude-firm-edit-confirmation
 describe("firm requirement confirmation", () => {
   /** Raw PreToolUse output with the confirmation on. */
   function firmSession(
@@ -1035,7 +1067,6 @@ describe("firm requirement confirmation", () => {
   });
 });
 
-// implements REQ-claude-decision-capture-nudges, REQ-claude-request-topic-candidates
 describe("decision capture", () => {
   const prompt = (fixture: Fixture, text: string, sessionId = "s1") =>
     runHook(
@@ -1314,7 +1345,6 @@ describe("workspace stamp", () => {
   });
 });
 
-// implements REQ-agent-core-edit-snippets
 const claudePluginRoot = path.resolve(import.meta.dir, "..");
 
 type HookCommandRun = { code: number | null; stdout: string; stderr: string };

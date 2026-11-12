@@ -26,7 +26,6 @@ import type { PrologPort } from "../../public/operations/runtime-types.js";
  */
 export type StoredEntity = Readonly<Record<string, unknown>> | null | undefined;
 
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-uncompiled-source-visibility
 export type StoredEntityLookup = {
   /** Whether an entity with the id is stored. */
   readonly exists: () => Promise<boolean>;
@@ -46,7 +45,6 @@ export type StoredEntityLookup = {
   readonly keepsSemanticBaseline?: (sourceHash: string) => boolean;
 };
 
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-entity-origin
 /**
  * One read of the entity an upsert replaces, shared by every step of the
  * upsert that needs it (the requirement ledger merge, the stored

@@ -9,8 +9,6 @@ import {
 } from "../../src/plugins/source-change-analysis.js";
 import type { StagedPath } from "../../src/traceability/git-staged.js";
 
-// implements REQ-source-analysis-v2
-
 type Span = { startLine: number; endLine: number };
 
 function staged(path: string, extra: Partial<StagedPath> = {}): StagedPath {

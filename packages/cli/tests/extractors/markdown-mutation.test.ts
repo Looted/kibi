@@ -685,6 +685,26 @@ describe("requirement-only fields", () => {
     }
   });
 
+  test("validates the retired reason", () => {
+    expect(
+      extract("id: R\ntitle: T\nstatus: retired\nretired_reason: ' gone '")
+        .entity,
+    ).toMatchObject({ status: "retired", retired_reason: " gone " });
+    expect(
+      extract("id: R\ntitle: T\nstatus: retired").entity.retired_reason,
+    ).toBe(undefined);
+    for (const reason of ["''", "'  '", "5"]) {
+      expect(
+        shape(fails(`id: R\ntitle: T\nretired_reason: ${reason}`)),
+      ).toStrictEqual({
+        message: "Invalid retired_reason; expected a non-empty string",
+        classification: "Invalid Retired Reason",
+        hint: "Set retired_reason to why the behavior no longer exists, with the date or change that retired it, or remove the field.",
+        filePath: "/kb/requirements/r.md",
+      });
+    }
+  });
+
   test("validates approvals, waivers and rationale", () => {
     const entity = extract(
       "id: R\ntitle: T\napproved_by: Ann\napproval_ref: ADR-1\nfailure_side_waiver: none\nfailure_side_waiver_approved_by: Bob\nrationale: because",

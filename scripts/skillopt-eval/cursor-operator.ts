@@ -27,7 +27,6 @@ export class CursorUsageError extends Error {
   readonly name = "CursorUsageError";
 }
 
-// implements REQ-skillopt-cursor-compat
 export function parseCursorArgs(args: readonly string[]): ParsedCursorArgs {
   const command = args[0];
   if (command !== "qualify" && command !== "compat") {
@@ -106,7 +105,6 @@ export async function loadText(path: string): Promise<string> {
   return await readFile(resolve(path), "utf8");
 }
 
-// implements REQ-skillopt-cursor-compat
 export async function runCursorCommand(
   parsed: ParsedCursorArgs,
 ): Promise<number> {

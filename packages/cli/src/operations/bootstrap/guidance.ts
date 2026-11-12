@@ -159,7 +159,6 @@ export function confidence(
   return { score: rounded, level, reasons, policy };
 }
 
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function buildGuidance(input: {
   readonly root: string;
   readonly activation: ActivationPolicy;

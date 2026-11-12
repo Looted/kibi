@@ -35,7 +35,6 @@ const PYTHON_FILE = /\.py$/i;
 const PROLOG_FILE = /\.(?:pl|plt)$/i;
 
 /** The language whose evaluator reads `file`, or null for any other file. */
-// implements REQ-kibi-multilingual-code-proofs
 export function codeLanguage(file: string): CodeLanguage | null {
   if (JS_FILE.test(file)) return "js";
   if (PYTHON_FILE.test(file)) return "python";
@@ -54,7 +53,6 @@ export type PrologLoadSpec = { library: string } | { path: string };
  * ensure_loaded, consult, load_files, reexport and include with a quoted or
  * plain path or `library(X)`, and `:- [a, b]` load lists. Nothing runs.
  */
-// implements REQ-kibi-multilingual-code-proofs
 export function prologLoadSpecs(source: string): PrologLoadSpec[] {
   const specs: PrologLoadSpec[] = [];
   for (const match of source.matchAll(PROLOG_LOAD)) {
@@ -79,7 +77,6 @@ export function stripPrologExtension(file: string): string {
  * Languages whose references a qualified plugin reads (kibi-plugin-treesitter
  * through kibi.reference-extractor.v1). Kibi itself runs nothing for them.
  */
-// implements REQ-kibi-tree-sitter-references
 export const PLUGIN_REFERENCE_LANGUAGES = [
   { name: "Go", pattern: /\.go$/i },
   { name: "Java", pattern: /\.java$/i },
@@ -102,7 +99,6 @@ export const PLUGIN_REFERENCE_LANGUAGE_NAMES = (() => {
  * languages with, by the file extensions its catalog maps to them. Every
  * grammar ships in a pack; `.pl` counts as SWI-Prolog here.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export const PLUGIN_LANGUAGE_PACKS = [
   { pack: "kibi-lang-go", name: "Go", pattern: /\.go$/i },
   { pack: "kibi-lang-rust", name: "Rust", pattern: /\.rs$/i },
@@ -138,7 +134,6 @@ export function languageName(file: string): string {
  * The one refusal for a file whose language a reader cannot read: what reads
  * which languages, and the files it was handed outside them.
  */
-// implements REQ-kibi-multilingual-code-proofs
 export function unsupportedLanguageReason(
   reader: string,
   supported: readonly CodeLanguage[],

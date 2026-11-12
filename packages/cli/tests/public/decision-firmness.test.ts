@@ -40,8 +40,6 @@ import {
 import { readAuthoredEntity } from "../../src/public/operations/entity-context.js";
 import { readKbManifest } from "../../src/utils/kb-manifest.js";
 
-// implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
-
 const WHY =
   "## Why this changed\n\nThe load test in TEST-export-load showed the nightly batch misses its window, which the old decision never measured.\n";
 

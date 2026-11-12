@@ -2,8 +2,6 @@ import { describe, it } from "bun:test";
 import { strict as assert } from "node:assert";
 import { type PathKind, analyzePath } from "../src/path-kind";
 
-// implements REQ-opencode-kibi-plugin-v1
-
 describe("path-kind analyzePath", () => {
   const cwd = "/home/project";
 

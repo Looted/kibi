@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, test } from "bun:test";
 import { parsePrivateEvaluatorManifestValue } from "../fixtures/evaluator-contracts";
 

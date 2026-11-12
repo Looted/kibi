@@ -39,7 +39,6 @@ type PublishMetadataIssue = {
   problem: string;
 };
 
-// implements REQ-020
 export function expectedRepositoryUrl(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
@@ -52,7 +51,6 @@ export function expectedRepositoryUrl(
  * form so provenance-relevant comparison ignores cosmetic differences
  * (`git+` prefix, protocol, trailing `.git`, string shorthand, trailing slash).
  */
-// implements REQ-020
 export function normalizeRepositoryUrl(url: string): string {
   return url
     .trim()
@@ -64,7 +62,6 @@ export function normalizeRepositoryUrl(url: string): string {
     .replace(/\/$/, "");
 }
 
-// implements REQ-020
 export function repositoryMatches(url: string, expected: string): boolean {
   return normalizeRepositoryUrl(url) === normalizeRepositoryUrl(expected);
 }
@@ -107,7 +104,6 @@ type SwiplManifest = {
  * and (when the payload is required, i.e. after release population) carries a
  * runtime whose binary matches its manifest.
  */
-// implements REQ-prolog-bundled-release
 export function verifySwiplFamilyMetadata(
   packagesRoot: string,
   options: { requirePayload?: boolean } = {},
@@ -203,7 +199,6 @@ export function verifySwiplFamilyMetadata(
   return issues;
 }
 
-// implements REQ-020
 export function verifyPublishMetadata(
   packagesRoot: string,
   env: NodeJS.ProcessEnv = process.env,
@@ -340,7 +335,6 @@ export function defaultVerifyPublishExit(code: number): void {
   process.exit(code);
 }
 
-// implements REQ-020
 // covered_by TEST-kibi-distribution-parity-matrix
 export function runVerifyPublishMetadataIfMain(
   isMain = import.meta.main,

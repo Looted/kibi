@@ -1,4 +1,3 @@
-// implements REQ-kibi-verification-evidence-contract
 import { describe, expect, test } from "bun:test";
 import { evaluateContractAgainstRun } from "../../src/proof/evaluate.js";
 import type {

@@ -22,10 +22,8 @@ import {
 } from "./catalog.js";
 import { terminalDemoHtml } from "./terminal-demo.js";
 
-// implements REQ-docs-site-root-pages
 export type Section = "guide" | "reference";
 
-// implements REQ-docs-site-root-pages
 export type PageShell = {
   /** Relative prefix from this page to the site root: "" or "../". */
   root: string;
@@ -48,7 +46,6 @@ export type PageShell = {
   analyticsId: string | null;
 };
 
-// implements REQ-docs-site-root-pages
 export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -59,7 +56,6 @@ export function escapeHtml(value: string): string {
 }
 
 /** Strip fixed dimensions from a canonical mark so CSS controls its size. */
-// implements REQ-docs-site-root-pages
 export function prepareMark(svg: string, variant: "logo" | "wordmark"): string {
   return svg
     .replace(/\swidth="[^"]*"/, "")
@@ -97,7 +93,6 @@ const CLOSING_RAIL_SVG = `<svg class="closing-rail" viewBox="0 0 520 40" aria-hi
   <circle cx="500" cy="20" r="7" fill="#63c99a"/>
 </svg>`;
 
-// implements REQ-docs-site-root-pages
 export const styles = String.raw`
 :root {
   --deep: #111318;
@@ -890,7 +885,6 @@ figure.code.hero-copy {
 }
 `;
 
-// implements REQ-docs-site-root-pages
 export const clientScript = String.raw`
 (function () {
   "use strict";
@@ -1446,7 +1440,6 @@ export const clientScript = String.raw`
 })();
 `;
 
-// implements REQ-docs-site-root-pages
 export function landingContent(args: {
   root: string;
   reportUrl: string | null;
@@ -1786,7 +1779,7 @@ export function landingContent(args: {
     </details>
     <details>
       <summary>Can my agent ask Kibi what governs a change?</summary>
-      <p>Yes. <code>kb_search</code> accepts a plain question and, alongside ranked matches, returns the current requirements that govern the topic with their linked facts, scenarios, tests, and ADRs (with an excerpt of each decision). For each requirement it also reports any contradiction or infeasible-scenario finding that names it, the approved exceptions that exempt it, and what the checks could not decide, and it names the branch and KB snapshot the answer came from. On a new branch whose store was never compiled, the answer says so and points at <code>kibi sync</code> instead of returning a silent empty result. Superseded requirements are listed separately so they are not read as current policy, and a top match that no requirement owns is named as such rather than dressed in lower-ranked requirements. No finding is not proof: full consistency and proof status still come from <code>kb_check</code>, which also says which rules it evaluated and how many fact pairs it compared, and <code>kb_coverage</code>. The answer is ten rows by default, and on Claude Code it is sent once, as structured content with a short text summary rather than a second JSON copy in the text.</p>
+      <p>Yes. <code>kb_search</code> accepts a plain question and, alongside ranked matches, returns the current requirements that govern the topic with their linked facts, scenarios, tests, and ADRs (with an excerpt of each decision). For each requirement it also reports any contradiction or infeasible-scenario finding that names it, the approved exceptions that exempt it, and what the checks could not decide, and it names the branch and KB snapshot the answer came from. On a new branch whose store was never compiled, the answer says so and points at <code>kibi sync</code> instead of returning a silent empty result. Superseded and retired requirements are listed separately so they are not read as current policy, and a top match that no requirement owns is named as such rather than dressed in lower-ranked requirements. No finding is not proof: full consistency and proof status still come from <code>kb_check</code>, which also says which rules it evaluated and how many fact pairs it compared, and <code>kb_coverage</code>. The answer is ten rows by default, and on Claude Code it is sent once, as structured content with a short text summary rather than a second JSON copy in the text.</p>
     </details>
     <details>
       <summary>Can my agent ask a precise question instead of searching?</summary>
@@ -1834,7 +1827,6 @@ ${reportStrip}
 </div>`;
 }
 
-// implements REQ-docs-site-root-pages
 export function layout(page: PageShell): string {
   const {
     root,

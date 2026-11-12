@@ -4,7 +4,6 @@ import {
   requirementGroundingLines,
 } from "kibi-agent-core/snippets";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-agent-kibi-interface-selection
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
 import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
@@ -22,7 +21,6 @@ import type { WorkspaceHealth } from "./workspace-health.js";
 const SENTINEL = "<!-- kibi-opencode -->";
 
 // ── Token budget enforcement ───────────────────────────────────────────
-// implements REQ-opencode-guidance-injection
 export const MAX_BULLETS = 5;
 const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
 
@@ -37,7 +35,6 @@ function countBullets(lines: string[]): number {
 const ENTITY_ID_RE =
   /\b(?:REQ|SYM|SCEN|TEST|ADR|FACT|FLAG|EVT)-[A-Za-z0-9_-]+\b/g;
 
-// implements REQ-opencode-file-context-guidance-v1
 export function hasOverlappingEntityIds(
   textA: string | null,
   textB: string,
@@ -216,7 +213,6 @@ export function postureGuidance(
   posture: RepoPosture,
   capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),
 ): string | null {
-  // implements REQ-opencode-guidance-injection
   switch (posture) {
     case "root_uninitialized":
       return `🔧 **Bootstrap required**
@@ -432,7 +428,6 @@ If you're adding long explanatory comments, consider routing that knowledge to:
   // File-operation reminders bypass generic GuidanceCache suppression but
   // are subject to prompt budget trimming. Per-path suppression is handled
   // by the caller via file-operation-state hasShown/markShown.
-  // implements REQ-opencode-file-context-guidance-v1
   if (fileOpReminder) {
     const foBullets: string[] = [];
     const lifecycleReminder = fileOpReminder.lifecycleReminder;

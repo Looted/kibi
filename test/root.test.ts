@@ -64,7 +64,6 @@ export function isolatedUnitBatchEnv(
   return env;
 }
 
-// implements REQ-root-suite-batch-diagnostics
 // covered_by TEST-root-suite-batch-diagnostics
 export const BATCH_TIMEOUT_MINUTES = 25;
 export const BATCH_CONCURRENCY = 2;
@@ -73,14 +72,12 @@ export const BATCH_CONCURRENCY = 2;
  * Worker count for the curated suite: `KIBI_TEST_CONCURRENCY` when it is a
  * positive integer (machines with spare cores), otherwise BATCH_CONCURRENCY.
  */
-// implements REQ-root-suite-batch-diagnostics
 export function batchConcurrency(env: NodeJS.ProcessEnv = process.env): number {
   const parsed = Number(env.KIBI_TEST_CONCURRENCY);
   return Number.isInteger(parsed) && parsed >= 1 ? parsed : BATCH_CONCURRENCY;
 }
 export const TEST_ENGINE_SHUTDOWN_TIMEOUT_MS = 5_000;
 /** Journaled engine and SkillOpt trainer tests exceed Bun's 15s default. */
-// implements REQ-test-journaled-engine-harness
 // covered_by TEST-test-journaled-engine-harness
 export const CLI_ENGINE_BATCH_TIMEOUT_MS = 120_000;
 
@@ -90,7 +87,6 @@ type BatchOutcome = {
   summaryCount: number;
 };
 
-// implements REQ-root-suite-batch-diagnostics
 // covered_by TEST-root-suite-batch-diagnostics
 export function getBatchFailureMessage(
   label: string,
@@ -115,7 +111,6 @@ const CLI_BATCH_ARGS = [
   "--isolate",
   "--max-concurrency=1",
 ];
-// implements REQ-test-journaled-engine-harness, REQ-root-suite-batch-diagnostics
 // covered_by TEST-root-suite-batch-diagnostics
 export function createCliUnitBatches(
   directory = "./packages/cli",
@@ -144,7 +139,6 @@ export function createCliUnitBatches(
   }));
 }
 
-// implements REQ-test-journaled-engine-harness
 // covered_by TEST-root-suite-batch-diagnostics
 export const CLI_UNIT_BATCHES: readonly Batch[] = createCliUnitBatches();
 
@@ -281,7 +275,6 @@ function processIsRunning(pid: number): boolean {
 
 // Test batches own a private runtime directory, so every PID file in it is an
 // exact engine target rather than an ambient user process.
-// implements REQ-test-journaled-engine-harness
 export async function stopTestEngines(
   runtimeDirectory: string,
 ): Promise<number> {
@@ -350,7 +343,6 @@ function formatSuiteSummary(
   ].join("\n");
 }
 
-// implements REQ-root-suite-batch-diagnostics
 // covered_by TEST-root-suite-batch-diagnostics
 export async function runBatch(
   batch: Batch,
@@ -439,7 +431,6 @@ async function runCuratedUnitSuite(): Promise<number> {
 
 // bun test can put this file on argv[1] without a "test" token. The curated
 // suite is a script entrypoint only (`bun ./test/root.test.ts`).
-// implements REQ-test-journaled-engine-harness
 // covered_by TEST-test-journaled-engine-harness
 export function isCuratedSuiteEntryPoint(
   argv: readonly string[],

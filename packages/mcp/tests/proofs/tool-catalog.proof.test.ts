@@ -7,8 +7,6 @@ import {
 } from "kibi-cli/proof-certificates";
 import { OPTIONAL_TOOL_NAMES, TOOLS } from "../../src/tools-config.js";
 
-// implements REQ-kibi-mcp-tool-catalog
-
 /**
  * The size and members of the MCP tool registry. Kibi reads TOOLS and
  * OPTIONAL_TOOL_NAMES itself at ingest (value_source and domain_source), so

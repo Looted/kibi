@@ -43,7 +43,6 @@ function summarized(names: readonly string[]): string {
  * error envelope and the CLI JSON route carry the same code as the staged
  * gate's symbol_granularity_violation.
  */
-// implements REQ-kibi-symbol-link-guidance
 export const SYMBOL_GRANULARITY_VIOLATION = "SYMBOL_GRANULARITY_VIOLATION";
 
 const STORED_LOCATION_FIELDS = [
@@ -53,7 +52,6 @@ const STORED_LOCATION_FIELDS = [
   "granularity_reason",
 ] as const;
 
-// implements REQ-kibi-symbol-link-guidance
 /**
  * The symbol a granularity check judges when an upsert updates a stored
  * symbol: a payload that only adds links (title and relationships, no
@@ -73,7 +71,6 @@ function withStoredSymbolLocation(
   return merged;
 }
 
-// implements REQ-kibi-operation-interface-parity, REQ-kibi-symbol-link-guidance
 export async function validateSymbolGranularity(
   payload: Readonly<Record<string, unknown>>,
   relationships: readonly RelationshipInput[],

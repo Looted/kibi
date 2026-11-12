@@ -512,7 +512,6 @@ describe("tool results", () => {
   });
 });
 
-// implements REQ-kb-dependencies-git
 describe("KB dependency scope", () => {
   const withKb = { type: "object", properties: { kb: { type: "string" } } };
 

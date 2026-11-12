@@ -17,7 +17,6 @@ import {
 } from "./impact-review.js";
 
 /** Per-path, per-side evidence: projected bytes, hunks and host analysis bindings. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function isKnowledgeMarkdown(path: string): boolean {
   return path.startsWith(".kb/") && path.endsWith(".md");
 }
@@ -29,7 +28,6 @@ function projectedKnowledgeMarkdown(path: string, content: string): string {
   );
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function isReceiptOnlyChange(file: StagedPath): boolean {
   if (
     !isKnowledgeMarkdown(file.path) ||
@@ -59,7 +57,6 @@ export function isReceiptOnlyChange(file: StagedPath): boolean {
 }
 
 /** Runs a command like `execFileSync` with a utf8 encoding. */
-// implements REQ-impact-policy-stage-e-content-bound-review
 export type ProjectedDiffExec = (
   command: string,
   args: readonly string[],
@@ -70,7 +67,6 @@ export type ProjectedDiffExec = (
   }>,
 ) => string;
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export const SYSTEM_PROJECTED_DIFF: ProjectedDiffExec = (
   command,
   args,
@@ -142,7 +138,6 @@ function projectedHunks(
   }
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function projectedPathEvidence(
   file: StagedPath,
   exec: ProjectedDiffExec = SYSTEM_PROJECTED_DIFF,
@@ -175,7 +170,6 @@ function sideAnalysisFingerprint(
   return fingerprint(result);
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function sideEvidence(
   snapshot: GitChangeSnapshot,
   tree: string,
@@ -272,7 +266,6 @@ export function sideEvidence(
   };
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function assertAnalysisInput(
   file: StagedPath,
   change: SourceChangeAnalysis | undefined,
@@ -286,7 +279,6 @@ export function assertAnalysisInput(
     throw new Error(`Analysis path mismatch for ${file.path}`);
 }
 
-// implements REQ-impact-policy-stage-e-content-bound-review
 export function exactPathProjection(
   file: StagedPath,
   before: SideEvidence | null,

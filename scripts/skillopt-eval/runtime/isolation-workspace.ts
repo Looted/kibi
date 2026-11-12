@@ -41,7 +41,6 @@ function safeSegment(value: string): string {
   return value;
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function createIsolationWorkspace(
   options: WorkspaceOptions,
 ): Promise<IsolationWorkspace> {

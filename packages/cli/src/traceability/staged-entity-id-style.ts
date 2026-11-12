@@ -30,7 +30,6 @@ import type { KibiImpactDiagnostic } from "./staged-diagnostics.js";
  * lanes stay grandfathered without a cutoff date or history lookup. The
  * diagnostics are advisory and never block a commit.
  */
-// implements REQ-kibi-entity-id-style
 export function createStagedEntityIdStyleDiagnostics(
   stagedFiles: readonly StagedFile[],
 ): KibiImpactDiagnostic[] {

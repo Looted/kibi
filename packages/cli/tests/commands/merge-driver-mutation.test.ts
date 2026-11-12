@@ -1,4 +1,3 @@
-// implements REQ-cli-kb-merge-driver
 import { describe, expect, test } from "bun:test";
 import {
   type KbManifestMergeResult,

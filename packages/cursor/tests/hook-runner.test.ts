@@ -60,7 +60,6 @@ describe("Cursor hook runner", () => {
     expect(result.additional_context).toBeDefined();
   });
 
-  // implements REQ-kibi-fresh-clone-setup
   test("sessionStart adds the missing-hooks note after the advisory in a checkout without Kibi hooks", async () => {
     const cwd = createTempRoot("kibi-cursor-cwd-");
     const pluginData = createTempRoot("kibi-cursor-data-");
@@ -720,7 +719,6 @@ describe("Cursor hook runner workspace stamp", () => {
   });
 });
 
-// implements REQ-agent-core-edit-snippets
 const cursorPluginRoot = path.resolve(import.meta.dir, "..");
 
 type HookCommandRun = { code: number | null; stdout: string; stderr: string };
@@ -1091,7 +1089,6 @@ describe("Cursor hook runner result contracts", () => {
     expect(kibiWorkspaceFor(bare)).toBeUndefined();
   });
 
-  // implements REQ-kibi-anonymous-usage-telemetry
   test("every hook remembers the conversation for the workspace when telemetry is on", async () => {
     const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
     tempRoots.push(telemetryDir);
@@ -1114,7 +1111,6 @@ describe("Cursor hook runner result contracts", () => {
     expect(fs.readdirSync(telemetryDir)).toEqual([]);
   });
 
-  // implements REQ-kibi-anonymous-usage-telemetry
   test("every hook event that decides something queues one kibi_hook, and KIBI_TELEMETRY=0 queues none", async () => {
     const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
     tempRoots.push(telemetryDir);
@@ -1180,7 +1176,6 @@ describe("Cursor hook runner result contracts", () => {
     }
   });
 
-  // implements REQ-kibi-anonymous-usage-telemetry
   test("each hook decision queues its action, path kind and requirement count, and only in a Kibi workspace", async () => {
     const telemetryDir = createTempRoot("kibi-cursor-telemetry-");
     tempRoots.push(telemetryDir);

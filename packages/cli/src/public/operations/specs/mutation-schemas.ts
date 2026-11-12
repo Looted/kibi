@@ -23,7 +23,6 @@ export const ENTITY_TYPES = [
 // A claim_key names the clause in claim_text, so it never travels alone. The
 // reverse is open: Kibi derives a missing claim_key from claim_text on a
 // grounding fact, and an observation or meta fact quotes a claim without one.
-// implements REQ-kibi-review-observation-claim-text-v2
 const CLAIM_PROVENANCE_CONDITIONAL = JSON.parse(`{
   "if": { "required": ["claim_key"] },
   "then": { "required": ["claim_text"] }

@@ -57,7 +57,6 @@ const FinalStateOptionsSchema = z
 export type FinalStateOptions = Readonly<
   z.infer<typeof FinalStateOptionsSchema>
 >;
-// implements REQ-skillopt-predicate-first-requirements
 export const FinalStateReceiptSchema = z
   .object({
     schemaVersion: z.literal("1.0.0"),
@@ -126,7 +125,6 @@ function strictPropertyValue(entity: Record<string, unknown>): string | null {
   return null;
 }
 
-// implements REQ-skillopt-logical-evidence-fidelity
 function canonicalPropertyKey(entity: Record<string, unknown>): string | null {
   const propertyKey = entity.property_key;
   if (typeof propertyKey !== "string" || propertyKey.length === 0) return null;
@@ -379,7 +377,6 @@ async function writeDurableJson(path: string, value: unknown): Promise<void> {
   }
 }
 
-// implements REQ-skillopt-predicate-first-requirements
 export function decodeFinalStatePredicateSnapshot(
   text: string,
   binding: EvidenceBinding,
@@ -417,7 +414,6 @@ export function decodeFinalStatePredicateSnapshot(
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runIndependentFinalState(
   rawOptions: FinalStateOptions,
 ): Promise<FinalStateReceipt> {

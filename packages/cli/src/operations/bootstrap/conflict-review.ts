@@ -10,7 +10,6 @@ import type { Candidate, SourceOnlySignal } from "./types.js";
 const REVIEW_AGAINST = "review_against:";
 
 /** Whether a candidate or signal names requirements to compare it with. */
-// implements REQ-kibi-contradiction-review-candidates, REQ-bootstrap-authoring-claim-review
 export function needsConflictReview(row: {
   readonly evidence: readonly string[];
 }): boolean {
@@ -37,7 +36,6 @@ function claimCitation(evidence: readonly string[], fallback: string): string {
  * Ranking is the intent search kb_search uses, over the unmodeled
  * requirements only.
  */
-// implements REQ-kibi-contradiction-review-candidates, REQ-bootstrap-authoring-claim-review
 export async function withConflictReviewSignals(
   candidates: readonly Candidate[],
   requirements: readonly ExistingRequirement[],

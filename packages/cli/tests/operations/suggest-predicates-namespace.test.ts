@@ -1,4 +1,3 @@
-// implements REQ-model-predicates-grounding-guards
 import { describe, expect, test } from "bun:test";
 import { handleKbSuggestPredicates } from "../../src/operations/modeling/suggest-predicates.js";
 import type {

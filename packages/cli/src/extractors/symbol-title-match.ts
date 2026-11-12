@@ -55,7 +55,6 @@ function jsonStrings(text: string): string[] | null {
  * `module.m`, `var.v`, `output.o`, `local.l`) and the dotted labels of a
  * generic HCL block (`source.amazon-ebs.ubuntu`).
  */
-// implements REQ-symbol-coordinates-derived-locally
 export function declarationTitleAliases(
   symbol: Pick<TitledDeclaration, "qualifiedName">,
 ): string[] {
@@ -128,7 +127,6 @@ const LISTED_DECLARATIONS = 8;
  * class `OS` and `OS()`) names the type.
  * Anything else that is not exactly one declaration fails with the reason.
  */
-// implements REQ-symbol-coordinates-derived-locally
 export function matchDeclarationTitle<T extends TitledDeclaration>(
   title: string,
   declared: readonly T[],

@@ -8,8 +8,6 @@ import {
 import { SYMBOL_COORDINATES_FORMAT_VERSION } from "../../../src/extractors/symbol-coordinates.js";
 import { GENERATED_SYMBOL_FIELDS } from "../../../src/operations/mutation/source-authoring.js";
 
-// implements REQ-generated-coordinate-settings
-
 /**
  * The derived coordinate fields of a symbol and their file format version. Kibi
  * reads each constant itself at ingest, so the certificate is checked against the code.

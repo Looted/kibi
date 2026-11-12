@@ -1,4 +1,3 @@
-// implements REQ-bootstrap-apply-long-running
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import {

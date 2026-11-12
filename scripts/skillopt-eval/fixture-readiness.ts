@@ -23,7 +23,6 @@ export const defaultFixtureReadinessDependencies: FixtureReadinessDependencies =
     probeRuntime: probeStagedSymbolCapability,
   };
 
-// implements REQ-skillopt-codex-optimization
 export async function probeFixtureReadiness(
   workspace: string,
   cliRoot: string,
@@ -52,7 +51,6 @@ export async function probeFixtureReadiness(
 }
 
 /** Command-line entry: the exit code for one readiness probe. */
-// implements REQ-skillopt-codex-optimization
 export async function main(
   args: readonly string[],
   dependencies: FixtureReadinessDependencies = defaultFixtureReadinessDependencies,

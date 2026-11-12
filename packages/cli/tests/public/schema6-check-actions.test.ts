@@ -404,7 +404,7 @@ describe("schema 6 review actions from check findings", () => {
     expect(symbols?.affectedEntityIds).toEqual(["SYM-a", "SYM-b"]);
     expect(symbols?.affectedFiles).toEqual(["src/a.ts", "src/b.ts"]);
     expect(JSON.stringify(symbols?.invocation)).toContain(
-      "30 symbol(s) implement only superseded or deprecated requirements; these 2 come first",
+      "30 symbol(s) implement only superseded, deprecated or retired requirements; these 2 come first",
     );
     const rationale = actions.find(
       (action) => action.code === "review_requirement_rationale_missing",

@@ -70,14 +70,12 @@ function entryOf(language: TreeSitterLanguage): CatalogLanguage {
   return entry;
 }
 
-// implements REQ-kibi-tree-sitter-language-packs
 export interface LanguagePack {
   readonly package: string;
   readonly version: string;
 }
 
 /** The pack a language's grammar ships in, or undefined when it is built in. */
-// implements REQ-kibi-tree-sitter-language-packs
 export function languagePackOf(
   language: TreeSitterLanguage,
 ): LanguagePack | undefined {
@@ -88,7 +86,6 @@ export function languagePackOf(
 }
 
 /** Every pack this release knows, with the languages each one carries. */
-// implements REQ-kibi-tree-sitter-language-packs
 export function languagePacks(): readonly (LanguagePack & {
   readonly languages: readonly string[];
 })[] {
@@ -172,7 +169,6 @@ function packRoot(language: TreeSitterLanguage, pack: LanguagePack): string {
  * in or its pack is installed at the pinned version. Bytes are checked when
  * the worker loads the grammar.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function languagePackProblem(
   language: TreeSitterLanguage,
 ): { readonly code: string; readonly message: string } | undefined {
@@ -192,7 +188,6 @@ export function languagePackProblem(
  * The grammar to load: the built-in asset's path, or a pack's bytes after
  * their SHA-256 matched the digest this release pins.
  */
-// implements REQ-kibi-tree-sitter-language-packs
 export function grammarSource(
   language: TreeSitterLanguage,
 ): string | Uint8Array {

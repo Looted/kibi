@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-// implements REQ-kibi-verification-evidence-contract
 import Ajv2020 from "ajv/dist/2020";
 
 import { startJob } from "../../src/server/jobs.js";

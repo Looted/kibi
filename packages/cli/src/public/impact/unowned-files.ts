@@ -1,5 +1,6 @@
 import { closeSync, openSync, readSync, readdirSync } from "node:fs";
 import * as path from "node:path";
+import { replacedRequirements } from "kibi-agent-core/requirement-candidates";
 import type { KibiImpactDiagnostic } from "../../traceability/staged-diagnostics.js";
 
 /**
@@ -38,6 +39,16 @@ const FILLER_WORDS = new Set(
 const RETIRED_STATUS =
   /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
 
+const NOTHING_REPLACED: ReadonlySet<string> = new Set();
+
+/**
+ * A closed requirement may be done and still hold, or retired with nothing
+ * to replace it, so it is named only after every current one.
+ */
+function isClosed(requirement: RequirementCandidate): boolean {
+  return String(requirement.status).trim().toLowerCase() === "closed";
+}
+
 /** Lowercase word stems of an identifier, path segment or title. */
 function words(text: string): string[] {
   // Runs of separators leave empty pieces that the length filter drops.
@@ -53,7 +64,6 @@ function words(text: string): string[] {
     );
 }
 
-// implements REQ-kb-unowned-file-candidates
 /**
  * The topic words of a workspace path, without layout, language and role
  * words (`src/app/pages/coach-dashboard/coach-dashboard.html` -> `coach`,
@@ -68,40 +78,50 @@ export function pathTopicWords(relativePath: string): string[] {
   return [...new Set(found)];
 }
 
-// implements REQ-kb-unowned-file-candidates
 export type RequirementCandidate = {
   readonly id: string;
   readonly title: string;
   readonly status?: string;
 };
 
-// implements REQ-kb-unowned-file-candidates
 /**
  * Current requirements ranked by how many of the path's topic words their
  * title shares, then by how often the title uses them, then by id; only
- * those sharing at least one word.
+ * those sharing at least one word. Closed requirements follow every current
+ * one, and those in `replaced` (a current requirement supersedes them) are
+ * left out.
  */
 export function rankRequirementCandidates(
   relativePath: string,
   requirements: readonly RequirementCandidate[],
   limit: number = MAX_CANDIDATES,
+  replaced: ReadonlySet<string> = NOTHING_REPLACED,
 ): RequirementCandidate[] {
   // A path without topic words shares none with any title, so ranks nothing.
   const topic = new Set(pathTopicWords(relativePath));
   const scored: {
     requirement: RequirementCandidate;
+    closed: number;
     shared: number;
     uses: number;
   }[] = [];
   for (const requirement of requirements) {
     // A missing status reads as "undefined", which no retired word matches.
     if (RETIRED_STATUS.test(String(requirement.status))) continue;
+    if (replaced.has(requirement.id)) continue;
     const matched = words(requirement.title).filter((word) => topic.has(word));
     const shared = new Set(matched).size;
-    if (shared > 0) scored.push({ requirement, shared, uses: matched.length });
+    if (shared > 0)
+      scored.push({
+        requirement,
+        closed: isClosed(requirement) ? 1 : 0,
+        shared,
+        uses: matched.length,
+      });
   }
   scored.sort(
     (a, b) =>
+      a.closed - b.closed ||
       b.shared - a.shared ||
       b.uses - a.uses ||
       a.requirement.id.localeCompare(b.requirement.id),
@@ -170,7 +190,6 @@ function isKnowledgeOrProse(file: string): boolean {
   return file.startsWith(".kb/") || /\.mdx?$/i.test(file);
 }
 
-// implements REQ-kb-unowned-file-candidates
 export type UnownedFileDiagnosticsOptions = {
   readonly workspaceRoot: string;
   /** Workspace-relative files the check was asked about. */
@@ -179,7 +198,6 @@ export type UnownedFileDiagnosticsOptions = {
   readonly linkedSourceFiles: ReadonlySet<string>;
 };
 
-// implements REQ-kb-unowned-file-candidates
 /**
  * One `source_file_unowned` note per requested file without a linked symbol,
  * naming the current requirements whose titles share its path words.
@@ -191,8 +209,30 @@ export function createUnownedFileDiagnostics(
     (file) => !options.linkedSourceFiles.has(file) && !isKnowledgeOrProse(file),
   );
   const requirements = readRequirementHeads(options.workspaceRoot);
+  // Successors are looked up only for closed requirements the paths reach,
+  // since that reads every current requirement's links.
+  const closed = new Set(
+    files.flatMap((file) =>
+      rankRequirementCandidates(file, requirements, requirements.length)
+        .filter(isClosed)
+        .map((requirement) => requirement.id),
+    ),
+  );
+  // rationale: a shortcut only; with no closed candidate nothing can be
+  // replaced, but the links of every current requirement go unread.
+  // Stryker disable ConditionalExpression,EqualityOperator
+  const replaced =
+    closed.size > 0
+      ? replacedRequirements(options.workspaceRoot, requirements, closed)
+      : NOTHING_REPLACED;
+  // Stryker restore ConditionalExpression,EqualityOperator
   return files.map((file) => {
-    const candidates = rankRequirementCandidates(file, requirements);
+    const candidates = rankRequirementCandidates(
+      file,
+      requirements,
+      MAX_CANDIDATES,
+      replaced,
+    );
     const named = candidates
       .map(
         (candidate) =>

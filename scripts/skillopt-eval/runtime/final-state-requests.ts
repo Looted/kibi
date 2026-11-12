@@ -26,7 +26,6 @@ export const DEFAULT_FINAL_STATE_REQUESTS: FinalStateRequest[] = [
  * validation, fresh status, unchanged graph, and symbol-scoped coverage with
  * passing rows included — requirement coverage cannot see the gap.
  */
-// implements REQ-skillopt-codex-optimization
 export function taskFinalStateRequests(
   taskId: string,
   hasExactMigrationContract: boolean,

@@ -41,7 +41,6 @@ const POSIX_PATHS = path.sep === "/";
  * a name under the exact bytes git checked out. Where a path is an identity
  * (the workspace snapshot), the caller compares it in NFC.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function normalizeRepoRelativePath(
   workspaceRoot: string,
   candidate: string,
@@ -80,7 +79,6 @@ export function normalizeRepoRelativePath(
  * Returns null for escapes, empty input, or symlink targets outside the root.
  * Callers must treat null as "do not read".
  */
-// implements REQ-symbol-sourcefile-workspace-confinement
 export function resolveWorkspaceSourceAbsolute(
   workspaceRoot: string,
   sourceFile: string,

@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -205,7 +204,6 @@ const KIBI_CLI_ROUTES: Readonly<Record<string, string>> = {
  * The Kibi operation a shell command runs through the project-local CLI
  * (`kibi search`, `npx --no-install kibi query --input -`), or undefined.
  */
-// implements REQ-claude-code-kibi-plugin-v1
 export function kibiCliOperation(command: unknown): string | undefined {
   if (typeof command !== "string") return undefined;
   const route = /(?:^|[\s;&|(/])kibi\s+([a-z-]+)/.exec(command)?.[1];
@@ -219,7 +217,6 @@ const SHELL_TOOL_NAMES = new Set(["Bash", "bash", "Shell", "shell"]);
  * The Kibi operation a host tool call ran through either peer surface: a Kibi
  * MCP tool under any host prefix, or the project-local CLI in a shell tool.
  */
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
 export function hostKbOperation(
   toolName: string | undefined,
   toolInput: unknown,

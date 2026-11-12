@@ -1,4 +1,3 @@
-// implements REQ-kibi-telemetry-expected-outcomes
 import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -62,9 +61,11 @@ describe("expected outcomes are rejections, not errors", () => {
       "entity_validation_failed",
       "firm_decision_locked",
       "generated_artifacts_stale",
+      "git_conflicts_unresolved",
       "incomplete_propositions",
       "input_read_failed",
       "integration_failed",
+      "inventory_ingestion_failed",
       "invalid_project_config",
       "invalid_relationship",
       "legacy_branch_storage",

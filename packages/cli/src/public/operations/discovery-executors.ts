@@ -16,6 +16,7 @@ import {
   questionPaths,
   validateIntentSearchInput,
 } from "../../intent-search.js";
+import type { NegativePathMarker } from "../../negative-path-facts.js";
 import { classifyActivation } from "../../operations/bootstrap/activation.js";
 import { SwiplResolutionError } from "../../prolog/swipl-resolver.js";
 import { type SearchAnswer, buildSearchAnswer } from "../../search-answer.js";
@@ -220,7 +221,6 @@ export type SearchBranchStoreNotice = {
  * the authored requirements, so search reports the store state itself (the
  * same reason kb_status and kb_check use) instead of a bare "no results".
  */
-// implements REQ-cli-status-pre-first-sync, REQ-mcp-search-discovery
 function uncompiledSearchNotice(
   context: OperationContext,
 ): SearchBranchStoreNotice | null {
@@ -343,7 +343,6 @@ function requireEnum<T extends string>(
  * entries are resolved against the predicate's declared argument names in
  * Prolog; positional `args` use `null` as a wildcard.
  */
-// implements REQ-kibi-query-fact-filters
 function predicateArgSpec(input: QueryInput): string {
   if (input.where !== undefined && input.args !== undefined) {
     throw new Error(
@@ -401,7 +400,6 @@ function callText(args: Record<string, unknown>): string {
  * Every typed answer names the exact call that makes sense next, so an
  * agent never has to guess the follow-up from the shape of the data.
  */
-// implements REQ-kibi-query-fact-filters
 function factQueryNext(
   input: QueryInput,
   response: FactQueryResponse,
@@ -584,7 +582,6 @@ function factRowSummary(row: Record<string, unknown>): string {
  * Typed fact questions run as validated Prolog goals in the discovery module;
  * the executor never forwards caller-written Prolog.
  */
-// implements REQ-kibi-query-fact-filters
 async function executeFactQuery(
   input: QueryInput,
   context: OperationContext,
@@ -732,7 +729,6 @@ export async function executeQuery(
   input: QueryInput,
   context: OperationContext,
 ): Promise<OperationResult<QueryPayload>> {
-  // implements REQ-kibi-operation-interface-parity
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = input;
   try {
     validateEntityType(type);
@@ -764,7 +760,6 @@ export async function executeQuery(
     // A requirement or ADR without authored firmness reads as its origin
     // implies (`default` when an agent wrote it, else `firm`); the row says
     // so, so a reader never has to know the rule.
-    // implements REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
     const paginated = indexedPage.entities.map((entity) => {
       const firmness = effectiveFirmness(
         entity.type,
@@ -817,7 +812,6 @@ export async function executeQuery(
 
 // The body is read from the entity's authored document inside the
 // workspace, the same file kb_upsert rewrites; nothing outside it is read.
-// implements REQ-kibi-operation-interface-parity
 async function readQueryBody(
   id: string,
   entity: Readonly<Record<string, unknown>> | undefined,
@@ -938,7 +932,6 @@ function questionPathHint(
  * plugin runtime, or a registry that fails to load, gives no hints rather than
  * failing the search.
  */
-// implements REQ-kibi-search-hints-host
 async function searchHintsFor(
   context: OperationContext,
   options: Omit<
@@ -978,11 +971,22 @@ async function searchHintsFor(
   });
 }
 
+/**
+ * A top match as the text digest names it. A negative-path fact describes a
+ * situation that must not happen, so the digest says so beside its id.
+ */
+function topMatchLabel(match: {
+  readonly entity: Record<string, unknown>;
+  readonly negativePath?: NegativePathMarker;
+}): string {
+  const id = String(match.entity.id ?? "");
+  return match.negativePath === undefined ? id : `${id} (forbidden situation)`;
+}
+
 export async function executeSearch(
   input: SearchInput,
   context: OperationContext,
 ): Promise<OperationResult<SearchPayload>> {
-  // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
   const {
     query,
     type,
@@ -1079,7 +1083,7 @@ export async function executeSearch(
           ? `No intent search results for '${trimmedQuery}' (abstained). No entity shares enough of the question's words: ask again in the words and language the KB is written in, or pass sourceLocations.`
           : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'${intentResult.analysis.ambiguous ? " (top matches are close; confirm before relying on one)" : ""}. Top: ${paginated
               .slice(0, 5)
-              .map((match) => String(match.entity.id ?? ""))
+              .map((match) => topMatchLabel(match))
               .join(
                 ", ",
               )}${answerLayer ? `. Governing: ${answerLayer.governing.map((req) => req.id).join(", ") || "none found"}` : ""}${topUngoverned ? ` (the top match ${topUngoverned.id} is linked to no requirement)` : ""}.`
@@ -1148,7 +1152,6 @@ export async function executeStatus(
   _input: StatusInput,
   context: OperationContext,
 ): Promise<OperationResult<StatusPayload>> {
-  // implements REQ-kibi-operation-interface-parity, REQ-cli-status-pre-first-sync
   try {
     const attachment =
       context.branchAttachment ??
@@ -1236,7 +1239,6 @@ export async function executeStatus(
         await ownedEngine?.terminate();
       }
     const snapshotEvidence = await readWorkspaceSnapshot(context);
-    // implements REQ-cli-status-pre-first-sync
     // Prolog compares file times only. A fresh clone or a checkout rewrites
     // every mtime without changing a byte, so confirm each "newer" source
     // against the content hashes the last compilation recorded.
@@ -1255,7 +1257,6 @@ export async function executeStatus(
     ) {
       payload = { ...payload, syncState: "fresh", dirty: false };
     }
-    // implements REQ-cli-status-pre-first-sync
     // A missing or empty store beside authored sources gets the one reason
     // whose remediation works (kibi sync); `kibi branch ensure` alone would
     // leave the store empty.
@@ -1267,11 +1268,9 @@ export async function executeStatus(
       ) ?? branchStoreReason(store);
     const storeUncompiled = storeReason?.code === BRANCH_STORE_NOT_COMPILED;
     const lockReason = storeLockJournalReason(store.path);
-    // implements REQ-core-journaled-engine-persistence
     // A stale-lock takeover heals itself; report it without making the KB stale.
     const takeoverNotice = storeLockTakeoverReason(store.path);
     const compilerReason = compilerFingerprintReason(store.path);
-    // implements REQ-kibi-uncompiled-source-visibility
     // A source the last sync could not extract is missing from the store
     // even when every compiled file is current.
     const extractionReasons =
@@ -1285,7 +1284,6 @@ export async function executeStatus(
           path: store.path,
           entityIds: [],
           detail: engineStatus.detail as string,
-          // implements REQ-prolog-doctor-runtime-report
           // A missing or unusable SWI-Prolog is not fixed by restarting the
           // engine; point at the diagnostic that reports the resolution.
           remediation: {
@@ -1348,7 +1346,6 @@ export async function executeStatus(
         : { proofSnapshotError: snapshotEvidence.error }),
     };
     const schemaStatus = readMigrationConfigStatus(context.workspaceRoot);
-    // implements REQ-agent-guided-migration-orchestration
     // A schema upgrade plans the source rewrites kibi migrate performs with
     // it; the planner loads only when an upgrade is due.
     const sourcePlanner = schemaStatus.needsMigration
@@ -1455,7 +1452,6 @@ export async function executeStatus(
           bootstrapActivation.activationState === "root_active_thin" &&
           !bootstrapActivation.applyBlocked,
         reason: bootstrapActivation.reason,
-        // implements REQ-legacy-kb-first-step-migrate
         nextAction:
           bootstrapActivation.nextOperation !== undefined
             ? {

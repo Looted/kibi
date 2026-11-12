@@ -16,7 +16,6 @@ async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   await executor.runJsonInvocation(invocation);
 }
 
-// implements REQ-kibi-operation-interface-parity
 export function registerFoundationCommands(program: Command): void {
   program
     .command("init")

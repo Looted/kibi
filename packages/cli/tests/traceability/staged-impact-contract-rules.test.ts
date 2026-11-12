@@ -7,8 +7,6 @@ import {
   isSupportedBehaviorSourcePath,
 } from "../../src/traceability/staged-impact-contract.js";
 
-// implements REQ-cli-staged-impact-enforcement
-
 describe("diagnostic contract", () => {
   test("lists the stable ids", () => {
     expect([...KIBI_IMPACT_DIAGNOSTIC_IDS]).toStrictEqual([

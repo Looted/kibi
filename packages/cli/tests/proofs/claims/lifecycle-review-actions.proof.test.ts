@@ -15,8 +15,6 @@ import {
   SCENARIO_FEASIBILITY_REVIEW_CODE,
 } from "../../../src/public/operations/schema6-check-actions.js";
 
-// implements REQ-kibi-lifecycle-review-actions
-
 /**
  * The action ids and codes of the review and repair steps kb_check proposes. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

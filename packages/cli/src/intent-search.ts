@@ -1,6 +1,12 @@
 import path from "node:path";
 
 import { bodySnippetLine } from "./entity-body-context.js";
+import {
+  type NegativePathFacts,
+  type NegativePathMarker,
+  negativePathMarker,
+  queryNegativePathFacts,
+} from "./negative-path-facts.js";
 import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
 import { isProvenanceStub } from "./provenance-stub.js";
 import {
@@ -18,7 +24,6 @@ import {
   tokenSourceHash,
 } from "./search-token-cache.js";
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchFacetName =
   | "actors"
   | "actions"
@@ -26,12 +31,10 @@ export type IntentSearchFacetName =
   | "constraints"
   | "aliases";
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchFacets = Readonly<
   Partial<Record<IntentSearchFacetName, readonly string[]>>
 >;
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type SourceLocation = Readonly<{
   path: string;
   line?: number;
@@ -39,7 +42,6 @@ export type SourceLocation = Readonly<{
   symbol?: string;
 }>;
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchOptions = Readonly<{
   query: string;
   type?: (typeof VALID_ENTITY_TYPES)[number] | string;
@@ -48,21 +50,18 @@ export type IntentSearchOptions = Readonly<{
   minScore?: number;
 }>;
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentSourceMatch = Readonly<{
   path: string;
   symbolId?: string;
   distance?: number;
 }>;
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentGraphPath = Readonly<{
   from: string;
   relationships: readonly string[];
   to: string;
 }>;
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchEvidence = Readonly<{
   normalizedScore: number;
   matchedFacets: readonly string[];
@@ -71,12 +70,15 @@ export type IntentSearchEvidence = Readonly<{
   abstentionEligible: boolean;
 }>;
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchMatch = SearchMatch & {
   readonly evidence: IntentSearchEvidence;
+  /**
+   * Set on a negative-path fact: it describes a situation that must not
+   * happen, so its title does not state something true.
+   */
+  readonly negativePath?: NegativePathMarker;
 };
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchAnalysis = Readonly<{
   rankingMode: "intent-v1";
   candidateCount: number;
@@ -94,7 +96,6 @@ export type IntentSearchAnalysis = Readonly<{
   ambiguous: boolean;
 }>;
 
-// implements REQ-kibi-intent-aware-source-discovery
 export type IntentSearchResult = Readonly<{
   matches: readonly IntentSearchMatch[];
   analysis: IntentSearchAnalysis;
@@ -217,6 +218,18 @@ export const NON_GOVERNING_STATUSES = new Set([
   "archived",
 ]);
 const NON_GOVERNING_FACTOR = 0.5;
+// A closed requirement with no known successor may be done and still hold,
+// or retired with nothing to replace it; it ranks below a current
+// requirement that matches as well, but stays above weaker ones.
+export const CLOSED_REQUIREMENT_FACTOR = 0.75;
+
+/** True for a requirement whose status is `closed`. */
+export function isClosedRequirement(entity: Record<string, unknown>): boolean {
+  return (
+    entity.type === "req" &&
+    String(entity.status).trim().toLowerCase() === "closed"
+  );
+}
 // A bootstrap provenance stub states no claim: it is demoted and, whatever
 // its score, sorted after every match that is not a stub.
 const PROVENANCE_STUB_FACTOR = 0.25;
@@ -252,7 +265,6 @@ function expandIdentifiers(value: string): string {
 const QUESTION_PATH =
   /(?<![\w:/.-])(?:\.{1,2}\/)?(?:[\w@~+-][\w@.~+-]*\/)+[\w@~+-][\w@.~+-]*\.[A-Za-z0-9]{1,8}(?![\w/])/g;
 
-// implements REQ-kibi-intent-aware-source-discovery
 /** Workspace file paths the question names in its text, in order, once each. */
 export function questionPaths(query: string): string[] {
   return [
@@ -287,7 +299,6 @@ const CODE_SPAN = /`([^`\n]+)`/g;
 const CODE_SPAN_WEIGHT = 2;
 
 /** Tokens of the question's backticked code spans (`canExport(user)`). */
-// implements REQ-kibi-intent-aware-source-discovery
 function codeSpanTokens(topic: string): Set<string> {
   return new Set(
     [...topic.matchAll(CODE_SPAN)].flatMap((match) =>
@@ -354,7 +365,6 @@ function tokens(value: string): readonly string[] {
 }
 
 /** The signal tokens intent ranking compares (stop words dropped, stemmed). */
-// implements REQ-kibi-contradiction-review-candidates
 export function intentTokens(value: string): readonly string[] {
   return tokens(value);
 }
@@ -573,7 +583,6 @@ function computeEntityTokens(
   };
 }
 
-// implements REQ-kibi-intent-aware-source-discovery
 export function entityTokens(
   entity: Record<string, unknown>,
   body: string | null,
@@ -689,6 +698,7 @@ export function scoreEntity(
   const graphScore = Math.min(1, graphEvidence.length / 2);
   const status = String(entity.status).trim().toLowerCase();
   const nonGoverning = NON_GOVERNING_STATUSES.has(status) || superseded;
+  const closed = !nonGoverning && isClosedRequirement(entity);
   const score =
     Math.min(
       1,
@@ -698,10 +708,12 @@ export function scoreEntity(
         graphScore * 0.05,
     ) *
     (nonGoverning ? NON_GOVERNING_FACTOR : 1) *
+    (closed ? CLOSED_REQUIREMENT_FACTOR : 1) *
     (provenanceStub ? PROVENANCE_STUB_FACTOR : 1);
   const reasons: string[] = [];
   if (nonGoverning)
     reasons.push(superseded ? "demoted: superseded" : `demoted: ${status}`);
+  if (closed) reasons.push("demoted: closed");
   if (provenanceStub) reasons.push("demoted: provenance stub");
   if (lexicalScore > 0) reasons.push("intent token match");
   if (matchedFacets.length > 0) reasons.push("semantic facet match");
@@ -733,13 +745,11 @@ function buildDocumentFrequency(
 }
 
 /** Markdown bodies already read in this search, keyed by entity source. */
-// implements REQ-kibi-search-answer-layer-v2
 export type MarkdownBodyCache = Map<string, string | null>;
 
 // Bodies are read one after another: a search reads thousands of small
 // files, and synchronous reads of those finish many times sooner than
 // batches of asynchronous ones.
-// implements REQ-kibi-intent-aware-source-discovery
 export function readBodies(
   entities: readonly Record<string, unknown>[],
   workspaceRoot: string,
@@ -756,13 +766,13 @@ export function readBodies(
   );
 }
 
-// implements REQ-kibi-intent-aware-source-discovery, REQ-bootstrap-provenance-stubs
 export async function rankIntentEntities(
   entities: readonly Record<string, unknown>[],
   options: IntentSearchOptions,
   workspaceRoot: string,
   graphEdges: readonly GraphEdge[] = NO_GRAPH_EDGES,
   bodyCache: MarkdownBodyCache = new Map(),
+  negativePathFacts: NegativePathFacts = new Map(),
 ): Promise<IntentSearchResult> {
   const query = topicText(options.query, options.sourceLocations);
   const queryTokens = tokens(query);
@@ -849,11 +859,15 @@ export async function rankIntentEntities(
         ? "implemented at the source location"
         : reason,
     );
+    const guards = negativePathFacts.get(String(entity.id ?? ""));
     ranked.push({
       entity,
       score: scored.score,
       reasons: Array.from(new Set(reasons)),
       ...(snippet !== undefined ? { snippet } : {}),
+      ...(guards !== undefined
+        ? { negativePath: negativePathMarker(guards) }
+        : {}),
       evidence: {
         normalizedScore: scored.score,
         matchedFacets: scored.matchedFacets,
@@ -865,11 +879,20 @@ export async function rankIntentEntities(
       },
     });
   }
+  const rankScore = negativePathRankScores(ranked);
   ranked.sort((left, right) => {
     const stubOrder =
       Number(isProvenanceStub(left.entity)) -
       Number(isProvenanceStub(right.entity));
     if (stubOrder !== 0) return stubOrder;
+    const leftScore = rankScore.get(left) ?? left.score;
+    const rightScore = rankScore.get(right) ?? right.score;
+    if (rightScore !== leftScore) return rightScore - leftScore;
+    // At the same rank a negative-path fact follows what it guards.
+    const negativeOrder =
+      Number(left.negativePath !== undefined) -
+      Number(right.negativePath !== undefined);
+    if (negativeOrder !== 0) return negativeOrder;
     if (right.score !== left.score) return right.score - left.score;
     const typeOrder = String(left.entity.type ?? "").localeCompare(
       String(right.entity.type ?? ""),
@@ -907,6 +930,33 @@ export async function rankIntentEntities(
 }
 
 /**
+ * The score a negative-path fact is ranked by: never above the best match
+ * among the requirements it guards, so it follows that requirement instead
+ * of leading the results. A fact whose guards did not match keeps its own
+ * score and is still marked. Other matches rank by their own score.
+ */
+function negativePathRankScores(
+  ranked: readonly IntentSearchMatch[],
+): Map<IntentSearchMatch, number> {
+  const scoreById = new Map<string, number>();
+  for (const match of ranked) {
+    const id = String(match.entity.id ?? "");
+    scoreById.set(id, Math.max(scoreById.get(id) ?? 0, match.score));
+  }
+  const scores = new Map<IntentSearchMatch, number>();
+  for (const match of ranked) {
+    const guards = match.negativePath?.guards ?? [];
+    const guardScores = guards.flatMap((id) => {
+      const score = scoreById.get(id);
+      return score === undefined ? [] : [score];
+    });
+    if (guardScores.length > 0)
+      scores.set(match, Math.min(match.score, Math.max(...guardScores)));
+  }
+  return scores;
+}
+
+/**
  * A requirement and its own scenario, facts or tests score alike on the
  * same words without being rival answers: the rival is the best match the
  * top match is not linked to.
@@ -922,12 +972,17 @@ function rivalOf(
     if (edge.from === topId) linkedToTop.add(edge.to);
     if (edge.to === topId) linkedToTop.add(edge.from);
   }
+  // A negative-path fact is the failure side of the requirements it guards,
+  // not a rival answer to them.
   return ranked
     .slice(1)
-    .find((match) => !linkedToTop.has(String(match.entity.id ?? "")));
+    .find(
+      (match) =>
+        !linkedToTop.has(String(match.entity.id ?? "")) &&
+        !match.negativePath?.guards.includes(topId),
+    );
 }
 
-// implements REQ-kibi-intent-aware-source-discovery
 /**
  * Source evidence a requirement inherits from the symbols that implement it:
  * a changed file's symbols are source matches, and the requirements they
@@ -1061,12 +1116,10 @@ export async function loadIntentCandidates(
   return Array.from(candidates.values());
 }
 
-// implements REQ-kibi-intent-aware-source-discovery
 export async function executeIntentSearch(
   options: IntentSearchOptions,
   prolog: PrologPort,
   workspaceRoot: string,
-  // implements REQ-kibi-search-hints-host
   /** Receives the candidate rows and bodies the ranking read, for reuse. */
   onCorpus?: (
     entities: readonly Record<string, unknown>[],
@@ -1116,16 +1169,24 @@ export async function executeIntentSearch(
       candidates.push(entity);
     }
   }
+  // Only facts the ranking can accept are asked about: the first pass's
+  // matches and the graph neighbours added for the second.
+  const negativePathFacts = await queryNegativePathFacts(
+    prolog,
+    [...firstPass.matches.map((match) => match.entity), ...related]
+      .filter((entity) => entity.type === "fact")
+      .map((entity) => String(entity.id ?? "")),
+  );
   return rankIntentEntities(
     candidates,
     options,
     workspaceRoot,
     graphEdges,
     bodies,
+    negativePathFacts,
   );
 }
 
-// implements REQ-kibi-intent-aware-source-discovery
 export function validateIntentSearchInput(input: IntentSearchOptions): void {
   if (!input.query.trim())
     throw new Error(

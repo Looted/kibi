@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { WORKSPACE_ROOT_ARGUMENT } from "../../../../mcp/src/server/workspace-router.js";
 
-// implements REQ-mcp-workspace-root-argument
-
 /**
  * The tool argument the MCP server routes a call to a workspace by. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

@@ -19,7 +19,6 @@ export async function readOptionalArtifact(path: string): Promise<string> {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function persistCodexEpisode(
   directory: string,
   receipt: CodexEpisodeReceipt,

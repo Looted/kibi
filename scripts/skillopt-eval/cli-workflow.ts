@@ -70,7 +70,6 @@ type WorkflowExecution = Readonly<{
   artifactPath: ArtifactPath;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export async function runWorkflowCommand(
   command: string,

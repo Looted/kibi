@@ -50,7 +50,6 @@ import {
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../public/proof-receipt.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type ProveCommandOptions = Readonly<{
   testId?: string;
   requirement?: string;
@@ -64,7 +63,6 @@ export type ProveCommandOptions = Readonly<{
   workspaceRoot?: string;
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type ProveCommandDependencies = Readonly<{
   runtime?: OperationRuntime;
   ingestProof?: typeof executeIngestProof;
@@ -78,7 +76,6 @@ type SelectedTest = Record<string, unknown>;
  * Snapshot-relevant changes come first (receipt-only and ignored edits do
  * not affect the hash), and the list is capped to keep the error readable.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function describeWorkspaceDrift(
   snapshot: Awaited<ReturnType<typeof readWorkspaceSnapshot>>,
 ): string {
@@ -103,7 +100,6 @@ export function describeWorkspaceDrift(
  * trimmed, non-empty ids. Empty selectors yield an empty set; blank items
  * fail fast instead of silently narrowing the selection.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function parseIntegrationSelector(
   value: string | undefined,
   flagName: string,
@@ -138,7 +134,6 @@ function parseContract(test: Record<string, unknown>): ProofContract | null {
 }
 
 /** Run a proof integration's command and resolve with its exit code. */
-// implements REQ-kibi-verification-evidence-contract
 export async function runChild(
   commandArgv: readonly string[],
   cwd: string,
@@ -191,7 +186,6 @@ export async function runChild(
   });
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export function commandEnvironment(
   integration: ProofIntegration,
   commandArgv: readonly string[],
@@ -280,7 +274,6 @@ export function resumableIntegrations(
  * only when every selected test names its `proof_bindings[].source_file`;
  * otherwise the command runs unchanged and the reason says why.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function narrowedPlaywrightCommand(
   command: readonly string[],
   tests: readonly SelectedTest[],
@@ -391,7 +384,6 @@ function markAggregateFailure(results: ProofResult[]): ProofResult[] {
  * `passed` means the test already has a current passing receipt; anything
  * else (missing, stale, contract_mismatch, invalid, failed) needs a run.
  */
-// implements REQ-kibi-verification-evidence-contract
 export async function readTestReceiptStates(
   context: OperationContext,
 ): Promise<ReadonlyMap<string, string>> {
@@ -503,7 +495,6 @@ async function selectTestsBySelector(
   return filtered;
 }
 
-// implements REQ-kibi-claim-bound-proofs
 // One line per claim a certificate test names in proves: derived (with its
 // scope), attested, or rejected with the reason.
 function claimBindingLines(result: IngestProofResult): string[] {
@@ -515,7 +506,6 @@ function claimBindingLines(result: IngestProofResult): string[] {
   );
 }
 
-// implements REQ-kibi-code-proof-kinds
 // One line per certificate test whose certificate did not re-check: the test
 // passed, but its receipt supports tested, not proved.
 function certificateRejectionLines(result: IngestProofResult): string[] {
@@ -528,7 +518,6 @@ function certificateRejectionLines(result: IngestProofResult): string[] {
   );
 }
 
-// implements REQ-kibi-code-proof-kinds
 // A test whose run passed but whose certificate or claim binding Kibi
 // rejected is refused, not passed: it proves nothing about the code.
 function refusedCount(result: IngestProofResult): number {
@@ -552,7 +541,6 @@ function summarize(result: IngestProofResult): string {
   return parts.join(", ");
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export async function proveCommand(
   options: ProveCommandOptions,
   deps: ProveCommandDependencies = {},
@@ -853,7 +841,6 @@ export async function proveCommand(
       (sum, result) => sum + result.unchanged,
       0,
     );
-    // implements REQ-kibi-code-proof-kinds
     // passed counts passing receipts; certified counts those whose certificate
     // re-checked, the only receipts that can support proved.
     const certified = ingestResults.reduce(
@@ -914,7 +901,6 @@ export async function proveCommand(
 }
 
 /** Read every certificate a run left in its certificate directory. */
-// implements REQ-kibi-code-proof-kinds
 export async function readCertificateDir(
   directory: string,
 ): Promise<Record<string, unknown>[]> {
@@ -946,7 +932,6 @@ export async function readCertificateDir(
  * never evaluated against another test's certificate. A test may leave at
  * most one certificate per run.
  */
-// implements REQ-kibi-code-proof-kinds
 export function attachCertificates(
   evaluated: EvaluatedRun,
   certificates: readonly Record<string, unknown>[],
@@ -991,7 +976,6 @@ export function attachCertificates(
 }
 
 /** The artifacts one integration run is evaluated through. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export type EvaluatedRun = Readonly<{
   /** Each artifact is ingested against exactly its own tests. */
   artifacts: readonly Readonly<{
@@ -1004,7 +988,6 @@ export type EvaluatedRun = Readonly<{
 }>;
 
 /** Read a command integration's optional per-test report and attribute it. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export async function readCommandAttribution(
   reportPath: string,
   selectedTestIds: readonly string[],
@@ -1034,7 +1017,6 @@ export async function readCommandAttribution(
 }
 
 /** Where a partition's evaluated artifact is kept next to the run artifact. */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function partitionArtifactPath(
   artifactPath: string,
   outcome: string,
@@ -1060,7 +1042,6 @@ function describeFailedStep(step: FailedProofStep): string {
  * failing outcome gets a failing slice that names the steps that failed. The
  * whole-process artifact is kept alongside for audit.
  */
-// implements REQ-kibi-fresh-verification-receipts-v2
 export function buildCommandRunArtifacts(input: {
   integration: ProofIntegration;
   commandArgv: readonly string[];

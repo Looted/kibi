@@ -1,4 +1,3 @@
-// implements REQ-docs-site-root-pages
 /**
  * The animated terminal on the landing page and in the README.
  *
@@ -66,7 +65,6 @@ const say = (
 /** Milliseconds a finished scene stays on screen before the next one starts. */
 export const TERMINAL_HOLD_MS = 6500;
 
-// implements REQ-docs-site-root-pages
 export const TERMINAL_SCENES: readonly TerminalScene[] = [
   {
     name: "Contradiction",
@@ -169,7 +167,6 @@ export const TERMINAL_ROWS = Math.max(
   ...TERMINAL_SCENES.map((scene) => scene.lines.length),
 );
 
-// implements REQ-docs-site-root-pages
 /**
  * Landing-page markup. The first scene is rendered statically so the page
  * reads without JavaScript; the client script replays every scene.
@@ -224,7 +221,6 @@ function xml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-// implements REQ-docs-site-root-pages
 /**
  * The README terminal: a self-contained SVG whose CSS animation steps
  * through every scene, revealing lines on the same schedule as the landing
@@ -317,7 +313,6 @@ ${shapes.join("\n")}
 export const TERMINAL_SVG_PATH = "assets/terminal-demo.svg";
 
 /** Writes the README terminal SVG; `bun run docs:terminal-demo` calls this. */
-// implements REQ-docs-site-root-pages
 export async function writeTerminalDemoSvg(
   repoRoot = `${import.meta.dir}/..`,
 ): Promise<string> {

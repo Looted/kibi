@@ -38,7 +38,6 @@ const verified: VerificationReport = {
   notCovered: ["rule_conflicts", "scenario_feasibility"],
 };
 
-// implements REQ-kibi-kb-certificates
 describe("kibi check certificate re-check report", () => {
   test("a verified bundle with every theorem proved exits 0", () => {
     expect(certificatesExitCode(verified)).toBe(0);

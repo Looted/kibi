@@ -892,7 +892,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M5"],
         "affectedFiles": [".kb/requirements/REQ-M5.md"],
@@ -922,7 +922,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
+          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M6"],
         "affectedFiles": [".kb/requirements/REQ-M6.md"],
@@ -953,7 +953,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M7"],
         "affectedFiles": [".kb/requirements/REQ-M7.md"],
@@ -2194,7 +2194,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M5"],
         "affectedFiles": [".kb/requirements/REQ-M5.md"],
@@ -2224,7 +2224,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
+          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M6"],
         "affectedFiles": [".kb/requirements/REQ-M6.md"],
@@ -2255,7 +2255,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M7"],
         "affectedFiles": [".kb/requirements/REQ-M7.md"],
@@ -3276,7 +3276,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+          "instruction": "REQ-M5 (.kb/requirements/REQ-M5.md) has status superseded, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M5"],
         "affectedFiles": [".kb/requirements/REQ-M5.md"],
@@ -3306,7 +3306,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
+          "instruction": "REQ-M6 (.kb/requirements/REQ-M6.md) has status weird, which is not a status Kibi knows, so kibi sync cannot compile it (status is not allowed) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M6"],
         "affectedFiles": [".kb/requirements/REQ-M6.md"],
@@ -3337,7 +3337,7 @@
         "safety": "review",
         "invocation": {
           "kind": "review",
-          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
+          "instruction": "REQ-M7 (.kb/requirements/REQ-M7.md) has status draft, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate."
         },
         "affectedEntityIds": ["REQ-M7"],
         "affectedFiles": [".kb/requirements/REQ-M7.md"],

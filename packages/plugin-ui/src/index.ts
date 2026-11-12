@@ -14,7 +14,6 @@ const packageJson = require("../package.json") as { version: string };
  * `check-policy.json` as data during `kb_check`; this export exists for tools
  * and tests that want the document without reading the file.
  */
-// implements REQ-ui-plugin-design-policy
 export const UI_CHECK_POLICY: CheckPolicyDocument = validateCheckPolicyDocument(
   require("../check-policy.json"),
 );
@@ -23,7 +22,6 @@ export const UI_CHECK_POLICY: CheckPolicyDocument = validateCheckPolicyDocument(
  * Named plugin export required by the Kibi host loader. The plugin declares no
  * permissions: it only contributes a check policy document.
  */
-// implements REQ-ui-plugin-design-policy
 export const kibiPlugin = defineKibiPlugin({
   apiVersion: KIBI_PLUGIN_API_VERSION,
   id: "kibi-plugin-ui",
@@ -41,5 +39,4 @@ export const kibiPlugin = defineKibiPlugin({
   },
 });
 
-// implements REQ-ui-plugin-design-policy
 export default kibiPlugin;

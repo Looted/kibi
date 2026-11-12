@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f42044f05f4a
+  - type: implements
+    from: SYM-retired-status-plan-retired-status-suggestions
+    to: REQ-kb-requirement-retired-status
+    created_at: 2026-11-11T17:41:51.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8e1767fb94a
+  - type: covered_by
+    from: SYM-retired-status-plan-retired-status-suggestions
+    to: TEST-kb-requirement-retired-status
+    created_at: 2026-11-11T17:41:51.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d6afeb83919

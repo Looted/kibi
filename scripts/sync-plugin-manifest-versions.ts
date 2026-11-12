@@ -53,7 +53,6 @@ interface PackageSyncPlan {
   readonly analyzerMetadata?: AnalyzerMetadataPlan;
 }
 
-// implements REQ-020
 export interface PluginManifestSyncResult {
   readonly packageName: string;
   readonly packageVersion: string;
@@ -603,7 +602,6 @@ export function syncCatalogPackVersions(
   );
 }
 
-// implements REQ-020
 export async function syncPluginManifestVersions(
   workspaceRoot: string,
 ): Promise<PluginManifestSyncResult[]> {

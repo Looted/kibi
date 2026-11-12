@@ -21,8 +21,6 @@ import {
 import { MAX_PROOF_RECEIPTS } from "../../../src/public/proof-receipt.js";
 import { COVERAGE_ROW_PAGE_SIZE } from "../../../src/public/operations/specs/reporting.js";
 
-// implements REQ-kibi-proof-run-vocabulary
-
 /**
  * The closed lists, paths and bounds of a proof run and its receipts. Kibi reads
  * every constant itself at ingest, so the certificate is checked against the code.

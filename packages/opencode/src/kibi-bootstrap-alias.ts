@@ -1,5 +1,4 @@
 /** Builds the host-local route to the canonical kibi-bootstrap skill. */
-// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function buildKibiBootstrapAlias(): string {
   const lines = [
     "# /kibi-bootstrap",

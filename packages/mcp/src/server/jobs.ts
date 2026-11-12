@@ -37,7 +37,6 @@ import process from "node:process";
 type JobState = "running" | "succeeded" | "failed";
 
 export interface JobRecord {
-  // implements REQ-002
   readonly jobId: string;
   readonly tool: string;
   readonly startedAt: string;
@@ -72,7 +71,6 @@ function evictOldestFinished(): void {
  * callers return the `kibi.job.v1` receipt immediately so the MCP request is
  * never held open for the duration of the operation.
  */
-// implements REQ-002
 export function startJob(
   tool: string,
   factory: () => Promise<unknown>,
@@ -118,13 +116,11 @@ export function startJob(
   };
 }
 
-// implements REQ-002
 export function getJob(jobId: string): JobRecord | undefined {
   return jobs.get(jobId);
 }
 
 /** Public JSON shape for kb_job_status responses. */
-// implements REQ-002
 export function jobSnapshot(job: JobRecord): Readonly<Record<string, unknown>> {
   return {
     kibiProtocol: 1,
@@ -140,7 +136,6 @@ export function jobSnapshot(job: JobRecord): Readonly<Record<string, unknown>> {
 }
 
 /** Test seam: drop all job state. */
-// implements REQ-002
 export function resetJobsForTests(): void {
   jobs.clear();
   jobCounter = 0;

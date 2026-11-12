@@ -26,7 +26,6 @@ export interface FindGapsResult {
   };
 }
 
-// implements REQ-002, REQ-013
 export async function handleKbFindGaps(
   prolog: ReportingProlog,
   args: FindGapsArgs,

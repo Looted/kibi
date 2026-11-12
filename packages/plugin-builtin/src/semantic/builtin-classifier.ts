@@ -88,7 +88,6 @@ interface DetectedSignal {
   readonly confidence: number;
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function detectSignals(prose: string): readonly DetectedSignal[] {
   // Each kind appears once in SIGNAL_PATTERNS, so every kind is reported at
   // most once without further de-duplication.
@@ -122,7 +121,6 @@ const LANE_PRECEDENCE = [
  * Lane selection shared with the host analysis receipt.
  * Host snake_case receipts may omit candidateLane; only `kind` is required.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function chooseLane(
   signals: readonly { readonly kind: SemanticSignalKind }[],
 ): SemanticLane {
@@ -143,7 +141,6 @@ function strongestConfidence(signals: readonly DetectedSignal[]): number {
   return Math.max(0, ...signals.map(({ confidence }) => confidence));
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export class BuiltinSemanticClassifier implements SemanticClassifierV1 {
   readonly id = "kibi-plugin-builtin.classifier";
 
@@ -170,7 +167,6 @@ export class BuiltinSemanticClassifier implements SemanticClassifierV1 {
   }
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinSemanticClassifier(): SemanticClassifierV1 {
   return new BuiltinSemanticClassifier();
 }

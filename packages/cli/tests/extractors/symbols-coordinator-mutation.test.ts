@@ -296,7 +296,6 @@ describe("analyzeSourceTextWithRegistry", () => {
           startColumn: 0,
           endLine: 1,
           endColumn: 3,
-          directiveText: "d",
         },
         {
           name: "b",

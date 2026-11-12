@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
 import type { ChildProcess } from "node:child_process";
-// implements REQ-core-prolog-process-management
 import { EventEmitter } from "node:events";
 import * as fs from "node:fs";
 import { mkdtempSync, rmSync } from "node:fs";

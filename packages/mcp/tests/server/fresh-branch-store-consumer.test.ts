@@ -1,4 +1,3 @@
-// implements REQ-cli-status-pre-first-sync, REQ-kibi-fresh-clone-setup
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import {

@@ -1,4 +1,3 @@
-// implements REQ-opencode-file-context-guidance-v1
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { getKbExistenceTargets, loadKbSyncPaths } from "./file-filter.js";
@@ -40,7 +39,6 @@ type ParsedEntry = Omit<SymbolsManifestRow, "sourceFile"> & {
   sourceFile?: string;
 };
 
-// implements REQ-opencode-file-context-guidance-v1
 export function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
   const entries: SymbolsManifestRow[] = [];
   let current: ParsedEntry | undefined;
@@ -128,7 +126,6 @@ export function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
 const DOC_ENTITY_PATTERN =
   /^(REQ|SCEN|TEST|ADR|FLAG|EVT|FACT)-[A-Za-z0-9_-]+\.md$/;
 
-// implements REQ-opencode-file-context-guidance-v1
 function resolveDocPathIdentity(
   worktree: string,
   relPath: string,
@@ -167,7 +164,6 @@ function normalizeFilePath(worktree: string, filePath: string): string {
 // Priority order: implements → covered_by → executable_for
 const REL_PRIORITY = ["implements", "covered_by", "executable_for"];
 
-// implements REQ-opencode-file-context-guidance-v1
 export function getFileLinkedEntityIds(
   worktree: string,
   filePath: string,
@@ -206,7 +202,6 @@ export function getFileLinkedEntityIds(
   }
 }
 
-// implements REQ-opencode-file-context-guidance-v1
 export function getFileLinkedTargetsByType(
   worktree: string,
   filePath: string,

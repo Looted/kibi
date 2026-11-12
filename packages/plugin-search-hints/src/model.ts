@@ -13,7 +13,6 @@ export const MODEL_LABEL = `${MODEL_ID}@${MODEL_REVISION.slice(0, 12)}/int8`;
 /** model2vec truncates each text to this many tokens. */
 const MAX_TOKENS = 512;
 
-// implements REQ-kibi-plugin-search-hints
 export type StaticModel = Readonly<{
   /** Model id plus the asset hash, so a changed table never reuses vectors. */
   id: string;
@@ -28,7 +27,6 @@ const ASSETS_DIRECTORY = fileURLToPath(new URL("../assets/", import.meta.url));
  * L2-normalised. Sums run in double precision in token order, so a text has
  * the same vector on every platform and in every batch.
  */
-// implements REQ-kibi-plugin-search-hints
 export function loadStaticModel(
   assetsDirectory = ASSETS_DIRECTORY,
 ): StaticModel {

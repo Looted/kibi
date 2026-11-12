@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -30,16 +29,12 @@ const MAX_GROUNDING = 2;
 const MAX_CLAIM = 160;
 /** Files larger than this are not scanned to locate an edit. */
 const MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
 export const MAX_SNIPPET_CHARS = 1200;
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
 export type LineRange = { start: number; end: number };
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
 export type Summarize = (entityId: string) => EntitySummary;
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
 export type SnippetInput = {
   relativePath: string;
   symbols: readonly IndexedSymbol[];
@@ -66,7 +61,6 @@ function span(symbol: IndexedSymbol): number {
   return Number(symbol.endLine ?? symbol.line) - Number(symbol.line);
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1
 /** Symbols whose coordinates intersect the focus, innermost first. */
 export function focusedSymbols(
   symbols: readonly IndexedSymbol[],
@@ -78,7 +72,6 @@ export function focusedSymbols(
     .sort((left, right) => span(left) - span(right));
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
  * Lines an edit will replace, located in the current file content from the
  * edit's `old_string`/`oldString` (single edits and `edits` lists).
@@ -131,14 +124,12 @@ function formatList(items: readonly string[], limit: number): string {
 
 const RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /** True for a status that marks an entity as no longer current policy. */
 export function isRetiredStatus(status: string | undefined): boolean {
   // `String(undefined)` is "undefined", which names no retired status.
   return RETIRED_STATUS.test(String(status));
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1, REQ-kb-decision-firmness, REQ-kb-decision-firmness-from-origin
 /**
  * `ID (status) [firmness]: title`, with the status shown only when it is
  * retired and the firmness only on a current decision: `[firm: ask before
@@ -181,7 +172,6 @@ function jsonString(value: string): string {
   return JSON.stringify(value);
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-kb-unowned-file-candidates, REQ-claude-request-topic-candidates
 /**
  * Discovery note for a source file none of whose symbols implement a
  * requirement. No link is not no rule, so the note names the current
@@ -209,7 +199,6 @@ export function unownedSourceNote(
     if (note.length <= MAX_SNIPPET_CHARS) return note;
   }
   if (candidates.length > 0) return [head, search].join("\n");
-  // implements REQ-claude-request-topic-candidates
   // Nothing found is not an all-clear: say that nothing recorded is known to
   // cover the file, and that what this change decides for it is recorded now.
   return [
@@ -219,7 +208,6 @@ export function unownedSourceNote(
   ].join("\n");
 }
 
-// implements REQ-kibi-hooks-flow-manifest, REQ-claude-code-kibi-plugin-v1, REQ-codex-kibi-plugin-v1
 /** Shown instead of the discovery note when the manifest itself could not be read. */
 export function unreadableManifestNote(relativePath: string): string {
   return [
@@ -233,7 +221,6 @@ function impactCheckLine(relativePath: string): string {
   return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /** Link types through which a requirement is grounded in semantic facts. */
 export const GROUNDING_LINK_TYPES: readonly string[] = [
   "constrains",
@@ -282,7 +269,6 @@ function subjectPhrase(claim: FactClaim): string | undefined {
   return claim.subjectKey?.replace(/[._]+/g, " ").trim() || undefined;
 }
 
-// implements REQ-agent-core-edit-snippets
 /**
  * A property fact as a sentence naming its operator and members ("The greet
  * function must not call console.log"); a predicate or rule fact as the
@@ -328,7 +314,6 @@ function withoutClosingStop(text: string): string {
   return text.replace(/[.\s]+$/, "");
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /**
  * What a requirement says must stay true and the decision behind it (a
  * linked ADR), read from its frontmatter links and relationship-shard
@@ -393,7 +378,6 @@ export function requirementGroundingLines(
   return lines;
 }
 
-// implements REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /** Requirement IDs a file's symbols implement, in manifest order. */
 export function implementedRequirementIds(
   symbols: readonly IndexedSymbol[],
@@ -401,7 +385,6 @@ export function implementedRequirementIds(
   return [...new Set(symbols.flatMap((symbol) => symbol.implements))];
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1, REQ-opencode-kibi-plugin-v1
 /**
  * Memoized entity summaries for one hook process: titles, statuses and links
  * are read from the workspace once per entity however often a snippet asks.
@@ -447,7 +430,6 @@ function requirementOwners(
   return { owners, requirementIds };
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-claude-code-kibi-plugin-v1, REQ-cursor-kibi-plugin-v1, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
  * Knowledge snippet for a file with requirement-linked symbols, or undefined
  * when the manifest links nothing to it.
@@ -519,7 +501,6 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
   return truncate(lines.join("\n"), input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 
-// implements REQ-claude-code-kibi-plugin-v1
 /**
  * Reduced edit snippet for a file whose descriptive snippet (requirements,
  * symbols, tests, next-layer calls) was already shown this session: which
@@ -548,7 +529,6 @@ export function editKnowledgeUpdate(input: SnippetInput): string | undefined {
   return truncate(lines.join("\n"), input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 
-// implements REQ-claude-code-kibi-plugin-v1
 /**
  * One-line focus update for a file whose snippet was already shown this
  * session: only the new fact (which symbol the edit lands in) is repeated.
@@ -567,7 +547,6 @@ export function focusUpdate(
   return `Kibi: this edit to ${relativePath} is inside ${symbol.title}${owners}.`;
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 export type EditKnowledgeInput = {
   /** Workspace-relative paths the edit call targets, in call order. */
   relativePaths: readonly string[];
@@ -590,7 +569,6 @@ export type EditKnowledgeInput = {
   noteFor?: ((relativePath: string) => string | undefined) | undefined;
 };
 
-// implements REQ-agent-core-edit-snippets, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
  * Pre-edit context for hosts without their own snippet memory: the shared
  * edit snippet for each linked file the call targets (or `noteFor`'s note for
@@ -622,7 +600,6 @@ export function editKnowledgeContext(
   return snippets.length > 0 ? snippets.join("\n\n") : undefined;
 }
 
-// implements REQ-agent-core-edit-snippets, REQ-codex-kibi-plugin-v1, REQ-zcode-kibi-plugin-v1
 /**
  * Claim the one-time slot for `key` under `stateDir`: true the first time a
  * key is claimed, false afterwards. The marker is created exclusively, so

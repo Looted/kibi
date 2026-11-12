@@ -3,7 +3,6 @@
 :- module(kibi_entities, [entity_type/1, entity_property/3, required_property/2, optional_property/2]).
 
 % Entity types
-% implements REQ-004
 entity_type(req).
 entity_type(scenario).
 entity_type(test).
@@ -43,6 +42,8 @@ entity_property(req, semantic_source_hash, string).
 entity_property(req, semantic_inventory, list_or_json).
 entity_property(req, proof_exempt, boolean).
 entity_property(req, proof_exempt_reason, string).
+% Why a retired requirement no longer governs (required with status retired).
+entity_property(req, retired_reason, string).
 % Human approval of an exception requirement (one that `exempts` another).
 % Only an approved exception makes a success scenario feasible.
 entity_property(req, approved_by, string).
@@ -159,6 +160,7 @@ optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
 optional_property(req, proof_exempt).
 optional_property(req, proof_exempt_reason).
+optional_property(req, retired_reason).
 optional_property(req, failure_side_waiver).
 optional_property(req, failure_side_waiver_approved_by).
 optional_property(req, approved_by).

@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 import type { HookState } from "./hook-state.js";
 import { type McpState, resolveKibiInterface } from "./kb-mcp-tools.js";
 import {

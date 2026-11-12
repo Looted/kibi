@@ -97,6 +97,13 @@ import {
   planRequirementStatusMappings,
 } from "./requirement-status.js";
 import {
+  REQ_RETIRED_STATUS_ACTION_PREFIX,
+  REQ_RETIRED_STATUS_SUGGEST_CODE,
+  type RetiredStatusSuggestion,
+  applyRetiredStatus,
+  planRetiredStatusSuggestions,
+} from "./retired-status.js";
+import {
   type PlannedSourcePathRepairs,
   type SourcePathRemoval,
   type SourcePathRewrite,
@@ -126,42 +133,31 @@ import {
 } from "./symbol-legacy-links.js";
 
 /** The KB schema generation that introduced entity `origin`. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ORIGIN_SCHEMA_VERSION = 6;
 
 /** The KB schema generation that requires body context on current entities. */
-// implements REQ-kb-entity-body-context, REQ-cli-schema-migration
 export const BODY_CONTEXT_SCHEMA_VERSION = 8;
 
 /** The KB schema generation that adds decision firmness. */
-// implements REQ-kb-decision-firmness, REQ-cli-schema-migration
 export const DECISION_FIRMNESS_SCHEMA_VERSION = 9;
 
 /** Automatic: re-derive a drifted inventory with the current advisor. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REDERIVE_CODE = "semantic_inventory_rederive";
 /** Review: a drifted inventory Kibi cannot re-derive safely. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REVIEW_CODE = "semantic_inventory_review";
 /**
  * Review, applied only when approved by id: re-derive a drifted inventory and
  * drop the grounding links that no longer ground a modeled claim.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE =
   "semantic_inventory_rederive_drop_grounding";
 /** Review, applied only when approved by id: map a legacy requirement status. */
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_VOCABULARY_MAP_CODE = "req_status_vocabulary_map";
 /** Automatic: map delivery statuses to `closed` plus the tag `implemented`. */
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_DELIVERED_MAP_CODE = "req_status_delivered_map";
-// implements REQ-cli-schema-migration
 export const REQ_STATUS_DELIVERED_MAP_ACTION_ID = "req-status-delivered-map";
 /** Automatic: stamp `origin: {kind: migration}` on authored entities. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_CODE = "entity_origin_backfill";
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const ENTITY_ORIGIN_BACKFILL_ACTION_ID = "entity-origin-backfill";
 export {
   CLOSE_SUPERSEDED_REQUIREMENTS_CODE,
@@ -391,7 +387,6 @@ function deliveredStatusAction(
  * mapped. With a suggestion it is executable when approved by id; the
  * re-derivation of the latent drift depends on it.
  */
-// implements REQ-cli-schema-migration, REQ-kibi-proposition-complete-ingestion
 export function requirementStatusActions(
   workspaceRoot: string,
 ): MigrationAction[] {
@@ -417,8 +412,8 @@ export function requirementStatusActions(
                 kind: "review",
                 instruction:
                   finding.extractionError === null
-                    ? `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress or closed (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`
-                    : `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate.`,
+                    ? `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a requirement status, so it is skipped by the proof ladder and its semantic inventory is never validated. Set status to open, in_progress, closed or retired (legacy: active, approved) in the file, or use proof_exempt to park it, then rerun kibi migrate.`
+                    : `${finding.requirementId} (${finding.path}) has status ${finding.status}, which is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}) and kb_query, kb_coverage and kb_upsert do not see it. Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync and rerun kibi migrate.`,
               }
             : { kind: "cli", command_argv: approvalArgv([id]) },
         affectedEntityIds: [finding.requirementId],
@@ -443,6 +438,12 @@ export function requirementStatusActions(
                 approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
                 choice:
                   "The target status is a semantic choice; to pick another one, set it in the file by hand instead of approving this action.",
+                ...(target === "retired"
+                  ? {
+                      retiredReason:
+                        "A retired requirement needs retired_reason; after the mapping, add why the behavior no longer exists, or kibi check reports retired-reason-missing.",
+                    }
+                  : {}),
               }),
           latentDrift:
             drift === null
@@ -478,6 +479,47 @@ export function requirementStatusActions(
   return actions;
 }
 
+/**
+ * One review action per closed requirement whose own source says it was
+ * retired (KB schema 14): approving it by id sets status retired with the
+ * quoted retired_reason. Kibi never retires a requirement on its own.
+ */
+export function retiredStatusActions(workspaceRoot: string): MigrationAction[] {
+  return planRetiredStatusSuggestions(workspaceRoot).map(
+    (suggestion: RetiredStatusSuggestion) => {
+      const id = `${REQ_RETIRED_STATUS_ACTION_PREFIX}${suggestion.requirementId}`;
+      return migrationAction({
+        id,
+        code: REQ_RETIRED_STATUS_SUGGEST_CODE,
+        category: "semantic",
+        safety: "review",
+        autoApplicable: false,
+        invocation: { kind: "cli", command_argv: approvalArgv([id]) },
+        affectedEntityIds: [suggestion.requirementId],
+        affectedFiles: [suggestion.path],
+        postconditions: [
+          {
+            rule: "retired-reason-missing",
+            entityId: suggestion.requirementId,
+            findings: 0,
+          },
+        ],
+        dispositionRequired: true,
+        allowedDispositions: ["fixed", "deferred"],
+        evidence: {
+          reason:
+            "This requirement is closed, nothing supersedes it, and its own source says it was retired. A closed requirement still governs search, hooks and every current-intent rule; status retired stops that. Approving sets status: retired and retired_reason to the quoted words, editing only those two lines.",
+          signals: suggestion.signals.map((signal) => ({ ...signal })),
+          retiredReason: suggestion.retiredReason,
+          approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
+          choice:
+            "Retiring is a person's call. If the requirement still states current intent, leave it closed and mark this action deferred; to word the reason differently, set status: retired and retired_reason in the file by hand.",
+        },
+      });
+    },
+  );
+}
+
 /** The status mapping an approved req_status_vocabulary_map action lists. */
 function plannedStatusMapping(action: MigrationAction): {
   path: string;
@@ -505,7 +547,6 @@ type SourceRequirement = {
  * Exceptions without approved_by, read from authored sources so the list is
  * available before the KB compiles.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function unapprovedExceptionsFromSources(
   workspaceRoot: string,
 ): Array<{ exceptionId: string; exempts: string[]; source: string }> {
@@ -566,7 +607,6 @@ export function unapprovedExceptionsFromSources(
     .sort((left, right) => left.exceptionId.localeCompare(right.exceptionId));
 }
 
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export type Schema6MigrationFragment = Readonly<{
   actions: readonly MigrationAction[];
   /** Automatic actions that rewrite authored sources. */
@@ -581,7 +621,6 @@ export type Schema6MigrationFragment = Readonly<{
  * version, and, for a KB older than schema 6, the origin backfill plus the
  * exceptions that stop exempting anything. Read-only.
  */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration, REQ-kibi-proposition-complete-ingestion
 export function buildSchema6MigrationFragment(input: {
   workspaceRoot: string;
   currentSchemaVersion: number | null;
@@ -882,6 +921,9 @@ export function buildSchema6MigrationFragment(input: {
   // is re-derived only after an approved mapping.
   const statusActions = requirementStatusActions(input.workspaceRoot);
   actions.push(...statusActions);
+  // Closed requirements whose source says they were retired are suggested
+  // at any schema version: a person approves each by id.
+  actions.push(...retiredStatusActions(input.workspaceRoot));
   if (
     statusActions.some(
       (action) => action.id === REQ_STATUS_DELIVERED_MAP_ACTION_ID,
@@ -961,7 +1003,6 @@ export function buildSchema6MigrationFragment(input: {
  * review per supersession cycle and per source value Kibi cannot edit
  * safely. Read-only.
  */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration
 export function buildLifecycleRepairActions(workspaceRoot: string): {
   actions: MigrationAction[];
   sourceRewriteActionIds: string[];
@@ -1013,7 +1054,6 @@ export function buildLifecycleRepairActions(workspaceRoot: string): {
  * The automatic legacy-link pass over `.kb/symbols.yaml`, bound to the
  * manifest bytes it was planned from; null when no link needs a mark.
  */
-// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
 export function symbolLegacyLinkAction(
   workspaceRoot: string,
 ): MigrationAction | null {
@@ -1042,7 +1082,6 @@ export function symbolLegacyLinkAction(
 }
 
 /** The sync that recompiles sources rewritten by earlier actions. */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export function migrationSyncAction(
   dependsOn: readonly string[],
 ): MigrationAction {
@@ -1061,7 +1100,6 @@ function plannedRecords(value: unknown): Record<string, unknown>[] {
 }
 
 /** The rewrites and removals an approved source_path_rewrite action lists. */
-// implements REQ-kibi-schema6-migration
 function plannedRepairs(action: MigrationAction): PlannedSourcePathRepairs {
   const rewrites: SourcePathRewrite[] = [];
   for (const { entityId, file, field, from, to } of plannedRecords(
@@ -1104,7 +1142,6 @@ type ApplyContext = Readonly<{
 }>;
 
 /** Execute one automatic action produced by this module. */
-// implements REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
 export async function applySchema6MigrationAction(
   action: MigrationAction,
   context: ApplyContext,
@@ -1173,6 +1210,16 @@ export async function applySchema6MigrationAction(
         mapping.from,
         mapping.to,
       );
+      return;
+    }
+    case REQ_RETIRED_STATUS_SUGGEST_CODE: {
+      const file = action.affectedFiles[0];
+      const reason = action.evidence.retiredReason;
+      if (file === undefined || typeof reason !== "string")
+        throw new Error(
+          "Retired status suggestion names no file or reason; set status: retired and retired_reason by hand.",
+        );
+      applyRetiredStatus(context.workspaceRoot, file, reason);
       return;
     }
     case REQ_STATUS_DELIVERED_MAP_CODE: {
@@ -1268,15 +1315,14 @@ export async function applySchema6MigrationAction(
  * Review actions Kibi can execute, but only when a person approves them by
  * id (`--approved-action`): `--apply-safe` selects automatic actions alone.
  */
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration, REQ-agent-guided-migration-orchestration
 export const SCHEMA6_APPROVABLE_REVIEW_CODES: ReadonlySet<string> = new Set([
   SEMANTIC_INVENTORY_REDERIVE_DROP_GROUNDING_CODE,
   REQ_STATUS_VOCABULARY_MAP_CODE,
+  REQ_RETIRED_STATUS_SUGGEST_CODE,
   // A re-derivation that waits on an approved status mapping.
   SEMANTIC_INVENTORY_REDERIVE_CODE,
 ]);
 
-// implements REQ-kibi-schema6-migration, REQ-cli-schema-migration
 export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   POLARITY_VALUE_BACKFILL_CODE,
   ENTITY_TYPE_BACKFILL_CODE,

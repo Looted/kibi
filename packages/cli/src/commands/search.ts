@@ -16,7 +16,6 @@ export async function searchCommand(
   query: string | undefined,
   options: SearchOptions,
 ): Promise<void> {
-  // implements REQ-003, REQ-kibi-operation-interface-parity
   if (!query?.trim()) {
     console.error("Error: search query is required");
     process.exitCode = 1;
@@ -44,7 +43,6 @@ export async function searchCommand(
     },
     { workspaceRoot: process.cwd() },
   );
-  // implements REQ-kibi-telemetry-agent-signals
   noteCliOperationCall({ operation: "kb_search", result });
   const structured = result.structuredContent ?? { results: [], count: 0 };
   printDiscoveryResult(

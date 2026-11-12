@@ -325,7 +325,7 @@ describe("small helpers", () => {
       gitignoreUpdated: true,
       audit: {
         fromVersion: 4,
-        toVersion: 13,
+        toVersion: 14,
         symbolGranularityLegacyLinks: 1,
         entityOriginBackfill: 2,
         supersededRequirementsClosed: 3,
@@ -335,7 +335,7 @@ describe("small helpers", () => {
       },
     };
     expect(describeMigrationRun(summary as never)).toBe(
-      "Migrated schema 4 -> 13 (audit .kb/migrations/main.json): legacy-link marks 1, origin backfill 2, superseded requirements closed 3, source paths rewritten 4, source paths removed 5, legacy statuses mapped 6; .gitignore updated.",
+      "Migrated schema 4 -> 14 (audit .kb/migrations/main.json): legacy-link marks 1, origin backfill 2, superseded requirements closed 3, source paths rewritten 4, source paths removed 5, legacy statuses mapped 6; .gitignore updated.",
     );
     expect(
       describeMigrationRun({
@@ -344,7 +344,7 @@ describe("small helpers", () => {
         audit: { ...summary.audit, fromVersion: null },
       } as never),
     ).toBe(
-      "Migrated schema none -> 13 (audit .kb/migrations/main.json): legacy-link marks 1, origin backfill 2, superseded requirements closed 3, source paths rewritten 4, source paths removed 5, legacy statuses mapped 6; .gitignore unchanged.",
+      "Migrated schema none -> 14 (audit .kb/migrations/main.json): legacy-link marks 1, origin backfill 2, superseded requirements closed 3, source paths rewritten 4, source paths removed 5, legacy statuses mapped 6; .gitignore unchanged.",
     );
   });
 });
@@ -591,7 +591,7 @@ describe("current knowledge base", () => {
     expect(s.refresh).not.toHaveBeenCalled();
     expect(logs).toStrictEqual([
       "Migration incomplete: 0 requirement(s) are not compiled, so kb_query, kb_coverage and kb_upsert do not see them, and 1 other item(s) need a decision.",
-      "  R1 (r1.md): status weird is not a requirement status, so the proof ladder skips it. Set status to open, in_progress or closed in the file.",
+      "  R1 (r1.md): status weird is not a requirement status, so the proof ladder skips it. Set status to open, in_progress, closed or retired in the file.",
       "Run 'kibi migrate' for the remaining actions; rerun 'kibi migrate --yes' after fixing them.",
     ]);
   });
@@ -1246,6 +1246,7 @@ describe("schema upgrade", () => {
         "evidence-floor-v11",
         "claim-bound-proofs-v12",
         "derived-symbol-coordinates-v13",
+        "retired-status-v14",
       ],
     };
     expect(result).toStrictEqual({
@@ -1287,19 +1288,20 @@ describe("schema upgrade", () => {
     });
   });
 
-  test("apply only the late steps from the previous schema", async () => {
-    atVersion(LATEST - 1);
+  test("apply only the late steps from an earlier schema", async () => {
+    atVersion(LATEST - 2);
     s.untrack.mockReturnValue({ outcome: "failed", reason: "locked" } as never);
     const result = await yes();
     expect(logs).toStrictEqual([
-      older(LATEST - 1),
-      `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was ${LATEST - 1}).`,
+      older(LATEST - 2),
+      `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was ${LATEST - 2}).`,
       `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
       "Migration complete. Future 'kibi migrate' runs will be a no-op.",
       "Warning: Could not remove .kb/symbol-coordinates.yaml from the Git index (locked); run git rm --cached .kb/symbol-coordinates.yaml before the next commit.",
     ]);
     expect(result.summary?.audit.steps).toStrictEqual([
       "derived-symbol-coordinates-v13",
+      "retired-status-v14",
     ]);
     expect(result.summary?.audit.semanticAdvisorBackfill).toBe(
       "not_applicable",
@@ -1508,7 +1510,7 @@ describe("schema upgrade", () => {
       legacyStatusesMapped: 0,
     });
     expect(logs).toContain(
-      "  R1 (r1.md): status x is not a status Kibi knows, so kibi sync cannot compile it (unknown status). Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync.",
+      "  R1 (r1.md): status x is not a status Kibi knows, so kibi sync cannot compile it (unknown status). Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync.",
     );
     expect(logs).toContain(
       "  R2 (r2.md): status y is not a requirement status, so the proof ladder skips it. Approve req-status-vocabulary-map-R2 (y -> open) with kibi migrate --apply-safe, or set the status in the file.",

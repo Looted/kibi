@@ -50,14 +50,11 @@ export {
   type SkillOptHost,
   selectedSkillOptHost,
 } from "./skillopt-host";
-// implements REQ-skillopt-claude-code-host
 export const CLAUDE_EXECUTABLE_ENV = "KIBI_SKILLOPT_CLAUDE_EXECUTABLE" as const;
-// implements REQ-skillopt-claude-code-host
 export const CLAUDE_ENV_PASSTHROUGH_ENV =
   "KIBI_SKILLOPT_CLAUDE_ENV_PASSTHROUGH" as const;
 
 /** Built-in tools the target may use; deliberately no shell or web tools. */
-// implements REQ-skillopt-claude-code-host
 export const CLAUDE_TARGET_TOOLS = [
   "Read",
   "Grep",
@@ -70,14 +67,12 @@ export const CLAUDE_TARGET_TOOLS = [
 const KIBI_MCP_SERVER = "kibi";
 
 /** Claude Code has no `minimal`; `xhigh` exists. */
-// implements REQ-skillopt-claude-code-host
 export function claudeEffort(
   effort: ReasoningEffort,
 ): "low" | "medium" | "high" | "xhigh" {
   return effort === "minimal" ? "low" : effort;
 }
 
-// implements REQ-skillopt-claude-code-host
 export async function resolveClaudeExecutable(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<string> {
@@ -114,7 +109,6 @@ function passthroughNames(env: NodeJS.ProcessEnv): ReadonlySet<string> {
  * The target environment: no inherited agent-session state, a private
  * config dir and HOME, and only explicit auth/network variables.
  */
-// implements REQ-skillopt-claude-code-host
 export function claudeTargetEnv(
   input: Readonly<{
     env: NodeJS.ProcessEnv;
@@ -186,7 +180,6 @@ async function readOptional(path: string): Promise<string | null> {
  * Env-token logins (`CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_API_KEY`) need no
  * copy.
  */
-// implements REQ-skillopt-claude-code-host
 export async function openClaudeSession(
   input: Readonly<{
     env: NodeJS.ProcessEnv;
@@ -221,7 +214,6 @@ export async function openClaudeSession(
   };
 }
 
-// implements REQ-skillopt-claude-code-host
 export async function withClaudeAuthLease<T>(
   env: NodeJS.ProcessEnv,
   operation: () => Promise<T>,
@@ -238,7 +230,6 @@ export async function withClaudeAuthLease<T>(
  * anything else is refused. Private roots are denied explicitly as well, so
  * a later allow rule cannot reopen them.
  */
-// implements REQ-skillopt-claude-code-host
 export function claudeTargetSettings(
   input: Readonly<{ deniedRoots: readonly string[] }>,
 ): Readonly<Record<string, unknown>> {
@@ -265,7 +256,6 @@ export function claudeTargetSettings(
   };
 }
 
-// implements REQ-skillopt-claude-code-host
 export function claudeMcpConfig(
   server: Omit<McpServerLaunch, "env">,
 ): Readonly<Record<string, unknown>> {
@@ -284,7 +274,6 @@ export function claudeMcpConfig(
   };
 }
 
-// implements REQ-skillopt-claude-code-host
 export function buildClaudeExecArgv(
   input: Readonly<{
     claudeExecutable: string;
@@ -334,7 +323,6 @@ export function buildClaudeExecArgv(
  * small targets rarely do, so a body-only variant would otherwise never reach
  * the model and every arm would run on the same text.
  */
-// implements REQ-skillopt-claude-code-host
 export async function preloadedSkillPrompt(
   workspaceRoot: string,
   skill: string,
@@ -358,7 +346,6 @@ function isWithin(path: string, root: string): boolean {
  * plumbing, so it is git-excluded like `.runtime/`: an untracked copy would
  * otherwise mark the proof snapshot dirty and skew the verification axis.
  */
-// implements REQ-skillopt-claude-code-host
 export async function mirrorSkillsForClaude(
   workspaceRoot: string,
 ): Promise<void> {
@@ -374,7 +361,6 @@ export async function mirrorSkillsForClaude(
   }
 }
 
-// implements REQ-skillopt-claude-code-host
 export function claudeCodeTargetHost(): TargetHost {
   return {
     id: "claude-code",
@@ -553,7 +539,6 @@ function builtinToolItem(
  * the final agent message. Unparseable lines pass through unchanged so the
  * normalizer still reports them as malformed.
  */
-// implements REQ-skillopt-claude-code-host
 export function claudeStreamToCodexJsonl(stdout: string): string {
   const lines: string[] = [];
   const emit = (event: JsonRecord) => lines.push(JSON.stringify(event));
@@ -711,7 +696,6 @@ export function claudeStreamToCodexJsonl(stdout: string): string {
 }
 
 /** Host-reported USD total from a converted transcript (0 when absent). */
-// implements REQ-skillopt-claude-code-host
 export function claudeReportedCostUsd(normalizedTranscript: string): number {
   let total = 0;
   for (const line of normalizedTranscript.split("\n")) {
@@ -732,7 +716,6 @@ export function claudeReportedCostUsd(normalizedTranscript: string): number {
 }
 
 /** Runtime lease: the resolved `claude` binary; no bubblewrap is staged. */
-// implements REQ-skillopt-claude-code-host
 export async function createClaudeRuntimeLease(
   options: Readonly<{ artifactRoot: string }>,
   env: NodeJS.ProcessEnv = process.env,
@@ -763,7 +746,6 @@ const CANARY_SCHEMA = {
   },
 } as const;
 
-// implements REQ-skillopt-claude-code-host
 export type ClaudeCanaryRun = Readonly<{
   role: "target" | "optimizer";
   model: string;
@@ -777,7 +759,6 @@ export type ClaudeCanaryRun = Readonly<{
  * One tool-less structured-output call per role proves the pinned model is
  * reachable with the operator's login before any target cell is paid for.
  */
-// implements REQ-skillopt-claude-code-host
 export async function runClaudeModelCanary(
   input: Readonly<{
     role: "target" | "optimizer";

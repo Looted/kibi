@@ -28,7 +28,6 @@ function readTreeFile(
  * The ids the schema 8 body-context migration acknowledged, from the KB
  * manifest of one tree: they stay exempt, so a migration commit passes.
  */
-// implements REQ-cli-staged-entity-context
 function acknowledgedIds(snapshot: TreeReader, tree: string): Set<string> {
   let parsed: { contextAcknowledged?: unknown } | null | undefined;
   try {
@@ -46,7 +45,6 @@ function acknowledgedIds(snapshot: TreeReader, tree: string): Set<string> {
 }
 
 /** Ids another entity supersedes in the given compiled knowledge. */
-// implements REQ-cli-staged-entity-context
 function supersededIds(knowledge: readonly ExtractionResult[]): Set<string> {
   const superseded = new Set<string>();
   for (const result of knowledge)
@@ -63,7 +61,6 @@ function supersededIds(knowledge: readonly ExtractionResult[]): Set<string> {
  * acknowledged) does not block the commit; full `kibi check` still reports
  * it.
  */
-// implements REQ-cli-staged-entity-context
 export function collectIntroducedEntityContextViolations(
   snapshot: TreeReader,
   stagedPaths: readonly string[],

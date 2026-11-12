@@ -64,7 +64,6 @@ type AlignedWriteSet = Readonly<{
 
 const NEW_SUBJECT_REVIEW_SCORE = 0.3;
 
-// implements REQ-kibi-subject-vocabulary
 // The write set describes the existing subject fact, so its id and its source
 // both name that fact; the minted fact (and its file) is never created.
 export function reuseExistingSubject(
@@ -128,7 +127,6 @@ function possibleDuplicateObservation(
  * subject is kept (the caller owns it) but reuses the existing subject fact
  * when the keys match. Otherwise the plan explicitly declares a new subject.
  */
-// implements REQ-kibi-subject-vocabulary
 async function applyVocabularyAlignment(
   context: OperationContext | undefined,
   extracted: ExtractedClaim,
@@ -262,7 +260,6 @@ export {
   writeSetPrimaryEntityId,
 };
 
-// implements REQ-kibi-logical-requirement-coverage
 // covered_by TEST-kibi-logical-requirement-coverage
 export function annotateModelRequirementStep(
   step: Record<string, unknown>,
@@ -333,7 +330,6 @@ function stepProperties(
   return step.properties as Record<string, unknown>;
 }
 
-// implements REQ-kibi-truthful-consistency
 function unresolvedObservationStep(
   step: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -351,7 +347,6 @@ function unresolvedObservationStep(
   };
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
 // The advisor decides each proposition's role, and proposition-complete
 // ingestion compares the persisted inventory with it. A rule modality alone
 // would call "X must not happen unless C" normative where the advisor reads an
@@ -385,7 +380,6 @@ function withAdvisorRoles(
   });
 }
 
-// implements REQ-kibi-logical-requirement-coverage
 async function logicModelResult(
   args: ModelRequirementArgs,
   extracted: ModeledStatement,
@@ -451,7 +445,6 @@ async function logicModelResult(
   };
 }
 
-// implements REQ-kibi-truthful-consistency
 // A recognised conditional clause that cannot be translated gets no
 // observation and no strict property. With a requirementId the requirement
 // records the clause as an unresolved ontology gap in its inventory.
@@ -576,7 +569,6 @@ export async function handleKbModelRequirement(
       workspaceRoot,
       args.confidence ?? 1,
     );
-  // implements REQ-kibi-truthful-consistency
   // A conditional requirement ("X may happen only when C", "X must not happen
   // unless C") restricts an action. It goes to the rule lane and never falls
   // back to a strict property or an observation; a conditional clause this
@@ -601,7 +593,6 @@ export async function handleKbModelRequirement(
       workspaceRoot,
     );
   const claimKey = semanticClaimKey(extracted.statement);
-  // implements REQ-kibi-subject-vocabulary
   // A caller-named requirement keeps its id: the strict write set updates it
   // instead of minting REQ-AUTO-<hash>.
   const aligned = await applyVocabularyAlignment(

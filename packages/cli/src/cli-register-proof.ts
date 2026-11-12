@@ -1,7 +1,6 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export function registerProofCommand(program: Command): void {
   program
     .command("prove")
@@ -239,7 +238,6 @@ export function registerProofCommand(program: Command): void {
  * space-separated words (no shell quoting; Kibi runs integrations with
  * `shell: false`).
  */
-// implements REQ-kibi-verification-evidence-contract
 export function parseCommandOption(value: string): readonly string[] {
   const trimmed = value.trim();
   if (trimmed.startsWith("[")) {

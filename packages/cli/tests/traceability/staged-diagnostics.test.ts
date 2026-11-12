@@ -1,4 +1,3 @@
-// implements REQ-014
 import { afterEach, describe, expect, test } from "bun:test";
 import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

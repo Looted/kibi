@@ -1,5 +1,5 @@
 ---
-title: A requirement marked deprecated shall be migrated as closed, by a regex proof
+title: A requirement marked deprecated shall be migrated as retired, by a regex proof
 status: passing
 tags:
   - proof
@@ -19,7 +19,7 @@ proof_contract:
     symbol_id: SYM-migration-suggested-requirement-status
     export: SUGGESTED_REQUIREMENT_STATUS.deprecated
   proves:
-    - CLAIM-B15A113A1B7C5377
+    - CLAIM-38995D2450ABEABA
 origin:
   kind: agent
   recorded_at: '2026-10-29T10:42:08.423Z'
@@ -27,20 +27,20 @@ id: TEST-proof-legacy-status-deprecated
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-6938f0b401f7e453c985b1bb
+    receipt_id: PR-a3b700d633a86b2944f9cc61
     test_id: TEST-proof-legacy-status-deprecated
     scope: unit
     outcome: passed
-    code_snapshot: faf065f2781c1044c030ed22ef2de1f9fa5ba7e2c43b903b7407837a816cfb65
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-29T10:45:13.096Z'
-    finished_at: '2026-10-29T10:45:13.343Z'
-    artifact_digest: 00a8c84da0aafda70f448f006f0acb25105b7479514f5a0a14e7320581a3680a
-    contract_hash: 4723bb9fb3fd08192a8b806a77edc888ac7da13c11d3d4d3613e50a3e2ed6859
-    binding_hash: d13937176a53725e77d52bbfa00ea320543c0eccf4207dfc60d28057e5bd3628
-    fingerprint: e814b6b273ae488a8da79871aab22558770f110370f905b5a5038817076776a9
+    code_snapshot: 75ff4ee7acf59364e64a28468f6c5c8a520cf004ae0ba78422da28d17aa0b332
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-11T18:11:06.602Z'
+    finished_at: '2026-11-11T18:11:06.775Z'
+    artifact_digest: 5eec48b29309fa4a8a34205e15bfea3359d7a0c4a173471ea49b0d0b436eb933
+    contract_hash: cf2827d1f85cee0fa8868342786ff43a9a92bdfc14a168c24d85ec23a8c52667
+    binding_hash: ab0c357ddf41b4846d53e94504ae3c7d246f7447dc3e672e9b14a88e3b5815bc
+    fingerprint: 909890b841660e323e095c09cff120dde43f9b85c07667addbcaa0f04268f098
     fingerprint_components:
-      contract: 4723bb9fb3fd08192a8b806a77edc888ac7da13c11d3d4d3613e50a3e2ed6859
+      contract: cf2827d1f85cee0fa8868342786ff43a9a92bdfc14a168c24d85ec23a8c52667
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -68,10 +68,10 @@ proof_receipts:
       pattern:
         symbol_id: SYM-migration-suggested-requirement-status
         type: string
-        value: closed
-    certificate_digest: c0058e3d4332d89e7ec7dca3f9cebf3fcd64ab42746309592cc2b7108c94ff11
+        value: retired
+    certificate_digest: cdcc67388d406e1a9cf7eee7ac607261d76b6104f247027dac444cd3dbf34543
     claim_bindings:
-      - claim_key: CLAIM-B15A113A1B7C5377
+      - claim_key: CLAIM-38995D2450ABEABA
         requirement_id: REQ-cli-migration-suggested-status
         fact_id: FACT-legacy-status-deprecated
         binding: derived
@@ -80,6 +80,6 @@ proof_receipts:
           kind: string_constraint
           operator: eq
           polarity: require
-          value: closed
+          value: retired
 ---
-Proves that a requirement marked deprecated shall be migrated as closed, against the code Kibi reads at ingest.
+Proves that a requirement marked deprecated shall be migrated as retired, against the code Kibi reads at ingest.

@@ -66,7 +66,6 @@ export function computeShardPath(kbRoot: string, entityId: string): string {
  * Throws on parse errors.
  */
 export function readShard(shardPath: string): RelationshipRecord[] {
-  // implements REQ-005
   if (!fs.existsSync(shardPath)) {
     return [];
   }
@@ -96,7 +95,6 @@ const PARSED_SHARD_LIMIT = 1024;
 const parsedShards = new Map<string, RelationshipRecord[]>();
 
 /** How many parsed shards the reuse memo holds; for tests of its bound. */
-// implements REQ-005
 export function parsedShardMemoSize(): number {
   return parsedShards.size;
 }
@@ -105,7 +103,6 @@ export function parsedShardMemoSize(): number {
  * Parses relationship shard text read from `shardPath`.
  * Returns an empty array for blank text. Throws on parse errors.
  */
-// implements REQ-kibi-operation-interface-parity
 export function parseShardText(
   content: string,
   shardPath: string,
@@ -250,7 +247,6 @@ export type RemovedRelationshipRecords = Readonly<{
  * place so comments, ordering, and unrelated records survive; callers that must
  * approve the bytes before writing (deletion plans) render without writing.
  */
-// implements REQ-kibi-operation-interface-parity
 export function renderShardWithout(
   text: string,
   selectors: readonly RelationshipSelector[],
@@ -299,7 +295,6 @@ export type PlannedShardRemovals = Readonly<{
  * Render every shard that holds a selected relationship without writing it,
  * so a dry run can report the exact bytes a delete would publish.
  */
-// implements REQ-kibi-operation-interface-parity
 export function planRelationshipShardRemovals(
   kbRoot: string,
   selectors: readonly RelationshipSelector[],
@@ -417,7 +412,6 @@ export function appendRelationship(
  * relationship. Callers that must journal exact after-bytes before any write
  * (atomic plan application) render a shard through this function.
  */
-// implements REQ-kibi-operation-interface-parity, REQ-core-atomic-upsert-persistence
 export function renderShardWithRelationship(
   shardPath: string,
   existing: string | null,
@@ -504,7 +498,6 @@ export function relationshipIdFor(
  * On conflict, keeps the record with newer created_at timestamp.
  */
 export function mergeRecords(
-  // implements REQ-005
   existing: RelationshipRecord[],
   incoming: RelationshipRecord[],
 ): RelationshipRecord[] {

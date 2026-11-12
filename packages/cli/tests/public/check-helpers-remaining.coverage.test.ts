@@ -1,4 +1,3 @@
-// implements REQ-cli-check, REQ-mcp-tool-check
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";

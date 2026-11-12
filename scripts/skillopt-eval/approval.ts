@@ -18,7 +18,6 @@ import type { FrozenVariant } from "./variants";
 
 type ReportV1 = Readonly<z.infer<typeof ReportV1Schema>>;
 
-// implements REQ-skillopt-codex-optimization
 export type ValidateApprovalInput = Readonly<{
   approval: Approval;
   proposal: Proposal;
@@ -27,7 +26,6 @@ export type ValidateApprovalInput = Readonly<{
   report: ReportV1;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export function validateApproval(input: ValidateApprovalInput): Approval {
   const approval = ApprovalSchema.parse(input.approval);
   const proposal = ProposalSchema.parse(input.proposal);

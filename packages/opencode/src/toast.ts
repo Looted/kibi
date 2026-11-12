@@ -28,7 +28,6 @@ export type ToastCapableClient = {
   };
 };
 
-// implements REQ-opencode-kibi-plugin-v1
 export async function sendToast(
   client: ToastCapableClient,
   payload: ToastPayload,

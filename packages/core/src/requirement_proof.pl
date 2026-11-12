@@ -77,7 +77,6 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
         proofTestBindings: TestBindings
     }.
 
-% implements REQ-kibi-conservative-requirement-proof
 % A requirement's proof is kept per KB generation and proof parameters, so
 % the evidence-floor rule, the coverage evidence and a coverage report in one
 % check read each ladder once.  Inside a transaction (what-if staging) the
@@ -242,11 +241,16 @@ proof_exempt(Props, Reason) :-
     Reason \= ''.
 
 %% applicability_exclusion_reason(+ReqId, -Reason)
-% Typed reason a requirement fails current_req/1: superseded lifecycle, or a
-% status outside the canonical+legacy requirement vocabulary (e.g. the ADR
+% Typed reason a requirement fails current_req/1: superseded lifecycle, a
+% retired requirement, or a status outside the canonical+legacy requirement vocabulary (e.g. the ADR
 % vocabulary 'accepted').
 applicability_exclusion_reason(ReqId, "requirement is superseded by a newer requirement") :-
     kb_relationship(supersedes, _, ReqId),
+    !.
+applicability_exclusion_reason(ReqId, 'requirement is retired: the behavior it stated no longer exists') :-
+    kb_entity(ReqId, req, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, retired),
     !.
 applicability_exclusion_reason(ReqId, Reason) :-
     kb_entity(ReqId, req, Props),
@@ -560,7 +564,6 @@ inventory_ground_text_mismatches(Inventory, Evidence, Keys) :-
         Keys0),
     sort(Keys0, Keys).
 
-% implements REQ-kibi-conservative-requirement-proof
 % Inventory and fact claim texts name the same sentence when they differ only
 % in whitespace or trailing punctuation ("…outcomes." vs "…outcomes").
 claim_texts_equivalent(Left, Right) :-
@@ -642,7 +645,6 @@ contradiction_stage(_ReqId, LogicStatus, _Context, Stage) :-
     ).
 
 %% contradiction_stage(+ReqId, +LogicStatus, +InventoryStatus, +Context, -Stage)
-% implements REQ-kibi-truthful-consistency
 % Absence of a conflict is evidence only when every normative proposition was
 % modeled.  Propositions still marked ambiguous or ontology_gap were never
 % encoded, so the checker cannot have looked at them: report the analysis as
@@ -675,7 +677,6 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
     findall(ScenarioId,
         (member(ScenarioId, ScenarioTargets), \+ existing_scenario(ScenarioId)),
         InvalidScenarioTargets),
-    % implements REQ-kibi-scenario-feasibility-v2
     % A scenario that expects success but whose assumptions cannot hold with
     % what current requirements require (pairwise or jointly) can never pass,
     % so the requirement cannot be proven through it.
@@ -690,7 +691,6 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
             unknown_feasibility_reason(Reason, ReasonText)
         ),
         UnknownFeasibility),
-    % implements REQ-kibi-happy-path-gap
     % The linked scenarios that exercise this requirement's failure side: they
     % expect rejection or error and assume a value it forbids.
     findall(ScenarioId,
@@ -726,7 +726,6 @@ existing_scenario(ScenarioId) :-
     kb_entity(ScenarioId, scenario, _).
 
 %% negative_path_stage(+ReqId, +ScenarioStage, +ScenarioTestStage, +Context, -Stage)
-% implements REQ-kibi-happy-path-gap
 % A requirement is not tested while only its happy path is: when it grounds
 % a claim (a property value, predicate or rule), at least one linked
 % scenario must expect rejection or error and assume a value or situation
@@ -818,7 +817,6 @@ failure_side_waiver(ReqId, Waiver) :-
 certified_claim(Certified, Key-_) :- memberchk(Key, Certified).
 
 %% cases_stage(+ReqId, +ScenarioStage, +ScenarioTestStage, +Context, -Stage)
-% implements REQ-kibi-case-coverage
 % Edge cases derived from the requirement's typed property claims
 % (cases.pl): the bound and the value past it, zero, one and many for a
 % count, each member of a set and a value outside it.  A case is covered
@@ -909,7 +907,6 @@ coverage_count(Rows, Coverage, Count) :-
     aggregate_all(count, (member(Row, Rows), get_dict(coverage, Row, Coverage)), Count).
 
 %% dimension_stage(+ReqId, +ScenarioTestStage, +Context, -Stage)
-% implements REQ-kibi-dimension-gap
 % A claim that quantifies over a collection (each, every, all) or bounds a
 % cardinality (at least, at most, exactly, no more than) must be grounded on what
 % varies: a count or bound, a set, a rule over a variable or a state
@@ -1194,7 +1191,6 @@ unique_evidence_by_test(Evidence0, Evidence) :-
 
 % A test shared by scenarios with different accepted scopes keeps its receipt
 % state from any scenario that accepts its scope, independent of scenario order.
-% implements REQ-ui-pattern-component-proof
 first_evidence_for_test(Evidence, TestId, Item) :-
     (   member(Item, Evidence),
         get_dict(testId, Item, TestId),
@@ -1250,7 +1246,6 @@ scenario_passing_e2e_obligation(Context, TestObligation, Obligation) :-
 % requirements are all grounded only in component-scope UI pattern predicates
 % may also be proven by a unit or integration test that renders the component
 % in isolation, with the same receipt rules (valid, fresh, passing).
-% implements REQ-ui-pattern-component-proof
 scenario_accepted_scopes(ScenarioId, [unit, integration, end_to_end]) :-
     component_scope_scenario(ScenarioId),
     !.
@@ -1334,7 +1329,6 @@ evidence_tests_with_state(Evidence, State, TestIds) :-
 test_receipt_evidence(Context, TestId, Evidence) :-
     test_receipt_evidence(Context, [end_to_end], TestId, Evidence).
 
-% implements REQ-ui-pattern-component-proof
 % AcceptedScopes lists the verification scopes whose receipts count for the
 % scenario. Tests outside them keep the nonblocking not_end_to_end state.
 test_receipt_evidence(Context, AcceptedScopes, TestId, Evidence) :-
@@ -1697,7 +1691,6 @@ receipt_evidence_dict(TestId, Scope, Receipt, State, AgeSeconds, Evidence) :-
     },
     receipt_kind_evidence(Receipt, State, Evidence0, Evidence).
 
-% implements REQ-kibi-code-proof-kinds
 % A v2 receipt adds its contract kind and the evidence level it supports.
 % proved needs the certificate to re-check now, not only when it was
 % ingested: its digest must still match and code_certificates.pl must accept
@@ -1863,7 +1856,6 @@ type_shape_symbol_with_structural_contract(SymbolId) :-
     normalize_atom(RawStatus, Status),
     memberchk(Status, [active, passing]).
 
-% implements REQ-kibi-conservative-requirement-proof
 % A type-shape symbol is structurally covered by a unit test only while that
 % test holds a current passing receipt: an authored status alone is a claim,
 % not evidence. Receipt states are computed once per distinct unit test.
@@ -2326,7 +2318,6 @@ proof_status(Stages, unresolved) :-
     !.
 proof_status(_, tested).
 
-% implements REQ-kibi-code-proof-kinds
 % Scenario tests whose receipt claimed proved but whose certificate no
 % longer re-checks, with the reason, so a drop to tested is never silent.
 certificate_rejections(ScenarioTestStage, Context, Rejections) :-
@@ -2343,7 +2334,6 @@ certificate_rejections(ScenarioTestStage, Context, Rejections) :-
     sort(Pairs0, Pairs),
     findall(_{test: TestId, reason: Reason}, member(TestId-Reason, Pairs), Rejections).
 
-% implements REQ-kibi-claim-bound-proofs
 %% receipt_claim_fields(+Receipt, +Evidence0, -Evidence)
 % A certificate receipt keeps the certificate and the claim bindings Kibi
 % recorded at ingest, so each claim can be judged against the current KB.
@@ -2360,7 +2350,6 @@ receipt_claim_fields(Receipt, Evidence0, Evidence) :-
     ;   Evidence = Evidence1
     ).
 
-% implements REQ-kibi-claim-bound-proofs
 %% claim_evidence(+ReqId, +Props, +Inventory, +ProofStatus, +ScenarioTestStage,
 %%                +Context, -ClaimEvidence, -ProvedTests, -Rejections)
 % One entry per semantic-inventory claim with the evidence level that claim
@@ -2568,7 +2557,6 @@ count_claims(Entries, Goal, Count) :-
     include(Goal, Entries, Matching),
     length(Matching, Count).
 
-% implements REQ-kibi-evidence-levels, REQ-kibi-code-proof-kinds
 %% requirement_evidence(+Props, +ProofStatus, +PassingE2eTests, +ProvedTests, -Level, -Evidence)
 % How strong the evidence behind a requirement is, never stronger than what
 % backs it.  Levels, strongest first: proved (the requirement is tested and
@@ -2604,7 +2592,6 @@ evidence_level(Evidence, Level) :-
     ;   Level = unverified
     ).
 
-% implements REQ-kibi-evidence-floors
 %% evidence_floor(+Props, +Level, +Gaps, +Stages, -Floor)
 % The weakest evidence level the requirement accepts and whether its computed
 % level reaches it.  The floor is the requirement's required_evidence, or,
@@ -2782,7 +2769,6 @@ proof_gaps(Stages, Gaps) :-
 proof_advisories(Stages, Advisories) :-
     proof_issues(Stages, _, Advisories).
 
-% implements REQ-kibi-conservative-requirement-proof
 % Every linked scenario is a mandatory proof obligation. Receipt-completeness
 % failures therefore remain blocking even when another scenario has a passing
 % receipt; unit/integration-only evidence stays nonblocking in the E2E lane.

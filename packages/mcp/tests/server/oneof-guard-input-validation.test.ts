@@ -1,4 +1,3 @@
-// implements REQ-mcp-oneof-guard-input-validation
 import { describe, expect, test } from "bun:test";
 import { z } from "zod";
 import { jsonSchemaToZod } from "../../src/server/json-schema-to-zod.js";

@@ -8,8 +8,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import type { SourceSpec } from "../../../src/public/proof-sources.js";
 
-// implements REQ-004
-
 /**
  * The entity schema is the one place Kibi declares the entity model, so the
  * claims about entity types and entity fields are proved against it: Kibi

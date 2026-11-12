@@ -9,8 +9,6 @@ import {
   MAX_ASPECT_WORDS,
 } from "../../../../cli/src/operations/bootstrap/requirement-claims.js";
 
-// implements REQ-bootstrap-claim-aspect-limits
-
 /**
  * How many words and characters a bootstrap claim aspect may hold. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

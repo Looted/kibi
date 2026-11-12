@@ -23,7 +23,6 @@ import { KB_PATHS } from "../../utils/kb-paths.js";
 export const DERIVED_COORDINATES_SCHEMA_VERSION = 13;
 
 /** What the schema 13 untracking step did to the Git index. */
-// implements REQ-symbol-coordinates-derived-locally
 export type CoordinateUntrackOutcome =
   | { outcome: "untracked" }
   | { outcome: "not_tracked" }
@@ -41,7 +40,6 @@ function git(cwd: string, args: string[]) {
 }
 
 /** True when the derived coordinate artifact is in the Git index. */
-// implements REQ-symbol-coordinates-derived-locally
 export function isCoordinateArtifactTracked(
   cwd: string,
   run: GitRunner = git,
@@ -63,7 +61,6 @@ export function isCoordinateArtifactTracked(
  * gitignored from schema 13; tracking them made every two branches that
  * touch the same source file conflict.
  */
-// implements REQ-symbol-coordinates-derived-locally
 export function untrackCoordinateArtifact(
   cwd: string,
   run: GitRunner = git,

@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import {
   canonicalKbToolName,
   kibiCliOperation,

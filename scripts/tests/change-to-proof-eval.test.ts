@@ -1,4 +1,3 @@
-// implements REQ-kibi-change-to-proof-evaluation
 import { afterAll, describe, expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";

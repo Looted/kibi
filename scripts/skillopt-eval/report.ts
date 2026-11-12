@@ -16,7 +16,6 @@ type Skill = z.infer<typeof SkillSchema>;
 type PriceEquivalentEstimate = z.infer<typeof PriceEquivalentEstimateSchema>;
 type ReportV1 = Readonly<z.infer<typeof ReportV1Schema>>;
 
-// implements REQ-skillopt-codex-optimization
 export type ReportGateResults = Readonly<{
   aggregate: boolean;
   bootstrap: boolean;
@@ -24,7 +23,6 @@ export type ReportGateResults = Readonly<{
   security: boolean;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type BuildReportInput = Readonly<{
   runId: string;
   runLockHash: string;
@@ -37,7 +35,6 @@ export type BuildReportInput = Readonly<{
   generatedAt: string;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 export type ReportArtifacts = Readonly<{
   report: ReportV1;
   json: string;
@@ -136,7 +133,6 @@ function verdictFor(input: BuildReportInput): ReportV1["verdict"] {
   return input.gateOutcome;
 }
 
-// implements REQ-skillopt-codex-optimization
 export function renderReportMarkdown(machineJson: string): string {
   const report = ReportV1Schema.parse(parseJsonText(machineJson));
   return [
@@ -157,7 +153,6 @@ export function renderReportMarkdown(machineJson: string): string {
   ].join("\n");
 }
 
-// implements REQ-skillopt-codex-optimization
 export function buildReportArtifacts(input: BuildReportInput): ReportArtifacts {
   const cells = input.cells.map((cell) => {
     const redacted = redactEvidence(cell, input.privateValues);

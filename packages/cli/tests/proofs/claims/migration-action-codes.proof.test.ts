@@ -14,8 +14,6 @@ import {
   ENTITY_TYPE_BACKFILL_CODE,
 } from "../../../src/operations/migration/entity-type.js";
 
-// implements REQ-cli-migration-action-codes
-
 /**
  * The tag and action codes kibi migrate uses for legacy requirement status and
  * entity types. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

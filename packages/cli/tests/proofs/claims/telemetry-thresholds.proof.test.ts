@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { DEFAULT_TELEMETRY_ACCEPTANCE_POLICY as POLICY } from "../../../src/public/telemetry-acceptance.js";
 
-// implements REQ-kibi-telemetry-acceptance-thresholds
-
 /**
  * The default telemetry acceptance policy's limits. Each certificate assumes
  * the value one field of DEFAULT_TELEMETRY_ACCEPTANCE_POLICY holds; Kibi reads

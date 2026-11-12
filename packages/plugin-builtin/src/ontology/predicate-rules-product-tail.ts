@@ -6,7 +6,6 @@ import {
   singularize,
 } from "./predicate-rule.js";
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export const PRODUCT_TAIL_PREDICATE_RULES = [
   {
     pattern:

@@ -24,7 +24,6 @@ const Review = z
   .strict();
 
 /** Review-only evidence reconciliation; never claims a successful real apply. */
-// implements REQ-skillopt-codex-optimization
 export function onboardingReviewMatches(
   answer: string,
   evidenceText: string | undefined,

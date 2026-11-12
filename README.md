@@ -289,7 +289,7 @@ Eight entity types: `req`, `scenario`, `test`, `fact`, `adr`, `flag`, `event`, a
 
 Every entity records who authored it, a person or an agent, and advisory checks list agent-written requirements no person has approved.
 
-Requirements and ADRs also say how firmly they were decided. A `firm` rule is one a person stated: it points at their words, the agent asks before changing it, and Kibi refuses to rewrite it quietly. A `default` choice can be revisited on evidence, and `exploratory` marks a guess. Every supersede has to say why it changed. [How Kibi works](https://looted.github.io/kibi/guide/how-it-works.html) has the details.
+Requirements and ADRs also say how firmly they were decided. A `firm` rule is one a person stated: it points at their words, the agent asks before changing it, and Kibi refuses to rewrite it quietly. A `default` choice can be revisited on evidence, and `exploratory` marks a guess. Every supersede has to say why it changed. A requirement whose behavior is gone without a replacement is `retired` with a reason, so it stops governing; a `closed` one is done and still holds. [How Kibi works](https://looted.github.io/kibi/guide/how-it-works.html) has the details.
 
 ## Packages
 

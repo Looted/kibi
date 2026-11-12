@@ -32,7 +32,6 @@ const defaultPipe: BridgePipe = {
   },
 };
 
-// implements REQ-skillopt-codex-optimization
 export async function bridgeMain(
   args: readonly string[],
   dependencies?: Parameters<typeof runBridge>[2],

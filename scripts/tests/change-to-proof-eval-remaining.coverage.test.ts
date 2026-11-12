@@ -1,4 +1,3 @@
-// implements REQ-kibi-change-to-proof-evaluation
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import path from "node:path";
 import { PrologProcess } from "../../packages/cli/src/prolog.js";

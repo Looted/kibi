@@ -1,4 +1,3 @@
-// implements REQ-codex-kibi-plugin-v1
 export type HookEvent =
   | "SessionStart"
   | "UserPromptSubmit"

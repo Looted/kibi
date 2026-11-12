@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import { describe, expect, test } from "bun:test";
 import path from "node:path";
 

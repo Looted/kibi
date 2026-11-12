@@ -27,18 +27,14 @@ import {
 } from "../../public/proof-receipt.js";
 import { rewriteReceiptHistory } from "./compact-receipts.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type PruneReceiptsArgs = Readonly<{
   /** Keep the newest N receipts per test (default 1). */
-  // implements REQ-kibi-verification-evidence-contract
   keep?: number;
   /** Prune a single test entity only. */
   testId?: string;
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type PruneReceiptsTestResult = Readonly<{
-  // implements REQ-kibi-verification-evidence-contract
   testId: string;
   before: number;
   after: number;
@@ -46,7 +42,6 @@ export type PruneReceiptsTestResult = Readonly<{
 }>;
 
 export type PruneReceiptsResult = Readonly<{
-  // implements REQ-kibi-verification-evidence-contract
   pruned: number;
   tests: readonly PruneReceiptsTestResult[];
 }>;
@@ -71,7 +66,6 @@ function parseKeep(value: number | undefined): number {
  * with the prune carve-out (append-only validation is skipped for exactly
  * this maintenance action).
  */
-// implements REQ-kibi-verification-evidence-contract
 export async function executePruneReceipts(
   args: PruneReceiptsArgs,
   context: OperationContext,

@@ -4,7 +4,6 @@ import type { SemanticPropositionRole } from "./types.js";
 const DEFINITION_VERB = /\b(?:means|defined as|refers to|is called)\b/i;
 const CONDITION_OPENER = /^\s*(?:if|when|whenever|provided that|only if)\b/i;
 
-// implements REQ-kibi-conditional-requirement-authoring
 // A definition is "<subject> means|is defined as|refers to|is called <...>" as
 // the main predicate of a sentence that asserts no obligation. A definition
 // verb that opens a relative clause ("every note that refers to the clip") or
@@ -19,7 +18,6 @@ export function isDefinitionShape(statement: string): boolean {
   return !/\b(?:that|which|who)\s*$/i.test(subject);
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
 // Inventories persisted before definitions required the main-predicate shape
 // recorded any clause containing a definition verb as a definition. Accept that
 // stored role so existing knowledge keeps validating; new writes use the
@@ -50,7 +48,6 @@ function isSubjectiveAspiration(statement: string): boolean {
   );
 }
 
-// implements REQ-kibi-conditional-requirement-authoring
 export function propositionRole(
   statement: string,
   normative: boolean,
@@ -91,7 +88,6 @@ export function propositionRole(
   return "descriptive";
 }
 
-// implements REQ-kibi-proposition-complete-ingestion
 // The role the semantic advisor assigns to one claim of a requirement's
 // semantic text. Writers derive persisted inventory roles from it so the
 // write-time proposition-complete check, which compares against the same

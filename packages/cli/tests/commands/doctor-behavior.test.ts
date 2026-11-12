@@ -1,4 +1,3 @@
-// implements REQ-cli-doctor
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import * as childProcess from "node:child_process";
@@ -1086,7 +1085,6 @@ describe("doctorCommand capability plugins", () => {
   }
 
   test("warns when an augment-mode Jev secret is missing", async () => {
-    // implements REQ-cli-doctor
     const cwd = preparedWorkspace();
     writeOkManifest(cwd);
     writeJevActivation(cwd, true);
@@ -1327,13 +1325,41 @@ function writeAuthoredRequirement(cwd: string): void {
   );
 }
 
-// implements REQ-cli-doctor
+/** Runs `body` with auto-sync turned off, as a project that opted out does. */
+async function withoutAutoSync<T>(body: () => Promise<T>): Promise<T> {
+  const previous = process.env.KIBI_AUTO_SYNC;
+  process.env.KIBI_AUTO_SYNC = "0";
+  try {
+    return await body();
+  } finally {
+    if (previous === undefined)
+      Reflect.deleteProperty(process.env, "KIBI_AUTO_SYNC");
+    else process.env.KIBI_AUTO_SYNC = previous;
+  }
+}
 describe("doctorCommand branch store", () => {
+  test("warns, without failing, when auto-sync compiles the missing store on the next command", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeAuthoredRequirement(cwd);
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Branch store") as DoctorCheckResult & {
+      warning?: boolean;
+    };
+    expect(check.passed).toBe(true);
+    expect(check.warning).toBe(true);
+    expect(check.message).toBe(
+      "Not compiled yet for main; the next Kibi query or check compiles it from 1 authored source file(s)",
+    );
+  });
+
   test("fails with kibi sync when authored sources exist and the branch has no store", async () => {
     const cwd = preparedWorkspace();
     writeOkManifest(cwd);
     writeAuthoredRequirement(cwd);
-    const { exitCode, payload } = await runDoctorJson(cwd);
+    const { exitCode, payload } = await withoutAutoSync(() =>
+      runDoctorJson(cwd),
+    );
     expect(exitCode).toBe(1);
     const check = namedCheck(payload, "Branch store");
     expect(check.passed).toBe(false);
@@ -1348,7 +1374,7 @@ describe("doctorCommand branch store", () => {
     writeOkManifest(cwd);
     writeAuthoredRequirement(cwd);
     writeBranchStore(cwd, "generation-1:0");
-    const { exitCode, text } = await runDoctorTable(cwd);
+    const { exitCode, text } = await withoutAutoSync(() => runDoctorTable(cwd));
     expect(exitCode).toBe(1);
     expect(text).toContain(
       "✗ Branch store: The KB store for branch main is empty (generation-1:0: nothing compiled)",

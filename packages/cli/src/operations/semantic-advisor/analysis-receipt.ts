@@ -54,7 +54,6 @@ function hostToolName(
     : "kb_model (mode predicates)";
 }
 
-// implements REQ-mcp-semantic-advisor-preflight
 export function buildAdvisorResult(
   payload: Payload,
   signals: readonly SemanticSignal[],

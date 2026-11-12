@@ -152,7 +152,6 @@ function sha256(text: string): string {
   return createHash("sha256").update(text).digest("hex");
 }
 
-// implements REQ-011
 /**
  * The relationship delete a preflight-clean call would perform: the shard and
  * authored-source writes with their hashes and the compiled edges it would
@@ -217,7 +216,6 @@ function relationshipDeleteDryRun(
   };
 }
 
-// implements REQ-011
 // covered_by TEST-cli-source-relationship-parity-unit
 async function executeRelationshipDeleteUnlocked(
   selectors: readonly RelationshipSelector[],
@@ -577,7 +575,6 @@ export async function executeRelationshipDelete(
 type DeletionPlan = NonNullable<DeletePayload["deletionPlan"]>;
 type DeleteNextAction = NonNullable<DeletePayload["nextActions"]>[number];
 
-// implements REQ-kibi-operation-interface-parity
 /** The kb_apply_plan call that applies a returned deletion plan unmodified. */
 function applyDeletionPlanNextAction(plan: DeletionPlan): DeleteNextAction {
   return {
@@ -588,7 +585,6 @@ function applyDeletionPlanNextAction(plan: DeletionPlan): DeleteNextAction {
   };
 }
 
-// implements REQ-kibi-operation-interface-parity
 /** Requirements evolve append-only: point at the supersession upsert. */
 function supersessionNextAction(
   requirementIds: readonly string[],
@@ -609,7 +605,6 @@ function supersessionNextAction(
   };
 }
 
-// implements REQ-kibi-operation-interface-parity
 /**
  * Apply a freshly computed authored-entity deletion plan in the same call
  * when the caller approved its hash. The plan goes through kb_apply_plan's
@@ -715,7 +710,6 @@ export async function executeDelete(
       sourceMutationLock = await acquireWorkspaceMutationLock(
         context.workspaceRoot,
       );
-      // implements REQ-core-atomic-upsert-persistence
       // Finish an interrupted kb_apply_plan before this delete reads or
       // changes the files its journal guards.
       recoveryNotes = planRecoveryNotes(

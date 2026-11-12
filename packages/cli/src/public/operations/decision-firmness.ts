@@ -46,23 +46,17 @@ import {
 } from "./entity-context.js";
 
 /** A firm decision must cite the human words it rests on (blocking). */
-// implements REQ-kb-decision-firmness
 export const DECISION_FIRM_UNREFERENCED_RULE = "decision-firm-unreferenced";
 /** Only a firm decision may supersede a firm decision (blocking). */
-// implements REQ-kb-decision-firmness
 export const DECISION_FIRM_SUPERSEDED_RULE = "decision-firm-superseded";
 /** A firm decision's claim must not change in place without new human words (blocking). */
-// implements REQ-kb-firm-decision-edit
 export const DECISION_FIRM_EDITED_RULE = "decision-firm-edited";
 /** A supersede must say why under "Why this changed" (blocking). */
-// implements REQ-kb-decision-firmness
 export const SUPERSEDES_REASON_MISSING_RULE = "supersedes-reason-missing";
 /** How many legacy supersedes the schema 9 migration acknowledged (info). */
-// implements REQ-kb-decision-firmness
 export const SUPERSEDES_REASON_ACKNOWLEDGED_RULE =
   "supersedes-reason-acknowledged";
 
-// implements REQ-kb-decision-firmness
 export const DECISION_FIRMNESS_RULES = [
   DECISION_FIRM_UNREFERENCED_RULE,
   DECISION_FIRM_SUPERSEDED_RULE,
@@ -80,7 +74,6 @@ const SUPERSEDES_REASON_SCHEMA_VERSION = 9;
  * The schema version from which a decision without `firmness` reads its
  * firmness from its origin, so a person's or imported rule is firm.
  */
-// implements REQ-kb-decision-firmness-from-origin
 export const FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION = 10;
 
 /**
@@ -99,7 +92,6 @@ const PRE_SCHEMA9_SUPERSEDES_NOTE =
   " Supersedes recorded before schema 9 are acknowledged by the plan's schema-config-upgrade (kibi migrate --yes); add the reason only when you next touch the requirement.";
 
 /** Every authored requirement and ADR. */
-// implements REQ-kb-decision-firmness
 export function listDecisionEntities(workspaceRoot: string): AuthoredEntity[] {
   const entities: AuthoredEntity[] = [];
   for (const file of listLaneMarkdownFiles(workspaceRoot, DECISION_LANES)) {
@@ -117,7 +109,6 @@ export function listDecisionEntities(workspaceRoot: string): AuthoredEntity[] {
  * migration agree before a sync. A shard edge whose source entity no longer
  * exists is ignored: it must not make its target look replaced.
  */
-// implements REQ-kb-decision-firmness
 export function authoredSupersedes(
   workspaceRoot: string,
   entities: readonly AuthoredEntity[],
@@ -164,7 +155,6 @@ function supersededIds(edges: ReadonlyMap<string, Set<string>>): Set<string> {
  * once, retired ones included, so one that becomes current again does not
  * start blocking; read-only.
  */
-// implements REQ-kb-decision-firmness
 export function unexplainedSupersedes(
   entities: readonly AuthoredEntity[],
   edges: ReadonlyMap<string, Set<string>>,
@@ -179,7 +169,6 @@ export function unexplainedSupersedes(
 }
 
 /** The supersede edges of an entity, as the manifest acknowledges them. */
-// implements REQ-kb-decision-firmness
 export function supersedeAcknowledgements(
   id: string,
   edges: ReadonlyMap<string, Set<string>>,
@@ -195,7 +184,6 @@ export function supersedeAcknowledgements(
  * it) and whose superseder is not firm, retired entities included. These
  * were allowed before schema 10; the migration acknowledges them once.
  */
-// implements REQ-kb-decision-firmness-from-origin
 export function implicitFirmSupersedes(
   entities: readonly AuthoredEntity[],
   edges: ReadonlyMap<string, Set<string>>,
@@ -227,7 +215,6 @@ export function implicitFirmSupersedes(
 }
 
 /** Evaluate the firmness rules over authored requirements and ADRs. */
-// implements REQ-kb-decision-firmness
 export function evaluateDecisionFirmness(
   entities: readonly AuthoredEntity[],
   edges: ReadonlyMap<string, Set<string>>,
@@ -355,7 +342,6 @@ export function evaluateDecisionFirmness(
 }
 
 /** Reads a workspace-relative file as committed at HEAD; null when absent. */
-// implements REQ-kb-firm-decision-edit
 export type CommittedFileReader = (relativePath: string) => string | null;
 
 /**
@@ -401,7 +387,6 @@ function committedDecisionChanges(
  * citing new human words: an in-place edit that bypassed kb_upsert's guard.
  * A decision new since HEAD, or one that was not firm there, is not judged.
  */
-// implements REQ-kb-firm-decision-edit
 export function evaluateFirmDecisionEdits(
   entities: readonly AuthoredEntity[],
   edges: ReadonlyMap<string, Set<string>>,
@@ -434,7 +419,6 @@ export function evaluateFirmDecisionEdits(
 }
 
 /** Read the authored decisions once and evaluate the selected rules. */
-// implements REQ-kb-decision-firmness, REQ-kb-firm-decision-edit
 export function collectDecisionFirmnessViolations(
   rules: ReadonlySet<string>,
   workspaceRoot: string,

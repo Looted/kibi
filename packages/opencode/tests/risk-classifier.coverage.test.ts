@@ -10,6 +10,7 @@ describe("risk-classifier coverage", () => {
       hasMustPriority: false,
       hasDurableComment: false,
       fileContent: "",
+      hasManifestLinks: false,
     } as unknown as ClassifyRiskParams;
 
     const result = classifyRisk(params);

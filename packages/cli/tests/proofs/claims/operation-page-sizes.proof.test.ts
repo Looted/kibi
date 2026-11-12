@@ -14,8 +14,6 @@ import {
 import { QUERY_BODY_MAX_CHARS } from "../../../src/public/operations/discovery-executors.js";
 import { KIBI_PROTOCOL_VERSION } from "../../../src/public/operations/result-envelope.js";
 
-// implements REQ-kibi-operation-page-sizes
-
 /**
  * The page sizes, body limit, entity types and protocol version shared by the CLI
  * and MCP operations. Kibi reads every constant itself at ingest, so the certificate is checked against the code.

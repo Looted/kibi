@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// implements REQ-kb-dependencies-git
 /**
  * KB dependencies: read another repository's knowledge base, read-only, at a
  * pinned commit.

@@ -261,6 +261,15 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 12,
     to: 13,
   },
+  // Accept status retired (with retired_reason) on requirements and block
+  // current facts, scenarios and tests owned only by retired requirements.
+  // No source is rewritten: closed requirements whose source says they were
+  // retired are listed for a person to approve (req_retired_status_suggest).
+  {
+    id: "retired-status-v14",
+    from: 13,
+    to: 14,
+  },
 ];
 
 function migrationStepsFor(
@@ -400,7 +409,6 @@ function normalizeSemanticAdvisorBackfill(
  * legacy-link. Runs at any schema version: the rule can call a link coarse
  * that an older run (or a KB that skipped the schema 2 step) left unmarked.
  */
-// implements REQ-cli-schema-migration, REQ-symbol-behavioral-anchors
 function markLegacySymbolLinks(
   cwd: string,
   dryRun: boolean,
@@ -431,7 +439,6 @@ function markLegacySymbolLinks(
  * .kb/symbols.yaml, so the first commit does not hit the generated-manifest
  * gate. A failure leaves the migration applied and names the manual step.
  */
-// implements REQ-cli-migration-first-commit
 async function refreshMigratedSymbolCoordinates(
   cwd: string,
   before: GeneratedManifestBytes,
@@ -464,7 +471,6 @@ function printManualRederivations(plans: readonly InventoryRederivation[]) {
  * re-derivations keep every claim whose claim_key and text still match;
  * anything else is reported for a manual fix.
  */
-// implements REQ-cli-schema-migration, REQ-kibi-proposition-complete-ingestion
 function rederiveDriftedInventories(
   cwd: string,
   dryRun: boolean,
@@ -515,7 +521,6 @@ const REMOVED_SOURCES_NOTE =
  * Supersession cycles and source fields Kibi cannot edit safely are left for
  * a person and reported as warnings.
  */
-// implements REQ-cli-schema-migration, REQ-core-validation-rules, REQ-kibi-schema6-migration
 function repairLifecycleFindings(
   cwd: string,
   dryRun: boolean,
@@ -625,7 +630,6 @@ function describeDeliveredMappings(
  * implemented: kibi sync cannot compile them, and that is their one lossless
  * reading. Returns the requirement statuses a person still has to decide.
  */
-// implements REQ-cli-schema-migration
 function mapLegacyRequirementStatuses(
   cwd: string,
   dryRun: boolean,
@@ -661,7 +665,6 @@ function mapLegacyRequirementStatuses(
  * kb_upsert on such a file changes only what it was asked to change.
  * Returns how many files were (or, on a dry run, would be) rewritten.
  */
-// implements REQ-cli-migrate-entity-type-backfill
 function stateFolderImpliedTypes(cwd: string, dryRun: boolean): number {
   const plan = dryRun
     ? planEntityTypeBackfill(cwd)
@@ -680,11 +683,25 @@ function stateFolderImpliedTypes(cwd: string, dryRun: boolean): number {
 }
 
 /**
+ * Name the closed requirements whose own source says they were retired. Kibi
+ * never retires a requirement on its own: each is a review action a person
+ * approves by id, so this is a note, not remaining migration work.
+ */
+async function printRetiredStatusSuggestions(cwd: string): Promise<void> {
+  const { planRetiredStatusSuggestions, REQ_RETIRED_STATUS_ACTION_PREFIX } =
+    await import("../operations/migration/retired-status.js");
+  const suggestions = planRetiredStatusSuggestions(cwd);
+  if (suggestions.length === 0) return;
+  console.log(
+    `${suggestions.length} closed requirement(s) say they were retired: ${suggestions.map((suggestion) => suggestion.requirementId).join(", ")}. A closed requirement still governs; to retire one, approve ${REQ_RETIRED_STATUS_ACTION_PREFIX}<id> from kibi migrate --format json with kibi migrate --apply-safe, or set status: retired and retired_reason in the file.`,
+  );
+}
+
+/**
  * Print what a `kibi migrate --yes` run left for a person, naming the
  * requirements kibi sync cannot compile first. Returns false when nothing
  * remains, so the caller may call the migration complete.
  */
-// implements REQ-cli-schema-migration
 function printRemainingMigrationWork(remaining: {
   statuses: readonly RequirementStatusFinding[];
   manualInventories: number;
@@ -705,7 +722,7 @@ function printRemainingMigrationWork(remaining: {
   );
   for (const finding of uncompiled) {
     console.log(
-      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}). Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync.`,
+      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a status Kibi knows, so kibi sync cannot compile it (${finding.extractionError}). Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync.`,
     );
   }
   if (manualInventories > 0)
@@ -714,7 +731,7 @@ function printRemainingMigrationWork(remaining: {
     );
   for (const finding of skipped) {
     console.log(
-      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a requirement status, so the proof ladder skips it. ${finding.suggestedStatus === null ? "Set status to open, in_progress or closed in the file" : `Approve req-status-vocabulary-map-${finding.requirementId} (${finding.status} -> ${finding.suggestedStatus}) with kibi migrate --apply-safe, or set the status in the file`}.`,
+      `  ${finding.requirementId} (${finding.path}): status ${finding.status} is not a requirement status, so the proof ladder skips it. ${finding.suggestedStatus === null ? "Set status to open, in_progress, closed or retired in the file" : `Approve req-status-vocabulary-map-${finding.requirementId} (${finding.status} -> ${finding.suggestedStatus}) with kibi migrate --apply-safe, or set the status in the file`}.`,
     );
   }
   if (manualLifecycle > 0)
@@ -734,7 +751,6 @@ export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
   return { exitCode: 0 };
 }
 
-// implements REQ-003
 export async function migrateCommand(
   options: MigrateOptions = {},
 ): Promise<{ exitCode: number; summary?: MigrationRunSummary }> {
@@ -1075,6 +1091,7 @@ export async function migrateCommand(
     mapLegacyRequirementStatuses(cwd, true);
     rederiveDriftedInventories(cwd, true);
     repairLifecycleFindings(cwd, true);
+    await printRetiredStatusSuggestions(cwd);
     console.log(
       `dry run: would write migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
     );
@@ -1274,6 +1291,7 @@ export async function migrateCommand(
   console.log(
     `Wrote migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
   );
+  await printRetiredStatusSuggestions(cwd);
   const incomplete = printRemainingMigrationWork({
     statuses: statuses.review,
     manualInventories: drift.manual,
@@ -1321,7 +1339,6 @@ export async function migrateCommand(
  * record it wrote: a count of zero shows a pass that had nothing left to do
  * (for example legacy links an earlier plan action already marked).
  */
-// implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
 export function describeMigrationRun(summary: MigrationRunSummary): string {
   const { audit } = summary;
   return `Migrated schema ${audit.fromVersion ?? "none"} -> ${audit.toVersion} (audit ${summary.auditPath}): legacy-link marks ${audit.symbolGranularityLegacyLinks}, origin backfill ${audit.entityOriginBackfill}, superseded requirements closed ${audit.supersededRequirementsClosed}, source paths rewritten ${audit.sourcePathsRewritten}, source paths removed ${audit.sourcePathsRemoved}, legacy statuses mapped ${audit.legacyStatusesMapped}; .gitignore ${summary.gitignoreUpdated ? "updated" : "unchanged"}.`;
@@ -1329,7 +1346,6 @@ export function describeMigrationRun(summary: MigrationRunSummary): string {
 
 const KB_MANIFEST_RELATIVE = ".kb/manifest.json";
 
-// implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
 async function buildWorkspaceMigrationPlan(
   workspaceRoot = process.cwd(),
 ): Promise<MigrationPlan> {
@@ -1487,6 +1503,21 @@ async function buildWorkspaceMigrationPlan(
       }
     }
   }
+  // Inline implements comments are no longer read; list the ones left in
+  // tracked source files so their links move into the manifest.
+  const { findInlineImplementsComments, inlineImplementsReviewAction } =
+    await import("../operations/migration/inline-implements-comments.js");
+  const inlineReview = inlineImplementsReviewAction(
+    findInlineImplementsComments(workspaceRoot),
+  );
+  if (inlineReview !== null) {
+    plans.push(
+      buildMigrationPlan({
+        evaluatedDomains: ["symbol"],
+        actions: [migrationAction(inlineReview)],
+      }),
+    );
+  }
   const skippedCheck = checkable && !storeSynced;
   if (
     fragmentActions.length > 0 ||
@@ -1540,7 +1571,6 @@ const STORE_SYNC_ACTION_IDS = new Set([
  * manual inventory review the sync would fail on it, so it waits on that
  * review just as the migration sync does.
  */
-// implements REQ-cli-schema-migration
 function orderStoreSyncAfterSourceRewrites(
   builders: Pick<
     typeof import("../public/operations/migration-plan.js"),
@@ -1585,7 +1615,6 @@ function orderStoreSyncAfterSourceRewrites(
  * `--approved-action` as `approvedAction`; in-process callers pass
  * `approvedActionIds`. Either spelling limits `--apply-safe` to those ids.
  */
-// implements REQ-cli-schema-migration
 function approvedActionIdsOf(options: MigrateOptions): string[] {
   const ids = [
     ...(options.approvedActionIds ?? []),
@@ -1597,7 +1626,6 @@ function approvedActionIdsOf(options: MigrateOptions): string[] {
 }
 
 /** The table rendering of an apply result; --format json prints it whole. */
-// implements REQ-cli-schema-migration
 function printApplySummary(content: unknown): void {
   if (content === null || typeof content !== "object") return;
   const result = content as {
@@ -1634,7 +1662,6 @@ function applySafeRequested(options: MigrateOptions): boolean {
 }
 
 /** The exact command that applies the plan with this hash. */
-// implements REQ-cli-schema-migration
 export function applyPlanCommand(planHash: string): string {
   return `kibi migrate --apply-safe ${planHash}`;
 }
@@ -1644,7 +1671,6 @@ export function applyPlanCommand(planHash: string): string {
  * plan was printed here, when Kibi recorded it, and the command for the
  * current plan.
  */
-// implements REQ-cli-schema-migration
 export function planChangedMessage(
   workspaceRoot: string,
   approvedPlanHash: string,
@@ -1772,7 +1798,6 @@ async function migratePlanCommand(
  * so one approval flow covers both, but they never make a migration
  * incomplete.
  */
-// implements REQ-cli-schema-migration
 export function isBacklogAction(
   action: Pick<MigrationAction, "code">,
 ): boolean {

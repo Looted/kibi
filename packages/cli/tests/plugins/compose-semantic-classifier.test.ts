@@ -17,8 +17,6 @@ import type {
   CapabilityProviderBinding,
 } from "../../src/plugins/registry.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1
-
 type Answer = { lane: string; confidence?: number; ambiguous?: boolean };
 type Answers = Record<string, Answer>;
 

@@ -1,4 +1,3 @@
-// implements REQ-kibi-operation-interface-parity
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, sep } from "node:path";
 import type { Tarballs } from "./helpers.js";

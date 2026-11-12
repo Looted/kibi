@@ -331,7 +331,7 @@ describe("schema6ReviewActionsFromCheck", () => {
         (action) => (action.invocation as { instruction: string }).instruction,
       ),
     ).toEqual([
-      "1 symbol(s) implement only superseded or deprecated requirements: S1. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page.",
+      "1 symbol(s) implement only superseded, deprecated or retired requirements: S1. For each, kb_upsert the symbol with an implements link to the requirement that replaced its owner (evidence lists the replacements) when it still implements that behavior, or remove the symbol when the behavior is gone. Rerun kb_check for the next page.",
       "1 human- or agent-authored requirement(s) state no rationale: Q1. Ask the person who stated the intent why it matters, then kb_upsert the requirement with rationale set to that answer (or link the ADR that records the decision). Rerun kb_check for the next page.",
       "2 agent-authored requirement(s) have no human approval: R1, R2. Have a person read each one; when it states the intended behavior, kb_upsert it with origin.approved_by set to the reviewer (keep kind: agent and the rest of origin), in the same change and pull request as the requirement, not a separate one. Rerun kb_check for the next page.",
     ]);

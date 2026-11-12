@@ -330,6 +330,30 @@ test(relationship_edges_match_the_findall_they_replace, [setup(setup_kb), cleanu
     kb_relationship_edges(Types, ['REQ-EDGES-MISSING'], None),
     assertion(None == []).
 
+test(negative_path_facts_are_assumed_by_rejecting_scenarios_and_ground_nothing,
+     [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-NEGP', "Plans never write", active, []),
+    assert_fixture_entity(req, 'REQ-NEGP-OLD', "Plans never wrote", deprecated, []),
+    assert_fixture_entity(scenario, 'SCEN-NEGP-REJECT', "A plan that writes is refused", active, [expects=rejection]),
+    assert_fixture_entity(scenario, 'SCEN-NEGP-ERROR', "A plan that writes errors", active, [expects=error]),
+    assert_fixture_entity(scenario, 'SCEN-NEGP-OK', "A plan is built", active, [expects=success]),
+    forall(member(Id, ['FACT-NEGP-WRITES', 'FACT-NEGP-ERRORS', 'FACT-NEGP-OK',
+                       'FACT-NEGP-CLAIM', 'FACT-NEGP-ALONE']),
+           assert_fixture_entity(fact, Id, "Fixture fact", active, [])),
+    kb_assert_relationship(specified_by, 'REQ-NEGP', 'SCEN-NEGP-REJECT', []),
+    kb_assert_relationship(specified_by, 'REQ-NEGP-OLD', 'SCEN-NEGP-REJECT', []),
+    kb_assert_relationship(assumes, 'SCEN-NEGP-REJECT', 'FACT-NEGP-WRITES', []),
+    kb_assert_relationship(assumes, 'SCEN-NEGP-ERROR', 'FACT-NEGP-ERRORS', []),
+    kb_assert_relationship(assumes, 'SCEN-NEGP-OK', 'FACT-NEGP-OK', []),
+    % A fact a requirement grounds a claim on states what must hold.
+    kb_assert_relationship(assumes, 'SCEN-NEGP-REJECT', 'FACT-NEGP-CLAIM', []),
+    kb_assert_relationship(requires_property, 'REQ-NEGP', 'FACT-NEGP-CLAIM', []),
+    kb_negative_path_facts(['FACT-NEGP-ALONE', 'FACT-NEGP-ERRORS', 'FACT-NEGP-OK',
+                            'FACT-NEGP-CLAIM', 'FACT-NEGP-WRITES', 'REQ-NEGP',
+                            'FACT-NEGP-WRITES', 'FACT-NEGP-MISSING'], Rows),
+    assertion(Rows == [['FACT-NEGP-ERRORS', []],
+                       ['FACT-NEGP-WRITES', ['REQ-NEGP']]]).
+
 test(reporting_batch_keeps_valid_links_and_names_failures, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     forall(member(Id, ['REQ-BATCH-A', 'REQ-BATCH-B', 'REQ-BATCH-C']),
            assert_fixture_entity(req, Id, "Batch fixture", active, [])),
@@ -3060,8 +3084,6 @@ test(requirement_proof_json_preserves_v5_and_explanations, [setup(setup_kb), cle
     production_explanation(Proof, 'SYM-EXPLAIN-JSON', Expl),
     assertion(Expl.reason == stage_blocked_no_passing_e2e).
 
-% implements REQ-generated-coordinate-persistence
-
 test(missing_single_coordinate_blocks_proof_until_all_four_persist, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-COORD-STAGE', "Coordinate stage regression", active, [
         source="test://kb.plt"
@@ -3097,7 +3119,6 @@ test(missing_single_coordinate_blocks_proof_until_all_four_persist, [setup(setup
 
 :- begin_tests(ui_pattern_component_proof).
 
-% implements REQ-ui-pattern-component-proof
 test(requirement_proof_accepts_component_scope_only_for_ui_pattern_scenarios, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     proof_receipt_json_scoped('PR-TEST000000001', 'TEST-UI-LIST-VARIANTS', unit, Snapshot, passed,
@@ -3144,7 +3165,6 @@ test(requirement_proof_accepts_component_scope_only_for_ui_pattern_scenarios, [s
     [LayoutObligation] = LayoutRow.proofStages.passingE2e.scenarioObligations,
     assertion(LayoutObligation.acceptedScopes == [end_to_end]).
 
-% implements REQ-ui-pattern-component-proof
 test(shared_component_test_counts_whatever_the_scenario_order, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     proof_receipt_json_scoped('PR-TEST000000002', 'TEST-UI-LIST-VARIANTS', unit, Snapshot, passed,
@@ -3970,7 +3990,6 @@ test(reserved_fields_do_not_change_conflict_detection, [setup(setup_kb), cleanup
 
 :- end_tests(kb_semantic_contradictions).
 
-% implements REQ-kibi-truthful-consistency
 :- begin_tests(kb_truthful_consistency).
 
 test(strict_numeric_pairs_conflict_exactly_when_no_value_satisfies_both) :-
@@ -4412,7 +4431,6 @@ test(what_if_reports_staged_conflicts_and_rolls_back, [setup(setup_kb), cleanup(
 
 :- begin_tests(kb_scenario_feasibility).
 
-% implements REQ-kibi-scenario-feasibility-v2
 feasibility_fixture(Expects) :-
     assert_fixture_entity(fact, 'FACT-QUOTA-SUBJECT', "Client call quota", active,
         [fact_kind=subject, subject_key="client.call_quota"]),
@@ -4718,7 +4736,6 @@ test(feasible_requires_the_whole_conjunction_to_be_satisfiable, [setup(setup_kb)
 
 % --- Rule lane, validity windows and clause-level exceptions ---------------
 
-% implements REQ-kibi-scenario-feasibility-v2
 % Subject.property read: Namespace:Name(C, Var).
 property_read_atom(Namespace, Name, Var, Type,
     _{kind:atom, namespace:Namespace, name:Name,
@@ -5020,7 +5037,6 @@ test(numeric_looking_strings_in_numeric_comparisons_are_flagged_not_coerced, [se
     % The value is reported, never converted: the string stays incomparable.
     assertion(kb:fact_property_tuple('FACT-TOTAL-TEXT-ABOVE', _, _, _, string, "5", _, _, _)).
 
-% implements REQ-kibi-happy-path-gap
 happy_path_fixture :-
     feasibility_fixture(success),
     kb_assert_relationship(specified_by, 'REQ-QUOTA-CALL', 'SCEN-ZERO-QUOTA-CALL', []).
@@ -5230,7 +5246,6 @@ test(coverage_row_reports_the_happy_path_gap, [setup(setup_kb), cleanup(cleanup_
     assertion(Row.proofStages.negativePath.status == missing),
     assertion(memberchk(happy_path_only, Row.proofGaps)).
 
-% implements REQ-kibi-dimension-gap
 dimension_fixture(Kind, Text, Extra) :-
     assert_fixture_entity(req, 'REQ-LOADER', "The loader instruments loaded files", open, []),
     (   Kind == bool
@@ -5317,7 +5332,6 @@ test(coverage_row_reports_the_dimension_gap, [setup(setup_kb), cleanup(cleanup_k
     assertion(Row.proofStages.dimension.status == missing),
     assertion(memberchk(dimension_unrepresented, Row.proofGaps)).
 
-% implements REQ-kibi-case-coverage
 case_fixture(FactProps) :-
     assert_fixture_entity(req, 'REQ-UPLOAD', "Uploads stay within the batch limit", open, []),
     append([fact_kind=property_value, subject_key="upload.batch",
@@ -5579,7 +5593,6 @@ test(prolog_literal_type_unwrap) :-
 
 :- begin_tests(discovery_ask).
 
-% implements REQ-kibi-query-fact-filters
 ask_permission_fixture(FactId, ReqId, ClaimKey, Args, Polarity) :-
     atomic_list_concat(Args, ',', ArgsText),
     format(string(CanonicalKey), "permission_rule(~w)", [ArgsText]),
@@ -5812,7 +5825,6 @@ test(relationship_count_counts_both_directions, [setup(setup_kb), cleanup(cleanu
     assertion(Row.get(id) == "REQ-AGG-A"),
     assertion(Row.get(relationshipCounts).get(verified_by) == 2).
 
-% implements REQ-mcp-search-discovery
 test(verified_by_gap_is_satisfied_by_an_inverse_validates_link, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-INV-VALIDATED', "Validated by a test", open, []),
     assert_fixture_entity(req, 'REQ-INV-UNTESTED', "No test at all", open, []),
@@ -5841,7 +5853,6 @@ test(verified_by_gap_is_satisfied_by_an_inverse_validates_link, [setup(setup_kb)
 
 :- begin_tests(discovery_provenance_stubs).
 
-% implements REQ-bootstrap-provenance-stubs
 test(gap_rows_skip_provenance_stubs_unless_the_tag_is_requested, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(fact, 'FACT-GEN-SOURCE-SYMBOLS-SRC-STUB-TS', "Source module: stub", active,
         [fact_kind=meta, tags=['bootstrap:provenance-stub']]),
@@ -5867,7 +5878,6 @@ test(gap_rows_skip_provenance_stubs_unless_the_tag_is_requested, [setup(setup_kb
     assertion(ReqJson.summary.total == 0),
     assertion(ReqJson.summary.provenanceStubs == 0).
 
-% implements REQ-bootstrap-provenance-stubs
 test(type_coverage_counts_provenance_stubs_apart_from_facts, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(fact, 'FACT-GEN-SOURCE-SYMBOLS-SRC-STUB-TS', "Source module: stub", active,
         [fact_kind=meta, tags=['bootstrap:provenance-stub']]),
@@ -6236,7 +6246,6 @@ test(check_strict_req_fact_pairing_reports_predicate_about_another_subject, [set
     findall(D, member(violation('strict-readiness', 'REQ-SUBJECT-OTHER', D, _, _), Readiness), [ReadinessDescription]),
     assertion(sub_string(ReadinessDescription, _, _, _, "not-ready (has-subject)")).
 
-% implements REQ-check-strict-pairing-predicate-grounding-v2
 test(check_strict_req_fact_pairing_accepts_predicate_subject_key, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(fact, 'FACT-SUBJECT-PERM', "Archive subject", active, [fact_kind=subject, subject_key="pages.archive"]),
     assert_fixture_entity(fact, 'FACT-PRED-PERM', "Guests may not delete pages", active, [fact_kind=predicate, predicate_name="permission_rule", predicate_namespace="default", predicate_args=["guest", "delete", "page", "deny"], polarity=deny, canonical_key="permission_rule(guest,delete,page,deny)", subject_key="pages.archive"]),
@@ -6482,7 +6491,7 @@ test(symbol_owner_superseded_lists_symbols_without_current_owner, [setup(setup_k
     Violations = [violation('symbol-owner-superseded', 'SYM-ORPHANED', Description, Suggestion, _, Evidence)],
     assertion(Evidence.owners == ['REQ-RETIRED']),
     assertion(Evidence.replacements == ['REQ-SUCCESSOR']),
-    assertion(sub_string(Description, _, _, _, "implements only superseded or deprecated requirements (REQ-RETIRED)")),
+    assertion(sub_string(Description, _, _, _, "implements only superseded, deprecated or retired requirements (REQ-RETIRED)")),
     assertion(sub_string(Suggestion, _, _, _, "implements REQ-SUCCESSOR")).
 
 test(symbol_owner_superseded_caps_the_list_with_a_summary, [setup(setup_kb), cleanup(cleanup_kb)]) :-
@@ -6523,7 +6532,6 @@ test(adr_unlinked_and_adr_proposed_report_drifting_decisions, [setup(setup_kb), 
     findall(Id, member(violation('adr-proposed', Id, _, _, _), Proposed), ProposedIds),
     assertion(ProposedIds == ['ADR-PENDING']).
 
-% implements REQ-check-related-requirement-unmodeled
 related_unmodeled_fixture_modeled_req(ReqId) :-
     assert_fixture_entity(req, ReqId, "Grouped notification per item", open, []),
     assert_fixture_entity(fact, 'FACT-NOTIFY-SUBJECT', "Notification system", active, [
@@ -6673,7 +6681,6 @@ test(check_req_contradiction_throws_actionable_error, [setup(setup_kb), cleanup(
           assertion(sub_string(Message, _, _, _, "Conflicts with REQ-CHK-B")) )
     ).
 
-% implements REQ-kibi-operation-interface-parity
 test(preview_upsert_contradiction_refuses_like_the_commit_and_writes_nothing, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_contradicting_requirement_pair('REQ-PREVIEW-A', 5, 'REQ-PREVIEW-B', 6),
     % The staged requirement links the fact that conflicts with REQ-PREVIEW-A.
@@ -6900,7 +6907,6 @@ test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cle
 
 :- begin_tests(kb_certificates).
 
-% implements REQ-kibi-kb-certificates
 test(consistent_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
     kb_cert_property('FACT-CERT-MAX', 'REQ-CERT-MAX', "api.quota", "rate_limit", lte, int, 10, []),
@@ -6919,7 +6925,6 @@ test(consistent_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanu
     assertion(integer(Model.value)),
     assertion((Model.value >= 1, Model.value =< 10)).
 
-% implements REQ-kibi-kb-certificates, REQ-kibi-claim-bound-proofs
 test(set_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % The same set in another order agrees, and a neq set admits the eq one.
     % Two different eq sets conflict pairwise, so the KB never holds them.
@@ -6938,7 +6943,6 @@ test(set_facts_get_models_that_reverify, [setup(setup_kb), cleanup(cleanup_kb)])
     msort(Model.value, Members),
     assertion(Members == ["blue", "green", "red"]).
 
-% implements REQ-kibi-kb-certificates
 test(joint_contradiction_the_pairwise_check_misses_gets_a_core, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % Every pair admits an integer, all four together admit none.
     kb_cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
@@ -6958,7 +6962,6 @@ test(joint_contradiction_the_pairwise_check_misses_gets_a_core, [setup(setup_kb)
     assertion(Core == ['FACT-CERT-J1', 'FACT-CERT-J2', 'FACT-CERT-J3', 'FACT-CERT-J4']),
     length(Certificate.dropModels, 4).
 
-% implements REQ-kibi-kb-certificates
 test(scoped_facts_get_one_model_per_scope, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_cert_property('FACT-CERT-ALL', 'REQ-CERT-ALL', "tax.rate", "percent", gte, int, 0, []),
     kb_cert_property('FACT-CERT-EU', 'REQ-CERT-EU', "tax.rate", "percent", eq, int, 20, [scope="eu"]),
@@ -6969,7 +6972,6 @@ test(scoped_facts_get_one_model_per_scope, [setup(setup_kb), cleanup(cleanup_kb)
     msort(Models0, Models),
     assertion(Models = [''-_, eu-20, us-7]).
 
-% implements REQ-kibi-kb-certificates
 test(contradiction_across_disjoint_windows_stays_unresolved, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_cert_property('FACT-CERT-OLD', 'REQ-CERT-OLD', "plan.price", "monthly", eq, int, 10, [valid_to="2025-12-31T00:00:00Z"]),
     kb_cert_property('FACT-CERT-NEW', 'REQ-CERT-NEW', "plan.price", "monthly", eq, int, 12, [valid_from="2026-01-01T00:00:00Z"]),
@@ -6980,7 +6982,6 @@ test(contradiction_across_disjoint_windows_stays_unresolved, [setup(setup_kb), c
     Certificates = Bundle.certificates,
     assertion((member(C, Certificates), get_dict(kind, C, property_unresolved))).
 
-% implements REQ-kibi-kb-certificates
 test(predicate_and_decision_contradictions_reverify, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     % Allow asserted and the same allow denied disagree on one atom; allow
     % against an asserted deny disagree on one decision key.
@@ -6997,7 +6998,6 @@ test(predicate_and_decision_contradictions_reverify, [setup(setup_kb), cleanup(c
     assertion((member(P, Certificates), get_dict(kind, P, predicate_contradiction))),
     assertion((member(D, Certificates), get_dict(kind, D, decision_contradiction))).
 
-% implements REQ-kibi-kb-certificates
 test(stratified_rules_get_strata_and_a_negation_cycle_is_shown, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_cert_rule('FACT-CERT-RULE-P', p, not(q)),
     kb_cert_rule('FACT-CERT-RULE-Q', q, r),
@@ -7019,7 +7019,6 @@ test(stratified_rules_get_strata_and_a_negation_cycle_is_shown, [setup(setup_kb)
     CycleCertificates = CycleBundle.certificates,
     assertion((member(C, CycleCertificates), get_dict(kind, C, rule_negation_cycle))).
 
-% implements REQ-kibi-kb-certificates
 test(tampered_certificates_are_rejected, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_cert_property('FACT-CERT-J1', 'REQ-CERT-J1', "seat.count", "free", gte, int, 0, []),
     kb_cert_property('FACT-CERT-J2', 'REQ-CERT-J2', "seat.count", "free", lte, int, 1, []),
@@ -7058,7 +7057,6 @@ test(tampered_certificates_are_rejected, [setup(setup_kb), cleanup(cleanup_kb)])
     MissingRejected = Missing.rejected,
     assertion((member(F, MissingRejected), get_dict(reason, F, "no certificate for this group"))).
 
-% implements REQ-kibi-kb-certificates
 test(checker_loads_neither_the_search_nor_the_checks) :-
     module_property(certificate_check, file(File)),
     read_file_to_string(File, Source, []),
@@ -7067,7 +7065,6 @@ test(checker_loads_neither_the_search_nor_the_checks) :-
     assertion(\+ predicate_property(certificate_check:_, imported_from(checks))),
     assertion(\+ predicate_property(certificate_check:_, imported_from(certificates))).
 
-% implements REQ-kibi-kb-certificates
 test(kb_consistency_rule_reports_a_reverified_joint_contradiction, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_cert_property('FACT-CERT-MIN', 'REQ-CERT-MIN', "api.quota", "rate_limit", gte, int, 1, []),
     check_kb_consistency(Clean),
@@ -7086,7 +7083,6 @@ test(kb_consistency_rule_reports_a_reverified_joint_contradiction, [setup(setup_
     check_kb_consistency_unresolved(Unresolved),
     assertion(Unresolved == []).
 
-% implements REQ-kibi-kb-certificates
 test(kb_consistency_unresolved_names_contexts_it_cannot_compare, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_cert_property('FACT-CERT-GB', 'REQ-CERT-GB', "plan.storage", "quota", lte, int, 10, [unit="GB"]),
     kb_cert_property('FACT-CERT-SEATS', 'REQ-CERT-SEATS', "plan.storage", "quota", gte, int, 2, [unit="seat"]),
@@ -7098,7 +7094,6 @@ test(kb_consistency_unresolved_names_contexts_it_cannot_compare, [setup(setup_kb
     assertion(sub_string(Description, _, _, _, "plan.storage.quota")),
     assertion(sub_string(Description, _, _, _, "It never counts as consistent")).
 
-% implements REQ-kibi-kb-certificates
 test(kb_consistency_rule_reports_a_negation_cycle, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_cert_rule('FACT-CERT-RULE-P', p, not(q)),
     kb_cert_rule('FACT-CERT-RULE-Q', q, p),
@@ -7108,7 +7103,6 @@ test(kb_consistency_rule_reports_a_negation_cycle, [setup(setup_kb), cleanup(cle
     assertion(sub_string(Description, 0, _, _, "Stored rules are not stratified")),
     assertion(sub_string(Description, _, _, _, "depends on not")).
 
-% implements REQ-kibi-kb-certificates
 test(kb_consistency_rules_run_through_check_selected, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     checks:check_selected(['kb-consistency', 'kb-consistency-unresolved'], Dict),
     assertion(get_dict(kb_consistency, Dict, _)),
@@ -7203,7 +7197,6 @@ cert_rejected(Bundle, Reason) :-
 
 :- begin_tests(requirement_evidence_levels).
 
-% implements REQ-kibi-evidence-levels
 test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EVIDENCE-AGENT', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
     assert_fixture_entity(req, 'REQ-EVIDENCE-APPROVED', "Agent approved", open, [priority=must, origin="{\"kind\":\"agent\",\"approved_by\":\"Owner\",\"ref\":\"chat 1\"}"]),
@@ -7232,7 +7225,6 @@ test(evidence_level_follows_human_backing_without_passing_e2e, [setup(setup_kb),
     assertion(Url.evidence = [_{kind: human_intent, scope: intent, level: asserted, basis: approved, ref: 'Owner: "handle https://example.com/issues/42?"'}]),
     assertion(Report.summary.evidenceLevels = _{proved: 0, tested: 0, asserted: 3, unverified: 3}).
 
-% implements REQ-kibi-evidence-floors
 % The summary counts requirements with a floor by status; a floor of
 % unverified (no floor) is not counted.
 test(evidence_floor_counts_by_status, [setup(setup_kb), cleanup(cleanup_kb)]) :-
@@ -7251,7 +7243,6 @@ test(evidence_floor_counts_by_status, [setup(setup_kb), cleanup(cleanup_kb)]) :-
 
 :- begin_tests(requirement_proved_evidence).
 
-% implements REQ-kibi-code-proof-kinds
 % proved needs the requirement tested end to end and, on every linked
 % scenario, a test whose fresh v2 receipt carries a certificate that re-checks
 % now: a tampered digest or a certificate that no longer re-checks stays tested.
@@ -7284,7 +7275,6 @@ test(proved_requires_a_rechecked_certificate_on_every_scenario, [setup(setup_kb)
     % A stale certificate receipt (another snapshot) stays tested.
     proved_level('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', Certificate, Digest, Stale0),
     assertion(Stale0.evidenceLevel \== proved),
-    % implements REQ-kibi-claim-bound-proofs
     % A re-checking certificate that names no claim proves nothing: tested.
     proof_receipt_v2_json('TEST-PROVED-EXHAUSTIVE', Snapshot, Certificate, Digest, [], Unbound),
     proved_level_json(Unbound, UnboundRow),
@@ -7296,7 +7286,6 @@ test(proved_requires_a_rechecked_certificate_on_every_scenario, [setup(setup_kb)
     proved_level_json(Attested, AttestedRow),
     assertion(AttestedRow.evidenceLevel == tested).
 
-% implements REQ-kibi-code-proof-kinds
 test(proved_needs_every_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     proved_fixture(Snapshot),
@@ -7412,7 +7401,6 @@ proof_receipt_v2_json(TestId, Snapshot, Certificate, Digest, Bindings, Json) :-
 
 :- begin_tests(requirement_evidence_floors).
 
-% implements REQ-kibi-evidence-floors
 test(evidence_floor_defaults_from_firmness_and_honours_required_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-FLOOR-AGENT', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
     assert_fixture_entity(req, 'REQ-FLOOR-PERSON', "Person stated", open, [priority=must]),
@@ -7438,7 +7426,6 @@ test(evidence_floor_defaults_from_firmness_and_honours_required_evidence, [setup
     findall(Id-Status, (member(Row, Floors.rows), Id = Row.id, Status = Row.status), Below),
     assertion(Below == ['REQ-FLOOR-PERSON'-below, 'REQ-FLOOR-RAISED'-below]).
 
-% implements REQ-kibi-evidence-floors
 test(evidence_floor_sets_aside_only_freshness_gaps) :-
     Candidate = _{testId: 'TEST-E2E', qualifies: false, reason: receipt_snapshot_mismatch, secondaryReasons: [], scope: end_to_end},
     Stale = _{productionSymbols: _{uncoveredSymbols: ['SYM-A'], explanations: [_{symbolId: 'SYM-A', coverageCandidates: [Candidate]}]}},
@@ -7456,7 +7443,6 @@ test(evidence_floor_sets_aside_only_freshness_gaps) :-
     assertion(\+ requirement_proof:freshness_only_gaps([missing_proof_receipt], Stale)),
     assertion(\+ requirement_proof:freshness_only_gaps([], Stale)).
 
-% implements REQ-kibi-happy-path-gap
 test(failure_side_waits_for_reproof_only_when_stale_certificates_prove_every_open_claim) :-
     Pending = _{negativePath: _{status: missing, claims: ['CLAIM-A', 'CLAIM-B'], pendingReproofClaims: ['CLAIM-A', 'CLAIM-B']}},
     assertion(requirement_proof:freshness_only_gaps([stale_proof_receipt, happy_path_only], Pending)),
@@ -7577,7 +7563,6 @@ dict_has_key(Dict, Key) :- is_dict(Dict), get_dict(Key, Dict, _).
 
 % ------------------------------------------------------------------
 % Per-generation proof memos and bounded JSON decode memos
-% implements REQ-kibi-conservative-requirement-proof, REQ-kibi-scenario-feasibility-v2
 :- begin_tests(kb_proof_memos).
 
 memo_proof(ReqId, Context, Proof) :-

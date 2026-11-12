@@ -78,7 +78,6 @@ const DEFAULT_EXTRACTION_DEPENDENCIES: ExtractionDependencies = {
 };
 
 export async function processExtractions(
-  // implements REQ-003
   changedMarkdownFiles: string[],
   changedManifestFiles: string[],
   validateOnly: boolean,

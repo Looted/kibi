@@ -135,11 +135,9 @@ export function normalizeSubjectKey(value: string): string {
  * component.aspect[.sub] with lowercase snake segments. Mirrors
  * valid_subject_key/1 in packages/core/src/semantic_quality.pl.
  */
-// implements REQ-kibi-subject-vocabulary
 export const SUBJECT_KEY_CONVENTION =
   /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*(?:\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*)+$/;
 
-// implements REQ-kibi-subject-vocabulary
 export function isConventionalSubjectKey(value: string): boolean {
   return SUBJECT_KEY_CONVENTION.test(value);
 }
@@ -469,7 +467,6 @@ function buildPropertyFactTitle(
 }
 
 function buildPropertyFactFields(claim: SemanticClaim): Partial<FactFields> {
-  // implements REQ-kibi-source-proof-kinds
   if (Array.isArray(claim.value))
     return {
       operator: claim.operator as FactFields["operator"],
@@ -502,7 +499,6 @@ function buildPropertyFactFields(claim: SemanticClaim): Partial<FactFields> {
 
 const ORDERING_OPERATORS = new Set(["gt", "gte", "lt", "lte"]);
 
-// implements REQ-kibi-truthful-consistency
 // An ordering comparison is numeric by definition, so a numeric string value
 // ("0", "2.5") is stored as int/number. Stored as a string it would be
 // invisible to numeric contradiction checks.
@@ -610,7 +606,6 @@ function buildEntitySourcePath(directory: string, entityId: string): string {
  * fact there (the filename stem equals the id), so a plan that points at an
  * existing fact names this path.
  */
-// implements REQ-kibi-subject-vocabulary
 export function factSourcePath(factId: string): string {
   return buildEntitySourcePath(resolveEntitySourcePaths().facts, factId);
 }

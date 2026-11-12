@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 import {
   canonicalizeWorkspacePath as canonicalizeSharedWorkspacePath,
   extractExplicitPathFields as extractSharedExplicitPathFields,

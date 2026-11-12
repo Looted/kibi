@@ -1,4 +1,3 @@
-// implements REQ-cursor-kibi-plugin-v1
 import path from "node:path";
 
 import {
@@ -20,7 +19,6 @@ function toManifestPath(workspaceRoot: string, filePath: string): string {
   return path.relative(workspaceRoot, absolute).split(path.sep).join("/");
 }
 
-// implements REQ-cursor-kibi-plugin-v1
 export type SourceLinkedSymbols = {
   /** Manifest (workspace-relative, forward-slash) path of the file. */
   relativePath: string;
@@ -34,7 +32,6 @@ export type SourceLinkedSymbols = {
  * processes pay only two stats and a small JSON parse while the manifests are
  * unchanged.
  */
-// implements REQ-cursor-kibi-plugin-v1
 export function getSourceLinkedSymbols(
   workspaceRoot: string,
   filePath: string,

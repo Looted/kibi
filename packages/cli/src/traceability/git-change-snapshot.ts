@@ -17,10 +17,8 @@ import type {
 
 const GIT_EXEC_MAX_BUFFER = 64 * 1024 * 1024;
 
-// implements REQ-source-analysis-v2
 export type SnapshotGitReader = (args: readonly string[]) => Buffer;
 
-// implements REQ-source-analysis-v2
 export interface GitChangeSnapshot {
   /** Tree at the captured base commit, or the canonical empty tree when unborn. */
   baseTree: string;
@@ -544,7 +542,6 @@ function changedPaths(root: string, from: string, to: string): Set<string> {
  * not charged to the merge. Null when no merge is in progress or nothing
  * is inherited.
  */
-// implements REQ-014
 export function mergeResolutionBase(
   root: string,
   baseTree: string,
@@ -666,7 +663,6 @@ function isKnowledgeRelocation(from: string, to: string): boolean {
  * legacy-link marks, a requirement that gains origin and tags) can fall
  * under Git's similarity threshold although it is the same file.
  */
-// implements REQ-cli-migration-first-commit
 function unpairedKnowledgeRelocations(
   root: string,
   baseTree: string,
@@ -721,7 +717,6 @@ function unpairedKnowledgeRelocations(
  * that was already canonical, is diffed as before. Null when nothing is
  * relocated.
  */
-// implements REQ-014
 export function renameResolutionBase(
   root: string,
   baseTree: string,
@@ -757,7 +752,6 @@ export function renameResolutionBase(
 }
 
 /** Capture one immutable tree from the index and inventory only Git objects. */
-// implements REQ-014
 export function captureStagedSnapshot(
   workspaceRoot: string,
 ): GitChangeSnapshot {
@@ -807,7 +801,6 @@ export function captureStagedSnapshot(
  * `git merge-base target head`. This helper resolves each input once and does
  * not silently choose a merge base of its own.
  */
-// implements REQ-014
 export function captureDiffSnapshot(
   workspaceRoot: string,
   base: string,

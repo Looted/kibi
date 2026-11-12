@@ -2,8 +2,6 @@ import { describe, expect, test } from "bun:test";
 import type { StagedFile } from "../../src/traceability/git-staged.js";
 import { createStagedEntityIdStyleDiagnostics } from "../../src/traceability/staged-entity-id-style.js";
 
-// implements REQ-kibi-entity-id-style
-
 function staged(
   path: string,
   status: StagedFile["status"],

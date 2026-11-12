@@ -143,7 +143,6 @@ function headline(summary: SignoffSummary): string {
     : `## Requirements signoff: ${counts.join(", ")}`;
 }
 
-// implements REQ-kibi-signoff-views
 /** The end-of-work summary as Markdown, without the fence. */
 export function renderSummaryMarkdownBody(
   summary: SignoffSummary,
@@ -185,7 +184,6 @@ export function renderSummaryMarkdownBody(
   return lines.join("\n");
 }
 
-// implements REQ-kibi-signoff-views
 /** The mid-work decision questions as Markdown, without the fence. */
 export function renderQuestionsMarkdownBody(view: SignoffQuestions): string {
   const open = view.questions.filter(questionOpen).length;
@@ -235,7 +233,6 @@ export function renderQuestionsMarkdownBody(view: SignoffQuestions): string {
   return lines.join("\n");
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * A signoff view as plain Markdown for a chat reply or a messaging tool
  * (headings, quotes and lists that any Markdown surface renders), with no
@@ -247,7 +244,6 @@ export function renderSignoffChatMarkdown(view: SignoffView): string {
     : renderQuestionsMarkdownBody(view);
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * A signoff view as the fenced block agents paste into chat. Host renderers
  * (the Claude Code display hook, the OpenCode TUI) key on the fence's info

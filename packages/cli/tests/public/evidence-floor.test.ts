@@ -23,8 +23,6 @@ import {
   evidenceFloorViolations,
 } from "../../src/public/operations/evidence-floor.js";
 
-// implements REQ-kibi-evidence-floors
-
 const roots: string[] = [];
 
 afterEach(() => {
@@ -73,7 +71,6 @@ describe("evidence-floor findings", () => {
     });
   });
 
-  // implements REQ-kibi-claim-bound-proofs
   test("a claim its proof refuted is named with the test and what it read", () => {
     const reason =
       "the members Kibi read from the source include console.log, which the fact excludes";

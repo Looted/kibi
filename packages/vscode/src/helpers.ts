@@ -20,7 +20,6 @@
  */
 
 export function categorizeEntities(
-  // implements REQ-vscode-traceability
   relationships: Array<{ type: string; from: string; to: string }>,
 ): Record<string, string[]> {
   const categories: Record<string, string[]> = {

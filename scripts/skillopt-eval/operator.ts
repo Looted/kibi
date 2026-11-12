@@ -110,7 +110,6 @@ function unavailable(error: unknown): boolean {
   );
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function resolveOperatorBase(
   options: OperatorBaseResolutionOptions = {
     runtimeDir: process.env.XDG_RUNTIME_DIR,
@@ -149,7 +148,6 @@ export const defaultOperatorDependencies: OperatorDependencies = {
   which: defaultWhich,
 };
 
-// implements REQ-skillopt-codex-optimization
 export function buildOptimizeLayout(
   cwd: string,
   runId: string,
@@ -247,7 +245,6 @@ async function preparePaidOptimize(
   return layout;
 }
 
-// implements REQ-skillopt-codex-optimization
 export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   const command = args[0];
   if (command !== "smoke" && command !== "optimize") {
@@ -341,7 +338,6 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runOperatorCommand(
   command: OperatorCommand,
   dependencies: OperatorDependencies = defaultOperatorDependencies,

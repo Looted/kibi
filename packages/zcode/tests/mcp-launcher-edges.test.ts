@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 // Edge paths of the MCP launcher that the scenario tests do not reach:
 // Windows PATH lookup, unreadable manifests, and child failures mid-proxy.
 import { afterEach, describe, expect, test } from "bun:test";

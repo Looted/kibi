@@ -405,7 +405,6 @@ function inside(node: Node): Node {
 }
 
 /** Read one extract of a parsed C file. */
-// implements REQ-kibi-tree-sitter-script-references
 export function cReferences(
   root: Node,
   extract: CExtract,

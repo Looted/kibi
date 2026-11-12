@@ -1,4 +1,3 @@
-% implements REQ-kibi-case-coverage
 %
 % Edge cases derived from a requirement's typed claims.  A case is never
 % authored: it is computed from a property fact the requirement grounds a

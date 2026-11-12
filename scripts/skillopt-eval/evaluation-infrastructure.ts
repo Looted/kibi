@@ -24,7 +24,6 @@ export type EvaluationInfrastructureDetails = Readonly<{
   receiptPath: string | null;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export class EvaluationInfrastructureError extends Error {
   readonly name = "EvaluationInfrastructureError";
@@ -44,7 +43,6 @@ type CellCompletion = Readonly<{
   receiptPath: string;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export function assertCellInfrastructureHealthy(
   completed: CellCompletion,

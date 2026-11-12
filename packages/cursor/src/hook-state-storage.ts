@@ -4,7 +4,6 @@ import os from "node:os";
 import path from "node:path";
 
 import type { HookState } from "./hook-state.js";
-// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 
 const stateFileName = "hook-state.json";
 const lockFileName = "hook-state.lock";

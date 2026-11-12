@@ -1,4 +1,3 @@
-// implements REQ-agent-guided-migration-orchestration, REQ-cli-schema-migration
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   type ConsumerWorkspace,
@@ -151,7 +150,7 @@ describe("the status plan's schema upgrade declares every write", () => {
     // The mark ran as its own action, so the upgrade's pass is a visible
     // no-op; the counts come from the audit record the run wrote.
     expect(details["schema-config-upgrade"]).toBe(
-      "Migrated schema 8 -> 13 (audit .kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded requirements closed 0, source paths rewritten 0, source paths removed 0, legacy statuses mapped 0; .gitignore updated.",
+      "Migrated schema 8 -> 14 (audit .kb/migrations/main.json): legacy-link marks 0, origin backfill 0, superseded requirements closed 0, source paths rewritten 0, source paths removed 0, legacy statuses mapped 0; .gitignore updated.",
     );
     expect(ws.read(".kb/symbols.yaml")).toContain(
       "granularity_reason: legacy-link",
@@ -161,10 +160,10 @@ describe("the status plan's schema upgrade declares every write", () => {
     expect(audit).toMatchObject({
       status: "applied",
       fromVersion: 8,
-      toVersion: 13,
+      toVersion: 14,
       symbolGranularityLegacyLinks: 0,
       preMigrationWarning: expect.stringContaining(
-        "KB schemaVersion 8 is older than the latest version 13",
+        "KB schemaVersion 8 is older than the latest version 14",
       ),
     });
     expect(audit).not.toHaveProperty("warning");

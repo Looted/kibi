@@ -36,7 +36,6 @@ describe("inspectProofEnvironment", () => {
   });
 
   test("detects node --test and bun test in root and workspace scripts", () => {
-    // implements REQ-kibi-verification-evidence-contract
     const root = workspace();
     writeFileSync(
       path.join(root, "package.json"),

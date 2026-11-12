@@ -178,7 +178,6 @@ class CompiledContentEvidence {
  * Drop mtime-only stale reasons whose file content provably matches what the
  * store compiled. Reasons without such evidence are kept.
  */
-// implements REQ-cli-status-pre-first-sync
 export function confirmSourceNewerReasons(
   workspaceRoot: string,
   storePath: string,
@@ -208,7 +207,6 @@ export function confirmSourceNewerReasons(
  * times only. Apply the same content confirmation kb_status does, so a
  * checkout or `touch` that changed no byte is not reported as stale.
  */
-// implements REQ-cli-status-pre-first-sync
 export function confirmMetaFreshness<
   T extends { readonly meta?: Readonly<Record<string, unknown>> },
 >(payload: T, workspaceRoot: string): T {

@@ -2,8 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { qualifiedSourceAnalyzers } from "../../src/plugins/approved-source-analyzers.generated.js";
 import { APPROVED_SOURCE_ANALYZERS } from "../../src/plugins/approved-source-analyzers.js";
 
-// implements REQ-capability-plugin-activation-disclosure-v1, REQ-source-analysis-v2
-
 const SHA256 = /^[0-9a-f]{64}$/;
 
 function expectDigests(files: Readonly<Record<string, string>>): void {

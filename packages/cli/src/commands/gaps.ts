@@ -14,7 +14,6 @@ interface GapsOptions {
   format?: "json" | "table";
 }
 
-// implements REQ-002, REQ-003
 export async function gapsCommand(
   type: string | undefined,
   options: GapsOptions,

@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 // The command-line entry points the bundled hooks run: stdin parsing, the
 // JSON line they print, and how failures are reported.
 import { afterEach, describe, expect, spyOn, test } from "bun:test";

@@ -1,4 +1,3 @@
-// implements REQ-mcp-tool-check
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import * as fsp from "node:fs/promises";

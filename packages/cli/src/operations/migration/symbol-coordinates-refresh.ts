@@ -28,7 +28,6 @@ import { withSymbolCompilerLock } from "../mutation/symbol-compiler-lock.js";
  * Bytes of the symbols manifest and its generated coordinate artifact at
  * their canonical paths; null for a file that does not exist.
  */
-// implements REQ-cli-migration-first-commit
 export type GeneratedManifestBytes = Readonly<{
   symbols: string | null;
   coordinates: string | null;
@@ -39,7 +38,6 @@ function readOrNull(filePath: string): string | null {
 }
 
 /** Snapshot taken before a migration writes, to tell what it rewrote. */
-// implements REQ-cli-migration-first-commit
 export function readGeneratedManifestBytes(
   workspaceRoot: string,
 ): GeneratedManifestBytes {
@@ -65,7 +63,6 @@ function hasSymbols(content: string | null): boolean {
 }
 
 /** What the post-migration coordinate refresh did. */
-// implements REQ-cli-migration-first-commit
 export type MigrationCoordinateRefresh =
   | { outcome: "skipped" }
   | { outcome: "refreshed" }
@@ -85,7 +82,6 @@ export type MigrationCoordinateRefresh =
  * migration itself is complete, and the caller tells the user to refresh by
  * hand before committing.
  */
-// implements REQ-cli-migration-first-commit
 export async function refreshCoordinatesAfterMigration(
   workspaceRoot: string,
   before?: GeneratedManifestBytes,
@@ -128,7 +124,6 @@ export async function refreshCoordinatesAfterMigration(
 }
 
 /** The line a migration prints when its coordinate refresh failed. */
-// implements REQ-cli-migration-first-commit
 export function coordinateRefreshFailureMessage(reason: string): string {
   return `Could not refresh symbol coordinates after the migration (${reason}). Run 'kibi sync --refresh-symbol-coordinates' and stage .kb/symbols.yaml before the first commit, or the pre-commit hook reports generated manifest drift.`;
 }

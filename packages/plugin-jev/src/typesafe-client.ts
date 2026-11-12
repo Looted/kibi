@@ -10,7 +10,6 @@ import {
 /**
  * Create a real TypeSafe client. Call only when classification is invoked.
  */
-// implements REQ-capability-plugin-jev-fallback-v1
 export const createTypeSafeJevClient: JevClientFactory = (options = {}) => {
   const apiKey = options.apiKey ?? process.env.TYPESAFE_API_KEY;
   if (typeof apiKey !== "string" || apiKey.trim().length === 0) {

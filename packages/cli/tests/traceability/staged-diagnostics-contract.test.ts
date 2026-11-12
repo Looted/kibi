@@ -7,8 +7,6 @@ import type {
 } from "../../src/traceability/evidence-model.js";
 import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
 
-// implements REQ-cli-staged-impact-enforcement
-
 const DOC = "docs/cli-reference.md#staged-impact-evidence";
 const BASE_SUGGESTION = (manifest: string) =>
   `Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown or authored ${manifest} metadata. Re-run kibi check --staged after staging tracked evidence.`;

@@ -28,7 +28,6 @@
  * answer is the last line of output, in the JSON the JavaScript and Python
  * evaluators print.
  */
-// implements REQ-kibi-multilingual-code-proofs
 export const PROLOG_EVALUATOR = String.raw`
 :- module(kibi_proof_evaluator, []).
 :- use_module(library(http/json)).

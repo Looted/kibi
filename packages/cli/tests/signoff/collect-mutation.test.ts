@@ -671,8 +671,24 @@ describe("loadAffectedForScope", () => {
   test("reads the requirements changed code implements in each scope", async () => {
     const { root, git } = repo();
     writeReq(root, "REQ-a", "Refunds are logged.");
+    write(
+      root,
+      ".kb/symbols.yaml",
+      [
+        "symbols:",
+        ...["logRefund", "audit"].flatMap((title) => [
+          `  - id: SYM-${title}`,
+          `    title: ${title}`,
+          "    sourceFile: src/a.ts",
+          "    relationships:",
+          "      - type: implements",
+          "        target: REQ-a",
+        ]),
+        "",
+      ].join("\n"),
+    );
     const code = (n: number) =>
-      `// implements REQ-a\nexport function logRefund(x: number): number {\n  return x + ${n};\n}\n\n// implements REQ-a\nexport function audit(y: number): number {\n  return y * ${n};\n}\n`;
+      `export function logRefund(x: number): number {\n  return x + ${n};\n}\n\nexport function audit(y: number): number {\n  return y * ${n};\n}\n`;
     write(root, "src/a.ts", code(1));
     git("add", ".");
     git("commit", "-q", "-m", "base");

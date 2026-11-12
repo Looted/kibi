@@ -65,7 +65,6 @@ function blockRange(
  * Used by proof maintenance to drop legacy `verification_receipts` blocks
  * once a `proof_contract` exists, without canonicalizing the document.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function removeFrontmatterBlock(
   content: string,
   key: string,
@@ -98,7 +97,6 @@ export function removeFrontmatterBlock(
  * patcher can safely splice; the caller then falls back to the canonical
  * render.
  */
-// implements REQ-kibi-verification-evidence-contract
 export function patchReceiptsIntoDocument(
   content: string,
   receipts: readonly Readonly<Record<string, unknown>>[],

@@ -149,7 +149,6 @@ export function parseBridgeOptions(args: readonly string[]): BridgeOptions {
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function bridgeFailure(error: unknown): BridgeExecutionError {
   if (error instanceof CodexAuthError) {
     return new BridgeExecutionError("authentication", { cause: error });

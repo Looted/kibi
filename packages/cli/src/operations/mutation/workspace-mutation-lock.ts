@@ -27,7 +27,6 @@ const MAX_RELEASE_FILESYSTEM_ATTEMPTS = 3;
 /** Bounded rereads for the transient mkdir->owner and unlink->rmdir windows. */
 const MAX_MISSING_OWNER_REREADS = 4;
 
-// implements REQ-generated-coordinate-persistence
 export interface WorkspaceMutationLockFileSystem {
   readonly mkdirSync: (
     target: string,
@@ -58,7 +57,6 @@ const NODE_FILE_SYSTEM: WorkspaceMutationLockFileSystem = {
   renameSync: (from, to) => renameSync(from, to),
 };
 
-// implements REQ-generated-coordinate-persistence
 export interface WorkspaceMutationLockOptions {
   readonly lockFileRelative?: string;
   readonly timeoutMs?: number;
@@ -76,7 +74,6 @@ export interface WorkspaceMutationLockOptions {
 }
 
 /** The owner record of a lock whose holder process is no longer alive. */
-// implements REQ-bootstrap-apply-long-running
 export interface DeadLockHolder {
   readonly pid: number;
   readonly token: string;
@@ -84,13 +81,11 @@ export interface DeadLockHolder {
 }
 
 /** A dead holder's lock this acquisition reclaimed. */
-// implements REQ-bootstrap-apply-long-running
 export interface WorkspaceMutationLockReclaim extends DeadLockHolder {
   readonly reclaimedAt: number;
   readonly reclaimedByPid: number;
 }
 
-// implements REQ-generated-coordinate-persistence
 export class WorkspaceMutationLockError extends Error {
   override readonly name = "WorkspaceMutationLockError";
 }
@@ -333,7 +328,6 @@ async function defaultSleep(ms: number): Promise<void> {
   await new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
 
-// implements REQ-generated-coordinate-persistence
 export interface WorkspaceMutationLockHandle {
   /**
    * Remove this handle's validated owner metadata and then its empty lock
@@ -347,7 +341,6 @@ export interface WorkspaceMutationLockHandle {
   readonly reclaimed?: readonly WorkspaceMutationLockReclaim[];
 }
 
-// implements REQ-generated-coordinate-persistence
 export function releaseWorkspaceMutationLock(
   handle: WorkspaceMutationLockHandle | undefined,
   operationFailure?: { readonly error: unknown },
@@ -402,7 +395,6 @@ export function classifySourceMutationFailure(
  * operations whose lock must span several awaits (source publication,
  * coordinate refresh, canonical re-extraction, and the RDF commit).
  */
-// implements REQ-generated-coordinate-persistence
 export async function acquireWorkspaceMutationLock(
   workspaceRoot: string,
   options: WorkspaceMutationLockOptions = {},
@@ -611,7 +603,6 @@ export async function acquireWorkspaceMutationLock(
  * closed without mutating the lock path. Release failures propagate so
  * successful work is never reported unlocked.
  */
-// implements REQ-generated-coordinate-persistence
 export async function withWorkspaceMutationLock<T>(
   workspaceRoot: string,
   operation: () => Promise<T>,

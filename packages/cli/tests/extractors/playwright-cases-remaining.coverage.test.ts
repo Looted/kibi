@@ -1,4 +1,3 @@
-// implements REQ-kibi-verification-evidence-contract
 import { afterEach, describe, expect, test } from "bun:test";
 import { extractPlaywrightCases } from "../../src/extractors/playwright-cases.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

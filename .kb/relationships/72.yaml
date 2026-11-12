@@ -419,3 +419,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e055b57c1dc7
+  - type: supersedes
+    from: ADR-traceability-manifest-only
+    to: ADR-annotation-strategy-v2
+    created_at: 2026-11-11T05:45:16.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fb30a8f1bc5
+  - type: relates_to
+    from: ADR-traceability-manifest-only
+    to: REQ-traceability-manifest-only-links
+    created_at: 2026-11-11T05:45:16.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11f0fa4933c1
+  - type: relates_to
+    from: ADR-traceability-manifest-only
+    to: REQ-migrate-inline-implements-review
+    created_at: 2026-11-11T05:45:16.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb92e529bfb2

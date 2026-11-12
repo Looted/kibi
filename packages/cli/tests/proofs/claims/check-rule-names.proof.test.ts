@@ -23,8 +23,6 @@ import { SYMBOL_GRANULARITY_RULE } from "../../../src/public/operations/symbol-g
 import { SUPERSEDES_REASON_ACKNOWLEDGED_RULE } from "../../../src/public/operations/decision-firmness.js";
 import { SCOPED_CHECK_OMITTED_ID } from "../../../src/public/operations/check-helpers.js";
 
-// implements REQ-kibi-check-rule-names
-
 /**
  * The rule names kb_check reports its findings under. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

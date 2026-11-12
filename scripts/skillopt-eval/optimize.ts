@@ -127,7 +127,6 @@ function processEnvironment(): NodeJS.ProcessEnv {
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export function createPinnedSkillOptRunner(
   input: PinnedSkillOptRunnerOptions,
 ): SkillOptStepRunner {
@@ -208,7 +207,6 @@ function assertDevelopmentGate(gate: DevelopmentGate): void {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function optimizeSkillOptVariant(
   input: Readonly<{
     skill: CanonicalSkill;

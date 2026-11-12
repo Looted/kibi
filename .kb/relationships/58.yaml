@@ -241,3 +241,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b4c948db298
+  - type: specified_by
+    from: REQ-traceability-manifest-only-links
+    to: SCEN-traceability-manifest-only-links
+    created_at: 2026-11-11T05:47:33.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31236b0ce76c
+  - type: verified_by
+    from: REQ-traceability-manifest-only-links
+    to: TEST-traceability-manifest-only-links
+    created_at: 2026-11-11T05:47:33.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b45cdd342bc
+  - type: constrains
+    from: REQ-traceability-manifest-only-links
+    to: FACT-SUBJECT-KIBI-STAGED-TRACEABILITY-LINKS
+    created_at: 2026-11-11T05:57:21.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0faa20b596f8
+  - type: requires_property
+    from: REQ-traceability-manifest-only-links
+    to: FACT-staged-traceability-links-manifest-source
+    created_at: 2026-11-11T05:57:21.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e59b018e88f
+  - type: requires_property
+    from: REQ-traceability-manifest-only-links
+    to: FACT-staged-traceability-links-no-comments
+    created_at: 2026-11-11T05:57:21.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-698616f5e998
+  - type: specified_by
+    from: REQ-traceability-manifest-only-links
+    to: SCEN-NEG-traceability-comment-only-link
+    created_at: 2026-11-11T06:01:49.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45fcf51d5287
+  - type: executable_for
+    from: SYM-test-search-closed-requirements
+    to: TEST-search-closed-requirements
+    created_at: 2026-11-11T17:34:17.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a6b573c7653

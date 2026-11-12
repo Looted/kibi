@@ -16,7 +16,6 @@ async function lstatSecure(path: string) {
   return metadata;
 }
 
-// implements REQ-skillopt-automatic-adoption
 export type DurableOperation =
   | "intent-write"
   | "intent-fsync"
@@ -24,7 +23,6 @@ export type DurableOperation =
   | "stage-unlink"
   | "intent-unlink";
 
-// implements REQ-skillopt-automatic-adoption
 export type DurableFault = (operation: DurableOperation) => Promise<void>;
 
 type NoReplaceIntent = Readonly<{
@@ -35,12 +33,10 @@ type NoReplaceIntent = Readonly<{
   hash: string;
 }>;
 
-// implements REQ-skillopt-automatic-adoption
 export function throwIfIntentDrift(drifted: boolean): void {
   if (drifted) throw new Error("adoption no-replace intent drift");
 }
 
-// implements REQ-skillopt-automatic-adoption
 export function intentIdentityDrifted(
   stage: {
     isSymbolicLink(): boolean;
@@ -82,7 +78,6 @@ function hash(bytes: Buffer | string): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-// implements REQ-skillopt-automatic-adoption
 export async function fault(
   injection: DurableFault | undefined,
   operation: DurableOperation,
@@ -90,7 +85,6 @@ export async function fault(
   await injection?.(operation);
 }
 
-// implements REQ-skillopt-automatic-adoption
 export async function writeIntent(
   path: string,
   stage: string,
@@ -121,7 +115,6 @@ export async function writeIntent(
   await fsyncDirectory(dirname(path));
 }
 
-// implements REQ-skillopt-automatic-adoption
 export async function readIntent(
   path: string,
 ): Promise<NoReplaceIntent | undefined> {
@@ -160,7 +153,6 @@ export async function readIntent(
   }
 }
 
-// implements REQ-skillopt-automatic-adoption
 export async function finalizeIntent(
   repoRoot: string,
   path: string,
@@ -190,7 +182,6 @@ export async function finalizeIntent(
   await readSecureFile(repoRoot, path);
 }
 
-// implements REQ-skillopt-automatic-adoption
 export async function recoverNoReplaceIntents(
   repoRoot: string,
   root = repoRoot,

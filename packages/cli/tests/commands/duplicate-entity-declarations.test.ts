@@ -14,8 +14,6 @@ import path from "node:path";
 import { load as loadYaml } from "js-yaml";
 import { spawnSync } from "../helpers/isolated-env.js";
 
-// implements REQ-kibi-duplicate-entity-declarations
-
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 const TIMEOUT_MS = 240_000;
 

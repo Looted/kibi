@@ -1,5 +1,3 @@
-// implements REQ-opencode-kibi-plugin-v1
-
 import * as logger from "./logger.js";
 
 export type WarningCategory =

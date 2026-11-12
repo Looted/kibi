@@ -7,8 +7,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import type { SourceSpec } from "../../../src/public/proof-sources.js";
 
-// implements REQ-cursor-agent-plugin-package
-
 /**
  * The layout and fields of the kibi-cursor portable Agent Plugin artifact.
  * Each certificate reads an artifact file and proves one claim of REQ-cursor-agent-plugin-package.

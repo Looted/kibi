@@ -73,7 +73,6 @@ describe("MCP discovery adapters", () => {
     expect(adapterResult).toEqual(sharedResult);
   });
 
-  // implements REQ-kibi-operation-interface-parity
   test("status adapter matches the shared executor", async () => {
     // Given
     const response = {

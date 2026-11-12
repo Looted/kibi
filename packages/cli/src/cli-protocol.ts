@@ -24,12 +24,10 @@ import { noteCliThrownError } from "./usage-telemetry.js";
 // Only whether an envelope is valid matters here, never the list of errors.
 const outputValidator = new Ajv2020({ strict: false });
 
-// implements REQ-kibi-operation-interface-parity
 export type CliContext = OperationContext & {
   readonly diagnosticTelemetry?: DiagnosticTelemetry;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type CliProtocolResult = {
   readonly exitCode: number;
   readonly stdout?: string;
@@ -77,7 +75,6 @@ function errorResult(
  * An answer from a detached HEAD's read-only snapshot says so in the
  * envelope: which store was read and that writes are refused.
  */
-// implements REQ-branch-store-recovery-v4
 function withDetachedReadOnlyNotice<
   T extends { readonly diagnostics: readonly unknown[] },
 >(envelope: T, context: OperationContext): T {
@@ -105,7 +102,6 @@ function protocolValid(
  * not open (no branch to attach, a detached HEAD refusing a write), so
  * stdout still carries one JSON document.
  */
-// implements REQ-kibi-operation-interface-parity, REQ-branch-store-recovery-v4
 export function openFailureResult(
   catalogName: string,
   spec: Parameters<typeof errorResult>[2],
@@ -123,7 +119,6 @@ export function openFailureResult(
   );
 }
 
-// implements REQ-kibi-operation-interface-parity
 export async function executeOperation(
   catalogName: string,
   input: unknown,

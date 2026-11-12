@@ -19,8 +19,6 @@
 import { describe, expect, test } from "bun:test";
 import { DOC_RESOURCES, PROMPTS } from "../src/server/docs.js";
 
-// implements REQ-002, REQ-013
-
 /**
  * Regression tests for MCP runtime self-documentation.
  *

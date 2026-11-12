@@ -39,7 +39,6 @@ type BridgeCellCompletion = Readonly<{
   receiptPath: string;
 }>;
 
-// implements REQ-skillopt-codex-optimization
 type BridgeCliDependencies = Readonly<{
   runCodexCell: (
     options: CodexCellOptions,
@@ -51,14 +50,12 @@ type BridgeCliDependencies = Readonly<{
 }>;
 
 /** `missing-required-call:<tool>@<position>`, a public failure category. */
-// implements REQ-skillopt-host-neutral-optimization
 export function protocolFailureCategory(
   failure: Readonly<{ tool: string; position: number }>,
 ): string {
   return `missing-required-call:${failure.tool}@${failure.position}`;
 }
 
-// implements REQ-skillopt-logical-evidence-fidelity
 function bridgeRow(
   taskId: string,
   artifactRoot: string,

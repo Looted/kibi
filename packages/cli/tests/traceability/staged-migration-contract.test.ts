@@ -1,8 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { stagedCommitCarriesMigration } from "../../src/traceability/staged-migration.js";
 
-// implements REQ-cli-migration-first-commit
-
 type Tree = Record<string, string>;
 
 function carries(base: Tree, staged: Tree): boolean {

@@ -12,8 +12,6 @@ import {
 } from "../../../src/traceability/evidence-model.js";
 import { KIBI_IMPACT_DIAGNOSTIC_IDS } from "../../../src/traceability/staged-impact-contract.js";
 
-// implements REQ-staged-impact-identifiers
-
 /**
  * The diagnostics and paths the staged impact check uses. Kibi reads every constant itself at ingest, so the certificate is checked against the code.
  */

@@ -223,7 +223,6 @@ function declaredEntrypoint(contents: string): string | undefined {
   return absoluteImport;
 }
 
-// implements REQ-kibi-distribution-parity-matrix
 export function resolveDistributionRuntimeProvenance(
   executable: string,
 ): DistributionRuntimeProvenance {
@@ -282,7 +281,6 @@ function normalizeString(value: string, roots: readonly string[]): string {
     );
 }
 
-// implements REQ-kibi-distribution-parity-matrix
 export function normalizeDistributionParityValue(
   value: unknown,
   options: DistributionParityOptions = {},
@@ -353,7 +351,6 @@ function compareObservation(
     : "diverged";
 }
 
-// implements REQ-kibi-distribution-parity-matrix
 export function buildDistributionParityReport(
   runtimes: readonly DistributionRuntime[],
   observations: readonly DistributionParityObservation[],
@@ -558,7 +555,6 @@ export function buildDistributionParityReport(
   };
 }
 
-// implements REQ-kibi-distribution-parity-matrix
 export async function runDistributionParityMatrix(
   adapters: readonly DistributionRuntimeAdapter[],
   options: DistributionParityOptions = {},

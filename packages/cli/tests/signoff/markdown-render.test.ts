@@ -1,4 +1,3 @@
-// implements REQ-kibi-signoff-views
 import { describe, expect, test } from "bun:test";
 import {
   SIGNOFF_MARKDOWN_LIMIT,

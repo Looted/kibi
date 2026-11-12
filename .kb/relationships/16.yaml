@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7455a6b327d
+  - type: assumes
+    from: SCEN-NEG-traceability-comment-only-link
+    to: FACT-NEG-staged-traceability-links-read-comments
+    created_at: 2026-11-11T06:01:47.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfa586fff257
+  - type: verified_by
+    from: SCEN-NEG-traceability-comment-only-link
+    to: TEST-traceability-manifest-only-links
+    created_at: 2026-11-11T06:01:47.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bea821de48e

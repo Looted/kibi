@@ -12,8 +12,6 @@ import {
   RESTATEMENT_JACCARD,
 } from "../../../src/entity-body-context.js";
 
-// implements REQ-kb-entity-body-context-settings
-
 /**
  * Which entities need body context, which headings hold it, how long it must be
  * and when it only restates the statement. Kibi reads each constant itself at

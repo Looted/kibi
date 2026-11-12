@@ -1,4 +1,3 @@
-// implements REQ-skillopt-cursor-compat
 import { describe, expect, test } from "bun:test";
 import { runCursorQualification } from "../cursor/qualify";
 

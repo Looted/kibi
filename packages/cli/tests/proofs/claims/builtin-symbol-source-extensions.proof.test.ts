@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { SUPPORTED_SOURCE_EXTENSIONS } from "../../../../plugin-builtin/src/symbols/ts-morph-shared.js";
 
-// implements REQ-builtin-symbol-source-extensions
-
 /**
  * The file extensions the builtin TypeScript symbol extractor reads. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

@@ -23,7 +23,6 @@ import type { Violation } from "kibi-runtime";
 import { resolveCorePlPath } from "./core-module.js";
 import { collectQueryPlanSafetyViolations } from "./query-plan-safety.js";
 
-// implements REQ-002
 export async function runAggregatedChecks(
   prolog: PrologProcess,
   rulesAllowlist: ReadonlySet<string>,

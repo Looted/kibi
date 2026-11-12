@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -81,7 +80,6 @@ function finish(
 }
 
 describe("CLI failure categories", () => {
-  // implements REQ-kibi-operation-interface-parity
   test("a JSON-only command run without --input names the fix and records MISSING_INPUT", async () => {
     const env = telemetryEnv();
     const program = new Command().name("kibi").exitOverride();
@@ -103,7 +101,6 @@ describe("CLI failure categories", () => {
     expect(queuedCategories(env)).toEqual(["missing_input"]);
   });
 
-  // implements REQ-kibi-operation-interface-parity
   test("--schema prints the input schema --input is validated against", async () => {
     const program = new Command().name("kibi").exitOverride();
     registerJsonOnlyCommands(program);
@@ -134,7 +131,6 @@ describe("CLI failure categories", () => {
     expect(process.exitCode ?? 0).toBe(0);
   });
 
-  // implements REQ-kibi-operation-interface-parity
   test("an invalid JSON-only input points at --schema; an integrated command's does not", async () => {
     const context = {} as Parameters<typeof executeOperation>[2];
     const bootstrap = await executeOperation(
@@ -181,7 +177,6 @@ describe("CLI failure categories", () => {
     ]);
   });
 
-  // implements REQ-kibi-telemetry-expected-outcomes
   test("expected answers are rejections; faults are errors with their class", async () => {
     const env = telemetryEnv();
     await finish(env, "check", 1);
@@ -236,7 +231,6 @@ describe("CLI failure categories", () => {
     expect(isClosedOutputError("EPIPE")).toBe(false);
   });
 
-  // implements REQ-kibi-operation-interface-parity
   test("a reader that closes stdout early does not crash the CLI", async () => {
     const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-cli-epipe-"));
     temporaryRoots.push(cwd);

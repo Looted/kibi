@@ -12,8 +12,6 @@ import {
   LOGIC_RULE_MAX_VARIABLES,
 } from "../../../src/logic/ir.js";
 
-// implements REQ-kibi-logic-rule-limits
-
 /**
  * The version and size bounds of a logical requirement rule. Kibi reads every
  * constant itself at ingest, so the certificate is checked against the code.

@@ -2,8 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { withBranchName } from "../../src/public/operations/specs/reporting.js";
 import type { BranchAttachment } from "../../src/utils/branch-resolver.js";
 
-// implements REQ-kibi-verification-evidence-contract
-
 const KEY = "fc613b4dfd6736a7bd268c8a0e74ed0d1c04a959f59dd74ef2874983fd443fc9";
 
 const attachment = (kbBranch: string): BranchAttachment => ({

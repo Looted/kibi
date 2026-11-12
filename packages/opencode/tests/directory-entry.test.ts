@@ -30,7 +30,6 @@ describe("directory plugin entries", () => {
     );
   });
 
-  // implements REQ-opencode-v2-plugin-api
   test("root tui.js default export is the v1 and v2 TUI definition", async () => {
     const href = pathToFileURL(path.join(packageRoot, "tui.js")).href;
     const loaded = (await import(href)) as {

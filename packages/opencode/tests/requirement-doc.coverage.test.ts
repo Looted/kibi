@@ -62,7 +62,6 @@ priority: false
     assert.equal(getRequirementPriority(falsePath), null);
   });
 
-  // implements REQ-opencode-kibi-plugin-v1
   test("treats numeric priority values as non-string metadata", () => {
     const filePath = path.join(tmpDir, "REQ-NUMERIC.md");
     fs.writeFileSync(

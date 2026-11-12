@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { ENTITY_LANES } from "../../../src/utils/kb-paths.js";
 
-// implements REQ-cli-canonical-kb-lanes
-
 /**
  * The authored knowledge lanes under .kb. Kibi reads ENTITY_LANES itself at ingest
  * (domain_source), so the certificate is checked against the list in code.

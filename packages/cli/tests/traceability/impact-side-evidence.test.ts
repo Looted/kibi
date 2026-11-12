@@ -20,8 +20,6 @@ import {
   sideEvidence,
 } from "../../src/traceability/impact-side-evidence.js";
 
-// implements REQ-impact-policy-stage-e-content-bound-review
-
 const WITH_RECEIPT = (receipt: string, body = "Body\n") =>
   `---\nid: A\nproof_receipts:\n  - ${receipt}\n---\n${body}`;
 const STRIPPED = (body = "Body\n") => `---\nid: A\n---\n${body}`;

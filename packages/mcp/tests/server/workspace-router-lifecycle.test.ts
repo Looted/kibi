@@ -1,4 +1,3 @@
-// implements REQ-mcp-workspace-routing
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
 import fs from "node:fs";

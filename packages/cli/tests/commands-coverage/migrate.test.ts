@@ -1,4 +1,3 @@
-// implements REQ-cli-schema-migration
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -178,10 +177,10 @@ describe("migrate at the latest schema", () => {
       "Migration incomplete: 1 requirement(s) are not compiled, so kb_query, kb_coverage and kb_upsert do not see them, and 4 other item(s) need a decision.",
     );
     expect(text).toContain(
-      "  REQ-x (.kb/requirements/REQ-x.md): status wontfix is not a status Kibi knows, so kibi sync cannot compile it (unknown status). Set status to open, in_progress or closed in the file (closed with the tag implemented for delivered work), then run kibi sync.",
+      "  REQ-x (.kb/requirements/REQ-x.md): status wontfix is not a status Kibi knows, so kibi sync cannot compile it (unknown status). Set status to open, in_progress, closed or retired in the file (closed with the tag implemented for delivered work), then run kibi sync.",
     );
     expect(text).toContain(
-      "  REQ-y (.kb/requirements/REQ-y.md): status draft is not a requirement status, so the proof ladder skips it. Set status to open, in_progress or closed in the file.",
+      "  REQ-y (.kb/requirements/REQ-y.md): status draft is not a requirement status, so the proof ladder skips it. Set status to open, in_progress, closed or retired in the file.",
     );
     expect(text).toContain(
       "  REQ-z (.kb/requirements/REQ-z.md): status todo is not a requirement status, so the proof ladder skips it. Approve req-status-vocabulary-map-REQ-z (todo -> open) with kibi migrate --apply-safe, or set the status in the file.",

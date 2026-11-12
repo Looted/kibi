@@ -1,4 +1,3 @@
-// implements REQ-cli-status-pre-first-sync
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";

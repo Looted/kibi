@@ -1,6 +1,3 @@
-// implements REQ-skillopt-predicate-first-requirements
-// implements REQ-skillopt-logical-evidence-fidelity
-// implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";

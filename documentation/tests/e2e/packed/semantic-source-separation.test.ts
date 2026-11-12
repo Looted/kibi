@@ -1,4 +1,3 @@
-// implements REQ-kibi-legacy-migration-preview-v2
 import assert from "node:assert";
 import { readFileSync } from "node:fs";
 import { afterEach, before, beforeEach, describe, it } from "node:test";

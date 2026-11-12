@@ -278,7 +278,7 @@ function createRequirementStatusDiagnostics(
         docs: ["docs/entity-schema.md"],
         message: `Requirement ${result.entity.id} uses test-like status ${result.entity.status}.`,
         suggestion:
-          "Use requirement lifecycle statuses such as open, in_progress, active, accepted, closed, deprecated, or superseded; keep passing/failing statuses on test entities.",
+          "Use requirement lifecycle statuses such as open, in_progress, closed, or retired; keep passing/failing statuses on test entities.",
         evidence: { status: result.entity.status },
       },
     ];

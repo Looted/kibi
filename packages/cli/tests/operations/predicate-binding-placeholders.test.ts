@@ -1,4 +1,3 @@
-// implements REQ-model-predicates-binding-placeholders, REQ-model-predicates-closed-vocabularies, REQ-model-predicates-binding-clauses
 import { describe, expect, test } from "bun:test";
 import {
   buildBindingHints,

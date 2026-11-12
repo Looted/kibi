@@ -1,4 +1,3 @@
-// implements REQ-cli-init
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";

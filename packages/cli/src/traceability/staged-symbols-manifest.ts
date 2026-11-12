@@ -247,7 +247,6 @@ function normalizeAuthoredManifestSymbolsForSourceFile(
  * other migration-owned fields (`origin`, a removed dead `source`, a pinned
  * `semantic_text`) are not part of the authored symbol signature.
  */
-// implements REQ-cli-migration-first-commit
 function withoutMigrationOwnedEdits(
   head: NormalizedAuthoredManifestSymbol,
   staged: NormalizedAuthoredManifestSymbol,
@@ -331,7 +330,6 @@ function uniqueSorted(paths: Iterable<string>): string[] {
   return Array.from(new Set(paths)).sort();
 }
 
-// implements REQ-cli-staged-impact-enforcement
 function diffSymbolEvidence(
   sourcePath: string,
   expectedSymbols: NormalizedManifestSymbol[],
@@ -372,8 +370,6 @@ function diffSymbolEvidence(
  * a declaration. A covered file is `fresh` evidence for its behavior edit; a
  * gap is `stale` and lists the uncovered and orphaned symbols.
  */
-// implements REQ-cli-staged-impact-enforcement
-// implements REQ-symbol-coordinates-derived-locally
 export function assessStagedSymbolsManifest(options: {
   symbolsManifestPath: string;
   sourceFiles: StagedFile[];

@@ -15,8 +15,6 @@ import {
   proofKindLevel,
 } from "./witness/proof-kind-levels.js";
 
-// implements REQ-kibi-code-proof-kinds
-
 const WITNESS = "packages/cli/tests/proofs/witness/proof-kind-levels.ts";
 const WORKSPACE = path.resolve(import.meta.dir, "../../../..");
 

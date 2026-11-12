@@ -17,8 +17,6 @@ import {
 import type { ProofContract } from "../../src/public/proof-protocol.js";
 import { prologCases } from "./prolog-cases.js";
 
-// implements REQ-kibi-code-proof-kinds
-
 describe("certificate digest", () => {
   test("the CLI and code_certificates.pl hash a certificate byte for byte alike", () => {
     const cases = [

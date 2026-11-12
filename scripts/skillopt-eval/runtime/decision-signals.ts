@@ -267,7 +267,6 @@ function decisionCitesRule(context: CaseSignalContext): boolean {
 }
 
 /** Signals owned by the decision and commit-review cases. */
-// implements REQ-skillopt-codex-optimization
 export function decisionSignalObserved(
   signal: string,
   context: CaseSignalContext,
@@ -360,7 +359,6 @@ export function decisionSignalObserved(
 }
 
 /** Forbidden actions owned by the decision and commit-review cases. */
-// implements REQ-skillopt-codex-optimization
 export function decisionForbiddenObserved(
   action: string,
   context: CaseSignalContext,

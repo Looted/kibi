@@ -19,8 +19,6 @@ import {
   realProofReferenceExtractorLoader,
 } from "../../src/plugins/proof-reference-extractors.js";
 
-// implements REQ-kibi-tree-sitter-references
-
 const REFS = "kibi.reference-extractor.v1";
 const roots: string[] = [];
 afterEach(() => {

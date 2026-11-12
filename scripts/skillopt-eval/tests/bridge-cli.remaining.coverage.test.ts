@@ -1,4 +1,3 @@
-// implements REQ-skillopt-codex-optimization
 import { afterAll, afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Readable } from "node:stream";
 import { bridgeMain, finishBridgeCli, runBridgeCliIfMain } from "../bridge-cli";

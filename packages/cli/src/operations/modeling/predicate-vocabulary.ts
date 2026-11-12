@@ -26,13 +26,11 @@
  * can only share a ground term when they use the same atoms.
  */
 
-// implements REQ-kibi-predicate-argument-constants
 export type PredicateVocabulary = Readonly<{
   constants: Readonly<Record<string, readonly string[]>>;
   aliases: Readonly<Record<string, Readonly<Record<string, string>>>>;
 }>;
 
-// implements REQ-kibi-predicate-argument-constants
 export type ArgumentRewrite = Readonly<{
   index: number;
   argumentName: string;
@@ -40,7 +38,6 @@ export type ArgumentRewrite = Readonly<{
   to: string;
 }>;
 
-// implements REQ-kibi-predicate-argument-constants
 export type UndeclaredArgument = Readonly<{
   index: number;
   argumentName: string;
@@ -48,7 +45,6 @@ export type UndeclaredArgument = Readonly<{
   allowed: readonly string[];
 }>;
 
-// implements REQ-kibi-predicate-argument-constants
 export type ArgumentConformance = Readonly<{
   /** Alias spellings with their declared canonical constant. */
   rewrites: readonly ArgumentRewrite[];
@@ -85,7 +81,6 @@ function structuredField(value: unknown): unknown {
  * Read a schema's vocabulary. Malformed entries are ignored here; use
  * {@link predicateVocabularyErrors} to report them.
  */
-// implements REQ-kibi-predicate-argument-constants
 export function predicateVocabularyFromEntity(
   entity: Readonly<Record<string, unknown>>,
 ): PredicateVocabulary {
@@ -124,7 +119,6 @@ export function predicateVocabularyFromEntity(
  * argument name, aliases need declared constants for their argument, alias
  * targets must be declared, and an alias may not shadow a constant.
  */
-// implements REQ-kibi-predicate-argument-constants
 export function predicateVocabularyErrors(
   entity: Readonly<Record<string, unknown>>,
 ): string[] {
@@ -214,7 +208,6 @@ export function predicateVocabularyErrors(
  * conform; an alias is reported as a rewrite, anything else not declared is
  * reported as undeclared.
  */
-// implements REQ-kibi-predicate-argument-constants
 export function predicateArgumentConformance(
   argumentNames: readonly string[],
   args: readonly string[],
@@ -242,7 +235,6 @@ export function predicateArgumentConformance(
 }
 
 /** Arguments with every alias replaced by its declared constant. */
-// implements REQ-kibi-predicate-argument-constants
 export function applyArgumentRewrites(
   args: readonly string[],
   rewrites: readonly ArgumentRewrite[],
@@ -253,7 +245,6 @@ export function applyArgumentRewrites(
 }
 
 /** Canonical key convention shared with predicate apply plans. */
-// implements REQ-kibi-predicate-argument-constants
 export function predicateCanonicalKey(
   predicateName: string,
   args: readonly string[],

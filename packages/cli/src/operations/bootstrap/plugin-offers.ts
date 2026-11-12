@@ -18,7 +18,6 @@ import {
 } from "../proof/code-languages.js";
 
 /** An optional plugin bootstrap offers because the workspace looks like it fits. */
-// implements REQ-bootstrap-ui-plugin-offer
 export type PluginOffer = {
   readonly package: string;
   readonly capability: string;
@@ -45,7 +44,6 @@ const HINTS_CAPABILITY = "kibi.search-hints.v1";
  * Below this many requirements a reader can scan the list, and a question
  * worded unlike the KB rarely misses; above it hints start to pay.
  */
-// implements REQ-kibi-plugin-search-hints
 export const SEARCH_HINTS_OFFER_REQUIREMENTS = 50;
 
 /**
@@ -137,7 +135,6 @@ async function requirementFiles(
  * for Go, Java, C#, Rust, PHP, C, Bash and Terraform sources until it is active
  * for source proofs.
  */
-// implements REQ-bootstrap-ui-plugin-offer, REQ-kibi-plugin-search-hints, REQ-kibi-tree-sitter-references
 export async function pluginOffers(
   context: OperationContext,
   files: readonly string[],

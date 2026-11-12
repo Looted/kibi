@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 import fs from "node:fs";
 import path from "node:path";
 

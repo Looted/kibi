@@ -10,8 +10,6 @@ import {
   writeCodeCertificate,
 } from "../../src/public/proof-certificates.js";
 
-// implements REQ-model-predicates-closed-vocabularies
-
 type Schema = (typeof BUILT_IN_PREDICATE_SCHEMAS)[number];
 
 function exampleArgs(example: string): string[] {

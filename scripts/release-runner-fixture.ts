@@ -30,7 +30,6 @@ export type NpmFixtureResult = NpmFixtureLive | NpmFixtureMock;
 export function resolveNpmFixture(
   envValue: string | undefined,
 ): NpmFixtureResult {
-  // implements REQ-020
   if (envValue === undefined) {
     return { mode: "live" };
   }

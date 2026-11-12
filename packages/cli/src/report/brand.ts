@@ -28,22 +28,18 @@ function xml(value: string): string {
     .replaceAll("'", "&apos;");
 }
 
-// implements REQ-kibi-branded-health-report
 export function renderKibiLogo(className = ""): string {
   return `<svg${className ? ` class="${xml(className)}"` : ""} viewBox="0 0 308 309" role="img" aria-label="Kibi logo">${LOGO_BODY}</svg>`;
 }
 
-// implements REQ-kibi-branded-health-report
 export function renderKibiWordmark(className = ""): string {
   return `<svg${className ? ` class="${xml(className)}"` : ""} viewBox="-2 10 395 148" role="img" aria-label="Kibi">${WORDMARK_BODY}</svg>`;
 }
 
-// implements REQ-kibi-branded-health-report
 export function renderKibiFaviconSvg(): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 308 309">${LOGO_BODY}</svg>`;
 }
 
-// implements REQ-kibi-branded-health-report
 export function renderKibiFaviconDataUri(): string {
   return `data:image/svg+xml;utf8,${encodeURIComponent(renderKibiFaviconSvg())}`;
 }
@@ -93,7 +89,6 @@ function badgeCaption(x: number, text: string): string {
     <text x="${x}" y="14" fill="${BADGE_TEXT_FILL}">${safe}</text>`;
 }
 
-// implements REQ-kibi-branded-health-report
 export function renderKibiBadge(message: string, statusColor: string): string {
   const accessible = `Kibi requirement health: ${message}`;
   const labelWidth = badgeLabelWidth(BADGE_LABEL);

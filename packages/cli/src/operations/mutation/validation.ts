@@ -3,7 +3,6 @@ import { KbRejection } from "../../cli-errors.js";
 import { proofReceiptHistoryErrors } from "../../public/proof-receipt.js";
 import entitySchema from "../../public/schemas/entity.js";
 import relationshipSchema from "../../public/schemas/relationship.js";
-// implements REQ-kibi-operation-interface-parity
 import {
   SYMBOL_ROLES,
   isAllowedGranularityReason,
@@ -123,14 +122,13 @@ function typeRestrictedFields(schemaPath: string): {
   return { fields, types };
 }
 
-// implements REQ-kibi-symbol-link-guidance
 /**
  * The documented status vocabulary of each entity type (docs/entity-schema.md).
  * The schema accepts the union of every type's statuses for older sources, so
  * an invalid status names only the values that fit the entity being written.
  */
 const STATUS_VALUES_BY_TYPE: ReadonlyMap<string, readonly string[]> = new Map([
-  ["req", ["open", "in_progress", "closed", "deprecated"]],
+  ["req", ["open", "in_progress", "closed", "retired"]],
   ["scenario", ["draft", "active", "deprecated"]],
   ["test", ["passing", "failing", "skipped", "pending"]],
   ["adr", ["proposed", "accepted", "deprecated", "superseded"]],
@@ -140,7 +138,6 @@ const STATUS_VALUES_BY_TYPE: ReadonlyMap<string, readonly string[]> = new Map([
   ["fact", ["active", "deprecated"]],
 ]);
 
-// implements REQ-upsert-unknown-field-guidance
 function formatEntityErrors(
   entity: Readonly<Record<string, unknown>>,
   errors: readonly ErrorObject[],
@@ -249,6 +246,7 @@ export function validateUpsertInput(
   deriveFactClaimKey(entity);
   validateSymbolSourceFile(entity);
   validateProofExemptionPairing(entity);
+  validateRetiredReason(entity);
   // The schema admits proof_receipts only on a test, as an array of objects.
   if (entity.proof_receipts !== undefined) {
     const receiptErrors = proofReceiptHistoryErrors(
@@ -332,6 +330,25 @@ function validateSymbolSourceFile(
       "ENTITY_VALIDATION_FAILED",
       `Entity validation failed: symbol sourceFile must be a workspace-relative path ('${sourceFile}'). Absolute paths and '..' escapes are rejected so coordinate refresh cannot read files outside the repository.`,
       [{ rule: "symbol_source_outside_workspace", field: "sourceFile" }],
+    );
+  }
+}
+
+/**
+ * A retired requirement no longer governs, so the status only exists with the
+ * reason the behavior is gone (mirrored by the retired-reason-missing check
+ * rule for hand-edited sources).
+ */
+function validateRetiredReason(
+  entity: Readonly<Record<string, unknown>>,
+): void {
+  if (entity.type !== "req" || entity.status !== "retired") return;
+  // The schema admits retired_reason only as a non-blank string.
+  if (entity.retired_reason === undefined) {
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
+      "Entity validation failed: status retired requires retired_reason saying why the behavior no longer exists (with the date or change that retired it)",
+      [{ rule: "required", field: "retired_reason" }],
     );
   }
 }

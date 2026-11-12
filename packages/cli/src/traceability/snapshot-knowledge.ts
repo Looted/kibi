@@ -20,7 +20,6 @@ function knowledgeKind(file: string): KnowledgeKind | null {
 }
 
 /** Compile authored knowledge from regular blobs of one immutable Git tree. */
-// implements REQ-014
 export function readSnapshotKnowledge(
   readGit: (args: readonly string[]) => Buffer,
   tree: string,

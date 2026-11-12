@@ -13,7 +13,6 @@ import { PREDICATE_USAGE_HINTS_2 } from "./predicate-usage-hints-2.js";
 import { PREDICATE_USAGE_HINTS_3 } from "./predicate-usage-hints-3.js";
 import { PREDICATE_USAGE_HINTS_4 } from "./predicate-usage-hints-4.js";
 
-// implements REQ-mcp-suggest-predicates
 export const DEFAULT_USAGE_HINTS: PredicateUsageHints = {
   use_when: [
     "Use when the prose matches this predicate signature and all required arguments can be named explicitly.",
@@ -23,7 +22,6 @@ export const DEFAULT_USAGE_HINTS: PredicateUsageHints = {
   ],
 };
 
-// implements REQ-mcp-suggest-predicates
 export const USAGE_HINTS_BY_PREDICATE: Record<string, PredicateUsageHints> = {
   ...PREDICATE_USAGE_HINTS_1,
   ...PREDICATE_USAGE_HINTS_2,
@@ -31,7 +29,6 @@ export const USAGE_HINTS_BY_PREDICATE: Record<string, PredicateUsageHints> = {
   ...PREDICATE_USAGE_HINTS_4,
 };
 
-// implements REQ-mcp-suggest-predicates
 export const BUILT_IN_PREDICATE_SCHEMAS: PredicateSchemaCandidate[] = [
   ...PREDICATE_CATALOG_1,
   ...PREDICATE_CATALOG_2,

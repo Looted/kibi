@@ -1,4 +1,3 @@
-// implements REQ-core-journaled-engine-persistence
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as url from "node:url";
 import {

@@ -11,7 +11,6 @@ import { runtimeDirectory } from "./engine.js";
  * tokenized again; the file also names the tokenizer it was built with, so a
  * changed tokenizer starts an empty cache.
  */
-// implements REQ-kibi-intent-aware-source-discovery
 
 export type CachedEntityTokens = Readonly<{
   title: readonly string[];

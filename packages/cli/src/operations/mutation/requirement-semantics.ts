@@ -50,7 +50,6 @@ async function storedRequirement(
   return (await lookup.entity()) ?? undefined;
 }
 
-// implements REQ-kibi-upsert-preserves-requirement-semantics
 /**
  * kb_upsert on an existing requirement that changes neither its prose nor its
  * proposition ledger keeps the stored ledger. A payload that adds a
@@ -140,7 +139,6 @@ function boundaryOf(
   return validateSemanticInventoryBoundary(payload, relationships, receipt);
 }
 
-// implements REQ-kibi-upsert-preserves-requirement-semantics, REQ-kibi-proposition-complete-ingestion, REQ-kibi-uncompiled-source-semantic-baseline
 /**
  * An update to a stored requirement is judged as its authored file will read
  * afterwards: the stored status, prose and proposition ledger with the

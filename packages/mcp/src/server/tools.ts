@@ -107,7 +107,6 @@ function withAgentVisibleText(
   return [{ type: "text", text }, ...nonTextParts];
 }
 
-// implements REQ-mcp-structured-text-per-host
 const STRUCTURED_TEXT_ENV = "KIBI_MCP_STRUCTURED_TEXT";
 /**
  * Hosts known to show `structuredContent` to the agent. Embedding the data
@@ -140,7 +139,6 @@ function clientName(server: McpServer | undefined): string | undefined {
   return name;
 }
 
-// implements REQ-mcp-structured-text-per-host
 /**
  * Whether an opted-in tool embeds its data JSON in the text part. The copy
  * exists for hosts that hide `structuredContent`; a host that reads it gets
@@ -160,14 +158,12 @@ export function embedsStructuredText(
   return !HOSTS_READING_STRUCTURED_CONTENT.has(clientName(server) as string);
 }
 
-// implements REQ-002
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (isMcpDebugEnabled()) {
     console.error(...args);
   }
 }
 
-// implements REQ-002
 function getToolTimeoutMs(): number {
   // Number() trims the text and reads an unset or blank value as NaN or 0.
   const parsed = Number(process.env[TOOL_TIMEOUT_ENV]);
@@ -176,7 +172,6 @@ function getToolTimeoutMs(): number {
     : DEFAULT_TOOL_TIMEOUT_MS;
 }
 
-// implements REQ-002
 function createToolTimeoutError(toolName: string, timeoutMs: number): Error {
   const error = new Error(`Tool ${toolName} timed out after ${timeoutMs}ms`);
   Object.assign(error, { code: "KIBI_TOOL_TIMEOUT", toolName, timeoutMs });
@@ -201,7 +196,6 @@ function isToolTimeoutError(value: unknown): value is Error & {
  */
 type ToolTimeoutActivity = { touch: () => void };
 
-// implements REQ-002
 async function withToolTimeout<T>(
   toolName: string,
   operation: Promise<T>,
@@ -269,7 +263,6 @@ type ToolRequestExtra = {
  * carries a progressToken, and push the server-side tool timeout back on each
  * report. Progress values must increase, so repeats are nudged forward.
  */
-// implements REQ-bootstrap-apply-long-running
 export function progressReporter(
   extra: ToolRequestExtra | undefined,
   activity: ToolTimeoutActivity,
@@ -332,7 +325,6 @@ function localDecision(
 }
 
 /** Whether a tool's input schema takes the `kb` dependency scope. */
-// implements REQ-kb-dependencies-git
 function acceptsKbDependency(inputSchema: object): boolean {
   const properties = (inputSchema as { properties?: unknown }).properties;
   return (
@@ -355,7 +347,6 @@ function withWorkspaceNotice<T extends { diagnostics: readonly unknown[] }>(
  * Observe the context an operation opens so its envelope can say when a
  * detached HEAD answered from the read-only snapshot, and which store.
  */
-// implements REQ-branch-store-recovery-v4
 function observeDetachedReads(base: OperationRuntime): {
   readonly runtime: OperationRuntime;
   readonly notice: () => DetachedReadOnlyDiagnostic | undefined;
@@ -376,7 +367,6 @@ function observeDetachedReads(base: OperationRuntime): {
   };
 }
 
-// implements REQ-002, REQ-mcp-coded-error-envelope
 export function addTool<TProlog>(
   server: McpServer,
   name: string,
@@ -423,7 +413,6 @@ export function addTool<TProlog>(
       // Without a router the decision is synchronous, so a plain call reaches
       // its handler without an extra microtask.
       const router = getWorkspaceRouter();
-      // implements REQ-kb-dependencies-git
       // A `kb` scope is answered by that dependency's own kibi-mcp, never
       // by this workspace's engine.
       const readsDependencies = acceptsKbDependency(inputSchema);
@@ -792,7 +781,6 @@ const MCP_ONLY_ARGUMENTS = new Set(["_requestId"]);
  * The VALIDATION_FAILED error for input the operation's canonical contract
  * refuses, with the messages the CLI JSON route gives, or undefined.
  */
-// implements REQ-kibi-operation-interface-parity
 function canonicalInputError(
   args: Record<string, unknown>,
   schema: object,
@@ -825,7 +813,6 @@ const kibiValidatedTools = new WeakMap<McpServer, Set<string>>();
  * client would get no coded error envelope; the handler checks the canonical
  * contract instead and answers like the CLI.
  */
-// implements REQ-kibi-operation-interface-parity
 function deferInputValidationToKibi(server: McpServer, name: string): void {
   let names = kibiValidatedTools.get(server);
   if (names === undefined) {
@@ -846,7 +833,6 @@ function deferInputValidationToKibi(server: McpServer, name: string): void {
   names.add(name);
 }
 
-// implements REQ-002, REQ-013
 export function registerAllTools<TProlog>(
   server: McpServer,
   // INTENTIONAL: same generic bridge cast as addTool — see comment there.

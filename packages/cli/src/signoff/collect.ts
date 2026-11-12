@@ -199,7 +199,6 @@ function headExists(git: (args: readonly string[]) => string): boolean {
   );
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * The end-of-work signoff summary: the requirements the change adds, rewrites,
  * retires, or leaves unchanged while changing code that implements them, each
@@ -375,7 +374,6 @@ export async function collectSignoffSummary(
   };
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * Requirements whose implementing code the change edits, read from the
  * `requirement_statement_unverified` impact diagnostics of `kibi check`.
@@ -405,7 +403,6 @@ export async function loadAffectedForScope(
   return affected;
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * The mid-work decision questions, numbered, with the recorded requirement a
  * question would change and the recorded rules it conflicts with quoted from
@@ -474,7 +471,6 @@ function optionalStrings(
   return value.map((item: string) => item.trim()).filter(Boolean);
 }
 
-// implements REQ-kibi-signoff-views
 /**
  * Parse the questions input: `{"questions":[{statement, id?, title?, quote?,
  * firmness?, governs?, conflictsWith?, question?, answer?}]}` or a bare array.

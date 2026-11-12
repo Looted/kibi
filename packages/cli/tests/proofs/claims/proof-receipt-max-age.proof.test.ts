@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../../src/public/proof-receipt.js";
 
-// implements REQ-kibi-proof-receipt-max-age
-
 /**
  * How long a proof receipt counts as fresh. Kibi reads PROOF_RECEIPT_MAX_AGE_SECONDS
  * itself at ingest (value_source), so the certificate is checked against the code.

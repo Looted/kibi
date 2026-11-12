@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 // Exact persistence semantics of the hook-state snapshot and event journal.
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";

@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { builtinModules, createRequire } from "node:module";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -115,6 +115,72 @@ if (packageName === "kibi-mcp") {
   if (semver.satisfies("0.0.0", runtimeRange)) {
     throw new Error(
       `kibi-mcp dependency range ${runtimeRange} is too broad for a versioned runtime contract`,
+    );
+  }
+}
+
+/**
+ * Module specifiers a packed file loads by package name: static imports and
+ * re-exports, side-effect imports and literal dynamic imports. Comment lines
+ * are skipped, so a doc example of `import("x")` is not a dependency.
+ */
+const BARE_IMPORT =
+  /(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)["']((?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*(?:\/[A-Za-z0-9._/-]*)?)["']/gm;
+
+function bareImportPackages(source) {
+  const names = new Set();
+  const code = source
+    .split("\n")
+    .filter((line) => !/^\s*(?:\/\/|\*|\/\*)/.test(line))
+    .join("\n");
+  for (const match of code.matchAll(BARE_IMPORT)) {
+    const specifier = match[1];
+    const parts = specifier.split("/");
+    const name = specifier.startsWith("@")
+      ? parts.slice(0, 2).join("/")
+      : parts[0];
+    names.add(name);
+  }
+  return names;
+}
+
+function packedScripts(entry, files) {
+  if (!existsSync(entry)) return;
+  if (statSync(entry).isDirectory()) {
+    for (const child of readdirSync(entry)) {
+      packedScripts(path.join(entry, child), files);
+    }
+  } else if (/\.[cm]?js$/.test(entry)) {
+    files.push(entry);
+  }
+}
+
+// A package that imports another by name must declare it: a devDependency
+// resolves inside the workspace but is not installed for a consumer, so the
+// published package fails to load (kibi-mcp once imported kibi-cli this way).
+{
+  const declared = new Set([
+    packageJson.name,
+    ...Object.keys(packageJson.dependencies ?? {}),
+    ...Object.keys(packageJson.peerDependencies ?? {}),
+    ...Object.keys(packageJson.optionalDependencies ?? {}),
+  ]);
+  const builtins = new Set(builtinModules);
+  const files = [];
+  for (const entry of packageJson.files ?? []) {
+    packedScripts(resolvePackagePath(entry), files);
+  }
+  const undeclared = [];
+  for (const file of files) {
+    for (const name of bareImportPackages(readFileSync(file, "utf8"))) {
+      if (name.startsWith("node:") || builtins.has(name)) continue;
+      if (declared.has(name)) continue;
+      undeclared.push(`${name} (${path.relative(packageRoot, file)})`);
+    }
+  }
+  if (undeclared.length > 0) {
+    throw new Error(
+      `${packageName} imports packages it does not declare in dependencies, peerDependencies or optionalDependencies: ${undeclared.join(", ")}`,
     );
   }
 }

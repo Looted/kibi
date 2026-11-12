@@ -7,7 +7,6 @@ import {
   slug,
 } from "./predicate-utils.js";
 
-// implements REQ-mcp-suggest-predicates
 export function inferScopedAuthorizationRuleArgs(text: string): string[] {
   const scoped = captures(
     text,
@@ -20,7 +19,6 @@ export function inferScopedAuthorizationRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferDocumentationStandardRuleArgs(text: string): string[] {
   const docs = captures(
     text,
@@ -33,7 +31,6 @@ export function inferDocumentationStandardRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferWarmupPolicyRuleArgs(text: string): string[] {
   const warmup = captures(
     text,
@@ -42,7 +39,6 @@ export function inferWarmupPolicyRuleArgs(text: string): string[] {
   return [slug(warmup.subject ?? "subject"), slug(warmup.trigger ?? "trigger")];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferVisualLayoutRuleArgs(text: string): string[] {
   const layout = captures(
     text,
@@ -55,7 +51,6 @@ export function inferVisualLayoutRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferEnforcementLocationRuleArgs(text: string): string[] {
   const enforcement = captures(
     text,
@@ -67,7 +62,6 @@ export function inferEnforcementLocationRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferReconciliationRuleArgs(text: string): string[] {
   const reconciliation = captures(
     text,
@@ -81,7 +75,6 @@ export function inferReconciliationRuleArgs(text: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferThrottlePolicyRuleArgs(text: string): string[] {
   const throttle = captures(
     text,
@@ -97,7 +90,6 @@ export function inferThrottlePolicyRuleArgs(text: string): string[] {
 // or normalized (which trims it), so one whitespace character before the next
 // keyword matches what a run would.
 
-// implements REQ-mcp-suggest-predicates
 export function inferDefaultValueArgs(text: string, subject: string): string[] {
   const defaultValue = captures(
     text,
@@ -110,7 +102,6 @@ export function inferDefaultValueArgs(text: string, subject: string): string[] {
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferUniquenessArgs(text: string): string[] {
   const uniqueness = captures(
     text,
@@ -125,7 +116,6 @@ export function inferUniquenessArgs(text: string): string[] {
   return [slug(uniqueness.subject ?? "subject"), scope];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferStateMembershipArgs(
   text: string,
   subject: string,
@@ -148,7 +138,6 @@ export function inferStateMembershipArgs(
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferTemporalOrderArgs(
   text: string,
   subject: string,
@@ -177,7 +166,6 @@ export function inferTemporalOrderArgs(
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferConditionalBehaviorArgs(
   text: string,
   subject: string,
@@ -208,7 +196,6 @@ export function inferConditionalBehaviorArgs(
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferStateTransitionArgs(
   text: string,
   subject: string,
@@ -225,7 +212,6 @@ export function inferStateTransitionArgs(
   ];
 }
 
-// implements REQ-mcp-suggest-predicates
 export function inferRateLimitArgs(text: string): string[] {
   const rateLimit = captures(
     text,

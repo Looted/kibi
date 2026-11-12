@@ -12,8 +12,6 @@ import {
   WHY_THIS_CHANGED_HEADING,
 } from "../../../src/decision-firmness.js";
 
-// implements REQ-kb-decision-firmness-settings
-
 /**
  * Which entities carry firmness and how a supersede explains itself. Kibi reads
  * each constant itself at ingest, so every certificate is checked against the code.

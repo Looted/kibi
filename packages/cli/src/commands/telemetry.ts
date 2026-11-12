@@ -1,4 +1,3 @@
-// implements REQ-kibi-anonymous-usage-telemetry
 import {
   TELEMETRY_DOCS_URL,
   detectTelemetryHost,
@@ -16,7 +15,6 @@ const CHANNEL_SOURCE_TEXT: Readonly<Record<string, string>> = {
   installed: "Kibi runs from an installed package",
 };
 
-// implements REQ-kibi-anonymous-usage-telemetry
 /** `kibi telemetry [status|enable|disable]`: show or persist the choice. */
 export async function telemetryCommand(
   action: string | undefined,

@@ -33,10 +33,8 @@ export {
   singularize,
 };
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export type MatchGroups = Readonly<Record<string, string | undefined>>;
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export interface PredicateRule {
   readonly pattern: RegExp;
   readonly name: string;
@@ -52,10 +50,8 @@ export interface PredicateRule {
   readonly accepts?: (statement: string) => boolean;
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export const BUILTIN_PREDICATE_CONFIDENCE = 0.84;
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function schemaIdFor(predicateName: string, arity: number): string {
   return `builtin.${predicateName}.${arity}`;
 }
@@ -64,7 +60,6 @@ export function schemaIdFor(predicateName: string, arity: number): string {
  * First-match semantics (identical to CLI detectPredicateRules): return at most
  * one candidate from the given rule set.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function detectPredicateRules(
   statement: string,
   rules: readonly PredicateRule[],

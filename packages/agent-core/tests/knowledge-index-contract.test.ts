@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1, REQ-kibi-hooks-flow-manifest
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import fs from "node:fs";

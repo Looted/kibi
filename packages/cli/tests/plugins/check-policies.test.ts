@@ -5,8 +5,6 @@ import path from "node:path";
 import { CHECK_POLICY_CONTRACT_VERSION } from "kibi-plugin-sdk";
 import { readActiveCheckPolicies } from "../../src/plugins/check-policies.js";
 
-// implements REQ-capability-check-policy
-
 const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))

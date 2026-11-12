@@ -510,6 +510,8 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-search-answer-hygiene
+      - type: covered_by
+        target: TEST-search-closed-requirements
       - type: implements
         target: REQ-kibi-intent-aware-source-discovery
       - type: implements
@@ -3818,10 +3820,14 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: covered_by
         target: TEST-cli-symbol-extract-methods
+      - type: covered_by
+        target: TEST-traceability-manifest-only-links
       - type: implements
         target: REQ-cli-staged-impact-enforcement
       - type: implements
         target: REQ-symbol-granularity
+      - type: implements
+        target: REQ-traceability-manifest-only-links
   - id: SYM-FixtureClaimError-name
     title: FixtureClaimError.name
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -21735,6 +21741,8 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-search-answer-hygiene
+      - type: covered_by
+        target: TEST-search-closed-requirements
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
       - type: implements
@@ -26158,6 +26166,8 @@ symbols:
         target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-kb-unowned-file-candidates
+      - type: implements
+        target: REQ-unowned-file-closed-candidates
   - id: SYM-cli-unowned-files-createunownedfilediagnostics
     title: createUnownedFileDiagnostics
     status: active
@@ -26171,6 +26181,8 @@ symbols:
         target: TEST-search-answer-hygiene
       - type: implements
         target: REQ-kb-unowned-file-candidates
+      - type: implements
+        target: REQ-unowned-file-closed-candidates
   - id: SYM-test-requirement-candidates
     title: Requirement candidates suite
     status: active
@@ -39011,3 +39023,354 @@ symbols:
         target: REQ-kb-dependency-read-scope
       - type: covered_by
         target: TEST-kb-dependencies-git
+  - id: SYM-test-kb-requirement-retired-status
+    title: Retired requirement status suite
+    status: active
+    sourceFile: packages/cli/tests/commands/retired-status.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:31:31.132Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-requirement-retired-status
+  - id: SYM-core-check-retired-reason-missing
+    title: check_retired_reason_missing
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:41:39.673Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-core-check-retired-owner-only
+    title: check_retired_owner_only
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:41:45.098Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-retired-status-plan-retired-status-suggestions
+    title: planRetiredStatusSuggestions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/retired-status.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:41:50.040Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-retired-status-apply-retired-status
+    title: applyRetiredStatus
+    status: active
+    sourceFile: packages/cli/src/operations/migration/retired-status.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:41:55.486Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-schema6-retired-status-actions
+    title: retiredStatusActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:42:00.978Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-requirement-retired-status
+      - type: implements
+        target: REQ-kb-requirement-retired-status
+  - id: SYM-cli-inline-implements-parse
+    title: parseInlineImplementsComment
+    sourceFile: packages/cli/src/operations/migration/inline-implements-comments.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:47:50.075Z
+    relationships:
+      - type: covered_by
+        target: TEST-migrate-inline-implements-review
+      - type: implements
+        target: REQ-migrate-inline-implements-review
+  - id: SYM-cli-inline-implements-find
+    title: findInlineImplementsComments
+    sourceFile: packages/cli/src/operations/migration/inline-implements-comments.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:47:55.051Z
+    relationships:
+      - type: covered_by
+        target: TEST-migrate-inline-implements-review
+      - type: implements
+        target: REQ-migrate-inline-implements-review
+  - id: SYM-cli-inline-implements-review-action
+    title: inlineImplementsReviewAction
+    sourceFile: packages/cli/src/operations/migration/inline-implements-comments.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:47:59.705Z
+    relationships:
+      - type: covered_by
+        target: TEST-migrate-inline-implements-review
+      - type: implements
+        target: REQ-migrate-inline-implements-review
+  - id: SYM-e2e-staged-gate-rejects-comment-only-link
+    title: assertStagedGateRejectsCommentOnlyLink
+    status: active
+    sourceFile: documentation/tests/e2e/packed/inline-implements-comments.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:57:27.745Z
+    relationships:
+      - type: executable_for
+        target: TEST-traceability-manifest-only-links
+  - id: SYM-e2e-migrate-lists-inline-implements-comment
+    title: assertMigrateListsCommentWithoutEditing
+    status: active
+    sourceFile: documentation/tests/e2e/packed/inline-implements-comments.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:57:31.234Z
+    relationships:
+      - type: executable_for
+        target: TEST-migrate-inline-implements-review
+  - id: SYM-e2e-inline-implements-comments
+    title: inline-implements-comments.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/inline-implements-comments.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T05:57:33.867Z
+    relationships:
+      - type: executable_for
+        target: TEST-migrate-inline-implements-review
+      - type: executable_for
+        target: TEST-traceability-manifest-only-links
+  - id: SYM-cli-engine-start-failure-kind
+    title: engineStartFailureKind
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T18:09:53.139Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-cli-engine-start-diagnostic
+    title: engineStartDiagnostic
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T18:09:57.994Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-cli-parse-engine-start-diagnostic
+    title: parseEngineStartDiagnostic
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T18:10:02.955Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry
+      - type: covered_by
+        target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: implements
+        target: REQ-kibi-anonymous-usage-telemetry
+  - id: SYM-test-search-closed-requirements
+    title: Closed requirements in kibi search suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/search-closed-requirements.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:15.962Z
+    relationships:
+      - type: executable_for
+        target: TEST-search-closed-requirements
+  - id: SYM-cli-intent-search-closed-requirement-factor
+    title: CLOSED_REQUIREMENT_FACTOR
+    status: active
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:20.718Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-search-closed-requirements-below-current
+  - id: SYM-cli-intent-search-is-closed-requirement
+    title: isClosedRequirement
+    status: active
+    sourceFile: packages/cli/src/intent-search.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:25.015Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-search-closed-requirements-below-current
+  - id: SYM-cli-search-answer-successor-pull-ratio
+    title: SUCCESSOR_PULL_RATIO
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:33.858Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-closed-requirements
+      - type: implements
+        target: REQ-search-answer-replacement-strong-match
+  - id: SYM-agent-core-candidates-replacedrequirements
+    title: replacedRequirements
+    status: active
+    sourceFile: packages/agent-core/src/requirement-candidates.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:34:42.870Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-unowned-file-closed-candidates
+  - id: SYM-kibi-negative-path-facts-query
+    title: queryNegativePathFacts
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-facts-goal
+    title: negativePathFactsGoal
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-title
+    title: negativePathTitle
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-marker
+    title: negativePathMarker
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-kibi-negative-path-prefix
+    title: NEGATIVE_PATH_PREFIX
+    status: active
+    sourceFile: packages/cli/src/negative-path-facts.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-core-kb-negative-path-facts
+    title: kb_negative_path_facts
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-negative-path-facts-marked
+      - type: implements
+        target: REQ-kibi-negative-path-facts-marked
+  - id: SYM-test-kibi-negative-path-facts-marked
+    title: kb_search negative-path facts suite
+    status: active
+    sourceFile: packages/cli/tests/negative-path-facts.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-11T17:30:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-negative-path-facts-marked

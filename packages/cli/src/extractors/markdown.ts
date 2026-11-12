@@ -154,6 +154,7 @@ export interface ExtractedEntity {
   verification_perspective?: "internal" | "consumer";
   proof_exempt?: boolean;
   proof_exempt_reason?: string;
+  retired_reason?: string;
   approved_by?: string;
   approval_ref?: string;
   failure_side_waiver?: string;
@@ -448,7 +449,6 @@ export class FrontmatterError extends Error {
       originalError?: string;
     },
   ) {
-    // implements REQ-003
     super(message);
     this.name = "FrontmatterError";
     this.classification = options?.classification || "Generic Error";
@@ -534,7 +534,6 @@ function parseFrontmatter(
  * sections were part of it. Schema 8 pins this value as `semantic_text` for
  * requirements that never stated one, so claim spans and hashes do not move.
  */
-// implements REQ-kibi-legacy-migration-preview-v2, REQ-kb-entity-body-context
 export function legacyRequirementSemanticText(body: string): string {
   return body
     .replace(/\r\n?/g, "\n")
@@ -551,7 +550,6 @@ export function legacyRequirementSemanticText(body: string): string {
  * Background, Source, Notes, Evidence) removed, so context never changes
  * what a requirement means.
  */
-// implements REQ-kibi-legacy-migration-preview-v2, REQ-kb-entity-body-context
 export function requirementSemanticText(body: string): string {
   return legacyRequirementSemanticText(withoutContextSections(body));
 }
@@ -563,7 +561,6 @@ function hasLikelyUnquotedColonInTitle(frontmatter: string): boolean {
 }
 
 export function detectEmbeddedEntities(
-  // implements REQ-007, REQ-004
   data: Record<string, unknown>,
   entityType: string,
 ): string[] {
@@ -611,7 +608,6 @@ export function detectEmbeddedEntities(
   return detected;
 }
 
-// implements REQ-007, REQ-004
 function extractFromMarkdownContent(
   content: string,
   filePath: string,
@@ -719,7 +715,6 @@ function extractFromMarkdownContent(
     if (data.text_ref !== undefined) {
       entity.text_ref = data.text_ref;
     }
-    // implements REQ-004
     if (data.origin !== undefined) {
       const normalized = normalizeEntityOrigin(data.origin);
       if ("error" in normalized) {
@@ -759,7 +754,6 @@ function extractFromMarkdownContent(
     if (type === "req" && data.semantic_source_hash !== undefined) {
       entity.semantic_source_hash = data.semantic_source_hash;
     }
-    // implements REQ-kibi-scenario-feasibility-v2
     if (type === "scenario" && data.expects !== undefined) {
       if (
         data.expects !== "success" &&
@@ -806,7 +800,24 @@ function extractFromMarkdownContent(
       }
       entity.proof_exempt_reason = data.proof_exempt_reason;
     }
-    // implements REQ-kibi-scenario-feasibility-v2
+    // Why a retired requirement no longer governs; retired-reason-missing
+    // reads it.
+    if (type === "req" && data.retired_reason !== undefined) {
+      if (
+        typeof data.retired_reason !== "string" ||
+        data.retired_reason.trim() === ""
+      ) {
+        throw new FrontmatterError(
+          "Invalid retired_reason; expected a non-empty string",
+          filePath,
+          {
+            classification: "Invalid Retired Reason",
+            hint: "Set retired_reason to why the behavior no longer exists, with the date or change that retired it, or remove the field.",
+          },
+        );
+      }
+      entity.retired_reason = data.retired_reason;
+    }
     // Human approval of an exception requirement; only an approved exception
     // makes a success scenario feasible.
     for (const field of ["approved_by", "approval_ref"] as const) {
@@ -823,7 +834,6 @@ function extractFromMarkdownContent(
       }
       entity[field] = data[field];
     }
-    // implements REQ-kibi-happy-path-gap
     // A requirement with no failure side to test records why, and who
     // accepted it; the waiver counts only once approved.
     for (const field of [
@@ -843,7 +853,6 @@ function extractFromMarkdownContent(
       }
       entity[field] = data[field];
     }
-    // implements REQ-core-validation-rules
     // Why the requirement exists; requirement-rationale-missing reads it.
     if (type === "req" && data.rationale !== undefined) {
       if (typeof data.rationale !== "string" || data.rationale.trim() === "") {
@@ -858,7 +867,6 @@ function extractFromMarkdownContent(
       }
       entity.rationale = data.rationale;
     }
-    // implements REQ-kb-decision-firmness
     // How firmly a requirement or ADR was decided; when absent, readers derive
     // it from the origin (default for an agent's write, else firm).
     if (data.firmness !== undefined) {
@@ -876,7 +884,6 @@ function extractFromMarkdownContent(
       }
       entity.firmness = data.firmness;
     }
-    // implements REQ-kibi-evidence-floors
     // The weakest evidence level the requirement accepts; the evidence-floor
     // rule reads it, and derives it from firmness when absent.
     if (data.required_evidence !== undefined) {
@@ -1192,7 +1199,6 @@ function extractFromMarkdownContent(
   }
 }
 
-// implements REQ-007, REQ-004
 export function extractFromMarkdownString(
   content: string,
   filePath: string,
@@ -1200,7 +1206,6 @@ export function extractFromMarkdownString(
   return extractFromMarkdownContent(content, filePath);
 }
 
-// implements REQ-007, REQ-004
 export function extractFromMarkdown(filePath: string): ExtractionResult {
   let content: string;
   try {
@@ -1233,7 +1238,6 @@ function generateId(filePath: string, title: string): string {
   return hash.digest("hex").substring(0, 16);
 }
 
-// implements REQ-007
 export function normalizeDateLike(value: unknown): string | undefined {
   if (value instanceof Date) {
     return value.toISOString();

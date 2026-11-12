@@ -89,7 +89,6 @@ function v2ScriptKind(
  * Built-in ts-morph symbol extractor. Behavior matches the historical CLI
  * `createTsMorphSourceAnalysisProvider` analysis path.
  */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
   // Plugin registration creates the extractor on every CLI start; the project
   // (and the TypeScript compiler behind it) is built on the first analysis.
@@ -138,7 +137,6 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
 }
 
 /** Built-in asynchronous ts-morph extractor for the source-bound v2 contract. */
-// implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
   // Like the v1 extractor, build the project (and load the TypeScript
   // compiler) on the first analysis rather than at plugin registration.
@@ -272,7 +270,6 @@ function sourceRangeAtOffsets(
   };
 }
 
-// implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
   return toSourceAnalysisProvider(createBuiltinTsMorphSymbolExtractor());
 }
@@ -292,8 +289,6 @@ function collectSourceSymbols(
         "function",
         decl.getNameNode() ?? decl,
         decl,
-        // Functions: leading trivia via getFullText + JSDoc (historical CLI).
-        fullTextWithJsDocs(decl),
         includeV2Fields,
       ),
     );
@@ -308,9 +303,6 @@ function collectSourceSymbols(
         "class",
         decl.getNameNode() ?? decl,
         decl,
-        // Leading comments + JSDoc only — never the class body (method
-        // `// implements` must stay on the method symbol).
-        leadingCommentsAndJsDocs(sourceFile, decl),
         includeV2Fields,
       ),
     );
@@ -336,9 +328,6 @@ function collectSourceSymbols(
         "interface",
         decl.getNameNode(),
         decl,
-        // Historical CLI used getText(); keep calling it so characterization
-        // mocks that throw from getText still isolate the failure.
-        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${decl.getText()}`,
         includeV2Fields,
       ),
     );
@@ -353,7 +342,6 @@ function collectSourceSymbols(
         "type",
         decl.getNameNode(),
         decl,
-        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${decl.getText()}`,
         includeV2Fields,
       ),
     );
@@ -368,9 +356,6 @@ function collectSourceSymbols(
         "enum",
         decl.getNameNode(),
         decl,
-        // Enums historically used getText(); prefer leading comments when the
-        // real AST is available, else getText for test doubles.
-        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${decl.getText()}`,
         includeV2Fields,
       ),
     );
@@ -387,9 +372,6 @@ function collectSourceSymbols(
           "variable",
           declaration.getNameNode(),
           declaration,
-          // Statement carries leading `// implements`; declaration text is the
-          // historical fallback when only getText is stubbed in tests.
-          `${safeFullText(statement)}\n${declaration.getText()}`,
           includeV2Fields,
         ),
       );
@@ -415,43 +397,6 @@ function collectSourceSymbols(
   return symbols;
 }
 
-// Characterization doubles of the v1 extractor may omit any of these AST
-// accessors; a missing accessor contributes no text.
-interface DirectiveTextNode {
-  getFullText?: () => string;
-  getFullStart?: () => number;
-  getStart?: (includeJsDocComments?: boolean) => number;
-  getJsDocs?: () => ReadonlyArray<{ getFullText: () => string }>;
-}
-
-function jsDocsOnly(node: DirectiveTextNode): string {
-  return (node.getJsDocs?.() ?? []).map((doc) => doc.getFullText()).join("\n");
-}
-
-function leadingCommentsAndJsDocs(
-  sourceFile: SourceFile,
-  node: DirectiveTextNode,
-): string {
-  // The span between the full start and the start without JSDoc holds the
-  // leading comments and the JSDoc itself (the JSDoc is appended again below,
-  // matching the historical directive text).
-  const leading =
-    node.getFullStart === undefined || node.getStart === undefined
-      ? ""
-      : sourceFile
-          .getFullText()
-          .slice(node.getFullStart(), node.getStart(false));
-  return `${leading}\n${jsDocsOnly(node)}`;
-}
-
-function fullTextWithJsDocs(node: DirectiveTextNode): string {
-  return `${safeFullText(node)}\n${jsDocsOnly(node)}`;
-}
-
-function safeFullText(node: DirectiveTextNode): string {
-  return node.getFullText?.() ?? "";
-}
-
 function appendClassMembers(
   sourceFile: SourceFile,
   declaration: ClassDeclaration | ClassExpression,
@@ -459,9 +404,6 @@ function appendClassMembers(
   symbols: SourceSymbolAnalysisV2[],
   includeV2Fields: boolean,
 ): void {
-  // Inherit class *leading* ownership comments onto members (not the class
-  // body). Method-local `// implements` stay on the method via getFullText.
-  const classLeading = leadingCommentsAndJsDocs(sourceFile, declaration);
   for (const method of declaration.getMethods?.() ?? []) {
     if (isPrivateClassMember(method)) continue;
     pushSymbol(symbols, includeV2Fields, () =>
@@ -471,7 +413,6 @@ function appendClassMembers(
         "method",
         method.getNameNode(),
         method,
-        `${classLeading}\n${fullTextWithJsDocs(method)}`,
         includeV2Fields,
         className,
       ),
@@ -487,7 +428,6 @@ function appendClassMembers(
         "property",
         property.getNameNode(),
         property,
-        `${classLeading}\n${fullTextWithJsDocs(property)}`,
         includeV2Fields,
         className,
       ),
@@ -525,7 +465,6 @@ function appendClassMembers(
           "accessor",
           first.getNameNode(),
           last,
-          `${classLeading}\n${fullTextWithJsDocs(first)}\n${fullTextWithJsDocs(last)}`,
           true,
           className,
         );
@@ -543,7 +482,6 @@ function appendClassMembers(
         "accessor",
         accessor.getNameNode(),
         accessor,
-        `${classLeading}\n${fullTextWithJsDocs(accessor)}`,
         includeV2Fields,
         className,
       ),
@@ -576,7 +514,6 @@ function toSourceSymbolAnalysis(
   kind: SourceSymbolKind,
   startNode: Node,
   endNode: Node,
-  directiveText: string,
   includeV2Fields: boolean,
   containerName?: string,
 ): SourceSymbolAnalysisV2 {
@@ -590,7 +527,6 @@ function toSourceSymbolAnalysis(
     name,
     kind,
     ...span,
-    directiveText,
   };
   if (!includeV2Fields) return result;
 

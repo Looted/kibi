@@ -8,7 +8,6 @@ describe("opencode TUI plugin stub", () => {
     expect(typeof plugin.tui).toBe("function");
   });
 
-  // implements REQ-opencode-v2-plugin-api
   test("default export satisfies the OpenCode v2 TUI definition", async () => {
     // Mirrors isPlugin() in OpenCode v2 packages/tui/src/plugin/context.tsx.
     expect(typeof plugin.id).toBe("string");

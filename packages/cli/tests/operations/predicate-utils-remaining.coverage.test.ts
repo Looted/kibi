@@ -1,4 +1,3 @@
-// implements REQ-mcp-suggest-predicates
 import { afterEach, describe, expect, test } from "bun:test";
 import { normalizeText } from "../../src/operations/modeling/predicate-utils.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";

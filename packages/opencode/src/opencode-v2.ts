@@ -29,7 +29,6 @@
  * The v2 types below are deliberately structural and minimal so the package
  * does not need a dependency on the v2 plugin SDK.
  */
-// implements REQ-opencode-v2-plugin-api
 import path from "node:path";
 import { error as logOperationalError } from "./logger.js";
 import type { Hooks, Plugin, PluginInput } from "./plugin.js";
@@ -136,7 +135,6 @@ type FileLifecycleEventType = "file.created" | "file.edited" | "file.deleted";
 type LegacyEvent = { type: string; properties: Record<string, unknown> };
 
 /** Builds the legacy v1 `PluginInput` from a v2 domain context. */
-// implements REQ-opencode-v2-plugin-api
 export function legacyInputFromV2Context(
   context: V2PluginContext,
 ): PluginInput {
@@ -165,7 +163,6 @@ const PATCH_MOVE_MARKER = "*** Move to: ";
  * destination, so it becomes a delete of the source and a create of the
  * destination.
  */
-// implements REQ-opencode-v2-plugin-api
 export function extractPatchFileOperations(
   patchText: string,
 ): Array<{ type: FileLifecycleEventType; file: string }> {
@@ -207,7 +204,6 @@ type CompletedToolResult =
  * and a bash `rm`/`mv` or `git checkout -- <file>` publishes nothing a plugin
  * can turn into `file.created` / `file.edited` / `file.deleted`.
  */
-// implements REQ-opencode-v2-plugin-api
 export function legacyEventsFromToolExecution(
   input: V2ToolExecuteAfterInput,
   directory: string,
@@ -299,7 +295,6 @@ async function registerSystemTransform(
 }
 
 /** Legacy v1 `tool.execute.after` output synthesized from a v2 payload. */
-// implements REQ-opencode-v2-plugin-api
 export function legacyToolOutput(
   input: V2ToolExecuteAfterInput,
 ): Record<string, unknown> {
@@ -348,7 +343,6 @@ async function registerToolBridge(
  * its own template commands: `$ARGUMENTS` is replaced, otherwise non-empty
  * arguments are appended after a blank line.
  */
-// implements REQ-opencode-v2-plugin-api
 export function commandText(
   template: string,
   args: string | undefined,
@@ -412,7 +406,6 @@ function describeError(err: unknown): string {
  * Creates the OpenCode v2 `setup` function for a v1-style plugin.
  * A registration failure on one domain does not prevent the others.
  */
-// implements REQ-opencode-v2-plugin-api
 export function createV2Setup(
   plugin: Plugin,
 ): (context: V2PluginContext) => Promise<V2Cleanup> {
@@ -474,7 +467,6 @@ export function createV2Setup(
  * Builds a plugin definition accepted by both OpenCode v1 (`server`) and
  * OpenCode v2 (`setup`).
  */
-// implements REQ-opencode-v2-plugin-api
 export function createPluginDefinition(
   plugin: Plugin,
 ): KibiOpencodePluginDefinition {

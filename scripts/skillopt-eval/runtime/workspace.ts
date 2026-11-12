@@ -74,7 +74,6 @@ function noGoReceipt(
   };
 }
 
-// implements REQ-skillopt-codex-optimization
 export async function runCapabilityCanary(
   options: CapabilityCanaryOptions,
   dependencies?: Readonly<{

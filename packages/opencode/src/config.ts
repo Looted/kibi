@@ -3,7 +3,6 @@ import os from "node:os";
 import path from "node:path";
 import * as logger from "./logger.js";
 
-// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-worktree-hard-enforcement-v1
 export interface KibiConfig {
   enabled: boolean;
   autoUpdate: boolean;
@@ -153,7 +152,6 @@ function pickHookMode(prompt: ConfigRecord): KibiConfig["prompt"]["hookMode"] {
   return DEFAULTS.prompt.hookMode;
 }
 
-// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-worktree-hard-enforcement-v1
 export function validateAndMerge(obj: unknown): KibiConfig {
   if (!obj || typeof obj !== "object") {
     logger.warn("Config is not an object, using defaults");
@@ -265,7 +263,6 @@ export function validateAndMerge(obj: unknown): KibiConfig {
   };
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function loadConfig(
   projectDir: string = process.cwd(),
   homeDir: string = os.homedir(),
@@ -280,7 +277,6 @@ export function loadConfig(
   });
 }
 
-// implements REQ-opencode-kibi-plugin-v1
 export function isPluginEnabled(cfg?: KibiConfig) {
   const effective = cfg || loadConfig();
   return Boolean(effective.enabled);

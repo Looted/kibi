@@ -10,8 +10,6 @@ import {
 } from "../../src/public/proof-certificates.js";
 import entitySchema from "../../src/public/schemas/entity.js";
 
-// implements REQ-kibi-entity-origin
-
 const validate = new Ajv({ strict: false, allErrors: true }).compile(
   entitySchema,
 );

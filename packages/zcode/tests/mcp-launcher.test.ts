@@ -1,4 +1,3 @@
-// implements REQ-zcode-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import { EventEmitter } from "node:events";

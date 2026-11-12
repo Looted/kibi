@@ -48,7 +48,6 @@ describe("formatSyncSummary", () => {
   });
 });
 
-// implements REQ-cli-sync-summary-kb-totals
 test("an incremental sync shows the KB totals beside what it imported", () => {
   const result = formatSyncSummary({
     branch: "main",

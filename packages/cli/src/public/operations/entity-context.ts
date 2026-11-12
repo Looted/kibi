@@ -41,13 +41,10 @@ import { readKbManifest } from "../../utils/kb-manifest.js";
 import type { Violation } from "../../utils/rule-registry.js";
 
 /** A current entity must carry body context (blocking). */
-// implements REQ-kb-entity-body-context
 export const ENTITY_CONTEXT_MISSING_RULE = "entity-context-missing";
 /** How many legacy entities carry the review:context-missing tag (advisory). */
-// implements REQ-kb-entity-body-context
 export const ENTITY_CONTEXT_ACKNOWLEDGED_RULE = "entity-context-acknowledged";
 
-// implements REQ-kb-entity-body-context
 export const ENTITY_CONTEXT_RULES = [
   ENTITY_CONTEXT_MISSING_RULE,
   ENTITY_CONTEXT_ACKNOWLEDGED_RULE,
@@ -59,10 +56,10 @@ const RETIRED_STATUSES = new Set([
   "superseded",
   "archived",
   "removed",
+  "retired",
 ]);
 
 /** One authored entity document, front matter and body kept apart. */
-// implements REQ-kb-entity-body-context
 export type AuthoredEntity = Readonly<{
   id: string;
   type: string;
@@ -75,7 +72,6 @@ export type AuthoredEntity = Readonly<{
  * Split an authored Markdown document into its front matter record and its
  * body. Returns null when the front matter is absent or does not parse.
  */
-// implements REQ-kb-entity-body-context
 export function readAuthoredEntity(
   content: string,
   relativePath: string,
@@ -117,7 +113,6 @@ export function readAuthoredEntity(
  * context sections) is the body's derivation, not a statement of its own, so
  * it is replaced by the statement-only derivation; an authored value stands.
  */
-// implements REQ-kb-entity-body-context
 export function contextStatementOf(entity: AuthoredEntity): string | undefined {
   if (entity.type !== "req") return undefined;
   const pinned = entity.data.semantic_text;
@@ -132,7 +127,6 @@ export function contextStatementOf(entity: AuthoredEntity): string | undefined {
 }
 
 /** The entity fields the context rules read, with the derived meaning. */
-// implements REQ-kb-entity-body-context
 export function contextEntityOf(entity: AuthoredEntity): {
   title: unknown;
   semantic_text: unknown;
@@ -148,7 +142,6 @@ export function contextEntityOf(entity: AuthoredEntity): {
 }
 
 /** Whether an authored entity is current: not retired, not superseded. */
-// implements REQ-kb-entity-body-context
 export function isCurrentAuthoredEntity(
   entity: AuthoredEntity,
   superseded: ReadonlySet<string>,
@@ -169,7 +162,6 @@ const CONTEXT_LANES = [
 ] as const;
 
 /** Every authored entity of a type the context rules apply to. */
-// implements REQ-kb-entity-body-context
 export function listContextAuthoredEntities(
   workspaceRoot: string,
 ): AuthoredEntity[] {
@@ -192,7 +184,6 @@ export function listContextAuthoredEntities(
  * Ids some other entity supersedes, read from authored `links` and the
  * relationship shards so the check and the migration agree before a sync.
  */
-// implements REQ-kb-entity-body-context
 export function authoredSupersededIds(
   workspaceRoot: string,
   entities: readonly AuthoredEntity[],
@@ -224,7 +215,6 @@ export function authoredSupersededIds(
  * review:context-missing are acknowledged legacy: they never violate, and one
  * advisory finding counts them.
  */
-// implements REQ-kb-entity-body-context
 export function evaluateEntityContext(
   entities: readonly AuthoredEntity[],
   superseded: ReadonlySet<string>,
@@ -291,7 +281,6 @@ export function evaluateEntityContext(
 }
 
 /** Read the authored entities once and evaluate the selected rules. */
-// implements REQ-kb-entity-body-context
 export function collectEntityContextViolations(
   rules: ReadonlySet<string>,
   workspaceRoot: string,

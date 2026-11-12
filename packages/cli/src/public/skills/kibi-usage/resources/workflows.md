@@ -97,7 +97,7 @@ On the first page, intent mode also returns an answer layer in `data.answer`
   the answer lists carries `moreFacts` (`count` and the `kb_query` `ask` that
   lists them all); never read a short `facts` list as the whole rule.
 - `rationale` — ADRs that explain the decisions.
-- `notGoverning` — superseded or deprecated requirements, with `supersededBy`
+- `notGoverning` — superseded, retired or deprecated requirements, with `supersededBy`
   when known. Never read these as current policy; superseded entities are also
   demoted in the ranked results.
 - `observations` — observation/meta facts, which are notes, not rules.

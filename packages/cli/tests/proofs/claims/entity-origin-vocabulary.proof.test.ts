@@ -11,8 +11,6 @@ import {
 } from "../../../src/public/entity-origin.js";
 import { ORIGIN_REVIEW_RULES } from "../../../src/public/operations/origin-review.js";
 
-// implements REQ-kibi-entity-origin-vocabulary
-
 /**
  * The origin kinds, the migration origin reference and the origin review rules.
  * Kibi reads each constant itself at ingest, so the certificate is checked against the code.

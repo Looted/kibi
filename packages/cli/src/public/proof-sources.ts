@@ -38,7 +38,6 @@ import path from "node:path";
 import fg from "fast-glob";
 import { parse as parseYaml } from "yaml";
 
-// implements REQ-kibi-source-proof-kinds
 export const SOURCE_READERS = [
   "json",
   "yaml",
@@ -54,7 +53,6 @@ export const SOURCE_READERS = [
 export type SourceReader = (typeof SOURCE_READERS)[number];
 
 /** A source spec as a proof contract states it; see sourceSpecErrors. */
-// implements REQ-kibi-source-proof-kinds
 export type SourceSpec = Readonly<Record<string, unknown>> &
   Readonly<{ reader: SourceReader }>;
 
@@ -84,7 +82,6 @@ export type SourceRoute = {
  * validator and routes readers the structure the field and middleware
  * obligations are decided on.
  */
-// implements REQ-kibi-source-proof-kinds
 export type SourceModel = {
   members: string[];
   /** A list read in document order, duplicates kept, for precedes claims. */
@@ -176,7 +173,6 @@ function relativeSafe(value: string): boolean {
  * Why a source spec is not one Kibi can read, or [] when it is. `label`
  * names the field in the messages (proof_contract.source, ...).
  */
-// implements REQ-kibi-source-proof-kinds
 export function sourceSpecErrors(value: unknown, label: string): string[] {
   const row = record(value);
   if (!row || !(SOURCE_READERS as readonly unknown[]).includes(row.reader))
@@ -348,7 +344,6 @@ export function sourceSpecErrors(value: unknown, label: string): string[] {
 }
 
 /** The spec with only the keys its reader takes, for contract hashing. */
-// implements REQ-kibi-source-proof-kinds
 export function normalizeSourceSpec(value: unknown): SourceSpec | undefined {
   const row = record(value);
   if (!row || !(SOURCE_READERS as readonly unknown[]).includes(row.reader))
@@ -368,7 +363,6 @@ function globList(value: unknown): string[] {
 const DEFAULT_IGNORE = ["**/node_modules/**", "**/.git/**", "**/.kb/**"];
 
 /** Workspace-relative files a glob list matches, sorted. */
-// implements REQ-kibi-source-proof-kinds
 export function matchWorkspaceFiles(
   workspaceRoot: string,
   patterns: readonly string[],
@@ -422,7 +416,6 @@ export type SourceDependency = Readonly<{ id: string; hash: string }>;
  * (drizzle schemas, route tables, validators) every workspace module that
  * module imports through relative or tsconfig path imports.
  */
-// implements REQ-kibi-source-proof-kinds
 export function sourceDependencies(
   workspaceRoot: string,
   spec: SourceSpec,
@@ -746,7 +739,6 @@ function resolveModule(
  * workspace packages linked into node_modules (packages installed from a
  * registry are left out: a lockfile change stales nothing here).
  */
-// implements REQ-kibi-source-proof-kinds
 export function importClosure(workspaceRoot: string, file: string): string[] {
   const start = file.split(path.sep).join("/");
   // Each module is queued once, when it is first seen.
@@ -1685,7 +1677,6 @@ export function selectedRoutes(
  * schemas, route tables, validators) and the references reader go through
  * `evaluate`, which the CLI supplies; a read without it refuses those.
  */
-// implements REQ-kibi-source-proof-kinds
 export async function readSource(
   workspaceRoot: string,
   spec: SourceSpec,

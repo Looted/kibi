@@ -1,25 +1,18 @@
-// implements REQ-kibi-verification-evidence-contract
 export const PROOF_RUN_VERSION = "kibi.proof-run.v1" as const;
-// implements REQ-kibi-verification-evidence-contract
 export const PROOF_CONTRACT_VERSION = "kibi.proof-contract.v1" as const;
 /**
  * Receipts Kibi writes. v2 adds the contract's kind, the evidence level the
  * receipt supports, and for certificate kinds the re-checked certificate.
  */
-// implements REQ-kibi-verification-evidence-contract, REQ-kibi-code-proof-kinds
 export const PROOF_RECEIPT_VERSION = "kibi.proof-receipt.v2" as const;
 /** Receipts written before v2; still read, as e2e evidence at tested. */
-// implements REQ-kibi-code-proof-kinds
 export const PROOF_RECEIPT_V1_VERSION = "kibi.proof-receipt.v1" as const;
-// implements REQ-kibi-code-proof-kinds
 export const PROOF_RECEIPT_VERSIONS = [
   PROOF_RECEIPT_V1_VERSION,
   PROOF_RECEIPT_VERSION,
 ] as const;
 /** The certificate a certificate-kind proof leaves for Kibi to re-check. */
-// implements REQ-kibi-code-proof-kinds
 export const CODE_CERTIFICATE_VERSION = "kibi.code-certificate.v1" as const;
-// implements REQ-kibi-verification-evidence-contract
 export const PROOF_INTEGRATION_VERSION = "kibi.proof-integration.v1" as const;
 
 export const PROOF_RUN_OUTCOMES = [
@@ -76,7 +69,6 @@ export const SUCCESS_POLICIES = [
  * project source (a JSON or YAML file, a glob, an OpenAPI document, the
  * references the code makes, a data schema, a route table, a validator).
  */
-// implements REQ-kibi-code-proof-kinds
 export const PROOF_KINDS = [
   "e2e",
   "example",
@@ -91,7 +83,6 @@ export const PROOF_KINDS = [
   "source",
 ] as const;
 
-// implements REQ-kibi-code-proof-kinds, REQ-kibi-non-numeric-proof-kinds, REQ-kibi-source-proof-kinds
 export const CERTIFICATE_PROOF_KINDS = [
   "exhaustive",
   "typecheck",
@@ -103,10 +94,8 @@ export const CERTIFICATE_PROOF_KINDS = [
   "source",
 ] as const;
 
-// implements REQ-kibi-code-proof-kinds
 export type ProofKind = (typeof PROOF_KINDS)[number];
 
-// implements REQ-kibi-code-proof-kinds
 export function isCertificateProofKind(kind: unknown): boolean {
   return (CERTIFICATE_PROOF_KINDS as readonly unknown[]).includes(kind);
 }
@@ -297,7 +286,6 @@ const SOURCE_REFERENCE_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-// implements REQ-kibi-source-proof-kinds, REQ-kibi-prolog-source-readers
 const SOURCE_SPEC_SCHEMA = {
   type: "object",
   description:
@@ -812,7 +800,6 @@ export function proofContractErrors(value: unknown): string[] {
   return errors;
 }
 
-// implements REQ-kibi-code-proof-kinds
 function proofContractKindErrors(contract: Record<string, unknown>): string[] {
   const errors: string[] = [];
   const kind = contract.kind;
@@ -1024,7 +1011,6 @@ function isSourceDomain(value: unknown): boolean {
  * The source kind and the source-backed rule domains: a well-formed source
  * spec, required for kind source and only there.
  */
-// implements REQ-kibi-source-proof-kinds
 function sourceContractErrors(contract: Record<string, unknown>): string[] {
   const errors: string[] = [];
   const kind = contract.kind;
@@ -1059,7 +1045,6 @@ function sourceContractErrors(contract: Record<string, unknown>): string[] {
  * The contract fields of the rule, state_machine and regex kinds: where the
  * code Kibi evaluates lives, and only on the kinds that read it.
  */
-// implements REQ-kibi-non-numeric-proof-kinds
 function nonNumericContractErrors(contract: Record<string, unknown>): string[] {
   const errors: string[] = [];
   const kind = contract.kind;
@@ -1132,7 +1117,6 @@ function nonNumericContractErrors(contract: Record<string, unknown>): string[] {
  * The optional contract fields beyond the v1 core, copied only when present
  * so existing contracts keep their hash.
  */
-// implements REQ-kibi-code-proof-kinds
 export function optionalProofContractFields(
   contract: Record<string, unknown>,
 ): Pick<

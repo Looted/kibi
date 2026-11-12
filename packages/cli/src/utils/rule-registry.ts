@@ -140,7 +140,6 @@ export function isCanonicalRule(name: string): boolean {
  *   persisted. Selection never changes enforcement class.
  * @returns Set of rule names that should run
  */
-// implements REQ-006
 export function getEffectiveRules(
   requestedRules?: readonly string[],
 ): Set<string> {

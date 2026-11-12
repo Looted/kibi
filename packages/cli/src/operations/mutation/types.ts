@@ -1,10 +1,8 @@
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import type { SagaRollbackFailure } from "./saga.js";
 
-// implements REQ-kibi-operation-interface-parity
 export type RelationshipInput = Readonly<Record<string, unknown>>;
 
-// implements REQ-kibi-operation-interface-parity
 export type UpsertInput = {
   readonly type: string;
   readonly id: string;
@@ -29,7 +27,6 @@ export type UpsertInput = {
   readonly _requestId?: string;
 };
 
-// implements REQ-model-what-if-planned-facts
 /** One planned fact write staged ahead of a dry run. */
 export type PlannedFactInput = {
   readonly type: string;
@@ -38,7 +35,6 @@ export type PlannedFactInput = {
   readonly relationships?: readonly RelationshipInput[];
 };
 
-// implements REQ-kibi-truthful-consistency
 /**
  * Store state an upsert's validation must see in addition to the live KB:
  * what earlier steps of the same plan will have written by the time this
@@ -52,13 +48,11 @@ export type StagedUpsertState = {
   readonly relationships: readonly RelationshipInput[];
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type ValidatedUpsert = {
   readonly entity: Record<string, unknown>;
   readonly relationships: readonly RelationshipInput[];
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type UpsertPayload = {
   readonly created: number;
   readonly updated: number;
@@ -113,7 +107,6 @@ export type DeferredUpsertCommit = {
   readonly rollback: () => Promise<readonly SagaRollbackFailure[]>;
 };
 
-// implements REQ-kibi-operation-interface-parity
 export type ValidateUpsertPayload = {
   readonly valid: boolean;
   readonly errors: readonly string[];

@@ -1,4 +1,3 @@
-// implements REQ-claude-code-kibi-plugin-v1
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -106,7 +105,6 @@ const DOUBLE_QUOTED = /"(?:[^"\\]|\\[\s\S])*"/y;
 /** A single-quoted scalar; `''` is an escaped quote. */
 const SINGLE_QUOTED = /'(?:[^']|'')*'/y;
 
-// implements REQ-kibi-hooks-flow-manifest
 function parseFlow(text: string, start = 0): FlowParse {
   let pos = start;
 
@@ -263,7 +261,6 @@ function flowRecords(text: string, start: number): RawRecord[] | undefined {
  * sequence, possibly spanning several lines; undefined when the section is
  * block-style or absent.
  */
-// implements REQ-kibi-hooks-flow-manifest
 function scanFlowSection(
   text: string,
   sectionKey: string,
@@ -498,7 +495,6 @@ function normalizeSourceFile(value: string): string {
  * Manifest state for a scan result: `unreadable` when the file holds content
  * beyond comments and an empty `symbols` value yet yielded no record.
  */
-// implements REQ-kibi-hooks-flow-manifest
 export function manifestStateOf(
   text: string | undefined,
   recordCount: number,
@@ -711,7 +707,6 @@ const ENTITY_LANES: readonly [prefix: string, lane: string][] = [
 
 const SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
-// implements REQ-agent-core-edit-snippets
 export type EntityLink = { type: string; target: string };
 
 export type EntitySummary = {
@@ -735,7 +730,6 @@ export type EntitySummary = {
   claim?: FactClaim;
 };
 
-// implements REQ-agent-core-edit-snippets
 /** A fact's typed fields, as authored; absent fields are left out. */
 export type FactClaim = {
   factKind?: string;
@@ -951,7 +945,6 @@ export function readEntitySummary(
       const member = /^\s*-\s*(.+)/.exec(line);
       if (member) values.push(unquote(member[1] as string));
     }
-    // implements REQ-kb-decision-firmness-from-origin
     const flowOrigin = /^origin:\s*\{.*\bkind:\s*["']?([a-z]+)/.exec(line);
     if (flowOrigin) originKind = flowOrigin[1];
     const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
@@ -960,7 +953,6 @@ export function readEntitySummary(
     const match = /^(title|status|firmness):\s*(.*)/.exec(line);
     if (match?.[1] === "title" && match[2]) summary.title = unquote(match[2]);
     if (match?.[1] === "status" && match[2]) summary.status = unquote(match[2]);
-    // implements REQ-kb-decision-firmness
     if (match?.[1] === "firmness" && match[2])
       summary.firmness = unquote(match[2]);
     if (/^\S/.test(line)) {
@@ -990,7 +982,6 @@ export function readEntitySummary(
   flushLink(authored, pending);
   // A decision without authored firmness is a person's (firm) unless an
   // agent wrote it; with the front matter cut off, the origin is unknown.
-  // implements REQ-kb-decision-firmness-from-origin
   if (
     summary.firmness === undefined &&
     closed &&

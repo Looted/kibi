@@ -115,3 +115,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51f59f5bfed9
+  - type: assumes
+    from: SCEN-NEG-kb-requirement-retired-status-SUGGESTION-AUTO-APPLIED
+    to: FACT-NEG-kb-requirement-retired-status-SUGGESTION-AUTO-APPLIED
+    created_at: 2026-11-11T17:42:17.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff9842ba6122
+  - type: verified_by
+    from: SCEN-NEG-kb-requirement-retired-status-SUGGESTION-AUTO-APPLIED
+    to: TEST-kb-requirement-retired-status
+    created_at: 2026-11-11T17:42:17.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-232992485dfa

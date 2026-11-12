@@ -12,8 +12,6 @@ import {
   PROOF_CONTRACT_CLAIMS_RULE,
 } from "../../../src/public/operations/proof-contract-claims.js";
 
-// implements REQ-kibi-claim-bound-proof-settings
-
 /**
  * The receipt outcomes, schema version and check rule of claim-bound proofs. Kibi
  * reads each constant itself at ingest, so the certificate is checked against the code.

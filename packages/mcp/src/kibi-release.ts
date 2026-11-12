@@ -21,7 +21,6 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
-// implements REQ-kibi-release-version
 /**
  * The Kibi release version (`YYYY.M.N`) from the release manifest of the
  * installed kibi-core, when it lists this kibi-mcp version. Undefined for an
@@ -53,7 +52,6 @@ export function kibiReleaseForMcp(
     : undefined;
 }
 
-// implements REQ-kibi-release-version
 /** The MCP server title: `Kibi MCP (Kibi 2026.11.0)` when the release is known. */
 export function mcpServerTitle(release: string | undefined): string {
   return release === undefined ? "Kibi MCP" : `Kibi MCP (Kibi ${release})`;

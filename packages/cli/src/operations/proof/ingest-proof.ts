@@ -59,7 +59,6 @@ import { patchReceiptsIntoDocument } from "./receipt-document.js";
 import { judgeClaimBindings, receiptEvidenceLevel } from "./claim-bindings.js";
 import { checkCodeCertificate } from "./code-certificates.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
   snapshot: string;
   artifact: Readonly<Record<string, unknown>>;
@@ -88,7 +87,6 @@ export type IngestProofTestResult = Readonly<{
   scope?: string;
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type IngestProofResult = Readonly<{
   artifactDigest: string;
   environmentHash: string;
@@ -297,7 +295,6 @@ function existingReceipts(
     : [];
 }
 
-// implements REQ-kibi-verification-evidence-contract
 async function executeIngestProofUnlocked(
   args: IngestProofArgs,
   context: OperationContext,
@@ -503,7 +500,6 @@ async function executeIngestProofUnlocked(
   }
 
   const results: IngestProofTestResult[] = [];
-  // implements REQ-kibi-code-proof-kinds
   // What each receipt says about its proof kind, evidence level, certificate
   // and claim bindings, so the caller sees a rejected certificate at ingest.
   const bindingsOf = new Map(
@@ -729,7 +725,6 @@ async function executeIngestProofUnlocked(
   };
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export async function executeIngestProof(
   args: IngestProofArgs,
   context: OperationContext,

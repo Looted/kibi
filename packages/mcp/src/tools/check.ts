@@ -31,7 +31,6 @@ export type { CheckArgs, CheckResult } from "./check-types.js";
  * reported once as branch-store-not-compiled, as in the CLI; it also carries
  * the host fs/git ports, signal and clock.
  */
-// implements REQ-002, REQ-cli-status-pre-first-sync
 export async function handleKbCheck(
   prolog: PrologProcess,
   args: CheckArgs,

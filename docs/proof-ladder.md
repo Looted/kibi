@@ -14,11 +14,14 @@ when its `status` is one of:
 - Canonical: `open`, `in_progress`, `closed`
 - Legacy (accepted for backwards compatibility): `active`, `approved`
 
-Everything else is out of scope by design. Two things can take a requirement
+Everything else is out of scope by design. Three things can take a requirement
 out of scope:
 
 1. **Supersession** — a newer requirement links to it with `supersedes`.
-2. **Status outside the vocabulary** — e.g. the ADR vocabulary `accepted`.
+2. **Retirement** — `status: retired` with a `retired_reason`: the behavior
+   is gone and nothing replaces it. The applicability reason reads
+   "requirement is retired: the behavior it stated no longer exists".
+3. **Status outside the vocabulary** — e.g. the ADR vocabulary `accepted`.
    Since that silently excludes the requirement from proof, `kibi check`
    reports it as a blocking `req-status-vocabulary` violation instead of
    letting it hide.

@@ -6,8 +6,6 @@ import {
 } from "../../../src/public/proof-certificates.js";
 import { SIGNOFF_FENCES } from "../../../src/signoff/model.js";
 
-// implements REQ-kibi-signoff-fences
-
 /**
  * The fence info strings host renderers look for in a signoff view. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */

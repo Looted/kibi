@@ -24,8 +24,6 @@ import {
 } from "./predicate-cases";
 import { freezeMaterialization } from "./predicate-materialization";
 
-// implements REQ-skillopt-predicate-first-requirements
-
 class PredicateCorpusError extends Error {
   readonly name = "PredicateCorpusError";
 }
