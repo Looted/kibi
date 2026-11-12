@@ -663,6 +663,13 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
   already broad (split it, or report it). Never choose a requirement because
   it has room, and never stop at exactly the threshold by leaving out code
   that does decide the behavior.
+- **Split mechanics.** List the parent's symbols, scenarios and tests with
+  `kb_graph` from the parent and `kb_query` by id; never read or grep `.kb/`
+  to find them. Write each child with `supersedes` to the parent and a
+  `specified_by` scenario, remove the parent's `implements` links in one
+  `kb_delete` relationships call, then `kb_upsert` each deciding symbol with
+  `implements` to the one child whose behavior it decides. Set the parent
+  `status: closed` last and run the unfiltered `kb_check`.
 - **Do not fit the check.** Zero findings is the floor, not the goal. Do not
   relax a rule, add an exemption, lower `required_evidence`, or add a
   requirement that only pins a constant ("X shall be 13") unless drift of
