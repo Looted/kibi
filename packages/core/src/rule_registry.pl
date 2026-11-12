@@ -78,6 +78,7 @@ known_rule('policy-markers').
 known_rule('kb-consistency').
 known_rule('kb-consistency-unresolved').
 known_rule('evidence-floor').
+known_rule('agent-requirement-unapproved-implemented').
 known_rule('proof-contract-claims').
 
 rule_enforcement_class('must-priority-coverage', canonical).
@@ -144,6 +145,7 @@ rule_enforcement_class('policy-markers', canonical).
 rule_enforcement_class('kb-consistency', canonical).
 rule_enforcement_class('kb-consistency-unresolved', advisory).
 rule_enforcement_class('evidence-floor', canonical).
+rule_enforcement_class('agent-requirement-unapproved-implemented', canonical).
 rule_enforcement_class('proof-contract-claims', canonical).
 
 rule_implementation('must-priority-coverage', prolog).
@@ -210,6 +212,7 @@ rule_implementation('policy-markers', typescript).
 rule_implementation('kb-consistency', prolog).
 rule_implementation('kb-consistency-unresolved', prolog).
 rule_implementation('evidence-floor', typescript).
+rule_implementation('agent-requirement-unapproved-implemented', typescript).
 rule_implementation('proof-contract-claims', typescript).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
@@ -359,5 +362,6 @@ rule_description('policy-ownership', 'When a plugin activated for kibi.check-pol
 rule_description('policy-markers', 'When a plugin activated for kibi.check-policy.v1 declares marker rules, every file implementing a requirement grounded in the rule\'s pattern predicate (with its declared sibling files) must contain each marker the KB declares for that pattern').
 rule_description('kb-consistency', 'The facts current requirements name must hold together, jointly and not only pairwise: every property context needs a value that satisfies all its facts, every atom and decision key one truth value, and stored rules a stratification. Each finding is a contradiction certificate (an irreducible core, two disagreeing facts or a negation cycle) re-verified by the independent checker, or a certificate that checker rejects').
 rule_description('kb-consistency-unresolved', 'Advisory: a property context, atom or decision key whose facts the consistency checker cannot compare (mixed value types or units, an unsupported operator or polarity, or a contradiction whose validity windows never overlap); it never counts as consistent').
-rule_description('evidence-floor', 'Every current requirement\'s computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot').
+rule_description('evidence-floor', 'Every current requirement\'s computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement or one a person approved (origin.approved_by) that states no firmness, and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot').
+rule_description('agent-requirement-unapproved-implemented', 'A current priority must requirement authored by an agent (origin.kind agent) that production symbols implement must have a human approval (origin.approved_by) once it is older than 14 days by created_at; a missing created_at counts as older (KB schema 15)').
 rule_description('proof-contract-claims', 'From schema 12, every certificate-kind proof contract (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex) must name the claims it proves in proves, and each named claim must be a modeled claim of a current requirement the test reaches through its scenarios, grounded by a fact that proof kind can express or attest').

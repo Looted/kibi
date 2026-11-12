@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc216f806e39
+  - type: implements
+    from: SYM-docs-site-catalog-publishedLandingHref
+    to: REQ-docs-site-link-preview
+    created_at: 2026-11-12T18:30:06.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f98b4d7a38b1
+  - type: covered_by
+    from: SYM-docs-site-catalog-publishedLandingHref
+    to: TEST-docs-site-pages
+    created_at: 2026-11-12T18:30:06.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98b818a9f225

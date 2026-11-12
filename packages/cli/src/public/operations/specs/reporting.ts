@@ -321,7 +321,9 @@ export async function perContractTestBindings(
       const parts = FINGERPRINT_COMPONENT_NAMES.map(
         (name) => `${name}: ${toPrologAtom(components[name])}`,
       );
-      fingerprintEntries.push(`${toPrologAtom(testId)}: _{${parts.join(", ")}}`);
+      fingerprintEntries.push(
+        `${toPrologAtom(testId)}: _{${parts.join(", ")}}`,
+      );
     }
     const bindings = await currentReceiptBindingHashes({
       workspaceRoot: context.workspaceRoot,

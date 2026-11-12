@@ -31,7 +31,10 @@
 // Schema 14 adds the retired requirement status (with retired_reason) and
 // blocks current facts, scenarios and tests owned only by retired
 // requirements.
-export const LATEST_KB_SCHEMA_VERSION = 14;
+// Schema 15 gives a requirement a person approved (origin.approved_by) the
+// tested evidence floor unless it sets required_evidence or states its
+// firmness.
+export const LATEST_KB_SCHEMA_VERSION = 15;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

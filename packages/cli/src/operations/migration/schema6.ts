@@ -22,7 +22,10 @@ import {
   extractFromMarkdown,
 } from "../../extractors/markdown.js";
 import { FIRMNESS_FROM_ORIGIN_SCHEMA_VERSION } from "../../public/operations/decision-firmness.js";
-import { EVIDENCE_FLOOR_SCHEMA_VERSION } from "../../public/operations/evidence-floor.js";
+import {
+  APPROVAL_FLOOR_SCHEMA_VERSION,
+  EVIDENCE_FLOOR_SCHEMA_VERSION,
+} from "../../public/operations/evidence-floor.js";
 import {
   type MigrationAction,
   migrationAction,
@@ -73,6 +76,7 @@ import {
   planEntityTypeBackfill,
 } from "./entity-type.js";
 import {
+  APPROVAL_FLOOR_PIN_CODE,
   EVIDENCE_FLOOR_PIN_CODE,
   type LadderFloorVerdicts,
   applyEvidenceFloorPins,
@@ -999,6 +1003,44 @@ export function buildSchema6MigrationFragment(input: {
       );
     }
   }
+  // Schema 15: a person's approval (origin.approved_by) gives a requirement
+  // without required_evidence or a stated firmness the tested floor. Record an
+  // asserted floor on current approved requirements without a passing proof
+  // path, so the upgraded knowledge base passes evidence-floor.
+  if (version < APPROVAL_FLOOR_SCHEMA_VERSION) {
+    const floors = planEvidenceFloorPins(
+      input.workspaceRoot,
+      input.ladderFloors,
+      { firm: false, approved: true },
+    );
+    if (floors.targets.length > 0) {
+      const id = "approval-floor-pin";
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: APPROVAL_FLOOR_PIN_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: floors.targets.map((row) => row.id),
+          affectedFiles: floors.targets.map((row) => row.path),
+          postconditions: [{ rule: "evidence-floor", findings: 0 }],
+          evidence: {
+            reason:
+              "Schema 15 gives a requirement a person approved (origin.approved_by) the tested floor unless it sets required_evidence or states its firmness. These approved requirements are below tested (judged by the evidence ladder on the synced store when one could be read, else by their latest end-to-end receipt), so each records required_evidence: asserted in its front matter, where a reviewer can raise it once a proof exists.",
+            count: floors.targets.length,
+            skipped: floors.skipped,
+            preserves: "every other front matter key and the body bytes",
+          },
+        }),
+      );
+    }
+  }
   // Schema 12: a certificate contract names the claims it proves. Pin proves
   // where the test reaches one provable claim; list the rest for review.
   if (version < CLAIM_BINDING_SCHEMA_VERSION && input.claimCandidates) {
@@ -1323,15 +1365,18 @@ export async function applySchema6MigrationAction(
       applyFirmSupersedeAcknowledgement(context.workspaceRoot);
       return;
     }
-    case EVIDENCE_FLOOR_PIN_CODE: {
+    case EVIDENCE_FLOOR_PIN_CODE:
+    case APPROVAL_FLOOR_PIN_CODE: {
       // The plan decided the pins with the evidence ladder; apply the same
       // set even though source rewrites before it may have left the store
       // behind the authored files.
+      const firm = action.code === EVIDENCE_FLOOR_PIN_CODE;
       applyEvidenceFloorPins(
         context.workspaceRoot,
         new Map(
           (action.affectedEntityIds ?? []).map((id) => [id, "below"] as const),
         ),
+        { firm, approved: !firm },
       );
       return;
     }
@@ -1500,6 +1545,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
   EVIDENCE_FLOOR_PIN_CODE,
+  APPROVAL_FLOOR_PIN_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
   REQ_STATUS_DELIVERED_MAP_CODE,
   ENTITY_ORIGIN_BACKFILL_CODE,

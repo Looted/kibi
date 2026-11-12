@@ -905,8 +905,8 @@ describe("schema upgrade dry run", () => {
       "Warning: Cannot edit t.md: worse.",
       "dry run: would acknowledge 2 supersede(s) recorded without a 'Why this changed' section (manifest only; no reason is written).",
       "dry run: would acknowledge 1 supersede(s) of decisions that read as firm from schema 10 (manifest only; no firmness is written).",
-      "dry run: would record required_evidence: asserted on 1 current firm requirement(s) whose evidence is below tested (front matter only).",
-      "dry run: 2 firm requirement(s) keep the tested floor (R1, R2); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.",
+      "dry run: would record required_evidence: asserted on 1 current firm or approved requirement(s) whose evidence is below tested (front matter only).",
+      "dry run: 2 firm or approved requirement(s) keep the tested floor (R1, R2); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.",
       "Warning: Cannot edit f.md: locked.",
       "dry run: would pin proof_contract.proves on 2 certificate test(s) whose test reaches exactly one provable claim (T1, T2); front matter only.",
       "dry run: Review T3",
@@ -925,7 +925,11 @@ describe("schema upgrade dry run", () => {
     ]);
     expect(s.planLinks).toHaveBeenCalledWith(cwd, "docs/symbols.yaml");
     expect(s.ladder).toHaveBeenCalledWith(cwd);
-    expect(s.planFloors).toHaveBeenCalledWith(cwd, { ladder: true });
+    expect(s.planFloors).toHaveBeenCalledWith(
+      cwd,
+      { ladder: true },
+      { firm: true, approved: true },
+    );
     expect(s.candidates).toHaveBeenCalledWith(cwd);
     expect(s.planClaims).toHaveBeenCalledWith(cwd, { candidates: true });
     expect(s.tracked).toHaveBeenCalledWith(cwd);
@@ -945,7 +949,7 @@ describe("schema upgrade dry run", () => {
     expect(await dry()).toStrictEqual({ exitCode: 0 });
     expect(logs).toStrictEqual([
       older(0),
-      "dry run: 1 firm requirement(s) keep the tested floor (R1) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.",
+      "dry run: 1 firm or approved requirement(s) keep the tested floor (R1) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.",
       "dry run: no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.",
       `dry run: would set schemaVersion from 0 to ${LATEST} in .kb/manifest.json.`,
       `dry run: would write migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
@@ -974,16 +978,22 @@ describe("schema upgrade dry run", () => {
     expect(await dry()).toStrictEqual({ exitCode: 0 });
     expect(logs).toStrictEqual([
       older(LATEST - 1),
+      "dry run: would record required_evidence: asserted on 1 current firm or approved requirement(s) whose evidence is below tested (front matter only).",
       `dry run: would set schemaVersion from ${LATEST - 1} to ${LATEST} in .kb/manifest.json.`,
       `dry run: would write migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
       "Re-run with --yes to apply these changes.",
     ]);
-    expect(s.ladder).not.toHaveBeenCalled();
+    // Schema 15 pins approved requirements only; firm ones were pinned at 11.
+    expect(s.ladder).toHaveBeenCalledWith(cwd);
+    expect(s.planFloors).toHaveBeenCalledWith(
+      cwd,
+      { ladder: true },
+      { firm: false, approved: true },
+    );
     expect(s.candidates).not.toHaveBeenCalled();
     expect(s.planPins).not.toHaveBeenCalled();
     expect(s.planReasons).not.toHaveBeenCalled();
     expect(s.planFirm).not.toHaveBeenCalled();
-    expect(s.planFloors).not.toHaveBeenCalled();
     expect(s.planClaims).not.toHaveBeenCalled();
     expect(s.planOrigin).not.toHaveBeenCalled();
     expect(s.tracked).toHaveBeenCalledWith(cwd);
@@ -1005,7 +1015,7 @@ describe("schema upgrade dry run", () => {
       [8, "reasons", () => s.planReasons.mockReturnValue([{}] as never)],
       [9, "firm", () => s.planFirm.mockReturnValue([{}] as never)],
       [
-        10,
+        LATEST - 1,
         "floors",
         () =>
           s.planFloors.mockReturnValue({
@@ -1027,7 +1037,8 @@ describe("schema upgrade dry run", () => {
       ],
     ];
     for (const [version, name, arrange] of cases) {
-      for (const at of [version, version + 1]) {
+      // At the latest schema there is nothing left to migrate.
+      for (const at of [version, version + 1].filter((v) => v < LATEST)) {
         mock.restore();
         s = stubs();
         logs = [];
@@ -1203,8 +1214,8 @@ describe("schema upgrade", () => {
       "Warning: Cannot tag t.md: bad.",
       "Acknowledged 1 supersede(s) recorded without a 'Why this changed' section; new supersedes must explain themselves.",
       "Acknowledged 2 supersede(s) of decisions without firmness that read as firm from schema 10; a new replacement of such a decision must be firm.",
-      "Recorded required_evidence: asserted on 2 current firm requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.",
-      "1 firm requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).",
+      "Recorded required_evidence: asserted on 2 current firm or approved requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.",
+      "1 firm or approved requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).",
       "Warning: Cannot record required_evidence on e.md: nope.",
       "Pinned proof_contract.proves on 1 certificate test(s) (T1); run kibi prove for them so their receipts bind the claim.",
       "Review T2",
@@ -1248,6 +1259,7 @@ describe("schema upgrade", () => {
         "claim-bound-proofs-v12",
         "derived-symbol-coordinates-v13",
         "retired-status-v14",
+        "approval-floor-v15",
       ],
     };
     expect(result).toStrictEqual({
@@ -1277,7 +1289,11 @@ describe("schema upgrade", () => {
       cwd,
       storagePlan({ moves: [{ from: "x", to: "y" }], legacyConfig: "present" }),
     );
-    expect(s.applyFloors).toHaveBeenCalledWith(cwd, { ladder: true });
+    expect(s.applyFloors).toHaveBeenCalledWith(
+      cwd,
+      { ladder: true },
+      { firm: true, approved: true },
+    );
     expect(s.applyClaims).toHaveBeenCalledWith(cwd, { candidates: true });
     expect(s.refresh).toHaveBeenCalledWith(cwd, { bytes: "before" });
     expect(s.untrack).toHaveBeenCalledWith(cwd);
@@ -1301,8 +1317,8 @@ describe("schema upgrade", () => {
       "Warning: Could not remove .kb/symbol-coordinates.yaml from the Git index (locked); run git rm --cached .kb/symbol-coordinates.yaml before the next commit.",
     ]);
     expect(result.summary?.audit.steps).toStrictEqual([
-      "derived-symbol-coordinates-v13",
       "retired-status-v14",
+      "approval-floor-v15",
     ]);
     expect(result.summary?.audit.semanticAdvisorBackfill).toBe(
       "not_applicable",
@@ -1318,12 +1334,16 @@ describe("schema upgrade", () => {
       s.applyOrigin,
       s.planReasons,
       s.planFirm,
-      s.planFloors,
-      s.applyFloors,
       s.applyClaims,
       s.applyStorage,
     ])
       expect(spy).not.toHaveBeenCalled();
+    // Schema 15 pins approved requirements only.
+    expect(s.applyFloors).toHaveBeenCalledWith(
+      cwd,
+      { ladder: true },
+      { firm: false, approved: true },
+    );
   });
 
   test("skip the coordinate untrack at the latest schema", async () => {
@@ -1457,7 +1477,7 @@ describe("schema upgrade", () => {
     await yes();
     expect(logs).toStrictEqual([
       older(0),
-      "1 firm requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).",
+      "1 firm or approved requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).",
       "no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.",
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was 0).`,
       "Marked semantic advisor backfill as pending in .kb/manifest.json.",
@@ -1698,7 +1718,7 @@ describe("migration plan", () => {
     expect(h.build).toHaveBeenLastCalledWith({
       workspaceRoot: cwd,
       currentSchemaVersion: 11,
-      ladderFloors: null,
+      ladderFloors: { ladder: true },
       claimCandidates: { candidates: true },
     });
     s.read.mockReturnValue(null as never);
@@ -1718,7 +1738,7 @@ describe("migration plan", () => {
     expect(h.build).toHaveBeenLastCalledWith({
       workspaceRoot: cwd,
       currentSchemaVersion: 12,
-      ladderFloors: null,
+      ladderFloors: { ladder: true },
       claimCandidates: null,
     });
   });
@@ -2460,7 +2480,7 @@ describe("migration details", () => {
     logs = [];
     await dry();
     expect(logs).toContain(
-      "dry run: 2 firm requirement(s) keep the tested floor (R1, R2) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.",
+      "dry run: 2 firm or approved requirement(s) keep the tested floor (R1, R2) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.",
     );
     expect(s.applyTypes).toHaveBeenCalledTimes(1);
     expect(s.applyDrift).toHaveBeenCalledTimes(1);

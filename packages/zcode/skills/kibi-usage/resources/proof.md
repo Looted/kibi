@@ -398,17 +398,27 @@ decidable; an e2e test that samples cases stays `tested`.
 
 Each current requirement accepts a weakest level, its floor: the
 `required_evidence` field (`proved`, `tested`, `asserted` or `unverified`),
-or, when absent, `tested` for a firm requirement and no floor otherwise.
-`kb_check`'s `evidence-floor` rule fails while the level is below the floor;
-coverage rows show it as `evidenceFloor` (`required`, `source`, `status`).
+or, when absent, `tested` for a firm requirement and for one a person
+approved (`origin.approved_by`) that states no `firmness`, and no floor
+otherwise. Approving an agent's requirement therefore commits it to tested
+evidence; an explicit `firmness: default` or `exploratory` keeps it without
+a floor. `kb_check`'s `evidence-floor` rule fails while the level is below
+the floor; coverage rows show it as `evidenceFloor` (`required`, `source`:
+`explicit`, `firmness` or `approval`, `status`).
 A requirement whose receipts are only older than the code is
 `pending_reproof` and passes a plain check; `kibi check --fresh-evidence`
 fails it, and is what CI runs after `kibi prove`.
 
 Fix a finding by raising the level: add the scenario, the end-to-end
-test with a proof contract and the receipts, or have a person approve the
-requirement. Lower `required_evidence` only when a person decides the
-requirement does not need that evidence, and say why in the requirement.
+test with a proof contract and the receipts. Below an `asserted` floor, a
+person's approval raises the level. Lower `required_evidence` only when a
+person decides the requirement does not need that evidence, and say why in
+the requirement.
+
+One more rule reads the same proofs. `agent-requirement-unapproved-implemented`
+blocks a current `priority: must` requirement an agent wrote that production
+code implements while nobody has approved it 14 days after its `created_at`:
+ask the person to review it and record `origin.approved_by`, or fix it.
 
 ## Knowledge-base certificates
 

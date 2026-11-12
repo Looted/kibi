@@ -1342,8 +1342,39 @@ test(evidence_floor_rows_list_unmet_floors) :-
               status: pending_reproof, proofStatus: tested, proofGaps: [], gapDetails: _{}},
             _{id: 'REQ-5', evidenceLevel: asserted, requiredEvidence: tested, requiredEvidenceSource: firmness,
               status: below, proofStatus: missing, proofGaps: [], gapDetails: _{}}
-        ]})
+        ], unapprovedImplemented: []})
     )).
+
+test(evidence_floor_json_lists_requirement_review_rows) :-
+    dsc_kb((
+        pf_entity(req, 'REQ-U', [status=open, priority=must, created_at='2026-01-01T00:00:00Z',
+                                 origin='{"kind":"agent"}']),
+        Params = snap-'2026-05-02T00:00:00Z'-100-per_contract-_{'T': h},
+        dsc_stub(Params, 'REQ-U', _{evidenceLevel: unverified, proofStatus: missing, proofGaps: [],
+            evidenceFloor: _{required: unverified, source: firmness, status: met},
+            proofStages: _{productionSymbols: _{symbols: ['SYM-B', 'SYM-A']}}}),
+        dsc_json(evidence_floor_json(per_contract, _{'T': h}, snap, '2026-05-02T00:00:00Z', 100), Dict),
+        same(Dict.unapprovedImplemented,
+             [_{id: 'REQ-U', createdAt: '2026-01-01T00:00:00Z', symbols: ['SYM-A', 'SYM-B']}])
+    )).
+
+test(requirement_review_row_needs_must_agent_unapproved_and_production_symbols) :-
+    Proof = _{proofGaps: [], proofStages: _{productionSymbols: _{symbols: ['SYM-A']}}},
+    Agent = '{"kind":"agent"}',
+    once(requirement_proof:requirement_review_row(unapproved_implemented,
+        [priority=must, origin=Agent], Proof, Row)),
+    same(Row, _{createdAt: '', symbols: ['SYM-A']}),
+    \+ requirement_proof:requirement_review_row(unapproved_implemented,
+        [priority=should, origin=Agent], Proof, _),
+    \+ requirement_proof:requirement_review_row(unapproved_implemented,
+        [priority=must], Proof, _),
+    \+ requirement_proof:requirement_review_row(unapproved_implemented,
+        [priority=must, origin='{"kind":"agent","approved_by":"Owner"}'], Proof, _),
+    \+ requirement_proof:requirement_review_row(unapproved_implemented,
+        [priority=must, origin=Agent],
+        _{proofGaps: [], proofStages: _{productionSymbols: _{symbols: []}}}, _),
+    \+ requirement_proof:requirement_review_row(unapproved_implemented,
+        [priority=must, origin=Agent], _{proofGaps: []}, _).
 
 test(evidence_floor_gap_details_every_field) :-
     Proof = _{proofStages: _{

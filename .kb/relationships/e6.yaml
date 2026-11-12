@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67eadb68395a
+  - type: verified_by
+    from: SCEN-docs-site-link-preview
+    to: TEST-docs-site-pages
+    created_at: 2026-11-12T18:26:48.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-315664388d88

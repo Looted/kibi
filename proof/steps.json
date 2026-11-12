@@ -2987,6 +2987,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-approval-evidence-floor",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/approval-evidence-floor.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-entity-origin-exhaustive",
     "steps": [
       [
