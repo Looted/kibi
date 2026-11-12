@@ -1,5 +1,17 @@
 # kibi-mcp
 
+## 3.27.1
+
+### Patch Changes
+
+- e4145f7: The MCP server reads a KB dependency of another workspace only where it would route a normal call. A `kb` read with a `workspaceRoot` other than the server's own is refused when workspace routing is off or that workspace is neither a worktree of the server's repository nor under the client's roots or `KIBI_MCP_ROUTABLE_ROOTS`. Technically: `WorkspaceRouter.routeKbDependency` resolves its base workspace through the same enabled and `isRoutable` checks as `route`.
+- Updated dependencies [3cce94f]
+- Updated dependencies [e4145f7]
+- Updated dependencies
+  - kibi-agent-core@0.13.1
+  - kibi-core@0.32.1
+  - kibi-runtime@2.31.1
+
 ## 3.27.0
 
 ### Minor Changes
