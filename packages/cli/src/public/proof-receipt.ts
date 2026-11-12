@@ -22,14 +22,12 @@ export const PROOF_RECEIPT_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
  * (Kibi checked it against the claim's fact; the only verdict that proves),
  * attested (the fact has no derivation; the author vouches) or rejected.
  */
-// implements REQ-kibi-claim-bound-proofs
 export const CLAIM_BINDING_VERDICTS = [
   "derived",
   "attested",
   "rejected",
 ] as const;
 
-// implements REQ-kibi-claim-bound-proofs
 export type ClaimBindingVerdict = (typeof CLAIM_BINDING_VERDICTS)[number];
 
 export const PROOF_RECEIPT_OUTCOMES = [
@@ -263,7 +261,6 @@ export type ProofReceipt = Readonly<{
 }>;
 
 /** How one certificate binds to one requirement claim, judged at ingest. */
-// implements REQ-kibi-claim-bound-proofs
 export type ClaimBinding = Readonly<{
   claim_key: string;
   requirement_id?: string;
@@ -434,7 +431,6 @@ export function validProofReceiptShape(
   return !finishedAtPrecedesStartedAt(startedAt, finishedAt);
 }
 
-// implements REQ-kibi-code-proof-kinds
 function validV2Fields(row: Record<string, unknown>): boolean {
   if (!(PROOF_KINDS as readonly unknown[]).includes(row.kind)) return false;
   if (row.evidence_level !== "proved" && row.evidence_level !== "tested")
@@ -464,7 +460,6 @@ function validV2Fields(row: Record<string, unknown>): boolean {
   return true;
 }
 
-// implements REQ-kibi-claim-bound-proofs
 function validClaimBindings(value: unknown): boolean {
   return (
     Array.isArray(value) &&

@@ -682,6 +682,20 @@ test(contract_hash_values_and_contract_shapes) :-
     once(requirement_proof:proof_contract_hash(Json, H2)),
     H1 == H2.
 
+test(contract_hash_keeps_json_booleans_and_null) :-
+    Json = "{\"source\":{\"capture\":true,\"strict\":false,\"alias\":null,\"pattern\":\"data/*_*.json\"},\"list\":[true,false,null,\"true\"]}",
+    Canonical = "{\"list\":[true,false,null,\"true\"],\"source\":{\"alias\":null,\"capture\":true,\"pattern\":\"data/*_*.json\",\"strict\":false}}",
+    crypto_data_hash(Canonical, Expected, [algorithm(sha256), encoding(utf8)]),
+    once(requirement_proof:proof_contract_hash(Json, H1)),
+    once(requirement_proof:proof_contract_hash(literal(Json), H2)),
+    H1 == Expected, H2 == Expected,
+    % a string "true" is not the boolean true
+    StringJson = "{\"source\":{\"capture\":\"true\"}}",
+    once(requirement_proof:proof_contract_hash(StringJson, H3)),
+    BoolJson = "{\"source\":{\"capture\":true}}",
+    once(requirement_proof:proof_contract_hash(BoolJson, H4)),
+    H3 \== H4.
+
 test(unit_receipt_secondaries) :-
     findall(S-R, (member(S, [missing, stale, contract_mismatch, failed, invalid, snapshot_unavailable, passed]),
                   once(requirement_proof:unit_receipt_secondary(S, R))), Pairs),
@@ -1428,11 +1442,13 @@ test(exempt_and_not_current_requirements_skip_the_ladder) :-
         % A requirement that is not current is out of scope for that reason,
         % whatever exemption it also carries.
         pf_entity(req, 'REQ-OLD-EX', [status=deprecated, proof_exempt=true, proof_exempt_reason="Old scope"]),
+        pf_entity(req, 'REQ-RET', [status=retired, retired_reason="Behavior removed"]),
         pf_entity(req, 'REQ-OPEN', [status=open]),
         requirement_proof_context(abc, '2026-05-02T00:00:00Z', 100, C),
         forall(member(Id-Reason, ['REQ-EX'-'Outside scope',
                                   'REQ-OLD'-'status \'deprecated\' is not a current requirement status',
-                                  'REQ-OLD-EX'-'status \'deprecated\' is not a current requirement status']),
+                                  'REQ-OLD-EX'-'status \'deprecated\' is not a current requirement status',
+                                  'REQ-RET'-'requirement is retired: the behavior it stated no longer exists']),
                (   kb_entity(Id, req, Props),
                    once(requirement_proof:compute_requirement_proof(Id, Props, C, Proof)),
                    get_dict(proofStatus, Proof, not_applicable),

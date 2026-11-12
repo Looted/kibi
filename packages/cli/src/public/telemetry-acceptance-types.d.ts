@@ -1,4 +1,3 @@
-// implements REQ-kibi-telemetry-acceptance-gate-v2
 export type TelemetryMetricStatus =
   | "passed"
   | "failed"

@@ -60,7 +60,6 @@ export type ProofExplainSymbolBlock = {
   readonly coverageCandidates: readonly ProofCoverageCandidate[];
 };
 
-// implements REQ-kibi-claim-bound-proofs
 export type ClaimSummary = Readonly<{
   applicable: number;
   proved: number;
@@ -69,7 +68,6 @@ export type ClaimSummary = Readonly<{
   unresolved: number;
 }>;
 
-// implements REQ-kibi-claim-bound-proofs
 export type ClaimExplainEntry = Readonly<{
   claimKey: string;
   status: string;
@@ -87,7 +85,6 @@ export type ClaimExplainEntry = Readonly<{
   }>[];
 }>;
 
-// implements REQ-kibi-claim-bound-proofs
 export type ClaimRefutation = Readonly<{
   test: string;
   claimKey: string;
@@ -277,7 +274,6 @@ function asSymbolBlock(value: unknown): ProofExplainSymbolBlock {
   };
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export function projectRequirementExplain(
   proof: Record<string, unknown>,
 ): RequirementProofExplainView {
@@ -369,7 +365,6 @@ export function projectRequirementExplain(
   };
 }
 
-// implements REQ-kibi-happy-path-gap
 function negativePathField(stage: unknown): { negativePath?: NegativePathExplain } {
   if (stage === undefined) return {};
   const record = asRecord(stage);
@@ -405,7 +400,6 @@ function waiverField(raw: unknown): {
     : { waiver: { reason, ...(approvedBy === "" ? {} : { approvedBy }) } };
 }
 
-// implements REQ-kibi-dimension-gap
 function dimensionField(stage: unknown): { dimension?: DimensionExplain } {
   if (stage === undefined) return {};
   const record = asRecord(stage);
@@ -432,7 +426,6 @@ function dimensionField(stage: unknown): { dimension?: DimensionExplain } {
   };
 }
 
-// implements REQ-kibi-case-coverage
 function casesField(stage: unknown): { cases?: CasesExplain } {
   if (stage === undefined) return {};
   const record = asRecord(stage);
@@ -550,7 +543,6 @@ function renderNegativePath(view: RequirementProofExplainView): string[] {
   return lines;
 }
 
-// implements REQ-kibi-claim-bound-proofs
 function refutationFields(
   proof: Record<string, unknown>,
   stages: Record<string, unknown>,
@@ -617,7 +609,6 @@ const GAP_REASONS: Readonly<Record<string, string>> = {
 };
 
 /** One plain clause per gap, naming what it is about where Kibi knows. */
-// implements REQ-kibi-claim-bound-proofs
 export function gapReason(
   gap: string,
   view: Pick<
@@ -710,7 +701,6 @@ function claimFields(proof: Record<string, unknown>): {
 /** Gaps a refuted claim leaves that a derived proof would have covered. */
 const CERTIFIED_GAPS = new Set(["happy_path_only", "uncovered_case"]);
 
-// implements REQ-kibi-claim-bound-proofs
 function renderRefutations(view: RequirementProofExplainView): string[] {
   const refutations = view.refutations ?? [];
   if (refutations.length === 0) return [];
@@ -746,7 +736,6 @@ function renderClaims(view: RequirementProofExplainView): string[] {
       lines.push(
         `    ${binding.test} ${binding.kind}: ${binding.binding}${binding.binding === "derived" ? ` (${binding.scope})` : ""}${binding.reason ? `: ${binding.reason}` : ""}`,
       );
-    // implements REQ-kibi-claim-bound-proofs
     if (claim.notProved === "requirement_not_tested")
       lines.push(
         `    not proved: the certificate derives the claim, but a claim is proved only once the requirement is tested end to end, and it is not (proofStatus ${view.proofStatus})${view.proofGaps.length > 0 ? `: ${view.proofGaps.map((gap) => gapReason(gap, view)).join("; ")}` : ""}`,
@@ -755,7 +744,6 @@ function renderClaims(view: RequirementProofExplainView): string[] {
   return lines;
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export function projectSymbolExplain(
   payload: Record<string, unknown>,
 ): SymbolProofExplainView {
@@ -774,7 +762,6 @@ export function projectSymbolExplain(
   };
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export function renderProofExplain(view: ProofExplainView): string {
   if (view.kind === "symbol") return renderSymbolExplain(view);
   return renderRequirementExplain(view);
@@ -888,7 +875,6 @@ function formatRef(ref: ProofResolutionRef): string {
   return path === "" ? `${id}${role}` : `${id} ${path}${role}`;
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export function classifyExplainTarget(
   id: string | undefined,
   options: { requirement?: string; symbol?: string },
@@ -938,7 +924,6 @@ const TARGET_TYPE: Readonly<Record<ProofExplainKind, string>> = {
   symbol: "symbol",
 };
 
-// implements REQ-kibi-verification-evidence-contract
 /**
  * Refuse an id the branch KB does not hold as the asked-for type before the
  * proof query runs, which would otherwise fail with a bare "Query failed".
@@ -965,7 +950,6 @@ export async function requireExplainTarget(
   );
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export async function executeProofExplain(
   target: { kind: ProofExplainKind; id: string },
   context: OperationContext,

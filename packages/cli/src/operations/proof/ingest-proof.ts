@@ -61,7 +61,6 @@ import { patchReceiptsIntoDocument } from "./receipt-document.js";
 import { judgeClaimBindings, receiptEvidenceLevel } from "./claim-bindings.js";
 import { checkCodeCertificate } from "./code-certificates.js";
 
-// implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
   snapshot: string;
   artifact: Readonly<Record<string, unknown>>;
@@ -92,7 +91,6 @@ export type IngestProofTestResult = Readonly<{
   fingerprintDrift?: readonly string[];
 }>;
 
-// implements REQ-kibi-verification-evidence-contract
 export type IngestProofResult = Readonly<{
   artifactDigest: string;
   environmentHash: string;
@@ -168,12 +166,12 @@ function requiredString(value: unknown, label: string): string {
   return result;
 }
 
-/** Whether a binding names a native case id, as its own id or an alias. */
+export /** Whether a binding names a native case id, as its own id or an alias. */
 function ownsNativeId(binding: ProofBinding, nativeId: string): boolean {
   return binding.native_id === nativeId || binding.aliases?.includes(nativeId) === true;
 }
 
-function enforceNativeCaseBindings(
+export function enforceNativeCaseBindings(
   testId: string,
   contract: ProofContract,
   bindings: readonly ProofBinding[],
@@ -252,7 +250,6 @@ function existingReceipts(
     : [];
 }
 
-// implements REQ-kibi-verification-evidence-contract
 async function executeIngestProofUnlocked(
   args: IngestProofArgs,
   context: OperationContext,
@@ -463,7 +460,6 @@ async function executeIngestProofUnlocked(
   }
 
   const results: IngestProofTestResult[] = [];
-  // implements REQ-kibi-code-proof-kinds
   // What each receipt says about its proof kind, evidence level, certificate
   // and claim bindings, so the caller sees a rejected certificate at ingest.
   const bindingsOf = new Map(
@@ -691,7 +687,6 @@ async function executeIngestProofUnlocked(
   };
 }
 
-// implements REQ-kibi-verification-evidence-contract
 export async function executeIngestProof(
   args: IngestProofArgs,
   context: OperationContext,
