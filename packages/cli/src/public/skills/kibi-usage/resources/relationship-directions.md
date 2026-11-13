@@ -14,6 +14,15 @@
 | `supersedes` | new-req -> old-req | New requirement formally replaces an old requirement |
 | `restates` | req -> req | Requirement intentionally restates another current requirement (for example a product requirement echoed in a platform requirement); suppresses `domain-redundancy` for that pair without retiring either side |
 | `covered_by` | symbol -> test | Production symbol has test coverage evidence |
+| `requires_predicate` | req -> fact(predicate) | Requirement requires a predicate fact (sent in the requirement's write) |
+| `requires_rule` | req -> fact(rule) | Requirement requires a rule fact |
+| `assumes` | scenario -> fact(property_value) | Scenario outcome relies on that value (sent in the scenario's write) |
+| `depends_on` | req -> req | Requirement depends on another requirement |
+| `exempts` | exception-req -> base-req | Approved exception exempts its scenarios from the base requirement's constraints |
+
+Every relationship in one write starts from the entity that write upserts.
+A `relationship_source_mismatch` rejection means a link was sent in another
+entity's write: send it in a write of its `from` entity instead.
 
 ## Valid Payload Examples
 

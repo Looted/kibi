@@ -260,3 +260,62 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
     }
   }, 240_000);
 });
+
+describe("kibi CLI skill load telemetry (end to end)", () => {
+  test("a skill loaded through the CLI marks later operations in that workspace", async () => {
+    const workspace = gitWorkspace();
+    const other = gitWorkspace();
+    const state = temporaryDirectory("kibi-skill-load-state-");
+    const collector = startCollector();
+    try {
+      const env = {
+        KIBI_TELEMETRY: "1",
+        KIBI_TELEMETRY_DIR: state,
+        KIBI_TELEMETRY_HOST: collector.url,
+      };
+      for (const root of [workspace, other]) {
+        expect((await runKibi(["init", "--no-hooks"], root, env)).exitCode).toBe(
+          0,
+        );
+      }
+      const before = await runKibi(["status"], workspace, env);
+      const load = await runKibi(
+        ["skills", "load", "kibi-usage", "--format", "json"],
+        workspace,
+        env,
+      );
+      expect(load.exitCode).toBe(0);
+      expect(load.stdout).toContain('"sourceType": "bundled"');
+      const after = await runKibi(["status"], workspace, env);
+      const elsewhere = await runKibi(["status"], other, env);
+      expect([before, after, elsewhere].map((run) => run.exitCode)).toEqual([
+        0, 0, 0,
+      ]);
+      // Twenty queued events make the next command's flush due.
+      for (let index = 0; index < 16; index += 1) {
+        await runKibi(["status"], other, env);
+      }
+      const events = collector.batches
+        .flatMap((body) => body.batch)
+        .map((event) => event.properties)
+        .filter((properties) => properties.operation !== "init")
+        .slice(0, 4);
+      expect(
+        events.map((properties) => [
+          properties.operation,
+          properties.skill_loaded_before,
+        ]),
+      ).toEqual([
+        ["status", false],
+        ["skills load", false],
+        ["status", true],
+        ["status", false],
+      ]);
+      const sent = JSON.stringify(collector.batches);
+      expect(sent).not.toContain(workspace);
+      expect(sent).not.toContain(other);
+    } finally {
+      collector.stop();
+    }
+  }, 120_000);
+});

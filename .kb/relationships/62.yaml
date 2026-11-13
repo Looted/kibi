@@ -440,3 +440,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a4ddcd4728ca
+  - type: specified_by
+    from: REQ-skillopt-harness-telemetry-silent
+    to: SCEN-skillopt-harness-telemetry-silent
+    created_at: 2026-11-13T09:29:43.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dae5c12a6d24
+  - type: specified_by
+    from: REQ-skillopt-harness-telemetry-silent
+    to: SCEN-NEG-skillopt-harness-telemetry-silent-OPERATOR-OPT-IN
+    created_at: 2026-11-13T09:29:43.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca59f03ac431
+  - type: verified_by
+    from: REQ-skillopt-harness-telemetry-silent
+    to: TEST-skillopt-harness-telemetry-silent
+    created_at: 2026-11-13T09:29:43.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51456fec4bd0
+  - type: requires_property
+    from: REQ-skillopt-harness-telemetry-silent
+    to: FACT-skillopt-harness-telemetry-enabled-process-count-zero
+    created_at: 2026-11-13T09:33:52.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c77f457d731
+  - type: constrains
+    from: REQ-skillopt-harness-telemetry-silent
+    to: FACT-subject-skillopt-harness-child-processes
+    created_at: 2026-11-13T09:33:52.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f72b82c5c98

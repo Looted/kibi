@@ -410,3 +410,19 @@ describe("signal edges", () => {
     ).toStrictEqual({ error: undefined, search: true, hintsShown: false });
   });
 });
+
+describe("skill load signal", () => {
+  test("marks the skill load routes and nothing else", () => {
+    const load = (operation: string, args?: unknown) =>
+      operationTelemetrySignals({ operation, args }).skillLoad;
+    expect(load("kb_skills_load")).toBe(true);
+    expect(load("skills load")).toBe(true);
+    expect(load("skills-load")).toBe(true);
+    expect(load("kb_skills", { action: "load" })).toBe(true);
+    expect(load("skill", { action: "load" })).toBe(true);
+    expect(load("kb_skills", { action: "list" })).toBeUndefined();
+    expect(load("skill", { action: "read" })).toBeUndefined();
+    expect(load("skills list")).toBeUndefined();
+    expect(load("kb_upsert", { action: "load" })).toBeUndefined();
+  });
+});

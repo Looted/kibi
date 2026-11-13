@@ -48,6 +48,11 @@ export type OperationSignals = {
   readonly retryKey?: string | undefined;
   /** The error a failure threw, for its Kibi stack frames. Never sent. */
   readonly error?: unknown;
+  /**
+   * The call loaded a Kibi skill, so later calls in the workspace carry
+   * `skill_loaded_before`. Stored as the workspace hash only; never sent.
+   */
+  readonly skillLoad?: boolean | undefined;
 };
 
 /** How long a repeated call on the same entity counts as a retry. */

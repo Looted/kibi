@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.46.0
+  version: 2.47.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -793,8 +793,8 @@ gate, direct KB-store edits, and a generic `strict kb_upsert.properties` field.
 Reject an invented reason, an `implements` link from code that only delegates,
 an `umbrella` tag or rule change made to clear a review finding, and a
 requirement left `closed` when its behavior is gone (`retired`).
-Keep symbol payloads minimal. When a generic `Query failed` appears, do not keep
-retrying the same payload; inspect the typed error and `nextActions`.
+Keep symbol payloads minimal. Never resend a payload a typed error rejected
+twice; fix the rule and field the error names, or follow `nextActions`.
 
 Kibi may now author tracked Markdown/YAML evidence transactionally. The former
 statement “Kibi operation writes do not automatically stage markdown evidence”

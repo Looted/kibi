@@ -7647,5 +7647,33 @@
         "./packages/cli/tests/public/positive-scenario.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-telemetry-skill-load-routes-cli",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts",
+        "-t",
+        "a skill loaded through the CLI"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-harness-telemetry-silent",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--preload",
+        "./scripts/skillopt-eval/offline-test-preload.ts",
+        "--timeout",
+        "120000",
+        "./scripts/skillopt-eval/tests/telemetry-env.test.ts"
+      ]
+    ]
   }
 ]
