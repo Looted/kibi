@@ -140,6 +140,36 @@ describe("subjectLayerWarnings", () => {
     expect(warning).not.toContain("shop.req_derived");
   });
 
+  test("a suggestion leaves out a title that only restates its key", async () => {
+    const { prolog } = scriptedProlog([
+      json([
+        {
+          factId: "F-PDF",
+          subjectKey: "shop.cart_pdf",
+          title: "Subject shop.cart_pdf",
+        },
+        { factId: "F-LINES", subjectKey: "shop.cart_lines", title: "" },
+        {
+          factId: "F-SIGN",
+          subjectKey: "shop.cart_sign_out",
+          title: "Leaving the cart on sign-out",
+        },
+      ]),
+    ]);
+    const [warning] = await subjectLayerWarnings(
+      { id: "REQ-A", type: "req" },
+      { semantic_inventory: [claim("C1")] },
+      "",
+      prolog,
+      workspace(),
+    );
+    expect(warning).toContain("shop.cart_pdf");
+    expect(warning).toContain("shop.cart_lines");
+    expect(warning).not.toContain("Subject shop.cart_pdf");
+    expect(warning).not.toContain('shop.cart_lines ("');
+    expect(warning).toContain('shop.cart_sign_out ("Leaving the cart on sign-out")');
+  });
+
   test("a claim no subject matches is told to define one", async () => {
     const { prolog } = scriptedProlog([json([])]);
     const [warning] = await subjectLayerWarnings(
@@ -430,5 +460,62 @@ describe("subjectLayerWarnings", () => {
     ).toEqual([
       "subject-duplicate: subject shop.cart is already defined by F-CART. Two active subject facts with one key make the term mean two things: extend the existing definition instead, or retire one of them.",
     ]);
+  });
+
+  test("a subject that names itself or closes a cycle with the authored subjects is reported", async () => {
+    const root = workspace();
+    const subjectFile = (
+      id: string,
+      key: string,
+      extra: string,
+      status = "active",
+    ) =>
+      writeIn(
+        root,
+        `.kb/facts/${id}.md`,
+        `---\nid: ${id}\ntype: fact\ntitle: ${key}\nstatus: ${status}\nfact_kind: subject\nsubject_key: ${key}\n${extra}---\n${DEFINITION}\n`,
+      );
+    subjectFile("F-ALPHA", "cyc.alpha", "");
+    subjectFile("F-GAMMA", "cyc.gamma", "part_of:\n  - cyc.beta\n");
+    subjectFile("F-OLD", "cyc.old", "part_of:\n  - cyc.beta\n", "retired");
+    writeIn(root, ".kb/facts/README.md", "not an entity");
+    writeIn(root, ".kb/facts/broken.md", "no front matter");
+    const write = async (
+      id: string,
+      subjectKey: string,
+      extra: Record<string, unknown>,
+    ) => {
+      const { prolog } = scriptedProlog([
+        json([]),
+        json({ subjects: [neighbour(subjectKey, false, [])], notCurrent: [] }),
+      ]);
+      return subjectLayerWarnings(
+        { id, type: "fact" },
+        { fact_kind: "subject", subject_key: subjectKey, title: id, ...extra },
+        DEFINITION,
+        prolog,
+        root,
+      );
+    };
+    expect(
+      await write("F-BETA", "cyc.beta", { part_of: ["cyc.alpha"] }),
+    ).toEqual([]);
+    expect(
+      await write("F-BETA", "cyc.beta", {
+        part_of: ["cyc.beta", "cyc.gamma"],
+        kind_of: ["cyc.beta"],
+        distinct_from: ["cyc.beta"],
+      }),
+    ).toEqual([
+      "subject-hierarchy-invalid: subject cyc.beta (F-BETA) names itself under part_of, kind_of, distinct_from; kb_check blocks it. part_of and kind_of name broader subjects and distinct_from other subjects, never the subject itself: remove cyc.beta from part_of, kind_of, distinct_from.",
+      "subject-hierarchy-invalid: subjects cyc.beta, cyc.gamma sit under each other through part_of, kind_of or dotted keys, so none of them is broader and kb_check blocks them. Remove the link that points the wrong way: keep the one that says which subject contains or generalizes the other.",
+    ]);
+    // Rewriting the subject that closes a cycle replaces its stored links.
+    subjectFile("F-BETA", "cyc.beta", "part_of:\n  - cyc.gamma\n");
+    expect(
+      await write("F-BETA", "cyc.beta", { kind_of: ["cyc.alpha"] }),
+    ).toEqual([]);
+    // A cycle elsewhere is not this subject's to report.
+    expect(await write("F-DELTA", "cyc.delta", {})).toEqual([]);
   });
 });

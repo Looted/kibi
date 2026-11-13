@@ -489,7 +489,8 @@ fact_source(FactId, Source) :-
 % (and how), the grounded claims on it, the unmodeled claims that name it,
 % and the scenarios that assume the grounded claims.  Definitions live in
 % the subject facts' bodies, which the host reads.  A subject in a part_of
-% or kind_of cycle is listed as broader, never also as narrower.
+% or kind_of cycle is listed as broader, never also as narrower, while its
+% requirements and claims are in view, as kb_check pairs them.
 subject_domain_json(SubjectKey0, Json) :-
     kb:normalize_term_atom(SubjectKey0, SubjectKey),
     domain_index(Index),
@@ -498,7 +499,8 @@ subject_domain_json(SubjectKey0, Json) :-
     findall(Broader, broader_in(Defined, SubjectKey, Broader), Broader0),
     sort(Broader0, BroaderKeys),
     key_ancestors(Index, SubjectKey, Ancestors),
-    narrower_keys(Index, SubjectKey, Ancestors, Below),
+    descendant_keys(Index, SubjectKey, Descendants),
+    ord_subtract(Descendants, Ancestors, Below),
     findall(Narrow,
             (   member(Narrow, Below),
                 defined_in(Defined, Narrow),
@@ -506,7 +508,10 @@ subject_domain_json(SubjectKey0, Json) :-
             ),
             Narrower0),
     sort(Narrower0, NarrowerKeys),
-    Scope = [SubjectKey|Below],
+    % The requirements and claims in view are those kb_check pairs with
+    % one on SubjectKey: on it or on any subject below it, a subject in a
+    % cycle with it included.
+    Scope = [SubjectKey|Descendants],
     findall(ReqId-row(Key, Via),
             (   member(Key, Scope),
                 assoc_list(BySubject, Key, Rows),
@@ -568,18 +573,17 @@ subject_domain_json(SubjectKey0, Json) :-
 assoc_list(Assoc, Key, Values) :-
     (   get_assoc(Key, Assoc, Found) -> Values = Found ; Values = [] ).
 
-%% narrower_keys(+Index, +SubjectKey, +Ancestors, -Below)
-% Every subject key the index knows that SubjectKey is broader than, except
-% those also broader than SubjectKey (a part_of or kind_of cycle).
-narrower_keys(Index, SubjectKey, Ancestors, Below) :-
+%% descendant_keys(+Index, +SubjectKey, -Descendants)
+% Every subject key the index knows that SubjectKey is broader than, sorted;
+% a subject in a part_of or kind_of cycle with SubjectKey included.
+descendant_keys(Index, SubjectKey, Descendants) :-
     Index = index(_, AncestorIndex, _, _),
     findall(Key,
             (   gen_assoc(Key, AncestorIndex, KeyAncestors),
-                memberchk(SubjectKey, KeyAncestors),
-                \+ memberchk(Key, Ancestors)
+                memberchk(SubjectKey, KeyAncestors)
             ),
-            Below0),
-    sort(Below0, Below).
+            Descendants0),
+    sort(Descendants0, Descendants).
 
 subject_fact_json(FactId, _{id: FactId, title: Title, source: Source, partOf: PartOf, kindOf: KindOf}) :-
     entity_string(FactId, fact, title, Title),
@@ -676,7 +680,7 @@ subject_neighbour_json(Index, ReqId, SubjectKey, _{
     (   FactIds == [] -> Defined0 = false ; Defined0 = true ),
     maplist(subject_fact_json, FactIds, SubjectFacts),
     key_ancestors(Index, SubjectKey, Ancestors),
-    narrower_keys(Index, SubjectKey, Ancestors, Below),
+    descendant_keys(Index, SubjectKey, Below),
     append([SubjectKey|Below], Ancestors, Scope),
     findall(Other,
             (   member(Key, Scope),

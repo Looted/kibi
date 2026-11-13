@@ -23,12 +23,17 @@ import {
   definitionQuote,
   readSubjectNeighbours,
 } from "../../public/operations/subject-domain.js";
+import { readAuthoredEntity } from "../../public/operations/entity-context.js";
 import {
   MIN_DEFINITION_WORDS,
   SUBJECT_DUPLICATE_JACCARD,
+  type SubjectEntry,
+  activeSubjects,
   assessDefinition,
+  subjectHierarchyCycles,
   subjectSimilarity,
 } from "../../public/operations/subject-layer.js";
+import { listLaneMarkdownSources } from "../migration/kb-sources.js";
 import { readKbManifest } from "../../utils/kb-manifest.js";
 import { readSubjectVocabulary } from "../modeling/vocabulary-alignment.js";
 
@@ -153,6 +158,18 @@ export async function subjectLayerWarnings(
   return [];
 }
 
+/**
+ * Whether a subject's title says more than its key: a placeholder such as
+ * "Subject report_export.pdf" only restates the key, so a suggestion shows
+ * the key alone.
+ */
+function informativeTitle(subjectKey: string, title: string | undefined) {
+  const words = (value: string) =>
+    value.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const keyWords = new Set([...words(subjectKey), "subject"]);
+  return words(title ?? "").some((word) => !keyWords.has(word));
+}
+
 async function requirementWarnings(
   id: string,
   entity: Readonly<Record<string, unknown>>,
@@ -172,7 +189,7 @@ async function requirementWarnings(
         { limit: SUGGESTED_SUBJECTS },
       ).map(
         (candidate) =>
-          `${candidate.subjectKey}${candidate.title ? ` ("${candidate.title}")` : ""}`,
+          `${candidate.subjectKey}${informativeTitle(candidate.subjectKey, candidate.title) ? ` ("${candidate.title}")` : ""}`,
       );
       warnings.push(
         `claim-subject-missing: inventory claim ${text(entry.claim_key)} of ${id} ("${text(entry.claim_text)}") is not modeled and names no subjects, so kb_check blocks it and Kibi cannot pair it with the other requirements on its subjects. Add subjects: [<subject_key>, ...] to that entry${suggestions.length > 0 ? `; existing subjects its words suggest: ${suggestions.join(", ")}` : ""}. Define a missing subject as a subject fact first.`,
@@ -240,6 +257,8 @@ async function subjectFactWarnings(
     title,
     distinctFrom: strings(entity.distinct_from),
     broader: [...strings(entity.part_of), ...strings(entity.kind_of)],
+    partOf: strings(entity.part_of),
+    kindOf: strings(entity.kind_of),
   };
   const vocabulary = await readSubjectVocabulary(prolog as PrologPort);
   const [sameKey] = (
@@ -271,6 +290,64 @@ async function subjectFactWarnings(
   if (similar.length > 0) {
     warnings.push(
       `subject-duplicate: subject ${subjectKey} reads like existing ${similar.map((entry) => `${entry.subjectKey} (${entry.factId})`).join(", ")}. Reuse the existing subject, or name it under distinct_from (or part_of or kind_of when this subject is a part or kind of it) and say in the definition how they differ; kb_check blocks the pair otherwise.`,
+    );
+  }
+  warnings.push(...hierarchyWarnings(id, written, workspaceRoot));
+  return warnings;
+}
+
+/**
+ * subject-hierarchy-invalid for the subject just written: it names itself
+ * under part_of, kind_of or distinct_from, or it sits in a cycle with the
+ * other active subjects authored in the workspace, as kb_check reads them.
+ */
+function hierarchyWarnings(
+  id: string,
+  written: Readonly<{
+    subjectKey: string;
+    distinctFrom: readonly string[];
+    partOf: readonly string[];
+    kindOf: readonly string[];
+  }>,
+  workspaceRoot: string,
+): string[] {
+  const warnings: string[] = [];
+  const self = (
+    [
+      ["part_of", written.partOf],
+      ["kind_of", written.kindOf],
+      ["distinct_from", written.distinctFrom],
+    ] as const
+  )
+    .filter(([, keys]) => keys.includes(written.subjectKey))
+    .map(([field]) => field);
+  if (self.length > 0) {
+    warnings.push(
+      `subject-hierarchy-invalid: subject ${written.subjectKey} (${id}) names itself under ${self.join(", ")}; kb_check blocks it. part_of and kind_of name broader subjects and distinct_from other subjects, never the subject itself: remove ${written.subjectKey} from ${self.join(", ")}.`,
+    );
+  }
+  const stored = activeSubjects(
+    listLaneMarkdownSources(workspaceRoot, ["facts"]).flatMap((file) => {
+      const entity = readAuthoredEntity(file.content, file.relativePath);
+      return entity === null ? [] : [entity];
+    }),
+    new Set(),
+  ).filter((subject) => subject.id !== id);
+  const subject: SubjectEntry = {
+    id,
+    subjectKey: written.subjectKey,
+    title: "",
+    definition: "",
+    distinctFrom: written.distinctFrom,
+    broader: [...written.partOf, ...written.kindOf],
+    partOf: written.partOf,
+    kindOf: written.kindOf,
+    path: "",
+  };
+  for (const cycle of subjectHierarchyCycles([...stored, subject])) {
+    if (!cycle.includes(written.subjectKey)) continue;
+    warnings.push(
+      `subject-hierarchy-invalid: subjects ${cycle.join(", ")} sit under each other through part_of, kind_of or dotted keys, so none of them is broader and kb_check blocks them. Remove the link that points the wrong way: keep the one that says which subject contains or generalizes the other.`,
     );
   }
   return warnings;

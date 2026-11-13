@@ -334,9 +334,9 @@ test(claim_subject_undefined_suggestions, Suggestions == [
     )).
 
 % A part_of cycle lists the other subject as broader, never also as
-% narrower (nor its requirements as requirements on a narrower subject), and
-% the view never lists a subject under itself.
-test(domain_json_cycle, Summary == [[b], [b], [], []]) :-
+% narrower, and the view never lists a subject under itself; the other
+% subject's requirements are in view, since kb_check pairs them.
+test(domain_json_cycle, Summary == [[b], [b], [], ['REQ-B']]) :-
     ds_kb((
         ds_subject('F-A', "a", [part_of=["b"]]),
         ds_subject('F-B', "b", [part_of=["a"]]),
