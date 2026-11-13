@@ -2383,7 +2383,7 @@ function readSessionMarkers(env) {
   }
 }
 function workspaceKey(workspaceRoot) {
-  return hashTelemetryId(`workspace\x00${path8.resolve(workspaceRoot)}`);
+  return hashTelemetryId(`workspace\x00${realDirectory(workspaceRoot)}`);
 }
 function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
   if (!sessionId.trim() || !telemetryEnabled(env))
