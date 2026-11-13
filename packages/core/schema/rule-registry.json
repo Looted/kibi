@@ -467,7 +467,7 @@
     },
     {
       "name": "subject-definition-missing",
-      "description": "An active subject fact is a domain definition: its body must say what the subject is (at least 8 words of prose that do not restate the title or subject_key)",
+      "description": "An active subject fact is a domain definition: its body must say what the subject is (at least 8 words of prose, each Chinese or Japanese character counting as a word, that do not restate the title or subject_key and add at least 3 words of their own beyond them and function words), and must not be a template that 3 or more subjects repeat with only the key or title changed; a body opening with 'Definition not stated:' records the gap instead",
       "enforcementClass": "canonical",
       "category": "integrity",
       "implementation": "typescript",
@@ -476,7 +476,16 @@
     },
     {
       "name": "subject-duplicate",
-      "description": "Two active subject facts whose subject_key and title words mostly coincide (token Jaccard at least 0.7) define one thing twice, unless one key is a dotted prefix of the other or either lists the other under distinct_from",
+      "description": "Two active subject facts define one thing twice when they carry the same subject_key, or when their keys have the same words up to simple plurals, or when their subject_key and title words mostly coincide (token Jaccard at least 0.7, plurals and function words removed); a pair is exempt when one key's words begin the other's (an ancestor and its descendant), when the keys sit under different parents, or when either lists the other under distinct_from, part_of or kind_of",
+      "enforcementClass": "canonical",
+      "category": "integrity",
+      "implementation": "typescript",
+      "prologPredicate": null,
+      "prologPredicateArity": null
+    },
+    {
+      "name": "subject-hierarchy-invalid",
+      "description": "Active subject facts form a hierarchy: no subject lists its own key under part_of, kind_of or distinct_from, and following part_of, kind_of and nearest defined dotted prefixes upward never leads back to the subject it started from",
       "enforcementClass": "canonical",
       "category": "integrity",
       "implementation": "typescript",
