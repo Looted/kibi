@@ -127,7 +127,30 @@ describe("withStoredRequirementSemantics", () => {
     expect(
       (await merged(req({ title: "T" }), stored)).properties,
     ).toStrictEqual({ ...LEDGER, title: "T" });
-    expect((await merged(req({ title: "U" }), stored)).same).toBe(true);
+  });
+
+  test("a changed title is prose unless the ledger reads semantic_text", async () => {
+    const rename = req({ title: "U", status: "open" });
+    expect(
+      (await merged(rename, { type: "req", title: "T", ...LEDGER })).properties,
+    ).toStrictEqual({ ...LEDGER, title: "U", status: "open" });
+    for (const stored of [
+      { type: "req", title: "T", ...LEDGER, semantic_source_field: "title" },
+      { type: "req", title: "T", ...LEDGER, semantic_text: "" },
+    ]) {
+      expect((await merged(rename, stored)).same).toBe(true);
+    }
+    // A title the payload repeats is no change, whatever the source.
+    expect(
+      (
+        await merged(req({ title: "T" }), {
+          type: "req",
+          title: "T",
+          ...LEDGER,
+          semantic_source_field: "title",
+        })
+      ).properties,
+    ).toStrictEqual({ ...LEDGER, semantic_source_field: "title", title: "T" });
   });
 
   test("a changed text_ref is prose unless the ledger reads semantic_text", async () => {
