@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-decisions
   id: kibi-decisions
-  version: 1.7.0
+  version: 1.8.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -67,6 +67,11 @@ name the missing capability. Never read or edit `.kb/` files directly.
    on the same subjects (`must-positive-scenario`). A `scenario-feasibility`
    refusal of that scenario names the recorded rule it conflicts with: ask
    the person which one holds.
+6. When `related-requirement-unmodeled` reports a pair you cannot model,
+   compare the two statements and record a `pair_reviews` verdict. On a
+   `must` or firm requirement show the verdict to the person; set
+   `origin.approved_by` only after they confirm it, and treat a conflict as
+   a rule change to ask about.
 
 ## Decide
 
