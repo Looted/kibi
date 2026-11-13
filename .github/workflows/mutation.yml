@@ -19,7 +19,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  swipl-bundle:
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
   mutation:
+    # A few mapped tests run real SWI-Prolog, built by swipl-bundle.
+    needs: [swipl-bundle]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
