@@ -2471,7 +2471,7 @@ coverage_current_requirement(Req, Props) :-
     ->  normalize_term_atom(RawStatus, Status)
     ;   Status = missing
     ),
-    \+ memberchk(Status, [deprecated, superseded, archived, removed, deleted, rejected]),
+    \+ memberchk(Status, [deprecated, superseded, retired, archived, removed, deleted, rejected]),
     (   Status == closed
     ->  memberchk(tags=RawTags, Props),
         normalize_term_atom_list(RawTags, Tags),
