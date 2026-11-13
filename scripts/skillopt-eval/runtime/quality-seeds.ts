@@ -102,6 +102,11 @@ function doc(front: readonly string[], body: string): string {
   return ["---", ...front, "---", "", body, ""].join("\n");
 }
 
+/**
+ * Seeded requirements are `should`: KB schema 17 asks every new `must`
+ * requirement for a modeled success scenario, which these cases do not
+ * measure, and a split child or a new requirement copies the priority.
+ */
 function requirement(input: {
   id: string;
   title: string;
@@ -116,7 +121,7 @@ function requirement(input: {
       `title: ${JSON.stringify(input.title)}`,
       "type: req",
       "status: open",
-      "priority: must",
+      "priority: should",
       "required_evidence: asserted",
       "origin:",
       ...(input.human === undefined
