@@ -30,6 +30,7 @@ origin:
   approved_by: maintainer
 id: REQ-kibi-telemetry-skill-load-routes
 type: req
+required_evidence: tested
 ---
 A Kibi skill loaded through the CLI or the MCP server shall mark the workspace for skill_loaded_before the same way a skill load seen by a host hook does.
 

@@ -28,6 +28,7 @@ origin:
   approved_by: maintainer
 id: REQ-skillopt-harness-telemetry-silent
 type: req
+required_evidence: tested
 ---
 Every process the SkillOpt evaluation harness starts shall run with Kibi telemetry turned off.
 
