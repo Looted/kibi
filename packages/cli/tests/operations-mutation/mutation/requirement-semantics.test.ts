@@ -140,6 +140,21 @@ describe("withStoredRequirementSemantics", () => {
     ]) {
       expect((await merged(rename, stored)).same).toBe(true);
     }
+    // A title the payload leaves out is no change either.
+    expect(
+      (
+        await merged(req({ status: "open" }), {
+          type: "req",
+          title: "T",
+          ...LEDGER,
+          semantic_source_field: "title",
+        })
+      ).properties,
+    ).toStrictEqual({
+      ...LEDGER,
+      semantic_source_field: "title",
+      status: "open",
+    });
     // A title the payload repeats is no change, whatever the source.
     expect(
       (

@@ -665,6 +665,9 @@ describe("agent-requirement-unapproved-implemented", () => {
       "March 7 2026",
       "x2026-01-02",
       "2026-01-02x",
+      // Date.parse reads these, but they are not ISO 8601.
+      "2026-01-02 10:00 GMT",
+      "2026-01-02, 10:00",
       "2026-13-45T00:00:00Z",
       "2026-02-29",
       "2026-02-30T00:00:00Z",
