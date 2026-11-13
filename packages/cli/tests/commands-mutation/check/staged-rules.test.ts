@@ -117,6 +117,11 @@ describe("knowledge consistency", () => {
     ];
     try {
       h.world.inventory = [md()];
+      const staged = {
+        entity: { id: "REQ-1", type: "req", source: REQ },
+        relationships: [],
+      };
+      h.world.entities = [staged] as never;
       h.set("stagesKnowledge", () => true);
       h.set("floorChangedRequirementIds", () => ["REQ-1"]);
       h.set("readTreeManifest", () => ({ schemaVersion: 15 }));
@@ -128,6 +133,7 @@ describe("knowledge consistency", () => {
           branch: "kb-main",
           requirementIds: ["REQ-1"],
           schemaVersion: 15,
+          stagedEntities: [staged],
         },
       ]);
       const [files, readBase] = h.calls.floorChangedRequirementIds?.[0] as [

@@ -16,7 +16,10 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { EngineClient } from "../engine.js";
+import { existsSync } from "node:fs";
+import type { ExtractionResult } from "../extractors/markdown.js";
+import { toPrologAtom } from "../prolog/codec.js";
+import type { PrologProcess } from "../prolog.js";
 import type { Violation } from "../public/check-types.js";
 import {
   isCurrentAuthoredEntity,
@@ -28,6 +31,12 @@ import {
   collectEvidenceFloorViolations,
 } from "../public/operations/evidence-floor.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
+import { branchStorePath } from "../utils/branch-store-locator.js";
+import {
+  cleanupTempKb,
+  createTempKb,
+  projectStagedEntities,
+} from "./temp-kb.js";
 
 /**
  * The front matter that sets a requirement's evidence floor or decides
@@ -72,11 +81,27 @@ export function floorChangedRequirementIds(
   return ids;
 }
 
+/** The ids among `ids` that the attached store holds as requirements. */
+async function heldRequirementIds(
+  prolog: PrologProcess,
+  ids: readonly string[],
+): Promise<Set<string>> {
+  const held = new Set<string>();
+  for (const id of ids) {
+    const result = await prolog.query(`kb_entity(${toPrologAtom(id)}, req, _)`);
+    if (result.success) held.add(id);
+  }
+  return held;
+}
+
 /**
  * evidence-floor and agent-requirement-unapproved-implemented for the given
- * requirements. Their evidence (tests, symbols and proof receipts) lives in
- * the synced branch store, so the rules read it there, as `kibi check` does;
- * a requirement the store does not hold yet is not judged.
+ * requirements, judged on the staged bytes of their documents. Their
+ * evidence (tests, symbols and proof receipts) lives in the synced branch
+ * store, so the rules read a private copy of it with each staged
+ * requirement's front matter and links projected over the synced ones: an
+ * edit not synced yet is judged as it will be committed, in both
+ * directions. A requirement the store does not hold yet is not judged.
  */
 export async function collectStagedEvidenceFloorViolations(
   input: Readonly<{
@@ -84,6 +109,8 @@ export async function collectStagedEvidenceFloorViolations(
     branch: string;
     requirementIds: readonly string[];
     schemaVersion: number | undefined;
+    /** The staged documents; those of `requirementIds` are projected. */
+    stagedEntities: readonly ExtractionResult[];
   }>,
 ): Promise<Violation[]> {
   if (
@@ -92,13 +119,18 @@ export async function collectStagedEvidenceFloorViolations(
     input.schemaVersion < EVIDENCE_FLOOR_SCHEMA_VERSION
   )
     return [];
-  const engine = new EngineClient({
-    workspaceRoot: input.workspaceRoot,
-    branch: input.branch,
-    timeout: 120_000,
-  });
+  const storePath = branchStorePath(input.workspaceRoot, input.branch);
+  if (!existsSync(storePath)) return [];
+  const ctx = await createTempKb(storePath);
   try {
-    await engine.start();
+    const held = await heldRequirementIds(ctx.prolog, input.requirementIds);
+    await projectStagedEntities(
+      ctx.prolog,
+      input.stagedEntities.filter(
+        (result) =>
+          result.entity.type === "req" && held.has(result.entity.id),
+      ),
+    );
     const findings = await collectEvidenceFloorViolations(
       {
         workspaceRoot: input.workspaceRoot,
@@ -107,18 +139,18 @@ export async function collectStagedEvidenceFloorViolations(
         git: nodeGit,
         fs: nodeFilesystem,
         prolog: {
-          query: (goal) => engine.query(goal),
-          queryEntities: engine.queryEntities.bind(engine),
+          // A started process: a module load and its goal share a session.
+          oneShotMode: false,
+          query: (goal) => ctx.prolog.query(goal),
           nextSolution: async () => null,
-          invalidateCache: () => engine.invalidateCache(),
-          save: () => engine.query("kb_save"),
+          invalidateCache: () => ctx.prolog.invalidateCache(),
+          save: () => ctx.prolog.query("kb_save"),
         },
       },
       new Set(REQUIREMENT_PROOF_RULES),
     );
-    const ids = new Set(input.requirementIds);
-    return findings.filter((finding) => ids.has(finding.entityId));
+    return findings.filter((finding) => held.has(finding.entityId));
   } finally {
-    await engine.terminate();
+    await cleanupTempKb(ctx.tempDir);
   }
 }

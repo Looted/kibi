@@ -968,8 +968,9 @@ export async function checkCommand(
           });
           return { exitCode: options.dryRun ? 0 : 1 };
         }
-        // A requirement the commit adds, or whose floor it moves, must
-        // reach that floor on the evidence the synced store holds.
+        // A requirement whose floor the commit moves must reach that floor,
+        // judged on its staged front matter and the evidence the synced
+        // store holds.
         const floor =
           "branch" in store
             ? await collectStagedEvidenceFloorViolations({
@@ -980,6 +981,7 @@ export async function checkCommand(
                   readStagedBase,
                 ),
                 schemaVersion: readTreeManifest(snapshot)?.schemaVersion,
+                stagedEntities: snapshotEntities,
               })
             : [];
         if (floor.length > 0) {

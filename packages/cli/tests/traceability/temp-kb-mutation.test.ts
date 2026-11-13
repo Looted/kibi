@@ -204,6 +204,28 @@ describe("entity assertion goals", () => {
     ).toBe(`kb_assert_entity_no_audit(req, [${BASE}, approved_by=""])`);
   });
 
+  test("carry the floor fields as sync stores them", async () => {
+    const floor = {
+      proof_exempt: true,
+      firmness: "firm",
+      required_evidence: "asserted",
+      proof_exempt_reason: "pr",
+      retired_reason: "rr",
+    } as unknown as Partial<ExtractedEntity>;
+    expect(await assertionGoal(entity(floor))).toBe(
+      `kb_assert_entity_no_audit(req, [${BASE}, proof_exempt=true, firmness=firm, required_evidence=asserted, proof_exempt_reason="pr", retired_reason="rr"])`,
+    );
+    expect(
+      await assertionGoal(entity({ type: "adr", firmness: "default" } as never)),
+    ).toBe(`kb_assert_entity_no_audit(adr, [${BASE}, firmness=default])`);
+    expect(
+      await assertionGoal(entity({ ...floor, type: "scenario" })),
+    ).toBe(`kb_assert_entity_no_audit(scenario, [${BASE}])`);
+    expect(
+      await assertionGoal(entity({ proof_exempt: false } as never)),
+    ).toBe(`kb_assert_entity_no_audit(req, [${BASE}, proof_exempt=false])`);
+  });
+
   test("carry symbol coordinates and roles", async () => {
     expect(
       await assertionGoal(
