@@ -16,9 +16,14 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { normalizeDateLike } from "../../extractors/markdown.js";
 import { readKbManifest } from "../../utils/kb-manifest.js";
 import type { Violation } from "../../utils/rule-registry.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../proof-receipt.js";
+import { isWithinRoot } from "../skill-system/paths.js";
+import { readAuthoredEntity } from "./entity-context.js";
 import { runOperationJsonQuery, toPrologAtom } from "./prolog-json.js";
 import type { OperationContext } from "./runtime-types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -78,10 +83,24 @@ export type EvidenceFloorRow = Readonly<{
 /** A must requirement an agent wrote, unapproved, that code implements. */
 export type UnapprovedImplementedRow = Readonly<{
   id: string;
-  /** The requirement's created_at, or empty when it has none. */
-  createdAt: string;
+  /** Its origin.recorded_at, or empty when the origin records none. */
+  recordedAt: string;
+  /** Its authored document, or empty when the store records none. */
+  source: string;
   /** Production symbols that implement it. */
   symbols: readonly string[];
+}>;
+
+/**
+ * Where an unapproved requirement's wait for approval starts, read from
+ * authored data only: its origin.recorded_at, else the created_at its own
+ * document states, else nothing (`none`), which counts as older than the
+ * grace period. The stored created_at is not read: sync stamps it with the
+ * sync time when the front matter has none.
+ */
+export type ApprovalClock = Readonly<{
+  since: string;
+  field: "origin.recorded_at" | "created_at" | "none";
 }>;
 
 export type RequirementProofPayload = {
@@ -244,49 +263,108 @@ export async function readRequirementProofPayload(
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Whether a requirement created at `createdAt` has waited longer than the
- * grace period at `checkedAt`. A missing or unreadable created_at counts as
- * old: nothing shows the requirement is new.
+ * Whether a requirement whose approval clock started at `since` has waited
+ * longer than the grace period at `checkedAt`. A missing or unreadable date
+ * counts as old: nothing shows the requirement is new.
  */
-export function pastApprovalGrace(
-  createdAt: string,
-  checkedAt: string,
-): boolean {
-  const created = Date.parse(createdAt);
+export function pastApprovalGrace(since: string, checkedAt: string): boolean {
+  const started = Date.parse(since);
   const checked = Date.parse(checkedAt);
-  if (Number.isNaN(created) || Number.isNaN(checked)) return true;
-  return checked - created > UNAPPROVED_IMPLEMENTED_GRACE_DAYS * DAY_MS;
+  if (Number.isNaN(started) || Number.isNaN(checked)) return true;
+  return checked - started > UNAPPROVED_IMPLEMENTED_GRACE_DAYS * DAY_MS;
+}
+
+function readText(file: string): string | undefined {
+  let text: string | undefined;
+  try {
+    text = readFileSync(file, "utf8");
+  } catch {
+    // A document that cannot be read states no created_at.
+  }
+  return text;
+}
+
+/**
+ * Read the created_at a requirement's own document states, each file at most
+ * once. A source outside the workspace, a missing or unreadable document and
+ * one without created_at give undefined.
+ */
+export function authoredCreatedAtReader(
+  workspaceRoot: string,
+): (source: string) => string | undefined {
+  const cache = new Map<string, string | undefined>();
+  return (source) => {
+    if (cache.has(source)) return cache.get(source);
+    const file = path.resolve(workspaceRoot, source);
+    // An empty source resolves to the workspace itself, which no file read
+    // accepts.
+    const content = isWithinRoot(workspaceRoot, file)
+      ? readText(file)
+      : undefined;
+    const createdAt =
+      content === undefined
+        ? undefined
+        : normalizeDateLike(
+            readAuthoredEntity(content, source)?.data.created_at,
+          );
+    const value = createdAt === "" ? undefined : createdAt;
+    cache.set(source, value);
+    return value;
+  };
+}
+
+/** The approval clock of one row; see {@link ApprovalClock}. */
+export function approvalClock(
+  row: Pick<UnapprovedImplementedRow, "recordedAt" | "source">,
+  createdAtOf: (source: string) => string | undefined,
+): ApprovalClock {
+  if (row.recordedAt !== "")
+    return { since: row.recordedAt, field: "origin.recorded_at" };
+  const createdAt = createdAtOf(row.source);
+  return createdAt === undefined
+    ? { since: "", field: "none" }
+    : { since: createdAt, field: "created_at" };
+}
+
+function clockText(clock: ApprovalClock): string {
+  if (clock.field === "origin.recorded_at")
+    return `since it was recorded at ${clock.since}`;
+  if (clock.field === "created_at")
+    return `since its created_at ${clock.since}`;
+  return `and it records neither origin.recorded_at nor created_at, so it counts as older than ${UNAPPROVED_IMPLEMENTED_GRACE_DAYS} days`;
 }
 
 /**
  * agent-requirement-unapproved-implemented: one finding per must requirement
  * an agent wrote that production code implements and no person approved
- * within the grace period.
+ * within the grace period, counted from its approval clock.
  */
 export function unapprovedImplementedViolations(
   rows: readonly UnapprovedImplementedRow[],
   checkedAt: string,
+  createdAtOf: (source: string) => string | undefined = () => undefined,
 ): Violation[] {
-  return rows
-    .filter((row) => pastApprovalGrace(row.createdAt, checkedAt))
-    .map((row) => {
-      const shown = row.symbols.slice(0, 8).join(", ");
-      const more =
-        row.symbols.length > 8 ? ` (+${row.symbols.length - 8} more)` : "";
-      const since =
-        row.createdAt === "" ? "with no created_at" : `since ${row.createdAt}`;
-      return {
+  return rows.flatMap((row) => {
+    const clock = approvalClock(row, createdAtOf);
+    if (!pastApprovalGrace(clock.since, checkedAt)) return [];
+    const shown = row.symbols.slice(0, 8).join(", ");
+    const more =
+      row.symbols.length > 8 ? ` (+${row.symbols.length - 8} more)` : "";
+    return [
+      {
         rule: AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
         entityId: row.id,
-        description: `Must requirement ${row.id} was written by an agent and production code implements it (${shown}${more}), but no person has approved it ${since}; shipped behavior rests on a requirement nobody confirmed`,
+        description: `Must requirement ${row.id} was written by an agent and production code implements it (${shown}${more}), but no person has approved it ${clockText(clock)}; shipped behavior rests on a requirement nobody confirmed`,
         suggestion: `Have a person review ${row.id}: when it states the intended behavior, record them in origin.approved_by (it then needs tested evidence unless required_evidence says otherwise); when it does not, fix the requirement and the code, or lower priority from must if the behavior is optional.`,
         evidence: {
-          createdAt: row.createdAt,
+          since: clock.since,
+          sinceField: clock.field,
           symbols: row.symbols,
           graceDays: UNAPPROVED_IMPLEMENTED_GRACE_DAYS,
         },
-      };
-    });
+      },
+    ];
+  });
 }
 
 /**
@@ -326,6 +404,7 @@ export async function collectEvidenceFloorViolations(
       ...unapprovedImplementedViolations(
         payload.unapprovedImplemented ?? [],
         checkedAt,
+        authoredCreatedAtReader(context.workspaceRoot),
       ),
     );
   if (!rules.has(EVIDENCE_FLOOR_RULE)) return findings;

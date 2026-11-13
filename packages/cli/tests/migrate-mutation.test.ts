@@ -194,6 +194,10 @@ function stubs() {
     applyFloors: spyOn(evidenceFloor, "applyEvidenceFloorPins").mockReturnValue(
       0,
     ),
+    agentMusts: spyOn(
+      evidenceFloor,
+      "planUnapprovedAgentMusts",
+    ).mockReturnValue([]),
     candidates: spyOn(
       claims,
       "readProofContractClaimCandidates",
@@ -979,10 +983,13 @@ describe("schema upgrade dry run", () => {
       review: [],
       skipped: [],
     } as never);
+    s.agentMusts.mockReturnValue([{ id: "REQ-a", since: "" }]);
     expect(await dry()).toStrictEqual({ exitCode: 0 });
+    expect(s.agentMusts).toHaveBeenCalledWith(cwd, expect.any(String));
     expect(logs).toStrictEqual([
       older(APPROVAL_FLOOR_FROM),
       "dry run: would record required_evidence: asserted on 1 current firm or approved requirement(s) whose evidence is below tested (front matter only).",
+      "dry run: 1 must requirement(s) an agent wrote have no person's approval (origin.approved_by) and waited longer than 14 days or record no date: REQ-a (no origin.recorded_at or created_at). From schema 15 kibi check fails on each one production code implements (agent-requirement-unapproved-implemented): have a person review them and record origin.approved_by, or lower their priority.",
       `dry run: would set schemaVersion from ${APPROVAL_FLOOR_FROM} to ${LATEST} in .kb/manifest.json.`,
       `dry run: would write migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
       "Re-run with --yes to apply these changes.",
@@ -1197,6 +1204,7 @@ describe("schema upgrade", () => {
       decidedBy: "ladder",
     } as never);
     s.applyFloors.mockReturnValue(2);
+    s.agentMusts.mockReturnValue([{ id: "REQ-a", since: "2026-01-01" }]);
     s.applyClaims.mockReturnValue({
       targets: [{ id: "T1" }],
       review: [{ id: "T2" }],
@@ -1221,6 +1229,7 @@ describe("schema upgrade", () => {
       "Recorded required_evidence: asserted on 2 current firm or approved requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.",
       "1 firm or approved requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).",
       "Warning: Cannot record required_evidence on e.md: nope.",
+      "1 must requirement(s) an agent wrote have no person's approval (origin.approved_by) and waited longer than 14 days or record no date: REQ-a. From schema 15 kibi check fails on each one production code implements (agent-requirement-unapproved-implemented): have a person review them and record origin.approved_by, or lower their priority.",
       "Pinned proof_contract.proves on 1 certificate test(s) (T1); run kibi prove for them so their receipts bind the claim.",
       "Review T2",
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was 0).`,

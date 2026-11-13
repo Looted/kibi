@@ -987,8 +987,15 @@ export async function migrateCommand(
   const {
     applyEvidenceFloorPins,
     planEvidenceFloorPins,
+    planUnapprovedAgentMusts,
     readLadderFloorVerdicts,
+    unapprovedAgentMustNote,
   } = await import("../operations/migration/evidence-floor.js");
+  // The agent must requirements the schema 15 rule fails once code
+  // implements them: the upgrade lists them so the new findings are expected.
+  const unapprovedAgentMusts = floorScope.approved
+    ? planUnapprovedAgentMusts(cwd, new Date().toISOString())
+    : [];
   // Read before any source rewrite: the store still holds the KB as it was,
   // and the floors are judged by the same ladder kibi check applies.
   const ladderFloors = evidenceFloorStep
@@ -1093,6 +1100,8 @@ export async function migrateCommand(
       for (const skip of floors.skipped)
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
     }
+    if (unapprovedAgentMusts.length > 0)
+      console.log(unapprovedAgentMustNote(unapprovedAgentMusts, true));
     if (claimBindingStep) {
       const claims = planProofContractClaimPins(cwd, claimCandidates);
       if (claims.targets.length > 0)
@@ -1327,6 +1336,8 @@ export async function migrateCommand(
         `Cannot record required_evidence on ${skip.path}: ${skip.reason}.`,
       );
   }
+  if (unapprovedAgentMusts.length > 0)
+    console.log(unapprovedAgentMustNote(unapprovedAgentMusts, false));
   if (claimPins !== null) {
     if (claimPins.targets.length > 0)
       console.log(

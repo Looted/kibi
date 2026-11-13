@@ -516,6 +516,24 @@ describe("base fields", () => {
     ]);
   });
 
+  test("marks a created_at the front matter states, and only that one", () => {
+    freezeTime();
+    expect(
+      extractFromMarkdownString(
+        md("id: R\ntitle: T\ncreated_at: c"),
+        "/kb/requirements/r.md",
+      ).createdAtAuthored,
+    ).toBe(true);
+    for (const stated of ["", "created_at: ''\n", "created_at: 5\n"]) {
+      const result = extractFromMarkdownString(
+        md(`id: R\ntitle: T\n${stated}`),
+        "/kb/requirements/r.md",
+      );
+      expect("createdAtAuthored" in result).toBe(false);
+      expect(result.entity.created_at).toBe(NOW);
+    }
+  });
+
   test("rejects an invalid origin", () => {
     expect(shape(fails("id: R\ntitle: T\norigin: human"))).toStrictEqual({
       message: "Invalid origin: origin must be a mapping with at least a kind",
