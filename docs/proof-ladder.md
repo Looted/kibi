@@ -470,9 +470,14 @@ One more rule reads the same requirement proofs:
 `agent-requirement-unapproved-implemented` (canonical, KB schema 15) blocks a
 current `priority: must` requirement whose `origin.kind` is `agent`, that
 production symbols implement, and that nobody has approved
-(`origin.approved_by`) more than 14 days after its `created_at` (a missing
-`created_at` counts as older): shipped behavior must not rest on a
-requirement no person confirmed.
+(`origin.approved_by`) more than 14 days after it was written: shipped
+behavior must not rest on a requirement no person confirmed. The age comes
+from authored data only: `origin.recorded_at` (every `kb_upsert` write
+records it), else a `created_at` the requirement's front matter states; a
+requirement with neither counts as older. The stored `created_at` is not
+read, because sync fills a missing one with the sync time. The schema 15
+upgrade (`kibi migrate`) lists the agent's must requirements this rule can
+fail right away.
 
 The schema 12 upgrade binds certificates to claims. `kibi migrate --yes` pins
 `proves` on each certificate-kind contract whose test reaches exactly one

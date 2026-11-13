@@ -2,12 +2,20 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
+  APPROVAL_FLOOR_PIN_CODE,
   EVIDENCE_FLOOR_PIN_CODE,
   type LadderFloorVerdicts,
   applyEvidenceFloorPins,
+  defaultTestedFloor,
   planEvidenceFloorPins,
+  planUnapprovedAgentMusts,
   readLadderFloorVerdicts,
+  unapprovedAgentMustNote,
 } from "../../../src/operations/migration/evidence-floor.js";
+import {
+  type AuthoredEntity,
+  readAuthoredEntity,
+} from "../../../src/public/operations/entity-context.js";
 import * as evidenceFloor from "../../../src/public/operations/evidence-floor.js";
 import * as runtimeTypes from "../../../src/public/operations/runtime-types.js";
 import * as shards from "../../../src/relationships/shards.js";
@@ -462,5 +470,146 @@ describe("readLadderFloorVerdicts", () => {
     }
     expect((await read({ fail: true })).result).toBeNull();
     expect((await read({ status: HEALTHY, rows: 5 })).result).toBeNull();
+  });
+});
+
+describe("approved requirements (schema 15)", () => {
+  const agent = (extra: string) =>
+    req("REQ-x", `origin:\n  kind: agent\n${extra}`);
+  const floorOf = (content: string) =>
+    defaultTestedFloor(
+      readAuthoredEntity(content, ".kb/requirements/r.md") as AuthoredEntity,
+    );
+
+  test("an approval without a stated firmness gives the tested floor", () => {
+    expect(APPROVAL_FLOOR_PIN_CODE).toBe("approval_floor_pin");
+    expect(floorOf(agent("  approved_by: Owner\n"))).toBe("approved");
+    expect(floorOf(agent(""))).toBeUndefined();
+    // An origin sync rejects approves nothing.
+    expect(
+      floorOf(agent("  approved_by: Owner\n  bogus: 1\n")),
+    ).toBeUndefined();
+    expect(
+      floorOf(agent("  approved_by: Owner\nfirmness: default\n")),
+    ).toBeUndefined();
+    expect(floorOf(req("REQ-x"))).toBe("firm");
+  });
+
+  test("the scope picks which floors are pinned", () => {
+    const files = {
+      ".kb/requirements/A.md": agent("  approved_by: Owner\n"),
+      ".kb/requirements/F.md": req("REQ-f"),
+      ".kb/requirements/N.md": req("REQ-n", "origin:\n  kind: agent\n"),
+    };
+    const ids = (scope?: { firm: boolean; approved: boolean }) =>
+      planEvidenceFloorPins(tempWorkspace(files), undefined, scope).targets.map(
+        (target) => target.id,
+      );
+    expect(ids()).toStrictEqual(["REQ-f"]);
+    expect(ids({ firm: false, approved: true })).toStrictEqual(["REQ-x"]);
+    expect(ids({ firm: true, approved: true })).toStrictEqual([
+      "REQ-x",
+      "REQ-f",
+    ]);
+    expect(ids({ firm: false, approved: false })).toStrictEqual([]);
+  });
+});
+
+describe("planUnapprovedAgentMusts", () => {
+  const AT = "2026-03-01T00:00:00.000Z";
+  const agentMust = (id: string, origin = "", extra = "") =>
+    req(
+      id,
+      `status: open\npriority: must\norigin:\n  kind: agent\n${origin}${extra}`,
+    );
+
+  test("lists unapproved agent must requirements whose clock is missing or past the grace period", () => {
+    const root = tempWorkspace({
+      ".kb/requirements/a.md": agentMust("REQ-undated"),
+      ".kb/requirements/b.md": agentMust(
+        "REQ-recorded-old",
+        "  recorded_at: 2026-01-01T00:00:00Z\n",
+      ),
+      ".kb/requirements/c.md": agentMust(
+        "REQ-recorded-new",
+        "  recorded_at: 2026-02-20T00:00:00Z\n",
+        // origin.recorded_at outweighs an older created_at.
+        "created_at: 2026-01-01T00:00:00Z\n",
+      ),
+      ".kb/requirements/d.md": agentMust(
+        "REQ-created-old",
+        "",
+        "created_at: 2026-01-01T00:00:00Z\n",
+      ),
+      ".kb/requirements/e.md": agentMust(
+        "REQ-created-new",
+        "",
+        "created_at: 2026-02-20T00:00:00Z\n",
+      ),
+      ".kb/requirements/f.md": agentMust(
+        "REQ-created-empty",
+        "",
+        "created_at: ''\n",
+      ),
+      ".kb/requirements/g.md": agentMust(
+        "REQ-approved",
+        "  approved_by: Owner\n",
+      ),
+      ".kb/requirements/h.md": req(
+        "REQ-should",
+        "status: open\npriority: should\norigin:\n  kind: agent\n",
+      ),
+      ".kb/requirements/i.md": req(
+        "REQ-p0",
+        "status: open\npriority: p0-must\norigin:\n  kind: agent\n",
+      ),
+      ".kb/requirements/j.md": req(
+        "REQ-human",
+        "status: open\npriority: must\norigin:\n  kind: human\n",
+      ),
+      ".kb/requirements/k.md": req(
+        "REQ-no-origin",
+        "status: open\npriority: must\n",
+      ),
+      ".kb/requirements/l.md": agentMust(
+        "REQ-retired",
+        "",
+        "status: deprecated\n",
+      ).replace("status: open\n", ""),
+      ".kb/requirements/m.md": req(
+        "REQ-replacement",
+        `status: open\npriority: should\n${links([["supersedes", "REQ-superseded"]])}`,
+      ),
+      ".kb/requirements/n.md": agentMust("REQ-superseded"),
+      ".kb/requirements/z.md": doc(
+        "id: SCN-z\ntitle: Z\ntype: scenario\nstatus: open\npriority: must\norigin:\n  kind: agent\n",
+      ),
+      ".kb/scenarios/s.md": doc(
+        "id: SCN-s\ntitle: S\ntype: scenario\npriority: must\norigin:\n  kind: agent\n",
+      ),
+    });
+    expect(planUnapprovedAgentMusts(root, AT)).toEqual([
+      { id: "REQ-created-empty", since: "" },
+      { id: "REQ-created-old", since: "2026-01-01T00:00:00.000Z" },
+      { id: "REQ-p0", since: "" },
+      { id: "REQ-recorded-old", since: "2026-01-01T00:00:00.000Z" },
+      { id: "REQ-undated", since: "" },
+    ]);
+  });
+
+  test("the note names each requirement, marks undated ones and counts past ten", () => {
+    const rows = Array.from({ length: 12 }, (_, i) => ({
+      id: `REQ-${String(i).padStart(2, "0")}`,
+      since: i === 0 ? "" : "2026-01-01T00:00:00.000Z",
+    }));
+    expect(unapprovedAgentMustNote(rows, false)).toBe(
+      "12 must requirement(s) an agent wrote have no person's approval (origin.approved_by) and waited longer than 14 days or record no date: REQ-00 (no origin.recorded_at or created_at), REQ-01, REQ-02, REQ-03, REQ-04, REQ-05, REQ-06, REQ-07, REQ-08, REQ-09 (+2 more). From schema 15 kibi check fails on each one production code implements (agent-requirement-unapproved-implemented): have a person review them and record origin.approved_by, or lower their priority.",
+    );
+    expect(unapprovedAgentMustNote(rows.slice(0, 10), false)).toContain(
+      "REQ-09. From",
+    );
+    expect(unapprovedAgentMustNote(rows.slice(1, 2), true)).toStartWith(
+      "dry run: 1 must requirement(s) an agent wrote have no person's approval (origin.approved_by) and waited longer than 14 days or record no date: REQ-01. From",
+    );
   });
 });

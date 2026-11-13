@@ -276,3 +276,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0eb34d75e052
+  - type: implements
+    from: SYM-cli-authored-created-at-reader
+    to: REQ-kibi-unapproved-implemented-requirement
+    created_at: 2026-11-13T19:57:32.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3f26a2436f2
+  - type: covered_by
+    from: SYM-cli-authored-created-at-reader
+    to: TEST-kibi-approval-evidence-floor
+    created_at: 2026-11-13T19:57:32.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c55cfa0720c0
