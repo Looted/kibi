@@ -622,11 +622,13 @@ to `EngineClient` (`query`, `queryEntities`, `searchEntities`, `queryStatusJson`
 `save`). The client rejects pending RPCs and sends a best-effort `cancel`
 frame. **Queued** daemon requests on that connection are skipped before
 `handle()`. Cancel marks are **per-connection** (request ids are not global).
-A request already blocked inside SWI-Prolog (`await prolog.query(...)`) is
-**not** interrupted today: the daemon queue stays busy until that Prolog call
-returns (up to the engine/Prolog timeout). Read-tool timeouts still must
-**not** call `resetProlog` / `terminate()`, so siblings no longer fail with
-`Kibi engine connection closed`; they may wait behind the in-flight goal.
+SWI-Prolog cannot cancel a running interactive goal, so when the cancelled
+request is the one running, or its client disconnects while it runs, the
+daemon stops its Prolog session; the next request restarts the session and
+reattaches the branch store, and requests queued behind it run there. The
+engine's own 120 s query timeout stops the session the same way. Read-tool
+timeouts still must **not** call `resetProlog` / `terminate()` on the client,
+so siblings do not fail with `Kibi engine connection closed`.
 
 To keep one read from holding the queue, set `KIBI_ENGINE_READ_TIME_LIMIT_MS`
 and/or `KIBI_ENGINE_READ_INFERENCE_LIMIT` in the MCP server's environment (see

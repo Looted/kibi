@@ -36,8 +36,9 @@ necessary and not sufficient. A KB a later agent can trust also has:
 3. **Ask what only the person can decide**, in one list with a
    recommendation each: agent-written requirements to approve, requirements
    to retire, symbols with no live owner (dead code, or live code that needs a
-   requirement), any rule exception. Use `kibi signoff --questions`
-   (`kibi-decisions`).
+   requirement), any rule exception. Put them to the person with
+   `kibi signoff --questions <file or ->` (the JSON questions file the
+   `kibi-decisions` skill shows).
 4. **Split** broad requirements (below), about ten per approval round.
 5. **Narrow ownership** (below).
 6. **Reasons and context** (below).

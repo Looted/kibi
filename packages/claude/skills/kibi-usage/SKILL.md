@@ -56,8 +56,9 @@ The MCP server keeps its tool list short. Load skills with `kb_skills`
 (`action: "list" | "load" | "read"`; CLI `kibi skill` or `kibi skills
 list|load|read`). Model prose with `kb_model` (`mode: "analyze"` for the
 semantic advisor, `"requirement"` for strict claims, `"predicates"` for
-ontology predicates; CLI `kibi model` or `semantic-advisor`,
-`model-requirement`, `suggest-predicates`). Preflight a write with
+ontology predicates; CLI `kibi model` takes the same input, `mode` and
+`requirementId` included; the single-mode routes `semantic-advisor`,
+`model-requirement`, `suggest-predicates` take only their mode's fields). Preflight a write with
 `kb_upsert` plus `dryRun: true` (CLI `upsert` with `"dryRun": true` or
 `validate-upsert`); it validates and writes nothing. Result payloads still name
 catalog operations such as `kb_model_requirement` or `kb_validate_upsert` in
@@ -330,7 +331,11 @@ authored. Each one is the order the write path accepts.
    one (see Quantified claims below). Set
    `expects` only on a scenario that has `assumes` links; `expects: success`
    without them only yields `scenario-feasibility-unknown` ("assumes
-   nothing"). A
+   nothing"). Between the scenario's write and the requirement's, the
+   check also reports the new success scenario as
+   `scenario-feasibility-unknown` ("not constrained by any current
+   requirement"): that is expected, it clears once the requirement write
+   lands, so do not edit the scenario to silence it. A
    `modeled` entry and its grounding link must arrive in the same write
    (`modeled semantic_inventory entries (n) must equal logical grounding
    relationships (m)`); a clause not grounded yet stays `status: missing`

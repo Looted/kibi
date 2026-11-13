@@ -893,7 +893,7 @@ const METRIC_DIAGNOSTICS: Readonly<
     severity: "warning",
     rank: 30,
     suggestion:
-      "Run kb_model with mode analyze (CLI: semantic-advisor) on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
+      "Run kb_model with mode analyze (CLI: kibi model) on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
   },
   validation_before_upsert: {
     id: "mutation_validation_bypassed",

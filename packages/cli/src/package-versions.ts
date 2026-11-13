@@ -16,7 +16,8 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -85,12 +86,79 @@ export function coreVersion(
 }
 
 /**
- * The package versions this build of the engine and its Prolog core carry,
- * for example `kibi-cli@3.6.0,kibi-core@0.18.0`. The engine client and the
- * daemon compare them, so a daemon left running by another install is
- * replaced instead of serving this client.
+ * A short digest of the Prolog sources in `directory` (every `.pl` file, by
+ * name and content); undefined when the directory holds none or cannot be
+ * read.
  */
-export const KIBI_BUILT_PACKAGE_VERSIONS = `kibi-cli@${cliVersion()},kibi-core@${coreVersion()}`;
+export function prologSourcesDigest(
+  directory: string,
+  list: (directory: string) => string[] = readdirSync,
+): string | undefined {
+  let files: string[];
+  try {
+    // Sorted, so the digest does not depend on the directory's order.
+    files = list(directory)
+      .filter((file) => file.endsWith(".pl"))
+      .sort();
+  } catch {
+    return undefined;
+  }
+  if (files.length === 0) return undefined;
+  const hash = createHash("sha256");
+  for (const file of files) {
+    let content: Buffer;
+    try {
+      content = readFileSync(path.join(directory, file));
+    } catch {
+      return undefined;
+    }
+    // Each name and length bounds its file, so no two layouts collide.
+    hash.update(`${file}\0${content.byteLength}\0`).update(content);
+  }
+  return hash.digest("hex").slice(0, 12);
+}
+
+/**
+ * The directory of the Prolog core the engine loads: KIBI_KB_PL_PATH's,
+ * else the installed kibi-core's `src/`, else the monorepo sibling's.
+ */
+export function coreSourcesDirectory(
+  resolveManifest: (id: string) => string = require.resolve,
+  directory: string = moduleDirectory,
+  override: string | undefined = process.env.KIBI_KB_PL_PATH,
+): string {
+  if (override) return path.dirname(override);
+  try {
+    return path.join(
+      path.dirname(resolveManifest("kibi-core/package.json")),
+      "src",
+    );
+  } catch {
+    return path.join(directory, "..", "..", "core", "src");
+  }
+}
+
+/**
+ * The package versions this build of the engine and its Prolog core carry,
+ * for example `kibi-cli@3.6.0,kibi-core@0.18.0,core-sources@1a2b3c4d5e6f`.
+ * The engine client and the daemon compare them, so a daemon left running
+ * by another install, or by a build whose Prolog rules differ under the
+ * same version numbers, is replaced instead of serving this client.
+ */
+export function builtPackageVersions(
+  cli: string = cliVersion(),
+  core: string = coreVersion(),
+  sourcesDigest: string | null = prologSourcesDigest(coreSourcesDirectory()) ??
+    null,
+): string {
+  const versions = `kibi-cli@${cli},kibi-core@${core}`;
+  return sourcesDigest === null
+    ? versions
+    : `${versions},core-sources@${sourcesDigest}`;
+}
+
+/** The versions {@link builtPackageVersions} reads for this build. */
+export const KIBI_BUILT_PACKAGE_VERSIONS = builtPackageVersions();
 
 /** KIBI_PACKAGE_VERSIONS when set (an explicit override), else the built versions. */
 export function kibiPackageVersions(): string {

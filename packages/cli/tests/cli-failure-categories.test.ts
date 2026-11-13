@@ -139,15 +139,17 @@ describe("CLI failure categories", () => {
       context,
     );
     expect(bootstrap.exitCode).toBe(2);
+    const message = (stdout: string | undefined) =>
+      JSON.parse(stdout ?? "").error.message as string;
     expect(bootstrap.stderr).toContain("VALIDATION_FAILED");
-    expect(bootstrap.stderr).toContain("kibi plan-bootstrap --schema");
+    expect(message(bootstrap.stdout)).toContain("kibi plan-bootstrap --schema");
     const status = await executeOperation(
       "kb_status",
       { unexpected: true },
       context,
     );
     expect(status.stderr).toContain("VALIDATION_FAILED");
-    expect(status.stderr).not.toContain("--schema");
+    expect(message(status.stdout)).not.toContain("--schema");
   });
 
   test("a non-zero exit that is the command's answer gets an outcome category", async () => {

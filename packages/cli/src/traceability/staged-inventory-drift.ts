@@ -133,7 +133,7 @@ export function stagedInventoryDriftViolations(input: {
       errors: boundary.errors,
       message: contract
         ? `${result.entity.id} (${source}): the semantic inventory does not match the requirement's prose, so the next kibi sync rejects it: ${boundary.errors.join("; ")}. Run 'kibi migrate' to re-derive it, or kb_model mode analyze with the complete prose and keep its inventory contract.`
-        : `${result.entity.id} (${source}): ${isNew ? "a new requirement" : "a requirement whose statement changes"} needs a semantic inventory that matches its prose, so the next kibi sync rejects it: ${boundary.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with its id and complete semantic_text, then write the returned inventory contract into it (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims).`,
+        : `${result.entity.id} (${source}): ${isNew ? "a new requirement" : "a requirement whose statement changes"} needs a semantic inventory that matches its prose before it is committed, or kibi sync refuses it in every workspace that synced before and has not compiled it yet (a teammate's checkout, a CI store), even where kb_upsert already compiled it into this one: ${boundary.errors.join("; ")}. Run kb_model mode analyze (CLI: kibi model) with its id and complete semantic_text, then write the returned inventory contract into it (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims).`,
     });
   }
   return violations.sort((left, right) =>
@@ -198,7 +198,7 @@ export function stagedStatementDriftViolations(input: {
       rule: STAGED_STATEMENT_DRIFT_RULE,
       entityId: staged.id,
       source: file.path,
-      message: `${staged.id} (${file.path}): the body's statement changed but the pinned semantic_text did not, so Kibi still models, grounds and proves the old wording. Restate semantic_text to say what the body now says and re-derive its inventory (kb_model mode analyze, CLI: semantic-advisor, then kb_upsert the returned contract), or move the new text under a context section (## Context, ## Rationale or ## Notes) if it does not change the requirement.`,
+      message: `${staged.id} (${file.path}): the body's statement changed but the pinned semantic_text did not, so Kibi still models, grounds and proves the old wording. Restate semantic_text to say what the body now says and re-derive its inventory (kb_model mode analyze, CLI: kibi model, then kb_upsert the returned contract), or move the new text under a context section (## Context, ## Rationale or ## Notes) if it does not change the requirement.`,
     });
   }
   return violations.sort((left, right) =>

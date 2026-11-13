@@ -212,7 +212,7 @@ describe("proposition-complete ingestion", () => {
           "2 requirement(s) failed proposition-complete ingestion:",
           `  ${A}: proposition-complete ingestion failed: missing; unparsed.`,
           `  ${B}: proposition-complete ingestion failed: missing; unparsed.`,
-          "REQ-1, REQ-2 state(s) no inventory, which 'kibi migrate' does not derive: for each, run kb_model mode analyze (CLI: semantic-advisor) with the requirement's id and its complete semantic_text, then write the returned inventory contract into the requirement (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims), or retire it through a superseding requirement.",
+          "REQ-1, REQ-2 state(s) no inventory, which 'kibi migrate' does not derive: for each, run kb_model mode analyze (CLI: kibi model) with the requirement's id and its complete semantic_text, then write the returned inventory contract into the requirement (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims), or retire it through a superseding requirement.",
         ].join("\n"),
       ),
     );

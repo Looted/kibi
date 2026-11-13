@@ -3,6 +3,7 @@ import { InputError, OperationError } from "../src/cli-errors.js";
 import * as loader from "../src/cli-operation-loader.js";
 import {
   type CliContext,
+  envelopeErrorLine,
   executeOperation,
   openFailureResult,
 } from "../src/cli-protocol.js";
@@ -71,12 +72,21 @@ function errorEnvelope(
   };
 }
 
+describe("envelopeErrorLine", () => {
+  test("names the code and points at the message in the stdout result", () => {
+    expect(envelopeErrorLine("VALIDATION_FAILED")).toBe(
+      "Error [VALIDATION_FAILED]: see error.message in the JSON result on stdout\n",
+    );
+  });
+});
+
 describe("executeOperation", () => {
   test("an unknown operation is an input error with no effects", async () => {
     const result = await executeOperation("kb_nope", {}, context());
     expect(result.exitCode).toBe(2);
-    expect(result.stderr).toBe(
-      "Error [UNKNOWN_OPERATION]: Unknown operation 'kb_nope'.\n",
+    expect(result.stderr).toBe(envelopeErrorLine("UNKNOWN_OPERATION"));
+    expect(json(result.stdout).error.message).toBe(
+      "Unknown operation 'kb_nope'.",
     );
     expect(json(result.stdout)).toStrictEqual(
       errorEnvelope(
@@ -101,8 +111,9 @@ describe("executeOperation", () => {
       context(),
     );
     expect(result.exitCode).toBe(2);
-    expect(result.stderr).toBe(
-      "Error [VALIDATION_FAILED]: / must NOT have additional properties: x; /q must be string: string\n",
+    expect(result.stderr).toBe(envelopeErrorLine("VALIDATION_FAILED"));
+    expect(json(result.stdout).error.message).toBe(
+      "/ must NOT have additional properties: x; /q must be string: string",
     );
     expect(json(result.stdout).error).toStrictEqual({
       code: "VALIDATION_FAILED",
@@ -126,8 +137,9 @@ describe("executeOperation", () => {
       { q: 1, x: 1 },
       context(),
     );
-    expect(result.stderr).toBe(
-      "Error [VALIDATION_FAILED]: / must NOT have additional properties: x; /q must be string: string. Run 'kibi skills-list --schema' to print the input fields and allowed values.\n",
+    expect(result.stderr).toBe(envelopeErrorLine("VALIDATION_FAILED"));
+    expect(json(result.stdout).error.message).toBe(
+      "/ must NOT have additional properties: x; /q must be string: string. Run 'kibi skills-list --schema' to print the input fields and allowed values.",
     );
   });
 
@@ -218,7 +230,7 @@ describe("executeOperation", () => {
     expect(result).toStrictEqual({
       exitCode: 1,
       stdout: `${JSON.stringify(envelope)}\n`,
-      stderr: `Error [BOOTSTRAP_PLAN_REJECTED]: ${envelope.error.message}\n`,
+      stderr: envelopeErrorLine("BOOTSTRAP_PLAN_REJECTED"),
     });
     expect(envelope.status).toBe("error");
   });
@@ -295,7 +307,8 @@ describe("executeOperation", () => {
       const result = await executeOperation("kb_status", {}, context());
       restores.pop()?.();
       expect(result.exitCode).toBe(exitCode);
-      expect(result.stderr).toBe(`Error [${error.code}]: ${error.message}\n`);
+      expect(result.stderr).toBe(envelopeErrorLine(error.code));
+      expect(json(result.stdout).error.message).toBe(error.message);
       expect(json(result.stdout)).toStrictEqual(
         errorEnvelope("kb_status", error, "failed"),
       );
@@ -334,7 +347,8 @@ describe("openFailureResult", () => {
     ] as const) {
       const result = openFailureResult("kb_upsert", spec, error);
       expect(result.exitCode).toBe(1);
-      expect(result.stderr).toBe(`Error [OPERATION_FAILED]: ${message}\n`);
+      expect(result.stderr).toBe(envelopeErrorLine("OPERATION_FAILED"));
+      expect(json(result.stdout).error.message).toBe(message);
       expect(json(result.stdout)).toStrictEqual(
         errorEnvelope(
           "kb_upsert",

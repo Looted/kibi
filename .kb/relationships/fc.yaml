@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b6cb0bf95e04
+  - type: implements
+    from: SYM-inventory-commit-warning-inventoryCommitWarnings
+    to: REQ-kibi-complete-proposition-ledgers
+    created_at: 2026-11-13T20:49:50.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34703e1bd384
+  - type: covered_by
+    from: SYM-inventory-commit-warning-inventoryCommitWarnings
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-11-13T20:49:50.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fc463f823aa

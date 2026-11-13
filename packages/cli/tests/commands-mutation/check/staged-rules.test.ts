@@ -1,4 +1,7 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import * as detached from "../../../src/runtime/detached-snapshot.js";
+import * as autoCompile from "../../../src/utils/auto-compile.js";
+import * as resolver from "../../../src/utils/branch-resolver.js";
 import {
   type StagedHarness,
   entry,
@@ -54,10 +57,103 @@ describe("knowledge consistency", () => {
     expect(entities).toBe(h.world.entities);
     expect(h.output()).toMatchObject({
       violations: [{ c: 1 }],
-      messages: ["consistency - 1"],
+      messages: ["consistency blocking 1"],
     });
     expect(h.calls.assertUnchanged).toHaveLength(1);
     expect(await h.run({ dryRun: true })).toBe(0);
+  });
+
+  test("requirement-scoped rules ride the consistency check", async () => {
+    h.world.inventory = [md(), entry("src/a.ts")];
+    h.world.entities = [{ entity: { id: "E" } }];
+    h.set("stagesKnowledge", () => true);
+    const rules = { rules: ["claim-subject-missing"] };
+    h.set("stagedRequirementRules", () => rules);
+    expect(await h.run()).toBe(0);
+    const [snapshot, input] = h.calls.stagedRequirementRules?.[0] as [
+      { headTree: string },
+      unknown,
+    ];
+    expect(snapshot.headTree).toBe("HEAD");
+    expect(input).toStrictEqual({
+      stagedPaths: [REQ],
+      knowledge: h.world.entities,
+    });
+    expect(h.calls.collectIntroducedConsistencyViolations?.[0]?.[2]).toBe(
+      rules,
+    );
+    h.set("stagedRequirementRules", () => null);
+    await h.run();
+    expect(h.calls.collectIntroducedConsistencyViolations?.[1]).toHaveLength(3);
+    expect(
+      h.calls.collectIntroducedConsistencyViolations?.[1]?.[2],
+    ).toBeUndefined();
+  });
+
+  test("the evidence floor is judged only on a branch store", async () => {
+    h.world.inventory = [md()];
+    h.set("stagesKnowledge", () => true);
+    h.set("collectStagedEvidenceFloorViolations", async () => [{ f: 1 }]);
+    expect(await h.run()).toBe(0);
+    expect(h.calls.collectStagedEvidenceFloorViolations).toBeUndefined();
+  });
+
+  test("a requirement below its floor blocks unless dry-run", async () => {
+    const spies = [
+      spyOn(resolver, "resolveReadBranchAttachment").mockImplementation(
+        () =>
+          ({
+            kbBranch: "kb-main",
+            gitBranch: "main",
+            migrationRequired: false,
+          }) as never,
+      ),
+      spyOn(detached, "refreshDetachedSnapshot").mockImplementation(
+        async () => undefined as never,
+      ),
+      spyOn(autoCompile, "ensureBranchStoreCompiled").mockImplementation(
+        async () => undefined as never,
+      ),
+    ];
+    try {
+      h.world.inventory = [md()];
+      h.set("stagesKnowledge", () => true);
+      h.set("floorChangedRequirementIds", () => ["REQ-1"]);
+      h.set("readTreeManifest", () => ({ schemaVersion: 15 }));
+      h.set("collectStagedEvidenceFloorViolations", async () => [{ f: 1 }]);
+      expect(await h.run({ kbPath: undefined })).toBe(1);
+      expect(h.calls.collectStagedEvidenceFloorViolations?.[0]).toStrictEqual([
+        {
+          workspaceRoot: process.cwd(),
+          branch: "kb-main",
+          requirementIds: ["REQ-1"],
+          schemaVersion: 15,
+        },
+      ]);
+      const [files, readBase] = h.calls.floorChangedRequirementIds?.[0] as [
+        Array<{ path: string }>,
+        (file: string) => string | null,
+      ];
+      expect(files.map((file) => file.path)).toStrictEqual([REQ]);
+      expect(readBase(REQ)).toBe(`blob BASE:${REQ}`);
+      expect(h.output()).toMatchObject({
+        violations: [{ f: 1 }],
+        messages: ["consistency blocking 1"],
+      });
+      expect(await h.run({ kbPath: undefined, dryRun: true })).toBe(0);
+      h.set("readTreeManifest", () => null);
+      h.set("collectStagedEvidenceFloorViolations", async () => []);
+      expect(await h.run({ kbPath: undefined })).toBe(0);
+      expect(
+        (
+          h.calls.collectStagedEvidenceFloorViolations?.at(-1)?.[0] as {
+            schemaVersion: unknown;
+          }
+        ).schemaVersion,
+      ).toBeUndefined();
+    } finally {
+      for (const spy of spies) spy.mockRestore();
+    }
   });
 
   test("a consistent staged knowledge change goes on", async () => {

@@ -38,9 +38,9 @@ import {
   entityContextWarnings,
   upsertDocumentBody,
 } from "./context-warning.js";
-import { subjectLayerWarnings } from "./subject-warnings.js";
 import { buildUpsertCommitGoal, upsertFailure } from "./contradictions.js";
 import { assertFirmDecisionUnchanged } from "./firm-decision-guard.js";
+import { inventoryCommitWarnings } from "./inventory-commit-warning.js";
 import { withStoredOmittedProperties } from "./omitted-properties.js";
 import { resolveUpsertOrigin } from "./origin.js";
 import {
@@ -71,6 +71,7 @@ import {
   type StoredEntityLookup,
   storedEntityLookup,
 } from "./stored-entity.js";
+import { subjectLayerWarnings } from "./subject-warnings.js";
 import {
   type SymbolCompilerLockHandle,
   acquireSymbolCompilerLock,
@@ -1064,6 +1065,11 @@ export async function executeUpsert(
           commitEntity ?? validated.entity,
           context.workspaceRoot,
           { writtenPath: sourceWrite?.receipt.path },
+        ),
+        ...inventoryCommitWarnings(
+          input.type,
+          context.workspaceRoot,
+          sourceWrite?.receipt.path,
         ),
         ...subjectWarnings,
         ...shardWarnings,

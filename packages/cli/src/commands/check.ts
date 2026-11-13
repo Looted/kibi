@@ -88,6 +88,10 @@ import {
 import { collectIntroducedEntityContextViolations } from "../traceability/staged-entity-context.js";
 import { createStagedEntityIdStyleDiagnostics } from "../traceability/staged-entity-id-style.js";
 import {
+  collectStagedEvidenceFloorViolations,
+  floorChangedRequirementIds,
+} from "../traceability/staged-evidence-floor.js";
+import {
   type StagedFileCoverageResult,
   analyzeStagedFileCoverage,
 } from "../traceability/staged-file-coverage.js";
@@ -100,6 +104,10 @@ import {
   stagedStatementDriftViolations,
 } from "../traceability/staged-inventory-drift.js";
 import { stagedCommitCarriesMigration } from "../traceability/staged-migration.js";
+import {
+  readTreeManifest,
+  stagedRequirementRules,
+} from "../traceability/staged-requirement-rules.js";
 import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
@@ -615,6 +623,18 @@ export function buildStagedKibiImpactEvidence(options: {
   };
 }
 
+/**
+ * A suggestion's first sentence, the rest pointed to: text `kibi check`
+ * lists every blocking finding with how to fix it, and `--fix` (or
+ * `--format json`) carries the whole suggestion.
+ */
+function conciseSuggestion(suggestion: string): string {
+  // A full stop that another sentence follows ends the first sentence.
+  const next = /\.\s+\S/.exec(suggestion);
+  if (next === null) return suggestion;
+  return `${suggestion.slice(0, next.index + 1)} (kibi check --fix shows more)`;
+}
+
 export function requireActiveProlog<E, P>(
   engine: E | null | undefined,
   prolog: P | null | undefined,
@@ -872,18 +892,23 @@ export async function checkCommand(
           snapshot.readBlobs,
         );
         // A commit must not introduce a contradiction or an infeasible
-        // scenario that full `kibi check` would report on the same tree.
+        // scenario that full `kibi check` would report on the same tree, nor
+        // a requirement-scoped blocking finding on an entity it stages.
         if (stagesKnowledge(stagedInventory.map((file) => file.path))) {
           const consistency = await collectIntroducedConsistencyViolations(
             snapshot,
             snapshotEntities,
+            stagedRequirementRules(snapshot, {
+              stagedPaths: markdownFiles.map((file) => file.path),
+              knowledge: snapshotEntities,
+            }) ?? undefined,
           );
           if (consistency.length > 0) {
             printSnapshotResult({
               format: options.format,
               coverage: stagedCoverage,
               violations: consistency,
-              messages: formatConsistencyViolations(consistency),
+              messages: formatConsistencyViolations(consistency, "blocking"),
             });
             return { exitCode: options.dryRun ? 0 : 1 };
           }
@@ -940,6 +965,29 @@ export async function checkCommand(
               `${statementDrift.length} staged requirement(s) changed their body statement without restating their pinned semantic_text:`,
               ...statementDrift.map((violation) => `  ${violation.message}`),
             ],
+          });
+          return { exitCode: options.dryRun ? 0 : 1 };
+        }
+        // A requirement the commit adds, or whose floor it moves, must
+        // reach that floor on the evidence the synced store holds.
+        const floor =
+          "branch" in store
+            ? await collectStagedEvidenceFloorViolations({
+                workspaceRoot: process.cwd(),
+                branch: store.branch,
+                requirementIds: floorChangedRequirementIds(
+                  markdownFiles,
+                  readStagedBase,
+                ),
+                schemaVersion: readTreeManifest(snapshot)?.schemaVersion,
+              })
+            : [];
+        if (floor.length > 0) {
+          printSnapshotResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            violations: floor,
+            messages: formatConsistencyViolations(floor, "blocking"),
           });
           return { exitCode: options.dryRun ? 0 : 1 };
         }
@@ -1400,9 +1448,12 @@ export async function checkCommand(
       console.log(`  ${v.description}`);
       // An evidence-floor finding names no fix in its description; its
       // suggestion carries the proof gaps and the tests and symbols behind
-      // them, so it is always shown.
-      if (v.suggestion && (options.fix || v.rule === EVIDENCE_FLOOR_RULE)) {
-        console.log(`  Suggestion: ${v.suggestion}`);
+      // them, so it is always shown whole. Other suggestions show their
+      // first sentence unless --fix asks for all of it.
+      if (v.suggestion) {
+        console.log(
+          `  Suggestion: ${options.fix || v.rule === EVIDENCE_FLOOR_RULE ? v.suggestion : conciseSuggestion(v.suggestion)}`,
+        );
       }
       console.log();
     }

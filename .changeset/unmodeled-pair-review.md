@@ -17,4 +17,4 @@ Requirements that Kibi cannot compare are no longer let through unexamined: a re
 - The domain rules follow the KB schema: `claim-subject-missing` and `claim-subject-undefined` apply from schema 16, and the pair semantics from schema 18; below 18 the earlier `related-requirement-unmodeled` rule still runs.
 - KB schema 18: `kibi migrate` writes nothing for this step (a verdict is a judgement Kibi does not make); it reports how many current requirements have unmodeled rule claims and points to `kibi check` for the pairs.
 - The proposition plan no longer suggests `kb_upsert` as a way around the contradiction review.
-- `kibi-usage` 2.48.0 and `kibi-decisions` 1.10.0 explain how to model or review a reported pair and that a person approves an agent's verdict.
+- `kibi-usage` and `kibi-decisions` explain how to model or review a reported pair and that a person approves an agent's verdict.

@@ -2026,7 +2026,7 @@ describe("engine queries", () => {
     });
     await daemon.request({ method: "query", goal: "kb_x" });
     expect(errors).toStrictEqual([
-      "[KIBI] engine Prolog session was lost (output overflow, timeout, or crash); restarting and reattaching the branch store",
+      "[KIBI] engine Prolog session was lost (output overflow, timeout, cancellation, or crash); restarting and reattaching the branch store",
     ]);
     expect(
       goalsSince(daemon, mark)
@@ -2885,12 +2885,81 @@ describe("engine connections", () => {
       ...daemon.base({ method: "query", goal: "kb_again" }),
       id: slow.id,
     });
+    spyOn(console, "error").mockImplementation(() => undefined);
     peer.send(daemon.base({ method: "cancel", cancelOf: slow.id }));
     await new Promise((resolve) => setTimeout(resolve, 10));
     hold.open();
     expect((await peer.next()).ok).toBe(true);
     expect((await peer.next()).ok).toBe(true);
     expect(daemon.stub.goals).toContain("kb_again");
+  });
+
+  test("stop the Prolog goal of a running request its client cancels", async () => {
+    const hold = gate();
+    const daemon = await startDaemon((goal) =>
+      goal === "kb_slow" ? hold.wait.then(() => OK) : OK,
+    );
+    await settled(daemon);
+    const errors = spyOn(console, "error").mockImplementation(() => undefined);
+    const peer = await Peer.open(daemon.socketPath);
+    const other = await Peer.open(daemon.socketPath);
+    cleanups.push(() => {
+      peer.close();
+      other.close();
+    });
+    const before = daemon.stub.terminations.length;
+    const slow = daemon.base({ method: "query", goal: "kb_slow" });
+    peer.send(slow);
+    await until(() => daemon.stub.goals.includes("kb_slow"));
+    // Another connection's mark, or a mark for another id, stops nothing.
+    other.send(daemon.base({ method: "cancel", cancelOf: slow.id }));
+    peer.send(daemon.base({ method: "cancel", cancelOf: -1 }));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(daemon.stub.terminations.length).toBe(before);
+    peer.send(daemon.base({ method: "cancel", cancelOf: slow.id }));
+    await until(() => daemon.stub.terminations.length > before);
+    expect(daemon.stub.terminations.slice(before)).toStrictEqual([undefined]);
+    expect(errors).toHaveBeenCalledWith(
+      "[KIBI] engine request was cancelled while it ran; stopping its Prolog goal (the next request restarts the session)",
+    );
+    // A second cancel of the same request stops nothing more.
+    peer.send(daemon.base({ method: "cancel", cancelOf: slow.id }));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    hold.open();
+    expect((await peer.next()).id).toBe(slow.id as number);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(daemon.stub.terminations.length).toBe(before + 1);
+  });
+
+  test("stop the Prolog goal of a running request whose client leaves", async () => {
+    const hold = gate();
+    const daemon = await startDaemon((goal) =>
+      goal === "kb_slow" ? hold.wait.then(() => OK) : OK,
+    );
+    await settled(daemon);
+    const errors = spyOn(console, "error").mockImplementation(() => undefined);
+    const before = daemon.stub.terminations.length;
+    const peer = await Peer.open(daemon.socketPath);
+    const bystander = await Peer.open(daemon.socketPath);
+    peer.send(daemon.base({ method: "query", goal: "kb_slow" }));
+    await until(() => daemon.stub.goals.includes("kb_slow"));
+    // A connection with nothing running leaves without stopping the goal.
+    bystander.close();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(daemon.stub.terminations.length).toBe(before);
+    peer.close();
+    await until(() => daemon.stub.terminations.length > before);
+    expect(errors).toHaveBeenCalledWith(
+      "[KIBI] engine request lost its client while it ran; stopping its Prolog goal (the next request restarts the session)",
+    );
+    hold.open();
+    // A finished request is no longer running: its client leaves freely.
+    const after = await Peer.open(daemon.socketPath);
+    after.send(daemon.base({ method: "query", goal: "kb_quick" }));
+    expect((await after.next()).ok).toBe(true);
+    after.close();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(daemon.stub.terminations.length).toBe(before + 1);
   });
 
   test("refuse requests that arrive while shutting down", async () => {
@@ -3916,7 +3985,7 @@ describe("engine client responses", () => {
     expect((clientPrivates(c).pending as Map<number, unknown>).size).toBe(0);
   });
 
-  test("retry the handshakes once on a draining listener", async () => {
+  test("retry the handshakes on a draining listener", async () => {
     const workspace = tempDir();
     prepareStore(workspace);
     let closes = 1;
@@ -3931,7 +4000,18 @@ describe("engine client responses", () => {
       "command",
       "query",
     ]);
-    closes = 2;
+    closes = 3;
+    engine.requests.length = 0;
+    await client(workspace).query("kb_a");
+    expect(engine.requests.map((r) => r.method)).toStrictEqual([
+      "handshake",
+      "handshake",
+      "handshake",
+      "handshake",
+      "command",
+      "query",
+    ]);
+    closes = 4;
     const other = client(workspace);
     await expect(other.query("kb_a")).rejects.toThrow(
       "Kibi engine connection closed",
@@ -3941,6 +4021,87 @@ describe("engine client responses", () => {
     await expect(quiet.start(false)).rejects.toThrow(
       "Kibi engine connection closed",
     );
+  });
+
+  test("retry the handshakes when a draining daemon refuses them", async () => {
+    const workspace = tempDir();
+    prepareStore(workspace);
+    let refusals = 1;
+    let refusal = "Kibi engine is shutting down; request was not executed";
+    const engine = await fakeEngine(workspace, (request) =>
+      request.method === "handshake" && refusals-- > 0
+        ? { ok: false, error: refusal }
+        : undefined,
+    );
+    const c = client(workspace);
+    await c.query("kb_a");
+    expect(engine.requests.map((r) => r.method)).toStrictEqual([
+      "handshake",
+      "handshake",
+      "command",
+      "query",
+    ]);
+    // The refused connection is dropped, not reused.
+    expect(engine.sockets).toHaveLength(2);
+    expect(engine.sockets[0]?.destroyed).toBe(true);
+    // Any other refusal is final.
+    refusals = 1;
+    refusal = "Kibi engine is shutting down";
+    engine.requests.length = 0;
+    await expect(client(workspace).start()).rejects.toThrow(
+      "Kibi engine is shutting down",
+    );
+    expect(engine.requests.map((r) => r.method)).toStrictEqual(["handshake"]);
+  });
+
+  test("retry the handshakes when the write to a draining daemon fails", async () => {
+    const workspace = tempDir();
+    prepareStore(workspace);
+    let failures = 0;
+    const engine = await fakeEngine(workspace, (request) =>
+      request.method === "handshake" && failures > 0 ? "silent" : undefined,
+    );
+    const fail = async (c: EngineClient, code: string | undefined) => {
+      failures = 1;
+      const started = c.start();
+      await until(() => engine.requests.some((r) => r.method === "handshake"));
+      failures = 0;
+      const socket = clientPrivates(c).socket as net.Socket;
+      socket.emit(
+        "error",
+        Object.assign(new Error(`write ${code ?? "EOTHER"}`), { code }),
+      );
+      return started;
+    };
+    for (const code of ["EPIPE", "ECONNRESET"]) {
+      engine.requests.length = 0;
+      const c = client(workspace);
+      await fail(c, code);
+      expect(c.isRunning()).toBe(true);
+      expect(engine.requests.map((r) => r.method)).toStrictEqual([
+        "handshake",
+        "handshake",
+        "command",
+      ]);
+    }
+    for (const code of ["EACCES", undefined]) {
+      engine.requests.length = 0;
+      await expect(fail(client(workspace), code)).rejects.toThrow(
+        `write ${code ?? "EOTHER"}`,
+      );
+    }
+    engine.requests.length = 0;
+    const plain = client(workspace);
+    failures = 1;
+    const started = plain.start();
+    await until(() => engine.requests.some((r) => r.method === "handshake"));
+    failures = 0;
+    (clientPrivates(plain).pending as Map<number, { reject(e: unknown): void }>)
+      .values()
+      .next()
+      .value?.reject(null);
+    // A rejection that is not an Error is never a draining daemon's.
+    await expect(started).rejects.toBeNull();
   });
 });
 

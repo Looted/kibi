@@ -362,8 +362,13 @@ describe("runJsonInvocation execution", () => {
     await runJsonInvocation(invocation(inputFile("{}")));
     expect(calls.executed).toStrictEqual([]);
     expect(calls.closed).toStrictEqual([]);
-    expect(stderr).toStrictEqual(["Error [OPERATION_FAILED]: no branch\n"]);
-    expect(JSON.parse(stdout.join("")).error.code).toBe("OPERATION_FAILED");
+    expect(stderr).toStrictEqual([
+      "Error [OPERATION_FAILED]: see error.message in the JSON result on stdout\n",
+    ]);
+    expect(JSON.parse(stdout.join("")).error).toMatchObject({
+      code: "OPERATION_FAILED",
+      message: "no branch",
+    });
     expect(process.exitCode).toBe(1);
   });
 
@@ -424,6 +429,23 @@ describe("runJsonInvocation diagnostic records", () => {
     expect(appended).toStrictEqual([
       base({ status: "error", result: undefined, error: "bad" }),
     ]);
+  });
+
+  test("a failure records the JSON result's error, which stderr points to", async () => {
+    for (const [out, recorded] of [
+      [
+        '{"error":{"code":"VALIDATION_FAILED","message":"bad field"}}\n',
+        "Error [VALIDATION_FAILED]: bad field",
+      ],
+      ['{"error":{"code":"X"}}\n', "pointer"],
+      ['{"error":{"message":"m"}}\n', "pointer"],
+      ["null\n", "pointer"],
+    ] as const) {
+      appended.length = 0;
+      stubRuntime({ exitCode: 1, stdout: out, stderr: " pointer\n" });
+      await runJsonInvocation(invocation(inputFile(INPUT)));
+      expect((appended[0] as { error?: unknown }).error).toBe(recorded);
+    }
   });
 
   test("a failure without stderr or stdout records no error text", async () => {

@@ -1317,7 +1317,7 @@ export async function syncCommand(
           ...inventoryFailures.map((failure) => `  ${failure}`),
           ...(uninventoried.length > 0
             ? [
-                `${uninventoried.join(", ")} state(s) no inventory, which 'kibi migrate' does not derive: for each, run kb_model mode analyze (CLI: semantic-advisor) with the requirement's id and its complete semantic_text, then write the returned inventory contract into the requirement (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims), or retire it through a superseding requirement.`,
+                `${uninventoried.join(", ")} state(s) no inventory, which 'kibi migrate' does not derive: for each, run kb_model mode analyze (CLI: kibi model) with the requirement's id and its complete semantic_text, then write the returned inventory contract into the requirement (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims), or retire it through a superseding requirement.`,
               ]
             : []),
           ...(uninventoried.length < inventoryFailures.length

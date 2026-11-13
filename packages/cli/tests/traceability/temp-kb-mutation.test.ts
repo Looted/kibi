@@ -301,9 +301,12 @@ describe("entity assertion goals", () => {
       examples: ["ex"],
       predicate_args: ["pa"],
       value_set: ["a", 1],
+      part_of: ["po"],
+      kind_of: ["ko"],
+      distinct_from: ["df"],
     } as unknown as Partial<ExtractedEntity>;
     expect(await assertionGoal(entity(fact))).toBe(
-      `kb_assert_entity_no_audit(fact, [${BASE}, subject_key="s", property_key="p", value_string="v", unit="u", scope="sc", valid_from="f", valid_to="t", canonical_key="ck", claim_key="clk", claim_text="ct", dimension_waiver="dw", dimension_waiver_approved_by="dwa", case_waiver="cw", case_waiver_approved_by="cwa", predicate_name="pn", predicate_namespace="pns", rule_hash="rh", rule_schema_id="rs", rule_name="rn", semantic_key="sk", rule_ir="{\\"op\\":\\"and\\"}", argument_constants="{\\"a\\":[\\"x\\"]}", argument_aliases="{\\"a\\":{\\"b\\":\\"c\\"}}", fact_kind=property_value, operator=eq, value_type=int, polarity=require, value_int=3, value_number=1.5, predicate_arity=2, claim_span_start=0, claim_span_end=4, value_bool=false, closed_world=true, argument_names=["n"], argument_types=["t"], argument_descriptions=["d"], key_arguments=["k"], aliases=["al"], examples=["ex"], predicate_args=["pa"], value_set=["a","1"]])`,
+      `kb_assert_entity_no_audit(fact, [${BASE}, subject_key="s", property_key="p", value_string="v", unit="u", scope="sc", valid_from="f", valid_to="t", canonical_key="ck", claim_key="clk", claim_text="ct", dimension_waiver="dw", dimension_waiver_approved_by="dwa", case_waiver="cw", case_waiver_approved_by="cwa", predicate_name="pn", predicate_namespace="pns", rule_hash="rh", rule_schema_id="rs", rule_name="rn", semantic_key="sk", rule_ir="{\\"op\\":\\"and\\"}", argument_constants="{\\"a\\":[\\"x\\"]}", argument_aliases="{\\"a\\":{\\"b\\":\\"c\\"}}", fact_kind=property_value, operator=eq, value_type=int, polarity=require, value_int=3, value_number=1.5, predicate_arity=2, claim_span_start=0, claim_span_end=4, value_bool=false, closed_world=true, argument_names=["n"], argument_types=["t"], argument_descriptions=["d"], key_arguments=["k"], aliases=["al"], examples=["ex"], predicate_args=["pa"], value_set=["a","1"], part_of=["po"], kind_of=["ko"], distinct_from=["df"]])`,
     );
     expect(
       await assertionGoal(
