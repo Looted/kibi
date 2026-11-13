@@ -47,6 +47,8 @@ known_rule('predicate-verifiability').
 known_rule('strict-readiness').
 known_rule('semantic-completeness').
 known_rule('related-requirement-unmodeled').
+known_rule('claim-subject-missing').
+known_rule('claim-subject-undefined').
 known_rule('proof-contract-symbols').
 known_rule('entity-id-style').
 known_rule('domain-redundancy').
@@ -63,6 +65,8 @@ known_rule('adr-unlinked').
 known_rule('adr-proposed').
 known_rule('predicate-schema-conformance').
 known_rule('entity-context-missing').
+known_rule('subject-definition-missing').
+known_rule('subject-duplicate').
 known_rule('entity-context-acknowledged').
 known_rule('decision-firm-unreferenced').
 known_rule('decision-firm-superseded').
@@ -74,6 +78,7 @@ known_rule('policy-markers').
 known_rule('kb-consistency').
 known_rule('kb-consistency-unresolved').
 known_rule('evidence-floor').
+known_rule('agent-requirement-unapproved-implemented').
 known_rule('proof-contract-claims').
 
 rule_enforcement_class('must-priority-coverage', canonical).
@@ -109,6 +114,8 @@ rule_enforcement_class('predicate-verifiability', advisory).
 rule_enforcement_class('strict-readiness', migration).
 rule_enforcement_class('semantic-completeness', migration).
 rule_enforcement_class('related-requirement-unmodeled', canonical).
+rule_enforcement_class('claim-subject-missing', canonical).
+rule_enforcement_class('claim-subject-undefined', canonical).
 rule_enforcement_class('proof-contract-symbols', advisory).
 rule_enforcement_class('entity-id-style', advisory).
 rule_enforcement_class('domain-redundancy', advisory).
@@ -125,6 +132,8 @@ rule_enforcement_class('adr-unlinked', advisory).
 rule_enforcement_class('adr-proposed', advisory).
 rule_enforcement_class('predicate-schema-conformance', advisory).
 rule_enforcement_class('entity-context-missing', canonical).
+rule_enforcement_class('subject-definition-missing', canonical).
+rule_enforcement_class('subject-duplicate', canonical).
 rule_enforcement_class('entity-context-acknowledged', advisory).
 rule_enforcement_class('decision-firm-unreferenced', canonical).
 rule_enforcement_class('decision-firm-superseded', canonical).
@@ -136,6 +145,7 @@ rule_enforcement_class('policy-markers', canonical).
 rule_enforcement_class('kb-consistency', canonical).
 rule_enforcement_class('kb-consistency-unresolved', advisory).
 rule_enforcement_class('evidence-floor', canonical).
+rule_enforcement_class('agent-requirement-unapproved-implemented', canonical).
 rule_enforcement_class('proof-contract-claims', canonical).
 
 rule_implementation('must-priority-coverage', prolog).
@@ -171,6 +181,8 @@ rule_implementation('predicate-verifiability', prolog).
 rule_implementation('strict-readiness', prolog).
 rule_implementation('semantic-completeness', prolog).
 rule_implementation('related-requirement-unmodeled', prolog).
+rule_implementation('claim-subject-missing', prolog).
+rule_implementation('claim-subject-undefined', prolog).
 rule_implementation('proof-contract-symbols', prolog).
 rule_implementation('entity-id-style', prolog).
 rule_implementation('domain-redundancy', prolog).
@@ -187,6 +199,8 @@ rule_implementation('adr-unlinked', prolog).
 rule_implementation('adr-proposed', prolog).
 rule_implementation('predicate-schema-conformance', typescript).
 rule_implementation('entity-context-missing', typescript).
+rule_implementation('subject-definition-missing', typescript).
+rule_implementation('subject-duplicate', typescript).
 rule_implementation('entity-context-acknowledged', typescript).
 rule_implementation('decision-firm-unreferenced', typescript).
 rule_implementation('decision-firm-superseded', typescript).
@@ -198,6 +212,7 @@ rule_implementation('policy-markers', typescript).
 rule_implementation('kb-consistency', prolog).
 rule_implementation('kb-consistency-unresolved', prolog).
 rule_implementation('evidence-floor', typescript).
+rule_implementation('agent-requirement-unapproved-implemented', typescript).
 rule_implementation('proof-contract-claims', typescript).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
@@ -227,6 +242,8 @@ rule_predicate('predicate-verifiability', check_predicate_verifiability).
 rule_predicate('strict-readiness', check_strict_readiness).
 rule_predicate('semantic-completeness', check_semantic_completeness).
 rule_predicate('related-requirement-unmodeled', check_related_requirement_unmodeled).
+rule_predicate('claim-subject-missing', check_claim_subject_missing).
+rule_predicate('claim-subject-undefined', check_claim_subject_undefined).
 rule_predicate('proof-contract-symbols', check_proof_contract_symbols).
 rule_predicate('entity-id-style', check_entity_id_style).
 rule_predicate('domain-redundancy', check_domain_redundancy).
@@ -267,6 +284,8 @@ rule_predicate_arity('predicate-verifiability', 1).
 rule_predicate_arity('strict-readiness', 1).
 rule_predicate_arity('semantic-completeness', 1).
 rule_predicate_arity('related-requirement-unmodeled', 1).
+rule_predicate_arity('claim-subject-missing', 1).
+rule_predicate_arity('claim-subject-undefined', 1).
 rule_predicate_arity('proof-contract-symbols', 1).
 rule_predicate_arity('entity-id-style', 1).
 rule_predicate_arity('domain-redundancy', 1).
@@ -313,6 +332,8 @@ rule_description('predicate-verifiability', 'Detect requires_predicate links tha
 rule_description('strict-readiness', 'Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready').
 rule_description('semantic-completeness', 'Every inventoried assertive proposition is modeled or explicitly classified').
 rule_description('related-requirement-unmodeled', 'A current requirement with unresolved (missing) propositions that relates_to a current requirement modeled with strict property or ground predicate facts; its claims are never compared by domain-contradictions until they are modeled against the same subject or predicates, or it supersedes that requirement').
+rule_description('claim-subject-missing', 'A current requirement\'s unmodeled claim (ambiguous, ontology_gap or missing) that states or scopes a rule (normative, condition, exception or definition) must name the subjects it is about in its semantic_inventory entry\'s subjects, so Kibi can pair it with the other requirements on those subjects').
+rule_description('claim-subject-undefined', 'Every subject key a current requirement\'s inventory claim names, and every part_of, kind_of or distinct_from key of an active subject fact, must be defined by an active subject fact').
 rule_description('proof-contract-symbols', 'Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile').
 rule_description('entity-id-style', 'Entity IDs name the governed behavior and match their filename stem; new purely numeric IDs are reported at creation boundaries').
 rule_description('domain-redundancy', 'Two current requirements must not ground the identical logical term or share a ground fact unless linked by supersedes or restates').
@@ -329,6 +350,8 @@ rule_description('adr-unlinked', 'Advisory: an accepted ADR that no requirement 
 rule_description('adr-proposed', 'Informational: an ADR that is still proposed and not superseded, so nobody accepted or withdrew the decision').
 rule_description('predicate-schema-conformance', 'Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants').
 rule_description('entity-context-missing', 'A current requirement, scenario, test, ADR or observation/meta fact must carry body context: at least 12 words of prose (requirements: under a Context, Rationale, Why, Background, Source, Notes or Evidence heading) that do not restate the title or semantic_text; entities tagged review:context-missing are acknowledged legacy and exempt').
+rule_description('subject-definition-missing', 'An active subject fact is a domain definition: its body must say what the subject is (at least 8 words of prose that do not restate the title or subject_key)').
+rule_description('subject-duplicate', 'Two active subject facts whose subject_key and title words mostly coincide (token Jaccard at least 0.7) define one thing twice, unless one key is a dotted prefix of the other or either lists the other under distinct_from').
 rule_description('entity-context-acknowledged', 'Informational: how many current entities carry the review:context-missing tag, so the legacy context backlog stays visible; one summary finding per check').
 rule_description('decision-firm-unreferenced', 'A requirement or ADR marked firmness: firm must name the human words it rests on: origin.ref (or approval_ref on a requirement); Kibi checks that the reference is present, not that it is genuine').
 rule_description('decision-firm-superseded', 'A requirement or ADR that supersedes a firm decision, retired or not, must itself be firm (and so carry a ref to the human who changed the rule); a default or exploratory replacement cannot overrule a firm decision').
@@ -339,5 +362,6 @@ rule_description('policy-ownership', 'When a plugin activated for kibi.check-pol
 rule_description('policy-markers', 'When a plugin activated for kibi.check-policy.v1 declares marker rules, every file implementing a requirement grounded in the rule\'s pattern predicate (with its declared sibling files) must contain each marker the KB declares for that pattern').
 rule_description('kb-consistency', 'The facts current requirements name must hold together, jointly and not only pairwise: every property context needs a value that satisfies all its facts, every atom and decision key one truth value, and stored rules a stratification. Each finding is a contradiction certificate (an irreducible core, two disagreeing facts or a negation cycle) re-verified by the independent checker, or a certificate that checker rejects').
 rule_description('kb-consistency-unresolved', 'Advisory: a property context, atom or decision key whose facts the consistency checker cannot compare (mixed value types or units, an unsupported operator or polarity, or a contradiction whose validity windows never overlap); it never counts as consistent').
-rule_description('evidence-floor', 'Every current requirement\'s computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot').
+rule_description('evidence-floor', 'Every current requirement\'s computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement or one a person approved (origin.approved_by) that states no firmness, and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot').
+rule_description('agent-requirement-unapproved-implemented', 'A current priority must requirement authored by an agent (origin.kind agent) that production symbols implement must have a human approval (origin.approved_by) once it is older than 14 days by created_at; a missing created_at counts as older (KB schema 15)').
 rule_description('proof-contract-claims', 'From schema 12, every certificate-kind proof contract (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex) must name the claims it proves in proves, and each named claim must be a modeled claim of a current requirement the test reaches through its scenarios, grounded by a fact that proof kind can express or attest').

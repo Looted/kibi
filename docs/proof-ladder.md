@@ -431,10 +431,11 @@ requirement itself and no shared snapshot file has to be kept in step.
 | --- | --- |
 | `required_evidence: proved \| tested \| asserted \| unverified` | Set on the requirement by its author |
 | `tested` | No `required_evidence` and the requirement is firm (`firmness: firm`, or no `firmness` and an origin other than `agent`) |
-| `unverified` (no floor) | No `required_evidence` and the requirement is not firm |
+| `tested` | No `required_evidence`, no `firmness`, and a person approved the requirement (`origin.approved_by`), from KB schema 15 |
+| `unverified` (no floor) | No `required_evidence`, not firm and not approved, or approved with an explicit `firmness: default` or `exploratory` |
 
 Coverage rows carry the floor as `evidenceFloor` with `required`, `source`
-(`explicit` or `firmness`) and `status`: `met`, `below`, or `pending_reproof`
+(`explicit`, `firmness` or `approval`) and `status`: `met`, `below`, or `pending_reproof`
 when the floor is `tested` and every gap only says the receipts are older
 than the code. A plain `kibi check` lets `pending_reproof` pass, so a local
 check catches grounding, contradiction and link regressions without
@@ -457,6 +458,21 @@ Firm requirements whose proof has passed keep the `tested` floor, and the
 migration lists them. Their proof can still have gaps it does not read, such
 as a stale receipt or a production symbol without `covered_by`, so run
 `kibi check --rules evidence-floor` after migrating and fix what it reports.
+
+The schema 15 upgrade does the same for approved requirements: an agent's
+requirement that a person approved and that states no `firmness` now needs
+`tested`, so `kibi migrate --yes` records `required_evidence: asserted` on
+each current one without a passing proof path and lists the ones that keep
+the `tested` floor. Remove the pin once the requirement has an end-to-end
+proof.
+
+One more rule reads the same requirement proofs:
+`agent-requirement-unapproved-implemented` (canonical, KB schema 15) blocks a
+current `priority: must` requirement whose `origin.kind` is `agent`, that
+production symbols implement, and that nobody has approved
+(`origin.approved_by`) more than 14 days after its `created_at` (a missing
+`created_at` counts as older): shipped behavior must not rest on a
+requirement no person confirmed.
 
 The schema 12 upgrade binds certificates to claims. `kibi migrate --yes` pins
 `proves` on each certificate-kind contract whose test reaches exactly one

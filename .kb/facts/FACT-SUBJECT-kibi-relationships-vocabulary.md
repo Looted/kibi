@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-relationships-vocabulary
 type: fact
 ---
-The subject kibi.relationships.vocabulary.
+
+The fixed set of relationship types Kibi stores between entities, such as depends_on, specified_by, verified_by, validates, implements, covered_by and constrains. It is the vocabulary, not the rules about which types connect which entities.

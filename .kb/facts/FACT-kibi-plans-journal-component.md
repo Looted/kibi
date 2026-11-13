@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-plans-journal-component
 type: fact
 ---
-The kibi.plans.journal component, as the structural requirements that name it constrain it.
+
+The version kibi.plan-apply-journal.v1 of the recovery journal written while applying a plan. It versions the journal, not the apply behavior.

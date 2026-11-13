@@ -86,6 +86,7 @@
 % GENERATED registry facts; single source is schema/rule-registry.json.
 :- use_module('rule_registry.pl', [known_rule/1]).
 :- use_module('kb_consistency.pl', [check_kb_consistency/1, check_kb_consistency_unresolved/1]).
+:- use_module('domain_subjects.pl', [check_claim_subject_missing/1, check_claim_subject_undefined/1]).
 
 % Required fields for all entities
 required_fields([id, title, status, created_at, updated_at, source]).
@@ -137,6 +138,8 @@ aggregated_check(rule_safety, 'rule-safety', check_rule_safety).
 aggregated_check(rule_verifiability, 'rule-verifiability', check_rule_verifiability).
 aggregated_check(semantic_completeness, 'semantic-completeness', check_semantic_completeness).
 aggregated_check(related_requirement_unmodeled, 'related-requirement-unmodeled', check_related_requirement_unmodeled).
+aggregated_check(claim_subject_missing, 'claim-subject-missing', check_claim_subject_missing).
+aggregated_check(claim_subject_undefined, 'claim-subject-undefined', check_claim_subject_undefined).
 aggregated_check(req_status_vocabulary, 'req-status-vocabulary', check_req_status_vocabulary).
 aggregated_check(retired_reason_missing, 'retired-reason-missing', check_retired_reason_missing).
 aggregated_check(retired_owner_only, 'retired-owner-only', check_retired_owner_only).

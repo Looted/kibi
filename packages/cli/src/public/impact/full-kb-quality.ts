@@ -136,6 +136,9 @@ const STRING_ARRAY_FIELDS = [
   "examples",
   "predicate_args",
   "value_set",
+  "part_of",
+  "kind_of",
+  "distinct_from",
 ] as const;
 
 /** Optional fields copied as they are when they hold a list. */

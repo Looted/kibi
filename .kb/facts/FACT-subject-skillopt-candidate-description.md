@@ -13,3 +13,5 @@ origin:
 id: FACT-subject-skillopt-candidate-description
 type: fact
 ---
+
+A SkillOpt candidate's replacement for a skill's description, recorded with its hash in the candidate manifest and used unchanged by every scored cell, while every other frontmatter field stays frozen. It covers the description only, not the skill body.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-proof-code-certificates-component
 type: fact
 ---
-The kibi.proof.code_certificates component, as the structural requirements that name it constrain it.
+
+Settings of code proof certificates: the version kibi.code-certificate.v1, the KIBI_PROOF_CERTIFICATES variable, the code extracts a certificate reads and their limits. They are constants, not certificate checking.

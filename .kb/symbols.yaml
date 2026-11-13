@@ -39578,6 +39578,109 @@ symbols:
         target: TEST-proof-step-order
       - type: implements
         target: REQ-proof-step-order
+  - id: SYM-test-kb-domain-subject-layer
+    title: Domain subject layer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/domain-subjects.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-domain-subject-layer
+  - id: SYM-domain-subjects-check-claim-subject-missing
+    title: check_claim_subject_missing
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-domain-subjects-check-claim-subject-undefined
+    title: check_claim_subject_undefined
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-domain-subjects-subject-domain-json
+    title: subject_domain_json
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
+  - id: SYM-subject-layer-subject-definition-violations
+    title: subjectDefinitionViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-subject-layer-subject-duplicate-violations
+    title: subjectDuplicateViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-schema6-domain-subject-actions
+    title: domainSubjectActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
+  - id: SYM-domain-subjects-apply-claim-subject-anchor
+    title: applyClaimSubjectAnchor
+    status: active
+    sourceFile: packages/cli/src/operations/migration/domain-subjects.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
   - id: SYM-docs-site-theme-linkPreviewMeta
     title: linkPreviewMeta
     status: active
@@ -39643,3 +39746,67 @@ symbols:
         target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-link-preview
+  - id: SYM-test-approval-evidence-floor
+    title: Approval evidence floor suite
+    status: active
+    sourceFile: packages/cli/tests/commands/approval-evidence-floor.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:20:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-approval-evidence-floor
+  - id: SYM-cli-unapproved-implemented-findings
+    title: unapprovedImplementedViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-cli-past-approval-grace
+    title: pastApprovalGrace
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-core-requirement-review-row
+    title: requirement_review_row
+    status: active
+    sourceFile: packages/core/src/requirement_proof.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-cli-default-tested-floor
+    title: defaultTestedFloor
+    status: active
+    sourceFile: packages/cli/src/operations/migration/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T18:20:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-evidence-floors

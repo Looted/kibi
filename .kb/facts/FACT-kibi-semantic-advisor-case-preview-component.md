@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-semantic-advisor-case-preview-component
 type: fact
 ---
-The kibi.semantic_advisor.case_preview component, as the structural requirements that name it constrain it.
+
+The limit of twelve cases the semantic advisor previews for one fact. It bounds the preview, not the advisor's analysis.

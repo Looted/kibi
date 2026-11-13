@@ -240,7 +240,7 @@ export async function checkEvidenceFloorMigration(sandbox: TestSandbox) {
   assert.strictEqual(migrate.exitCode, 0, `${migrate.stdout}${migrate.stderr}`);
   assert.match(
     migrate.stdout,
-    /Recorded required_evidence: asserted on 2 current firm requirement\(s\)/,
+    /Recorded required_evidence: asserted on 2 current firm or approved requirement\(s\)/,
   );
   assert.match(
     readFileSync(
@@ -260,7 +260,7 @@ export async function checkEvidenceFloorMigration(sandbox: TestSandbox) {
         schemaVersion: number;
       }
     ).schemaVersion,
-    14,
+    16,
   );
   await run("git", ["add", "-A", ".kb"], {
     cwd: sandbox.repoDir,

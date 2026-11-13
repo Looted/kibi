@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+How the OpenCode plugin v1 requirements are organized: one umbrella requirement with granular child requirement documents that carry the actual specifications. It describes document structure, not plugin behavior.

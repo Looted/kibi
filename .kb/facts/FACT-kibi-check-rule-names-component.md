@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-check-rule-names-component
 type: fact
 ---
-The kibi.check.rule_names component, as the structural requirements that name it constrain it.
+
+The stable names of kb_check rules, such as symbol-granularity, supersedes-reason-acknowledged and the evidence floor rule, that rule selection and output use. They are identifiers, not the rule logic.

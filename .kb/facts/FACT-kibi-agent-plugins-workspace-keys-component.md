@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-agent-plugins-workspace-keys-component
 type: fact
 ---
-The kibi.agent_plugins.workspace_keys component, as the structural requirements that name it constrain it.
+
+The environment variables and argument through which agent host plugins tell Kibi which workspace to use: KIBI_WORKSPACE, KIBI_PROJECT_ROOT or KIBI_ROOT, passed to Kibi tools as workspaceRoot. It is workspace naming, not workspace resolution logic.

@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The single versioned catalog of Kibi public operations and their input and output contracts that both the MCP server and the CLI JSON route expose, so the same input gives the same result or error on both. It excludes internal helpers and plugin APIs.

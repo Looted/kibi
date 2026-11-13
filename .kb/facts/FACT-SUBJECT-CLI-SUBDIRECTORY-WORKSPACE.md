@@ -15,3 +15,5 @@ origin:
 id: FACT-SUBJECT-CLI-SUBDIRECTORY-WORKSPACE
 type: fact
 ---
+
+Running a kibi command from a subdirectory of a Kibi workspace: it uses the workspace's knowledge base rather than creating an empty one there, and relative path options resolve from the directory where the command was typed. It is workspace resolution, not branch selection.

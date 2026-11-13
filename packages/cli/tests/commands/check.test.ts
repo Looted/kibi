@@ -852,6 +852,7 @@ source: .kb/facts/FACT-SUBJECT-ONLY-001.md
 fact_kind: subject
 subject_key: account.policy
 ---
+Test fixture subject account.policy: what the requirements in this test constrain, defined here for this test only.
 `,
       );
 
@@ -2065,6 +2066,7 @@ source: .kb/facts/FACT-USER-ROLE.md
 fact_kind: subject
 subject_key: user.role_assignment
 ---
+Test fixture subject user.role_assignment: what the requirements in this test constrain, defined here for this test only.
 `,
       );
 
@@ -2179,6 +2181,7 @@ source: .kb/facts/FACT-USER-ROLE.md
 fact_kind: subject
 subject_key: user.role_assignment
 ---
+Test fixture subject user.role_assignment: what the requirements in this test constrain, defined here for this test only.
 `,
       );
 
@@ -2677,6 +2680,8 @@ source: .kb/facts/FACT-WELLFORMED-001.md
 fact_kind: subject
 subject_key: user.profile
 ---
+Test fixture subject user.profile: what the requirements in this test constrain, defined here for this test only.
+
 Content
 `,
       );
@@ -2754,6 +2759,7 @@ source: .kb/facts/FACT-PAIR-SUBJECT-CLI-001.md
 fact_kind: subject
 subject_key: account.session
 ---
+Test fixture subject account.session: what the requirements in this test constrain, defined here for this test only.
 `,
       );
 

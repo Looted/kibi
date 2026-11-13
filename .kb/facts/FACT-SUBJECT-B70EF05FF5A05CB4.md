@@ -20,3 +20,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The scaffold that starts authoring a new Tree-sitter language pack from an unqualified, disconnected draft, refusing to overwrite an existing language directory. It creates a starting point, not a qualified pack.

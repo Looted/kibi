@@ -16,3 +16,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Kibi's published documentation website: the GitHub Pages root that holds the guide pages and landing page, with the requirement-health report published beside it. It is the public site, not the in-repository Markdown sources or the README alone.

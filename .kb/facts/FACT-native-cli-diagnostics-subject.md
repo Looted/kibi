@@ -22,3 +22,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The diagnostic records the native Linux CLI test suite writes about each command it runs, which must keep the command's own result and output intact and bound the private metadata they store. It is test infrastructure, not the CLI's user-facing output.

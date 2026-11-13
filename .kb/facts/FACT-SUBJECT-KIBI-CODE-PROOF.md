@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-CODE-PROOF
 type: fact
 ---
+
+The certificate proof kinds whose results earn proved evidence only when Kibi re-checks the certificate, such as exhaustive checks over a domain imported from a domain_source symbol, rejecting vacuous or unentailed arithmetic. It is the kind vocabulary and its checks, not test receipts.

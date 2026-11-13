@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-sync-extraction-failure-component
 type: fact
 ---
-The kibi.sync.extraction_failure component, as the structural requirements that name it constrain it.
+
+The code source_extraction_failed that kibi sync reports when it cannot extract a source. It is the code, not the handling of uncompiled sources.

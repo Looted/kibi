@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-cli-query
 type: fact
 ---
-The subject kibi.cli.query.
+
+Typed kb_query answers about modeled facts: rows plus a factQuery block with the predicate schema, distinct counts, suggestions, warnings and the next call, refusing arguments or values the schema does not hold. It answers exact questions, not free-text search.

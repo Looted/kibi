@@ -13,3 +13,5 @@ subject_key: check_policy.evaluation
 id: FACT-check-policy-evaluation-subject
 type: fact
 ---
+
+How kb_check reads and enforces activated check policies: plugin-provided rule sets read as JSON data without importing plugin code, with the check blocking when a policy cannot be read. It is the evaluation of those policies, not the built-in check rules.

@@ -9,5 +9,8 @@ origin:
   recorded_at: '2026-10-28T14:37:02.102Z'
 id: FACT-kibi-proof-protocol-component
 type: fact
+distinct_from:
+  - kibi.proof.protocol_schemas
 ---
-The kibi.proof.protocol component, as the structural requirements that name it constrain it.
+
+The version identifiers of proof protocol documents (proof contracts, receipts and runs) and the run outcomes they allow. It names versions and outcomes, distinct from kibi.proof.protocol_schemas, which holds the JSON schemas documents are validated against.

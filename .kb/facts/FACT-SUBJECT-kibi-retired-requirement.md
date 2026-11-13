@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-kibi-retired-requirement
 type: fact
 ---
+
+A requirement with status retired: it stops governing, leaves nothing current behind, is excluded from search answers' governing requirements and must state a retired_reason. It differs from closed, which means delivered, and from superseded, which means replaced.

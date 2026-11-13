@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-opencode-ids-component
 type: fact
 ---
-The kibi.opencode.ids component, as the structural requirements that name it constrain it.
+
+Fixed identifiers of the OpenCode integration: the plugin id kibi-opencode and the bootstrap command kibi-bootstrap. They are names, not plugin behavior.

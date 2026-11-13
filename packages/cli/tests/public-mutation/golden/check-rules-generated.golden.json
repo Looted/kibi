@@ -1,5 +1,5 @@
 {
-  "SELECTABLE_RULES_ALLOWED": "must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, retired-reason-missing, retired-owner-only, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, proof-contract-claims",
+  "SELECTABLE_RULES_ALLOWED": "must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, retired-reason-missing, retired-owner-only, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, claim-subject-missing, claim-subject-undefined, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, subject-definition-missing, subject-duplicate, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, agent-requirement-unapproved-implemented, proof-contract-claims",
   "SELECTABLE_RULE_NAMES": [
     "must-priority-coverage",
     "symbol-coverage",
@@ -34,6 +34,8 @@
     "strict-readiness",
     "semantic-completeness",
     "related-requirement-unmodeled",
+    "claim-subject-missing",
+    "claim-subject-undefined",
     "proof-contract-symbols",
     "entity-id-style",
     "domain-redundancy",
@@ -50,6 +52,8 @@
     "adr-proposed",
     "predicate-schema-conformance",
     "entity-context-missing",
+    "subject-definition-missing",
+    "subject-duplicate",
     "entity-context-acknowledged",
     "decision-firm-unreferenced",
     "decision-firm-superseded",
@@ -61,6 +65,7 @@
     "kb-consistency",
     "kb-consistency-unresolved",
     "evidence-floor",
+    "agent-requirement-unapproved-implemented",
     "proof-contract-claims"
   ]
 }

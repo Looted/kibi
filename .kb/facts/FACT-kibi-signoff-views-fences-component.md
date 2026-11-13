@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-signoff-views-fences-component
 type: fact
 ---
-The kibi.signoff_views.fences component, as the structural requirements that name it constrain it.
+
+The fence names kibi signoff uses in chat output: kibi-signoff for the summary and kibi-questions for pending decisions. They mark output blocks, not their content.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-proof-run-vocabulary-component
 type: fact
 ---
-The kibi.proof.run_vocabulary component, as the structural requirements that name it constrain it.
+
+The words proof runs and contracts use: result outcomes such as passed, failed and timed_out, failure phases setup, collection, execution, teardown and infrastructure, and receipt and coverage page limits. It is vocabulary, not evaluation.

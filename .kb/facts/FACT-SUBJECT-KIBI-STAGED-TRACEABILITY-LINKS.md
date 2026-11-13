@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-STAGED-TRACEABILITY-LINKS
 type: fact
 ---
+
+Where the staged traceability gate takes requirement links from: only the symbol manifest, never inline implements comments. It is the link source for that gate, not the granularity policy.

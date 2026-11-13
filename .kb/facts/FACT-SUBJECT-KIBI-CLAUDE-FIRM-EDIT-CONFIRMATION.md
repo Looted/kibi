@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-CLAUDE-FIRM-EDIT-CONFIRMATION
 type: fact
 ---
+
+The Claude Code plugin hook that asks the person before an edit of code implementing a firm requirement lands, and does not ask again for that edit once allowed. It is a confirmation prompt, not a block.

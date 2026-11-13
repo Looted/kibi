@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-git-hooks-managed-component
 type: fact
 ---
-The kibi.git_hooks.managed component, as the structural requirements that name it constrain it.
+
+The git hooks Kibi manages (post-checkout, post-merge, post-rewrite and pre-commit) and the # BEGIN kibi-managed marker that delimits its block inside a hook file. It is what Kibi owns, not hooks other tools install.

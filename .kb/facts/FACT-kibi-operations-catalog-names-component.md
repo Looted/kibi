@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-operations-catalog-names-component
 type: fact
 ---
-The kibi.operations.catalog_names component, as the structural requirements that name it constrain it.
+
+The names of the twenty-four operations in Kibi's public operation catalog. It lists names only, not their contracts or surfaces.

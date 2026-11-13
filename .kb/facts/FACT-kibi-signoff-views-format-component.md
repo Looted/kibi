@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-signoff-views-format-component
 type: fact
 ---
-The kibi.signoff_views.format component, as the structural requirements that name it constrain it.
+
+The KIBI_SIGNOFF_FORMAT environment variable that selects the format kibi signoff prints. It selects output, not what the view contains.

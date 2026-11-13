@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-playwright-native-id
 type: fact
 ---
+
+The native_id that names a test case in a proof run produced by a native reporter such as Playwright, so receipts can be matched to cases. Ingest refuses a native case without one. It is case identity, not the receipt fingerprint.

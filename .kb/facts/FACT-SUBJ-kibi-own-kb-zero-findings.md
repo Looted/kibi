@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-own-kb-zero-findings
 type: fact
 ---
+
+The CI and pre-push gate in Kibi's own repository that fails on any kibi check finding, info level included, and on check output missing a result group. It applies to this repository's KB only, not to consumer projects.

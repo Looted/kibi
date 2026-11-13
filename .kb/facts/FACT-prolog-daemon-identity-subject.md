@@ -16,3 +16,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Which SWI-Prolog executable an engine daemon runs, and the rule that a daemon serves only clients that resolved the same one: a client replaces a daemon running another SWI-Prolog, and the daemon rejects such a client's requests.

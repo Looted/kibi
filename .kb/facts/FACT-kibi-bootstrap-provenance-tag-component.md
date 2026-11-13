@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-bootstrap-provenance-tag-component
 type: fact
 ---
-The kibi.bootstrap.provenance_tag component, as the structural requirements that name it constrain it.
+
+The tag bootstrap:provenance-stub that marks a bootstrap candidate recording only where knowledge came from, so search and planning can rank it last. It is the marker, not the provenance stubs themselves.

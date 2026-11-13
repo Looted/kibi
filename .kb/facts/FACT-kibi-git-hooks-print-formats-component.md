@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-git-hooks-print-formats-component
 type: fact
 ---
-The kibi.git_hooks.print_formats component, as the structural requirements that name it constrain it.
+
+The formats in which Kibi prints its hook commands for other hook managers: shell, lefthook, husky and pre-commit. It is output format, not hook installation.

@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-kb-path-classes
 type: fact
 ---
+
+The classification of every path under .kb into authored knowledge lanes, derived runtime trees such as branch stores and caches, or neither. Agent writes into derived trees are refused. It is the path taxonomy, not the content rules of any lane.

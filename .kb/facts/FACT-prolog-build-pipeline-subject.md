@@ -20,3 +20,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The workflow that builds and validates Kibi's bundled SWI-Prolog archives for each launch platform on clean GitHub Actions runners, publishes a pinned manifest and smoke-tests the extracted runtime. It produces the bundle; resolving it at run time is a separate subject.

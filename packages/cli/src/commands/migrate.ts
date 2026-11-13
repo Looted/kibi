@@ -270,6 +270,24 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 13,
     to: 14,
   },
+  // Give a requirement a person approved (origin.approved_by) the tested
+  // floor unless it sets required_evidence or states its firmness, and record
+  // required_evidence: asserted on current approved requirements without a
+  // passing proof path; front matter only.
+  {
+    id: "approval-floor-v15",
+    from: 14,
+    to: 15,
+  },
+  // Require a definition on every subject fact, no duplicate subjects, and
+  // subjects on every unmodeled claim. No source is rewritten on its own: a
+  // claim's suggested subject is written only once a person approves it
+  // (claim_subject_anchor_suggest); the rest is listed for review.
+  {
+    id: "domain-subjects-v16",
+    from: 15,
+    to: 16,
+  },
 ];
 
 function migrationStepsFor(
@@ -937,9 +955,11 @@ export async function migrateCommand(
   const firmnessFromOriginStep = migrationSteps.some(
     (step) => step.id === "firmness-from-origin-v10",
   );
-  const evidenceFloorStep = migrationSteps.some(
-    (step) => step.id === "evidence-floor-v11",
-  );
+  const floorScope = {
+    firm: migrationSteps.some((step) => step.id === "evidence-floor-v11"),
+    approved: migrationSteps.some((step) => step.id === "approval-floor-v15"),
+  };
+  const evidenceFloorStep = floorScope.firm || floorScope.approved;
   const {
     applyEvidenceFloorPins,
     planEvidenceFloorPins,
@@ -1016,16 +1036,16 @@ export async function migrateCommand(
         );
     }
     if (evidenceFloorStep) {
-      const floors = planEvidenceFloorPins(cwd, ladderFloors);
+      const floors = planEvidenceFloorPins(cwd, ladderFloors, floorScope);
       if (floors.targets.length > 0)
         console.log(
-          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm requirement(s) whose evidence is below tested (front matter only).`,
+          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm or approved requirement(s) whose evidence is below tested (front matter only).`,
         );
       if (floors.kept.length > 0)
         console.log(
           floors.decidedBy === "ladder"
-            ? `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.`
-            : `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.`,
+            ? `dry run: ${floors.kept.length} firm or approved requirement(s) keep the tested floor (${floors.kept.join(", ")}); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.`
+            : `dry run: ${floors.kept.length} firm or approved requirement(s) keep the tested floor (${floors.kept.join(", ")}) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.`,
         );
       for (const skip of floors.skipped)
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
@@ -1178,10 +1198,10 @@ export async function migrateCommand(
     ? planFirmSupersedeAcknowledgement(cwd)
     : [];
   const evidenceFloorPlan = evidenceFloorStep
-    ? planEvidenceFloorPins(cwd, ladderFloors)
+    ? planEvidenceFloorPins(cwd, ladderFloors, floorScope)
     : null;
   const evidenceFloorsPinned = evidenceFloorStep
-    ? applyEvidenceFloorPins(cwd, ladderFloors)
+    ? applyEvidenceFloorPins(cwd, ladderFloors, floorScope)
     : 0;
   const claimPins = claimBindingStep
     ? applyProofContractClaimPins(cwd, claimCandidates)
@@ -1229,15 +1249,15 @@ export async function migrateCommand(
     );
   if (evidenceFloorsPinned > 0)
     console.log(
-      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,
+      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm or approved requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,
     );
   if (evidenceFloorPlan !== null) {
     const kept = evidenceFloorPlan.kept.length;
     if (kept > 0)
       console.log(
         evidenceFloorPlan.decidedBy === "ladder"
-          ? `${kept} firm requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).`
-          : `${kept} firm requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).`,
+          ? `${kept} firm or approved requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).`
+          : `${kept} firm or approved requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).`,
       );
     for (const skip of evidenceFloorPlan.skipped)
       printWarning(
@@ -1391,7 +1411,7 @@ async function buildWorkspaceMigrationPlan(
     status?.schemaStatus?.currentVersion ??
     readKbManifest(workspaceRoot)?.schemaVersion ??
     null;
-  const { EVIDENCE_FLOOR_SCHEMA_VERSION } = await import(
+  const { APPROVAL_FLOOR_SCHEMA_VERSION } = await import(
     "../public/operations/evidence-floor.js"
   );
   const { readLadderFloorVerdicts } = await import(
@@ -1408,7 +1428,7 @@ async function buildWorkspaceMigrationPlan(
     currentSchemaVersion,
     // Number(null) is 0: a KB without a version is below every schema.
     ladderFloors:
-      Number(currentSchemaVersion) < EVIDENCE_FLOOR_SCHEMA_VERSION
+      Number(currentSchemaVersion) < APPROVAL_FLOOR_SCHEMA_VERSION
         ? await readLadderFloorVerdicts(workspaceRoot)
         : null,
     claimCandidates:

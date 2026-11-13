@@ -4,7 +4,7 @@ description: "Use Kibi's source-first, exact-Git, migration-aware, proof-aware o
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.43.0
+  version: 2.44.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -501,6 +501,31 @@ proof regressions in `resources/proof.md` and use `kibi proof explain`.
 Load `kibi-provable-code` before writing or refactoring code that implements
 a requirement, when a source read is refused for a computed name, dynamic
 import, reflection or eval, or when deciding how to treat generated code.
+
+## Domain subjects
+
+A subject fact (`fact_kind: subject`) defines one thing in the product: a
+screen, a role, a document, a limit. Its body is the definition (at least 8
+words: what it is, what it includes and what it is not); `kb_check` blocks a
+subject without one (`subject-definition-missing`) and two subjects whose key
+and title read as one (`subject-duplicate`). Relate subjects instead of
+copying them: a dotted key (`drawing.read_only_view`) is part of its prefix,
+and `part_of`, `kind_of` and `distinct_from` name other subject keys.
+
+Every unmodeled `normative`, `condition`, `exception` or `definition` claim
+of a current requirement names the subjects it is about in its inventory
+entry, `subjects: [<subject_key>, ...]` (`claim-subject-missing`), and each
+key must be defined (`claim-subject-undefined`). Prose Kibi cannot compare
+still meets the other requirements on the same subject:
+`kb_query {"factKind":"subject","subjectKey":"<key>"}` returns the
+definition, broader and narrower subjects and every current requirement about
+it or a narrower one. `kb_upsert` of a requirement lists those neighbours:
+read them, and when one contradicts the new claim, or restricts what it
+describes without saying so, ask the person which rule holds (see
+`kibi-decisions`). Pick an existing subject before defining a new one; when
+none fits, define it from what the project's people and code say; when nobody
+has said, write `Definition not stated:` followed by where the subject is
+named and who could define it, rather than inventing one.
 
 ## Quantified claims: model the dimension
 

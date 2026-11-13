@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-check-rule-selection
 type: fact
 ---
+
+Which rules a kibi check run evaluates and which findings fail it: a plain check runs canonical and advisory rules and skips migration rules, repository configuration cannot disable a canonical rule, and only canonical findings fail.

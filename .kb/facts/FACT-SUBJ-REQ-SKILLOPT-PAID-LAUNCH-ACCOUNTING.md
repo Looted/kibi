@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Paid SkillOpt optimize launches and their safeguards: the paid gate, the bounded cell runtime, capability-bound trust and receipts that bind request, capability, invoice, usage and pricing in a ledger. It is spend control, not the optimization method.

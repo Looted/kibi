@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-NUMERIC-DECISION
 type: fact
 ---
+
+The procedure that decides numeric constraint entailment and contradiction between modeled claims, proved exact in Lean without sorry and differentially tested against the shipped code. It decides numbers only, not rule or pattern claims.

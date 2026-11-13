@@ -246,7 +246,7 @@ describe("symbol coordinates are a local cache derived from source", () => {
       expect(existsSync(path.join(root, COORDINATES))).toBe(true);
       expect(readFileSync(gitignorePath, "utf8")).toContain(COORDINATES);
       expect(JSON.parse(readFileSync(manifestPath, "utf8")).schemaVersion).toBe(
-        14,
+        16,
       );
 
       git(root, "add .gitignore .kb");

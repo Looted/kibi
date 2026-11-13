@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-packages-kibi-runtime
 type: fact
 ---
-The subject kibi.packages.kibi_runtime.
+
+The kibi-runtime npm package that host plugins and the CLI share for runtime services such as skills and hooks support; its dependencies exclude optional plugins such as kibi-plugin-jev. It is the package boundary only.

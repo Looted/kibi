@@ -2987,6 +2987,18 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-approval-evidence-floor",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/commands/approval-evidence-floor.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-entity-origin-exhaustive",
     "steps": [
       [
@@ -7605,6 +7617,21 @@
         "--timeout",
         "240000",
         "./scripts/tests/run-proof-producer.test.mjs"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kb-domain-subject-layer",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/consumer/domain-subjects.test.ts",
+        "./packages/cli/tests/operations/migration/domain-subjects.test.ts",
+        "./packages/cli/tests/public/subject-layer.test.ts",
+        "./packages/cli/tests/operations-mutation/mutation/subject-warnings.test.ts"
       ]
     ]
   }

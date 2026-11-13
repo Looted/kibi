@@ -13,4 +13,5 @@ origin:
 id: FACT-SUBJECT-kibi-capability-plugins-providers
 type: fact
 ---
-The subject kibi.capability_plugins.providers.
+
+The providers that plugins register for Kibi's three replaceable capabilities, such as the semantic classifier; each capability accepts at most one replace provider. It is the provider registry, not the built-in implementations.

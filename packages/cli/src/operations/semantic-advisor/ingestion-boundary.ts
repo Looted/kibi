@@ -265,6 +265,16 @@ export function semanticInventoryContract(
       stringValue(entry.status),
     ]),
   );
+  const sentSubjects = new Map(
+    inventoryOf(payload).map((entry) => [
+      stringValue(entry.claim_key),
+      Array.isArray(entry.subjects)
+        ? entry.subjects.filter(
+            (subject): subject is string => typeof subject === "string",
+          )
+        : [],
+    ]),
+  );
   return {
     semantic_inventory_version: SEMANTIC_INVENTORY_VERSION,
     semantic_source_field: semanticSource.field,
@@ -275,6 +285,10 @@ export function semanticInventoryContract(
       role: proposition.role,
       status: sent.get(proposition.claim_key) || proposition.status,
       span: { start: proposition.span.start, end: proposition.span.end },
+      // The subjects the caller anchored this claim to stay with it.
+      ...((sentSubjects.get(proposition.claim_key) ?? []).length > 0
+        ? { subjects: sentSubjects.get(proposition.claim_key) }
+        : {}),
     })),
     logic_claims: receipt.propositions
       .filter(propositionIsAssertive)

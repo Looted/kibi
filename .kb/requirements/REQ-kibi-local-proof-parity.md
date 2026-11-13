@@ -30,6 +30,9 @@ semantic_inventory:
       start: 94
       end: 208
     status: ontology_gap
+    subjects:
+      - kibi.evidence_floor
+      - kibi.ci.proof_reuse
     reason: No predicate or property vocabulary describes repository proof tooling capabilities; the claim is verified by TEST-kibi-local-proof-parity rather than grounded as a fact.
 logic_claims:
   - CLAIM-DF1C8C7846819DEC

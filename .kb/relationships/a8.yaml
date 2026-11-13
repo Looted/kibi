@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe94f6c5105c
+  - type: assumes
+    from: SCEN-NEG-kb-domain-subject-layer-DUPLICATE-UNREPORTED
+    to: FACT-NEG-kb-domain-subject-layer-DUPLICATE-UNREPORTED
+    created_at: 2026-11-12T18:44:40.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f07623065213
+  - type: verified_by
+    from: SCEN-NEG-kb-domain-subject-layer-DUPLICATE-UNREPORTED
+    to: TEST-kb-domain-subject-layer
+    created_at: 2026-11-12T18:44:40.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-635898a5fba0

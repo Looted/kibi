@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-ENTITY-BODY-CONTEXT
 type: fact
 ---
+
+The context an entity's document body carries (why it exists, background, trade-offs), kept separate from the checked meaning in front matter, with entity-context-missing reported for current entities without it and requirement bodies kept in step with semantic_text. It is prose context, not modeled claims.

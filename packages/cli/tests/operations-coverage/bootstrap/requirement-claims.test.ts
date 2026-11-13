@@ -79,7 +79,7 @@ describe("shareSubjectFacts", () => {
         tags: ["kept", "provenance:docs-a-md", "provenance:docs-b-md"],
       },
       document: {
-        body: "Subject user.session, shared by the requirements bootstrap planned from docs/a.md, docs/b.md. Each of them links to this fact through constrains.\n",
+        body: "Definition not stated: the subject user.session is named by the requirements bootstrap planned from docs/a.md, docs/b.md, each of which links to this fact through constrains. The people who own that source can say what it is in the product and what it is not.\n",
       },
     });
     expect(candidates[0]?.applyPlan.slice(1)).toStrictEqual(

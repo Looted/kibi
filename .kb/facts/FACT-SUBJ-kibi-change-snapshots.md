@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-change-snapshots
 type: fact
 ---
+
+How Kibi captures a change for review: staged changes as one Git index tree, and revision diffs between an explicit base and head, reading only Git objects rather than working-tree bytes or a moving index.
