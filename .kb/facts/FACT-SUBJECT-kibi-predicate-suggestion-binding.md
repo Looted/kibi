@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-predicate-suggestion-binding
 type: fact
 ---
-The subject kibi.predicate_suggestion.binding.
+
+The length limit on participant names that predicate modeling binds to arguments: at most three words, so a binding is a name rather than a clause of the claim. It is one limit, not the whole suggestion plan.

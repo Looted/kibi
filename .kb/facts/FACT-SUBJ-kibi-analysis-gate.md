@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-analysis-gate
 type: fact
 ---
+
+The gate in the staged check and impact review that decides what a source analysis gap means: failed or whole-file gaps on the changed (after) side block the change, and gaps on the before side are informational.

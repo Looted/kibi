@@ -39578,6 +39578,109 @@ symbols:
         target: TEST-proof-step-order
       - type: implements
         target: REQ-proof-step-order
+  - id: SYM-test-kb-domain-subject-layer
+    title: Domain subject layer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/domain-subjects.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-domain-subject-layer
+  - id: SYM-domain-subjects-check-claim-subject-missing
+    title: check_claim_subject_missing
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-domain-subjects-check-claim-subject-undefined
+    title: check_claim_subject_undefined
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-domain-subjects-subject-domain-json
+    title: subject_domain_json
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
+  - id: SYM-subject-layer-subject-definition-violations
+    title: subjectDefinitionViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-subject-layer-subject-duplicate-violations
+    title: subjectDuplicateViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-schema6-domain-subject-actions
+    title: domainSubjectActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/schema6.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
+  - id: SYM-domain-subjects-apply-claim-subject-anchor
+    title: applyClaimSubjectAnchor
+    status: active
+    sourceFile: packages/cli/src/operations/migration/domain-subjects.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-12T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
   - id: SYM-docs-site-theme-linkPreviewMeta
     title: linkPreviewMeta
     status: active

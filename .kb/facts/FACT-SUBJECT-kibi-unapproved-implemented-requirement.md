@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-kibi-unapproved-implemented-requirement
 type: fact
 ---
+
+A current must requirement that an agent wrote, that production symbols implement, and that no person has approved through origin.approved_by. It is not an agent requirement that no code implements yet, nor one a person has approved.

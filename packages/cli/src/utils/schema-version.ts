@@ -34,7 +34,9 @@
 // Schema 15 gives a requirement a person approved (origin.approved_by) the
 // tested evidence floor unless it sets required_evidence or states its
 // firmness.
-export const LATEST_KB_SCHEMA_VERSION = 15;
+// Schema 16 restores subject facts as domain definitions: a subject needs a
+// definition and no duplicate, and every unmodeled claim names its subjects.
+export const LATEST_KB_SCHEMA_VERSION = 16;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

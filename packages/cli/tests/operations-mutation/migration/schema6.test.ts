@@ -463,6 +463,7 @@ describe("the schema 6 action codes", () => {
       "semantic_inventory_rederive_drop_grounding",
       "req_status_vocabulary_map",
       "req_retired_status_suggest",
+      "claim_subject_anchor_suggest",
       "semantic_inventory_rederive",
     ]);
   });

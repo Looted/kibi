@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-impact-next-actions
 type: fact
 ---
+
+The report the impact check prints for a change: the entities linked to each changed symbol and, for every blocking impact diagnostic, a suggestion that clears it. It describes what the report must contain, not which edits count as impactful.

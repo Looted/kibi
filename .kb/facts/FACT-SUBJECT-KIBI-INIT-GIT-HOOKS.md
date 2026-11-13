@@ -16,3 +16,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The git hooks kibi init installs at the effective repository path for hard enforcement, leaving foreign hooks untouched and reporting each hook truthfully, with doctor diagnosing them. Agent host hooks are advisory and separate.

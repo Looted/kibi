@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-staged-impact-identifiers-component
 type: fact
 ---
-The kibi.staged_impact.identifiers component, as the structural requirements that name it constrain it.
+
+Identifiers the staged impact check uses: diagnostics kibi_impact_evidence_missing and symbols_manifest_stale and the symbols manifest path .kb/symbols.yaml. They name things, not rules.

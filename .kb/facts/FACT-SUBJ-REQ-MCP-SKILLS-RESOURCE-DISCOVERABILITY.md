@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The canonical agent skills Kibi bundles (seven, including kibi-provable-code) and the resources each declares, which MCP serves through discovery only for paths the skill manifest declares and never outside the skill directory. It excludes skills a project writes itself.

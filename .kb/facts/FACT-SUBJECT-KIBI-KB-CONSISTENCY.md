@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-KB-CONSISTENCY
 type: fact
 ---
+
+Consistency of the stored knowledge base as a theorem Kibi certifies: stratified rules without negation cycles and model certificates that an independent checker re-checks, detecting tampering. It is about the KB as a whole, not about individual requirement conflicts.

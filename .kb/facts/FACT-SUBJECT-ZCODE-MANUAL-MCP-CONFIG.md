@@ -16,3 +16,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The MCP server entry a ZCode user writes by hand to use Kibi, which must invoke the supported kibi-mcp entry point. It is manual configuration, not an installed plugin.

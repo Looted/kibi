@@ -42,6 +42,7 @@ import {
   DECISION_FIXTURE_TEST,
   DECISION_IDS,
   DECISION_RULE_TITLE,
+  DECISION_SUBJECT_KEY,
   IMPACT_REVIEW_PATH,
 } from "../runtime/decision-seeds";
 import { runIndependentFinalState } from "../runtime/final-state";
@@ -490,7 +491,13 @@ async function ledger(agent: ScriptedAgent, prose: string) {
   const data = await agent.data("kb_model", { mode: "analyze", text: prose });
   const receipt = data.receipt as Record<string, unknown>;
   const contract = receipt.inventory_contract as Record<string, string>;
-  const propositions = receipt.propositions as Record<string, unknown>[];
+  // Every unmodeled claim here is about the fixture family name.
+  const propositions = (receipt.propositions as Record<string, unknown>[]).map(
+    (proposition) =>
+      proposition.status === "modeled"
+        ? proposition
+        : { ...proposition, subjects: [DECISION_SUBJECT_KEY] },
+  );
   return {
     semantic_text: prose,
     semantic_inventory_version: contract.version,

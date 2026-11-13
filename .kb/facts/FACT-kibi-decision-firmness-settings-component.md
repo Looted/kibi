@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-decision-firmness-settings-component
 type: fact
 ---
-Kibi decision firmness settings, named kibi.decision_firmness.settings in the structural requirements that constrain it.
+
+Fixed settings of decision firmness: the entity types that carry it (req and adr) and the heading Why this changed that a supersede explanation uses. They are constants, not the rules.

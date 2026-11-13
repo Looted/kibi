@@ -3598,7 +3598,7 @@ test(modeled_summaries, Summaries == ['cart.total, holds([cart])', owns]) :-
 
 % --- the aggregated dict and its JSON transports ------------------------------
 
-chk_all_keys([adr_proposed, adr_unlinked, deprecated_adr_no_successor, domain_contradictions,
+chk_all_keys([adr_proposed, adr_unlinked, claim_subject_missing, claim_subject_undefined, deprecated_adr_no_successor, domain_contradictions,
               domain_implication, domain_redundancy, entity_id_style, exception_claim_keys,
               kb_consistency, kb_consistency_unresolved, logic_coverage, must_priority_coverage,
               no_cycles, no_dangling_refs, numeric_string_value, ontology_quality,

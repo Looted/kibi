@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-migration-pin-codes-component
 type: fact
 ---
-The kibi.migration.pin_codes component, as the structural requirements that name it constrain it.
+
+Action ids and codes for symbol, context, semantic text and proof migrations, such as symbol-legacy-link-mark. They identify migration actions, not their behavior.

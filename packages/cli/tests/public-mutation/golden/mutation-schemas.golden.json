@@ -1122,9 +1122,30 @@
         },
         "description": "Optional ground-term examples for a predicate schema."
       },
+      "part_of": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "subject only: defined subject keys this subject is a part of. A dotted key prefix that is itself a defined subject is broader already."
+      },
+      "kind_of": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "subject only: defined subject keys this subject is a kind of (a read-only review is a kind of review view)."
+      },
+      "distinct_from": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "subject only: similar defined subject keys this subject was checked to differ from; the body says how. Silences subject-duplicate for those pairs."
+      },
       "semantic_inventory": {
         "type": "array",
-        "description": "Requirement proposition ledger returned by kb_model mode analyze (CLI: semantic-advisor); preserve entries while modeling each assertive span.",
+        "description": "Requirement proposition ledger returned by kb_model mode analyze (CLI: semantic-advisor); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
         "items": {
           "type": "object"
         }

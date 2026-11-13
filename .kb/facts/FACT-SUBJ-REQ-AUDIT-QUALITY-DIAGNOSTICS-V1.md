@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Advisory quality diagnostics that kibi check reports separately from hard violations, such as coverage depth and receipt freshness, judged against snapshot-bound proof evidence. They inform; they are not blocking rule violations.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-migration-plan-versions-component
 type: fact
 ---
-The kibi.migration.plan_versions component, as the structural requirements that name it constrain it.
+
+Version strings of migration plan documents: kibi.legacy-migration-plan.v1 for legacy plans and kibi.migration-plan-digest.v2 for plan digests. They version documents, not plan content.

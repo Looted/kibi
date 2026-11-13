@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-telemetry-hook-usage-records
 type: fact
 ---
-The subject kibi.telemetry.hook_usage_records.
+
+The opt-in usage records host hooks write around agent activity: reads, edits, searches and Kibi calls with the prior-Kibi-use flag, the context shown or suppressed, and implemented requirement ids for edits. They are local records, not the anonymous remote telemetry.

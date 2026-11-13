@@ -16,3 +16,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The kibi merge-driver command Git calls to merge Kibi YAML manifests (relationship shards, symbols) record by record id, so concurrent branches keep every record. It handles Kibi's manifest files only, not Markdown entities or source code.

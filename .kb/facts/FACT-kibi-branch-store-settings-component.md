@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-branch-store-settings-component
 type: fact
 ---
-The kibi.branch_store.settings component, as the structural requirements that name it constrain it.
+
+Fixed settings of per-branch KB stores and their lock, such as the branch store manifest version 1 and the detached_head_read_only code returned when HEAD is detached. They are constants, not the store behavior.

@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The kibi status command, which reports machine-readable KB metadata such as freshness and branch, and works immediately after kibi init before any sync. It reads state; it does not sync.

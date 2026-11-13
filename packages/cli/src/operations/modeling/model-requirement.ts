@@ -64,6 +64,11 @@ type AlignedWriteSet = Readonly<{
 
 const NEW_SUBJECT_REVIEW_SCORE = 0.3;
 
+function withoutBody<T extends { body?: string }>(spec: T): Omit<T, "body"> {
+  const { body: _body, ...rest } = spec;
+  return rest;
+}
+
 // The write set describes the existing subject fact, so its id and its source
 // both name that fact; the minted fact (and its file) is never created.
 export function reuseExistingSubject(
@@ -76,8 +81,9 @@ export function reuseExistingSubject(
     replacedSubjectId,
     writeSet: {
       ...writeSet,
+      // The existing fact keeps its own body; the minted one is never written.
       subjectFact: {
-        ...writeSet.subjectFact,
+        ...withoutBody(writeSet.subjectFact),
         id: existingFactId,
         properties: {
           ...writeSet.subjectFact.properties,

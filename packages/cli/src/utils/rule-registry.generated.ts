@@ -238,6 +238,20 @@ export const GENERATED_RULES = [
     category: "integrity",
   },
   {
+    name: "claim-subject-missing",
+    description:
+      "A current requirement's unmodeled claim (ambiguous, ontology_gap or missing) that states or scopes a rule (normative, condition, exception or definition) must name the subjects it is about in its semantic_inventory entry's subjects, so Kibi can pair it with the other requirements on those subjects",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "claim-subject-undefined",
+    description:
+      "Every subject key a current requirement's inventory claim names, and every part_of, kind_of or distinct_from key of an active subject fact, must be defined by an active subject fact",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
     name: "proof-contract-symbols",
     description:
       "Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile",
@@ -350,6 +364,20 @@ export const GENERATED_RULES = [
     name: "entity-context-missing",
     description:
       "A current requirement, scenario, test, ADR or observation/meta fact must carry body context: at least 12 words of prose (requirements: under a Context, Rationale, Why, Background, Source, Notes or Evidence heading) that do not restate the title or semantic_text; entities tagged review:context-missing are acknowledged legacy and exempt",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "subject-definition-missing",
+    description:
+      "An active subject fact is a domain definition: its body must say what the subject is (at least 8 words of prose that do not restate the title or subject_key)",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "subject-duplicate",
+    description:
+      "Two active subject facts whose subject_key and title words mostly coincide (token Jaccard at least 0.7) define one thing twice, unless one key is a dotted prefix of the other or either lists the other under distinct_from",
     enforcementClass: "canonical",
     category: "integrity",
   },

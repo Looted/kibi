@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJECT-kibi-source-relationship-parity
 type: fact
 ---
+
+The guarantee that every relationship authored in tracked Markdown appears in the compiled RDF store and none is lost, with authored relationship loss blocking. It compares authored and compiled forms, not relationship validity.

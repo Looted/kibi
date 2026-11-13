@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-vocabulary-alignment-limits-component
 type: fact
 ---
-The kibi.vocabulary_alignment.limits component, as the structural requirements that name it constrain it.
+
+Thresholds and caps of vocabulary alignment providers, such as the built-in aligner's reuse threshold of 0.4 and the Jev aligner ranking at most five candidates. They tune alignment, not its scope.

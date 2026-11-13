@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-PREDICATE-MODELING-GROUNDING
 type: fact
 ---
+
+How predicate modeling treats a claim the requirement already grounds through requires_property, requires_predicate or requires_rule: it reports that state and offers only replacement plans that keep exactly one grounding relationship per claim. It is about existing grounding, not new suggestions.

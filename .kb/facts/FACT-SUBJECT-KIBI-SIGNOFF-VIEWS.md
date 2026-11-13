@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-SIGNOFF-VIEWS
 type: fact
 ---
+
+The kibi signoff review of a change: every changed or implemented requirement and each pending decision numbered with its quote, rendered as one readable view on every host and asked for once after a requirement write. It is the human review surface, not the checks.

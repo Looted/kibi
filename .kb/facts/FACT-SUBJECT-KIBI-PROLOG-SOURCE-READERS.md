@@ -16,3 +16,5 @@ id: FACT-SUBJECT-KIBI-PROLOG-SOURCE-READERS
 type: fact
 text_ref: REQ-kibi-prolog-source-readers
 ---
+
+The readers that let source proofs inspect SWI-Prolog code without running it: imports, calls, environment variables and chosen arguments of facts, refusing any read that would reach a goal or closure. Other languages' readers are separate.

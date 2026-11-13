@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-proof-receipt-format-component
 type: fact
 ---
-The kibi.proof.receipt_format component, as the structural requirements that name it constrain it.
+
+The proof receipt format versions Kibi reads (kibi.proof-receipt.v1 and v2) and the parts its fingerprint is made of. It is the stored format, not receipt freshness.

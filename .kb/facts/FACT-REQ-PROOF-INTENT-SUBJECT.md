@@ -18,5 +18,4 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
 
-Subject anchor for the intent-aware source discovery requirements.
-
+Finding requirements, scenarios, tests, facts and implementation symbols from a natural-language request, with deterministic scores, evidence paths, source locations and explicit zero-result or ambiguity states. It is intent-driven discovery, not exact kb_query lookup.

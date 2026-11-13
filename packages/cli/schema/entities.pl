@@ -109,6 +109,11 @@ entity_property(fact, argument_aliases, string).
 entity_property(fact, aliases, list).
 entity_property(fact, examples, list).
 entity_property(fact, predicate_args, list).
+% Subject facts: broader subjects (part_of, kind_of) and similar subjects
+% checked to differ (distinct_from), each a list of subject keys.
+entity_property(fact, part_of, list).
+entity_property(fact, kind_of, list).
+entity_property(fact, distinct_from, list).
 entity_property(fact, rule_ir, string).
 entity_property(fact, rule_hash, string).
 % Rule schema references are JSON strings at the public boundary, but the

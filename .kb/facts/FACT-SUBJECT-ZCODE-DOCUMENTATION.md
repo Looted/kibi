@@ -16,3 +16,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The documentation for using Kibi with ZCode, which declares the ZCode adapter optional and describes its manual setup. It is documentation, not the adapter's configuration itself.

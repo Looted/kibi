@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-BOOTSTRAP-APPLY
 type: fact
 ---
+
+Applying an approved bootstrap plan through kb_apply_plan: progress reported after every action, surviving client timeouts and interrupted processes, and hash errors in asynchronous calls returned as call errors. It is the apply step, not plan generation.

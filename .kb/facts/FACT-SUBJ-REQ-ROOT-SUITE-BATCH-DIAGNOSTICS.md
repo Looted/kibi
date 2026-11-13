@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Kibi's own test harness: curated unit and packed end-to-end batches run in bounded parallel with deterministic summaries, and each spawned Prolog engine gets a private runtime directory, is reused within its isolation boundary and is stopped afterwards. It is test infrastructure, not product behavior.

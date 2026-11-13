@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Upgrading a branch KB from one schema version to the next through kibi migrate: idempotent steps, applied only with the approved hash of the current migration plan. It is the version path, not the orchestration flow around it.

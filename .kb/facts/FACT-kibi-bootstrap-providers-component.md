@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-bootstrap-providers-component
 type: fact
 ---
-The kibi.bootstrap.providers component, as the structural requirements that name it constrain it.
+
+The fixed set of evidence providers bootstrap draws candidates from: typed Kibi docs, generic repository docs, repository metadata, repository layout, test topology and source symbols. It names the providers, not how candidates are ranked.

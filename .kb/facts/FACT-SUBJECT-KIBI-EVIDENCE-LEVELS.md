@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-EVIDENCE-LEVELS
 type: fact
 ---
+
+The evidence level Kibi reports for each requirement, derived from its tests and proofs, never stronger than the evidence supports: passing end-to-end proof reads as tested, agent-only claims without tests as unverified. It describes strength, not the gate.

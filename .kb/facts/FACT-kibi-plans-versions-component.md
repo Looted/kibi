@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-plans-versions-component
 type: fact
 ---
-The kibi.plans.versions component, as the structural requirements that name it constrain it.
+
+Version strings of plan documents, such as kibi.compile-plan.v1 for compiled plans and kibi.plan-apply-result.v1 for apply results. They version documents, not plan content.

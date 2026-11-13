@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-packages-kibi-cli
 type: fact
 ---
-The subject kibi.packages.kibi_cli.
+
+The kibi-cli npm package, which provides the kibi command and the public operations behind it; its dependencies exclude optional plugins such as kibi-plugin-jev. It is the package boundary, not the command behavior.

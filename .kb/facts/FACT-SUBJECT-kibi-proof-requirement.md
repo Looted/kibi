@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-proof-requirement
 type: fact
 ---
-The subject kibi.proof.requirement.
+
+The ladder by which a requirement becomes proved end to end: a scenario-backed passing end-to-end test covering its located code, no infeasible scenarios, and coverage reports that show the outcome apart from structural coverage with ranked repairs. It is the requirement-level judgment, not receipt mechanics.

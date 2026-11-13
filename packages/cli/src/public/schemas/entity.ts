@@ -519,6 +519,13 @@ const entitySchema: Record<string, unknown> = {
           semantic_key: { type: "string" },
           payload_hash: { type: "string" },
           reason: { type: "string" },
+          // The subject facts an unmodeled claim is about (its anchors), so
+          // Kibi can pair it with the other requirements on those subjects.
+          subjects: {
+            type: "array",
+            uniqueItems: true,
+            items: { type: "string", minLength: 1 },
+          },
           // The advisor's hint for a quantified clause, kept so its receipt
           // propositions can be copied into the inventory unchanged.
           dimension: {
@@ -690,6 +697,23 @@ const entitySchema: Record<string, unknown> = {
     },
     aliases: { type: "array", items: { type: "string" } },
     examples: { type: "array", items: { type: "string" } },
+    // subject only: defined subjects this subject is a part of or a kind of
+    // (broader subjects), and defined subjects it was checked to differ from.
+    part_of: {
+      type: "array",
+      uniqueItems: true,
+      items: { type: "string", minLength: 1 },
+    },
+    kind_of: {
+      type: "array",
+      uniqueItems: true,
+      items: { type: "string", minLength: 1 },
+    },
+    distinct_from: {
+      type: "array",
+      uniqueItems: true,
+      items: { type: "string", minLength: 1 },
+    },
     predicate_args: { type: "array", items: { type: "string" } },
     // predicate_schema only: allowed constants per argument name. Arguments
     // without an entry stay open; predicate facts must use a listed constant.
@@ -779,6 +803,9 @@ const entitySchema: Record<string, unknown> = {
             { required: ["key_arguments"] },
             { required: ["aliases"] },
             { required: ["examples"] },
+            { required: ["part_of"] },
+            { required: ["kind_of"] },
+            { required: ["distinct_from"] },
             { required: ["predicate_args"] },
             { required: ["argument_constants"] },
             { required: ["argument_aliases"] },

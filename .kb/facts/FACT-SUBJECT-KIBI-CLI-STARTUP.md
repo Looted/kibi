@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-CLI-STARTUP
 type: fact
 ---
+
+How the kibi CLI starts: it loads only the implementation of the selected command, while its lightweight registration metadata matches the authoritative operation catalog exactly. It is startup and loading, not command behavior.

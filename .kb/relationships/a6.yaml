@@ -398,3 +398,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6cf2dbf79c7d
+  - type: executable_for
+    from: SYM-test-kb-domain-subject-layer
+    to: TEST-kb-domain-subject-layer
+    created_at: 2026-11-12T18:44:27.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edf9cd19c094
+  - type: covered_by
+    from: SYM-schema6-domain-subject-actions
+    to: TEST-kb-domain-subject-layer
+    created_at: 2026-11-12T18:45:01.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-099ed8758b4d
+  - type: implements
+    from: SYM-schema6-domain-subject-actions
+    to: REQ-kb-domain-subject-view
+    created_at: 2026-11-12T18:53:39.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-728228460d72

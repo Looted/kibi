@@ -38,6 +38,8 @@ semantic_inventory:
     claim_text: Kibi must remove the active briefing product surface across MCP, OpenCode, VS Code, and shared CLI configuration while preserving the rest of the knowledge-base discovery, query, sync, and validation workflows.\n\nThe MCP server must no longer expose `kb_briefing_generate`, `/brief-kibi`, or mutation pending-marker behavior for `.kb/briefs`.\nThe OpenCode integration must no longer generate, consume, render, route, or prompt for Kibi briefing artifacts.\nThe VS Code extension must no longer watch, parse, render, command-open, or notify on Kibi briefing artifacts.\nShared config, docs
     role: normative
     status: ontology_gap
+    subjects:
+      - kibi.briefing
     span:
       start: 0
       end: 590
@@ -47,6 +49,8 @@ semantic_inventory:
     claim_text: tests must treat prior briefing requirements, scenarios, and verification plans as removed/superseded rather than active product behavior
     role: normative
     status: ontology_gap
+    subjects:
+      - kibi.briefing
     span:
       start: 596
       end: 733

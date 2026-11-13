@@ -244,7 +244,9 @@ type: fact
 status: active
 fact_kind: subject
 subject_key: client.call_quota
-`);
+`,
+  "The number of calls a client may still make in the current quota window of the gateway; it is not the account's billing plan.",
+);
 
 export function quotaValueFact(
   id: string,
@@ -274,6 +276,8 @@ type AdvisorProposition = {
   role: string;
   status: string;
   span: { start: number; end: number };
+  /** Subject keys an unmodeled claim is about (written only when set). */
+  subjects?: readonly string[];
 };
 
 /** The semantic advisor's clause ledger and inventory contract for prose. */
@@ -302,7 +306,7 @@ export function semanticFrontMatter(
     claim_text: ${p.claim_text}
     role: ${p.role}
     status: ${p.status}
-    span: {start: ${p.span.start}, end: ${p.span.end}}`,
+    span: {start: ${p.span.start}, end: ${p.span.end}}${p.subjects === undefined ? "" : `\n    subjects: [${p.subjects.join(", ")}]`}`,
     )
     .join("\n");
   return `semantic_text: ${prose}

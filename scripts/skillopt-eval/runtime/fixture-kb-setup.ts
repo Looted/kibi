@@ -1352,7 +1352,10 @@ export async function setupSeededConsistencyKb(
       title: "Calls need remaining quota and quota resets need review",
       prose: CONSISTENCY_PROSE.incomplete,
       contract: incomplete.contract,
-      propositions: [{ ...numeric, status: "modeled" }, review],
+      propositions: [
+        { ...numeric, status: "modeled" },
+        { ...review, subjects: ["client.call_quota"] },
+      ],
       links: [
         { type: "constrains", target: CONSISTENCY_IDS.subject },
         { type: "requires_property", target: CONSISTENCY_IDS.positiveFact },

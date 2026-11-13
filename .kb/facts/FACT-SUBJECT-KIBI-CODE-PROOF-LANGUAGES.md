@@ -16,3 +16,5 @@ id: FACT-SUBJECT-KIBI-CODE-PROOF-LANGUAGES
 type: fact
 text_ref: REQ-kibi-multilingual-code-proofs
 ---
+
+The source languages a code proof can read its domain from (JavaScript, Python and SWI-Prolog predicates), one language per certificate, with receipts going stale when the read file changes. It is about reading domains, not about which claims a proof binds.

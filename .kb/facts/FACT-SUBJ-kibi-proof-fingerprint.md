@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-proof-fingerprint
 type: fact
 ---
+
+The effective fingerprint a proof receipt records: a hash over the proof contract plus the integration's command, bindings and producer, stored with its components, and a separate canonical environment hash. It identifies what was run, not whether the run passed.

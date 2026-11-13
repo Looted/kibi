@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The plan Kibi proposes when modeling a claim as a predicate: participant bindings as short names drawn from the requirement's subject, never a clause of the claim or the constrained identifier, with types and example values listed for each unbound argument. It is a suggestion, not the stored model.

@@ -251,3 +251,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-19beeaec3d71
+  - type: constrains
+    from: REQ-kb-domain-subject-view
+    to: FACT-SUBJECT-kibi-domain-subjects
+    created_at: 2026-11-12T18:53:30.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c7d1f479149
+  - type: relates_to
+    from: REQ-kb-domain-subject-view
+    to: REQ-kb-domain-subject-layer
+    created_at: 2026-11-12T18:53:30.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d19b4a2e493
+  - type: requires_property
+    from: REQ-kb-domain-subject-view
+    to: FACT-kb-domain-subject-layer-domain-view-complete
+    created_at: 2026-11-12T18:53:30.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78a17c0c2d6a
+  - type: requires_property
+    from: REQ-kb-domain-subject-view
+    to: FACT-kb-domain-subject-layer-anchor-suggestion-is-review
+    created_at: 2026-11-12T18:53:30.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e5224601485
+  - type: specified_by
+    from: REQ-kb-domain-subject-view
+    to: SCEN-kb-domain-subject-layer
+    created_at: 2026-11-12T18:53:33.399Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27e6adc2321c
+  - type: specified_by
+    from: REQ-kb-domain-subject-view
+    to: SCEN-kb-domain-subject-layer-migration
+    created_at: 2026-11-12T18:53:33.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9077168cadef
+  - type: specified_by
+    from: REQ-kb-domain-subject-view
+    to: SCEN-NEG-kb-domain-subject-layer-DOMAIN-VIEW-INCOMPLETE
+    created_at: 2026-11-12T18:53:33.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78575f8dd224
+  - type: specified_by
+    from: REQ-kb-domain-subject-view
+    to: SCEN-NEG-kb-domain-subject-layer-ANCHOR-AUTO-APPLIED
+    created_at: 2026-11-12T18:53:33.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cc59f9a40c8

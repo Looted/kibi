@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-telemetry-versions-component
 type: fact
 ---
-The kibi.telemetry.versions component, as the structural requirements that name it constrain it.
+
+Version strings of telemetry documents (kibi.telemetry-acceptance.v1, kibi.telemetry-remediation.v1) and the lookup operations acceptance counts. They identify documents, not the gate.

@@ -34,7 +34,11 @@ import {
   assertSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
-import { entityContextWarnings } from "./context-warning.js";
+import {
+  entityContextWarnings,
+  upsertDocumentBody,
+} from "./context-warning.js";
+import { subjectLayerWarnings } from "./subject-warnings.js";
 import { buildUpsertCommitGoal, upsertFailure } from "./contradictions.js";
 import { assertFirmDecisionUnchanged } from "./firm-decision-guard.js";
 import { withStoredOmittedProperties } from "./omitted-properties.js";
@@ -1031,6 +1035,16 @@ export async function executeUpsert(
         created: before === null,
       });
     }
+    const writtenEntity = commitEntity ?? validated.entity;
+    const subjectWarnings = await subjectLayerWarnings(
+      input,
+      writtenEntity,
+      upsertDocumentBody(input, writtenEntity, context.workspaceRoot, {
+        writtenPath: sourceWrite?.receipt.path,
+      }),
+      context.prolog,
+      context.workspaceRoot,
+    );
     const payload: UpsertPayload = {
       created,
       updated: changeKind === "updated" ? 1 : 0,
@@ -1051,6 +1065,7 @@ export async function executeUpsert(
           context.workspaceRoot,
           { writtenPath: sourceWrite?.receipt.path },
         ),
+        ...subjectWarnings,
         ...shardWarnings,
         ...coordinateWarnings,
       ],

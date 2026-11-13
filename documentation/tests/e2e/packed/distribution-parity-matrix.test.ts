@@ -196,6 +196,7 @@ status: active
 fact_kind: subject
 subject_key: matrix.quota
 ---
+Test fixture subject matrix.quota: what the requirements in this test constrain, defined here for this test only.
 
 Strict contradiction subject.
 `,

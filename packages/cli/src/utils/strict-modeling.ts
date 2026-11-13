@@ -20,6 +20,7 @@ import { createHash } from "node:crypto";
 import type { BaseEntity, FactFields } from "../types/entities.js";
 import type { BaseRelationship } from "../types/relationships.js";
 import { CANONICAL_ENTITY_PATHS } from "./kb-paths.js";
+import { notStatedDefinition } from "./subject-definition.js";
 
 const STRICT_CONFIDENCE_THRESHOLD = 0.7;
 
@@ -73,6 +74,8 @@ export interface EntitySpec<
   type: TType;
   id: string;
   properties: TProperties;
+  /** Authored body of the entity's document, when the write set sets one. */
+  body?: string;
 }
 
 export type RelationshipSpec = Pick<
@@ -256,6 +259,12 @@ export function buildStrictWriteSet(input: StrictModelInput): StrictWriteSet {
       subject_key: ids.normalizedSubjectKey,
       canonical_key: ids.normalizedSubjectKey,
     },
+    // Kibi never invents a definition: the body records where the subject is
+    // named until a person defines it.
+    body: notStatedDefinition(
+      ids.normalizedSubjectKey,
+      `requirement ${ids.reqId} ("${statement}")`,
+    ),
   };
 
   const propertyFact: EntitySpec<"fact"> = {

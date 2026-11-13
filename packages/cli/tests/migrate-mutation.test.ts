@@ -59,6 +59,8 @@ import * as mergeDriver from "../src/utils/merge-driver-setup.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../src/utils/schema-version.js";
 
 const LATEST = LATEST_KB_SCHEMA_VERSION;
+/** The schema the approval floor step (approval-floor-v15) starts from. */
+const APPROVAL_FLOOR_FROM = 14;
 const roots: string[] = [];
 let cwd = "";
 let logs: string[] = [];
@@ -959,7 +961,8 @@ describe("schema upgrade dry run", () => {
   });
 
   test("run only the steps after the current schema", async () => {
-    atVersion(LATEST - 1);
+    // Schema 14 runs only the approval floor (15) and later steps.
+    atVersion(APPROVAL_FLOOR_FROM);
     s.planOrigin.mockReturnValue({ targets: [{}] } as never);
     s.planPins.mockReturnValue({ targets: [{}], skipped: [] } as never);
     s.planReasons.mockReturnValue([{}] as never);
@@ -977,9 +980,9 @@ describe("schema upgrade dry run", () => {
     } as never);
     expect(await dry()).toStrictEqual({ exitCode: 0 });
     expect(logs).toStrictEqual([
-      older(LATEST - 1),
+      older(APPROVAL_FLOOR_FROM),
       "dry run: would record required_evidence: asserted on 1 current firm or approved requirement(s) whose evidence is below tested (front matter only).",
-      `dry run: would set schemaVersion from ${LATEST - 1} to ${LATEST} in .kb/manifest.json.`,
+      `dry run: would set schemaVersion from ${APPROVAL_FLOOR_FROM} to ${LATEST} in .kb/manifest.json.`,
       `dry run: would write migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
       "Re-run with --yes to apply these changes.",
     ]);
@@ -1015,7 +1018,7 @@ describe("schema upgrade dry run", () => {
       [8, "reasons", () => s.planReasons.mockReturnValue([{}] as never)],
       [9, "firm", () => s.planFirm.mockReturnValue([{}] as never)],
       [
-        LATEST - 1,
+        APPROVAL_FLOOR_FROM,
         "floors",
         () =>
           s.planFloors.mockReturnValue({
@@ -1260,6 +1263,7 @@ describe("schema upgrade", () => {
         "derived-symbol-coordinates-v13",
         "retired-status-v14",
         "approval-floor-v15",
+        "domain-subjects-v16",
       ],
     };
     expect(result).toStrictEqual({
@@ -1317,8 +1321,8 @@ describe("schema upgrade", () => {
       "Warning: Could not remove .kb/symbol-coordinates.yaml from the Git index (locked); run git rm --cached .kb/symbol-coordinates.yaml before the next commit.",
     ]);
     expect(result.summary?.audit.steps).toStrictEqual([
-      "retired-status-v14",
       "approval-floor-v15",
+      "domain-subjects-v16",
     ]);
     expect(result.summary?.audit.semanticAdvisorBackfill).toBe(
       "not_applicable",
