@@ -68,8 +68,11 @@ change a check rule to reach zero without the person's words for that item.
 5. Apply one parent at a time, endpoints first: facts for reworded claims,
    scenarios, then each child requirement (sectioned `document.body`, its
    grounding links, `specified_by`, `supersedes` to the parent, `origin.ref`
-   quoting the approval), then move each `implements` link to the child whose
-   behavior that function decides, then set the parent `status: closed`.
+   quoting the approval, a `## Why this changed` section of at least 12 words,
+   the subjects its claims are about, and no `required_evidence` or
+   `approved_by` copied from the parent), then move each `implements` link to
+   the child whose behavior that function decides, remove the symbol entries
+   of wrappers that decide nothing, then set the parent `status: closed`.
 6. Run the unfiltered `kb_check` before the next parent.
 
 What the write path and checks expect:
@@ -111,7 +114,10 @@ the symbol threshold:
   change?
 - Remove the link from wrappers that only delegate, adapters that forward to
   shared code, and helpers that decide nothing (`kb_delete` of the
-  relationship; `dryRun: true` previews it).
+  relationship; `dryRun: true` previews it). A symbol left with no
+  `implements` fails `symbol-traceability`, so remove its manifest entry too
+  (`kb_delete` by id, then apply the returned plan) unless it implements
+  another requirement.
 - A moved symbol must be `covered_by` a test that verifies its new owner, or
   the evidence floor reports `missing_production_symbol_coverage`.
 - `coarse_anchor_only_review` means only whole-file anchors implement the

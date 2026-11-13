@@ -254,6 +254,9 @@ exempt. `kb_upsert` returns the same finding as a warning, including on dryRun.
   person; a reason you worked out yourself is written as "Inferred from
   <what you read>: ..." and stays labelled that way after they approve it.
   A plausible reason with no source reads as history to the next agent.
+  A sentence on what the rule achieves ("keeps labels recognizable") is a
+  reason too: leave it out unless a source says it. When no source gives the
+  reason, the Context says exactly "Reason not stated." next to who asked.
 - Context says who owns the behavior now. After a split or supersede, a
   section that still calls the closed requirement the owner ("X decides
   this") misleads every later reader: re-point it to the current requirement,
@@ -677,6 +680,9 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
   adapter that forwards to shared code, and a helper that decides nothing do
   not implement the requirement (when the staged gate still asks for an entry
   for such a declaration, follow `kibi-commit-review`, Choosing the owner).
+  Every symbol in the manifest must implement a requirement
+  (`symbol-traceability`), so a symbol that decides nothing is removed, not
+  left unlinked: `kb_delete` its id and apply the returned plan.
   A behavioral symbol implements at most 2
   requirements (4 for a class, component or module);
   `multi_requirement_symbol_review` reports more, and `granularity_reason`
@@ -690,11 +696,22 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
   that does decide the behavior.
 - **Split mechanics.** List the parent's symbols, scenarios and tests with
   `kb_graph` from the parent and `kb_query` by id; never read or grep `.kb/`
-  to find them. Write each child with `supersedes` to the parent and a
-  `specified_by` scenario, remove the parent's `implements` links in one
-  `kb_delete` relationships call, then `kb_upsert` each deciding symbol with
-  `implements` to the one child whose behavior it decides. Set the parent
-  `status: closed` last and run the unfiltered `kb_check`.
+  to find them. Then, in this order:
+  1. Write each child: the parent's sentences for that behavior verbatim,
+     `supersedes` to the parent, a `specified_by` scenario, a `## Context`
+     quoting the person's approval, a `## Why this changed` section of at
+     least 12 words (the approval, and which behaviors the parent mixed),
+     and the subjects its claims are about. Do not copy the parent's
+     `required_evidence` or `approved_by`: a child is new text, and only the
+     person approves it.
+  2. Remove the parent's `implements` links in one `kb_delete`
+     relationships call.
+  3. `kb_upsert` each deciding symbol with `implements` to the one child
+     whose behavior it decides.
+  4. Remove each wrapper's symbol entry (`kb_delete` by id, then apply the
+     returned plan).
+  5. Set the parent `status: closed`, then run the unfiltered `kb_check` and
+     fix what it reports before you finish.
 - **Do not fit the check.** Zero findings is the floor, not the goal. Do not
   relax a rule, add an exemption, lower `required_evidence`, or add a
   requirement that only pins a constant ("X shall be 13") unless drift of

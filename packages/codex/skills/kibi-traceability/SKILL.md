@@ -63,7 +63,18 @@ so a loose link is wrong context, not harmless extra coverage.
 - Link the function that decides the behavior: the one whose body would
   change if the rule changed. A wrapper that only delegates, an adapter that
   forwards to shared code and a helper that decides nothing get no
-  `implements` link to that requirement.
+  `implements` link to that requirement. Every symbol in the manifest must
+  implement a requirement (`symbol-traceability`), so a symbol that decides
+  nothing is removed rather than left unlinked: `kb_delete` its id and apply
+  the returned plan.
+- A new function that decides a behavior no current requirement states needs
+  its own requirement, and recording it is part of the task. Write it from
+  what the code does: the statement with `must`, a `## Context` naming where
+  the behavior came from ("Reason not stated." when nobody gave one), the
+  subject its claims are about, a scenario and the existing test. Then link
+  the function with `implements` and `covered_by`. Leaving the symbol
+  unowned, or linking it to a requirement that does not state its behavior,
+  does not finish the task.
 - A behavioral symbol implements at most 2 requirements (4 for a class,
   component or module). A third link means the symbol or one of the
   requirements is too broad; `granularity_reason` does not exempt it.
