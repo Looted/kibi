@@ -4,16 +4,19 @@ import { tmpdir } from "node:os";
 import path, { join } from "node:path";
 import {
   AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
+  APPROVAL_CLOCK_SKEW_MS,
   EVIDENCE_FLOOR_RULE,
   EVIDENCE_FLOOR_SCHEMA_VERSION,
   type EvidenceFloorRow,
   UNAPPROVED_IMPLEMENTED_GRACE_DAYS,
   type UnapprovedImplementedRow,
   approvalClock,
+  approvalDateProblem,
   authoredCreatedAtReader,
   collectEvidenceFloorViolations,
   evidenceFloorViolations,
   gapDetailLines,
+  isoDateTime,
   pastApprovalGrace,
   readEvidenceFloorRows,
   refutationText,
@@ -646,6 +649,47 @@ describe("agent-requirement-unapproved-implemented", () => {
     expect(pastApprovalGrace("2026-01-01T00:00:00Z", "")).toBe(true);
   });
 
+  test("only a real ISO 8601 date names a time", () => {
+    expect(isoDateTime("2026-01-02")).toBe(Date.UTC(2026, 0, 2));
+    expect(isoDateTime("2026-01-02T03:04:05.006Z")).toBe(
+      Date.UTC(2026, 0, 2, 3, 4, 5, 6),
+    );
+    expect(isoDateTime("2024-02-29T00:00:00Z")).toBe(Date.UTC(2024, 1, 29));
+    expect(isoDateTime("2026-01-31T00:00:00+01:00")).toBe(
+      Date.UTC(2026, 0, 30, 23),
+    );
+    for (const value of [
+      "",
+      "yesterday",
+      "1",
+      "March 7 2026",
+      "x2026-01-02",
+      "2026-01-02x",
+      "2026-13-45T00:00:00Z",
+      "2026-02-29",
+      "2026-02-30T00:00:00Z",
+      "2026-04-31",
+      "2026-01-02T23:60:00Z",
+    ])
+      expect(isoDateTime(value)).toBeNaN();
+  });
+
+  test("a date more than a day after the check, or no date at all, cannot start the clock", () => {
+    const at = "2026-03-01T00:00:00Z";
+    expect(APPROVAL_CLOCK_SKEW_MS).toBe(86_400_000);
+    expect(approvalDateProblem("2026-02-01T00:00:00Z", at)).toBeUndefined();
+    expect(approvalDateProblem("2026-03-02T00:00:00Z", at)).toBeUndefined();
+    expect(approvalDateProblem("2026-03-02T00:00:00.001Z", at)).toBe("future");
+    expect(approvalDateProblem("2030-01-01", at)).toBe("future");
+    expect(approvalDateProblem("yesterday", at)).toBe("not-a-date");
+    expect(approvalDateProblem("2026-02-30", at)).toBe("not-a-date");
+    // A future or unreadable start keeps the rule firing instead of quiet.
+    expect(pastApprovalGrace("2030-01-01T00:00:00Z", at)).toBe(true);
+    expect(pastApprovalGrace("2026-03-01T12:00:00Z", at)).toBe(false);
+    expect(pastApprovalGrace("2026-13-45T00:00:00Z", at)).toBe(true);
+    expect(pastApprovalGrace("2026-02-30", at)).toBe(true);
+  });
+
   const unapproved = (
     overrides: Partial<UnapprovedImplementedRow>,
   ): UnapprovedImplementedRow => ({
@@ -716,6 +760,38 @@ describe("agent-requirement-unapproved-implemented", () => {
         at,
       ),
     ).toEqual([]);
+  });
+
+  test("a finding names a start date that is not a date or lies in the future", () => {
+    const at = "2026-03-01T00:00:00Z";
+    const [future] = unapprovedImplementedViolations(
+      [unapproved({ recordedAt: "2030-01-01T00:00:00Z" })],
+      at,
+    );
+    expect(future?.description).toContain(
+      "no person has approved it and its origin.recorded_at 2030-01-01T00:00:00Z lies in the future, so it counts as older than 14 days;",
+    );
+    expect(future?.evidence).toEqual({
+      since: "2030-01-01T00:00:00Z",
+      sinceField: "origin.recorded_at",
+      sinceProblem: "future",
+      symbols: ["SYM-A"],
+      graceDays: 14,
+    });
+    const [bogus] = unapprovedImplementedViolations(
+      [unapproved({})],
+      at,
+      () => "yesterday",
+    );
+    expect(bogus?.description).toContain(
+      'no person has approved it and its created_at "yesterday" is not an ISO 8601 date, so it counts as older than 14 days;',
+    );
+    expect(bogus?.evidence).toMatchObject({
+      sinceField: "created_at",
+      sinceProblem: "not-a-date",
+    });
+    const [undated] = unapprovedImplementedViolations([unapproved({})], at);
+    expect(undated?.evidence).not.toHaveProperty("sinceProblem");
   });
 
   test("a finding lists eight symbols whole and counts the rest", () => {

@@ -345,4 +345,110 @@ describe("approved requirements and implemented unapproved requirements", () => 
     },
     TIMEOUT_MS,
   );
+
+  test(
+    "a future or unreadable start date never keeps an unapproved must requirement out of kibi check, and kb_upsert refuses one",
+    () => {
+      const rejected = (properties: object) => {
+        write(
+          root,
+          "upsert.json",
+          JSON.stringify({
+            type: "req",
+            id: "REQ-dated-by-agent",
+            properties: {
+              title: "REQ-dated-by-agent keeps the review canvas editable",
+              status: "open",
+              priority: "must",
+              ...properties,
+            },
+          }),
+        );
+        const result = runKibi(["upsert", "--input", "upsert.json"], root);
+        rmSync(path.join(root, "upsert.json"));
+        expect(result.status).not.toBe(0);
+        return `${result.stdout}${result.stderr}`;
+      };
+      expect(rejected({ created_at: "2030-01-01T00:00:00Z" })).toContain(
+        'created_at \\"2030-01-01T00:00:00Z\\" is later than now',
+      );
+      expect(
+        rejected({ origin: { kind: "agent", recorded_at: "2026-13-45" } }),
+      ).toContain(
+        'origin.recorded_at \\"2026-13-45\\" is not an ISO 8601 date or timestamp',
+      );
+      expect(
+        existsSync(path.join(root, ".kb/requirements/REQ-dated-by-agent.md")),
+      ).toBe(false);
+
+      // Hand-edited documents are read as written: the dates count as unknown.
+      upsert(root, "REQ-unapproved-new");
+      write(
+        root,
+        ".kb/requirements/REQ-unapproved-future.md",
+        requirement("REQ-unapproved-future", {
+          created: "2030-01-01T00:00:00Z",
+        }),
+      );
+      write(
+        root,
+        ".kb/requirements/REQ-unapproved-vague.md",
+        requirement("REQ-unapproved-vague", { created: "yesterday" }),
+      );
+      write(
+        root,
+        "src/canvas.ts",
+        "export function openCanvas() { return 1; }\n",
+      );
+      write(
+        root,
+        ".kb/symbols.yaml",
+        `symbols:\n  - id: SYM-open-canvas\n    title: openCanvas\n    sourceFile: src/canvas.ts\n    status: active\n    relationships:\n${[
+          "REQ-unapproved-new",
+          "REQ-unapproved-future",
+          "REQ-unapproved-vague",
+        ]
+          .map((id) => `      - type: implements\n        target: ${id}\n`)
+          .join("")}`,
+      );
+      git(root, "add", "-A");
+      git(root, "commit", "-m", "fixture", "--no-verify");
+      expect(runKibi(["sync"], root).status).toBe(0);
+      const check = runKibi(
+        [
+          "check",
+          "--rules",
+          "agent-requirement-unapproved-implemented",
+          "--format",
+          "json",
+        ],
+        root,
+      );
+      const violations = (
+        JSON.parse(check.stdout) as {
+          structuredContent: {
+            violations: (Finding & { description: string })[];
+          };
+        }
+      ).structuredContent.violations.sort((left, right) =>
+        left.entityId.localeCompare(right.entityId),
+      );
+      expect(
+        violations.map(({ entityId, evidence }) => [
+          entityId,
+          evidence?.sinceProblem,
+        ]),
+      ).toEqual([
+        ["REQ-unapproved-future", "future"],
+        ["REQ-unapproved-vague", "not-a-date"],
+      ]);
+      expect(violations[0]?.description).toContain(
+        "its created_at 2030-01-01T00:00:00.000Z lies in the future, so it counts as older than 14 days",
+      );
+      expect(violations[1]?.description).toContain(
+        'its created_at "yesterday" is not an ISO 8601 date, so it counts as older than 14 days',
+      );
+    },
+    TIMEOUT_MS,
+  );
 });

@@ -474,8 +474,13 @@ production symbols implement, and that nobody has approved
 behavior must not rest on a requirement no person confirmed. The age comes
 from authored data only: `origin.recorded_at` (every `kb_upsert` write
 records it), else a `created_at` the requirement's front matter states; a
-requirement with neither counts as older. The stored `created_at` is not
-read, because sync fills a missing one with the sync time. The schema 15
+requirement with neither counts as older. So does one whose date is not an
+ISO 8601 date (`yesterday`, `2026-13-45`) or lies more than a day in the
+future: the finding names the unusable date, and its evidence carries
+`sinceProblem: not-a-date` or `future`. `kb_upsert` refuses such a
+`created_at` or `origin.recorded_at` on a requirement, so an agent cannot
+keep its own requirement out of review with a date. The stored `created_at`
+is not read, because sync fills a missing one with the sync time. The schema 15
 upgrade (`kibi migrate`) lists the agent's must requirements this rule can
 fail right away.
 

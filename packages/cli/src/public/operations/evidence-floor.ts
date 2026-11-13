@@ -21,6 +21,7 @@ import path from "node:path";
 import { normalizeDateLike } from "../../extractors/markdown.js";
 import { readKbManifest } from "../../utils/kb-manifest.js";
 import type { Violation } from "../../utils/rule-registry.js";
+import { ISO_TIMESTAMP_PATTERN } from "../entity-origin.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../proof-receipt.js";
 import { isWithinRoot } from "../skill-system/paths.js";
 import { readAuthoredEntity } from "./entity-context.js";
@@ -263,15 +264,62 @@ export async function readRequirementProofPayload(
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
+ * How far past the check an approval clock may start and still count as a
+ * real date: a day absorbs clock skew between machines and a date written in
+ * a time zone ahead of UTC.
+ */
+export const APPROVAL_CLOCK_SKEW_MS = DAY_MS;
+
+const ISO_DATE_TIME = new RegExp(ISO_TIMESTAMP_PATTERN);
+
+/**
+ * The time an ISO 8601 date or timestamp names, or NaN when the value is not
+ * one: free text such as "yesterday", or a calendar day or time that does not
+ * exist (2026-02-30, 2026-13-45T00:00:00Z, 23:60).
+ */
+export function isoDateTime(value: string): number {
+  if (!ISO_DATE_TIME.test(value)) return Number.NaN;
+  const [year, month, day] = value.slice(0, 10).split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  // Date.parse rolls a day past the month's end into the next month.
+  if (new Date(Date.UTC(year, month - 1, day)).getUTCDate() !== day)
+    return Number.NaN;
+  return Date.parse(value);
+}
+
+/**
+ * Why `value` cannot start a requirement's approval clock at `checkedAt`:
+ * `not-a-date` when it is no ISO 8601 date, `future` when it lies more than
+ * {@link APPROVAL_CLOCK_SKEW_MS} after the check. Undefined for a usable date.
+ */
+export function approvalDateProblem(
+  value: string,
+  checkedAt: string,
+): "not-a-date" | "future" | undefined {
+  const started = isoDateTime(value);
+  if (Number.isNaN(started)) return "not-a-date";
+  return started - Date.parse(checkedAt) > APPROVAL_CLOCK_SKEW_MS
+    ? "future"
+    : undefined;
+}
+
+/**
  * Whether a requirement whose approval clock started at `since` has waited
- * longer than the grace period at `checkedAt`. A missing or unreadable date
- * counts as old: nothing shows the requirement is new.
+ * longer than the grace period at `checkedAt`. A missing date, one that is
+ * not an ISO 8601 date and one in the future count as old: nothing shows the
+ * requirement is new, and a date nobody could have recorded yet must not keep
+ * the rule quiet.
  */
 export function pastApprovalGrace(since: string, checkedAt: string): boolean {
-  const started = Date.parse(since);
   const checked = Date.parse(checkedAt);
-  if (Number.isNaN(started) || Number.isNaN(checked)) return true;
-  return checked - started > UNAPPROVED_IMPLEMENTED_GRACE_DAYS * DAY_MS;
+  if (Number.isNaN(checked) || approvalDateProblem(since, checkedAt))
+    return true;
+  return (
+    checked - isoDateTime(since) > UNAPPROVED_IMPLEMENTED_GRACE_DAYS * DAY_MS
+  );
 }
 
 function readText(file: string): string | undefined {
@@ -326,12 +374,20 @@ export function approvalClock(
     : { since: createdAt, field: "created_at" };
 }
 
-function clockText(clock: ApprovalClock): string {
-  if (clock.field === "origin.recorded_at")
-    return `since it was recorded at ${clock.since}`;
-  if (clock.field === "created_at")
-    return `since its created_at ${clock.since}`;
-  return `and it records neither origin.recorded_at nor created_at, so it counts as older than ${UNAPPROVED_IMPLEMENTED_GRACE_DAYS} days`;
+function clockText(
+  clock: ApprovalClock,
+  problem: "not-a-date" | "future" | undefined,
+): string {
+  const old = `so it counts as older than ${UNAPPROVED_IMPLEMENTED_GRACE_DAYS} days`;
+  if (clock.field === "none")
+    return `and it records neither origin.recorded_at nor created_at, ${old}`;
+  if (problem === "not-a-date")
+    return `and its ${clock.field} ${JSON.stringify(clock.since)} is not an ISO 8601 date, ${old}`;
+  if (problem === "future")
+    return `and its ${clock.field} ${clock.since} lies in the future, ${old}`;
+  return clock.field === "origin.recorded_at"
+    ? `since it was recorded at ${clock.since}`
+    : `since its created_at ${clock.since}`;
 }
 
 /**
@@ -347,6 +403,10 @@ export function unapprovedImplementedViolations(
   return rows.flatMap((row) => {
     const clock = approvalClock(row, createdAtOf);
     if (!pastApprovalGrace(clock.since, checkedAt)) return [];
+    const problem =
+      clock.field === "none"
+        ? undefined
+        : approvalDateProblem(clock.since, checkedAt);
     const shown = row.symbols.slice(0, 8).join(", ");
     const more =
       row.symbols.length > 8 ? ` (+${row.symbols.length - 8} more)` : "";
@@ -354,11 +414,12 @@ export function unapprovedImplementedViolations(
       {
         rule: AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
         entityId: row.id,
-        description: `Must requirement ${row.id} was written by an agent and production code implements it (${shown}${more}), but no person has approved it ${clockText(clock)}; shipped behavior rests on a requirement nobody confirmed`,
+        description: `Must requirement ${row.id} was written by an agent and production code implements it (${shown}${more}), but no person has approved it ${clockText(clock, problem)}; shipped behavior rests on a requirement nobody confirmed`,
         suggestion: `Have a person review ${row.id}: when it states the intended behavior, record them in origin.approved_by (it then needs tested evidence unless required_evidence says otherwise); when it does not, fix the requirement and the code, or lower priority from must if the behavior is optional.`,
         evidence: {
           since: clock.since,
           sinceField: clock.field,
+          ...(problem === undefined ? {} : { sinceProblem: problem }),
           symbols: row.symbols,
           graceDays: UNAPPROVED_IMPLEMENTED_GRACE_DAYS,
         },

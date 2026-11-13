@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { resolveUpsertOrigin } from "../../../src/operations/mutation/origin.js";
+import {
+  assertRequirementClockDates,
+  resolveUpsertOrigin,
+} from "../../../src/operations/mutation/origin.js";
 import type { StoredEntityLookup } from "../../../src/operations/mutation/stored-entity.js";
 import type { UpsertInput } from "../../../src/operations/mutation/types.js";
 import { fail, ok, scriptedProlog } from "../fake-prolog.js";
@@ -120,5 +123,93 @@ describe("resolveUpsertOrigin", () => {
       (await resolveUpsertOrigin(input(), fake.prolog, NOW)).properties,
     ).toStrictEqual({ title: "T", origin: { kind: "human" } });
     expect(fake.goals[1]).toContain("kb_entity('REQ-1', 'req', Props)");
+  });
+});
+
+describe("assertRequirementClockDates", () => {
+  const refusal = (field: string, value: string, why: string) =>
+    `Entity validation failed: ${field} ${JSON.stringify(value)} ${why}. It starts the review grace period of an agent-written requirement, so it must be the real time the requirement was written: leave it out and kb_upsert records the write time.`;
+
+  test("refuses a requirement created_at or origin.recorded_at that is not a past date", async () => {
+    for (const [properties, field, value, why] of [
+      [
+        { created_at: "2030-01-01T00:00:00Z" },
+        "created_at",
+        "2030-01-01T00:00:00Z",
+        "is later than now (2026-01-02T03:04:05.000Z)",
+      ],
+      [
+        { created_at: "yesterday" },
+        "created_at",
+        "yesterday",
+        "is not an ISO 8601 date or timestamp",
+      ],
+      [
+        { origin: { kind: "agent", recorded_at: "2026-13-45T00:00:00Z" } },
+        "origin.recorded_at",
+        "2026-13-45T00:00:00Z",
+        "is not an ISO 8601 date or timestamp",
+      ],
+      [
+        {
+          created_at: "2026-01-01T00:00:00Z",
+          origin: { kind: "agent", recorded_at: "2026-01-04T00:00:00Z" },
+        },
+        "origin.recorded_at",
+        "2026-01-04T00:00:00Z",
+        "is later than now (2026-01-02T03:04:05.000Z)",
+      ],
+    ] as const) {
+      let thrown: unknown;
+      try {
+        assertRequirementClockDates(input(properties), NOW);
+      } catch (error) {
+        thrown = error;
+      }
+      expect(thrown).toMatchObject({
+        code: "ENTITY_VALIDATION_FAILED",
+        message: refusal(field, value, why),
+      });
+      // resolveUpsertOrigin refuses it before resolving anything.
+      await expect(
+        resolveUpsertOrigin(input(properties), undefined, NOW),
+      ).rejects.toMatchObject({ message: refusal(field, value, why) });
+    }
+  });
+
+  test("accepts past dates, a day of clock skew, other types and stored values", async () => {
+    for (const properties of [
+      {},
+      { created_at: "2026-01-01" },
+      { created_at: "2026-01-03T03:04:05.000Z" },
+      { origin: { kind: "agent", recorded_at: "2025-12-31T23:00:00+01:00" } },
+      { origin: { kind: "agent" } },
+      { origin: "agent" },
+    ])
+      expect(() =>
+        assertRequirementClockDates(input(properties), NOW),
+      ).not.toThrow();
+    expect(() =>
+      assertRequirementClockDates(
+        {
+          type: "scenario",
+          id: "SCEN-1",
+          properties: { title: "T", created_at: "2030-01-01" },
+        },
+        NOW,
+      ),
+    ).not.toThrow();
+    // A stored origin the write keeps is not the payload's statement.
+    const stored = await resolveUpsertOrigin(
+      input(),
+      scriptedProlog([]),
+      NOW,
+      undefined,
+      lookupOf({ origin: { kind: "agent", recorded_at: "2030-01-01" } }),
+    );
+    expect(stored.properties.origin).toEqual({
+      kind: "agent",
+      recorded_at: "2030-01-01",
+    });
   });
 });
