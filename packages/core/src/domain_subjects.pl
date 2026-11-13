@@ -1236,12 +1236,12 @@ kind_text(stale, Problems, Text) :-
     sort(Ks0, Ks),
     listed_atoms(Ks, KeyText),
     format(string(Text), "the pair review does not cover ~w at their current text", [KeyText]).
+kind_text(unapproved, _, "the pair review is a verdict on a must or firm requirement that names no approved_by, and an agent recorded it or wrote the requirement it is on").
+
 rejected_resolver_text(pair, Resolver, Text) :-
     format(atom(Text), '~w, a requirement of the pair itself, which cannot resolve it', [Resolver]).
 rejected_resolver_text(unknown, Resolver, Text) :-
     format(atom(Text), '~w, which is none of those (check the id, and that it is current and linked to one of the pair)', [Resolver]).
-
-kind_text(unapproved, _, "the pair review is a verdict on a must or firm requirement that names no approved_by, and an agent recorded it or wrote the requirement it is on").
 
 kind_suggestion(conflict, ReqId, Partners, _First, Suggestion) :-
     !,
