@@ -43,6 +43,24 @@ origin:
   kind: human
   ref: 'Maintainer decision, 2026-10-24, approving the formal-proof design phase that replaces proof/baseline.json with evidence floors: "I''d like to do all the remaining phases."'
   recorded_at: '2026-10-24T09:00:00.000Z'
+links:
+  - type: relates_to
+    target: REQ-kibi-ci-proof-reuse
+pair_reviews:
+- with: REQ-kibi-ci-proof-reuse
+  verdict: no_conflict
+  separated_by: REQ-kibi-ci-proof-reuse governs when the CI workflow may skip re-proving (a matching code snapshot, never a commit SHA alone); the local proof gate reuses no CI proof, it runs the evidence-floor check over the committed receipts before a push.
+  claims:
+  - claim_key: CLAIM-3A02520E2DF5E118
+  origin:
+    kind: agent
+- with: REQ-kibi-evidence-floors
+  verdict: no_conflict
+  separated_by: REQ-kibi-local-proof-parity says only where the evidence-floor check runs (locally, before a push, the same check as CI); REQ-kibi-evidence-floors says what that check decides.
+  claims:
+  - claim_key: CLAIM-3A02520E2DF5E118
+  origin:
+    kind: agent
 ---
 Maintainers can replay the CI proof gate locally against a clean clone of the committed HEAD. The local proof gate runs the same evidence-floor check as the CI proof workflow before a push, without re-proving.
 
