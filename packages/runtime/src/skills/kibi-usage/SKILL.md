@@ -712,7 +712,8 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
 - **Split mechanics.** List the parent's symbols, scenarios and tests with
   `kb_graph` from the parent and `kb_query` by id; never read or grep `.kb/`
   to find them. Then, in this order:
-  1. Write each child: the parent's sentences for that behavior verbatim,
+  1. Write each child: the parent's sentences for that behavior verbatim
+     (read them with `kb_query` and `includeBody: true`, not from the file),
      `supersedes` to the parent, a `specified_by` scenario, a `## Context`
      quoting the person's approval, a `## Why this changed` section of at
      least 12 words (the approval, and which behaviors the parent mixed),
