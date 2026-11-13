@@ -179,7 +179,7 @@ describe("validateSemanticInventoryBoundary errors", () => {
       }),
     ).toStrictEqual([
       `semantic_inventory_version must be '${VERSION}'`,
-      "semantic_source_field must be 'semantic_text' for the current requirement prose (no semantic_source_field was sent; the prose comes from semantic_text because it is set. Set semantic_source_field to 'semantic_text' and hash that field's text, or declare one of semantic_text, text_ref or title explicitly)",
+      "semantic_source_field must be 'semantic_text' for the current requirement prose (no semantic_source_field was sent; the prose comes from semantic_text (its front matter value, or the body statement a document without one states). Set semantic_source_field to 'semantic_text' and hash that field's text, or declare one of semantic_text, text_ref or title explicitly)",
       `semantic_source_hash must equal the SHA-256 hash of semantic_text (expected '${sha(TEXT)}')`,
     ]);
   });

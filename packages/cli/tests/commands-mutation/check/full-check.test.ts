@@ -496,6 +496,36 @@ describe("result rendering", () => {
       );
     });
 
+    test("do not end the first sentence at an abbreviation", async () => {
+      expect(await shown("Pick one, e.g. `a`. Then b.")).toBe(
+        "  Suggestion: Pick one, e.g. `a`. (kibi check --fix shows more)",
+      );
+      expect(await shown("Pick one (e.g. a). Then b.")).toBe(
+        "  Suggestion: Pick one (e.g. a). (kibi check --fix shows more)",
+      );
+      expect(await shown("E.g. a. Then b.")).toBe(
+        "  Suggestion: E.g. a. (kibi check --fix shows more)",
+      );
+      expect(await shown("Name it, i.e. x.")).toBe(
+        "  Suggestion: Name it, i.e. x.",
+      );
+      expect(await shown("Run it, e.g. (kibi sync)")).toBe(
+        "  Suggestion: Run it, e.g. (kibi sync)",
+      );
+      expect(await shown("Use eg. Then b.")).toBe(
+        "  Suggestion: Use eg. (kibi check --fix shows more)",
+      );
+      expect(await shown("Set the.e.g. Then b.")).toBe(
+        "  Suggestion: Set the.e.g. (kibi check --fix shows more)",
+      );
+      expect(await shown("Set xe.g. Then b.")).toBe(
+        "  Suggestion: Set xe.g. (kibi check --fix shows more)",
+      );
+      expect(await shown("Set e.gx. Then b.")).toBe(
+        "  Suggestion: Set e.gx. (kibi check --fix shows more)",
+      );
+    });
+
     test("keep a one-sentence suggestion whole", async () => {
       expect(await shown("Do a.")).toBe("  Suggestion: Do a.");
       expect(await shown("Do a. ")).toBe("  Suggestion: Do a. ");

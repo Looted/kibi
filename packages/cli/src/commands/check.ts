@@ -629,11 +629,18 @@ export function buildStagedKibiImpactEvidence(options: {
  * `--format json`) carries the whole suggestion.
  */
 function conciseSuggestion(suggestion: string): string {
-  // A full stop that another sentence follows ends the first sentence.
-  const next = /\.\s+\S/.exec(suggestion);
-  if (next === null) return suggestion;
-  return `${suggestion.slice(0, next.index + 1)} (kibi check --fix shows more)`;
+  // A full stop that another sentence follows ends the first sentence,
+  // unless it closes an abbreviation such as "e.g." or "i.e.".
+  for (const next of suggestion.matchAll(/\.\s+\S/g)) {
+    const head = suggestion.slice(0, next.index);
+    if (SUGGESTION_ABBREVIATION.test(head)) continue;
+    return `${head}. (kibi check --fix shows more)`;
+  }
+  return suggestion;
 }
+
+/** Abbreviations whose full stop does not end a suggestion's sentence. */
+const SUGGESTION_ABBREVIATION = /(?:^|[\s(])(?:e\.g|i\.e)$/i;
 
 export function requireActiveProlog<E, P>(
   engine: E | null | undefined,

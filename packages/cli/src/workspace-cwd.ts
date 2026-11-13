@@ -32,6 +32,13 @@ const PATH_OPTIONS = new Set([
   "--write-certificates",
 ]);
 
+/**
+ * Subcommands whose first positional argument is a path the user named from
+ * their shell, with the options of that subcommand that take a value.
+ */
+const POSITIONAL_PATH_COMMANDS: ReadonlyMap<string, ReadonlySet<string>> =
+  new Map([["skills validate", new Set(["--format"])]]);
+
 /** Commands that act on the current directory itself, never on an enclosing KB. */
 const CWD_COMMANDS = new Set(["init"]);
 
@@ -50,6 +57,7 @@ function absolutePathArgs(argv: readonly string[], base: string): string[] {
   const absolute = (value: string): string =>
     value === "-" || path.isAbsolute(value) ? value : path.resolve(base, value);
   const result: string[] = [];
+  const positional = positionalPathIndex(argv);
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index] as string;
     const eq = arg.indexOf("=");
@@ -57,7 +65,7 @@ function absolutePathArgs(argv: readonly string[], base: string): string[] {
       result.push(`${arg.slice(0, eq)}=${absolute(arg.slice(eq + 1))}`);
       continue;
     }
-    result.push(arg);
+    result.push(index === positional ? absolute(arg) : arg);
     const next = argv[index + 1];
     if (PATH_OPTIONS.has(arg) && next !== undefined && !next.startsWith("--")) {
       result.push(absolute(next));
@@ -68,14 +76,40 @@ function absolutePathArgs(argv: readonly string[], base: string): string[] {
 }
 
 /**
+ * The argv index of the path a positional-path subcommand names (see
+ * POSITIONAL_PATH_COMMANDS), or -1: the third word after the two that name
+ * the subcommand, skipping options and the values of its value options.
+ */
+function positionalPathIndex(argv: readonly string[]): number {
+  const words: number[] = [];
+  for (let index = 2; index < argv.length; index += 1) {
+    const arg = argv[index] as string;
+    if (arg.startsWith("-")) {
+      const valueOptions = POSITIONAL_PATH_COMMANDS.get(
+        words.map((word) => argv[word]).join(" "),
+      );
+      if (valueOptions?.has(arg)) index += 1;
+      continue;
+    }
+    words.push(index);
+    if (
+      words.length === 3 &&
+      POSITIONAL_PATH_COMMANDS.has(`${argv[words[0] as number]} ${argv[words[1] as number]}`)
+    )
+      return index;
+  }
+  return -1;
+}
+
+/**
  * Run from a subdirectory of a Kibi workspace against that workspace's KB,
  * the way git finds its repository: walk up to the nearest directory with
  * `.kb/manifest.json`. Without this, a command run from `apps/server/`
  * compiles a second, empty branch store there and reports an empty KB.
  * An explicit KIBI_WORKSPACE (or alias) and `kibi init` keep the given
- * directory. Relative path option values keep meaning what the user typed:
- * the result is the directory to run in and argv with those values made
- * absolute.
+ * directory. Relative path option values, and the path `kibi skills validate`
+ * takes, keep meaning what the user typed: the result is the directory to
+ * run in and argv with those values made absolute.
  */
 export function resolveWorkspaceCwd(
   argv: readonly string[],
