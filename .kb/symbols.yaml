@@ -1137,7 +1137,7 @@ symbols:
   - id: SYM-core-check-related-requirement-unmodeled
     title: check_related_requirement_unmodeled
     status: active
-    sourceFile: packages/core/src/checks.pl
+    sourceFile: packages/core/src/domain_subjects.pl
     symbol_role: behavioral
     origin:
       kind: agent
@@ -1146,7 +1146,7 @@ symbols:
       - type: covered_by
         target: TEST-check-related-requirement-unmodeled
       - type: implements
-        target: REQ-check-related-requirement-unmodeled
+        target: REQ-kb-unmodeled-pair-review
   - id: SYM-core-check-logic-coverage
     title: check_logic_coverage
     status: active

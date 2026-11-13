@@ -452,6 +452,12 @@ export const ENTITY_PROPERTIES_SCHEMA = {
         "Requirement proposition ledger returned by kb_model mode analyze (CLI: semantic-advisor); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
       items: { type: "object" },
     },
+    pair_reviews: {
+      type: "array",
+      description:
+        "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming a current scenario, fact, requirement or claim_key that resolves it; conflict, which stays blocking until a person decides), claims (claim_key and payload_hash of each unmodeled claim of both requirements) and origin (kind human or agent; an agent's verdict on a must or firm requirement counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
+      items: { type: "object" },
+    },
     rule_ir: {
       type: "object",
       description:

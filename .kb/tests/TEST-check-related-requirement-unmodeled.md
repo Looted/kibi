@@ -1,5 +1,5 @@
 ---
-title: related-requirement-unmodeled rule tests
+title: related-requirement-unmodeled pair and pair review tests
 status: passing
 priority: must
 tags:
@@ -20,18 +20,18 @@ origin:
 id: TEST-check-related-requirement-unmodeled
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-f503d58c235c3d32f4d23b0b
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-33d40227e1052ffbb9ab6914
     test_id: TEST-check-related-requirement-unmodeled
     scope: end_to_end
     outcome: passed
-    code_snapshot: 7e892e32663638590c7ad9a8573b8cf078c3ec3e39d977dccb8891ee65a455f4
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-07T13:50:42.856Z'
-    finished_at: '2026-10-07T13:50:47.322Z'
-    artifact_digest: f5fac60da4ace5d4daa6bee7a297aca1c5bc2115d12482d4dc09dbfb1c39f998
+    code_snapshot: 6fd9a4bfa27027cd64e725c78e092bacee0c8b3d904976a0536b8181d7871dd0
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-13T07:26:18.796Z'
+    finished_at: '2026-11-13T07:26:33.511Z'
+    artifact_digest: a580049977b90e39b4b1c6e310370fef2ccf04a4a306ade2c846cf9512a33cff
     contract_hash: e73ace1f60266e662ffc556fb0fda57f85e52802f13951c19de1e2929c48d4ca
-    binding_hash: 6c561311274d65fa7c1106b9d8dec5dead7655df97486e12be06a61c0765c97f
+    binding_hash: 75ef8e7f6840b21d6a197e13e3753b9189cbfb6c7a4545ef7ae7f61dea5c9310
     fingerprint: 9e932ecc415ede74275090d026138cd473a2a67f922e5a10c4f78eab84ee684c
     fingerprint_components:
       contract: e73ace1f60266e662ffc556fb0fda57f85e52802f13951c19de1e2929c48d4ca
@@ -53,5 +53,9 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
-Runs the consumer test `packages/cli/tests/consumer/related-requirement-unmodeled.test.ts` through the built CLI: it authors a modeled requirement, a new requirement with an advisor ledger left as missing and a relates_to link, syncs, and asserts the default `kibi check` run reports the blocking violation naming the modeled keys, then that a supersedes link clears it. The Prolog unit tests in `packages/core/tests/kb.plt` (checks_coverage_gaps) cover both link directions, predicate-modeled neighbours, and the ledgerless, classified and superseded cases.
+Runs the consumer test `packages/cli/tests/consumer/related-requirement-unmodeled.test.ts` through the built CLI on a temporary Git workspace. A new must requirement whose normative claims are left `missing` and linked with relates_to to a modeled quota requirement is reported by the default `kibi check` run; a no_conflict verdict without separated_by, one that leaves a claim out, an agent's verdict without approved_by and a conflict verdict all keep it reported, and an approved, complete verdict or a supersedes link clears it. A second workspace leaves the claims as ontology_gap entries naming the quota subject with no link: the shared subject pairs them, a verdict without a relates_to edge does not count, and adding the edge settles the pair. The Prolog suites in `packages/core/tests/domain_subjects.plt` and `packages/core/tests/kb.plt` cover each review problem, interacts resolvers, decisive pairs and the finding text.
+
+A false pass would be a check that never pairs the requirements; the test therefore expects the findings it should get at each step before it expects none.

@@ -349,3 +349,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9086c3446d5b
+  - type: constrains
+    from: REQ-kb-unmodeled-pair-review
+    to: FACT-SUBJECT-KIBI-RELATED-REQUIREMENT-UNMODELED
+    created_at: 2026-11-13T07:12:18.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df4b1fa7f4e5
+  - type: requires_property
+    from: REQ-kb-unmodeled-pair-review
+    to: FACT-kb-unmodeled-pair-reported
+    created_at: 2026-11-13T07:12:18.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bc3b01af73d
+  - type: requires_property
+    from: REQ-kb-unmodeled-pair-review
+    to: FACT-kb-unmodeled-pair-review-approval
+    created_at: 2026-11-13T07:12:18.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-830327b999a4
+  - type: relates_to
+    from: REQ-kb-unmodeled-pair-review
+    to: REQ-kb-domain-subject-layer
+    created_at: 2026-11-13T07:12:18.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948a294ea273
+  - type: supersedes
+    from: REQ-kb-unmodeled-pair-review
+    to: REQ-check-related-requirement-unmodeled
+    created_at: 2026-11-13T07:12:18.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac39f8125922
+  - type: specified_by
+    from: REQ-kb-unmodeled-pair-review
+    to: SCEN-kb-unmodeled-pair-review
+    created_at: 2026-11-13T07:12:18.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ba423c87642
+  - type: specified_by
+    from: REQ-kb-unmodeled-pair-review
+    to: SCEN-NEG-kb-unmodeled-pair-UNREPORTED
+    created_at: 2026-11-13T07:12:18.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cdcd4edaf02
+  - type: specified_by
+    from: REQ-kb-unmodeled-pair-review
+    to: SCEN-NEG-kb-unmodeled-pair-review-SELF-APPROVED
+    created_at: 2026-11-13T07:12:18.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a1b34b2d96d

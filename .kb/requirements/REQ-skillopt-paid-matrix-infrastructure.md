@@ -57,6 +57,20 @@ origin:
   recorded_at: '2026-10-04T01:17:15.284Z'
 firmness: default
 required_evidence: tested
+links:
+  - type: relates_to
+    target: REQ-skillopt-paid-launch-accounting
+pair_reviews:
+- with: REQ-skillopt-paid-launch-accounting
+  verdict: no_conflict
+  separated_by: 'Repository proof runs never make a paid launch: they use fixture-level contracts with deterministic-test-fixture signatures, while REQ-skillopt-paid-launch-accounting governs real paid launches under the external trust boundary.'
+  claims:
+  - claim_key: CLAIM-9711EF1B29ADAC33
+    payload_hash: 574ae094d4a8bf4d83e4b07501ec5f54ac48d0d1987f2d3025a79d34f06ab299
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 ---
 The held-out evaluation matrix, fake-provider gateway ledger, paid-launch receipt chain, and mirror-adoption transaction machinery execute only under external supervisor launches with an installed external trust plane. Repository proof runs execute these paths only through fixture-level integration contracts with deterministic-test-fixture signatures (signatureProvenance deterministic-test-fixture and externallySigned false), because the full paths require paid model launches, root-installed verifier infrastructure, and supervisor parent processes. The repository-provable fail-closed boundaries are owned by REQ-skillopt-external-adoption-verdict and REQ-skillopt-paid-launch-accounting.
 

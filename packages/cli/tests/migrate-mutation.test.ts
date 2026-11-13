@@ -32,6 +32,7 @@ import * as firmSupersede from "../src/operations/migration/firm-supersede.js";
 import { INLINE_IMPLEMENTS_REVIEW_CODE } from "../src/operations/migration/inline-implements-comments.js";
 import * as inventory from "../src/operations/migration/inventory-rederive.js";
 import * as originBackfill from "../src/operations/migration/origin-backfill.js";
+import * as pairReview from "../src/operations/migration/pair-review.js";
 import * as polarity from "../src/operations/migration/polarity-values.js";
 import * as claims from "../src/operations/migration/proof-contract-claims.js";
 import * as reqStatus from "../src/operations/migration/requirement-status.js";
@@ -1265,6 +1266,7 @@ describe("schema upgrade", () => {
         "approval-floor-v15",
         "domain-subjects-v16",
         "positive-scenarios-v17",
+        "pair-reviews-v18",
       ],
     };
     expect(result).toStrictEqual({
@@ -1310,6 +1312,20 @@ describe("schema upgrade", () => {
     });
   });
 
+  test("note the requirements schema 18 can pair, in the dry run and the upgrade", async () => {
+    atVersion(LATEST - 1);
+    const candidates = spyOn(
+      pairReview,
+      "planPairReviewCandidates",
+    ).mockReturnValue(["R1", "R2"]);
+    await dry();
+    expect(logs).toContain(pairReview.pairReviewNote(2, true));
+    logs = [];
+    await yes();
+    expect(logs).toContain(pairReview.pairReviewNote(2, false));
+    expect(candidates).toHaveBeenCalledWith(cwd);
+  });
+
   test("apply only the late steps from an earlier schema", async () => {
     atVersion(APPROVAL_FLOOR_FROM);
     s.untrack.mockReturnValue({ outcome: "failed", reason: "locked" } as never);
@@ -1325,6 +1341,7 @@ describe("schema upgrade", () => {
       "approval-floor-v15",
       "domain-subjects-v16",
       "positive-scenarios-v17",
+      "pair-reviews-v18",
     ]);
     expect(result.summary?.audit.semanticAdvisorBackfill).toBe(
       "not_applicable",

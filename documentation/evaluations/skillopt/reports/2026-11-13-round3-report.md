@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Usage telemetry showed three frequent write rejections: `entity_validation_failed` resubmitted about eight times per session, `relationship_source_mismatch`, and `symbol_granularity_violation`. This round tested four kibi-usage edits aimed at them. Only one held up: an agent must not resend a payload that a typed error rejected twice, and must fix the rule and field the error names instead. kibi-usage 2.46.0 ships that sentence, plus a fuller relationship direction table in `resources/relationship-directions.md`.
+Usage telemetry showed three frequent write rejections: `entity_validation_failed` resubmitted about eight times per session, `relationship_source_mismatch`, and `symbol_granularity_violation`. This round tested four kibi-usage edits aimed at them. Only one held up: an agent must not resend a payload that a typed error rejected twice, and must fix the rule and field the error names instead. kibi-usage 2.47.0 ships that sentence, plus a fuller relationship direction table in `resources/relationship-directions.md`.
 
 | Candidate (kibi-usage, development cohort, 20 cells per arm per run) | Baseline | Candidate |
 | --- | ---: | ---: |

@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-045f1dd4d021
+  - type: assumes
+    from: SCEN-NEG-kb-unmodeled-pair-review-SELF-APPROVED
+    to: FACT-NEG-kb-unmodeled-pair-review-SELF-APPROVED
+    created_at: 2026-11-13T07:12:17.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b12861ce4c5b
+  - type: verified_by
+    from: SCEN-NEG-kb-unmodeled-pair-review-SELF-APPROVED
+    to: TEST-check-related-requirement-unmodeled
+    created_at: 2026-11-13T07:12:17.437Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51f86803e1ec

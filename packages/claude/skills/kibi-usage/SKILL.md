@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.46.0
+  version: 2.47.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -548,6 +548,21 @@ write. When `kb_check` or the write result suggests defined subjects, read
 their definitions with `kb_query` and name the one the claim is about:
 choosing among defined subjects is yours to do, not a question for the
 person. Leaving `claim-subject-missing` behind does not finish the task.
+
+An unmodeled rule claim (`missing`, `ontology_gap` or `ambiguous`) is checked
+against every current requirement it pairs with, through a `relates_to` edge
+or a shared subject (`related-requirement-unmodeled`). Model the claim on that
+requirement's subject keys when you can. When it cannot be modeled yet, link
+the two with `relates_to` and record one `pair_reviews` entry on the
+requirement: `with` (the other id), `verdict` (`no_conflict` with
+`separated_by`, the condition that keeps them apart; `interacts` with
+`resolved_by`, a scenario, fact, requirement or claim key that settles how
+they combine; or `conflict`), `claims` (`{claim_key, payload_hash}` of each
+unmodeled claim of both, so the verdict goes stale when one changes) and
+`origin`. A `conflict` never settles a pair: ask the person which rule holds.
+Your own verdict on a pair with a `must` or firm requirement counts only once
+the person confirms it and you set `origin.approved_by`; never set it
+yourself.
 
 ## Quantified claims: model the dimension
 

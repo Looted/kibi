@@ -203,7 +203,7 @@ function notReadyPlanMessage(
   const base = `${prefix}: only ready plans may be applied; this plan's status is '${String(status)}'.`;
   switch (status) {
     case "needs_resolution":
-      return `${base} Resolve its ontology_gap and missing propositions first (model each with kb_model mode requirement or predicates, then call kb_compile_intent again and apply the ready plan it returns), and fix any step its diagnostics name. Or write the requirement with kb_upsert carrying the plan's inventory contract, with the unmodeled propositions kept as status ontology_gap entries, as the kibi-usage skill describes.`;
+      return `${base} Resolve its ontology_gap and missing propositions first (model each with kb_model mode requirement or predicates, then call kb_compile_intent again and apply the ready plan it returns), and fix any step its diagnostics name. kb_upsert is not a way around this review: a proposition written as an ontology_gap entry must name its subjects, and kibi check (related-requirement-unmodeled) then blocks until each requirement it pairs with is modeled against it or the pair carries a checkable pair_reviews verdict.`;
     case "blocked":
       return prefix === "Apply plan failed"
         ? `${base} Its contradiction analysis found a conflict with a current requirement: resolve the contradiction first (supersede or change the conflicting requirement, or change the intent), then compile again.`

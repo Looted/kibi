@@ -40,6 +40,10 @@ entity_property(req, semantic_inventory_version, string).
 entity_property(req, semantic_source_field, string).
 entity_property(req, semantic_source_hash, string).
 entity_property(req, semantic_inventory, list_or_json).
+% Verdicts on stored pairs whose unmodeled claims cannot be modeled
+% (related-requirement-unmodeled): with, verdict, separated_by or
+% resolved_by, claims and origin.
+entity_property(req, pair_reviews, list_or_json).
 entity_property(req, proof_exempt, boolean).
 entity_property(req, proof_exempt_reason, string).
 % Why a retired requirement no longer governs (required with status retired).
@@ -163,6 +167,7 @@ optional_property(req, semantic_inventory_version).
 optional_property(req, semantic_source_field).
 optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
+optional_property(req, pair_reviews).
 optional_property(req, proof_exempt).
 optional_property(req, proof_exempt_reason).
 optional_property(req, retired_reason).

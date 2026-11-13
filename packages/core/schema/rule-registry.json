@@ -292,7 +292,7 @@
     },
     {
       "name": "related-requirement-unmodeled",
-      "description": "A current requirement with unresolved (missing) propositions that relates_to a current requirement modeled with strict property or ground predicate facts; its claims are never compared by domain-contradictions until they are modeled against the same subject or predicates, or it supersedes that requirement",
+      "description": "A current requirement whose rule claims are still unmodeled (missing, ontology_gap or ambiguous) in a stored pair with another current requirement (a relates_to edge, or a subject they share, the claims naming that subject or a narrower one); nothing compares those claims, so the pair blocks until they are modeled, one requirement supersedes the other, or a pair_reviews verdict settles it: no_conflict naming what separates them, interacts naming the current scenario, fact, requirement or claim that resolves it, covering each unmodeled claim at its current payload, recorded while a relates_to edge links the pair, and approved by a person (origin.approved_by) when an agent recorded it on a must or firm requirement; a conflict verdict stays blocking until a person decides",
       "enforcementClass": "canonical",
       "category": "integrity",
       "implementation": "prolog",
