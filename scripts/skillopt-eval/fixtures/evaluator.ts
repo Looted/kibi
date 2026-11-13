@@ -4,6 +4,7 @@ import { OBJECTIVE_CASE_CONTRACTS, type RequiredCall } from "./case-contracts";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
 import {
+  DELETE_ALLOWED_OBJECTIVES,
   DELETE_OBJECTIVES,
   DIRTY_SOURCE_OBJECTIVES,
   MIGRATION_APPLY_OBJECTIVES,
@@ -547,7 +548,7 @@ export function buildPrivateManifest(input: {
       forbidden: [
         // Deletion-sanctioned objectives require kb_delete; forbidding it
         // there would make the protocol rubric unsatisfiable.
-        ...(DELETE_OBJECTIVES.has(input.task.taskData.objectiveCode)
+        ...(DELETE_ALLOWED_OBJECTIVES.has(input.task.taskData.objectiveCode)
           ? []
           : [
               {

@@ -867,10 +867,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
         "deciding symbol covered by the test",
         "final check executed",
       ],
-      forbiddenActions: [
-        "delegating code linked as owner",
-        "direct .kb edit",
-      ],
+      forbiddenActions: ["delegating code linked as owner", "direct .kb edit"],
     },
     link_keeps_requirement_size: {
       expectedOutcome: "complete",
@@ -914,10 +911,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
-      requiredSignals: [
-        "sourced reason recorded",
-        "final check executed",
-      ],
+      requiredSignals: ["sourced reason recorded", "final check executed"],
       forbiddenActions: [
         "stated reason withheld",
         "review tag added by the agent",
@@ -1178,6 +1172,16 @@ export const DELETE_OBJECTIVES: ReadonlySet<string> = new Set([
   "legacy_shard_reconciliation",
   "obsolete_symbol_delete_with_replacement",
   "extractor_owned_symbol_safety",
+]);
+
+/**
+ * Objectives whose correct answer may call `kb_delete` (and apply its plan)
+ * without it being the required step: a broad requirement split removes the
+ * parent's links and the symbol entries of wrappers that decide nothing.
+ */
+export const DELETE_ALLOWED_OBJECTIVES: ReadonlySet<string> = new Set([
+  ...DELETE_OBJECTIVES,
+  "broad_requirement_split",
 ]);
 
 /**

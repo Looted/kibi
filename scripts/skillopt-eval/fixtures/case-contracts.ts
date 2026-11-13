@@ -261,7 +261,7 @@ export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
     broad_requirement_split: {
       fixtureSetup: "seeded_broad_requirement_kb",
       requiredTools: RECORD_RULE_TOOLS,
-      forbiddenTools: ["kb_apply_plan"],
+      forbiddenTools: [],
     },
     // kibi-decisions: read the firm rule, record stated rules, ask on conflict.
     stated_rule_capture: {

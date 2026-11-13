@@ -530,6 +530,13 @@ none fits, define it from what the project's people and code say; when nobody
 has said, write `Definition not stated:` followed by where the subject is
 named and who could define it, rather than inventing one.
 
+Any write that adds or rewrites a requirement's inventory, even a fix that
+only adds a Context section, must name the subjects of its claims in the same
+write. When `kb_check` or the write result suggests defined subjects, read
+their definitions with `kb_query` and name the one the claim is about:
+choosing among defined subjects is yours to do, not a question for the
+person. Leaving `claim-subject-missing` behind does not finish the task.
+
 ## Quantified claims: model the dimension
 
 When a claim says every, each, all, any, only, at least, at most, exactly, a
