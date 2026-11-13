@@ -524,7 +524,7 @@ function payload(
     ? KIBI_ANSWER_FORMAT_INSTRUCTION
     : "";
   return {
-    prompt: `${special?.prompt ?? `${dialogue ?? definition.instruction} This is ${split} case ${index + 1}; ${dialogue !== undefined || effectiveObjectiveCode === "onboarding_evidence_review" ? "use ordinary file-reading tools for the supplied source files and the public Kibi MCP surface for knowledge-base operations." : "use only the public Kibi MCP surface."}`}${searchThenQuery}${answerFormat}`,
+    prompt: `${special?.prompt ?? `${dialogue ?? definition.instruction} This is ${split} case ${index + 1}; ${dialogue !== undefined || effectiveObjectiveCode === "onboarding_evidence_review" || FILE_READING_OBJECTIVES.has(effectiveObjectiveCode) ? "use ordinary file-reading tools for the supplied source files and the public Kibi MCP surface for knowledge-base operations." : "use only the public Kibi MCP surface."}`}${searchThenQuery}${answerFormat}`,
     activationMode: definition.activationMode,
     initialState: {
       repository: definition.repository,
@@ -548,6 +548,15 @@ function payload(
 }
 
 const COORDINATE_REPAIR_FILES = ["symbol-coordinate-repair.json"] as const;
+
+/** KB-quality objectives: the agent reads the source and notes it is judged on. */
+const FILE_READING_OBJECTIVES: ReadonlySet<string> = new Set([
+  "deciding_owner_link",
+  "link_keeps_requirement_size",
+  "reason_without_source",
+  "reason_from_source",
+  "broad_requirement_split",
+]);
 
 class TaskDefinitionError extends Error {
   readonly name = "TaskDefinitionError";

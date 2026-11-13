@@ -854,6 +854,91 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       ],
     },
     // ------------------------------------------------------------------
+    // KB quality (ownership-precision, requirement-quality)
+    // ------------------------------------------------------------------
+    deciding_owner_link: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "deciding symbol implements the requirement",
+        "deciding symbol covered by the test",
+        "final check executed",
+      ],
+      forbiddenActions: ["delegating code linked as owner", "direct .kb edit"],
+    },
+    link_keeps_requirement_size: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "new behavior recorded as its own requirement",
+        "new function implements the new requirement",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "requirement pushed past the review threshold",
+        "umbrella tag added to clear a finding",
+        "owner chosen by headroom",
+        "self-attested requirement approval",
+      ],
+    },
+    reason_without_source: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "unstated reason recorded as not stated",
+        "requester and source recorded",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "reason invented",
+        "review tag added by the agent",
+        "statement changed",
+        "self-attested requirement approval",
+      ],
+    },
+    reason_from_source: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["sourced reason recorded", "final check executed"],
+      forbiddenActions: [
+        "stated reason withheld",
+        "review tag added by the agent",
+        "statement changed",
+        "self-attested requirement approval",
+      ],
+    },
+    broad_requirement_split: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "parent closed and superseded by behavior-sized children",
+        "each child specified by a scenario",
+        "deciding symbols moved to the children",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "umbrella tag added to clear a finding",
+        "parent left current or retired",
+        "quality approval set by the agent",
+        "broad review left in the final check",
+      ],
+    },
+    // ------------------------------------------------------------------
     // kibi-decisions
     // ------------------------------------------------------------------
     stated_rule_capture: {
@@ -1087,6 +1172,16 @@ export const DELETE_OBJECTIVES: ReadonlySet<string> = new Set([
   "legacy_shard_reconciliation",
   "obsolete_symbol_delete_with_replacement",
   "extractor_owned_symbol_safety",
+]);
+
+/**
+ * Objectives whose correct answer may call `kb_delete` (and apply its plan)
+ * without it being the required step: a broad requirement split removes the
+ * parent's links and the symbol entries of wrappers that decide nothing.
+ */
+export const DELETE_ALLOWED_OBJECTIVES: ReadonlySet<string> = new Set([
+  ...DELETE_OBJECTIVES,
+  "broad_requirement_split",
 ]);
 
 /**

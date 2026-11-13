@@ -25,6 +25,10 @@ import {
   decisionSignalObserved,
 } from "./decision-signals";
 import {
+  qualityForbiddenObserved,
+  qualitySignalObserved,
+} from "./quality-signals";
+import {
   type FinalStateReceipt,
   FinalStateReceiptSchema,
   runIndependentFinalState,
@@ -247,7 +251,8 @@ function workflowSignalObserved(
 ): boolean {
   const caseOutcome =
     caseSignalObserved(signal, context) ??
-    decisionSignalObserved(signal, context);
+    decisionSignalObserved(signal, context) ??
+    qualitySignalObserved(signal, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   // Prose claims may come from the KB or from the agent's final answer (the
@@ -542,7 +547,8 @@ function forbiddenActionObserved(
 ): boolean {
   const caseOutcome =
     caseForbiddenObserved(action, context) ??
-    decisionForbiddenObserved(action, context);
+    decisionForbiddenObserved(action, context) ??
+    qualityForbiddenObserved(action, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");

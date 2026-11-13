@@ -136,11 +136,11 @@ describe("canonical skills source", () => {
   test("canonical skills declare their current release versions and compatibility", () => {
     const newCanonical = {
       "kibi-bootstrap": "3.20.0",
-      "kibi-commit-review": "1.4.0",
-      "kibi-decisions": "1.8.0",
+      "kibi-commit-review": "1.5.0",
+      "kibi-decisions": "1.9.0",
       "kibi-freshness": "2.3.0",
       "kibi-provable-code": "1.0.0",
-      "kibi-traceability": "2.3.0",
+      "kibi-traceability": "2.4.0",
     } as const;
     for (const [id, version] of Object.entries(newCanonical)) {
       const skillFile = join(canonicalRoot, id, "SKILL.md");
