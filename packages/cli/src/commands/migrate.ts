@@ -114,6 +114,11 @@ interface MigrateOptions {
   workspaceRoot?: string;
   /** Internal migration-plan executor: create only the canonical baseline manifest. */
   initializeMissingConfig?: boolean;
+  /**
+   * Compile the branch store after `--yes` rewrote sources (default true).
+   * The plan executor passes false: its plan runs the sync as its own action.
+   */
+  syncStore?: boolean;
 }
 
 export interface MigrationAuditRecord {
@@ -734,6 +739,25 @@ async function printRetiredStatusSuggestions(cwd: string): Promise<void> {
 }
 
 /**
+ * Whether kibi sync would reject the migrated sources: a requirement status
+ * it cannot compile, or an inventory that needs a manual fix.
+ */
+function syncBlocked(
+  statuses: readonly RequirementStatusFinding[],
+  manualInventories: number,
+): boolean {
+  return (
+    manualInventories > 0 ||
+    statuses.some((finding) => finding.extractionError !== null)
+  );
+}
+
+/** The note for subject facts that get "Definition not stated" bodies. */
+function notStatedNote(ids: readonly string[], dryRun: boolean): string {
+  return `${dryRun ? "dry run: would record" : "Recorded"} 'Definition not stated:' as the body of ${ids.length} subject fact(s) without one (${ids.join(", ")}); no definition is invented, and a person replaces the note with one.`;
+}
+
+/**
  * Print what a `kibi migrate --yes` run left for a person, naming the
  * requirements kibi sync cannot compile first. Returns false when nothing
  * remains, so the caller may call the migration complete.
@@ -780,6 +804,38 @@ function printRemainingMigrationWork(remaining: {
   return true;
 }
 
+/**
+ * Compile the branch store from the sources `kibi migrate --yes` rewrote, as
+ * `--apply-safe` does with its sync action, so the next kibi check and kibi
+ * status read the migrated KB. Returns whether the store is now fresh.
+ */
+async function syncMigratedSources(
+  cwd: string,
+  options: MigrateOptions,
+  blocked: boolean,
+): Promise<boolean> {
+  if (options.syncStore === false) return false;
+  if (blocked) {
+    console.log(
+      "Run 'kibi sync' to recompile the rewritten sources once the items below are fixed.",
+    );
+    return false;
+  }
+  const { syncMigratedStore } = await import(
+    "../operations/migration/upgrade-review.js"
+  );
+  const result = await syncMigratedStore(cwd);
+  if (result.ok)
+    console.log(
+      "Recompiled the branch store from the migrated sources (kibi sync).",
+    );
+  else
+    printWarning(
+      `kibi sync did not complete after the migration (${result.reason}); run 'kibi sync' to recompile the rewritten sources.`,
+    );
+  return result.ok;
+}
+
 export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
   printWarning("Migration required for this repository.");
   console.log("No changes applied.");
@@ -790,6 +846,19 @@ export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
 export async function migrateCommand(
   options: MigrateOptions = {},
 ): Promise<{ exitCode: number; summary?: MigrationRunSummary }> {
+  // An approval only means something to --apply-safe; anywhere else it
+  // would be ignored while the command reports success.
+  if (
+    !applySafeRequested(options) &&
+    (approvedActionIdsOf(options).length > 0 ||
+      options.approvedPlanHash !== undefined)
+  ) {
+    noteCliErrorCategory("migrate:approval_without_apply_safe");
+    console.error(
+      `${approvedActionIdsOf(options).length > 0 ? "--approved-action" : "--approved-plan-hash"} only applies with --apply-safe, so nothing was applied. Review the plan with 'kibi migrate', then run: kibi migrate --apply-safe <plan hash>${approvedActionIdsOf(options).length > 0 ? ` --approved-action ${approvedActionIdsOf(options).join(",")}` : ""}`,
+    );
+    return { exitCode: 2 };
+  }
   if (
     applySafeRequested(options) ||
     options.format === "json" ||
@@ -860,9 +929,13 @@ export async function migrateCommand(
     manifestStatus.state === "invalid" || manifestStatus.state === "future"
       ? manifestStatus.warning
       : configStatus.warning;
+  // An older schema is what this command upgrades; saying "run kibi
+  // migrate" here only repeats the command the user just ran.
   const warnings = [
     ...branchWarnings,
-    ...(migrationWarning ? [migrationWarning] : []),
+    ...(migrationWarning && configStatus.status !== "older"
+      ? [migrationWarning]
+      : []),
   ];
   const auditPath = path.join(cwd, ".kb", "migrations", `${branch}.json`);
 
@@ -920,7 +993,14 @@ export async function migrateCommand(
     ) {
       if (options.dryRun !== true && rewroteSources) {
         await refreshMigratedSymbolCoordinates(cwd, generatedManifestsBefore);
-        console.log("Run 'kibi sync' to recompile the rewritten sources.");
+        if (options.syncStore === false)
+          console.log("Run 'kibi sync' to recompile the rewritten sources.");
+        else
+          await syncMigratedSources(
+            cwd,
+            options,
+            syncBlocked(statuses.review, drift.manual),
+          );
       }
       if (options.dryRun !== true)
         printRemainingMigrationWork({
@@ -979,6 +1059,19 @@ export async function migrateCommand(
   const pairReviewStep = migrationSteps.some(
     (step) => step.id === "pair-reviews-v18",
   );
+  const domainSubjectsStep = migrationSteps.some(
+    (step) => step.id === "domain-subjects-v16",
+  );
+  const {
+    applySubjectDefinitionPlaceholders,
+    planSubjectDefinitionPlaceholders,
+  } = await import("../operations/migration/domain-subjects.js");
+  const {
+    domainSubjectReviewNote,
+    planDomainSubjectReview,
+    readUpgradeReviewFindings,
+    upgradeReviewSummary,
+  } = await import("../operations/migration/upgrade-review.js");
   const floorScope = {
     firm: migrationSteps.some((step) => step.id === "evidence-floor-v11"),
     approved: migrationSteps.some((step) => step.id === "approval-floor-v15"),
@@ -987,8 +1080,15 @@ export async function migrateCommand(
   const {
     applyEvidenceFloorPins,
     planEvidenceFloorPins,
+    planUnapprovedAgentMusts,
     readLadderFloorVerdicts,
+    unapprovedAgentMustNote,
   } = await import("../operations/migration/evidence-floor.js");
+  // The agent must requirements the schema 15 rule fails once code
+  // implements them: the upgrade lists them so the new findings are expected.
+  const unapprovedAgentMusts = floorScope.approved
+    ? planUnapprovedAgentMusts(cwd, new Date().toISOString())
+    : [];
   // Read before any source rewrite: the store still holds the KB as it was,
   // and the floors are judged by the same ladder kibi check applies.
   const ladderFloors = evidenceFloorStep
@@ -1073,6 +1173,21 @@ export async function migrateCommand(
           `dry run: would acknowledge ${musts.length} current must requirement(s) recorded before schema 17, which need no positive scenario (manifest only; no scenario is written).`,
         );
     }
+    const notStated = domainSubjectsStep
+      ? planSubjectDefinitionPlaceholders(cwd)
+      : [];
+    if (notStated.length > 0)
+      console.log(
+        notStatedNote(
+          notStated.map((row) => row.id),
+          true,
+        ),
+      );
+    const subjectReview = domainSubjectReviewNote(
+      planDomainSubjectReview(cwd, new Set(notStated.map((row) => row.id))),
+      true,
+    );
+    if (subjectReview !== null) console.log(subjectReview);
     if (pairReviewStep) {
       const candidates = planPairReviewCandidates(cwd);
       if (candidates.length > 0)
@@ -1093,6 +1208,8 @@ export async function migrateCommand(
       for (const skip of floors.skipped)
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
     }
+    if (unapprovedAgentMusts.length > 0)
+      console.log(unapprovedAgentMustNote(unapprovedAgentMusts, true));
     if (claimBindingStep) {
       const claims = planProofContractClaimPins(cwd, claimCandidates);
       if (claims.targets.length > 0)
@@ -1252,6 +1369,9 @@ export async function migrateCommand(
   const claimPins = claimBindingStep
     ? applyProofContractClaimPins(cwd, claimCandidates)
     : null;
+  const notStated = domainSubjectsStep
+    ? applySubjectDefinitionPlaceholders(cwd)
+    : { written: [], skipped: [] };
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
   writeKbManifest(cwd, {
@@ -1308,6 +1428,20 @@ export async function migrateCommand(
   const pairReviewCandidates = pairReviewStep
     ? planPairReviewCandidates(cwd)
     : [];
+  if (notStated.written.length > 0)
+    console.log(
+      notStatedNote(
+        notStated.written.map((row) => row.id),
+        false,
+      ),
+    );
+  for (const skip of notStated.skipped)
+    printWarning(
+      `Cannot record 'Definition not stated' on ${skip.path}: ${skip.reason}.`,
+    );
+  const subjectReview = planDomainSubjectReview(cwd);
+  const subjectReviewNote = domainSubjectReviewNote(subjectReview, false);
+  if (subjectReviewNote !== null) console.log(subjectReviewNote);
   if (pairReviewCandidates.length > 0)
     console.log(pairReviewNote(pairReviewCandidates.length, false));
   if (evidenceFloorsPinned > 0)
@@ -1327,6 +1461,8 @@ export async function migrateCommand(
         `Cannot record required_evidence on ${skip.path}: ${skip.reason}.`,
       );
   }
+  if (unapprovedAgentMusts.length > 0)
+    console.log(unapprovedAgentMustNote(unapprovedAgentMusts, false));
   if (claimPins !== null) {
     if (claimPins.targets.length > 0)
       console.log(
@@ -1375,15 +1511,6 @@ export async function migrateCommand(
     `Wrote migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
   );
   await printRetiredStatusSuggestions(cwd);
-  const incomplete = printRemainingMigrationWork({
-    statuses: statuses.review,
-    manualInventories: drift.manual,
-    manualLifecycle: lifecycle.manual,
-  });
-  if (!incomplete)
-    console.log(
-      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
-    );
   const mergeDriverGaps = manifestMergeDriverGaps(cwd);
   if (mergeDriverGaps !== null && mergeDriverGaps.length > 0) {
     console.log(
@@ -1406,6 +1533,26 @@ export async function migrateCommand(
         `Could not remove ${KB_PATHS.symbolCoordinates} from the Git index (${untrack.reason}); run git rm --cached ${KB_PATHS.symbolCoordinates} before the next commit.`,
       );
   }
+  const synced = await syncMigratedSources(
+    cwd,
+    options,
+    syncBlocked(statuses.review, drift.manual),
+  );
+  const incomplete = printRemainingMigrationWork({
+    statuses: statuses.review,
+    manualInventories: drift.manual,
+    manualLifecycle: lifecycle.manual,
+  });
+  const reviewLeft = upgradeReviewSummary(
+    synced ? await readUpgradeReviewFindings(cwd) : null,
+    subjectReview,
+    pairReviewCandidates.length,
+  );
+  if (reviewLeft !== null) console.log(reviewLeft);
+  else if (!incomplete)
+    console.log(
+      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
+    );
 
   return {
     exitCode: 0,
@@ -1708,8 +1855,15 @@ function approvedActionIdsOf(options: MigrateOptions): string[] {
   return [...new Set(ids)];
 }
 
-/** The table rendering of an apply result; --format json prints it whole. */
-function printApplySummary(content: unknown): void {
+/**
+ * The table rendering of an apply result; --format json prints it whole.
+ * The remaining plan is printed as `kibi migrate` would print it (and
+ * recorded the same way), so its hash is one --apply-safe accepts.
+ */
+async function printApplySummary(
+  content: unknown,
+  workspaceRoot: string,
+): Promise<void> {
   if (content === null || typeof content !== "object") return;
   const result = content as {
     outcome?: string;
@@ -1724,12 +1878,21 @@ function printApplySummary(content: unknown): void {
   for (const action of result.actionResults ?? []) {
     console.log(`- ${action.outcome} ${action.actionId}: ${action.detail}`);
   }
-  const remaining = result.remainingPlan;
-  if (remaining !== undefined) {
-    const ready = remaining.automaticSummary.ready;
+  if (result.remainingPlan !== undefined) {
+    // The apply result's digest hashes the plan the operation rebuilt, which
+    // is not the plan kibi migrate builds; print and record the latter.
+    const plan = await buildWorkspaceMigrationPlan(workspaceRoot);
+    const ready = plan.actions.filter(
+      (action) => action.state === "ready" && action.autoApplicable,
+    ).length;
     console.log(
-      `Remaining plan ${remaining.planHash}: ${remaining.status}; actions: ${remaining.summary.actionCount}; automatic-ready: ${ready}`,
+      `Remaining plan ${plan.planHash}: ${plan.status}; actions: ${plan.actions.length}; automatic-ready: ${ready}`,
     );
+    recordPrintedPlan(workspaceRoot, plan);
+    if (ready > 0)
+      console.log(
+        `Apply its ${ready} ready automatic action(s): ${applyPlanCommand(plan.planHash)}`,
+      );
   }
   console.log(
     "Run 'kibi migrate' for the remaining actions, or add --format json for the full result.",
@@ -1858,7 +2021,7 @@ async function migratePlanCommand(
       console.log(JSON.stringify(result, null, 2));
     } else {
       console.log(result.content[0]?.text ?? "Migration applied.");
-      printApplySummary(result.structuredContent);
+      await printApplySummary(result.structuredContent, workspaceRoot);
     }
     const outcome = result.structuredContent?.outcome;
     if (outcome !== "applied") noteCliErrorCategory(`migrate:${outcome}`);

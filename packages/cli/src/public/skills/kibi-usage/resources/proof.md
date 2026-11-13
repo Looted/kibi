@@ -417,8 +417,10 @@ the requirement.
 
 One more rule reads the same proofs. `agent-requirement-unapproved-implemented`
 blocks a current `priority: must` requirement an agent wrote that production
-code implements while nobody has approved it 14 days after its `created_at`:
-ask the person to review it and record `origin.approved_by`, or fix it.
+code implements while nobody has approved it 14 days after its
+`origin.recorded_at` (else a `created_at` its front matter states; with
+neither it counts as older): ask the person to review it and record
+`origin.approved_by`, or fix it.
 
 ## Knowledge-base certificates
 

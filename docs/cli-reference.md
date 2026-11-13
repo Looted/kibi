@@ -528,6 +528,14 @@ it, and the status migration plan covers it with its automatic
 `freshness-resync` action (`kibi sync`), so applying that action clears it
 too; it gets no review action of its own.
 
+While `.kb/manifest.json` records a KB schema older than this Kibi, the text
+output of `kibi status` and `kibi report` starts with one line (text `kibi
+check` starts with a note of its own that names `kibi migrate`):
+`Migration needed: this KB is at schema N and this Kibi expects schema M. Run
+'kibi migrate' to review the upgrade, then 'kibi migrate --yes' to apply it.`
+JSON output carries the same information in `schemaStatus` and the migration
+plan instead.
+
 Status does not initialise a missing branch store or repair a damaged one. It
 instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a
 recovery-oriented stale reason. Use the explicit branch commands below after
@@ -807,7 +815,7 @@ Validates knowledge base integrity and runs inference rules.
 - Runs four canonical decision-firmness checks on authored requirements and ADRs (KB schema 9): `decision-firm-unreferenced` (a current decision marked `firmness: firm` must name the human words it rests on in `origin.ref`, or `approval_ref` on a requirement), `decision-firm-superseded` (a decision that supersedes a firm one, retired or not, must itself be firm; from KB schema 10 a decision without `firmness` is firm unless an agent wrote it, and the supersedes of such decisions recorded before schema 10 are acknowledged in `firmSupersedeAcknowledged`), `decision-firm-edited` (a decision that was firm at `HEAD` must not have its title, stated meaning, an ADR's body or its firmness changed in the working tree unless the edit cites new human words in `origin.ref` or `approval_ref`; `kb_upsert` refuses such a write up front) and `supersedes-reason-missing` (a current decision that supersedes another needs a `## Why this changed` section of at least 12 words naming the evidence). Supersede edges the schema 9 migration acknowledged (`supersedesReasonAcknowledged` in `.kb/manifest.json`) are counted by the info diagnostic `supersedes-reason-acknowledged` instead. See [Decision firmness](entity-schema.md#decision-firmness).
 - Runs the canonical `kb-consistency` check: the facts current requirements name must hold together, jointly and not only pairwise. Each run produces a `kibi.certificates.v1` bundle (a model or an irreducible contradiction core per property context, a truth value per predicate atom, a decision per decision key, a stratum assignment or a negation cycle for the stored rules) and re-checks it with the independent checker. A re-verified contradiction is a blocking violation that names the core facts, the requirements behind them and one model per dropped fact, with the certificate under `evidence.certificate`; a certificate the checker rejects also blocks. The advisory `kb-consistency-unresolved` check reports each context the checker cannot compare (mixed value types or units, an unsupported operator or polarity, a contradiction whose validity windows never overlap) as a non-blocking diagnostic; it never counts as consistent. See [Knowledge-base certificates](./proof-ladder.md#knowledge-base-certificates).
 - Runs the canonical `evidence-floor` check (KB schema 11): every current requirement's evidence level (`proved`, `tested`, `asserted`, `unverified`) must reach its floor, which is `required_evidence` when set, otherwise `tested` for a firm requirement or (from KB schema 15) one a person approved (`origin.approved_by`) that states no `firmness`, and no floor for any other. A requirement whose receipts are only older than the code counts as pending re-proof and passes unless `--fresh-evidence` is given. Each finding names the level, the floor and where the floor came from, and its suggestion says what would raise the level. See [Evidence floors](./proof-ladder.md#evidence-floors).
-- Runs the canonical `agent-requirement-unapproved-implemented` check (KB schema 15): a current `priority: must` requirement with `origin.kind: agent` that production symbols implement must have `origin.approved_by` once it is more than 14 days old by `created_at` (a missing `created_at` counts as older). See [Evidence floors](./proof-ladder.md#evidence-floors).
+- Runs the canonical `agent-requirement-unapproved-implemented` check (KB schema 15): a current `priority: must` requirement with `origin.kind: agent` that production symbols implement must have `origin.approved_by` once it is more than 14 days old by `origin.recorded_at`, else by a `created_at` its front matter states (a requirement with neither counts as older; the `created_at` sync fills in is not read). See [Evidence floors](./proof-ladder.md#evidence-floors).
 - Runs five canonical domain-subject checks (KB schema 16): `claim-subject-missing` (a current requirement's unmodeled claim, an inventory entry with status `ambiguous`, `ontology_gap` or `missing`, whose role is `normative`, `condition`, `exception` or `definition`, must name the subjects it is about under the entry's `subjects`), `claim-subject-undefined` (every subject key a claim names, and every `part_of`, `kind_of` or `distinct_from` key of an active subject fact, must be defined by an active `fact_kind: subject` fact), `subject-definition-missing` (a subject fact's body is its definition: at least 8 words, each Chinese or Japanese character counting as a word, that do not restate the title or `subject_key` and add at least 3 words of their own beyond them and function words; a definition that 3 or more subjects repeat with only the key or title changed is a template, not a definition; a body that opens with `Definition not stated:` and says where the subject is named records the gap instead, and so does the older bootstrap body `Subject <key>, shared by the requirements bootstrap planned from ...`), `subject-duplicate` (two facts with the same `subject_key`, keys with the same words up to simple plurals such as `report.export` and `report.exports`, or keys and titles whose words mostly coincide, token Jaccard at least 0.7; an ancestor and its descendant such as `report_export` and `report.export.pdf`, siblings under different parents such as `web.drawing.view` and `mobile.drawing.view`, and a pair either fact relates through `distinct_from`, `part_of` or `kind_of` are exempt) and `subject-hierarchy-invalid` (no subject lists its own key under `part_of`, `kind_of` or `distinct_from`, and following `part_of`, `kind_of` and the nearest defined dotted prefix upward never comes back to where it started). A KB whose `.kb/manifest.json` records an older schema skips them until `kibi migrate` upgrades it. See [Subject facts](entity-schema.md#subject-facts).
 - Runs the canonical `must-positive-scenario` check (KB schema 17): a current must requirement needs an active scenario with `expects: success` that it links through `specified_by` and that `assumes` a `property_value`, predicate or rule fact (the subject fact itself does not count) on one of its subjects or a narrower one, so `scenario-feasibility` can refuse the behaviour it promises when another current requirement forbids it. Must requirements that `kibi migrate` recorded under `positiveScenarioAcknowledged` in `.kb/manifest.json` during the schema 17 upgrade are exempt. A requirement that names a subject no active subject fact defines is told to define the subject first.
 - Runs the canonical `related-requirement-unmodeled` check (KB schema 18): a current requirement with an unmodeled rule claim (an inventory entry with status `missing`, or `ontology_gap` or `ambiguous` on a `normative`, `condition`, `exception` or `definition` claim) is a blocking violation against the current requirements it pairs with, through a `relates_to` edge in either direction or a subject both are about (an `ontology_gap` claim counts for the subjects its entry names, or narrower ones). `domain-contradictions` compares grounded facts only, so the pair stays blocked until the claims are modeled, one requirement supersedes the other, or a `pair_reviews` entry on either requirement settles it: `with` the other id, `verdict` `no_conflict` with `separated_by` or `interacts` with `resolved_by` (an active scenario either requirement is `specified_by`, an active fact either links through `constrains` or `requires_*`, a third current requirement, or a `condition` or `exception` claim key of either; never the two requirements themselves), and `claims` naming every unmodeled claim by `claim_key` (a `payload_hash` is accepted and ignored). A verdict counts only while a `relates_to` edge links the pair; a `conflict` verdict never settles it; and on a pair with a must or firm requirement, a verdict whose `origin` is missing or not `kind: human`, or that sits on a requirement an agent wrote, counts only with `origin.approved_by`. There is one finding per requirement and problem: it names the claims, the requirements it pairs with and how (the first 8, then how many more), and what the verdicts lack; it also names a `with` that is no current requirement, and `missing` claims whose role states no rule, to classify as `nonlogical` or review. On a KB below schema 18 the earlier form of the rule runs, and `claim-subject-missing` and `claim-subject-undefined` apply from schema 16.
@@ -1112,7 +1120,12 @@ flags, it is a read-only preview; `--format json` returns the complete
 - `--format json|table` - Render the structured plan or a concise table. With `--apply-safe`, the table form prints the outcome, one line per action and a summary of the remaining plan; `--format json` prints the full apply result
 - `--apply-safe [SHA256]` - Apply only approved deterministic actions of the plan with this hash. The text preview prints the exact `kibi migrate --apply-safe <hash>` command when the plan has ready automatic actions. A plan applies only with its current hash: when the plan changed after it was printed, nothing is applied and the error names the new hash and what changed (actions added, removed or changed state, and whether the KB snapshot, workspace files, branch or config moved)
 - `--approved-plan-hash SHA256` - The same hash as a separate flag (`--apply-safe --approved-plan-hash <hash>`); giving two different hashes is an error
-- `--approved-action ID` - Explicit action ID (repeatable or comma-separated): an automatic action, or a review action Kibi can execute once approved (`semantic_inventory_rederive_drop_grounding`, `req_status_vocabulary_map`, or a `semantic_inventory_rederive` that depends on a status mapping). Without it, `--apply-safe` applies every ready automatic action and no review action
+- `--approved-action ID` - Explicit action ID (repeatable or comma-separated): an automatic action, or a review action Kibi can execute once approved (`semantic_inventory_rederive_drop_grounding`, `req_status_vocabulary_map`, `req_retired_status_suggest`, `claim_subject_anchor_suggest`, or a `semantic_inventory_rederive` that depends on a status mapping). Without it, `--apply-safe` applies every ready automatic action and no review action. `--approved-action` and `--approved-plan-hash` only apply with `--apply-safe`; given without it, the command applies nothing and exits with code 2
+
+After `--apply-safe`, the table form prints the plan `kibi migrate` builds now
+(`Remaining plan <hash>: ...`) and records it like the preview does, so that
+hash is one `--apply-safe` accepts; when it still has ready automatic actions,
+the next `kibi migrate --apply-safe <hash>` command follows.
 
 **Example (predicate vocabulary):**
 ```bash
@@ -1134,7 +1147,36 @@ records `entityOriginBackfill`, `supersededRequirementsClosed`,
 `sourcePathsRewritten`, `sourcePathsRemoved` and `legacyStatusesMapped` in
 `.kb/migrations/<branch>.json`, with `status: applied` and, as
 `preMigrationWarning`, the schema warning the KB showed before the run.
-`kibi migrate --dry-run` prints what it would change.
+`kibi migrate --dry-run` prints what it would change, including the review
+counts below.
+
+Like `--apply-safe` with its `migration-sync` action, `kibi migrate --yes`
+then compiles the branch store from the rewritten sources (`Recompiled the
+branch store from the migrated sources (kibi sync).`), so the next `kibi
+check` and `kibi status` read the migrated KB rather than a stale store. It
+skips the sync while a requirement status or inventory would make `kibi sync`
+reject the KB, and says to run `kibi sync` once those are fixed; a sync that
+fails leaves the migration applied and prints a warning.
+
+From schema 15 or older, `--yes` and `--dry-run` also print the schema 16
+review counts (`Schema 16 review: ...`): unmodeled claims that name no subject,
+split into those with a suggested subject to approve by id
+(`claim_subject_anchor_suggest`) and those a person anchors by hand
+(`claim_subject_anchor_review`), subject facts that need a definition
+(`subject_definition_review`), subject pairs that read as one or share one
+`subject_key` (`subject_duplicate_review`), and subjects that name themselves
+or loop through `part_of`, `kind_of` or dotted keys
+(`subject_hierarchy_review`). A subject fact with no body at all gets the same
+`Definition not stated: ...` note bootstrap writes (the automatic
+`subject_definition_not_stated` action in the plan); a body with any text is
+never replaced. After the sync, `--yes` runs the rules schemas 15-18 added
+(`evidence-floor`, `claim-subject-missing`, `claim-subject-undefined`,
+`subject-definition-missing`, `subject-duplicate`, `subject-hierarchy-invalid`,
+`must-positive-scenario`,
+`related-requirement-unmodeled`). When any of them still reports a finding,
+the run prints `Schema upgrade applied, but review work remains: kibi check
+reports N blocking finding(s) the upgrade does not fix (...)` with the count
+per rule and the next steps, instead of `Migration complete`.
 
 When work remains that `--yes` does not apply (a requirement status with no
 safe mapping, an inventory that needs a manual fix, or a lifecycle item a

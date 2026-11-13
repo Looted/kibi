@@ -347,8 +347,9 @@ export function trackedRelationshipFiles(
 export function normalizedEntityHash(result: ExtractionResult): string {
   const entity = { ...result.entity } as Record<string, unknown>;
   // Manifest defaults are generated at extraction time. They must not turn a
-  // one-record edit into 10,000 false-positive symbol updates.
-  entity.created_at = undefined;
+  // one-record edit into 10,000 false-positive symbol updates. A created_at
+  // the front matter states is authored, so editing it re-imports the entity.
+  if (result.createdAtAuthored !== true) entity.created_at = undefined;
   entity.updated_at = undefined;
   return hashNormalized({
     entity,

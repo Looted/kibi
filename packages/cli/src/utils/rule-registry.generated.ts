@@ -470,7 +470,7 @@ export const GENERATED_RULES = [
   {
     name: "agent-requirement-unapproved-implemented",
     description:
-      "A current priority must requirement authored by an agent (origin.kind agent) that production symbols implement must have a human approval (origin.approved_by) once it is older than 14 days by created_at; a missing created_at counts as older (KB schema 15)",
+      "A current priority must requirement authored by an agent (origin.kind agent) that production symbols implement must have a human approval (origin.approved_by) once it is older than 14 days by origin.recorded_at, else by an authored created_at; one with neither counts as older (KB schema 15)",
     enforcementClass: "canonical",
     category: "lifecycle",
   },

@@ -1174,6 +1174,7 @@ export const CLI_MUTATION_MODULES = {
   ],
   "packages/cli/src/operations/migration/schema6.ts": [
     "packages/cli/tests/operations-mutation/migration/schema6.test.ts",
+    "packages/cli/tests/operations/migration/domain-subjects.test.ts",
   ],
   "packages/cli/src/operations/migration/source-paths.ts": [
     "packages/cli/tests/operations-mutation/migration/source-paths.test.ts",

@@ -185,9 +185,13 @@ describe("legacy entity files without a type line", () => {
       vcs(root, "add", "--all");
       vcs(root, "commit", "-m", "type");
 
+      // kibi migrate --yes compiled the store from the rewritten sources.
+      expect(migrated.stdout).toContain(
+        "Recompiled the branch store from the migrated sources (kibi sync).",
+      );
       const first = runKibi(["sync"], root);
       expect(first.status, `${first.stdout}${first.stderr}`).toBe(0);
-      expect(first.stdout).toContain("KB Totals: 2 entities");
+      expect(first.stdout).toContain("(no changes)");
 
       const upserted = upsertStatus(
         root,

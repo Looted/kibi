@@ -40036,3 +40036,55 @@ symbols:
         target: REQ-kb-domain-subject-layer
       - type: implements
         target: REQ-kb-unmodeled-pair-review
+  - id: SYM-cli-approval-clock
+    title: approvalClock
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:57:15.864Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-cli-authored-created-at-reader
+    title: authoredCreatedAtReader
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:57:30.635Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-cli-plan-unapproved-agent-musts
+    title: planUnapprovedAgentMusts
+    status: active
+    sourceFile: packages/cli/src/operations/migration/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:57:45.132Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-cli-unapproved-agent-must-note
+    title: unapprovedAgentMustNote
+    status: active
+    sourceFile: packages/cli/src/operations/migration/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:57:55.228Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement

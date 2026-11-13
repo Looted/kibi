@@ -21,6 +21,7 @@ import {
   ScriptedUser,
   ScriptedUserProfileSchema,
 } from "./scripted-user";
+import { harnessChildEnv } from "./telemetry-env";
 
 const REQUIRED_TOOL_NAMES = new Set<string>(REQUIRED_KIBI_TOOLS);
 
@@ -88,7 +89,7 @@ export async function runMcpBroker(
     [...options.downstream.args],
     {
       cwd: options.downstream.cwd,
-      env: process.env,
+      env: harnessChildEnv(),
       detached: ownsGroup,
       stdio: ["pipe", "pipe", "pipe"],
     },

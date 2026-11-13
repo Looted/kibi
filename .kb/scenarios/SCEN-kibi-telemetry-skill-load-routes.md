@@ -11,6 +11,8 @@ origin:
 id: SCEN-kibi-telemetry-skill-load-routes
 type: scenario
 ---
-Given two initialized workspaces with telemetry on and a local collector, when `kibi status` runs, then `kibi skills load kibi-usage`, then `kibi status` again in the first workspace, the events arrive in that order with `skill_loaded_before` false, false and true, and nothing sent holds either workspace path.
+Given two initialized workspaces with telemetry on and a local collector, one of them inside a plain parent directory, when `kibi status` runs in that workspace, then `kibi skills load kibi-usage` in the parent directory, then `kibi status` in the workspace, then `kibi skills load kibi-usage` from a subdirectory of the workspace, then `kibi status` in the workspace and in the second workspace, the events arrive in that order with `skill_loaded_before` false, false, false, false, true and false, and nothing sent holds either workspace path.
 
-packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts "a skill loaded through the CLI marks later operations in that workspace" exercises it.
+The same holds for the MCP server: started in the parent directory, a skill loaded there does not count for a workspace below it, and a skill loaded through a call routed to a workspace counts for later calls routed to that workspace and for no sibling workspace.
+
+packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts "a skill loaded through the CLI marks later operations in that workspace" and packages/mcp/tests/server/skill-load-telemetry-routing.test.ts exercise it.

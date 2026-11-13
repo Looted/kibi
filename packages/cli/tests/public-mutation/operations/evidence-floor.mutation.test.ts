@@ -1,16 +1,23 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import path, { join } from "node:path";
 import {
+  AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
   EVIDENCE_FLOOR_RULE,
   EVIDENCE_FLOOR_SCHEMA_VERSION,
   type EvidenceFloorRow,
+  UNAPPROVED_IMPLEMENTED_GRACE_DAYS,
+  type UnapprovedImplementedRow,
+  approvalClock,
+  authoredCreatedAtReader,
   collectEvidenceFloorViolations,
   evidenceFloorViolations,
   gapDetailLines,
+  pastApprovalGrace,
   readEvidenceFloorRows,
   refutationText,
+  unapprovedImplementedViolations,
 } from "../../../src/public/operations/evidence-floor.js";
 import type {
   OperationContext,
@@ -480,6 +487,302 @@ describe("collectEvidenceFloorViolations", () => {
       )[0]?.description,
     ).toStartWith(
       "--fresh-evidence needs a proof snapshot, but none is available: ",
+    );
+  });
+});
+
+function workspace(files: Record<string, string>): string {
+  const root = mkdtempSync(join(tmpdir(), "kibi-approval-clock-"));
+  roots.push(root);
+  for (const [relative, content] of Object.entries(files)) {
+    const absolute = join(root, relative);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    writeFileSync(absolute, content);
+  }
+  return root;
+}
+
+function requirement(id: string, frontmatter = ""): string {
+  return `---\nid: ${id}\ntitle: ${id} title\ntype: req\nstatus: open\n${frontmatter}---\n\nThe system must keep ${id} true.\n`;
+}
+
+describe("agent-requirement-unapproved-implemented", () => {
+  test("grace period is fourteen days", () => {
+    expect(UNAPPROVED_IMPLEMENTED_GRACE_DAYS).toBe(14);
+    expect(AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE).toBe(
+      "agent-requirement-unapproved-implemented",
+    );
+  });
+
+  test("an approval floor finding names the approval", () => {
+    expect(
+      evidenceFloorViolations([row({ requiredEvidenceSource: "approval" })])[0]
+        ?.description,
+    ).toBe(
+      "REQ-A is asserted but needs tested (the floor of an approved requirement)",
+    );
+  });
+
+  const payload = (unapprovedImplemented?: unknown): Answer => ({
+    success: true,
+    bindings: {
+      JsonString: JSON.stringify({
+        rows: [
+          { ...base, id: "REQ-APPROVED", requiredEvidenceSource: "approval" },
+          { ...base, id: "REQ-FIRM" },
+        ],
+        ...(unapprovedImplemented === undefined
+          ? {}
+          : { unapprovedImplemented }),
+      }),
+    },
+  });
+  const OLD_ROW = {
+    id: "REQ-OLD",
+    recordedAt: "2025-01-01T00:00:00Z",
+    source: "",
+    symbols: ["SYM-A"],
+  };
+  const judge = async (
+    version: number,
+    rules: string[],
+    answer: Answer = payload([OLD_ROW]),
+    freshEvidence = false,
+  ) => {
+    bindings(null);
+    spies.push(
+      spyOn(manifest, "readKbManifest").mockReturnValue({
+        schemaVersion: version,
+      } as never),
+    );
+    const found = await collectEvidenceFloorViolations(
+      context({ prolog: fakeProlog(answer) }),
+      new Set(rules),
+      { snapshotEvidence: CLEAN, freshEvidence },
+    );
+    for (const spy of spies.splice(0)) spy.mockRestore();
+    return found.map((finding) => `${finding.rule}:${finding.entityId}`);
+  };
+  const BOTH = [
+    EVIDENCE_FLOOR_RULE,
+    AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
+  ];
+
+  test("from schema 15 the approval floor and the rule apply; before it neither does", async () => {
+    expect(await judge(15, BOTH)).toStrictEqual([
+      "evidence-floor:REQ-APPROVED",
+      "evidence-floor:REQ-FIRM",
+      "agent-requirement-unapproved-implemented:REQ-OLD",
+    ]);
+    expect(await judge(16, BOTH)).toHaveLength(3);
+    expect(await judge(14, BOTH)).toStrictEqual(["evidence-floor:REQ-FIRM"]);
+  });
+
+  test("each rule runs only when selected", async () => {
+    expect(
+      await judge(15, [AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE]),
+    ).toStrictEqual(["agent-requirement-unapproved-implemented:REQ-OLD"]);
+    expect(await judge(15, [EVIDENCE_FLOOR_RULE])).toStrictEqual([
+      "evidence-floor:REQ-APPROVED",
+      "evidence-floor:REQ-FIRM",
+    ]);
+  });
+
+  test("a payload without rows or review rows judges nothing", async () => {
+    expect(
+      await judge(
+        15,
+        BOTH,
+        {
+          success: true,
+          bindings: { JsonString: JSON.stringify({ evaluated: 0 }) },
+        },
+        true,
+      ),
+    ).toStrictEqual([]);
+    expect(await judge(15, BOTH, payload())).toStrictEqual([
+      "evidence-floor:REQ-APPROVED",
+      "evidence-floor:REQ-FIRM",
+    ]);
+  });
+
+  test("the rule reads the created_at of the requirement's own document", async () => {
+    bindings(null);
+    spies.push(
+      spyOn(manifest, "readKbManifest").mockReturnValue({
+        schemaVersion: 15,
+      } as never),
+    );
+    const ctx = context({
+      prolog: fakeProlog(
+        payload([
+          { ...OLD_ROW, id: "REQ-DOC", recordedAt: "", source: "r.md" },
+        ]),
+      ),
+    });
+    writeFileSync(
+      join(ctx.workspaceRoot, "r.md"),
+      requirement("REQ-DOC", "created_at: 2026-01-01T00:00:00Z\n"),
+    );
+    expect(
+      (
+        await collectEvidenceFloorViolations(
+          ctx,
+          new Set([AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE]),
+          { snapshotEvidence: CLEAN },
+        )
+      ).map((finding) => finding.entityId),
+    ).toStrictEqual([]);
+  });
+
+  test("the approval grace period counts from its start, and no date counts as past it", () => {
+    expect(
+      pastApprovalGrace("2026-01-01T00:00:00Z", "2026-01-15T00:00:01Z"),
+    ).toBe(true);
+    expect(
+      pastApprovalGrace("2026-01-01T00:00:00Z", "2026-01-15T00:00:00Z"),
+    ).toBe(false);
+    expect(pastApprovalGrace("", "2026-01-14T00:00:00Z")).toBe(true);
+    expect(pastApprovalGrace("2026-01-01T00:00:00Z", "")).toBe(true);
+  });
+
+  const unapproved = (
+    overrides: Partial<UnapprovedImplementedRow>,
+  ): UnapprovedImplementedRow => ({
+    id: "REQ-X",
+    recordedAt: "",
+    source: ".kb/requirements/REQ-X.md",
+    symbols: ["SYM-A"],
+    ...overrides,
+  });
+
+  test("the approval clock reads origin.recorded_at, else the document's created_at, else nothing", () => {
+    const read: string[] = [];
+    const createdAtOf = (source: string) => {
+      read.push(source);
+      return "2026-01-05T00:00:00.000Z";
+    };
+    expect(
+      approvalClock(
+        unapproved({ recordedAt: "2026-01-02T00:00:00Z" }),
+        createdAtOf,
+      ),
+    ).toEqual({ since: "2026-01-02T00:00:00Z", field: "origin.recorded_at" });
+    expect(read).toEqual([]);
+    expect(approvalClock(unapproved({}), createdAtOf)).toEqual({
+      since: "2026-01-05T00:00:00.000Z",
+      field: "created_at",
+    });
+    expect(read).toEqual([".kb/requirements/REQ-X.md"]);
+    expect(approvalClock(unapproved({}), () => undefined)).toEqual({
+      since: "",
+      field: "none",
+    });
+  });
+
+  test("each finding names where its clock started", () => {
+    const at = "2026-03-01T00:00:00Z";
+    const [recorded] = unapprovedImplementedViolations(
+      [unapproved({ recordedAt: "2026-01-02T00:00:00Z" })],
+      at,
+    );
+    expect(recorded?.description).toContain(
+      "since it was recorded at 2026-01-02T00:00:00Z;",
+    );
+    expect(recorded?.evidence).toEqual({
+      since: "2026-01-02T00:00:00Z",
+      sinceField: "origin.recorded_at",
+      symbols: ["SYM-A"],
+      graceDays: 14,
+    });
+    const [created] = unapprovedImplementedViolations(
+      [unapproved({})],
+      at,
+      () => "2026-01-03T00:00:00Z",
+    );
+    expect(created?.description).toContain(
+      "since its created_at 2026-01-03T00:00:00Z;",
+    );
+    expect(created?.evidence).toMatchObject({ sinceField: "created_at" });
+    const [undated] = unapprovedImplementedViolations([unapproved({})], at);
+    expect(undated?.description).toContain(
+      "no person has approved it and it records neither origin.recorded_at nor created_at, so it counts as older than 14 days;",
+    );
+    expect(undated?.suggestion).toContain("origin.approved_by");
+    expect(undated?.evidence).toMatchObject({ since: "", sinceField: "none" });
+    expect(
+      unapprovedImplementedViolations(
+        [unapproved({ recordedAt: "2026-02-20T00:00:00Z" })],
+        at,
+      ),
+    ).toEqual([]);
+  });
+
+  test("a finding lists eight symbols whole and counts the rest", () => {
+    const listed = (count: number) =>
+      unapprovedImplementedViolations(
+        [
+          unapproved({
+            symbols: Array.from({ length: count }, (_, i) => `S${i}`),
+          }),
+        ],
+        "2026-03-01T00:00:00Z",
+      )[0]?.description;
+    expect(listed(1)).toContain("implements it (S0), but");
+    expect(listed(8)).toContain(
+      "implements it (S0, S1, S2, S3, S4, S5, S6, S7), but",
+    );
+  });
+
+  test("a finding lists at most eight symbols", () => {
+    const symbols = Array.from({ length: 10 }, (_, i) => `SYM-${i}`);
+    const [finding] = unapprovedImplementedViolations(
+      [unapproved({ symbols })],
+      "2026-03-01T00:00:00Z",
+    );
+    expect(finding?.description).toContain(
+      "(SYM-0, SYM-1, SYM-2, SYM-3, SYM-4, SYM-5, SYM-6, SYM-7 (+2 more))",
+    );
+  });
+
+  test("the created_at reader reads the requirement's own document once, inside the workspace", () => {
+    const root = workspace({
+      ".kb/requirements/REQ-A.md": requirement(
+        "REQ-A",
+        "created_at: 2026-01-05T00:00:00Z\n",
+      ),
+      ".kb/requirements/REQ-Q.md": requirement(
+        "REQ-Q",
+        'created_at: "2026-01-06"\n',
+      ),
+      ".kb/requirements/REQ-E.md": requirement("REQ-E", 'created_at: ""\n'),
+      ".kb/requirements/REQ-N.md": requirement("REQ-N"),
+      ".kb/requirements/REQ-P.md": "created_at: 2026-01-09T00:00:00Z\n",
+    });
+    const outside = workspace({
+      "REQ-O.md": requirement("REQ-O", "created_at: 2026-01-07T00:00:00Z\n"),
+    });
+    const read = authoredCreatedAtReader(root);
+    expect(read(".kb/requirements/REQ-A.md")).toBe("2026-01-05T00:00:00.000Z");
+    expect(read(".kb/requirements/REQ-Q.md")).toBe("2026-01-06");
+    expect(read(".kb/requirements/REQ-E.md")).toBeUndefined();
+    expect(read(".kb/requirements/REQ-N.md")).toBeUndefined();
+    // No front matter states nothing.
+    expect(read(".kb/requirements/REQ-P.md")).toBeUndefined();
+    expect(read(".kb/requirements/REQ-missing.md")).toBeUndefined();
+    expect(read("")).toBeUndefined();
+    expect(read(path.join(outside, "REQ-O.md"))).toBeUndefined();
+    expect(
+      read(path.relative(root, path.join(outside, "REQ-O.md"))),
+    ).toBeUndefined();
+    // Cached: a later edit to the same document is not read again.
+    writeFileSync(
+      path.join(root, ".kb/requirements/REQ-N.md"),
+      requirement("REQ-N", "created_at: 2026-01-08T00:00:00Z\n"),
+    );
+    expect(read(".kb/requirements/REQ-N.md")).toBeUndefined();
+    expect(authoredCreatedAtReader(root)(".kb/requirements/REQ-N.md")).toBe(
+      "2026-01-08T00:00:00.000Z",
     );
   });
 });

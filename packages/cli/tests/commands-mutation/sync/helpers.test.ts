@@ -240,6 +240,28 @@ describe("entity hashes", () => {
     ).not.toBe(base);
   });
 
+  test("an authored created_at is content: editing it changes the hash", () => {
+    const authored = (created_at: string) =>
+      normalizedEntityHash({
+        ...extraction([a], { created_at, updated_at: created_at }),
+        createdAtAuthored: true,
+      });
+    expect(authored("2020-01-01")).not.toBe(authored("2021-01-01"));
+    expect(authored("2020-01-01")).toBe(
+      hashNormalized({
+        entity: {
+          id: "REQ-1",
+          type: "req",
+          title: "One",
+          created_at: "2020-01-01",
+          updated_at: undefined,
+        },
+        sourceFile: "docs/one.md",
+        relationships: [relationshipKey(a)],
+      }),
+    );
+  });
+
   test("the entity itself is left untouched", () => {
     const result = extraction([], { created_at: "2020-01-01" });
     normalizedEntityHash(result);
