@@ -4,6 +4,10 @@ Use this resource when an existing product KB already has REQ → SCEN → TEST 
 symbol traceability and the task is to add typed facts so normative claims are
 queryable and contradiction-checkable.
 
+This resource covers semantic backfill only. For cleanup of an existing KB
+(review findings, broad requirements, ownership, missing reasons, retirement)
+read `resources/kb-quality.md`.
+
 Keep the original requirement prose readable. Facts add semantics; they do not
 replace the requirement body. Lane choice, field names, and predicate routing
 are in `resources/fact-lanes.md` and the Predicate-First workflow in

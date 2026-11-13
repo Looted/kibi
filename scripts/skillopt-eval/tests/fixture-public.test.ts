@@ -31,13 +31,14 @@ describe("public SkillOpt fixture corpus", () => {
 
     // Four core families per skill plus the supplemental families: three
     // public tasks each, four more consistency-report train and development
-    // tasks and the three rule-lane-modeling development tasks.
-    expect(tasks).toHaveLength(97);
+    // tasks, the three rule-lane-modeling development tasks, and the six
+    // ownership-precision and requirement-quality train and development tasks.
+    expect(tasks).toHaveLength(103);
     expect(tasks.every((task) => task.split !== "held-out")).toBe(true);
     const objectiveCounts: Record<string, number> = {
-      "kibi-usage": 12,
+      "kibi-usage": 14,
       "kibi-freshness": 9,
-      "kibi-traceability": 6,
+      "kibi-traceability": 8,
       "kibi-bootstrap": 5,
       "kibi-decisions": 6,
       "kibi-commit-review": 6,
@@ -123,7 +124,7 @@ describe("public SkillOpt fixture corpus", () => {
     });
     const { publicRoot } = receipt.roots;
 
-    expect(receipt.publicIndex.tasks).toHaveLength(97);
+    expect(receipt.publicIndex.tasks).toHaveLength(103);
     expect(path.basename(publicRoot)).toBe("public");
     expect(path.basename(receipt.roots.heldOutRoot)).toBe("held-out");
     expect(path.basename(receipt.roots.evaluatorRoot)).toBe("evaluator");

@@ -7,6 +7,7 @@
  * (fixture family names, client call quotas) so no case leaks a held-out
  * checkout analogue.
  */
+import { QUALITY_SEEDED_IDS } from "./quality-seeds";
 
 /** Entity IDs seeded by `seeded_governed_area_kb`. */
 export const GOVERNED_AREA_IDS = {
@@ -195,6 +196,7 @@ export const SEEDED_ENTITY_IDS: ReadonlySet<string> = new Set([
   ...Object.values(CONSISTENCY_IDS),
   ...Object.values(UNRESOLVED_RULE_IDS),
   ...Object.values(JOINT_CONTRADICTION_IDS),
+  ...QUALITY_SEEDED_IDS,
 ]);
 
 export const GOVERNED_FIXTURE_SOURCE = [

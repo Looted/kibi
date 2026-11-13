@@ -1,11 +1,11 @@
 ---
 name: kibi-usage
-description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
+description: "Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair. Also use for knowledge base quality work: cleaning up or auditing a KB, clearing kibi check review findings (broad_requirement_review, multi_requirement_symbol_review, coarse_anchor_only_review, entity-context-missing), splitting a requirement that covers several behaviors, choosing which function owns a behavior, writing why a requirement exists, and retiring knowledge whose behavior is gone."
 license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.44.0
+  version: 2.45.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -27,6 +27,7 @@ metadata:
     - resources/ui-requirements.md
     - resources/logic-ir.md
     - resources/kb-improvement.md
+    - resources/kb-quality.md
 ---
 # Kibi Usage
 
@@ -247,7 +248,23 @@ exempt. `kb_upsert` returns the same finding as a warning, including on dryRun.
   false pass.
 - `fact` (`observation`/`meta`): what was seen, where, when, how confirmed.
 - Never invent a reason the requester did not give. Write "Reason not stated"
-  and the source instead.
+  and the source instead. A reason comes from the person or from history you
+  can cite (a commit, pull request, issue, design document): name that source
+  next to it. When history is silent and a reason is still wanted, ask the
+  person; a reason you worked out yourself is written as "Inferred from
+  <what you read>: ..." and stays labelled that way after they approve it.
+  A plausible reason with no source reads as history to the next agent.
+  A sentence on what the rule achieves ("keeps labels recognizable") is a
+  reason too: leave it out unless a source says it. When no source gives the
+  reason, the Context says exactly "Reason not stated." next to who asked.
+- Context says who owns the behavior now. After a split or supersede, a
+  section that still calls the closed requirement the owner ("X decides
+  this") misleads every later reader: re-point it to the current requirement,
+  and keep the old id only in a "Split from" or "Superseded" sentence. Do not
+  paste one context paragraph into sibling requirements it does not fit.
+- State the requirement with `must` or `shall`, and start each claim with its
+  subject, not a pronoun: hooks print claims alone ("It: must be ..." tells
+  the reader nothing).
 - The tag `review:context-missing` is reserved for entities the schema 8
   migration (`kibi migrate`) acknowledged and recorded in the manifest; it is
   counted by the advisory `entity-context-acknowledged`. Never add it yourself:
@@ -269,7 +286,9 @@ patch canonical shards while preserving unrelated records. Authored entity
 deletion returns a hash-bound approval plan; requirements normally evolve via a
 new entity linked with `supersedes`; set the replaced requirement to
 `status: closed` in the same change, because `kb_check` blocks an open
-superseded requirement and supersession cycles. Kibi compiles `source` from
+superseded requirement and supersession cycles. A requirement that grew to
+cover several behaviors is split the same way; see Requirement size and
+ownership. Kibi compiles `source` from
 the entity's own file and never writes an authored `source` field, so
 `kb_upsert` cannot change one. When `kb_check` blocks a leftover value
 (`source-path-dangling`), run `kibi migrate`: its automatic
@@ -396,6 +415,12 @@ human sets `approved_by`; `kb_check` flags approvals an agent recorded without
 corroboration. Never fill in an approval yourself. Record why a requirement
 exists in `rationale`, or link the ADR that explains it.
 
+An approval covers what the person was shown. A general request ("clean up
+the KB", "get the check to zero") approves no statement, reason, retirement
+or exception: list the specific items (new or changed statements marked as
+such, each reason with its source), ask, and quote the reply you get in
+`origin.ref` of exactly the entities it covered.
+
 A signoff belongs to the change it approves. Ask for it before you open or
 merge the pull request, and when the person answers, record their answer
 (`approved_by` or a `*_waiver_approved_by` field set to them, their words in
@@ -516,6 +541,13 @@ current requirement forbids what it assumes, which is how a prose requirement
 that quietly contradicts a modeled one is caught. Must requirements the
 upgrade recorded in `.kb/manifest.json` are exempt; never invent behaviour a
 requirement does not state to satisfy the rule, ask the person instead.
+
+Any write that adds or rewrites a requirement's inventory, even a fix that
+only adds a Context section, must name the subjects of its claims in the same
+write. When `kb_check` or the write result suggests defined subjects, read
+their definitions with `kb_query` and name the one the claim is about:
+choosing among defined subjects is yours to do, not a question for the
+person. Leaving `claim-subject-missing` behind does not finish the task.
 
 ## Quantified claims: model the dimension
 
@@ -641,6 +673,78 @@ field is sent and `title`/`text_ref` are unchanged.
 
 For conditional relational claims, after the initial `kb_model` predicates call and before any `kb_upsert`—including one needed for a missing schema—call read-only `kb_model` with `mode: "requirement"` to preview suitable scalar or typed-rule modeling. Treat the preview as advisory: do not apply an irrelevant result or create unrequested facts, and retain an approved ground-predicate plan when it captures the whole claim. Preserve supplied arity, ordered argument roles, polarity, bound values, and one claim key per actual assertion; never split arguments across clauses or schemas or alter values to force uniqueness.
 
+## Requirement size and ownership
+
+One requirement states one behavior: what one test observes together. Hooks
+and `kb_query({sourceFile})` return a file's owning requirements to the next
+agent, so a broad requirement or a link from code that decides nothing gives
+that agent the wrong rule. Apply this whenever you write a requirement or an
+`implements` link, not only during a cleanup.
+
+- **Size.** The unfiltered `kb_check` reports `broad_requirement_review` when
+  a current requirement has more than 8 implementing symbols, 6 scenarios,
+  8 tests or 5 dependent requirements. Split it by behavior, never by
+  sentence: clauses one test observes together stay together, and a cohesive
+  vocabulary (a set of states or statuses) stays whole. Keep the parent's
+  sentences verbatim where they still fit, so their claim keys and facts
+  keep binding; new wording is a statement change the person approves.
+- **Umbrella.** Tag a requirement `umbrella` (or `epic`) only when it is a
+  real feature-level rule whose parts have their own requirements linked to
+  it with `depends_on`. Code that decides one part implements that part's
+  requirement; the umbrella keeps only code that decides the feature as a
+  whole. Never add the tag to clear the finding.
+- **Owner.** `implements` goes on the function that decides the behavior: the
+  one a change to the rule would edit. A wrapper that only delegates, an
+  adapter that forwards to shared code, and a helper that decides nothing do
+  not implement the requirement (when the staged gate still asks for an entry
+  for such a declaration, follow `kibi-commit-review`, Choosing the owner).
+  Every symbol in the manifest must implement a requirement
+  (`symbol-traceability`), so a symbol that decides nothing is removed, not
+  left unlinked: `kb_delete` its id and apply the returned plan.
+  A behavioral symbol implements at most 2
+  requirements (4 for a class, component or module);
+  `multi_requirement_symbol_review` reports more, and `granularity_reason`
+  does not exempt it.
+- **Before you add a link**, read the requirement's current fan-out
+  (`kb_graph` from it, or the `evidence` counts of the review finding). If
+  your link would take it past a threshold, the new code either decides a
+  behavior of its own (record that requirement) or shows the requirement was
+  already broad (split it, or report it). Never choose a requirement because
+  it has room, and never stop at exactly the threshold by leaving out code
+  that does decide the behavior.
+- **Split mechanics.** List the parent's symbols, scenarios and tests with
+  `kb_graph` from the parent and `kb_query` by id; never read or grep `.kb/`
+  to find them. Then, in this order:
+  1. Write each child: the parent's sentences for that behavior verbatim
+     (read them with `kb_query` and `includeBody: true`, not from the file),
+     `supersedes` to the parent, a `specified_by` scenario, a `## Context`
+     quoting the person's approval, a `## Why this changed` section of at
+     least 12 words (the approval, and which behaviors the parent mixed),
+     and the subjects its claims are about (`kb_query` with
+     `factKind: "subject"` lists the defined ones). Do not copy the parent's
+     `required_evidence` or `approved_by`; quote the person's split approval
+     in each child's `origin.ref`.
+  2. Remove the parent's `implements` links in one `kb_delete`
+     relationships call.
+  3. `kb_upsert` each deciding symbol with `implements` to the one child
+     whose behavior it decides.
+  4. Remove each wrapper's symbol entry (`kb_delete` by id, then apply the
+     returned plan).
+  5. Set the parent `status: closed`, then run the unfiltered `kb_check` and
+     fix what it reports before you finish.
+- **Do not fit the check.** Zero findings is the floor, not the goal. Do not
+  relax a rule, add an exemption, lower `required_evidence`, or add a
+  requirement that only pins a constant ("X shall be 13") unless drift of
+  that constant would be a defect a user sees; one constant is stated in one
+  requirement.
+- **Read the code first.** Before you write or move a statement, confirm the
+  code does what the sentence says; a split child is new text even when the
+  parent was right.
+
+Split, relink, reasons and retirement recipes, the order to run them in and
+the review questions that zero findings does not answer are in
+`resources/kb-quality.md`.
+
 ## Symbol-First Traceability
 
 Represent implementation ownership with a `symbol` entity that has
@@ -671,6 +775,9 @@ such as `closed`, add an `implemented` tag, and link evidence instead.
 
 Reject reversed relationship direction, a Bug-as-flag record without a runtime
 gate, direct KB-store edits, and a generic `strict kb_upsert.properties` field.
+Reject an invented reason, an `implements` link from code that only delegates,
+an `umbrella` tag or rule change made to clear a review finding, and a
+requirement left `closed` when its behavior is gone (`retired`).
 Keep symbol payloads minimal. When a generic `Query failed` appears, do not keep
 retrying the same payload; inspect the typed error and `nextActions`.
 

@@ -1,11 +1,11 @@
 ---
 name: kibi-commit-review
-description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, staging the tracked Kibi evidence with git add (symbol coordinates are derived and never staged), kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, and how merge commits and migration renames are judged."
+description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, staging the tracked Kibi evidence with git add (symbol coordinates are derived and never staged), kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, how merge commits and migration renames are judged, and which requirement a newly listed symbol belongs to without making that requirement too broad."
 license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-commit-review
   id: kibi-commit-review
-  version: 1.4.0
+  version: 1.5.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -58,7 +58,10 @@ Never read or open any file under `.kb`, not even read-only with a file tool to 
    - New or uncovered symbols: author a `symbol` entity per listed symbol
      through `kb_upsert` (`title` = the member the extractor names,
      `sourceFile`, `status: active`, `symbol_role: behavioral`, `implements`
-     to the requirement, `covered_by` to the test).
+     to the requirement, `covered_by` to the test). Link each symbol to the
+     requirement whose behavior it decides, not to whichever requirement the
+     file's other symbols use or has room; see Choosing the owner in
+     `resources/staged-gate.md`.
    - Only lines moved: nothing to do. Symbol coordinates are derived locally
      by every sync and never committed.
    - No behavior change (a genuine false positive): see the audited
@@ -72,6 +75,16 @@ Never read or open any file under `.kb`, not even read-only with a file tool to 
 5. **Re-run** `kibi check --staged` (and `kibi check-generated --staged` when it
    failed) until it passes. Never bypass the hook (`--no-verify`) unless the
    person says so.
+6. **Run the unfiltered `kb_check` once** after authoring symbol entries and
+   read its `qualityDiagnostics`. The staged gate does not judge requirement
+   size, so a link that makes a requirement too broad
+   (`broad_requirement_review`) shows only there, and can fail a project's
+   CI gate after the commit passed.
+
+Keep the source change as small as the task. Reshaping a function the task
+did not need (extracting a helper, renaming an export) adds declarations the
+gate then asks you to own, and each new link counts toward its requirement's
+size.
 
 ## Requirements signoff
 
