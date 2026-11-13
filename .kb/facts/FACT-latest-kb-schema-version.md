@@ -1,15 +1,15 @@
 ---
-title: The latest knowledge base schema version shall be 16
+title: The latest knowledge base schema version shall be 17
 status: active
 fact_kind: property_value
 subject_key: kibi.kb_schema.latest_version
-claim_key: CLAIM-78DB113BD0A6AB46
-claim_text: The latest knowledge base schema version shall be 16
+claim_key: CLAIM-26F0900A2030348F
+claim_text: The latest knowledge base schema version shall be 17
 text_ref: REQ-kibi-latest-kb-schema-version
 property_key: latest_schema_version
 operator: eq
 value_type: int
-value_int: 16
+value_int: 17
 origin:
   kind: agent
   recorded_at: '2026-10-29T10:58:02.880Z'

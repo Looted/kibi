@@ -262,3 +262,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-894ded19cc53
+  - type: verified_by
+    from: SCEN-NEG-kb-must-positive-scenario-UNREPORTED
+    to: TEST-kb-must-positive-scenario
+    created_at: 2026-11-13T03:41:55.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de87fb8a0cd2
+  - type: assumes
+    from: SCEN-NEG-kb-must-positive-scenario-UNREPORTED
+    to: FACT-NEG-kb-must-positive-scenario-UNREPORTED
+    created_at: 2026-11-13T03:44:28.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eb34d75e052

@@ -7634,5 +7634,18 @@
         "./packages/cli/tests/operations-mutation/mutation/subject-warnings.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kb-must-positive-scenario",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "240000",
+        "./packages/cli/tests/consumer/positive-scenarios.test.ts",
+        "./packages/cli/tests/public/positive-scenario.test.ts"
+      ]
+    ]
   }
 ]

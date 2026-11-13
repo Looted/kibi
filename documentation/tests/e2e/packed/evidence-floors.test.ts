@@ -260,7 +260,7 @@ export async function checkEvidenceFloorMigration(sandbox: TestSandbox) {
         schemaVersion: number;
       }
     ).schemaVersion,
-    16,
+    17,
   );
   await run("git", ["add", "-A", ".kb"], {
     cwd: sandbox.repoDir,

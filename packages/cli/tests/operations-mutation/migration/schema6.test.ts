@@ -449,6 +449,7 @@ describe("the schema 6 action codes", () => {
       "context_missing_tag",
       "supersedes_reason_acknowledge",
       "firm_supersede_acknowledge",
+      "positive_scenario_acknowledge",
       "evidence_floor_pin",
       "approval_floor_pin",
       "semantic_inventory_rederive",

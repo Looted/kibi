@@ -18,6 +18,10 @@
 %     unrelated requirement never changes another requirement's pairs.
 %   * Is every unmodeled claim anchored to a defined subject?  The two
 %     canonical rules below say no when it is not.
+%   * Does a must requirement state its positive behaviour?  A success
+%     scenario that specifies it and assumes a fact on one of its subjects
+%     lets scenario-feasibility refuse a combination that another current
+%     requirement forbids (positive_scenario_gap/4).
 %
 % Nothing here ranks text or calls a provider.
 
@@ -31,7 +35,10 @@
     unmodeled_claim_status/1,
     check_claim_subject_missing/1,
     check_claim_subject_undefined/1,
-    subject_domain_json/2
+    subject_domain_json/2,
+    positive_scenario/3,
+    positive_scenario_gap/4,
+    positive_scenario_gaps_json/1
 ]).
 
 :- encoding(utf8).
@@ -477,3 +484,81 @@ raw_string(literal(Value), Text) :- !, raw_string(Value, Text).
 raw_string(Value, Text) :- string(Value), !, Text = Value.
 raw_string(Value, Text) :- atom(Value), !, atom_string(Value, Text).
 raw_string(Value, Text) :- term_string(Value, Text).
+
+%% ------------------------------------------------------------------
+%% Positive scenarios
+%% ------------------------------------------------------------------
+
+%% positive_scenario(?ReqId, ?ScenarioId, ?SubjectKey)
+% ScenarioId is an active scenario that specifies the current requirement
+% ReqId, expects success, and assumes a fact whose subject is SubjectKey or a
+% narrower subject, where SubjectKey is a subject ReqId is about.  Such a
+% scenario states what the requirement promises in terms scenario-feasibility
+% can compare with every other current requirement on that subject.
+positive_scenario(ReqId, ScenarioId, SubjectKey) :-
+    success_scenario_of(ReqId, ScenarioId),
+    requirement_subject_keys(ReqId, Subjects),
+    kb_relationship(assumes, ScenarioId, FactId),
+    grounding_fact_subject(FactId, AssumedKey),
+    \+ subject_fact_inactive(FactId),
+    (   memberchk(AssumedKey, Subjects),
+        SubjectKey = AssumedKey
+    ;   subject_ancestor(AssumedKey, SubjectKey),
+        memberchk(SubjectKey, Subjects)
+    ).
+
+success_scenario_of(ReqId, ScenarioId) :-
+    kb_relationship(specified_by, ReqId, ScenarioId),
+    kb_entity(ScenarioId, scenario, Props),
+    memberchk(expects=Raw, Props),
+    kb:normalize_term_atom(Raw, success),
+    \+ scenario_inactive(Props).
+
+scenario_inactive(Props) :-
+    memberchk(status=Raw, Props),
+    kb:normalize_term_atom(Raw, Status),
+    inactive_fact_status(Status).
+
+requirement_subject_keys(ReqId, Subjects) :-
+    findall(Key, requirement_subject(ReqId, Key, _), Keys0),
+    sort(Keys0, Subjects).
+
+%% positive_scenario_gap(?ReqId, -Reason, -Subjects, -SuccessScenarios)
+% A current must requirement with no positive_scenario/3.  Reason is
+% no_subjects when the requirement is about no subject yet (nothing a
+% scenario could assume), no_success_scenario when no active success
+% scenario specifies it, and no_subject_assumption when its success
+% scenarios assume nothing on its subjects.  Subjects are the subjects it is
+% about and SuccessScenarios the success scenarios that specify it.
+positive_scenario_gap(ReqId, Reason, Subjects, SuccessScenarios) :-
+    kb:current_req(ReqId),
+    kb:must_requirement(ReqId),
+    \+ positive_scenario(ReqId, _, _),
+    requirement_subject_keys(ReqId, Subjects),
+    findall(ScenarioId, success_scenario_of(ReqId, ScenarioId), Scenarios0),
+    sort(Scenarios0, SuccessScenarios),
+    (   Subjects == []
+    ->  Reason = no_subjects
+    ;   SuccessScenarios == []
+    ->  Reason = no_success_scenario
+    ;   Reason = no_subject_assumption
+    ).
+
+%% positive_scenario_gaps_json(-JsonString)
+% Every positive_scenario_gap/4 as {rows, evaluated}: evaluated counts the
+% current must requirements judged.  The host decides which rows block, since
+% only must requirements recorded after the schema 17 upgrade owe a positive
+% scenario.
+positive_scenario_gaps_json(JsonString) :-
+    findall(ReqId, (kb:current_req(ReqId), kb:must_requirement(ReqId)), Musts0),
+    sort(Musts0, Musts),
+    length(Musts, Evaluated),
+    findall(
+        _{id: ReqId, reason: Reason, subjects: Subjects, successScenarios: Scenarios},
+        (   member(ReqId, Musts),
+            positive_scenario_gap(ReqId, Reason, Subjects, Scenarios)
+        ),
+        Rows
+    ),
+    with_output_to(string(JsonString),
+                   json_write_dict(current_output, _{rows: Rows, evaluated: Evaluated}, [width(0)])).

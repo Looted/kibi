@@ -458,3 +458,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2512001ae00a
+  - type: executable_for
+    from: SYM-test-kb-must-positive-scenario
+    to: TEST-kb-must-positive-scenario
+    created_at: 2026-11-13T03:41:58.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24c2a6853736

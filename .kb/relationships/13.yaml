@@ -321,3 +321,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01cbc5bf197c
+  - type: constrains
+    from: REQ-kb-must-positive-scenario
+    to: FACT-SUBJECT-kibi-domain-subjects
+    created_at: 2026-11-13T03:41:56.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3386b95e981
+  - type: requires_property
+    from: REQ-kb-must-positive-scenario
+    to: FACT-kb-must-positive-scenario-reported
+    created_at: 2026-11-13T03:41:56.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-341617e59377
+  - type: relates_to
+    from: REQ-kb-must-positive-scenario
+    to: REQ-kb-domain-subject-layer
+    created_at: 2026-11-13T03:41:56.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b064532365c8
+  - type: specified_by
+    from: REQ-kb-must-positive-scenario
+    to: SCEN-kb-must-positive-scenario
+    created_at: 2026-11-13T03:41:56.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5dcd7107176
+  - type: specified_by
+    from: REQ-kb-must-positive-scenario
+    to: SCEN-NEG-kb-must-positive-scenario-UNREPORTED
+    created_at: 2026-11-13T03:41:56.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-024979b20066

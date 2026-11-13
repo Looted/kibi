@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.43.0
+version: 2.44.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -502,6 +502,17 @@ describes without saying so, ask the person which rule holds (see
 none fits, define it from what the project's people and code say; when nobody
 has said, write `Definition not stated:` followed by where the subject is
 named and who could define it, rather than inventing one.
+
+A `must` requirement written after the schema 17 upgrade states the behaviour
+it promises as a success scenario (`must-positive-scenario`): a scenario with
+`expects: success` that the requirement links through `specified_by` and that
+`assumes` a `property_value` fact on one of the requirement's subjects or a
+narrower one. Write the positive case even when the requirement is prose
+nobody modeled: `scenario-feasibility` then refuses the scenario when another
+current requirement forbids what it assumes, which is how a prose requirement
+that quietly contradicts a modeled one is caught. Must requirements the
+upgrade recorded in `.kb/manifest.json` are exempt; never invent behaviour a
+requirement does not state to satisfy the rule, ask the person instead.
 
 ## Quantified claims: model the dimension
 
