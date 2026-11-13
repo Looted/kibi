@@ -314,6 +314,59 @@ describe("subjectLayerWarnings", () => {
     ]);
   });
 
+  test("a pair review naming a current requirement kibi check never pairs is reported", async () => {
+    const { prolog, goals } = scriptedProlog([
+      json({ subjects: [], notCurrent: ["REQ-GONE"] }),
+      json(["REQ-FAR", "REQ-OFF"]),
+    ]);
+    const warnings = await subjectLayerWarnings(
+      { id: "REQ-A", type: "req" },
+      {
+        pair_reviews: [
+          { with: "REQ-FAR" },
+          { with: "REQ-GONE" },
+          { with: "REQ-NEAR" },
+          { with: "REQ-OFF" },
+        ],
+      },
+      "",
+      prolog,
+      workspace(),
+    );
+    // Only the current partners are asked about.
+    expect(goals[1]).toContain(
+      "kb:current_req('REQ-A'), findall(W, (member(W, ['REQ-FAR','REQ-NEAR','REQ-OFF']), W \\== 'REQ-A', kb:current_req(W), \\+ ( call(domain_subjects:requirement_subject_pair('REQ-A', W, _)) ; call(domain_subjects:requirement_subject_pair(W, 'REQ-A', _)) ; kb:kb_relationship(relates_to, 'REQ-A', W) ; kb:kb_relationship(relates_to, W, 'REQ-A') )), Found)",
+    );
+    expect(warnings).toEqual([
+      "related-requirement-unmodeled: a pair review on REQ-A names REQ-FAR, REQ-OFF, which share no subject with REQ-A (on it, a narrower or a broader one) and have no relates_to edge to it, so kibi check never pairs them with REQ-A and those reviews settle nothing. Check the id in its with field; if the requirements do interact, add a relates_to link between them (a verdict counts only while one links the pair), otherwise drop the review.",
+      "related-requirement-unmodeled: a pair review on REQ-A names REQ-GONE, which is not a current requirement, so that review settles nothing. Check the id in its with field; a review of a superseded or removed requirement can be dropped.",
+    ]);
+    for (const [answer, expected] of [
+      [json(["REQ-FAR"]), 1],
+      [ok({ Json: JSON.stringify(JSON.stringify(["REQ-FAR"])) }), 1],
+      [json([]), 0],
+      [json({ not: "a list" }), 0],
+      [fail("REQ-A is not current"), 0],
+    ] as const) {
+      const one = scriptedProlog([
+        json({ subjects: [], notCurrent: [] }),
+        answer,
+      ]);
+      const notes = await subjectLayerWarnings(
+        { id: "REQ-A", type: "req" },
+        { pair_reviews: [{ with: "REQ-FAR" }] },
+        "",
+        one.prolog,
+        workspace(),
+      );
+      expect(notes).toHaveLength(expected);
+      if (expected === 1)
+        expect(notes[0]).toContain(
+          "names REQ-FAR, which shares no subject with REQ-A (on it, a narrower or a broader one) and has no relates_to edge to it, so kibi check never pairs the two and that review settles nothing.",
+        );
+    }
+  });
+
   test("the partners a payload's pair reviews name", () => {
     expect(pairReviewPartners({})).toEqual([]);
     expect(pairReviewPartners({ pair_reviews: "REQ-B" })).toEqual([]);

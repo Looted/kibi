@@ -16,8 +16,11 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import path from "node:path";
 import { rankSubjectCandidates } from "kibi-plugin-builtin";
 import { contextProse } from "../../entity-body-context.js";
+import { resolveKbPlPath } from "../../prolog.js";
+import { escapeAtom, toPrologAtom } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import {
   definitionQuote,
@@ -227,12 +230,48 @@ async function requirementWarnings(
       `Subject ${subjectKey}${definition === "" ? "" : ` (${definition})`} is also governed by ${named}${more} (on it, a narrower or a broader subject). Read them: if one contradicts ${id}, or restricts what ${id} describes in a way its text does not say, ask the human which rule holds before relying on either. kb_query {"factKind":"subject","subjectKey":"${subjectKey}"} shows the whole subject.`,
     );
   }
+  const unpaired = await readUnpairedReviewPartners(
+    prolog,
+    id,
+    withIds.filter((withId) => !neighbours.notCurrent.includes(withId)),
+  );
+  if (unpaired.length > 0) {
+    warnings.push(
+      `related-requirement-unmodeled: a pair review on ${id} names ${unpaired.join(", ")}, ${unpaired.length === 1 ? `which shares no subject with ${id} (on it, a narrower or a broader one) and has no relates_to edge to it, so kibi check never pairs the two and that review settles` : `which share no subject with ${id} (on it, a narrower or a broader one) and have no relates_to edge to it, so kibi check never pairs them with ${id} and those reviews settle`} nothing. Check the id in its with field; if the requirements do interact, add a relates_to link between them (a verdict counts only while one links the pair), otherwise drop the review.`,
+    );
+  }
   if (neighbours.notCurrent.length > 0) {
     warnings.push(
       `related-requirement-unmodeled: a pair review on ${id} names ${neighbours.notCurrent.join(", ")}, which ${neighbours.notCurrent.length === 1 ? "is not a current requirement, so that review settles" : "are not current requirements, so those reviews settle"} nothing. Check the id in its with field; a review of a superseded or removed requirement can be dropped.`,
     );
   }
   return warnings;
+}
+
+/**
+ * The current requirements among withIds that kibi check never pairs with the
+ * current requirement reqId: they share no subject with it (on it, a narrower
+ * or a broader one) and no relates_to edge links them, so a pair review that
+ * names one settles nothing. Empty when reqId is not current itself.
+ */
+export async function readUnpairedReviewPartners(
+  prolog: Pick<PrologPort, "query">,
+  reqId: string,
+  withIds: readonly string[],
+): Promise<string[]> {
+  if (withIds.length === 0) return [];
+  const modulePath = escapeAtom(
+    path.join(path.dirname(resolveKbPlPath()), "domain_subjects.pl"),
+  );
+  const req = toPrologAtom(reqId);
+  const result = await prolog.query(
+    `(use_module(library(http/json)), use_module('${modulePath}'), kb:current_req(${req}), findall(W, (member(W, [${withIds.map(toPrologAtom).join(",")}]), W \\== ${req}, kb:current_req(W), \\+ ( call(domain_subjects:requirement_subject_pair(${req}, W, _)) ; call(domain_subjects:requirement_subject_pair(W, ${req}, _)) ; kb:kb_relationship(relates_to, ${req}, W) ; kb:kb_relationship(relates_to, W, ${req}) )), Found), sort(Found, Unpaired), with_output_to(string(Json), json_write(current_output, Unpaired, [width(0)])))`,
+  );
+  if (!result.success) return [];
+  let parsed: unknown = result.bindings.Json;
+  // The binding is the JSON text, sometimes quoted once more.
+  while (typeof parsed === "string") parsed = JSON.parse(parsed);
+  return Array.isArray(parsed) ? parsed.map(String) : [];
 }
 
 async function subjectFactWarnings(
