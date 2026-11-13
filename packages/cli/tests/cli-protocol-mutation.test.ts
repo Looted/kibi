@@ -307,7 +307,7 @@ describe("executeOperation", () => {
       const result = await executeOperation("kb_status", {}, context());
       restores.pop()?.();
       expect(result.exitCode).toBe(exitCode);
-      expect(result.stderr).toBe(envelopeErrorLine(error.code));
+      expect(result.stderr).toBe(envelopeErrorLine(String(error.code)));
       expect(json(result.stdout).error.message).toBe(error.message);
       expect(json(result.stdout)).toStrictEqual(
         errorEnvelope("kb_status", error, "failed"),
