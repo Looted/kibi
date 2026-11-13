@@ -163,7 +163,8 @@ For an edit that keeps the governing rule, limit the consultation before the edi
    interpretation and typed facts.
 3. Create endpoints before relationships and upsert small batches sequentially.
    Every relationship `from` equals the upserted entity ID: send each link in
-   its source's write (`resources/relationship-directions.md`). Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain. Recording the
+   its source's write (`resources/relationship-directions.md`). Keep the
+   canonical `REQ-* -> SCEN-* -> TEST-*` chain. Recording the
    behavior a change adds (a requirement with a scenario, and an `implements`
    link from the symbol) is part of finishing that change, not a separate
    request: do it without asking. Ask only when the change conflicts with a
@@ -714,7 +715,8 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
   `kb_graph` from the parent and `kb_query` by id; never read or grep `.kb/`
   to find them. Then, in this order:
   1. Write each child: a title with the words a reader would search for,
-     the parent's sentences for that behavior verbatim (read them with `kb_query` and `includeBody: true`, not from the file),
+     the parent's sentences for that behavior verbatim (read them with
+     `kb_query` and `includeBody: true`, not from the file),
      `supersedes` to the parent, a `specified_by` scenario, a `## Context`
      quoting the person's approval, a `## Why this changed` section of at
      least 12 words (the approval, and which behaviors the parent mixed),
@@ -737,7 +739,8 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
   requirement.
 - **Read the code first.** Before you write or move a statement, confirm the
   code does what the sentence says; a split child is new text even when the
-  parent was right.
+  parent was right. A symbol's file is the `sourceFile` `kb_query` returns
+  for its id; never grep `.kb/` for it.
 
 Split, relink, reasons and retirement recipes, the order to run them in and
 the review questions that zero findings does not answer are in
