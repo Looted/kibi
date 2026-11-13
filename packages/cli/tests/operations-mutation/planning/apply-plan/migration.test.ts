@@ -536,7 +536,14 @@ describe("migration action execution", () => {
     const s = setup([{ id: "m1", code }]);
     const result = await s.run();
     expect(migrate.mock.calls).toEqual([
-      [{ yes: true, workspaceRoot: s.root, initializeMissingConfig: true }],
+      [
+        {
+          yes: true,
+          workspaceRoot: s.root,
+          initializeMissingConfig: true,
+          syncStore: false,
+        },
+      ],
     ]);
     expect(result.structuredContent).toMatchObject({
       actionResults: [{ detail: `Applied ${code}.` }],

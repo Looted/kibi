@@ -1120,7 +1120,12 @@ flags, it is a read-only preview; `--format json` returns the complete
 - `--format json|table` - Render the structured plan or a concise table. With `--apply-safe`, the table form prints the outcome, one line per action and a summary of the remaining plan; `--format json` prints the full apply result
 - `--apply-safe [SHA256]` - Apply only approved deterministic actions of the plan with this hash. The text preview prints the exact `kibi migrate --apply-safe <hash>` command when the plan has ready automatic actions. A plan applies only with its current hash: when the plan changed after it was printed, nothing is applied and the error names the new hash and what changed (actions added, removed or changed state, and whether the KB snapshot, workspace files, branch or config moved)
 - `--approved-plan-hash SHA256` - The same hash as a separate flag (`--apply-safe --approved-plan-hash <hash>`); giving two different hashes is an error
-- `--approved-action ID` - Explicit action ID (repeatable or comma-separated): an automatic action, or a review action Kibi can execute once approved (`semantic_inventory_rederive_drop_grounding`, `req_status_vocabulary_map`, or a `semantic_inventory_rederive` that depends on a status mapping). Without it, `--apply-safe` applies every ready automatic action and no review action
+- `--approved-action ID` - Explicit action ID (repeatable or comma-separated): an automatic action, or a review action Kibi can execute once approved (`semantic_inventory_rederive_drop_grounding`, `req_status_vocabulary_map`, `req_retired_status_suggest`, `claim_subject_anchor_suggest`, or a `semantic_inventory_rederive` that depends on a status mapping). Without it, `--apply-safe` applies every ready automatic action and no review action. `--approved-action` and `--approved-plan-hash` only apply with `--apply-safe`; given without it, the command applies nothing and exits with code 2
+
+After `--apply-safe`, the table form prints the plan `kibi migrate` builds now
+(`Remaining plan <hash>: ...`) and records it like the preview does, so that
+hash is one `--apply-safe` accepts; when it still has ready automatic actions,
+the next `kibi migrate --apply-safe <hash>` command follows.
 
 **Example (predicate vocabulary):**
 ```bash
@@ -1142,7 +1147,36 @@ records `entityOriginBackfill`, `supersededRequirementsClosed`,
 `sourcePathsRewritten`, `sourcePathsRemoved` and `legacyStatusesMapped` in
 `.kb/migrations/<branch>.json`, with `status: applied` and, as
 `preMigrationWarning`, the schema warning the KB showed before the run.
-`kibi migrate --dry-run` prints what it would change.
+`kibi migrate --dry-run` prints what it would change, including the review
+counts below.
+
+Like `--apply-safe` with its `migration-sync` action, `kibi migrate --yes`
+then compiles the branch store from the rewritten sources (`Recompiled the
+branch store from the migrated sources (kibi sync).`), so the next `kibi
+check` and `kibi status` read the migrated KB rather than a stale store. It
+skips the sync while a requirement status or inventory would make `kibi sync`
+reject the KB, and says to run `kibi sync` once those are fixed; a sync that
+fails leaves the migration applied and prints a warning.
+
+From schema 15 or older, `--yes` and `--dry-run` also print the schema 16
+review counts (`Schema 16 review: ...`): unmodeled claims that name no subject,
+split into those with a suggested subject to approve by id
+(`claim_subject_anchor_suggest`) and those a person anchors by hand
+(`claim_subject_anchor_review`), subject facts that need a definition
+(`subject_definition_review`), subject pairs that read as one or share one
+`subject_key` (`subject_duplicate_review`), and subjects that name themselves
+or loop through `part_of`, `kind_of` or dotted keys
+(`subject_hierarchy_review`). A subject fact with no body at all gets the same
+`Definition not stated: ...` note bootstrap writes (the automatic
+`subject_definition_not_stated` action in the plan); a body with any text is
+never replaced. After the sync, `--yes` runs the rules schemas 15-18 added
+(`evidence-floor`, `claim-subject-missing`, `claim-subject-undefined`,
+`subject-definition-missing`, `subject-duplicate`, `subject-hierarchy-invalid`,
+`must-positive-scenario`,
+`related-requirement-unmodeled`). When any of them still reports a finding,
+the run prints `Schema upgrade applied, but review work remains: kibi check
+reports N blocking finding(s) the upgrade does not fix (...)` with the count
+per rule and the next steps, instead of `Migration complete`.
 
 When work remains that `--yes` does not apply (a requirement status with no
 safe mapping, an inventory that needs a manual fix, or a lifecycle item a

@@ -25,6 +25,7 @@ import {
   planChangedMessage,
   warnMigrationRequiredWithoutYes,
 } from "../src/commands/migrate.js";
+import * as domainSubjects from "../src/operations/migration/domain-subjects.js";
 import * as entityBodyContext from "../src/operations/migration/entity-body-context.js";
 import * as entityType from "../src/operations/migration/entity-type.js";
 import * as evidenceFloor from "../src/operations/migration/evidence-floor.js";
@@ -43,6 +44,7 @@ import * as supersedesReason from "../src/operations/migration/supersedes-reason
 import * as coordinates from "../src/operations/migration/symbol-coordinates-refresh.js";
 import * as legacyLinks from "../src/operations/migration/symbol-legacy-links.js";
 import * as untrack from "../src/operations/migration/untrack-symbol-coordinates.js";
+import * as upgradeReview from "../src/operations/migration/upgrade-review.js";
 import {
   buildMigrationPlan,
   migrationAction,
@@ -264,6 +266,31 @@ function stubs() {
     category: spyOn(telemetry, "noteCliErrorCategory").mockReturnValue(
       undefined as never,
     ),
+    planNotStated: spyOn(
+      domainSubjects,
+      "planSubjectDefinitionPlaceholders",
+    ).mockReturnValue([]),
+    applyNotStated: spyOn(
+      domainSubjects,
+      "applySubjectDefinitionPlaceholders",
+    ).mockReturnValue({ written: [], skipped: [] }),
+    subjectReview: spyOn(
+      upgradeReview,
+      "planDomainSubjectReview",
+    ).mockReturnValue({
+      anchorSuggestions: 0,
+      anchorReviews: 0,
+      definitions: 0,
+      duplicates: 0,
+      hierarchy: 0,
+    }),
+    sync: spyOn(upgradeReview, "syncMigratedStore").mockResolvedValue({
+      ok: true,
+    }),
+    findings: spyOn(
+      upgradeReview,
+      "readUpgradeReviewFindings",
+    ).mockResolvedValue(new Map()),
   };
 }
 
@@ -573,12 +600,84 @@ describe("current knowledge base", () => {
       arrange();
       expect(await yes()).toStrictEqual({ exitCode: 0 });
       expect(s.refresh).toHaveBeenCalledWith(cwd, { bytes: "before" });
+      expect(s.sync).toHaveBeenCalledWith(cwd);
       expect(logs.at(-1)).toBe(
-        "Run 'kibi sync' to recompile the rewritten sources.",
+        "Recompiled the branch store from the migrated sources (kibi sync).",
       );
       expect(s.gitignore).toHaveBeenCalledWith(cwd);
     });
   }
+
+  test("ask for a sync when the plan executor syncs the rewritten sources itself", async () => {
+    s.applyPolarity.mockReturnValue(1);
+    expect(
+      await migrateCommand({ yes: true, workspaceRoot: cwd, syncStore: false }),
+    ).toStrictEqual({ exitCode: 0 });
+    expect(s.sync).not.toHaveBeenCalled();
+    expect(logs.at(-1)).toBe(
+      "Run 'kibi sync' to recompile the rewritten sources.",
+    );
+  });
+
+  test("warn when the sync after rewrites fails", async () => {
+    s.applyPolarity.mockReturnValue(1);
+    s.sync.mockResolvedValue({ ok: false, reason: "boom" });
+    expect(await yes()).toStrictEqual({ exitCode: 0 });
+    expect(logs.at(-1)).toBe(
+      "Warning: kibi sync did not complete after the migration (boom); run 'kibi sync' to recompile the rewritten sources.",
+    );
+  });
+
+  for (const [name, arrange] of [
+    [
+      "an uncompiled status",
+      () =>
+        s.planStatuses.mockReturnValue([
+          {
+            requirementId: "R1",
+            path: "r1.md",
+            status: "weird",
+            automatic: null,
+            extractionError: "bad status",
+            suggestedStatus: null,
+          },
+        ] as never),
+    ],
+    [
+      "a manual inventory",
+      () =>
+        s.applyDrift.mockReturnValue({
+          rederived: [],
+          manual: [{ requirementId: "R2", path: "r2.md", reasons: ["x"] }],
+        } as never),
+    ],
+  ] as const) {
+    test(`skip the sync while ${name} would fail it`, async () => {
+      s.applyPolarity.mockReturnValue(1);
+      arrange();
+      expect(await yes()).toStrictEqual({ exitCode: 0 });
+      expect(s.sync).not.toHaveBeenCalled();
+      expect(logs).toContain(
+        "Run 'kibi sync' to recompile the rewritten sources once the items below are fixed.",
+      );
+    });
+  }
+
+  test("sync while a compiled status still waits for a person", async () => {
+    s.applyPolarity.mockReturnValue(1);
+    s.planStatuses.mockReturnValue([
+      {
+        requirementId: "R1",
+        path: "r1.md",
+        status: "weird",
+        automatic: null,
+        extractionError: null,
+        suggestedStatus: null,
+      },
+    ] as never);
+    expect(await yes()).toStrictEqual({ exitCode: 0 });
+    expect(s.sync).toHaveBeenCalledTimes(1);
+  });
 
   test("report remaining work without rewrites", async () => {
     s.planStatuses.mockReturnValue([
@@ -900,7 +999,6 @@ describe("schema upgrade dry run", () => {
     s.planOrigin.mockReturnValue({ targets: [{}, {}, {}] } as never);
     expect(await dry()).toStrictEqual({ exitCode: 0 });
     expect(logs).toStrictEqual([
-      older(0),
       "dry run: would encode 2 legacy polarity-only fact(s) as typed booleans.",
       "dry run: would pin semantic_text on 1 requirement(s) that lack it (front matter only; bodies are preserved).",
       "dry run: would tag 2 current entit(ies) without body context review:context-missing (1 adr, 1 req); no prose is written.",
@@ -951,7 +1049,6 @@ describe("schema upgrade dry run", () => {
     s.candidates.mockResolvedValue(null as never);
     expect(await dry()).toStrictEqual({ exitCode: 0 });
     expect(logs).toStrictEqual([
-      older(0),
       "dry run: 1 firm or approved requirement(s) keep the tested floor (R1) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.",
       "dry run: no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.",
       `dry run: would set schemaVersion from 0 to ${LATEST} in .kb/manifest.json.`,
@@ -981,7 +1078,6 @@ describe("schema upgrade dry run", () => {
     } as never);
     expect(await dry()).toStrictEqual({ exitCode: 0 });
     expect(logs).toStrictEqual([
-      older(APPROVAL_FLOOR_FROM),
       "dry run: would record required_evidence: asserted on 1 current firm or approved requirement(s) whose evidence is below tested (front matter only).",
       `dry run: would set schemaVersion from ${APPROVAL_FLOOR_FROM} to ${LATEST} in .kb/manifest.json.`,
       `dry run: would write migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
@@ -1039,6 +1135,14 @@ describe("schema upgrade dry run", () => {
             skipped: [],
           } as never),
       ],
+      [
+        15,
+        "not stated",
+        () =>
+          s.planNotStated.mockReturnValue([
+            { id: "F", path: "f.md", subjectKey: "a.b", body: "x" },
+          ]),
+      ],
     ];
     for (const [version, name, arrange] of cases) {
       // At the latest schema there is nothing left to migrate.
@@ -1055,7 +1159,7 @@ describe("schema upgrade dry run", () => {
         expect([name, at, logs.length]).toStrictEqual([
           name,
           at,
-          at === version ? 5 : 4,
+          at === version ? 4 : 3,
         ]);
       }
     }
@@ -1151,6 +1255,138 @@ describe("schema upgrade dry run", () => {
   });
 });
 
+describe("schema 16-18 review work", () => {
+  const notStated = [
+    { id: "F1", path: "f1.md", subjectKey: "a.b", body: "x" },
+    { id: "F2", path: "f2.md", subjectKey: "a.c", body: "y" },
+  ];
+  const review = {
+    anchorSuggestions: 2,
+    anchorReviews: 1,
+    definitions: 1,
+    duplicates: 0,
+    hierarchy: 0,
+  };
+  const reviewNote = (dryRun: boolean) =>
+    upgradeReview.domainSubjectReviewNote(review, dryRun) as string;
+
+  test("preview the not-stated notes and the review counts in a dry run", async () => {
+    atVersion(15);
+    s.planNotStated.mockReturnValue(notStated);
+    s.subjectReview.mockReturnValue(review);
+    expect(await dry()).toStrictEqual({ exitCode: 0 });
+    expect(logs.slice(0, 2)).toStrictEqual([
+      "dry run: would record 'Definition not stated:' as the body of 2 subject fact(s) without one (F1, F2); no definition is invented, and a person replaces the note with one.",
+      reviewNote(true),
+    ]);
+    expect(s.subjectReview).toHaveBeenCalledWith(cwd, new Set(["F1", "F2"]));
+    expect(s.applyNotStated).not.toHaveBeenCalled();
+  });
+
+  test("leave the not-stated notes to schema 16 alone", async () => {
+    atVersion(16);
+    s.planNotStated.mockReturnValue(notStated);
+    await dry();
+    expect(s.planNotStated).not.toHaveBeenCalled();
+    expect(s.subjectReview).toHaveBeenCalledWith(cwd, new Set());
+    await yes();
+    expect(s.applyNotStated).not.toHaveBeenCalled();
+  });
+
+  test("write the not-stated notes, then say what review work remains instead of complete", async () => {
+    atVersion(15);
+    s.applyNotStated.mockReturnValue({
+      written: notStated,
+      skipped: [{ path: "f3.md", reason: "changed" }],
+    });
+    s.subjectReview.mockReturnValue(review);
+    s.findings.mockResolvedValue(
+      new Map([
+        ["claim-subject-missing", 3],
+        ["related-requirement-unmodeled", 4],
+      ]),
+    );
+    expect((await yes()).exitCode).toBe(0);
+    expect(s.applyNotStated).toHaveBeenCalledWith(cwd);
+    expect(s.subjectReview).toHaveBeenCalledWith(cwd);
+    expect(s.findings).toHaveBeenCalledWith(cwd);
+    expect(logs).toStrictEqual([
+      "Recorded 'Definition not stated:' as the body of 2 subject fact(s) without one (F1, F2); no definition is invented, and a person replaces the note with one.",
+      "Warning: Cannot record 'Definition not stated' on f3.md: changed.",
+      reviewNote(false),
+      `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was 15).`,
+      `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
+      "Recompiled the branch store from the migrated sources (kibi sync).",
+      upgradeReview.upgradeReviewSummary(
+        new Map([
+          ["claim-subject-missing", 3],
+          ["related-requirement-unmodeled", 4],
+        ]),
+        review,
+        0,
+      ) as string,
+    ]);
+    expect(logs.join("\n")).not.toContain("Migration complete");
+  });
+
+  test("judge the remaining work from the sources when the sync fails", async () => {
+    atVersion(15);
+    s.subjectReview.mockReturnValue(review);
+    s.sync.mockResolvedValue({ ok: false, reason: "locked" });
+    await yes();
+    expect(s.findings).not.toHaveBeenCalled();
+    expect(logs.slice(-2)).toStrictEqual([
+      "Warning: kibi sync did not complete after the migration (locked); run 'kibi sync' to recompile the rewritten sources.",
+      upgradeReview.upgradeReviewSummary(null, review, 0) as string,
+    ]);
+  });
+
+  test("leave the sync to the plan executor", async () => {
+    atVersion(15);
+    await migrateCommand({ yes: true, workspaceRoot: cwd, syncStore: false });
+    expect(s.sync).not.toHaveBeenCalled();
+    expect(s.findings).not.toHaveBeenCalled();
+    expect(logs.at(-1)).toBe(
+      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
+    );
+  });
+
+  test("print both the incomplete migration and the review work", async () => {
+    atVersion(15);
+    s.planStatuses.mockReturnValue([
+      {
+        requirementId: "R1",
+        path: "r1.md",
+        status: "weird",
+        automatic: null,
+        extractionError: "bad",
+        suggestedStatus: null,
+      },
+    ] as never);
+    s.subjectReview.mockReturnValue(review);
+    await yes();
+    expect(s.sync).not.toHaveBeenCalled();
+    expect(logs).toContain(
+      "Run 'kibi sync' to recompile the rewritten sources once the items below are fixed.",
+    );
+    expect(logs.at(-1)).toBe(
+      upgradeReview.upgradeReviewSummary(null, review, 0) as string,
+    );
+  });
+
+  test("print no schema warning for an older KB, but keep the others", async () => {
+    atVersion(15);
+    await dry();
+    expect(logs.join("\n")).not.toContain("older than the latest");
+    atVersion("x");
+    logs = [];
+    await dry();
+    expect(logs[0]).toBe(
+      "Warning: KB schemaVersion is missing; the repository should be initialized or migrated.",
+    );
+  });
+});
+
 describe("schema upgrade", () => {
   test("apply every step from schema 0 and write the audit", async () => {
     atVersion(0);
@@ -1207,7 +1443,6 @@ describe("schema upgrade", () => {
     s.gaps.mockReturnValue(["no attr", "no config"]);
     const result = await yes();
     expect(logs).toStrictEqual([
-      older(0),
       "Moved 2 knowledge file(s) into the canonical .kb/ layout.",
       "Warning: 1 moved file(s) are not tracked by Git yet. Kibi recorded a pending-source receipt for each, so kibi sync compiles them now; stage them before you commit (git add .kb, plus the removals under the legacy folders). Each receipt retires once Git tracks its file.",
       "Removed 2 legacy cop(ies) identical to their .kb/ file: c, d.",
@@ -1228,9 +1463,10 @@ describe("schema upgrade", () => {
       "Recorded origin {kind: migration} on 2 authored entit(ies).",
       "Warning: Origin not recorded for o.md: locked.",
       `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
-      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
       "Tip: kibi merge-driver resolves .kb/symbols.yaml merges by record id, but it is not wired up (no attr; no config). Run: wire",
       "Removed .kb/symbol-coordinates.yaml from the Git index (the local file stays); commit the removal with the migration. Sync derives symbol coordinates from now on.",
+      "Recompiled the branch store from the migrated sources (kibi sync).",
+      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
     ]);
     const record: MigrationAuditRecord = {
       auditVersion: 1,
@@ -1331,11 +1567,11 @@ describe("schema upgrade", () => {
     s.untrack.mockReturnValue({ outcome: "failed", reason: "locked" } as never);
     const result = await yes();
     expect(logs).toStrictEqual([
-      older(APPROVAL_FLOOR_FROM),
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was ${APPROVAL_FLOOR_FROM}).`,
       `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
-      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
       "Warning: Could not remove .kb/symbol-coordinates.yaml from the Git index (locked); run git rm --cached .kb/symbol-coordinates.yaml before the next commit.",
+      "Recompiled the branch store from the migrated sources (kibi sync).",
+      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
     ]);
     expect(result.summary?.audit.steps).toStrictEqual([
       "approval-floor-v15",
@@ -1450,11 +1686,11 @@ describe("schema upgrade", () => {
     s.gaps.mockReturnValue(null);
     await yes();
     expect(logs).toStrictEqual([
-      older(0),
       "no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.",
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was 0).`,
       "Marked semantic advisor backfill as pending in .kb/manifest.json.",
       `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
+      "Recompiled the branch store from the migrated sources (kibi sync).",
       "Migration complete. Future 'kibi migrate' runs will be a no-op.",
     ]);
   });
@@ -1499,12 +1735,12 @@ describe("schema upgrade", () => {
     s.gaps.mockReturnValue(null);
     await yes();
     expect(logs).toStrictEqual([
-      older(0),
       "1 firm or approved requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).",
       "no synced store could be read, so no proof_contract.proves was pinned; run kibi sync and rerun kibi migrate, or add proves by hand where kibi check --rules proof-contract-claims reports a contract.",
       `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was 0).`,
       "Marked semantic advisor backfill as pending in .kb/manifest.json.",
       `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
+      "Recompiled the branch store from the migrated sources (kibi sync).",
       "Migration complete. Future 'kibi migrate' runs will be a no-op.",
     ]);
     expect(s.write).toHaveBeenCalledWith(cwd, {
@@ -2207,6 +2443,35 @@ describe("plan approval", () => {
     expect(applyPlanCommand("abc")).toBe("kibi migrate --apply-safe abc");
   });
 
+  test("name no automatic actions when the remaining plan has none ready", async () => {
+    const hash = await currentHash();
+    const applied = {
+      structuredContent: {
+        outcome: "applied",
+        actionResults: [],
+        remainingPlan: { planHash: "next" },
+      },
+      content: [{ type: "text", text: "Applied." }],
+    };
+    // The apply leaves only the blocked action behind.
+    Object.defineProperty(h.outputs, "apply", {
+      get() {
+        statusPlan([ready("c", { state: "blocked" })]);
+        return applied;
+      },
+    });
+    logs = [];
+    expect(
+      await migrateCommand({ workspaceRoot: cwd, applySafe: hash }),
+    ).toStrictEqual({ exitCode: 0 });
+    expect(logs.slice(1, -1)).toStrictEqual([
+      "Outcome: applied",
+      expect.stringMatching(
+        /^Remaining plan \S+: \w+; actions: 1; automatic-ready: 0$/,
+      ),
+    ]);
+  });
+
   test("apply the ready automatic actions in table form", async () => {
     const hash = await currentHash();
     h.outputs.apply = {
@@ -2234,10 +2499,19 @@ describe("plan approval", () => {
       "Outcome: applied",
       "- applied a: done",
       "- skipped b: nothing",
-      "Remaining plan next: ready; actions: 3; automatic-ready: 2",
+      // The digest's own hash is not one --apply-safe accepts; the plan
+      // kibi migrate builds now is printed and recorded instead.
+      `Remaining plan ${hash}: partial; actions: 3; automatic-ready: 2`,
+      `Apply its 2 ready automatic action(s): kibi migrate --apply-safe ${hash}`,
       "Run 'kibi migrate' for the remaining actions, or add --format json for the full result.",
     ]);
-    const [name, input] = h.calls.at(-1) as [string, Record<string, unknown>];
+    expect(
+      (h.record.mock.calls.at(-1)?.[1] as { planHash: string }).planHash,
+    ).toBe(hash);
+    const [name, input] = h.calls.findLast(([call]) => call === "apply") as [
+      string,
+      Record<string, unknown>,
+    ];
     expect(name).toBe("apply");
     expect(input.approvedPlanHash).toBe(hash);
     expect(input.approvedActionIds).toStrictEqual(["a", "b"]);
@@ -2334,7 +2608,6 @@ describe("plan approval", () => {
         workspaceRoot: cwd,
         format: "json",
         yes: true,
-        approvedActionIds: ["a"],
       }),
     ).toStrictEqual({ exitCode: 1 });
     expect(JSON.parse(logs.join("\n"))).toStrictEqual(h.outputs.apply);
@@ -2345,6 +2618,37 @@ describe("plan approval", () => {
     expect(s.category).toHaveBeenCalledWith("migrate:partial");
     expect(h.record).not.toHaveBeenCalled();
   });
+
+  for (const [option, value, flag, rest] of [
+    [
+      "approvedActionIds",
+      ["a", "b"],
+      "--approved-action",
+      " --approved-action a,b",
+    ],
+    ["approvedAction", ["a"], "--approved-action", " --approved-action a"],
+    ["approvedPlanHash", "h", "--approved-plan-hash", ""],
+  ] as const) {
+    test(`refuse ${flag} without --apply-safe (${option})`, async () => {
+      for (const extra of [{}, { yes: true }, { yes: true, format: "json" }]) {
+        errors = [];
+        expect(
+          await migrateCommand({
+            workspaceRoot: cwd,
+            ...extra,
+            [option]: value,
+          } as never),
+        ).toStrictEqual({ exitCode: 2 });
+        expect(errors).toStrictEqual([
+          `${flag} only applies with --apply-safe, so nothing was applied. Review the plan with 'kibi migrate', then run: kibi migrate --apply-safe <plan hash>${rest}`,
+        ]);
+      }
+      expect(s.category).toHaveBeenCalledWith(
+        "migrate:approval_without_apply_safe",
+      );
+      expect(h.calls).toStrictEqual([]);
+    });
+  }
 
   test("only print with --yes and --dry-run, or with --yes in table form", async () => {
     await jsonPlan({ yes: true, dryRun: true });
