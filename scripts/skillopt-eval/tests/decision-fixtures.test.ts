@@ -542,6 +542,43 @@ async function recordRule(
       body: `${input.scenario}. Given such a fixture family name, when fixtureFamily is called with it, then the call follows this rule.`,
     },
   });
+  // A new must rule states the behaviour it allows as a success scenario
+  // that assumes a fact on its subject (must-positive-scenario).
+  const acceptedFactId = `FACT-${input.id.slice(4)}-ACCEPTED`;
+  const acceptedScenarioId = `${scenarioId}-ACCEPTED`;
+  await agent.call("kb_upsert", {
+    type: "fact",
+    id: acceptedFactId,
+    properties: {
+      title: `A fixture family name that satisfies: ${input.title}`,
+      status: "active",
+      fact_kind: "property_value",
+      subject_key: DECISION_SUBJECT_KEY,
+      property_key: "accepted",
+      operator: "eq",
+      value_type: "bool",
+      value_bool: true,
+    },
+    document: {
+      body: `A fixture family name that this rule accepts. ${input.prose}`,
+    },
+  });
+  await agent.call("kb_upsert", {
+    type: "scenario",
+    id: acceptedScenarioId,
+    properties: {
+      title: `A fixture family name that satisfies the rule is accepted`,
+      status: "active",
+      expects: "success",
+    },
+    relationships: [
+      { type: "assumes", from: acceptedScenarioId, to: acceptedFactId },
+      { type: "verified_by", from: acceptedScenarioId, to: DECISION_IDS.test },
+    ],
+    document: {
+      body: "Given a fixture family name that satisfies the rule, when fixtureFamily is called with it, then it returns the trimmed name.",
+    },
+  });
   const body = [
     input.prose,
     "",
@@ -573,6 +610,7 @@ async function recordRule(
     },
     relationships: [
       { type: "specified_by", from: input.id, to: scenarioId },
+      { type: "specified_by", from: input.id, to: acceptedScenarioId },
       ...(input.supersedes === undefined
         ? []
         : [{ type: "supersedes", from: input.id, to: input.supersedes }]),

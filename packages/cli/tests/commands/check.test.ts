@@ -406,6 +406,7 @@ links:
 
 function acknowledgeLegacyContext(root: string): void {
   const ids: string[] = [];
+  const requirementIds: string[] = [];
   for (const lane of ["requirements", "scenarios", "tests"]) {
     const dir = path.join(root, ".kb", lane);
     if (!existsSync(dir)) continue;
@@ -415,6 +416,7 @@ function acknowledgeLegacyContext(root: string): void {
       const raw = readFileSync(file, "utf8");
       const id = /^id:[ \t]*(\S+)/m.exec(raw)?.[1];
       if (id !== undefined) ids.push(id);
+      if (id !== undefined && lane === "requirements") requirementIds.push(id);
       const end = raw.indexOf("\n---", 4);
       if (!raw.startsWith("---") || end < 0) continue;
       let front = raw.slice(0, end);
@@ -450,11 +452,21 @@ function acknowledgeLegacyContext(root: string): void {
     }
   }
   // Only ids recorded in the manifest (as the schema 8 migration does) count.
+  // The schema 17 migration likewise records the requirements that predate
+  // positive scenarios.
   const manifestPath = path.join(root, ".kb", "manifest.json");
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
   writeFileSync(
     manifestPath,
-    `${JSON.stringify({ ...manifest, contextAcknowledged: ids }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        ...manifest,
+        contextAcknowledged: ids,
+        positiveScenarioAcknowledged: requirementIds.sort(),
+      },
+      null,
+      2,
+    )}\n`,
   );
 }
 

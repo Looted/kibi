@@ -1,9 +1,12 @@
 import { execFile } from "node:child_process";
+import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { promisify } from "node:util";
 import type { FixtureSetupMode } from "../fixtures/case-contracts";
 import {
   COMMENTED_FIXTURE_SOURCE,
   DECISION_DOCUMENTS,
+  DECISION_IDS,
   DECISION_FIXTURE_SOURCE,
   DECISION_FIXTURE_TEST,
   DECISION_SYMBOLS,
@@ -84,6 +87,29 @@ async function refreshCoordinates(
   );
 }
 
+/**
+ * The seeded firm rule stands for a must requirement recorded before KB
+ * schema 17, so the upgrade's acknowledgement exempts it from
+ * must-positive-scenario as `kibi migrate` would.
+ */
+async function acknowledgeSeededMustRequirement(
+  workspaceTarget: string,
+): Promise<void> {
+  const manifestPath = path.join(workspaceTarget, ".kb", "manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  await writeFile(
+    manifestPath,
+    `${JSON.stringify(
+      { ...manifest, positiveScenarioAcknowledged: [DECISION_IDS.rule] },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
 const LABEL_MODES: ReadonlySet<DecisionSetupMode> = new Set([
   "seeded_staged_symbol_kb",
   "seeded_merge_commit_kb",
@@ -113,6 +139,7 @@ async function setupDecisionBase(
       ? { [IMPACT_POLICY_PATH]: IMPACT_POLICY }
       : {}),
   });
+  await acknowledgeSeededMustRequirement(workspaceTarget);
   await runSeededFixtureTest(workspaceTarget, FIXTURE_TEST_PATH);
   await commitAndSync(workspaceTarget, cliRoot);
   await refreshCoordinates(workspaceTarget, cliRoot);
