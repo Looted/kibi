@@ -246,6 +246,11 @@ function buildEntityAssertionGoal(
       `semantic_inventory=${toPrologString(JSON.stringify(entity.semantic_inventory))}`,
     );
   }
+  if (entity.type === "req" && entity.pair_reviews) {
+    props.push(
+      `pair_reviews=${toPrologString(JSON.stringify(entity.pair_reviews))}`,
+    );
+  }
   for (const field of [
     "approved_by",
     "approval_ref",

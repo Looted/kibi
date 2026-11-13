@@ -209,6 +209,7 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
         key === "argument_constants" ||
         key === "argument_aliases" ||
         key === "semantic_inventory" ||
+        key === "pair_reviews" ||
         key === "proof_receipts" ||
         key === "proof_contract" ||
         key === "proof_bindings" ||

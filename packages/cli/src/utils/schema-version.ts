@@ -38,7 +38,9 @@
 // definition and no duplicate, and every unmodeled claim names its subjects.
 // Schema 17 requires a must requirement written after the upgrade to have a
 // success scenario that assumes facts on its subjects.
-export const LATEST_KB_SCHEMA_VERSION = 17;
+// Schema 18 blocks every stored pair with an unmodeled rule claim until it is
+// modeled or a checkable pair_reviews verdict settles it.
+export const LATEST_KB_SCHEMA_VERSION = 18;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

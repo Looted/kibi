@@ -38,6 +38,7 @@ function serializeValue(key: string, value: unknown): string {
     key === "argument_constants" ||
     key === "argument_aliases" ||
     key === "semantic_inventory" ||
+    key === "pair_reviews" ||
     key === "proof_contract" ||
     key === "proof_bindings" ||
     key === "proof_receipts" ||

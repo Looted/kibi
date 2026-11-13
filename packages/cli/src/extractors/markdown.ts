@@ -233,6 +233,7 @@ export interface ExtractedEntity {
   claim_span_start?: number;
   claim_span_end?: number;
   semantic_inventory?: readonly Record<string, unknown>[];
+  pair_reviews?: readonly Record<string, unknown>[];
 }
 
 export interface ExtractedRelationship {
@@ -1123,6 +1124,11 @@ function extractFromMarkdownContent(
 
     if (type === "req" && Array.isArray(data.semantic_inventory)) {
       entity.semantic_inventory = data.semantic_inventory.filter(
+        (value): value is Record<string, unknown> => isObjectRecord(value),
+      );
+    }
+    if (type === "req" && Array.isArray(data.pair_reviews)) {
+      entity.pair_reviews = data.pair_reviews.filter(
         (value): value is Record<string, unknown> => isObjectRecord(value),
       );
     }
