@@ -130,8 +130,11 @@ single kibi-cli modules and `PLUGIN_MUTATION_MODULES` single files outside a
 `src/` tree (`packages/swipl/index.js`), each with the tests named for it.
 
 `MUTATION_TEST_EXCLUDES` lists test files of those packages that cannot run
-in the sandbox: `packages/claude/tests/distribution.test.ts` compares the
-committed hook bundle with the source, which the sandbox instruments. New
+in the sandbox because they read source text, which the sandbox instruments:
+`packages/claude/tests/distribution.test.ts` compares the committed hook
+bundle with the source, and `packages/agent-core/tests/shared-hook-inputs.test.ts`
+parses the host sources for functions that reimplement a shared decision.
+Neither asserts runtime behaviour, so no mutant depends on them. New
 tests for a package in scope go in its `tests/` directory, where the gate
 picks them up; the contract test checks that every one is registered.
 

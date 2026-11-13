@@ -34,11 +34,14 @@ export const MUTATION_PACKAGES = [
 
 /**
  * Test files of a whole package in scope that cannot run in the Stryker
- * sandbox. rationale: the claude distribution test compares the committed hook
- * bundle with the source, and the sandbox source is instrumented, so it always
- * fails the initial run there.
+ * sandbox. rationale: both read source text that the sandbox instruments, so
+ * they always fail the initial run there. The claude distribution test
+ * compares the committed hook bundle with the source; the agent-core
+ * shared-hook-inputs test parses the host sources for local function bodies,
+ * and Stryker's mutant switches make every such body look hand-written.
  */
 export const MUTATION_TEST_EXCLUDES = [
+  "packages/agent-core/tests/shared-hook-inputs.test.ts",
   "packages/claude/tests/distribution.test.ts",
 ];
 
