@@ -424,6 +424,8 @@ export function ledgerRequirement(input: {
   }>;
   readonly propositions: readonly LedgerProposition[];
   readonly links: readonly Readonly<{ type: string; target: string }>[];
+  /** Front-matter lines written before the links, such as pair_reviews. */
+  readonly extra?: readonly string[];
 }): string {
   return doc(
     [
@@ -448,6 +450,7 @@ export function ledgerRequirement(input: {
           : [`    subjects: [${proposition.subjects.join(", ")}]`]),
       ]),
       `logic_claims: [${input.propositions.map((p) => p.claim_key).join(", ")}]`,
+      ...(input.extra ?? []),
       "links:",
       ...input.links.flatMap((link) => [
         `  - type: ${link.type}`,

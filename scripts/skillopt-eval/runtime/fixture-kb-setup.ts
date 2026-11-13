@@ -1356,9 +1356,24 @@ export async function setupSeededConsistencyKb(
         { ...numeric, status: "modeled" },
         { ...review, subjects: ["client.call_quota"] },
       ],
+      // The evaluator states how the unmodeled reset-review clause meets
+      // the two modeled bounds on the same subject, so the seed passes
+      // related-requirement-unmodeled while the clause itself stays unmodeled.
+      extra: [
+        "pair_reviews:",
+        ...[CONSISTENCY_IDS.nonNegative, CONSISTENCY_IDS.cap].flatMap((id) => [
+          `  - with: ${id}`,
+          "    verdict: no_conflict",
+          "    separated_by: the review applies to quota resets, the bound to the remaining quota between resets",
+          `    claims: [${review.claim_key}]`,
+          "    origin: {kind: human, ref: evaluator fixture}",
+        ]),
+      ],
       links: [
         { type: "constrains", target: CONSISTENCY_IDS.subject },
         { type: "requires_property", target: CONSISTENCY_IDS.positiveFact },
+        { type: "relates_to", target: CONSISTENCY_IDS.nonNegative },
+        { type: "relates_to", target: CONSISTENCY_IDS.cap },
       ],
     }),
     [CONSISTENCY_E2E_TEST_PATH]: CONSISTENCY_E2E_TEST_SOURCE,
