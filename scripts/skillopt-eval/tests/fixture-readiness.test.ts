@@ -487,7 +487,11 @@ test("validation recovery input names a target its diagnostics can repair", asyn
   const { workspace, cliRoot } = await stagedWorkspace("recovery", fixture);
   const malformed = JSON.parse(
     await readFile(join(workspace, "inputs", "malformed.json"), "utf8"),
-  ) as { id?: unknown; properties?: { title?: unknown } };
+  ) as {
+    id?: unknown;
+    properties?: Record<string, unknown>;
+    document?: unknown;
+  };
   const documented = await readFile(
     join(workspace, "documentation", "requirements", "fixture.md"),
     "utf8",
@@ -506,13 +510,12 @@ test("validation recovery input names a target its diagnostics can repair", asyn
     workspace,
     cliRoot,
     ["upsert", "--input", "-"],
+    // Repairs only the diagnosed type and status; the rest is the payload
+    // as supplied.
     JSON.stringify({
+      ...malformed,
       type: "req",
-      id: malformed.id,
-      properties: { title: malformed.properties?.title, status: "open" },
-      document: {
-        body: "The fixture requirement is recorded.\n\n## Context\n\nRecovered from inputs/malformed.json. Reason not stated.\n\n## Source\n\nvalidation-recovery fixture requirement\n",
-      },
+      properties: { ...malformed.properties, status: "open" },
     }),
   );
   expect(repaired.status).toBe("success");

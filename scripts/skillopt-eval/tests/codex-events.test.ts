@@ -332,6 +332,83 @@ describe("Codex JSONL normalization", () => {
     expect(normalized.violations).toContain("direct_kb_access");
   });
 
+  test("Given a host file read of a KB path When the host refuses it Then it is counted as denied, not as direct access", () => {
+    // Given
+    const item = (status: string, extra: Record<string, unknown> = {}) => ({
+      id: "read-1",
+      type: "file_read",
+      tool: "Read",
+      path: "/work/.kb/requirements/REQ-a.md",
+      status,
+      ...extra,
+    });
+    const transcript = [
+      JSON.stringify({ type: "item.started", item: item("in_progress") }),
+      JSON.stringify({
+        type: "item.completed",
+        item: item("failed", {
+          aggregated_output: "File is in a directory that is denied.",
+        }),
+      }),
+    ].join("\n");
+
+    // When
+    const normalized = normalizeCodexJsonl(transcript, {
+      hiddenMarkers: [],
+      forbiddenRoots: [],
+    });
+
+    // Then
+    expect(normalized.violations).toEqual([]);
+    expect(normalized.deniedKbReads).toBe(1);
+  });
+
+  test("Given a host file read of a KB path When it returns content or never completes Then direct access is reported", () => {
+    const read = (type: string, id: string, status: string) =>
+      JSON.stringify({
+        type,
+        item: {
+          id,
+          type: "file_read",
+          tool: "Read",
+          path: ".kb/requirements/REQ-a.md",
+          status,
+        },
+      });
+    for (const transcript of [
+      [
+        read("item.started", "r1", "in_progress"),
+        read("item.completed", "r1", "completed"),
+      ].join("\n"),
+      read("item.started", "r2", "in_progress"),
+    ]) {
+      const normalized = normalizeCodexJsonl(transcript, {
+        hiddenMarkers: [],
+        forbiddenRoots: [],
+      });
+      expect(normalized.violations).toEqual(["direct_kb_access"]);
+      expect(normalized.deniedKbReads).toBe(0);
+    }
+  });
+
+  test("Given a refused shell command naming the KB When normalized Then direct access is still reported", () => {
+    const transcript = JSON.stringify({
+      type: "item.completed",
+      item: {
+        id: "cmd-1",
+        type: "command_execution",
+        command: "cat .kb/requirements/REQ-a.md",
+        status: "failed",
+      },
+    });
+    const normalized = normalizeCodexJsonl(transcript, {
+      hiddenMarkers: [],
+      forbiddenRoots: [],
+    });
+    expect(normalized.violations).toEqual(["direct_kb_access"]);
+    expect(normalized.deniedKbReads).toBe(0);
+  });
+
   test("Given the same episode identity When labels are derived Then variant labels are stable and opaque", () => {
     // Given
     const runLockHash = "a".repeat(64);

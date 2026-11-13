@@ -7675,5 +7675,19 @@
         "./scripts/skillopt-eval/tests/telemetry-env.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-skillopt-refused-kb-read-not-critical",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--preload",
+        "./scripts/skillopt-eval/offline-test-preload.ts",
+        "--timeout",
+        "120000",
+        "./scripts/skillopt-eval/tests/refused-kb-read-e2e.test.ts"
+      ]
+    ]
   }
 ]

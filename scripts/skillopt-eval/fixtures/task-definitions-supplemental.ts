@@ -164,11 +164,11 @@ export const SUPPLEMENTAL_CASES: Readonly<Record<string, DogfoodCase>> = {
     `Why does fixtureFamily() in src/fixture.ts reject empty family names, and is that behavior proven?${KNOWLEDGE}${READ_ONLY}`,
     "explain_governing_intent",
   ),
-  // C1.2: a compatible change must land after one or two Kibi calls. It is
+  // C1.2: a compatible change must land after one to three Kibi calls. It is
   // the development case because the agent is expected to edit, so the cell
   // measures whether the Kibi lookup comes before the first source edit.
   "kibi-usage/intent-consult/development/0": readOnlyCase(
-    "Add a log line to fixtureFamily() in src/fixture.ts that records each family name it is called with, keeping its existing behavior. Use only the public Kibi surface for project knowledge.",
+    "Add a log line to fixtureFamily() in src/fixture.ts that records each family name it is called with, keeping its existing behavior. Use only the public Kibi surface for project knowledge. Do not change Kibi records; report anything in Kibi that needs a follow-up.",
     "compatible_change_after_intent",
   ),
   // C1.3: the symbol still implements the superseded v1.

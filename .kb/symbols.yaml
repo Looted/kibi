@@ -38921,10 +38921,14 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-harness-shared-scoring
       - type: covered_by
         target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-refused-kb-read-not-critical
+      - type: implements
+        target: REQ-skillopt-harness-shared-scoring
+      - type: implements
+        target: REQ-skillopt-refused-kb-read-not-critical
   - id: SYM-skillopt-codex-violations
     title: CODEX_VIOLATIONS
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
@@ -39935,3 +39939,40 @@ symbols:
         target: TEST-skillopt-harness-telemetry-silent
       - type: implements
         target: REQ-skillopt-harness-telemetry-silent
+  - id: SYM-test-skillopt-codex-events-suite
+    title: Codex JSONL normalization suite
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/codex-events.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-refused-kb-read-not-critical
+  - id: SYM-skillopt-denied-read-score
+    title: deniedReadScore
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-refused-kb-read-not-critical
+      - type: implements
+        target: REQ-skillopt-refused-kb-read-not-critical
+  - id: SYM-test-skillopt-refused-kb-read-e2e
+    title: Refused .kb/ read end-to-end suite
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/refused-kb-read-e2e.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-refused-kb-read-not-critical

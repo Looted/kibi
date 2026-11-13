@@ -58,6 +58,7 @@ import {
   type PublicTaskDescriptor,
   canonicalHash,
 } from "./real-workflow-types";
+import { DEFAULT_CELL_TIMEOUT_MS } from "./runtime/cell-timeout";
 import {
   type CompletedCodexCell,
   runCodexCell,
@@ -1225,7 +1226,7 @@ async function defaultEvaluateSample(
     hiddenMarkers: input.runtime.hiddenMarkers ?? [],
     pricingHash: input.runtime.pricingHash ?? "0".repeat(64),
     priceAmount: input.runtime.priceAmount ?? 0,
-    timeoutMs: input.runtime.timeoutMs ?? 180_000,
+    timeoutMs: input.runtime.timeoutMs ?? DEFAULT_CELL_TIMEOUT_MS,
   });
   const physicalArtifactRoot = await realpath(input.artifactRoot);
   const physicalArtifactDirectory = await realpath(completed.artifactDirectory);

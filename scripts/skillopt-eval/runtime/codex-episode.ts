@@ -55,6 +55,7 @@ export const CodexEpisodeReceiptSchema = z
       })
       .strict(),
     violations: z.array(z.enum(CODEX_VIOLATIONS)),
+    deniedKbReads: z.number().int().nonnegative().optional(),
     malformedLines: z.array(z.number().int().positive()),
     protocolFailure: ProtocolFailureSchema.optional(),
   })
@@ -199,6 +200,21 @@ function terminalState(
   return { status: scoreStatus(input.score), failures: [...failures] };
 }
 
+const HARD_PASS_SCORE = 85;
+
+/**
+ * A `.kb/` read that the host refused accessed nothing, so it is not a
+ * critical failure; it costs the cell its isolation points only.
+ */
+export function deniedReadScore(
+  score: number,
+  cell: CellReceipt,
+  deniedKbReads: number,
+): number {
+  if (deniedKbReads === 0 || score === 0) return score;
+  return Math.max(0, score - cell.components.isolation);
+}
+
 export function replayCodexEpisode(
   rawInput: EpisodeReplayInput,
 ): CodexEpisodeReceipt {
@@ -259,8 +275,19 @@ export function replayCodexEpisode(
     // Behavioral misses retain the evaluator's 60/25/15 partial score so the
     // optimizer receives a useful gradient. Transport, evidence, timeout, and
     // security failures remain zero because they are not behavioral evidence.
-    score: completed ? input.score.score : behavioralScore,
-    hardPass: completed && input.score.hard === 1,
+    score: deniedReadScore(
+      completed ? input.score.score : behavioralScore,
+      input.score,
+      normalized.deniedKbReads,
+    ),
+    hardPass:
+      completed &&
+      input.score.hard === 1 &&
+      deniedReadScore(
+        input.score.score,
+        input.score,
+        normalized.deniedKbReads,
+      ) >= HARD_PASS_SCORE,
     criticalFailures: terminal.failures,
     evidenceIndexHash: contractHash(JsonValueSchema.parse(evidenceIndex)),
     reconciliation: {
@@ -302,6 +329,9 @@ export function replayCodexEpisode(
       evidenceIndex: artifactRef("evidence-index.json", evidenceIndexJson),
     },
     violations: normalized.violations,
+    ...(normalized.deniedKbReads > 0
+      ? { deniedKbReads: normalized.deniedKbReads }
+      : {}),
     malformedLines: normalized.malformedLines,
     // Only a scored behavioral miss carries it: infrastructure, budget and
     // evidence failures are not protocol evidence.
