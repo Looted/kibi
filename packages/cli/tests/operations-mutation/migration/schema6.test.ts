@@ -450,6 +450,7 @@ describe("the schema 6 action codes", () => {
       "supersedes_reason_acknowledge",
       "firm_supersede_acknowledge",
       "positive_scenario_acknowledge",
+      "subject_definition_not_stated",
       "evidence_floor_pin",
       "approval_floor_pin",
       "semantic_inventory_rederive",
