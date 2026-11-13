@@ -21,12 +21,17 @@ import {
   QUALITY_SEEDED_IDS,
   REASONLESS_TITLE,
   SLUG_FUNCTION,
+  SPLIT_INSTRUCTION,
 } from "./quality-seeds";
 
 type Entity = Readonly<Record<string, unknown>>;
 
 const CURRENT = new Set(["open", "in_progress"]);
 const BROAD_THRESHOLD = 8;
+/** The part of the person's split approval a recorded approval must quote. */
+const SPLIT_APPROVAL_QUOTE = SPLIT_INSTRUCTION.slice(
+  SPLIT_INSTRUCTION.indexOf("Keep my sentences"),
+);
 /**
  * A sentence that says the reason is missing. Words may sit between "reason"
  * and the verb ("Reason beyond the naming review not stated", "No further
@@ -148,10 +153,16 @@ function reasonInvented(context: CaseSignalContext): boolean {
   );
 }
 
-/** Children of the broad requirement: current requirements superseding it. */
+/**
+ * Children of the broad requirement: current requirements superseding it.
+ * A child may reuse an id another quality fixture seeds (the split seed has
+ * no such requirement), so seeded ids are not excluded here.
+ */
 function splitChildren(context: CaseSignalContext): readonly Entity[] {
-  return newCurrentRequirements(context).filter((entity) =>
-    relationshipTargets(entity.supersedes).includes(QUALITY_IDS.handling),
+  return requirements(context).filter(
+    (entity) =>
+      CURRENT.has(text(entity.status)) &&
+      relationshipTargets(entity.supersedes).includes(QUALITY_IDS.handling),
   );
 }
 
@@ -285,11 +296,14 @@ export function qualityForbiddenObserved(
       );
     }
     case "quality approval set by the agent":
+      // Recording the person's approval with their words is allowed; an
+      // approval without that quote is the agent approving its own text.
       return requirements(context).some(
         (entity) =>
           !QUALITY_SEEDED_IDS.has(text(entity.id)) &&
           (text(entity.approved_by) !== "" ||
-            text(origin(entity).approved_by) !== ""),
+            text(origin(entity).approved_by) !== "") &&
+          !text(origin(entity).ref).includes(SPLIT_APPROVAL_QUOTE),
       );
     case "broad review left in the final check":
       return finalCheckMentions(context, "broad_requirement_review");

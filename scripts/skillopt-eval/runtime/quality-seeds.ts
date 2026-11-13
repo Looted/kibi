@@ -64,8 +64,27 @@ export const HANDLING_FORWARDERS = [
   "fixtureFamilyLabelFromEnv",
 ] as const;
 
+/** Seeded domain subjects the requirements' claims can name (schema 16). */
+export const QUALITY_SUBJECTS = {
+  name: {
+    id: "FACT-SUBJECT-fixture-family-name",
+    key: "fixture.family_name",
+    title: "Fixture family name",
+    definition:
+      "The name that identifies a fixture family: the text a caller passes in, which is trimmed, checked and limited before any label or slug is built from it.",
+  },
+  label: {
+    id: "FACT-SUBJECT-fixture-family-label",
+    key: "fixture.family_label",
+    title: "Fixture family label",
+    definition:
+      "The display label of a fixture family, built from its name for exports; it is not the name itself and not the slug used in file names.",
+  },
+} as const;
+
 export const QUALITY_SEEDED_IDS: ReadonlySet<string> = new Set([
   ...Object.values(QUALITY_IDS),
+  ...Object.values(QUALITY_SUBJECTS).map((subject) => subject.id),
   ...NORMALIZATION_FUNCTIONS.map(qualitySymbolId),
   ...Object.values(HANDLING_DECIDERS).map(qualitySymbolId),
   ...HANDLING_FORWARDERS.map(qualitySymbolId),
@@ -116,6 +135,32 @@ function requirement(input: {
     input.context === undefined
       ? input.statement
       : [input.statement, "", "## Context", "", input.context].join("\n"),
+  );
+}
+
+function subjectFact(
+  subject: (typeof QUALITY_SUBJECTS)[keyof typeof QUALITY_SUBJECTS],
+): string {
+  return doc(
+    [
+      `id: ${subject.id}`,
+      `title: ${JSON.stringify(subject.title)}`,
+      "type: fact",
+      "status: active",
+      "fact_kind: subject",
+      `subject_key: ${subject.key}`,
+    ],
+    subject.definition,
+  );
+}
+
+/** Both subject facts, keyed by their authored paths. */
+function subjectDocuments(): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    Object.values(QUALITY_SUBJECTS).map((subject) => [
+      `.kb/facts/${subject.id}.md`,
+      subjectFact(subject),
+    ]),
   );
 }
 
@@ -342,6 +387,7 @@ const LABEL_STATEMENT =
   "A fixture family label must be family: followed by the normalized name.";
 
 export const THRESHOLD_DOCUMENTS: Readonly<Record<string, string>> = {
+  ...subjectDocuments(),
   [FIXTURE_SOURCE_PATH]: THRESHOLD_FIXTURE_SOURCE,
   [FIXTURE_TEST_PATH]: THRESHOLD_FIXTURE_TEST,
   [`.kb/requirements/${QUALITY_IDS.normalization}.md`]: requirement({
@@ -438,12 +484,15 @@ export function reasonDocuments(
   withReason: boolean,
 ): Readonly<Record<string, string>> {
   return {
+    ...subjectDocuments(),
     [FIXTURE_SOURCE_PATH]: LABEL_SOURCE,
     [FIXTURE_TEST_PATH]: LABEL_TEST,
     [SOURCE_NOTE_PATH]: [
       "# Fixture notes",
       "",
-      withReason ? `${REASON_SOURCE_LINE} ${REASON_SOURCE_WHY}` : REASON_SOURCE_LINE,
+      withReason
+        ? `${REASON_SOURCE_LINE} ${REASON_SOURCE_WHY}`
+        : REASON_SOURCE_LINE,
       "",
     ].join("\n"),
     // Statement only: the seed's one violation is entity-context-missing.
@@ -565,6 +614,7 @@ export const BROAD_FIXTURE_TEST = [
 ].join("\n");
 
 export const BROAD_DOCUMENTS: Readonly<Record<string, string>> = {
+  ...subjectDocuments(),
   [FIXTURE_SOURCE_PATH]: BROAD_FIXTURE_SOURCE,
   [FIXTURE_TEST_PATH]: BROAD_FIXTURE_TEST,
   [`.kb/requirements/${QUALITY_IDS.handling}.md`]: requirement({

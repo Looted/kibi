@@ -700,9 +700,10 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
      `supersedes` to the parent, a `specified_by` scenario, a `## Context`
      quoting the person's approval, a `## Why this changed` section of at
      least 12 words (the approval, and which behaviors the parent mixed),
-     and the subjects its claims are about. Do not copy the parent's
-     `required_evidence` or `approved_by`: a child is new text, and only the
-     person approves it.
+     and the subjects its claims are about (`kb_query` with
+     `factKind: "subject"` lists the defined ones). Do not copy the parent's
+     `required_evidence` or `approved_by`; quote the person's split approval
+     in each child's `origin.ref`.
   2. Remove the parent's `implements` links in one `kb_delete`
      relationships call.
   3. `kb_upsert` each deciding symbol with `implements` to the one child

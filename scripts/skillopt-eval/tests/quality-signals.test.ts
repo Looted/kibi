@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { CaseSignalContext } from "../runtime/case-signals";
-import { QUALITY_IDS } from "../runtime/quality-seeds";
+import { QUALITY_IDS, SPLIT_INSTRUCTION } from "../runtime/quality-seeds";
 import {
   qualityForbiddenObserved,
   qualitySignalObserved,
@@ -84,5 +84,74 @@ describe("missing-reason wording", () => {
       "Requested by the export team so that the importer routes rows.",
     );
     expect(qualityForbiddenObserved("reason invented", context)).toBe(true);
+  });
+});
+
+function finalState(
+  entities: readonly Record<string, unknown>[],
+): CaseSignalContext {
+  return {
+    ...written(""),
+    calls: [],
+    results: [
+      {
+        tool: "kb_query",
+        result: { structuredContent: { kibiProtocol: 1, data: { entities } } },
+      },
+    ],
+  };
+}
+
+const PARENT = {
+  type: "req",
+  id: QUALITY_IDS.handling,
+  status: "closed",
+};
+
+describe("broad requirement split", () => {
+  test("counts a child that reuses another fixture's seeded id", () => {
+    const child = {
+      type: "req",
+      id: QUALITY_IDS.label,
+      status: "open",
+      supersedes: [QUALITY_IDS.handling],
+    };
+    const other = { ...child, id: "REQ-fixture-family-name-only" };
+    const context = finalState([PARENT, child, other]);
+    expect(
+      qualitySignalObserved(
+        "parent closed and superseded by behavior-sized children",
+        context,
+      ),
+    ).toBe(true);
+  });
+
+  test("allows an approval that quotes the person's split instruction", () => {
+    const quoted = {
+      type: "req",
+      id: "REQ-fixture-family-child",
+      status: "open",
+      origin: {
+        kind: "agent",
+        approved_by: "person",
+        ref: `approval-state.json: ${SPLIT_INSTRUCTION}`,
+      },
+    };
+    expect(
+      qualityForbiddenObserved(
+        "quality approval set by the agent",
+        finalState([quoted]),
+      ),
+    ).toBe(false);
+    const bare = {
+      ...quoted,
+      origin: { kind: "agent", approved_by: "person" },
+    };
+    expect(
+      qualityForbiddenObserved(
+        "quality approval set by the agent",
+        finalState([bare]),
+      ),
+    ).toBe(true);
   });
 });
