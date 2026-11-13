@@ -193,7 +193,7 @@ describe("requirement clock dates", () => {
     // A stored origin the write keeps is not the payload's statement.
     const stored = await resolveUpsertOrigin(
       input(),
-      scriptedProlog([]),
+      scriptedProlog([]).prolog,
       NOW,
       undefined,
       lookupOf({ origin: { kind: "agent", recorded_at: "2030-01-01" } }),
