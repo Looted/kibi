@@ -943,10 +943,13 @@ pair_review_problem(ReqId, OtherId, ClaimKeys, Owner, Review, Problem) :-
     ->  Problem = missing(separated_by)
     ;   entry_atom(Review, verdict, interacts),
         \+ ( review_list(Review, resolved_by, Resolvers),
-             Resolvers \== [],
-             forall(member(Resolver, Resolvers),
-                    resolver_exists(ReqId, OtherId, Resolver)) )
+             Resolvers \== [] )
     ->  Problem = missing(resolved_by)
+    ;   entry_atom(Review, verdict, interacts),
+        review_list(Review, resolved_by, Resolvers),
+        rejected_resolvers(ReqId, OtherId, Resolvers, Rejected),
+        Rejected \== []
+    ->  Problem = missing(resolved_by, Rejected)
     ;   uncovered_claims(ClaimKeys, Review, Uncovered),
         Uncovered \== []
     ->  Problem = stale(Uncovered)
@@ -978,6 +981,18 @@ review_list(Review, Key, Items) :-
 resolver_exists(ReqId, OtherId, Resolver) :-
     \+ memberchk(Resolver, [ReqId, OtherId]),
     resolver(ReqId, OtherId, Resolver).
+
+%% rejected_resolvers(+ReqId, +OtherId, +Resolvers, -Rejected)
+% The resolved_by entries that resolve nothing, each as Resolver-Why: pair
+% when it names a requirement of the pair itself, unknown when it names
+% nothing resolver_exists/3 accepts.
+rejected_resolvers(ReqId, OtherId, Resolvers, Rejected) :-
+    findall(Resolver-Why,
+            (   member(Resolver, Resolvers),
+                \+ resolver_exists(ReqId, OtherId, Resolver),
+                (   memberchk(Resolver, [ReqId, OtherId]) -> Why = pair ; Why = unknown )
+            ),
+            Rejected).
 
 resolver(_ReqId, _OtherId, Resolver) :-
     % mutalog-disable-next-line cut_insert: resolver_exists/3 is only asked inside forall/2
@@ -1095,6 +1110,7 @@ problem_kind(unknown_verdict(_), unknown_verdict) :- !.
 problem_kind(stale(_), stale) :- !.
 problem_kind(missing(separated_by), missing_separated_by) :- !.
 problem_kind(missing(resolved_by), missing_resolved_by) :- !.
+problem_kind(missing(resolved_by, _), missing_resolved_by) :- !.
 problem_kind(Problem, Problem).
 
 related_requirement_unmodeled_violation(Dangling, (ReqId-Kind)-Partners, violation(
@@ -1163,9 +1179,13 @@ unclassified_note(ReqId, ClaimKeys, Note) :-
     (   Unclassified == []
     ->  Note = ""
     ;   listed_atoms(Unclassified, Text),
+        (   Unclassified = [_]
+        ->  Words = ["has", "its role states", "it", "it", "it"]
+        ;   Words = ["have", "their roles state", "them", "each", "them"]
+        ),
         format(string(Note),
-            "; ~w still have status missing although their role states no rule: classify them (status nonlogical when they carry no rule) or review them",
-            [Text])
+            "; ~w still ~w status missing although ~w no rule: model ~w, set status ontology_gap on ~w with a reason when no predicate can state it, or review ~w (status nonlogical is accepted only for rationale, example and subjective claims)",
+            [Text|Words])
     ).
 
 dangling_note(Dangling, ReqId, Note) :-
@@ -1188,13 +1208,35 @@ kind_text(unknown_verdict, Problems, Text) :-
 kind_text(conflict, _, "the pair review records a conflict, which a person must resolve").
 kind_text(no_edge, _, "the pair review counts only while a relates_to edge links the two").
 kind_text(missing_separated_by, _, "the no_conflict verdict does not say what separates them (separated_by)").
-kind_text(missing_resolved_by, _, "the interacts verdict does not name what resolves it (resolved_by): a third current requirement, a scenario or fact one of them links, or a condition or exception claim of either").
+kind_text(missing_resolved_by, Problems, Text) :-
+    % mutalog-disable-next-line cut_insert: findall/3 is deterministic
+    findall(Item,
+            (   member(missing(resolved_by, Rejected), Problems),
+                member(Resolver-Why, Rejected),
+                rejected_resolver_text(Why, Resolver, Item)
+            ),
+            Items0),
+    sort(Items0, Items),
+    (   Items == []
+    ->  Note = ""
+    ;   atomic_list_concat(Items, '; ', ItemText),
+        format(string(Note), "; its resolved_by names ~w", [ItemText])
+    ),
+    format(string(Text),
+        "the interacts verdict does not name what resolves it (resolved_by): a third current requirement, a scenario or fact one of them links, or a condition or exception claim of either~w",
+        [Note]).
+
 kind_text(stale, Problems, Text) :-
     % mutalog-disable-next-line cut_insert: findall/3 is deterministic
     findall(K, (member(stale(Keys), Problems), member(K, Keys)), Ks0),
     sort(Ks0, Ks),
     listed_atoms(Ks, KeyText),
     format(string(Text), "the pair review does not cover ~w at their current text", [KeyText]).
+rejected_resolver_text(pair, Resolver, Text) :-
+    format(atom(Text), '~w, a requirement of the pair itself, which cannot resolve it', [Resolver]).
+rejected_resolver_text(unknown, Resolver, Text) :-
+    format(atom(Text), '~w, which is none of those (check the id, and that it is current and linked to one of the pair)', [Resolver]).
+
 kind_text(unapproved, _, "the pair review is a verdict on a must or firm requirement that names no approved_by, and an agent recorded it or wrote the requirement it is on").
 
 kind_suggestion(conflict, ReqId, Partners, _First, Suggestion) :-

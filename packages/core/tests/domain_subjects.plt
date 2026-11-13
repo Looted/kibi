@@ -525,8 +525,9 @@ test(unmodeled_pairs_by_edge_and_subject, Gaps == [
     )).
 
 test(pair_review_problems, Problems == [
-        conflict, no_edge, no_verdict, unapproved, missing(resolved_by),
-        missing(separated_by), stale(['C-A']), unknown_verdict(maybe)
+        conflict, no_edge, no_verdict, unapproved,
+        missing(separated_by), stale(['C-A']), unknown_verdict(maybe),
+        missing(resolved_by, ['SCEN-GONE'-unknown])
     ]) :-
     ds_kb((
         ds_subject('F-CART', "cart"),
@@ -751,7 +752,7 @@ test(violation_notes_unclassified_and_dangling_reviews, Notes == [true, true]) :
         check_related_requirement_unmodeled([violation(_, 'REQ-A', Description, _, _, _)]),
         findall(Found,
                 (   member(Text, [
-                        "; C-D still have status missing although their role states no rule: classify them (status nonlogical when they carry no rule) or review them",
+                        "; C-D still has status missing although its role states no rule: model it, set status ontology_gap on it with a reason when no predicate can state it, or review it (status nonlogical is accepted only for rationale, example and subjective claims)",
                         "; its pair_reviews name REQ-TYPO, which is not a current requirement, so those reviews settle nothing (check the id)"
                     ]),
                     (   sub_string(Description, _, _, _, Text) -> Found = true ; Found = false )
@@ -759,12 +760,14 @@ test(violation_notes_unclassified_and_dangling_reviews, Notes == [true, true]) :
                 Notes)
     )).
 
-test(problem_kinds_texts_and_suggestions, Kinds == [conflict, missing_resolved_by, missing_separated_by, no_edge, no_verdict, stale, unapproved, unknown_verdict, unreviewed]) :-
+test(problem_kinds_texts_and_suggestions, Kinds == [conflict, missing_resolved_by, missing_resolved_by, missing_separated_by, no_edge, no_verdict, stale, unapproved, unknown_verdict, unreviewed]) :-
     findall(K, (member(P, [unreviewed, no_verdict, unknown_verdict(x), conflict, no_edge,
-                           missing(separated_by), missing(resolved_by), stale(['C']), unapproved]),
+                           missing(separated_by), missing(resolved_by), missing(resolved_by, []), stale(['C']), unapproved]),
                 domain_subjects:problem_kind(P, K)), Kinds0),
     msort(Kinds0, Kinds),
     forall(member(K, Kinds), domain_subjects:kind_text(K, [unknown_verdict(x), stale(['C'])], _)),
+    domain_subjects:kind_text(missing_resolved_by, [missing(resolved_by), missing(resolved_by, ['Z'-unknown, 'R'-pair]), missing(resolved_by, ['R'-pair])], RText),
+    assertion(RText == "the interacts verdict does not name what resolves it (resolved_by): a third current requirement, a scenario or fact one of them links, or a condition or exception claim of either; its resolved_by names R, a requirement of the pair itself, which cannot resolve it; Z, which is none of those (check the id, and that it is current and linked to one of the pair)"),
     domain_subjects:kind_text(unknown_verdict, [unknown_verdict(b), unknown_verdict(a)], VText),
     assertion(VText == "the pair review has verdict a, b, which is not no_conflict, interacts or conflict"),
     forall(member(K, [conflict, no_edge, unapproved]),
@@ -964,7 +967,54 @@ test(another_settling_review_outweighs_a_stale_own_review, Gaps == []) :-
         ds_gaps(Gaps)
     )).
 
-test(resolvers_and_claims_come_from_the_pair, Problems == [missing(resolved_by), missing(resolved_by), missing(resolved_by), stale(['C-A'])]) :-
+test(unclassified_note_agrees_with_several_claims, Found == true) :-
+    ds_kb((
+        ds_claim('C-D1', descriptive, missing, [], D1),
+        ds_claim('C-D2', descriptive, missing, [], D2),
+        ds_req('REQ-A', [D1, D2], [], []),
+        ds_req('REQ-B', [], [], []),
+        fixture_rel(relates_to, 'REQ-A', 'REQ-B'),
+        check_related_requirement_unmodeled([violation(_, 'REQ-A', Description, _, _, _)]),
+        (   sub_string(Description, _, _, _, "; C-D1, C-D2 still have status missing although their roles state no rule: model them, set status ontology_gap on each with a reason when no predicate can state it, or review them (status nonlogical is accepted only for rationale, example and subjective claims)")
+        ->  Found = true
+        ;   Found = false
+        )
+    )).
+
+test(rejected_resolvers_say_why, Problems == [
+        missing(resolved_by, ['REQ-A'-pair]),
+        missing(resolved_by, ['REQ-B'-pair, 'REQ-NOPE'-unknown]),
+        missing(resolved_by)
+    ]) :-
+    ds_kb((
+        ds_claim('C-A', normative, ontology_gap, [], A),
+        ds_req('REQ-A', [A], [], []),
+        ds_req('REQ-B', [], [], []),
+        ds_req('REQ-C', [], [], []),
+        fixture_rel(relates_to, 'REQ-A', 'REQ-B'),
+        findall(Problem,
+                (   member(Resolvers, [['REQ-A'], ['REQ-C', 'REQ-B', 'REQ-NOPE'], ['']]),
+                    ds_problem('REQ-A', 'REQ-B', ['C-A'], 'REQ-A',
+                               _{with: 'REQ-B', verdict: interacts, resolved_by: Resolvers, claims: ['C-A'], origin: _{kind: human}},
+                               Problem)
+                ),
+                Problems)
+    )).
+
+test(rejected_resolvers_reach_the_description, Found == true) :-
+    ds_kb((
+        ds_claim('C-A', normative, ontology_gap, [], A),
+        ds_req('REQ-A', [A], [_{with: 'REQ-B', verdict: interacts, resolved_by: ['REQ-A', 'REQ-NOPE'], claims: ['C-A'], origin: _{kind: human}}], []),
+        ds_req('REQ-B', [], [], []),
+        fixture_rel(relates_to, 'REQ-A', 'REQ-B'),
+        check_related_requirement_unmodeled([violation(_, 'REQ-A', Description, _, _, _)]),
+        (   sub_string(Description, _, _, _, "or a condition or exception claim of either; its resolved_by names REQ-A, a requirement of the pair itself, which cannot resolve it; REQ-NOPE, which is none of those (check the id, and that it is current and linked to one of the pair)")
+        ->  Found = true
+        ;   Found = false
+        )
+    )).
+
+test(resolvers_and_claims_come_from_the_pair, Problems == [missing(resolved_by), missing(resolved_by, ['SCEN-X'-unknown]), missing(resolved_by, ['C-X'-unknown]), stale(['C-A'])]) :-
     ds_kb((
         ds_claim('C-A', normative, ontology_gap, [], A),
         ds_claim('C-X', condition, modeled, [], X),

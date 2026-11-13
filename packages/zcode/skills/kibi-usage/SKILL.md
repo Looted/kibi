@@ -578,8 +578,10 @@ firm requirement, a verdict whose `origin` is missing or not `kind: human`,
 or that sits on a requirement an agent wrote, counts only once the person
 confirms it and you set `origin.approved_by`; never set it yourself. The
 finding lists each requirement once per problem with the partners it pairs
-with. A claim with status `missing` whose role states no rule should be
-classified (`nonlogical`) or reviewed.
+with. A claim with status `missing` whose role states no rule (`descriptive`)
+is modeled, set to `ontology_gap` with a reason when no predicate can state
+it, or reviewed; `nonlogical` is accepted only for `rationale`, `example` and
+`subjective` claims.
 
 ## Quantified claims: model the dimension
 

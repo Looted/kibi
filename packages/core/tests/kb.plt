@@ -6564,9 +6564,9 @@ test(related_requirement_unmodeled_reports_unresolved_ledger_linked_to_modeled_r
     related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
     kb_assert_relationship(relates_to, 'REQ-CONVERSATIONS', 'REQ-NOTIFY-GROUPED', []),
     check_related_requirement_unmodeled(Violations),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Violations), Ids),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Violations), Ids),
     assertion(Ids == ['REQ-CONVERSATIONS']),
-    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, Suggestion, _), Violations),
+    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, Suggestion, _, _), Violations),
     assertion(sub_string(Description, _, _, _, "2 unmodeled claim(s)")),
     assertion(sub_string(Description, _, _, _, "REQ-NOTIFY-GROUPED")),
     assertion(sub_string(Suggestion, _, _, _, "pair_reviews")).
@@ -6576,7 +6576,7 @@ test(related_requirement_unmodeled_follows_relates_to_in_either_direction, [setu
     related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
     kb_assert_relationship(relates_to, 'REQ-NOTIFY-GROUPED', 'REQ-CONVERSATIONS', []),
     check_related_requirement_unmodeled(Violations),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Violations), Ids),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Violations), Ids),
     assertion(Ids == ['REQ-CONVERSATIONS']).
 
 test(related_requirement_unmodeled_skips_ledgerless_and_superseded_neighbours, [setup(setup_kb), cleanup(cleanup_kb)]) :-
@@ -6602,7 +6602,7 @@ test(related_requirement_unmodeled_skips_ledgerless_and_superseded_neighbours, [
     ]),
     kb_assert_relationship(relates_to, 'REQ-GAP', 'REQ-NOTIFY-GROUPED', []),
     check_related_requirement_unmodeled(Linked),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Linked), LinkedIds),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Linked), LinkedIds),
     assertion(LinkedIds == ['REQ-GAP']),
     % Once it supersedes the modeled requirement, the older one is no longer
     % current and the pair is gone.
