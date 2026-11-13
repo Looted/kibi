@@ -528,6 +528,14 @@ it, and the status migration plan covers it with its automatic
 `freshness-resync` action (`kibi sync`), so applying that action clears it
 too; it gets no review action of its own.
 
+While `.kb/manifest.json` records a KB schema older than this Kibi, the text
+output of `kibi status` and `kibi report` starts with one line (text `kibi
+check` starts with a note of its own that names `kibi migrate`):
+`Migration needed: this KB is at schema N and this Kibi expects schema M. Run
+'kibi migrate' to review the upgrade, then 'kibi migrate --yes' to apply it.`
+JSON output carries the same information in `schemaStatus` and the migration
+plan instead.
+
 Status does not initialise a missing branch store or repair a damaged one. It
 instead returns `branchStore` (`missing`, `incomplete`, or `unreadable`) with a
 recovery-oriented stale reason. Use the explicit branch commands below after
