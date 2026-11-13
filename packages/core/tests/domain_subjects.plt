@@ -407,6 +407,18 @@ test(review_on_either_side_settles_or_reports, Gaps == ['REQ-A'-'REQ-C'-[relates
         ds_gaps(Gaps)
     )).
 
+test(conflict_on_one_side_outweighs_no_conflict_on_the_other,
+     Gaps == ['REQ-A'-'REQ-B'-[relates_to]-['C-A']-conflict]) :-
+    ds_kb((
+        ds_claim('C-A', normative, ontology_gap, [], A),
+        Settled = _{with: 'REQ-B', verdict: no_conflict, separated_by: "x", claims: ['C-A'], origin: _{kind: human}},
+        Conflict = _{with: 'REQ-A', verdict: conflict, claims: ['C-A'], origin: _{kind: human}},
+        ds_req('REQ-A', [A], [Settled], []),
+        ds_req('REQ-B', [], [Conflict], []),
+        fixture_rel(relates_to, 'REQ-A', 'REQ-B'),
+        ds_gaps(Gaps)
+    )).
+
 test(related_requirement_unmodeled_violation_text, [Description, Suggestion, Source] == [
         "Requirement REQ-A has 1 unmodeled claim(s) (C-A) that nothing compares with REQ-B, which it pairs with through a relates_to edge and shared subject cart; no verdict records how they combine",
         "Model the unmodeled claims of REQ-A on the subject keys REQ-B constrains (facts via kb_model, then requires_property, requires_predicate or requires_rule), or supersede one of them; if they cannot be modeled, keep or add a relates_to link (they pair through a relates_to edge and shared subject cart) and add a pair_reviews entry on REQ-A with: REQ-B, verdict (no_conflict with separated_by, interacts with resolved_by, or conflict), claims (claim_key and payload_hash of each unmodeled claim of both) and origin",

@@ -50,6 +50,7 @@
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
+:- use_module(library(assoc)).
 :- use_module('kb.pl').
 
 %% anchored_claim_role(?Role)
@@ -609,34 +610,40 @@ open_claim(ReqId, ClaimKey, Status, Anchors, PayloadHash) :-
 % they share (the unmodeled claims of ReqId that name Key or a narrower
 % subject count).  SubjectPairs is requirement_subject_index/1.
 unmodeled_pair(SubjectPairs, ReqId, OtherId, Via, ClaimKeys) :-
+    % Read the open claims once and group the rows by pair, so a subject many
+    % requirements share costs one pass instead of a rescan per pair.
+    findall(Req-(ClaimKey-Anchors), open_claim(Req, ClaimKey, _, Anchors, _), Open0),
+    keysort(Open0, Open1),
+    group_pairs_by_key(Open1, OpenByReq),
+    list_to_assoc(OpenByReq, OpenClaims),
     findall(
-        ReqId0-OtherId0-Via0-ClaimKey,
-        unmodeled_pair_claim(SubjectPairs, ReqId0, OtherId0, Via0, ClaimKey),
+        (ReqId0-OtherId0)-(Via0-ClaimKey),
+        unmodeled_pair_claim(SubjectPairs, OpenClaims, ReqId0, OtherId0, Via0, ClaimKey),
         Rows0
     ),
     sort(Rows0, Rows),
-    findall(R-O, member(R-O-_-_, Rows), Pairs0),
-    sort(Pairs0, Pairs),
-    member(ReqId-OtherId, Pairs),
-    findall(V, member(ReqId-OtherId-V-_, Rows), Via0),
-    sort(Via0, Via),
-    findall(C, member(ReqId-OtherId-_-C, Rows), Claims0),
-    sort(Claims0, ClaimKeys).
+    group_pairs_by_key(Rows, Groups),
+    member((ReqId-OtherId)-Entries, Groups),
+    pairs_keys_values(Entries, Via1, Claims1),
+    sort(Via1, Via),
+    sort(Claims1, ClaimKeys).
 
-unmodeled_pair_claim(_SubjectPairs, ReqId, OtherId, relates_to, ClaimKey) :-
-    open_claim(ReqId, ClaimKey, _, _, _),
-    related_current_requirement(ReqId, OtherId).
-unmodeled_pair_claim(SubjectPairs, ReqId, OtherId, subject(Shared), ClaimKey) :-
+unmodeled_pair_claim(_SubjectPairs, OpenClaims, ReqId, OtherId, relates_to, ClaimKey) :-
+    gen_assoc(ReqId, OpenClaims, Claims),
+    related_current_requirement(ReqId, OtherId),
+    member(ClaimKey-_, Claims).
+unmodeled_pair_claim(SubjectPairs, OpenClaims, ReqId, OtherId, subject(Shared), ClaimKey) :-
     member(pair(A, B, Shared), SubjectPairs),
     (   ReqId = A, OtherId = B
     ;   ReqId = B, OtherId = A
     ),
-    open_claim(ReqId, ClaimKey, _, Anchors, _),
-    member(Anchor, Anchors),
-    (   Anchor == Shared
-    ->  true
-    ;   subject_ancestor(Anchor, Shared)
-    ).
+    get_assoc(ReqId, OpenClaims, Claims),
+    member(ClaimKey-Anchors, Claims),
+    once(( member(Anchor, Anchors),
+           (   Anchor == Shared
+           ->  true
+           ;   subject_ancestor(Anchor, Shared)
+           ) )).
 
 related_current_requirement(ReqId, OtherId) :-
     (   kb_relationship(relates_to, ReqId, OtherId)
@@ -806,14 +813,20 @@ requirement_origin_kind(Props, Kind) :-
 
 %% unmodeled_pair_gap(?ReqId, ?OtherId, -Via, -ClaimKeys, -Problem)
 % A stored pair whose unmodeled claims of ReqId nothing settles.  Problem is
-% unreviewed when no pair_reviews entry covers the pair, otherwise the
-% problem of the review recorded on ReqId (else on OtherId).
+% unreviewed when no pair_reviews entry covers the pair, conflict when a
+% review on either side records a conflict, otherwise the problem of the
+% review recorded on ReqId (else on OtherId).
 unmodeled_pair_gap(ReqId, OtherId, Via, ClaimKeys, Problem) :-
     requirement_subject_index(SubjectPairs),
     unmodeled_pair(SubjectPairs, ReqId, OtherId, Via, ClaimKeys),
     findall(Owner-Review, pair_review(ReqId, OtherId, Owner, Review), Reviews),
     (   Reviews == []
     ->  Problem = unreviewed
+    ;   % A conflict recorded on either side stands until a person resolves
+        % it; the other side's no_conflict does not settle the pair.
+        member(_-Conflict, Reviews),
+        entry_atom(Conflict, verdict, conflict)
+    ->  Problem = conflict
     ;   \+ ( member(_-Review, Reviews),
              \+ pair_review_problem(ReqId, OtherId, ClaimKeys, Review, _) )
     ->  (   member(ReqId-Review, Reviews)
