@@ -1173,7 +1173,7 @@ describe("checkCommand full-KB text rendering", () => {
     return kbPath;
   }
 
-  test("omits the entity and suggestion lines when the source basename matches the entity id", async () => {
+  test("omits the entity line when the source basename matches the entity id and still prints the suggestion", async () => {
     const cwd = prepareWorkspace();
     const kbPath = mockAttachedProlog(cwd);
     const execute = spyOn(checkExecutor, "executeCheck").mockResolvedValue({
@@ -1210,7 +1210,9 @@ describe("checkCommand full-KB text rendering", () => {
     expect(text).toContain("Missing owner");
     expect(text).toContain("[no-cycles] REQ-2");
     expect(text).not.toContain("Entity:");
-    expect(text).not.toContain("Suggestion:");
+    // Only REQ-1 carries a suggestion; REQ-2 prints no Suggestion line.
+    expect(text.match(/Suggestion:/g)).toStrictEqual(["Suggestion:"]);
+    expect(text).toContain("Suggestion: Add owner");
   });
 
   test("prints quality diagnostics without optional entity, files, or docs lines", async () => {

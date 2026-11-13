@@ -115,7 +115,12 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
         }),
       );
       expect(invalid.exitCode).toBe(1);
-      expect(invalid.stderr).toContain("Entity validation failed");
+      // The JSON route prints the error once, in the result on stdout, and
+      // points stderr at it.
+      expect(invalid.stdout).toContain("Entity validation failed");
+      expect(invalid.stderr).toContain(
+        "see error.message in the JSON result on stdout",
+      );
       const malformed = await runKibi(
         ["upsert", "--input", "-"],
         workspace,

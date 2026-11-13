@@ -206,11 +206,13 @@ describe("the first commit after kibi migrate", () => {
     "still judges a legacy symbol whose implements link the commit edits",
     () => {
       migrateAndStage(root);
+      // A descriptive claim states no rule, so it owes no subject
+      // (claim-subject-missing) and the symbol gate decides the commit.
       write(
         root,
         ".kb/requirements/REQ-wave.md",
         withSemanticInventory(
-          "---\nid: REQ-wave\ntitle: Wave\nstatus: open\n---\n\nThe greeter must wave.\n",
+          "---\nid: REQ-wave\ntitle: Wave\nstatus: open\n---\n\nThe greeter waves.\n",
         ),
       );
       const symbols = readSymbols(root);
