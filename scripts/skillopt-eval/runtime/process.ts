@@ -1,5 +1,6 @@
 import { execFileSync, spawn } from "node:child_process";
 import { z } from "zod";
+import { harnessChildEnv } from "./telemetry-env";
 
 export type ProcessResult = Readonly<{
   argv: readonly string[];
@@ -183,7 +184,7 @@ export function runBoundedProcess(
     );
     const child = spawn(command, args, {
       cwd: options.cwd,
-      env: options.env,
+      env: harnessChildEnv(options.env),
       detached: ownsGroup,
       stdio: ["pipe", "pipe", "pipe"],
     });

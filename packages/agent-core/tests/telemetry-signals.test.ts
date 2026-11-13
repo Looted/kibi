@@ -265,6 +265,47 @@ describe("Kibi skill loads", () => {
     expect(elsewhere?.skill_loaded_before).toBe(false);
     expect(JSON.stringify([hook, inside, elsewhere])).not.toContain(workspace);
   });
+
+  test("a successful CLI or MCP skill load marks the workspace too", async () => {
+    const env = enabledEnv();
+    const loaded = tempDir("kibi-skill-load-ws-");
+    const failed = tempDir("kibi-skill-fail-ws-");
+    const source = { packageName: "kibi-mcp", packageVersion: "1.0.0" };
+    const load = {
+      interface: "mcp" as const,
+      operation: "kb_skills",
+      durationMs: 1,
+      signals: { skillLoad: true },
+    };
+    const upsert = {
+      interface: "mcp" as const,
+      operation: "kb_upsert",
+      status: "success" as const,
+      durationMs: 1,
+    };
+    recordOperationTelemetry(
+      { ...source, workspaceRoot: failed },
+      { ...load, status: "error", errorCategory: "skill_not_found" },
+      env,
+    );
+    recordOperationTelemetry({ ...source }, { ...load, status: "success" }, env);
+    recordOperationTelemetry(
+      { ...source, workspaceRoot: loaded },
+      { ...load, status: "success" },
+      env,
+    );
+    recordOperationTelemetry({ ...source, workspaceRoot: loaded }, upsert, env);
+    recordOperationTelemetry({ ...source, workspaceRoot: failed }, upsert, env);
+    const events = await sent(env);
+    expect(events.map((event) => event.skill_loaded_before)).toEqual([
+      false,
+      false,
+      false,
+      true,
+      false,
+    ]);
+    expect(JSON.stringify(events)).not.toContain(loaded);
+  });
 });
 
 describe("recent calls", () => {

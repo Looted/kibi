@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aad141dc6500
+  - type: implements
+    from: SYM-cli-telemetry-details-operationtelemetrysignals
+    to: REQ-kibi-telemetry-skill-load-routes
+    created_at: 2026-11-13T09:29:04.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-919c1333dc3c
+  - type: covered_by
+    from: SYM-cli-telemetry-details-operationtelemetrysignals
+    to: TEST-kibi-telemetry-skill-load-routes-cli
+    created_at: 2026-11-13T09:29:04.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38e130ff522d

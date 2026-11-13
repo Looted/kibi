@@ -35,6 +35,7 @@ import {
   isSeededUnresolvedRuleViolation,
   ledgerRequirement,
 } from "./fixture-seeds";
+import { harnessChildEnv } from "./telemetry-env";
 
 const execFileAsync = promisify(execFile);
 
@@ -100,7 +101,7 @@ const FIXTURE_TEST_TIMEOUT_MS = 10_000;
 // covered_by TEST-skillopt-codex-optimization
 export function fixtureCliEnv(workspaceTarget: string): NodeJS.ProcessEnv {
   return {
-    ...process.env,
+    ...harnessChildEnv(),
     KIBI_BRANCH: FIXTURE_BRANCH,
     KIBI_WORKSPACE: workspaceTarget,
     KIBI_PROJECT_ROOT: workspaceTarget,
