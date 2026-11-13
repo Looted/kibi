@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
@@ -120,7 +120,26 @@ Uncovered gate fixture.
 Fixture requirement for the packed check gate test: it deliberately has no scenario link so the gate must block it. No further reason is stated.
 `,
         );
+        // Both fixtures stand for must requirements recorded before KB
+        // schema 17, which the upgrade exempts from must-positive-scenario;
+        // this gate test is about scenario coverage only.
+        const manifestPath = join(sandbox.repoDir, ".kb", "manifest.json");
+        writeFileSync(
+          manifestPath,
+          `${JSON.stringify(
+            {
+              ...JSON.parse(readFileSync(manifestPath, "utf8")),
+              positiveScenarioAcknowledged: [
+                "REQ-GATE-BARE",
+                "REQ-GATE-COVERED",
+              ],
+            },
+            null,
+            2,
+          )}\n`,
+        );
         for (const sourcePath of [
+          ".kb/manifest.json",
           ".kb/requirements/REQ-GATE-COVERED.md",
           ".kb/scenarios/SCEN-GATE-COVERED.md",
           ".kb/tests/TEST-GATE-COVERED.md",

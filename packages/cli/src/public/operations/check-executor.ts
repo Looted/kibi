@@ -49,7 +49,6 @@ import { collectCheckPolicyViolations } from "./check-policy-rules.js";
 import { collectDecisionFirmnessViolations } from "./decision-firmness.js";
 import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
-import { collectSubjectLayerViolations } from "./subject-layer.js";
 import { collectEvidenceFloorViolations } from "./evidence-floor.js";
 import {
   buildActionsFromCheck,
@@ -57,6 +56,7 @@ import {
   mergeMigrationPlans,
 } from "./migration-plan.js";
 import { collectOriginReviewViolations } from "./origin-review.js";
+import { collectPositiveScenarioViolations } from "./positive-scenario.js";
 import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-conformance.js";
 import { collectProofContractClaimViolations } from "./proof-contract-claims.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
@@ -65,6 +65,7 @@ import {
   collectSourcePathDanglingViolations,
 } from "./source-path-dangling.js";
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
+import { collectSubjectLayerViolations } from "./subject-layer.js";
 import { collectSymbolCoordinatesMissingViolations } from "./symbol-coordinates-check.js";
 import { collectSymbolGranularityViolations } from "./symbol-granularity-check.js";
 import type { OperationResult } from "./types.js";
@@ -457,6 +458,10 @@ export async function executeCheck(
     );
     const proofContractClaimFindings =
       await collectProofContractClaimViolations(context, rulesAllowlist);
+    const positiveScenarioFindings = await collectPositiveScenarioViolations(
+      context,
+      rulesAllowlist,
+    );
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
@@ -472,6 +477,7 @@ export async function executeCheck(
       ...checkPolicyFindings,
       ...evidenceFloorFindings,
       ...proofContractClaimFindings,
+      ...positiveScenarioFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
     const evaluated = await describeEvaluation(prolog, rulesAllowlist);

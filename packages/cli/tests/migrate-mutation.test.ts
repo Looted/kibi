@@ -1264,6 +1264,7 @@ describe("schema upgrade", () => {
         "retired-status-v14",
         "approval-floor-v15",
         "domain-subjects-v16",
+        "positive-scenarios-v17",
       ],
     };
     expect(result).toStrictEqual({
@@ -1310,12 +1311,12 @@ describe("schema upgrade", () => {
   });
 
   test("apply only the late steps from an earlier schema", async () => {
-    atVersion(LATEST - 2);
+    atVersion(APPROVAL_FLOOR_FROM);
     s.untrack.mockReturnValue({ outcome: "failed", reason: "locked" } as never);
     const result = await yes();
     expect(logs).toStrictEqual([
-      older(LATEST - 2),
-      `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was ${LATEST - 2}).`,
+      older(APPROVAL_FLOOR_FROM),
+      `Migrated the KB to schemaVersion ${LATEST} on the canonical .kb/ layout (was ${APPROVAL_FLOOR_FROM}).`,
       `Wrote migration audit metadata to ${path.join(".kb", "migrations", "main.json")}.`,
       "Migration complete. Future 'kibi migrate' runs will be a no-op.",
       "Warning: Could not remove .kb/symbol-coordinates.yaml from the Git index (locked); run git rm --cached .kb/symbol-coordinates.yaml before the next commit.",
@@ -1323,6 +1324,7 @@ describe("schema upgrade", () => {
     expect(result.summary?.audit.steps).toStrictEqual([
       "approval-floor-v15",
       "domain-subjects-v16",
+      "positive-scenarios-v17",
     ]);
     expect(result.summary?.audit.semanticAdvisorBackfill).toBe(
       "not_applicable",

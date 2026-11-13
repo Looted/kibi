@@ -594,6 +594,15 @@
       "prologPredicateArity": null
     },
     {
+      "name": "must-positive-scenario",
+      "description": "A current must requirement must have an active scenario that specifies it, expects success, and assumes a fact on one of its subjects or a narrower one, so scenario-feasibility can refuse the behaviour it promises when another current requirement forbids it; must requirements the schema 17 migration recorded are exempt (KB schema 17)",
+      "enforcementClass": "canonical",
+      "category": "coverage",
+      "implementation": "typescript",
+      "prologPredicate": null,
+      "prologPredicateArity": null
+    },
+    {
       "name": "proof-contract-claims",
       "description": "From schema 12, every certificate-kind proof contract (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex) must name the claims it proves in proves, and each named claim must be a modeled claim of a current requirement the test reaches through its scenarios, grounded by a fact that proof kind can express or attest",
       "enforcementClass": "canonical",

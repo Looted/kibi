@@ -21,8 +21,8 @@ const INVALID = {
 };
 
 describe("schema version status", () => {
-  test("the latest schema is 16", () => {
-    expect(LATEST_KB_SCHEMA_VERSION).toBe(16);
+  test("the latest schema is 17", () => {
+    expect(LATEST_KB_SCHEMA_VERSION).toBe(17);
   });
 
   test("normalizes integers and integer strings only", () => {
