@@ -3242,6 +3242,8 @@ async function applyMigrationAction(
         yes: true,
         workspaceRoot: context.workspaceRoot,
         initializeMissingConfig: true,
+        // The plan syncs the store as its own action after the upgrade.
+        syncStore: false,
       });
       if (run.exitCode !== 0)
         throw new Error("Schema migration did not complete successfully.");
