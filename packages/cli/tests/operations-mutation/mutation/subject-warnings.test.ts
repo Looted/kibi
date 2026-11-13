@@ -2,13 +2,33 @@ import { afterEach, describe, expect, test } from "bun:test";
 import {
   anchoredSubjects,
   claimNeedsSubjects,
+  pairReviewPartners,
   subjectLayerWarnings,
 } from "../../../src/operations/mutation/subject-warnings.js";
 import type { PrologQueryResult } from "../../../src/public/operations/runtime-types.js";
 import { fail, ok, scriptedProlog } from "../fake-prolog.js";
-import { cleanupWorkspaces, workspace, writeIn } from "../workspace.js";
+import {
+  workspace as bareWorkspace,
+  cleanupWorkspaces,
+  writeIn,
+} from "../workspace.js";
 
 afterEach(cleanupWorkspaces);
+
+/** A workspace whose manifest is at schema `schemaVersion`. */
+function workspace(schemaVersion = 18): string {
+  const root = bareWorkspace();
+  writeIn(
+    root,
+    ".kb/manifest.json",
+    JSON.stringify({
+      manifestVersion: 1,
+      schemaVersion,
+      semanticAdvisorBackfill: "not_applicable",
+    }),
+  );
+  return root;
+}
 
 const DEFINITION =
   "The shopping cart a signed-in customer fills before checkout; it is not the saved wishlist.";
@@ -23,7 +43,7 @@ const VOCABULARY = [
   },
 ];
 
-function domain(
+function neighbour(
   subjectKey: string,
   defined: boolean,
   requirements: readonly { id: string; title: string }[],
@@ -33,15 +53,17 @@ function domain(
     subjectKey,
     defined,
     subjectFacts: defined
-      ? [{ id: "F-CART", title: "Shopping cart", source, partOf: [], kindOf: [] }]
+      ? [
+          {
+            id: "F-CART",
+            title: "Shopping cart",
+            source,
+            partOf: [],
+            kindOf: [],
+          },
+        ]
       : [],
-    broader: [],
-    ancestors: [],
-    narrower: [],
-    distinctFrom: [],
-    requirements: requirements.map((req) => ({ ...req, status: "open", via: [] })),
-    claims: [],
-    scenarios: [],
+    requirements,
   };
 }
 
@@ -62,9 +84,13 @@ const claim = (
 describe("claim anchors", () => {
   test("which claims must name subjects", () => {
     expect(claimNeedsSubjects(claim("C1"))).toBe(true);
-    expect(claimNeedsSubjects(claim("C1", { subjects: ["shop.cart"] }))).toBe(false);
+    expect(claimNeedsSubjects(claim("C1", { subjects: ["shop.cart"] }))).toBe(
+      false,
+    );
     expect(claimNeedsSubjects(claim("C1", { status: "modeled" }))).toBe(false);
-    expect(claimNeedsSubjects(claim("C1", { role: "descriptive" }))).toBe(false);
+    expect(claimNeedsSubjects(claim("C1", { role: "descriptive" }))).toBe(
+      false,
+    );
     expect(claimNeedsSubjects(claim("C1", { subjects: [""] }))).toBe(true);
   });
 
@@ -124,7 +150,9 @@ describe("subjectLayerWarnings", () => {
       workspace(),
     );
     expect(warning).not.toContain("suggest");
-    expect(warning).toEndWith("Define a missing subject as a subject fact first.");
+    expect(warning).toEndWith(
+      "Define a missing subject as a subject fact first.",
+    );
   });
 
   test("each named subject lists the other requirements on it, or says it is undefined", async () => {
@@ -139,9 +167,14 @@ describe("subjectLayerWarnings", () => {
       title: `Rule ${index}`,
     }));
     const { prolog, goals } = scriptedProlog([
-      json(domain("shop.cart", true, [{ id: "REQ-A", title: "Self" }, ...many], ".kb/facts/F-CART.md")),
-      json(domain("shop.ghost", false, [])),
-      json(domain("shop.lonely", true, [{ id: "REQ-A", title: "Self" }])),
+      json({
+        subjects: [
+          neighbour("shop.cart", true, many, ".kb/facts/F-CART.md"),
+          neighbour("shop.ghost", false, []),
+          neighbour("shop.lonely", true, []),
+        ],
+        notCurrent: [],
+      }),
     ]);
     const warnings = await subjectLayerWarnings(
       { id: "REQ-A", type: "req" },
@@ -154,17 +187,145 @@ describe("subjectLayerWarnings", () => {
       prolog,
       root,
     );
-    expect(goals).toHaveLength(3);
-    expect(goals[0]).toContain("domain_subjects:subject_domain_json('shop.cart', Json)");
+    // One store read for every subject.
+    expect(goals).toHaveLength(1);
+    expect(goals[0]).toContain(
+      "domain_subjects:subject_neighbours_json(['shop.cart','shop.ghost','shop.lonely'], 'REQ-A', [], Json)",
+    );
     expect(warnings).toHaveLength(2);
     expect(warnings[0]).toStartWith(
       `Subject shop.cart (${DEFINITION}) is also governed by REQ-0 ("Rule 0"),`,
     );
-    expect(warnings[0]).toContain('REQ-7 ("Rule 7") and 2 more. Read them');
-    expect(warnings[0]).toContain('kb_query {"factKind":"subject","subjectKey":"shop.cart"}');
+    expect(warnings[0]).toContain(
+      'REQ-7 ("Rule 7") and 2 more (on it, a narrower or a broader subject). Read them',
+    );
+    expect(warnings[0]).toContain(
+      'kb_query {"factKind":"subject","subjectKey":"shop.cart"}',
+    );
     expect(warnings[1]).toStartWith(
       "claim-subject-undefined: REQ-A names subject shop.ghost, which no active subject fact defines.",
     );
+  });
+
+  test("at most five subjects, and no store read without subjects or reviews", async () => {
+    const { prolog, goals } = scriptedProlog([
+      json({
+        subjects: [neighbour("a", true, [{ id: "REQ-B", title: "B" }])],
+        notCurrent: [],
+      }),
+    ]);
+    const warnings = await subjectLayerWarnings(
+      { id: "REQ-A", type: "req" },
+      {
+        semantic_inventory: [
+          claim("C1", { subjects: ["a", "b", "c", "d", "e", "f"] }),
+        ],
+      },
+      "",
+      prolog,
+      workspace(),
+    );
+    expect(goals[0]).toContain(
+      "subject_neighbours_json([a,b,c,d,e], 'REQ-A', [], Json)",
+    );
+    expect(warnings).toEqual([
+      'Subject a is also governed by REQ-B ("B") (on it, a narrower or a broader subject). Read them: if one contradicts REQ-A, or restricts what REQ-A describes in a way its text does not say, ask the human which rule holds before relying on either. kb_query {"factKind":"subject","subjectKey":"a"} shows the whole subject.',
+    ]);
+    const quiet = scriptedProlog([fail("not asked")]);
+    expect(
+      await subjectLayerWarnings(
+        { id: "REQ-A", type: "req" },
+        { semantic_inventory: [claim("C1", { status: "modeled" })] },
+        "",
+        quiet.prolog,
+        workspace(),
+      ),
+    ).toEqual([]);
+    expect(quiet.goals).toEqual([]);
+  });
+
+  test("a pair review naming no current requirement is reported", async () => {
+    const { prolog, goals } = scriptedProlog([
+      json({ subjects: [], notCurrent: ["REQ-TYPO", "REQ-GONE"] }),
+    ]);
+    const warnings = await subjectLayerWarnings(
+      { id: "REQ-A", type: "req" },
+      {
+        semantic_inventory: [claim("C1", { status: "modeled" })],
+        pair_reviews: [
+          { with: "REQ-TYPO", verdict: "no_conflict" },
+          { with: "REQ-GONE" },
+          { with: "REQ-TYPO" },
+        ],
+      },
+      "",
+      prolog,
+      workspace(),
+    );
+    expect(goals[0]).toContain(
+      "subject_neighbours_json([], 'REQ-A', ['REQ-GONE','REQ-TYPO'], Json)",
+    );
+    expect(warnings).toEqual([
+      "related-requirement-unmodeled: a pair review on REQ-A names REQ-TYPO, REQ-GONE, which are not current requirements, so those reviews settle nothing. Check the id in its with field; a review of a superseded or removed requirement can be dropped.",
+    ]);
+    const one = scriptedProlog([
+      json({ subjects: [], notCurrent: ["REQ-TYPO"] }),
+    ]);
+    expect(
+      await subjectLayerWarnings(
+        { id: "REQ-A", type: "req" },
+        { pair_reviews: [{ with: "REQ-TYPO" }] },
+        "",
+        one.prolog,
+        workspace(),
+      ),
+    ).toEqual([
+      "related-requirement-unmodeled: a pair review on REQ-A names REQ-TYPO, which is not a current requirement, so that review settles nothing. Check the id in its with field; a review of a superseded or removed requirement can be dropped.",
+    ]);
+  });
+
+  test("the partners a payload's pair reviews name", () => {
+    expect(pairReviewPartners({})).toEqual([]);
+    expect(pairReviewPartners({ pair_reviews: "REQ-B" })).toEqual([]);
+    expect(
+      pairReviewPartners({
+        pair_reviews: [
+          { with: " REQ-C " },
+          { with: "REQ-B" },
+          { with: "" },
+          { with: 3 },
+          null,
+          "REQ-X",
+          { with: "REQ-B" },
+        ],
+      }),
+    ).toEqual(["REQ-B", "REQ-C"]);
+  });
+
+  test("a store below schema 16 gets no subject notes", async () => {
+    const { prolog, goals } = scriptedProlog([json(VOCABULARY)]);
+    for (const root of [workspace(15), bareWorkspace()]) {
+      expect(
+        await subjectLayerWarnings(
+          { id: "REQ-A", type: "req" },
+          { semantic_inventory: [claim("C1")] },
+          "",
+          prolog,
+          root,
+        ),
+      ).toEqual([]);
+    }
+    expect(goals).toEqual([]);
+    const at16 = scriptedProlog([json(VOCABULARY)]);
+    expect(
+      await subjectLayerWarnings(
+        { id: "REQ-A", type: "req" },
+        { semantic_inventory: [claim("C1")] },
+        "",
+        at16.prolog,
+        workspace(16),
+      ),
+    ).toHaveLength(1);
   });
 
   test("a failed store read leaves the notes out, never the write", async () => {
@@ -181,29 +342,53 @@ describe("subjectLayerWarnings", () => {
   });
 
   test("a subject fact without a definition, or reading like an existing subject", async () => {
-    const { prolog } = scriptedProlog([
+    const { prolog, goals } = scriptedProlog([
       json([
         ...VOCABULARY,
         { factId: "F-BAG", subjectKey: "shop_bag", title: "Shopping bag" },
-        { factId: "F-OTHER", subjectKey: "shop.cart.lines", title: "Shopping cart" },
+        {
+          factId: "F-OTHER",
+          subjectKey: "shop.cart.lines",
+          title: "Shopping cart",
+        },
       ]),
+      json({ subjects: [neighbour("shop_cart", false, [])], notCurrent: [] }),
     ]);
     const warnings = await subjectLayerWarnings(
       { id: "F-NEW", type: "fact" },
-      { fact_kind: "subject", subject_key: "shop_cart", title: "Shopping cart", distinct_from: ["shop_bag"] },
+      {
+        fact_kind: "subject",
+        subject_key: "shop_cart",
+        title: "Shopping cart",
+        distinct_from: ["shop_bag"],
+      },
       "Cart.",
       prolog,
       workspace(),
     );
+    expect(goals[1]).toContain(
+      "subject_neighbours_json([shop_cart], '', [], Json)",
+    );
     expect(warnings).toEqual([
       "subject-definition-missing: subject shop_cart (F-NEW) needs a definition as its body: at least 8 words saying what it is in the product and what it is not. kb_check blocks a subject without one.",
-      "subject-duplicate: subject shop_cart reads like existing shop.cart (F-CART), shop.cart.lines (F-OTHER). Reuse the existing subject, or name it under distinct_from (or part_of or kind_of when this subject is a part or kind of it) and say in the definition how they differ; kb_check blocks the pair otherwise.",
+      "subject-duplicate: subject shop_cart reads like existing shop.cart (F-CART). Reuse the existing subject, or name it under distinct_from (or part_of or kind_of when this subject is a part or kind of it) and say in the definition how they differ; kb_check blocks the pair otherwise.",
     ]);
-    const quiet = scriptedProlog([json(VOCABULARY)]);
+    const quiet = scriptedProlog([
+      json(VOCABULARY),
+      json({
+        subjects: [neighbour("shop.wishlist", false, [])],
+        notCurrent: [],
+      }),
+    ]);
     expect(
       await subjectLayerWarnings(
         { id: "F-NEW", type: "fact" },
-        { fact_kind: "subject", subject_key: "shop.wishlist", title: "Wishlist", part_of: ["shop"] },
+        {
+          fact_kind: "subject",
+          subject_key: "shop.wishlist",
+          title: "Wishlist",
+          part_of: ["shop"],
+        },
         DEFINITION,
         quiet.prolog,
         workspace(),
@@ -218,5 +403,32 @@ describe("subjectLayerWarnings", () => {
         workspace(),
       ),
     ).toEqual([]);
+  });
+
+  test("a second active subject fact with the same key is reported", async () => {
+    const twin = {
+      subjects: [
+        {
+          ...neighbour("shop.cart", true, []),
+          subjectFacts: [
+            { id: "F-NEW", title: "Cart", source: "", partOf: [], kindOf: [] },
+            { id: "F-CART", title: "Cart", source: "", partOf: [], kindOf: [] },
+          ],
+        },
+      ],
+      notCurrent: [],
+    };
+    const { prolog } = scriptedProlog([json(VOCABULARY), json(twin)]);
+    expect(
+      await subjectLayerWarnings(
+        { id: "F-NEW", type: "fact" },
+        { fact_kind: "subject", subject_key: "shop.cart", title: "Cart" },
+        DEFINITION,
+        prolog,
+        workspace(),
+      ),
+    ).toEqual([
+      "subject-duplicate: subject shop.cart is already defined by F-CART. Two active subject facts with one key make the term mean two things: extend the existing definition instead, or retire one of them.",
+    ]);
   });
 });

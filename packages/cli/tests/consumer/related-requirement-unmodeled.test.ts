@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   type ConsumerWorkspace,
+  type Json,
+  KIBI_CLI,
   QUOTA_SUBJECT,
   adviseProse,
   checkViolations,
@@ -171,7 +175,7 @@ describe("related-requirement-unmodeled through the kibi CLI", () => {
       `${keys.length} unmodeled claim(s)`,
     );
     expect(violations[0]?.description).toContain(
-      "REQ-QUOTA-CALL, which it pairs with through a relates_to edge",
+      "1 requirement(s) it pairs with: REQ-QUOTA-CALL (through a relates_to edge)",
     );
     expect(violations[0]?.description).toContain(
       "no verdict records how they combine",
@@ -258,7 +262,7 @@ describe("related-requirement-unmodeled through the kibi CLI", () => {
       "REQ-ACCOUNT-QUOTA",
     ]);
     expect(shared[0]?.description).toContain(
-      "through shared subject client.call_quota",
+      "REQ-QUOTA-CALL (through shared subject client.call_quota)",
     );
 
     // A verdict counts only while a relates_to edge carries the pair.
@@ -288,4 +292,71 @@ describe("related-requirement-unmodeled through the kibi CLI", () => {
     ws.sync();
     expect(findings(ws)).toEqual([]);
   });
+
+  test("many requirements on one subject give one finding each, quickly", () => {
+    const ws = createConsumerWorkspace("kibi-related-unmodeled-volume-");
+    workspace = ws;
+    ws.write(".kb/facts/FACT-QUOTA-SUBJECT.md", QUOTA_SUBJECT);
+    const sha = (text: string) =>
+      createHash("sha256").update(text).digest("hex");
+    const COUNT = 150;
+    for (let index = 0; index < COUNT; index += 1) {
+      const text = `The gateway number ${index} must answer call kind ${index} within its quota`;
+      const key = `CLAIM-${sha(text.toLowerCase()).slice(0, 16).toUpperCase()}`;
+      ws.write(
+        `.kb/requirements/REQ-VOLUME-${index}.md`,
+        doc(
+          `
+id: REQ-VOLUME-${index}
+title: Generated quota requirement ${index}
+type: req
+status: open
+priority: should
+semantic_text: ${text}.
+semantic_inventory_version: kibi.semantic-inventory.v1
+semantic_source_field: semantic_text
+semantic_source_hash: ${sha(`${text}.`)}
+semantic_inventory:
+  - claim_key: ${key}
+    claim_text: ${text}
+    role: normative
+    status: ontology_gap
+    span: {start: 0, end: ${text.length}}
+    subjects: [client.call_quota]
+logic_claims: [${key}]
+`,
+          `${text}.\n\n## Context\n\nThe maintainers set this limit after an outage of the gateway last year and recorded it here for call kind ${index}.`,
+        ),
+      );
+    }
+    ws.sync();
+    const started = Date.now();
+    const run = spawnSync(
+      "node",
+      [
+        KIBI_CLI,
+        "check",
+        "--format",
+        "json",
+        "--rules",
+        "related-requirement-unmodeled",
+      ],
+      { cwd: ws.root, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 },
+    );
+    const elapsed = Date.now() - started;
+    const findings = (
+      (JSON.parse(run.stdout) as { structuredContent: Json })
+        .structuredContent as {
+        violations: Array<{ entityId: string; description: string }>;
+      }
+    ).violations;
+    // One finding per requirement, not one per ordered pair (22,350).
+    expect(findings).toHaveLength(COUNT);
+    expect(findings[0]?.description).toContain(
+      "nothing compares with 149 requirement(s) it pairs with",
+    );
+    expect(findings[0]?.description).toContain("(+141 more)");
+    expect(run.stdout.length).toBeLessThan(5_000_000);
+    expect(elapsed).toBeLessThan(90_000);
+  }, 300_000);
 });

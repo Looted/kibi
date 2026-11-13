@@ -71,5 +71,8 @@ describe("schema 18 pair review candidates", () => {
     expect(pairReviewNote(2, false)).toContain(
       "2 current requirement(s) have such claims",
     );
+    expect(pairReviewNote(2, false)).toContain(
+      "one finding per requirement naming the requirements it pairs with",
+    );
   });
 });

@@ -28,9 +28,10 @@ import type { OperationContext } from "./runtime-types.js";
 
 /**
  * A current must requirement states its positive behaviour: a scenario that
- * specifies it, expects success, and assumes a fact on one of its subjects.
- * scenario-feasibility can then refuse that behaviour when another current
- * requirement on the subject forbids it.
+ * specifies it, expects success, and assumes a fact other than the subject
+ * fact itself (a property_value, predicate or rule fact) on one of its
+ * subjects. scenario-feasibility can then refuse that behaviour when another
+ * current requirement on the subject forbids it.
  */
 export const POSITIVE_SCENARIO_RULE = "must-positive-scenario";
 
@@ -43,6 +44,7 @@ export const POSITIVE_SCENARIO_SCHEMA_VERSION = 17;
 
 export type PositiveScenarioGapReason =
   | "no_subjects"
+  | "undefined_subjects"
   | "no_success_scenario"
   | "no_subject_assumption";
 
@@ -70,10 +72,12 @@ function describeGap(gap: PositiveScenarioGap): string {
   switch (gap.reason) {
     case "no_subjects":
       return `Must requirement ${gap.id} is about no subject, so no scenario can state the behaviour it promises in terms other requirements share`;
+    case "undefined_subjects":
+      return `Must requirement ${gap.id} names only subjects no active subject fact defines (${listed(gap.subjects)}), so no scenario can state the behaviour it promises on them yet`;
     case "no_success_scenario":
       return `Must requirement ${gap.id} has no scenario that expects success, so nothing states the behaviour it promises on ${listed(gap.subjects)}`;
     default:
-      return `Must requirement ${gap.id} has success scenarios (${listed(gap.successScenarios)}), but none assumes a fact on its subjects (${listed(gap.subjects)}), so its positive behaviour cannot be compared with other requirements`;
+      return `Must requirement ${gap.id} has success scenarios (${listed(gap.successScenarios)}), but none assumes a property_value, predicate or rule fact on its subjects (${listed(gap.subjects)}), so its positive behaviour cannot be compared with other requirements`;
   }
 }
 
@@ -82,10 +86,12 @@ function suggestGap(gap: PositiveScenarioGap): string {
   switch (gap.reason) {
     case "no_subjects":
       return `Name the subjects ${gap.id} is about (link a subject fact through constrains, or list subjects on its unmodeled claims), then add ${scenario}. kb_query with factKind subject and subjectKey shows what else governs each subject.`;
+    case "undefined_subjects":
+      return `Define the subject first (claim-subject-undefined): a subject fact for ${listed(gap.subjects)} whose body says what it is and is not, or name an existing subject instead. Then add ${scenario}, as property_value, predicate or rule facts on that subject.`;
     case "no_success_scenario":
-      return `Add ${scenario}, as facts on ${listed(gap.subjects)} or a narrower subject. scenario-feasibility then refuses the scenario when a current requirement forbids that behaviour.`;
+      return `Add ${scenario}, as property_value, predicate or rule facts on ${listed(gap.subjects)} or a narrower subject (the subject fact itself states no behaviour). scenario-feasibility then refuses the scenario when a current requirement forbids that behaviour.`;
     default:
-      return `Link at least one of those scenarios, or a new one, through assumes to a fact on ${listed(gap.subjects)} or a narrower subject that states what the behaviour relies on. scenario-feasibility then refuses the scenario when a current requirement forbids that behaviour.`;
+      return `Link at least one of those scenarios, or a new one, through assumes to a property_value, predicate or rule fact on ${listed(gap.subjects)} or a narrower subject that states what the behaviour relies on; assuming the subject fact itself does not count. scenario-feasibility then refuses the scenario when a current requirement forbids that behaviour.`;
   }
 }
 

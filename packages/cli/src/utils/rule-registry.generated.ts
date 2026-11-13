@@ -233,21 +233,21 @@ export const GENERATED_RULES = [
   {
     name: "related-requirement-unmodeled",
     description:
-      "A current requirement whose rule claims are still unmodeled (missing, ontology_gap or ambiguous) in a stored pair with another current requirement (a relates_to edge, or a subject they share, the claims naming that subject or a narrower one); nothing compares those claims, so the pair blocks until they are modeled, one requirement supersedes the other, or a pair_reviews verdict settles it: no_conflict naming what separates them, interacts naming the current scenario, fact, requirement or claim that resolves it, covering each unmodeled claim at its current payload, recorded while a relates_to edge links the pair, and approved by a person (origin.approved_by) when an agent recorded it on a must or firm requirement; a conflict verdict stays blocking until a person decides",
+      "A current requirement whose rule claims are still unmodeled (missing, ontology_gap or ambiguous) in a stored pair with another current requirement (a relates_to edge, or a subject they share, the claims naming that subject or a narrower one); nothing compares those claims, so the pair blocks until they are modeled, one requirement supersedes the other, or a pair_reviews verdict settles it: no_conflict naming what separates them, interacts naming what resolves it (a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim key of either), naming each unmodeled claim by claim_key (a payload_hash is accepted and ignored), recorded while a relates_to edge links the pair, and, on a must or firm pair, approved by a person (origin.approved_by) when its origin is missing or an agent's or it sits on a requirement an agent wrote; a conflict verdict stays blocking until a person decides. One finding per requirement and problem lists the requirements it pairs with (KB schema 18; older schemas keep the earlier rule)",
     enforcementClass: "canonical",
     category: "integrity",
   },
   {
     name: "claim-subject-missing",
     description:
-      "A current requirement's unmodeled claim (ambiguous, ontology_gap or missing) that states or scopes a rule (normative, condition, exception or definition) must name the subjects it is about in its semantic_inventory entry's subjects, so Kibi can pair it with the other requirements on those subjects",
+      "A current requirement's unmodeled claim (ambiguous, ontology_gap or missing) that states or scopes a rule (normative, condition, exception or definition) must name the subjects it is about in its semantic_inventory entry's subjects, so Kibi can pair it with the other requirements on those subjects (KB schema 16)",
     enforcementClass: "canonical",
     category: "integrity",
   },
   {
     name: "claim-subject-undefined",
     description:
-      "Every subject key a current requirement's inventory claim names, and every part_of, kind_of or distinct_from key of an active subject fact, must be defined by an active subject fact",
+      "Every subject key a current requirement's inventory claim names, and every part_of, kind_of or distinct_from key of an active subject fact, must be defined by an active subject fact (KB schema 16)",
     enforcementClass: "canonical",
     category: "integrity",
   },
@@ -477,7 +477,7 @@ export const GENERATED_RULES = [
   {
     name: "must-positive-scenario",
     description:
-      "A current must requirement must have an active scenario that specifies it, expects success, and assumes a fact on one of its subjects or a narrower one, so scenario-feasibility can refuse the behaviour it promises when another current requirement forbids it; must requirements the schema 17 migration recorded are exempt (KB schema 17)",
+      "A current must requirement must have an active scenario that specifies it, expects success, and assumes a property_value, predicate or rule fact (not the subject fact itself) on one of its subjects or a narrower one, which must be defined, so scenario-feasibility can refuse the behaviour it promises when another current requirement forbids it; must requirements the schema 17 migration recorded are exempt (KB schema 17)",
     enforcementClass: "canonical",
     category: "coverage",
   },

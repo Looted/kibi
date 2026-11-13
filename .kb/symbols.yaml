@@ -39961,3 +39961,78 @@ symbols:
         target: TEST-kb-domain-subject-layer
       - type: implements
         target: REQ-kb-domain-subject-layer
+  - id: SYM-domain-subjects-subject-neighbours-json
+    title: subject_neighbours_json
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:17:35.499Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
+  - id: SYM-subject-domain-read-subject-neighbours
+    title: readSubjectNeighbours
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-domain.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:17:46.260Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
+  - id: SYM-subject-warnings-pair-review-partners
+    title: pairReviewPartners
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:18:01.578Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-related-requirement-unmodeled
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-unmodeled-pair-review
+  - id: SYM-checks-with-kb-schema-version
+    title: with_kb_schema_version
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:18:17.467Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-related-requirement-unmodeled
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-unmodeled-pair-review
+  - id: SYM-cli-schema-scoped-goal
+    title: schemaScopedGoal
+    status: active
+    sourceFile: packages/cli/src/commands/aggregated-checks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:18:27.299Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-related-requirement-unmodeled
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-unmodeled-pair-review

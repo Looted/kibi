@@ -67,5 +67,5 @@ export function planPairReviewCandidates(workspaceRoot: string): string[] {
 
 /** The upgrade note for the requirements planPairReviewCandidates found. */
 export function pairReviewNote(count: number, dryRun: boolean): string {
-  return `${dryRun ? "dry run: " : ""}Schema 18: related-requirement-unmodeled now blocks a current requirement whose unmodeled rule claims pair with another current requirement through a relates_to edge or a shared subject; ${count} current requirement(s) have such claims. Run kibi check to list the pairs, then model the claims or record a pair_reviews verdict on each pair (a person approves an agent's verdict on a must or firm requirement). Nothing is written.`;
+  return `${dryRun ? "dry run: " : ""}Schema 18: related-requirement-unmodeled now blocks a current requirement whose unmodeled rule claims pair with another current requirement through a relates_to edge or a shared subject; ${count} current requirement(s) have such claims. Run kibi check to list them, one finding per requirement naming the requirements it pairs with, then model the claims or record a pair_reviews verdict on each pair (a person approves an agent's verdict on a must or firm requirement). Nothing is written.`;
 }

@@ -3528,6 +3528,117 @@ test(semantic_completeness, Violations == [V1, V2]) :-
     V1 = violation('semantic-completeness', 'REQ-S', "Requirement proposition ledger contains an unclassified assertive span (CLAIM-1)", S, 'REQ-S.md'),
     V2 = violation('semantic-completeness', 'REQ-S', "Requirement proposition ledger contains an unclassified assertive span (entry without claim_key)", S, 'REQ-S.md').
 
+
+chk_unmodeled_fixture :-
+    chk_subject('FACT-CART', cart),
+    chk_total('FACT-TOTAL', gt, 0),
+    chk_pred('FACT-HOLDS', "holds", ["cart"], []),
+    chk_raw_entity(fact, 'FACT-OWNS', [id='FACT-OWNS', fact_kind=predicate, predicate_name="owns", predicate_args=["x"]]),
+    chk_raw_entity(fact, 'FACT-NAMELESS', [id='FACT-NAMELESS', fact_kind=predicate, predicate_args=["x"]]),
+    chk_ent(fact, 'FACT-OBS', [fact_kind=observation, canonical_key="seen"]),
+    chk_inv([m1-missing, m2-missing, ok-modeled], Missing2),
+    chk_inv([m1-missing], Missing1),
+    chk_inv([ok-modeled], NoneMissing),
+    % modeled: a strict pair and a predicate with a canonical key
+    chk_req('REQ-M'),
+    chk_strict('REQ-M', 'FACT-CART', 'FACT-TOTAL'),
+    chk_rel(requires_predicate, 'REQ-M', 'FACT-HOLDS'),
+    % modeled through a predicate name only
+    chk_req('REQ-M2'),
+    chk_raw_rel(requires_predicate, 'REQ-M2', 'FACT-OWNS'),
+    chk_raw_rel(requires_predicate, 'REQ-M2', 'FACT-NAMELESS'),
+    % links that model nothing
+    chk_req('REQ-PLAIN'),
+    chk_raw_rel(requires_predicate, 'REQ-PLAIN', 'FACT-OBS'),
+    chk_raw_rel(requires_predicate, 'REQ-PLAIN', 'FACT-GONE'),
+    chk_req('REQ-OLDM', [status=deprecated]),
+    chk_strict('REQ-OLDM', 'FACT-CART', 'FACT-TOTAL'),
+    chk_lreq('REQ-U', open, [semantic_inventory=Missing2]),
+    forall(member(O, ['REQ-M', 'REQ-PLAIN', 'REQ-OLDM']), chk_raw_rel(relates_to, 'REQ-U', O)),
+    chk_lreq('REQ-N', open, [semantic_inventory=Missing1]),
+    chk_raw_rel(relates_to, 'REQ-M2', 'REQ-N'),
+    chk_lreq('REQ-Z', open, [semantic_inventory=NoneMissing]),
+    chk_raw_rel(relates_to, 'REQ-Z', 'REQ-M'),
+    chk_lreq('REQ-DEP', deprecated, [semantic_inventory=Missing1]),
+    chk_raw_rel(relates_to, 'REQ-DEP', 'REQ-M'),
+    chk_lreq('REQ-SELF', open, [semantic_inventory=Missing1]),
+    chk_strict('REQ-SELF', 'FACT-CART', 'FACT-TOTAL'),
+    chk_raw_rel(relates_to, 'REQ-SELF', 'REQ-SELF'),
+    chk_lreq('REQ-NOLEDGER', open, []),
+    chk_raw_rel(relates_to, 'REQ-NOLEDGER', 'REQ-M').
+
+chk_legacy_unmodeled_violations([V1, V2]) :-
+    V1 = violation('related-requirement-unmodeled', 'REQ-N',
+        "Requirement REQ-N leaves 1 proposition(s) unmodeled (status missing) while it relates_to REQ-M2, which models owns; domain-contradictions compares grounded facts only, so these claims are never checked against REQ-M2",
+        "Model the missing propositions of REQ-N against owns (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that REQ-N supersedes REQ-M2 if it replaces that requirement",
+        'REQ-N.md'),
+    V2 = violation('related-requirement-unmodeled', 'REQ-U',
+        "Requirement REQ-U leaves 2 proposition(s) unmodeled (status missing) while it relates_to REQ-M, which models cart.total, holds([cart]); domain-contradictions compares grounded facts only, so these claims are never checked against REQ-M",
+        "Model the missing propositions of REQ-U against cart.total, holds([cart]) (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that REQ-U supersedes REQ-M if it replaces that requirement",
+        'REQ-U.md').
+
+% Below schema 18 the rule keeps its earlier reading: missing propositions
+% of a requirement that relates_to a modeled one.
+test(related_requirement_unmodeled_before_schema_18, Violations == Expected) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        checks:check_related_requirement_unmodeled_before_schema_18(Violations)
+    )),
+    chk_legacy_unmodeled_violations(Expected).
+
+test(missing_counts, Counts == [2, 1, 0]) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        findall(C, (member(R, ['REQ-U', 'REQ-N', 'REQ-Z', 'REQ-NOLEDGER']),
+                    checks:requirement_missing_proposition_count(R, C)), Counts)
+    )).
+
+test(modeled_summaries, Summaries == ['cart.total, holds([cart])', owns]) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        findall(S, (member(R, ['REQ-M', 'REQ-M2', 'REQ-PLAIN', 'REQ-U']),
+                    checks:modeled_requirement_summary(R, S)), Summaries)
+    )).
+
+% Each schema-gated domain rule judges only a store that took its upgrade:
+% the claim anchors from 16, the pair semantics of
+% related-requirement-unmodeled from 18 (the earlier rule below it).
+test(domain_rules_follow_the_schema_version, Results == [
+        none-[1, 1, 1, 0],
+        v15-[0, 0, 0, 2],
+        v16-[1, 1, 0, 2],
+        v17-[1, 1, 0, 2],
+        v18-[1, 1, 1, 0]
+    ]) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        chk_lreq('REQ-ANCHOR', open, [semantic_inventory="[{\"claim_key\":\"CLAIM-A\",\"claim_text\":\"x\",\"role\":\"normative\",\"status\":\"ontology_gap\",\"subjects\":[\"nowhere\"]},{\"claim_key\":\"CLAIM-B\",\"claim_text\":\"y\",\"role\":\"normative\",\"status\":\"ontology_gap\"}]"]),
+        chk_raw_rel(relates_to, 'REQ-ANCHOR', 'REQ-M'),
+        findall(Version-Counts,
+                (   member(Version, [none, v15, v16, v17, v18]),
+                    Goal = ( checks:check_claim_subject_missing_for_schema(A),
+                             checks:check_claim_subject_undefined_for_schema(B),
+                             checks:check_related_requirement_unmodeled_for_schema(C),
+                             include([violation(_, 'REQ-ANCHOR', _, _, _, _)]>>true, C, Anchored),
+                             include([violation(_, Id, _, _, _)]>>memberchk(Id, ['REQ-N', 'REQ-U']), C, Legacy),
+                             % A skipped rule still answers a list.
+                             is_list(A), is_list(B),
+                             length(A, NA), length(B, NB), length(Anchored, NC), length(Legacy, NL),
+                             Counts0 = [NA, NB, NC, NL] ),
+                    (   Version == none
+                    ->  once(Goal), Counts = Counts0
+                    ;   atom_concat(v, Text, Version),
+                        atom_number(Text, Number),
+                        with_kb_schema_version(Number, Goal),
+                        Counts = Counts0
+                    )
+                ),
+                Results0),
+        % The version applies only inside the goal it scopes.
+        \+ checks:kb_schema_version_override(_),
+        Results = Results0
+    )).
+
 :- end_tests(checks_semantic_ledger).
 
 % --- the aggregated dict and its JSON transports ------------------------------
