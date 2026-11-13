@@ -7689,5 +7689,19 @@
         "./scripts/skillopt-eval/tests/refused-kb-read-e2e.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-skillopt-pooled-family-gate",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--preload",
+        "./scripts/skillopt-eval/offline-test-preload.ts",
+        "--timeout",
+        "120000",
+        "./scripts/skillopt-eval/tests/family-gate.test.ts"
+      ]
+    ]
   }
 ]

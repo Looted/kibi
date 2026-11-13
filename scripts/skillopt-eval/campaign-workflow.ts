@@ -95,6 +95,7 @@ import {
   selectedSkillOptHost,
 } from "./runtime/skillopt-host";
 import { resolveTaskFixture } from "./runtime/task-fixture";
+import { type NoiseFloor, judgeFamily } from "./scoring/family-gate";
 import { initializeTargetEpisodeBudget } from "./target-episode-budget";
 
 /**
@@ -403,6 +404,10 @@ function zEvaluationSchema() {
       taskCatalogHash: Sha256Schema,
       cohortBindingHash: Sha256Schema,
       host: CampaignHostRecordSchema.optional(),
+      /** Per-family pass-rate gap between two baseline arms. */
+      noiseFloor: z
+        .record(z.string().min(1), z.number().min(0).max(1))
+        .optional(),
       model: z
         .object({
           targetModel: ModelIdSchema,
@@ -431,6 +436,7 @@ function zEvaluationSchema() {
           candidates: z.array(ArmAggregateSchema).min(1).max(3),
           noRegression: z.boolean(),
           regressions: z.array(z.string()),
+          underpowered: z.array(z.string()).optional(),
         })
         .strict(),
       runs: z
@@ -593,8 +599,15 @@ function summarizeArm(
 function compareAggregates(
   baseline: z.infer<typeof ArmAggregateSchema>,
   candidates: readonly z.infer<typeof ArmAggregateSchema>[],
-): { noRegression: boolean; regressions: string[] } {
+  noiseFloor: Readonly<Record<string, number>> = {},
+): {
+  noRegression: boolean;
+  regressions: string[];
+  underpowered: string[];
+} {
   const regressions: string[] = [];
+  // Families too small to judge are reported, not counted as regressions.
+  const underpowered: string[] = [];
   for (const candidate of candidates) {
     if (candidate.mean < baseline.mean)
       regressions.push(`${candidate.variant}:mean`);
@@ -602,18 +615,29 @@ function compareAggregates(
       regressions.push(`${candidate.variant}:hardPasses`);
     if (candidate.securityFailures > 0)
       regressions.push(`${candidate.variant}:security`);
+    // Families are judged on pooled pass rates, never on single cells.
     for (const [family, base] of Object.entries(baseline.families)) {
-      const current = candidate.families[family];
-      if (
-        current === undefined ||
-        current.mean < base.mean ||
-        current.hardPasses < base.hardPasses
-      ) {
+      if (candidate.families[family] === undefined) {
         regressions.push(`${candidate.variant}:family:${family}`);
+        continue;
       }
+      const judgement = judgeFamily(
+        family,
+        base,
+        candidate.families[family],
+        noiseFloor[family],
+      );
+      if (judgement.verdict === "regressed")
+        regressions.push(`${candidate.variant}:family:${family}`);
+      if (judgement.verdict === "underpowered")
+        underpowered.push(`${candidate.variant}:family:${family}`);
     }
   }
-  return { noRegression: regressions.length === 0, regressions };
+  return {
+    noRegression: regressions.length === 0,
+    regressions,
+    underpowered,
+  };
 }
 
 function buildPairings(
@@ -675,7 +699,7 @@ function assertDerivedEvaluationConsistent(
   const recomputedAggregate = {
     baseline,
     candidates,
-    ...compareAggregates(baseline, candidates),
+    ...compareAggregates(baseline, candidates, evaluation.context.noiseFloor),
   };
   if (
     canonicalValueHash(evaluation.aggregate) !==
@@ -1624,7 +1648,11 @@ async function buildEvaluation(
   const candidates = candidateHashes.map((hash, index) =>
     summarizeArm(`candidate-${index + 1}`, hash, input.cells),
   );
-  const comparison = compareAggregates(baseline, candidates);
+  const comparison = compareAggregates(
+    baseline,
+    candidates,
+    input.context.noiseFloor,
+  );
   const pairings = buildPairings(input.cells, candidateHashes, baselineHash);
   return sealEvaluation({
     schemaVersion: "1.0.0",
@@ -2219,9 +2247,21 @@ async function evaluateWithPreparation(
     env?: NodeJS.ProcessEnv;
     host: SkillOptHost;
     prior?: CampaignEvaluation;
+    noiseFloor?: NoiseFloor;
   }>,
 ): Promise<CampaignEvaluation> {
   requirePaid(input.allowPaid);
+  if (input.noiseFloor !== undefined && input.noiseFloor.skill !== input.skill)
+    throw new CampaignArtifactError("noise_floor_skill_mismatch");
+  const noiseFloor =
+    input.noiseFloor === undefined
+      ? input.prior?.context.noiseFloor
+      : Object.fromEntries(
+          Object.entries(input.noiseFloor.families).map(([family, entry]) => [
+            family,
+            entry.noiseFloor,
+          ]),
+        );
   let host = campaignHost(input.host, input.env);
   const store = await openRunningStore(
     input.command,
@@ -2416,6 +2456,7 @@ async function evaluateWithPreparation(
         taskCatalogHash: taskCatalogHash(tasks),
         cohortBindingHash: runLockHash,
         host,
+        ...(noiseFloor === undefined ? {} : { noiseFloor }),
         model: campaignModelProfile(),
       } as const;
       const evaluation = await buildEvaluation({
@@ -2498,6 +2539,7 @@ export async function runEvaluateCampaign(
     runId?: string;
     env?: NodeJS.ProcessEnv;
     host?: SkillOptHost;
+    noiseFloor?: NoiseFloor;
     dependencies?: Partial<CampaignDependencies>;
   }>,
 ): Promise<CampaignEvaluation> {
@@ -2516,6 +2558,7 @@ export async function runEvaluateCampaign(
     allowPaid: input.allowPaid,
     runId: input.runId ?? randomUUID(),
     dependencies,
+    noiseFloor: input.noiseFloor,
     env: input.env,
     host: campaignHost(input.host, input.env).id,
   });
@@ -2532,6 +2575,7 @@ export async function runConfirmCampaign(
     runId?: string;
     env?: NodeJS.ProcessEnv;
     host?: SkillOptHost;
+    noiseFloor?: NoiseFloor;
     dependencies?: Partial<CampaignDependencies>;
   }>,
 ): Promise<CampaignEvaluation> {
@@ -2555,6 +2599,7 @@ export async function runConfirmCampaign(
     allowPaid: input.allowPaid,
     runId: input.runId ?? randomUUID(),
     dependencies,
+    noiseFloor: input.noiseFloor,
     prior,
     env: input.env,
     host,

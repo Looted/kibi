@@ -251,3 +251,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-224604bea847
+  - type: specified_by
+    from: REQ-skillopt-pooled-family-gate
+    to: SCEN-skillopt-pooled-family-gate
+    created_at: 2026-11-13T19:55:25.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-066558c64e2d
+  - type: specified_by
+    from: REQ-skillopt-pooled-family-gate
+    to: SCEN-NEG-skillopt-family-SINGLE-CELL-REGRESSION
+    created_at: 2026-11-13T19:55:25.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef4d8b094c93
+  - type: verified_by
+    from: REQ-skillopt-pooled-family-gate
+    to: TEST-skillopt-pooled-family-gate
+    created_at: 2026-11-13T19:55:25.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b7725667849
+  - type: requires_rule
+    from: REQ-skillopt-pooled-family-gate
+    to: FACT-RULE-A8F5DCC2B8EC5921
+    created_at: 2026-11-13T19:58:24.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c5fa9752bf2
