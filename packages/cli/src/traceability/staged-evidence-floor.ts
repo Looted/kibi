@@ -127,8 +127,7 @@ export async function collectStagedEvidenceFloorViolations(
     await projectStagedEntities(
       ctx.prolog,
       input.stagedEntities.filter(
-        (result) =>
-          result.entity.type === "req" && held.has(result.entity.id),
+        (result) => result.entity.type === "req" && held.has(result.entity.id),
       ),
     );
     const findings = await collectEvidenceFloorViolations(

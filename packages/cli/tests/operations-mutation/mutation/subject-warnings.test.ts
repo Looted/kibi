@@ -167,7 +167,9 @@ describe("subjectLayerWarnings", () => {
     expect(warning).toContain("shop.cart_lines");
     expect(warning).not.toContain("Subject shop.cart_pdf");
     expect(warning).not.toContain('shop.cart_lines ("');
-    expect(warning).toContain('shop.cart_sign_out ("Leaving the cart on sign-out")');
+    expect(warning).toContain(
+      'shop.cart_sign_out ("Leaving the cart on sign-out")',
+    );
   });
 
   test("a claim no subject matches is told to define one", async () => {

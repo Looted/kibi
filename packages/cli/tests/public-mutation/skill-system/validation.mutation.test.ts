@@ -156,11 +156,9 @@ describe("nested host metadata", () => {
   });
 
   test("a top-level field wins over a nested one", () => {
-    const root = skill(
-      { ...nested, version: "2.0.0" },
-      "Body\n",
-      { "r.md": "r" },
-    );
+    const root = skill({ ...nested, version: "2.0.0" }, "Body\n", {
+      "r.md": "r",
+    });
     expect(parseSkillBundle(root).manifest.version).toBe("2.0.0");
   });
 

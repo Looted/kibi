@@ -142,9 +142,7 @@ export function resetSessionStateForTests(): void {
   inFlightRequests.clear();
 }
 
-export function _setSessionDepsForTests(
-  overrides: Partial<SessionDeps>,
-): void {
+export function _setSessionDepsForTests(overrides: Partial<SessionDeps>): void {
   sessionDeps = { ...sessionDeps, ...overrides };
 }
 

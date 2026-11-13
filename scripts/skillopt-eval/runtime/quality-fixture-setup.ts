@@ -37,7 +37,9 @@ export function isQualitySetupMode(
   return (QUALITY_SETUP_MODES as readonly string[]).includes(mode ?? "");
 }
 
-function documentsFor(mode: QualitySetupMode): Readonly<Record<string, string>> {
+function documentsFor(
+  mode: QualitySetupMode,
+): Readonly<Record<string, string>> {
   switch (mode) {
     case "seeded_owner_choice_kb":
       return OWNER_DOCUMENTS;
@@ -135,10 +137,7 @@ export async function setupQualityFixture(
       const violations = Array.isArray(content.violations)
         ? content.violations
         : [];
-      if (
-        violations.length !== 1 ||
-        !isSeededContextViolation(violations[0])
-      )
+      if (violations.length !== 1 || !isSeededContextViolation(violations[0]))
         throw new FixtureSetupError(
           `${mode} must report only entity-context-missing for ${QUALITY_IDS.label}: ${JSON.stringify(violations).slice(0, 600)}`,
         );

@@ -36,8 +36,10 @@ const PATH_OPTIONS = new Set([
  * Subcommands whose first positional argument is a path the user named from
  * their shell, with the options of that subcommand that take a value.
  */
-const POSITIONAL_PATH_COMMANDS: ReadonlyMap<string, ReadonlySet<string>> =
-  new Map([["skills validate", new Set(["--format"])]]);
+const POSITIONAL_PATH_COMMANDS: ReadonlyMap<
+  string,
+  ReadonlySet<string>
+> = new Map([["skills validate", new Set(["--format"])]]);
 
 /** Commands that act on the current directory itself, never on an enclosing KB. */
 const CWD_COMMANDS = new Set(["init"]);
@@ -94,7 +96,9 @@ function positionalPathIndex(argv: readonly string[]): number {
     words.push(index);
     if (
       words.length === 3 &&
-      POSITIONAL_PATH_COMMANDS.has(`${argv[words[0] as number]} ${argv[words[1] as number]}`)
+      POSITIONAL_PATH_COMMANDS.has(
+        `${argv[words[0] as number]} ${argv[words[1] as number]}`,
+      )
     )
       return index;
   }

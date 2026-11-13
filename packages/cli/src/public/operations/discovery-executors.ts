@@ -1,5 +1,9 @@
 import { readFile } from "node:fs/promises";
-import { definitionQuote, readSubjectDomain, type SubjectDomain } from "./subject-domain.js";
+import {
+  definitionQuote,
+  readSubjectDomain,
+  type SubjectDomain,
+} from "./subject-domain.js";
 import path from "node:path";
 import {
   compilerFingerprintReason,

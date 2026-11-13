@@ -4,7 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import { extractFromMarkdownString } from "../../src/extractors/markdown.js";
 import { collectStagedEvidenceFloorViolations } from "../../src/traceability/staged-evidence-floor.js";
-import { execFileSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
+import {
+  execFileSync,
+  isolatedCliSandboxEnv,
+} from "../helpers/isolated-env.js";
 
 const kibiBin = path.resolve(import.meta.dir, "../../bin/kibi");
 const REQUIREMENT_PATH = ".kb/requirements/REQ-login-session.md";

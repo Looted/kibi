@@ -191,7 +191,12 @@ describe("domain subjects through the kibi CLI", () => {
       autoApplicable: false,
     });
     expect((anchor.evidence as Json).subjects).toEqual(["drawing"]);
-    ws.kibi(["migrate", "--apply-safe", "--approved-plan-hash", String(plan.planHash)]);
+    ws.kibi([
+      "migrate",
+      "--apply-safe",
+      "--approved-plan-hash",
+      String(plan.planHash),
+    ]);
     expect(ws.read(".kb/requirements/REQ-EXPORT.md")).toBe(before);
     const replanned = ws.json(["migrate", "--format", "json"]);
     ws.kibi([
@@ -214,7 +219,8 @@ describe("domain subjects through the kibi CLI", () => {
 
     // Writing a requirement on the subject names the requirements already on
     // it, so the writer compares them before relying on either.
-    const text = "The read-only view must show the reviewer comments beside the drawing.";
+    const text =
+      "The read-only view must show the reviewer comments beside the drawing.";
     const { contract, propositions } = adviseProse(ws, text);
     const written = ws.json(["upsert"], {
       type: "req",
@@ -228,7 +234,8 @@ describe("domain subjects through the kibi CLI", () => {
         semantic_source_hash: contract.source_hash,
         semantic_inventory: propositions.map((proposition) => ({
           ...proposition,
-          status: proposition.status === "modeled" ? "missing" : proposition.status,
+          status:
+            proposition.status === "modeled" ? "missing" : proposition.status,
           subjects: ["drawing.read_only_view"],
         })),
         logic_claims: propositions.map((proposition) => proposition.claim_key),

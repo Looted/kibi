@@ -168,7 +168,10 @@ export async function subjectLayerWarnings(
  */
 function informativeTitle(subjectKey: string, title: string | undefined) {
   const words = (value: string) =>
-    value.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    value
+      .toLowerCase()
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter(Boolean);
   const keyWords = new Set([...words(subjectKey), "subject"]);
   return words(title ?? "").some((word) => !keyWords.has(word));
 }
