@@ -2578,9 +2578,9 @@ function interfaceAdvisory(mcpState, workspaceTrusted) {
     case "mcp":
       return;
     case "cli":
-      return "Kibi MCP has not been observed in this session. In this explicitly trusted workspace, the project-local CLI is an advisory fallback: use npx --no-install kibi or bunx --no-install kibi. Do not use global or installing runners.";
+      return "Kibi MCP has not been observed in this session. In this explicitly trusted workspace, use the project-local CLI JSON routes, an equal peer of MCP: npx --no-install kibi <route> --input - (or bunx --no-install kibi). Never use a global or installing runner.";
     case "setup":
-      return "Kibi MCP has not been observed in this session and workspace trust is unknown. Do not probe or execute a CLI fallback; ask the operator to enable MCP or explicitly approve the trusted project-local CLI workflow.";
+      return "Kibi MCP has not been observed in this session. Use approved Kibi MCP tools when they are visible; otherwise the project-local CLI JSON routes are an equal peer (npx --no-install kibi <route> --input -), never a global or installing runner. If neither is available, stop and tell the operator.";
   }
 }
 function stopFollowupMessage(state) {
