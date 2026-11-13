@@ -244,3 +244,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f3ea6a99e8d
+  - type: assumes
+    from: SCEN-kb-unmodeled-pair-review
+    to: FACT-kb-unmodeled-pair-reported
+    created_at: 2026-11-13T07:12:15.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a5595aced4a
+  - type: assumes
+    from: SCEN-kb-unmodeled-pair-review
+    to: FACT-kb-unmodeled-pair-review-approval
+    created_at: 2026-11-13T07:12:15.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da4fb5220e3d
+  - type: verified_by
+    from: SCEN-kb-unmodeled-pair-review
+    to: TEST-check-related-requirement-unmodeled
+    created_at: 2026-11-13T07:12:15.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca480ea2ef6a

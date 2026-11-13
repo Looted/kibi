@@ -56,6 +56,21 @@ ds_value(Id, Key) :-
 
 ds_kb(Goal) :- with_fixture_kb(once(Goal)).
 
+%% ds_req(+Id, +Entries, +Reviews, +Extra)
+% A current requirement with a semantic_inventory, pair_reviews and Extra
+% properties.
+ds_req(Id, Entries, Reviews, Extra) :-
+    with_output_to(string(Json), json_write_dict(current_output, Entries, [width(0)])),
+    with_output_to(string(ReviewJson), json_write_dict(current_output, Reviews, [width(0)])),
+    format(string(Source), "kb/~w.md", [Id]),
+    append([title="Req", status=open, source=Source, semantic_inventory=Json,
+            pair_reviews=ReviewJson], Extra, Props),
+    ds_raw(req, Id, Props).
+
+ds_gaps(Gaps) :-
+    findall(R-O-Via-Claims-Problem, unmodeled_pair_gap(R, O, Via, Claims, Problem), Gaps0),
+    sort(Gaps0, Gaps).
+
 ds_rules(Violations, Rules) :-
     findall(Rule-Entity, member(violation(Rule, Entity, _, _, _, _), Violations), Rules).
 
@@ -259,5 +274,163 @@ test(positive_scenario_gaps_json, Summary == [2, ['REQ-NOSCEN'-no_success_scenar
         findall(Id-Reason, (member(Row, Rows), get_dict(id, Row, Id), get_dict(reason, Row, Reason)), Pairs),
         Summary = [Evaluated, Pairs]
     )).
+
+
+% --- related-requirement-unmodeled: unmodeled claims in a stored pair ------
+
+test(unmodeled_pairs_by_edge_and_subject, Gaps == [
+        'REQ-A'-'REQ-B'-[subject(cart)]-['C-A']-unreviewed,
+        'REQ-A'-'REQ-M'-[subject(cart)]-['C-A']-unreviewed,
+        'REQ-A'-'REQ-N'-[subject(cart)]-['C-A']-unreviewed,
+        'REQ-B'-'REQ-A'-[subject(cart)]-['C-B']-unreviewed,
+        'REQ-B'-'REQ-M'-[subject(cart)]-['C-B']-unreviewed,
+        'REQ-B'-'REQ-N'-[subject(cart)]-['C-B']-unreviewed,
+        'REQ-E'-'REQ-M'-[relates_to]-['C-E1', 'C-E2']-unreviewed,
+        'REQ-N'-'REQ-A'-[subject(cart)]-['C-N']-unreviewed,
+        'REQ-N'-'REQ-B'-[subject(cart)]-['C-N']-unreviewed,
+        'REQ-N'-'REQ-M'-[subject(cart)]-['C-N']-unreviewed
+    ]) :-
+    ds_kb((
+        ds_subject('F-CART', "cart"),
+        ds_subject('F-LINE', "cart.line"),
+        ds_subject('F-TAX', "tax"),
+        ds_claim('C-A', normative, ontology_gap, ["cart"], A),
+        ds_claim('C-B', condition, ambiguous, ["cart"], B),
+        % A claim on a narrower subject meets the broader one.
+        ds_claim('C-N', normative, missing, ["cart.line"], N),
+        % A modeled claim and a claim on another subject never count.
+        ds_claim('C-OK', normative, modeled, ["cart"], OK),
+        ds_claim('C-TAX', normative, missing, ["tax"], Tax),
+        ds_req('REQ-A', [A, OK], [], []),
+        ds_req('REQ-B', [B, Tax], [], []),
+        ds_req('REQ-N', [N], [], []),
+        % A relates_to edge counts every unmodeled claim, whatever its subject.
+        ds_claim('C-E1', normative, missing, [], E1),
+        ds_claim('C-E2', condition, ontology_gap, [], E2),
+        % A rationale claim carries no rule, so it never counts.
+        ds_claim('C-WHY', rationale, ontology_gap, [], Why),
+        ds_req('REQ-E', [E1, E2, Why], [], []),
+        ds_req('REQ-M', [OK], [], []),
+        fixture_rel(relates_to, 'REQ-M', 'REQ-E'),
+        % Neither a retired partner nor a self edge pairs.
+        ds_raw(req, 'REQ-OLD', [title="Old", status=superseded]),
+        fixture_rel(relates_to, 'REQ-E', 'REQ-OLD'),
+        fixture_rel(relates_to, 'REQ-E', 'REQ-E'),
+        ds_gaps(Gaps)
+    )).
+
+ds_review(With, Verdict, Extra, Review) :-
+    dict_pairs(Review, _, [with-With, verdict-Verdict|Extra]).
+
+test(pair_review_problems, Problems == [
+        conflict, no_edge, no_verdict, unapproved, missing(resolved_by),
+        missing(separated_by), stale(['C-A']), unknown_verdict(maybe)
+    ]) :-
+    ds_kb((
+        ds_subject('F-CART', "cart"),
+        ds_claim('C-A', normative, ontology_gap, ["cart"], A0),
+        put_dict(payload_hash, A0, new, A),
+        ds_req('REQ-A', [A], [], []),
+        ds_req('REQ-B', [], [], [priority=must]),
+        fixture_rel(relates_to, 'REQ-A', 'REQ-B'),
+        ds_req('REQ-LONE', [], [], []),
+        findall(Problem, (
+            member(Review-Other, [
+                _{with: 'REQ-B'}-'REQ-B',
+                _{with: 'REQ-B', verdict: maybe}-'REQ-B',
+                _{with: 'REQ-B', verdict: conflict}-'REQ-B',
+                _{with: 'REQ-LONE', verdict: no_conflict, separated_by: "x"}-'REQ-LONE',
+                _{with: 'REQ-B', verdict: no_conflict, separated_by: "  "}-'REQ-B',
+                _{with: 'REQ-B', verdict: interacts, resolved_by: ['SCEN-GONE']}-'REQ-B',
+                _{with: 'REQ-B', verdict: no_conflict, separated_by: "only on checkout", claims: [_{claim_key: 'C-A', payload_hash: old}], origin: _{kind: human}}-'REQ-B',
+                _{with: 'REQ-B', verdict: no_conflict, separated_by: "only on checkout", claims: ['C-A'], origin: _{kind: agent}}-'REQ-B'
+            ]),
+            domain_subjects:pair_review_problem('REQ-A', Other, ['C-A'], Review, Problem)
+        ), Problems0),
+        msort(Problems0, Problems),
+        % Settled: a human no_conflict, an agent one a person approved, and
+        % an interacts verdict naming a scenario or a claim.
+        forall(member(Review, [
+                   _{with: 'REQ-B', verdict: no_conflict, separated_by: "only on checkout", claims: ['C-A'], origin: _{kind: human}},
+                   _{with: 'REQ-B', verdict: no_conflict, separated_by: "only on checkout", claims: [_{claim_key: 'C-A'}], origin: _{kind: agent, approved_by: maintainer}}
+               ]),
+               \+ domain_subjects:pair_review_problem('REQ-A', 'REQ-B', ['C-A'], Review, _))
+    )).
+
+test(interacts_resolvers, Results == [false, true, true]) :-
+    ds_kb((
+        ds_claim('C-A', normative, ontology_gap, [], A),
+        ds_claim('C-B', condition, modeled, [], B),
+        ds_req('REQ-A', [A], [], []),
+        ds_req('REQ-B', [B], [], []),
+        ds_scenario('SCEN-BOTH', success, active),
+        ds_scenario('SCEN-OLD', success, retired),
+        fixture_rel(relates_to, 'REQ-A', 'REQ-B'),
+        findall(Result, (
+            member(Resolver, ['SCEN-OLD', 'SCEN-BOTH', 'C-B']),
+            Review = _{with: 'REQ-B', verdict: interacts, resolved_by: [Resolver], claims: ['C-A'], origin: _{kind: human}},
+            (   domain_subjects:pair_review_problem('REQ-A', 'REQ-B', ['C-A'], Review, _)
+            ->  Result = false
+            ;   Result = true
+            )
+        ), Results)
+    )).
+
+test(agent_review_needs_approval_only_on_decisive_pairs, Results == [true, true, false]) :-
+    ds_kb((
+        ds_claim('C-A', normative, ontology_gap, [], A),
+        ds_req('REQ-A', [A], [], [origin="{\"kind\":\"agent\"}"]),
+        ds_req('REQ-FIRM', [], [], [firmness=firm]),
+        ds_req('REQ-HUMAN', [], [], []),
+        ds_req('REQ-SOFT', [], [], [origin="{\"kind\":\"agent\"}"]),
+        forall(member(O, ['REQ-FIRM', 'REQ-HUMAN', 'REQ-SOFT']), fixture_rel(relates_to, 'REQ-A', O)),
+        findall(Result, (
+            member(Other, ['REQ-FIRM', 'REQ-HUMAN', 'REQ-SOFT']),
+            Review = _{with: Other, verdict: no_conflict, separated_by: "x", claims: ['C-A']},
+            (   domain_subjects:pair_review_problem('REQ-A', Other, ['C-A'], Review, unapproved)
+            ->  Result = true
+            ;   Result = false
+            )
+        ), Results)
+    )).
+
+test(review_on_either_side_settles_or_reports, Gaps == ['REQ-A'-'REQ-C'-[relates_to]-['C-A']-stale(['C-A'])]) :-
+    ds_kb((
+        ds_claim('C-A', normative, ontology_gap, [], A),
+        Good = _{with: 'REQ-A', verdict: no_conflict, separated_by: "x", claims: ['C-A'], origin: _{kind: human}},
+        Stale = _{with: 'REQ-A', verdict: no_conflict, separated_by: "x", claims: ['C-OTHER'], origin: _{kind: human}},
+        ds_req('REQ-A', [A], [], []),
+        ds_req('REQ-B', [], [Good], []),
+        ds_req('REQ-C', [], [Stale], []),
+        fixture_rel(relates_to, 'REQ-A', 'REQ-B'),
+        fixture_rel(relates_to, 'REQ-C', 'REQ-A'),
+        ds_gaps(Gaps)
+    )).
+
+test(related_requirement_unmodeled_violation_text, [Description, Suggestion, Source] == [
+        "Requirement REQ-A has 1 unmodeled claim(s) (C-A) that nothing compares with REQ-B, which it pairs with through a relates_to edge and shared subject cart; no verdict records how they combine",
+        "Model the unmodeled claims of REQ-A on the subject keys REQ-B constrains (facts via kb_model, then requires_property, requires_predicate or requires_rule), or supersede one of them; if they cannot be modeled, keep or add a relates_to link (they pair through a relates_to edge and shared subject cart) and add a pair_reviews entry on REQ-A with: REQ-B, verdict (no_conflict with separated_by, interacts with resolved_by, or conflict), claims (claim_key and payload_hash of each unmodeled claim of both) and origin",
+        'REQ-A.md'
+    ]) :-
+    ds_kb((
+        ds_subject('F-CART', "cart"),
+        ds_claim('C-A', normative, ontology_gap, ["cart"], A),
+        ds_req('REQ-A', [A], [], []),
+        ds_raw(req, 'REQ-B', [title="B", status=open]),
+        fixture_rel(constrains, 'REQ-B', 'F-CART'),
+        fixture_rel(relates_to, 'REQ-A', 'REQ-B'),
+        check_related_requirement_unmodeled([violation('related-requirement-unmodeled', 'REQ-A', Description, Suggestion, Source)])
+    )).
+
+test(problem_texts, Count == 9) :-
+    findall(T, (member(P, [unreviewed, no_verdict, unknown_verdict(x), conflict, no_edge,
+                           missing(separated_by), missing(resolved_by), stale(['C']), unapproved]),
+                domain_subjects:problem_text(P, T)), Ts),
+    length(Ts, Count),
+    forall(member(P, [conflict, no_edge, unapproved, unreviewed]),
+           domain_subjects:problem_suggestion(P, 'R', 'O', via, _)).
+
+test(listed_atoms_cut_after_eight, Text == 'a, b, c, d, e, f, g, h (+2 more)') :-
+    domain_subjects:listed_atoms([a, b, c, d, e, f, g, h, i, j], Text).
 
 :- end_tests(domain_subjects).

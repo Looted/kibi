@@ -2229,7 +2229,7 @@ integer_property_key(Key) :-
 % intact: JSON arrays are also valid Prolog list syntax, but parsing them as
 % Prolog terms corrupts their object entries before the JSON decoder sees them.
 literal_to_value(Key, Literal, Value) :-
-    memberchk(Key, [semantic_inventory, proof_receipts, proof_contract, proof_bindings]),
+    memberchk(Key, [semantic_inventory, pair_reviews, proof_receipts, proof_contract, proof_bindings]),
     !,
     structured_literal_value(Literal, Value).
 literal_to_value(_Key, Literal, Value) :-

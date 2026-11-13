@@ -3926,6 +3926,15 @@
                 "description": "Optional owner name/team. Example: 'platform-team'.",
                 "type": "string"
               },
+              "pair_reviews": {
+                "description": "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming a current scenario, fact, requirement or claim_key that resolves it; conflict, which stays blocking until a person decides), claims (claim_key and payload_hash of each unmodeled claim of both requirements) and origin (kind human or agent; an agent's verdict on a must or firm requirement counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              },
               "part_of": {
                 "description": "subject only: defined subject keys this subject is a part of. A dotted key prefix that is itself a defined subject is broader already.",
                 "items": {

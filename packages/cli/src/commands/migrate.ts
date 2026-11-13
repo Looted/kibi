@@ -296,6 +296,16 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 16,
     to: 17,
   },
+  // related-requirement-unmodeled blocks every stored pair (a relates_to edge
+  // or a shared subject) with an unmodeled rule claim until the claims are
+  // modeled or a pair_reviews verdict settles the pair. A verdict is a
+  // judgement Kibi never makes, so nothing is written; kibi check lists the
+  // pairs.
+  {
+    id: "pair-reviews-v18",
+    from: 17,
+    to: 18,
+  },
 ];
 
 function migrationStepsFor(
@@ -966,6 +976,9 @@ export async function migrateCommand(
   const positiveScenarioStep = migrationSteps.some(
     (step) => step.id === "positive-scenarios-v17",
   );
+  const pairReviewStep = migrationSteps.some(
+    (step) => step.id === "pair-reviews-v18",
+  );
   const floorScope = {
     firm: migrationSteps.some((step) => step.id === "evidence-floor-v11"),
     approved: migrationSteps.some((step) => step.id === "approval-floor-v15"),
@@ -1004,6 +1017,9 @@ export async function migrateCommand(
     mergePositiveScenarioAcknowledgements,
     planPositiveScenarioAcknowledgements,
   } = await import("../operations/migration/positive-scenario.js");
+  const { pairReviewNote, planPairReviewCandidates } = await import(
+    "../operations/migration/pair-review.js"
+  );
   const {
     acknowledgedContextIds,
     applyContextMissingTags,
@@ -1056,6 +1072,11 @@ export async function migrateCommand(
         console.log(
           `dry run: would acknowledge ${musts.length} current must requirement(s) recorded before schema 17, which need no positive scenario (manifest only; no scenario is written).`,
         );
+    }
+    if (pairReviewStep) {
+      const candidates = planPairReviewCandidates(cwd);
+      if (candidates.length > 0)
+        console.log(pairReviewNote(candidates.length, true));
     }
     if (evidenceFloorStep) {
       const floors = planEvidenceFloorPins(cwd, ladderFloors, floorScope);
@@ -1284,6 +1305,11 @@ export async function migrateCommand(
     console.log(
       `Acknowledged ${positiveScenarioMusts.length} current must requirement(s) recorded before schema 17; a new must requirement needs a success scenario that assumes facts on its subjects.`,
     );
+  const pairReviewCandidates = pairReviewStep
+    ? planPairReviewCandidates(cwd)
+    : [];
+  if (pairReviewCandidates.length > 0)
+    console.log(pairReviewNote(pairReviewCandidates.length, false));
   if (evidenceFloorsPinned > 0)
     console.log(
       `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm or approved requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,

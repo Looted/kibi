@@ -250,7 +250,7 @@ describe("kb_apply_plan", () => {
       "Resolve its ontology_gap and missing propositions first",
     );
     await expect(apply).rejects.toThrow(
-      "kb_upsert carrying the plan's inventory contract",
+      "kb_upsert is not a way around this review",
     );
   });
 

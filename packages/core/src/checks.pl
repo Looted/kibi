@@ -49,7 +49,6 @@
     check_rule_safety/1,
     check_rule_verifiability/1,
     check_semantic_completeness/1,
-    check_related_requirement_unmodeled/1,
     check_req_status_vocabulary/1,
     check_retired_reason_missing/1,
     check_retired_owner_only/1,
@@ -87,6 +86,7 @@
 :- use_module('rule_registry.pl', [known_rule/1]).
 :- use_module('kb_consistency.pl', [check_kb_consistency/1, check_kb_consistency_unresolved/1]).
 :- use_module('domain_subjects.pl', [check_claim_subject_missing/1, check_claim_subject_undefined/1]).
+:- reexport('domain_subjects.pl', [check_related_requirement_unmodeled/1]).
 
 % Required fields for all entities
 required_fields([id, title, status, created_at, updated_at, source]).
@@ -3823,88 +3823,6 @@ inventory_entry_label(Entry, Label) :-
 inventory_entry_status(Entry, Status) :-
     checks_inventory_entry_field(Entry, status, Raw),
     normalize_term_atom(Raw, Status).
-
-%% check_related_requirement_unmodeled(-Violations)
-% domain-contradictions compares grounded facts only. A current requirement
-% whose proposition ledger still carries `missing` entries contributes no
-% facts, so when it relates_to a current requirement that is modeled (strict
-% subject/property facts or ground predicate facts) its claims are never
-% compared with that requirement: it can describe behavior the modeled one
-% forbids and `kb_check` stays clean. The relates_to edge says the author knew
-% the two overlap, so the gap is blocking: model the missing propositions
-% against the same subject keys or predicates, or supersede the older
-% requirement. Requirements without a ledger stay in the strict-readiness
-% migration lane and are not reported here.
-check_related_requirement_unmodeled(Violations) :-
-    findall(Violation, related_requirement_unmodeled_violation(Violation), Raw),
-    sort(Raw, Violations).
-
-related_requirement_unmodeled_violation(violation(
-    'related-requirement-unmodeled',
-    ReqId,
-    Description,
-    Suggestion,
-    Source
-)) :-
-    kb:current_req(ReqId),
-    requirement_missing_proposition_count(ReqId, MissingCount),
-    MissingCount > 0,
-    related_current_requirement(ReqId, OtherId),
-    modeled_requirement_summary(OtherId, Summary),
-    format(
-        string(Description),
-        "Requirement ~w leaves ~w proposition(s) unmodeled (status missing) while it relates_to ~w, which models ~w; domain-contradictions compares grounded facts only, so these claims are never checked against ~w",
-        [ReqId, MissingCount, OtherId, Summary, OtherId]
-    ),
-    format(
-        string(Suggestion),
-        "Model the missing propositions of ~w against ~w (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that ~w supersedes ~w if it replaces that requirement",
-        [ReqId, Summary, ReqId, OtherId]
-    ),
-    violation_source(ReqId, req, Source).
-
-requirement_missing_proposition_count(ReqId, Count) :-
-    kb_entity(ReqId, req, Props),
-    memberchk(semantic_inventory=RawInventory, Props),
-    inventory_entries(RawInventory, Entries),
-    aggregate_all(
-        count,
-        ( member(Entry, Entries), inventory_entry_status(Entry, missing) ),
-        Count
-    ).
-
-related_current_requirement(ReqId, OtherId) :-
-    (   kb_relationship(relates_to, ReqId, OtherId)
-    ;   kb_relationship(relates_to, OtherId, ReqId)
-    ),
-    OtherId \== ReqId,
-    kb:current_req(OtherId).
-
-%% modeled_requirement_summary(+ReqId, -Summary)
-% Comma-separated list of the subject.property keys the requirement constrains
-% through contradiction-ready strict facts and the canonical keys of the ground
-% predicate facts it requires. Fails when the requirement models nothing.
-modeled_requirement_summary(ReqId, Summary) :-
-    setof(Key, modeled_requirement_key(ReqId, Key), Keys),
-    atomic_list_concat(Keys, ', ', Summary).
-
-modeled_requirement_key(ReqId, Key) :-
-    kb:effective_req_property_fact(
-        ReqId, SubjectKey, _FactId, PropertyKey,
-        _Operator, _ValueType, _Value, _Unit, _Scope, _Polarity, _ValidFrom, _ValidTo
-    ),
-    normalize_term_atom(SubjectKey, SubjectAtom),
-    normalize_term_atom(PropertyKey, PropertyAtom),
-    format(atom(Key), "~w.~w", [SubjectAtom, PropertyAtom]).
-modeled_requirement_key(ReqId, Key) :-
-    kb_relationship(requires_predicate, ReqId, FactId),
-    kb_entity(FactId, fact, Props),
-    predicate_verifiability_fact_kind(Props, predicate),
-    (   memberchk(canonical_key=RawKey, Props)
-    ->  normalize_term_atom(RawKey, Key)
-    ;   memberchk(predicate_name=RawName, Props),
-        normalize_term_atom(RawName, Key)
-    ).
 
 strict_readiness_has_fact_link(ReqId) :-
     kb_relationship(constrains, ReqId, FactId),
