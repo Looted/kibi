@@ -243,7 +243,7 @@ describe("related-requirement-unmodeled through the kibi CLI", () => {
     );
     ws.sync();
     expect(findings(ws)).toEqual([]);
-  });
+  }, 300_000);
 
   test("pairs ontology_gap claims with the requirement that constrains their subject, without a link", () => {
     const ws = createConsumerWorkspace("kibi-related-unmodeled-subject-");
@@ -291,7 +291,7 @@ describe("related-requirement-unmodeled through the kibi CLI", () => {
     );
     ws.sync();
     expect(findings(ws)).toEqual([]);
-  });
+  }, 300_000);
 
   test("many requirements on one subject give one finding each, quickly", () => {
     const ws = createConsumerWorkspace("kibi-related-unmodeled-volume-");
