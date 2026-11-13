@@ -1885,8 +1885,9 @@ async function printApplySummary(
     const ready = plan.actions.filter(
       (action) => action.state === "ready" && action.autoApplicable,
     ).length;
+    const backlog = plan.actions.filter(isBacklogAction).length;
     console.log(
-      `Remaining plan ${plan.planHash}: ${plan.status}; actions: ${plan.actions.length}; automatic-ready: ${ready}`,
+      `Remaining plan ${plan.planHash}: ${plan.status}; actions: ${plan.actions.length} (${plan.actions.length - backlog} migration, ${backlog} quality backlog); automatic-ready: ${ready}`,
     );
     recordPrintedPlan(workspaceRoot, plan);
     if (ready > 0)
@@ -2117,7 +2118,7 @@ function printPlanText(plan: MigrationPlan, listBacklog: boolean): void {
     }
   }
   console.log(
-    `Plan status: ${plan.status} (covers both sections). Use --format json for structured actions.`,
+    `Plan status: ${plan.status} (covers both sections: ${plan.actions.length} action(s) in all, the actionCount of --format json). Use --format json for structured actions.`,
   );
   if (automaticReady > 0)
     console.log(

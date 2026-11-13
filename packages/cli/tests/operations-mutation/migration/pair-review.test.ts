@@ -69,7 +69,7 @@ describe("schema 18 pair review candidates", () => {
       "Schema 18: related-requirement-unmodeled now blocks",
     );
     expect(pairReviewNote(2, false)).toContain(
-      "2 current requirement(s) have such claims",
+      "2 current requirement(s) have unmodeled rule claims, and kibi check reports those that pair with another one and no pair_reviews verdict settles, so it can report fewer.",
     );
     expect(pairReviewNote(2, false)).toContain(
       "one finding per requirement naming the requirements it pairs with",

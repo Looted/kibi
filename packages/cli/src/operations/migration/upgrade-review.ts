@@ -27,8 +27,8 @@ import { domainSubjectActions } from "./schema6.js";
 
 /**
  * What a schema upgrade leaves for a person: the review work of the domain
- * subject layer, and the findings of the rules schemas 15-18 added once the
- * store holds the migrated sources. Kibi writes none of it on its own.
+ * subject layer, and the blocking kibi check findings once the store holds the
+ * migrated sources. Kibi writes none of it on its own.
  */
 
 /** Domain subject review work planned from the authored sources. */
@@ -110,21 +110,6 @@ export function domainSubjectReviewNote(
 }
 
 /**
- * The rules KB schemas 15-18 added. After an upgrade, their findings on the
- * synced store are the review work the upgrade leaves.
- */
-export const UPGRADE_REVIEW_RULES = [
-  "evidence-floor",
-  "claim-subject-missing",
-  "claim-subject-undefined",
-  "subject-definition-missing",
-  "subject-duplicate",
-  "subject-hierarchy-invalid",
-  "must-positive-scenario",
-  "related-requirement-unmodeled",
-] as const;
-
-/**
  * Compile the branch store from the migrated sources, as the plan's
  * migration-sync action does, so the next kibi check reads them.
  */
@@ -147,8 +132,11 @@ export async function syncMigratedStore(
 }
 
 /**
- * Blocking findings of the schema 15-18 rules on the synced store, counted
- * by rule, or null when the check cannot run.
+ * Blocking findings of a plain `kibi check` on the synced store, counted by
+ * rule, or null when the check cannot run. The whole check runs, not only the
+ * rules schemas 15-18 added: the closing line states the count `kibi check`
+ * reports, including agent-requirement-unapproved-implemented and any other
+ * rule that blocks after the upgrade.
  */
 export async function readUpgradeReviewFindings(
   workspaceRoot: string,
@@ -163,7 +151,7 @@ export async function readUpgradeReviewFindings(
     const result = await executeOperation(
       createCliRuntime({ workspaceRoot }),
       checkSpec,
-      { rules: [...UPGRADE_REVIEW_RULES] },
+      {},
     );
     const violations = result.structuredContent?.violations;
     if (violations === undefined) return null;
@@ -205,7 +193,7 @@ export function upgradeReviewSummary(
   if (findings !== null) {
     const total = [...findings.values()].reduce((sum, count) => sum + count, 0);
     if (total === 0) return null;
-    return `Schema upgrade applied, but review work remains: kibi check reports ${total} blocking finding(s) the upgrade does not fix (${describeFindingCounts(findings)}). ${NEXT_STEPS}`;
+    return `Schema upgrade applied, but review work remains: kibi check reports ${total} blocking finding(s) the upgrade does not fix (${describeFindingCounts(findings)}). Run kibi check to list them. For the subject and pair review work, ${NEXT_STEPS.charAt(0).toLowerCase()}${NEXT_STEPS.slice(1)}`;
   }
   if (!hasDomainSubjectReview(review) && pairCandidates === 0) return null;
   return `Schema upgrade applied, but review work remains: the domain subject review above${pairCandidates > 0 ? ` and the related-requirement-unmodeled pairs of ${pairCandidates} requirement(s)` : ""}. Run kibi sync, then kibi check to list the findings. ${NEXT_STEPS}`;

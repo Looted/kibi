@@ -4,7 +4,6 @@ import os from "node:os";
 import path from "node:path";
 import * as sync from "../../../src/commands/sync.js";
 import {
-  UPGRADE_REVIEW_RULES,
   describeFindingCounts,
   domainSubjectReviewNote,
   hasDomainSubjectReview,
@@ -140,7 +139,7 @@ describe("the review note and summary", () => {
     expect(
       upgradeReviewSummary(new Map([["claim-subject-missing", 2]]), NONE, 0),
     ).toBe(
-      "Schema upgrade applied, but review work remains: kibi check reports 2 blocking finding(s) the upgrade does not fix (2 claim-subject-missing). Run 'kibi migrate' to list the review actions; approve a suggested subject with 'kibi migrate --apply-safe <plan hash> --approved-action <id>', write definitions, subjects and pair_reviews verdicts by hand, then run kibi check.",
+      "Schema upgrade applied, but review work remains: kibi check reports 2 blocking finding(s) the upgrade does not fix (2 claim-subject-missing). Run kibi check to list them. For the subject and pair review work, run 'kibi migrate' to list the review actions; approve a suggested subject with 'kibi migrate --apply-safe <plan hash> --approved-action <id>', write definitions, subjects and pair_reviews verdicts by hand, then run kibi check.",
     );
     expect(upgradeReviewSummary(null, NONE, 0)).toBeNull();
     expect(
@@ -214,20 +213,11 @@ describe("syncing and checking the migrated store", () => {
       ]),
     );
     expect(calls[0]?.[1]).toBe(checkSpec);
-    expect(calls[0]?.[2]).toEqual({ rules: [...UPGRADE_REVIEW_RULES] });
+    // The count is the one a plain kibi check reports: every rule runs.
+    expect(calls[0]?.[2]).toEqual({});
     result = {};
     expect(await readUpgradeReviewFindings("/w")).toBeNull();
     result = new Error("no engine");
     expect(await readUpgradeReviewFindings("/w")).toBeNull();
-    expect(UPGRADE_REVIEW_RULES).toEqual([
-      "evidence-floor",
-      "claim-subject-missing",
-      "claim-subject-undefined",
-      "subject-definition-missing",
-      "subject-duplicate",
-      "subject-hierarchy-invalid",
-      "must-positive-scenario",
-      "related-requirement-unmodeled",
-    ]);
   });
 });

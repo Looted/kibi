@@ -2290,7 +2290,7 @@ describe("plan text", () => {
       "  1 coverage_b",
       "  1 review_other",
       "  List each item with --backlog.",
-      `Plan status: ${status} (covers both sections). Use --format json for structured actions.`,
+      `Plan status: ${status} (covers both sections: 9 action(s) in all, the actionCount of --format json). Use --format json for structured actions.`,
       `Apply the 1 ready automatic action(s) of this plan: kibi migrate --apply-safe ${hash}`,
     ]);
   });
@@ -2465,7 +2465,10 @@ describe("plan approval", () => {
     // The apply leaves only the blocked action behind.
     Object.defineProperty(h.outputs, "apply", {
       get() {
-        statusPlan([ready("c", { state: "blocked" })]);
+        statusPlan([
+          ready("c", { state: "blocked" }),
+          migrationAction({ id: "q1", code: "quality_x" } as never),
+        ]);
         return applied;
       },
     });
@@ -2476,7 +2479,7 @@ describe("plan approval", () => {
     expect(logs.slice(1, -1)).toStrictEqual([
       "Outcome: applied",
       expect.stringMatching(
-        /^Remaining plan \S+: \w+; actions: 1; automatic-ready: 0$/,
+        /^Remaining plan \S+: \w+; actions: 2 \(1 migration, 1 quality backlog\); automatic-ready: 0$/,
       ),
     ]);
   });
@@ -2510,7 +2513,7 @@ describe("plan approval", () => {
       "- skipped b: nothing",
       // The digest's own hash is not one --apply-safe accepts; the plan
       // kibi migrate builds now is printed and recorded instead.
-      `Remaining plan ${hash}: partial; actions: 3; automatic-ready: 2`,
+      `Remaining plan ${hash}: partial; actions: 3 (3 migration, 0 quality backlog); automatic-ready: 2`,
       `Apply its 2 ready automatic action(s): kibi migrate --apply-safe ${hash}`,
       "Run 'kibi migrate' for the remaining actions, or add --format json for the full result.",
     ]);
