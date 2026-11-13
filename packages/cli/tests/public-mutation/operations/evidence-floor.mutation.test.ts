@@ -16,7 +16,6 @@ import {
   collectEvidenceFloorViolations,
   evidenceFloorViolations,
   gapDetailLines,
-  isoDateTime,
   pastApprovalGrace,
   readEvidenceFloorRows,
   refutationText,
@@ -650,14 +649,18 @@ describe("agent-requirement-unapproved-implemented", () => {
   });
 
   test("only a real ISO 8601 date names a time", () => {
-    expect(isoDateTime("2026-01-02")).toBe(Date.UTC(2026, 0, 2));
-    expect(isoDateTime("2026-01-02T03:04:05.006Z")).toBe(
-      Date.UTC(2026, 0, 2, 3, 4, 5, 6),
-    );
-    expect(isoDateTime("2024-02-29T00:00:00Z")).toBe(Date.UTC(2024, 1, 29));
-    expect(isoDateTime("2026-01-31T00:00:00+01:00")).toBe(
-      Date.UTC(2026, 0, 30, 23),
-    );
+    // Each start is read exactly: the grace ends 14 days later to the ms.
+    const ends = (since: string, utc: number) => {
+      const end = utc + 14 * 86_400_000;
+      expect(pastApprovalGrace(since, new Date(end).toISOString())).toBe(false);
+      expect(pastApprovalGrace(since, new Date(end + 1).toISOString())).toBe(
+        true,
+      );
+    };
+    ends("2026-01-02", Date.UTC(2026, 0, 2));
+    ends("2026-01-02T03:04:05.006Z", Date.UTC(2026, 0, 2, 3, 4, 5, 6));
+    ends("2024-02-29T00:00:00Z", Date.UTC(2024, 1, 29));
+    ends("2026-01-31T00:00:00+01:00", Date.UTC(2026, 0, 30, 23));
     for (const value of [
       "",
       "yesterday",
@@ -674,7 +677,9 @@ describe("agent-requirement-unapproved-implemented", () => {
       "2026-04-31",
       "2026-01-02T23:60:00Z",
     ])
-      expect(isoDateTime(value)).toBeNaN();
+      expect(approvalDateProblem(value, "2026-03-01T00:00:00Z")).toBe(
+        "not-a-date",
+      );
   });
 
   test("a date more than a day after the check, or no date at all, cannot start the clock", () => {

@@ -40348,3 +40348,16 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-kibi-engine-single-writer-protocol
+  - id: SYM-cli-approval-date-problem
+    title: approvalDateProblem
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T23:44:16.968Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement

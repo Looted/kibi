@@ -277,7 +277,7 @@ const ISO_DATE_TIME = new RegExp(ISO_TIMESTAMP_PATTERN);
  * one: free text such as "yesterday", or a calendar day or time that does not
  * exist (2026-02-30, 2026-13-45T00:00:00Z, 23:60).
  */
-export function isoDateTime(value: string): number {
+function isoDateTime(value: string): number {
   if (!ISO_DATE_TIME.test(value)) return Number.NaN;
   const [year, month, day] = value.slice(0, 10).split("-").map(Number) as [
     number,

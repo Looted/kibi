@@ -44,10 +44,7 @@ function withOrigin(input: UpsertInput, origin: unknown): UpsertInput {
  * date. Only the values the payload states are judged; a stored origin the
  * write keeps is not.
  */
-export function assertRequirementClockDates(
-  input: UpsertInput,
-  now: Date,
-): void {
+function assertRequirementClockDates(input: UpsertInput, now: Date): void {
   if (input.type !== "req") return;
   const origin = input.properties.origin;
   const stated: Array<[string, unknown]> = [

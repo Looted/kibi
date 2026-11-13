@@ -1,8 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  assertRequirementClockDates,
-  resolveUpsertOrigin,
-} from "../../../src/operations/mutation/origin.js";
+import { resolveUpsertOrigin } from "../../../src/operations/mutation/origin.js";
 import type { StoredEntityLookup } from "../../../src/operations/mutation/stored-entity.js";
 import type { UpsertInput } from "../../../src/operations/mutation/types.js";
 import { fail, ok, scriptedProlog } from "../fake-prolog.js";
@@ -126,7 +123,7 @@ describe("resolveUpsertOrigin", () => {
   });
 });
 
-describe("assertRequirementClockDates", () => {
+describe("requirement clock dates", () => {
   const refusal = (field: string, value: string, why: string) =>
     `Entity validation failed: ${field} ${JSON.stringify(value)} ${why}. It starts the review grace period of an agent-written requirement, so it must be the real time the requirement was written: leave it out and kb_upsert records the write time.`;
 
@@ -160,20 +157,13 @@ describe("assertRequirementClockDates", () => {
         "is later than now (2026-01-02T03:04:05.000Z)",
       ],
     ] as const) {
-      let thrown: unknown;
-      try {
-        assertRequirementClockDates(input(properties), NOW);
-      } catch (error) {
-        thrown = error;
-      }
-      expect(thrown).toMatchObject({
+      // Refused before anything is resolved, even without a store.
+      await expect(
+        resolveUpsertOrigin(input(properties), undefined, NOW),
+      ).rejects.toMatchObject({
         code: "ENTITY_VALIDATION_FAILED",
         message: refusal(field, value, why),
       });
-      // resolveUpsertOrigin refuses it before resolving anything.
-      await expect(
-        resolveUpsertOrigin(input(properties), undefined, NOW),
-      ).rejects.toMatchObject({ message: refusal(field, value, why) });
     }
   });
 
@@ -186,19 +176,20 @@ describe("assertRequirementClockDates", () => {
       { origin: { kind: "agent" } },
       { origin: "agent" },
     ])
-      expect(() =>
-        assertRequirementClockDates(input(properties), NOW),
-      ).not.toThrow();
-    expect(() =>
-      assertRequirementClockDates(
+      await expect(
+        resolveUpsertOrigin(input(properties), undefined, NOW),
+      ).resolves.toBeDefined();
+    await expect(
+      resolveUpsertOrigin(
         {
           type: "scenario",
           id: "SCEN-1",
           properties: { title: "T", created_at: "2030-01-01" },
         },
+        undefined,
         NOW,
       ),
-    ).not.toThrow();
+    ).resolves.toBeDefined();
     // A stored origin the write keeps is not the payload's statement.
     const stored = await resolveUpsertOrigin(
       input(),

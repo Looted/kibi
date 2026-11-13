@@ -254,7 +254,7 @@ async function requirementWarnings(
  * or a broader one) and no relates_to edge links them, so a pair review that
  * names one settles nothing. Empty when reqId is not current itself.
  */
-export async function readUnpairedReviewPartners(
+async function readUnpairedReviewPartners(
   prolog: Pick<PrologPort, "query">,
   reqId: string,
   withIds: readonly string[],
