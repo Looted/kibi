@@ -125,9 +125,11 @@ import {
 } from "../traceability/validate.js";
 import { ensureBranchStoreCompiled } from "../utils/auto-compile.js";
 import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
+import { readKbManifest } from "../utils/kb-manifest.js";
 import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import type { Violation } from "../utils/rule-registry.js";
+import { getSchemaVersionStatus } from "../utils/schema-version.js";
 
 export type { Violation };
 
@@ -1368,6 +1370,11 @@ export async function checkCommand(
       });
       return { exitCode: violations.length === 0 ? 0 : 1 };
     }
+    const schemaNote = schemaUpgradeNote(process.cwd());
+    if (schemaNote !== null) {
+      console.log(schemaNote);
+      console.log();
+    }
     const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
@@ -1414,6 +1421,19 @@ export async function checkCommand(
     await engine?.terminate();
     await safeCleanupProlog(prolog);
   }
+}
+
+/**
+ * The text check's pointer to `kibi migrate` on a KB whose manifest records
+ * an older schema: rules a later schema introduced wait for the upgrade, so a
+ * clean result does not yet cover them. Null on a current, newer or
+ * unreadable manifest.
+ */
+export function schemaUpgradeNote(workspaceRoot: string): string | null {
+  const status = getSchemaVersionStatus(readKbManifest(workspaceRoot));
+  return status.status === "older"
+    ? `Note: ${status.warning} Rules a later schema adds are not checked until the upgrade runs.`
+    : null;
 }
 
 export async function checkMustPriorityCoverage(

@@ -31,7 +31,19 @@ export function notStatedDefinition(
   return `${DEFINITION_NOT_STATED_PREFIX} the subject ${subjectKey} is named by ${namedBy}. The people who own that source can say what it is in the product and what it is not.\n`;
 }
 
+/**
+ * The body the requirements bootstrap wrote on a shared subject before it
+ * wrote "Definition not stated:" bodies. It names where the subject came
+ * from, not what it is, so it is the same recorded gap.
+ */
+export const LEGACY_BOOTSTRAP_SUBJECT_BODY =
+  /^Subject \S+, shared by the requirements bootstrap planned from /;
+
 /** Whether a subject body records that nobody has defined the subject. */
 export function isNotStatedDefinition(definition: string): boolean {
-  return definition.trimStart().startsWith(DEFINITION_NOT_STATED_PREFIX);
+  const body = definition.trimStart();
+  return (
+    body.startsWith(DEFINITION_NOT_STATED_PREFIX) ||
+    LEGACY_BOOTSTRAP_SUBJECT_BODY.test(body)
+  );
 }
