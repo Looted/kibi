@@ -21,7 +21,7 @@ proof_bindings:
     target: default
     native_id: packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts::kibi CLI skill load telemetry (end to end)::a skill loaded through the CLI marks later operations in that workspace
     source_file: packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts
-    line: 265
+    line: 267
 origin:
   kind: agent
   ref: 'Maintainer decision, 2026-11-13, approving the requirement statements for skill loads through the CLI and MCP and for telemetry in SkillOpt harness processes: "Ok"'
@@ -65,6 +65,8 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Runs the real `kibi` binary in two new git workspaces against a local stand-in for the PostHog batch endpoint (`packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts`).
+Runs the real `kibi` binary in two new git workspaces against a local stand-in for the PostHog batch endpoint (`packages/cli/tests/usage-telemetry-outcomes-e2e.test.ts`). The first workspace sits inside a plain parent directory.
 
-It runs `kibi status`, `kibi skills load kibi-usage --format json` and `kibi status` in the first workspace and `kibi status` in the second, then enough commands to make the queue due. It checks that the four events report `skill_loaded_before` false, false, true and false, and that the sent payload holds neither workspace path.
+It runs `kibi status` in the first workspace, `kibi skills load kibi-usage --format json` in the parent directory, `kibi status` in the workspace, the same load from a subdirectory of the workspace, then `kibi status` in the workspace and in the second workspace, then enough commands to make the queue due. It checks that the six events report `skill_loaded_before` false, false, false, false, true and false, and that the sent payload holds neither the parent directory's path nor the second workspace's.
+
+The MCP side is covered by `packages/mcp/tests/server/skill-load-telemetry-routing.test.ts`: a real kibi-mcp started in a parent directory routes `kb_skills` calls to two workspaces below it, and only the workspace whose routed call loaded the skill reports `skill_loaded_before` true.

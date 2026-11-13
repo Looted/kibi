@@ -69,8 +69,10 @@ async function runKibi(
   return { exitCode, stdout, stderr };
 }
 
-function gitWorkspace(): string {
-  const workspace = temporaryDirectory("kibi-outcome-private-repo-");
+function gitWorkspace(
+  workspace: string = temporaryDirectory("kibi-outcome-private-repo-"),
+): string {
+  fs.mkdirSync(workspace, { recursive: true });
   const git = (...args: string[]) =>
     spawnSync("git", args, { cwd: workspace, stdio: "ignore" });
   git("init", "-q", "-b", "main");
@@ -263,7 +265,12 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
 
 describe("kibi CLI skill load telemetry (end to end)", () => {
   test("a skill loaded through the CLI marks later operations in that workspace", async () => {
-    const workspace = gitWorkspace();
+    // The workspace sits below a plain parent directory, the way repositories
+    // sit below a home directory.
+    const parent = temporaryDirectory("kibi-skill-load-parent-");
+    const workspace = gitWorkspace(path.join(parent, "repo"));
+    const subdirectory = path.join(workspace, "packages", "app");
+    fs.mkdirSync(subdirectory, { recursive: true });
     const other = gitWorkspace();
     const state = temporaryDirectory("kibi-skill-load-state-");
     const collector = startCollector();
@@ -274,23 +281,29 @@ describe("kibi CLI skill load telemetry (end to end)", () => {
         KIBI_TELEMETRY_HOST: collector.url,
       };
       for (const root of [workspace, other]) {
-        expect((await runKibi(["init", "--no-hooks"], root, env)).exitCode).toBe(
-          0,
-        );
+        expect(
+          (await runKibi(["init", "--no-hooks"], root, env)).exitCode,
+        ).toBe(0);
       }
+      const loadSkill = ["skills", "load", "kibi-usage", "--format", "json"];
       const before = await runKibi(["status"], workspace, env);
-      const load = await runKibi(
-        ["skills", "load", "kibi-usage", "--format", "json"],
-        workspace,
-        env,
-      );
+      // A load in the parent directory marks that directory only.
+      const parentLoad = await runKibi(loadSkill, parent, env);
+      const afterParentLoad = await runKibi(["status"], workspace, env);
+      // A load run from a subdirectory marks the workspace it resolves to.
+      const load = await runKibi(loadSkill, subdirectory, {
+        ...env,
+        KIBI_WORKSPACE: workspace,
+      });
       expect(load.exitCode).toBe(0);
       expect(load.stdout).toContain('"sourceType": "bundled"');
       const after = await runKibi(["status"], workspace, env);
       const elsewhere = await runKibi(["status"], other, env);
-      expect([before, after, elsewhere].map((run) => run.exitCode)).toEqual([
-        0, 0, 0,
-      ]);
+      expect(
+        [before, parentLoad, afterParentLoad, after, elsewhere].map(
+          (run) => run.exitCode,
+        ),
+      ).toEqual([0, 0, 0, 0, 0]);
       // Twenty queued events make the next command's flush due.
       for (let index = 0; index < 16; index += 1) {
         await runKibi(["status"], other, env);
@@ -299,7 +312,7 @@ describe("kibi CLI skill load telemetry (end to end)", () => {
         .flatMap((body) => body.batch)
         .map((event) => event.properties)
         .filter((properties) => properties.operation !== "init")
-        .slice(0, 4);
+        .slice(0, 6);
       expect(
         events.map((properties) => [
           properties.operation,
@@ -308,11 +321,13 @@ describe("kibi CLI skill load telemetry (end to end)", () => {
       ).toEqual([
         ["status", false],
         ["skills load", false],
+        ["status", false],
+        ["skills load", false],
         ["status", true],
         ["status", false],
       ]);
       const sent = JSON.stringify(collector.batches);
-      expect(sent).not.toContain(workspace);
+      expect(sent).not.toContain(parent);
       expect(sent).not.toContain(other);
     } finally {
       collector.stop();

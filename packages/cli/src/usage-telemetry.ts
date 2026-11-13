@@ -8,6 +8,7 @@ import {
   telemetryRootError,
 } from "kibi-agent-core/usage-telemetry";
 
+import { resolveKibiWorkspaceRoot } from "./env/bootstrap.js";
 import { operationTelemetrySignals } from "./telemetry-details.js";
 
 /**
@@ -151,7 +152,9 @@ export async function finishCliTelemetry(input: {
       packageName: "kibi-cli",
       packageVersion: input.packageVersion,
       host: detectTelemetryHost(env),
-      workspaceRoot: process.cwd(),
+      // The workspace the command ran in, not the directory it was started
+      // from: a skill loaded from a subdirectory marks the whole workspace.
+      workspaceRoot: resolveKibiWorkspaceRoot(process.cwd(), env),
     },
     {
       interface: "cli",
