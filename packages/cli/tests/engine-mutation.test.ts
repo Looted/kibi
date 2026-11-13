@@ -3130,7 +3130,10 @@ describe("engine lifecycle", () => {
     mkdirSync(socketPath);
     writeFileSync(path.join(socketPath, "x"), "");
     stubProlog();
-    spyOn(process, "exit").mockImplementation((() => undefined) as never);
+    process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS = "100";
+    const exit = spyOn(process, "exit").mockImplementation(
+      (() => undefined) as never,
+    );
     const rm = fs.rmSync;
     spyOn(fs, "rmSync").mockImplementation(((
       file: string,
@@ -3143,6 +3146,13 @@ describe("engine lifecycle", () => {
       runEngineDaemon({ workspaceRoot: workspace, branch: "main", socketPath }),
     ).rejects.toThrow();
     expect(existsSync(path.join(socketPath, "x"))).toBe(true);
+    // The daemon never listened, so losing the workspace afterwards must not
+    // run a shutdown that exits the hosting process.
+    const errors = spyOn(console, "error").mockImplementation(() => undefined);
+    rm(workspace, { recursive: true, force: true });
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    expect(errors).not.toHaveBeenCalled();
+    expect(exit).not.toHaveBeenCalled();
   });
 
   test("save, detach and stop at once on shutdown", async () => {
