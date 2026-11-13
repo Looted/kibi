@@ -4,7 +4,7 @@ description: "Use when the person states a rule or decision (must, never, always
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-decisions
-  version: 1.6.0
+  version: 1.7.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -62,6 +62,10 @@ name the missing capability. Never read or edit `.kb/` files directly.
    requirement on it, prose ones included. Read them all: one that forbids or
    restricts what the request describes is a conflict even when no check
    reports it.
+5. When the request adds a `must` requirement, write its success scenario
+   on the same subjects (`must-positive-scenario`). A `scenario-feasibility`
+   refusal of that scenario names the recorded rule it conflicts with: ask
+   the person which one holds.
 
 ## Decide
 

@@ -288,6 +288,14 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 15,
     to: 16,
   },
+  // Require a success scenario that assumes facts on its subjects for every
+  // must requirement written from now on. The current must requirements are
+  // acknowledged in the manifest; no source is rewritten.
+  {
+    id: "positive-scenarios-v17",
+    from: 16,
+    to: 17,
+  },
 ];
 
 function migrationStepsFor(
@@ -955,6 +963,9 @@ export async function migrateCommand(
   const firmnessFromOriginStep = migrationSteps.some(
     (step) => step.id === "firmness-from-origin-v10",
   );
+  const positiveScenarioStep = migrationSteps.some(
+    (step) => step.id === "positive-scenarios-v17",
+  );
   const floorScope = {
     firm: migrationSteps.some((step) => step.id === "evidence-floor-v11"),
     approved: migrationSteps.some((step) => step.id === "approval-floor-v15"),
@@ -989,6 +1000,10 @@ export async function migrateCommand(
     mergeFirmSupersedeAcknowledgements,
     planFirmSupersedeAcknowledgement,
   } = await import("../operations/migration/firm-supersede.js");
+  const {
+    mergePositiveScenarioAcknowledgements,
+    planPositiveScenarioAcknowledgements,
+  } = await import("../operations/migration/positive-scenario.js");
   const {
     acknowledgedContextIds,
     applyContextMissingTags,
@@ -1033,6 +1048,13 @@ export async function migrateCommand(
       if (firmEdges.length > 0)
         console.log(
           `dry run: would acknowledge ${firmEdges.length} supersede(s) of decisions that read as firm from schema 10 (manifest only; no firmness is written).`,
+        );
+    }
+    if (positiveScenarioStep) {
+      const musts = planPositiveScenarioAcknowledgements(cwd);
+      if (musts.length > 0)
+        console.log(
+          `dry run: would acknowledge ${musts.length} current must requirement(s) recorded before schema 17, which need no positive scenario (manifest only; no scenario is written).`,
         );
     }
     if (evidenceFloorStep) {
@@ -1197,6 +1219,9 @@ export async function migrateCommand(
   const firmSupersedes = firmnessFromOriginStep
     ? planFirmSupersedeAcknowledgement(cwd)
     : [];
+  const positiveScenarioMusts = positiveScenarioStep
+    ? planPositiveScenarioAcknowledgements(cwd)
+    : [];
   const evidenceFloorPlan = evidenceFloorStep
     ? planEvidenceFloorPins(cwd, ladderFloors, floorScope)
     : null;
@@ -1238,6 +1263,14 @@ export async function migrateCommand(
           ),
         }
       : {}),
+    ...(positiveScenarioMusts.length > 0
+      ? {
+          positiveScenarioAcknowledged: mergePositiveScenarioAcknowledgements(
+            existingManifest.positiveScenarioAcknowledged,
+            positiveScenarioMusts,
+          ),
+        }
+      : {}),
   });
   if (supersedesUnexplained.length > 0)
     console.log(
@@ -1246,6 +1279,10 @@ export async function migrateCommand(
   if (firmSupersedes.length > 0)
     console.log(
       `Acknowledged ${firmSupersedes.length} supersede(s) of decisions without firmness that read as firm from schema 10; a new replacement of such a decision must be firm.`,
+    );
+  if (positiveScenarioMusts.length > 0)
+    console.log(
+      `Acknowledged ${positiveScenarioMusts.length} current must requirement(s) recorded before schema 17; a new must requirement needs a success scenario that assumes facts on its subjects.`,
     );
   if (evidenceFloorsPinned > 0)
     console.log(

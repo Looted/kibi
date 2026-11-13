@@ -39,6 +39,21 @@ ds_req(Id, Status, Entries) :-
 ds_claim(Key, Role, Status, Subjects,
          _{claim_key: Key, claim_text: "The claim", role: Role, status: Status, subjects: Subjects}).
 
+%% ds_must(+Id, +Entries)
+% A current must requirement whose semantic_inventory holds Entries.
+ds_must(Id, Entries) :-
+    with_output_to(string(Json), json_write_dict(current_output, Entries, [width(0)])),
+    format(string(Source), "kb/~w.md", [Id]),
+    ds_raw(req, Id, [title="Req", status=open, priority=must, source=Source, semantic_inventory=Json]).
+
+ds_scenario(Id, Expects, Status) :-
+    format(string(Source), "kb/~w.md", [Id]),
+    ds_raw(scenario, Id, [title="Scenario", status=Status, expects=Expects, source=Source]).
+
+ds_value(Id, Key) :-
+    ds_raw(fact, Id, [title="Value", status=active, fact_kind=property_value,
+                      subject_key=Key, property_key="count"]).
+
 ds_kb(Goal) :- with_fixture_kb(once(Goal)).
 
 ds_rules(Violations, Rules) :-
@@ -157,6 +172,92 @@ test(domain_json, Summary == [true, ['REQ-A'], ['shop.cart.line'], [shop]]) :-
         get_dict(defined, D, Defined), get_dict(narrower, D, Narrower),
         get_dict(broader, D, Broader),
         Summary = [Defined, Reqs, Narrower, Broader]
+    )).
+
+test(positive_scenario_gaps, Gaps == [
+        'REQ-INACTIVE'-no_success_scenario-[cart]-[],
+        'REQ-NOASSUME'-no_subject_assumption-[cart]-['SCEN-OTHER'],
+        'REQ-NONE'-no_subjects-[]-[],
+        'REQ-NOSCEN'-no_success_scenario-[cart]-[]
+    ]) :-
+    ds_kb((
+        ds_subject('F-CART', "cart"),
+        ds_subject('F-LINE', "cart.line"),
+        ds_subject('F-PRICE', "price"),
+        ds_value('V-CART', "cart"),
+        ds_value('V-LINE', "cart.line"),
+        ds_value('V-PRICE', "price"),
+        ds_claim('C0', normative, ontology_gap, [], Bare),
+        ds_claim('C1', normative, ontology_gap, ["cart"], Cart),
+        ds_must('REQ-NONE', [Bare]),
+        ds_must('REQ-NOSCEN', [Cart]),
+        ds_scenario('SCEN-REJ', rejection, active),
+        fixture_rel(specified_by, 'REQ-NOSCEN', 'SCEN-REJ'),
+        fixture_rel(assumes, 'SCEN-REJ', 'V-CART'),
+        ds_must('REQ-NOASSUME', [Cart]),
+        ds_scenario('SCEN-OTHER', success, active),
+        fixture_rel(specified_by, 'REQ-NOASSUME', 'SCEN-OTHER'),
+        fixture_rel(assumes, 'SCEN-OTHER', 'V-PRICE'),
+        ds_must('REQ-NARROW', [Cart]),
+        ds_scenario('SCEN-NARROW', success, active),
+        fixture_rel(specified_by, 'REQ-NARROW', 'SCEN-NARROW'),
+        fixture_rel(assumes, 'SCEN-NARROW', 'V-LINE'),
+        ds_must('REQ-EXACT', [Cart]),
+        ds_scenario('SCEN-EXACT', success, active),
+        fixture_rel(specified_by, 'REQ-EXACT', 'SCEN-EXACT'),
+        fixture_rel(assumes, 'SCEN-EXACT', 'V-CART'),
+        ds_must('REQ-INACTIVE', [Cart]),
+        ds_scenario('SCEN-OLD', success, deprecated),
+        fixture_rel(specified_by, 'REQ-INACTIVE', 'SCEN-OLD'),
+        fixture_rel(assumes, 'SCEN-OLD', 'V-CART'),
+        ds_req('REQ-SHOULD', open, [Cart]),
+        findall(R-Why-Subjects-Scenarios,
+                positive_scenario_gap(R, Why, Subjects, Scenarios),
+                Gaps0),
+        msort(Gaps0, Gaps)
+    )).
+
+test(positive_scenario_via, Found == ['REQ-EXACT'-'SCEN-EXACT'-cart, 'REQ-NARROW'-'SCEN-NARROW'-cart]) :-
+    ds_kb((
+        ds_subject('F-CART', "cart"),
+        ds_subject('F-LINE', "cart.line"),
+        ds_value('V-CART', "cart"),
+        ds_value('V-LINE', "cart.line"),
+        ds_raw(fact, 'V-GONE', [title="Gone", status=archived, fact_kind=property_value,
+                                subject_key="cart", property_key="count"]),
+        ds_claim('C1', normative, ontology_gap, ["cart"], Cart),
+        ds_must('REQ-NARROW', [Cart]),
+        ds_scenario('SCEN-NARROW', success, active),
+        fixture_rel(specified_by, 'REQ-NARROW', 'SCEN-NARROW'),
+        fixture_rel(assumes, 'SCEN-NARROW', 'V-LINE'),
+        ds_must('REQ-EXACT', [Cart]),
+        ds_scenario('SCEN-EXACT', success, active),
+        fixture_rel(specified_by, 'REQ-EXACT', 'SCEN-EXACT'),
+        fixture_rel(assumes, 'SCEN-EXACT', 'V-CART'),
+        ds_must('REQ-ARCHIVED', [Cart]),
+        ds_scenario('SCEN-ARCHIVED', success, active),
+        fixture_rel(specified_by, 'REQ-ARCHIVED', 'SCEN-ARCHIVED'),
+        fixture_rel(assumes, 'SCEN-ARCHIVED', 'V-GONE'),
+        findall(R-S-K, positive_scenario(R, S, K), Found0),
+        sort(Found0, Found)
+    )).
+
+test(positive_scenario_gaps_json, Summary == [2, ['REQ-NOSCEN'-no_success_scenario]]) :-
+    ds_kb((
+        ds_subject('F-CART', "cart"),
+        ds_value('V-CART', "cart"),
+        ds_claim('C1', normative, ontology_gap, ["cart"], Cart),
+        ds_must('REQ-NOSCEN', [Cart]),
+        ds_must('REQ-EXACT', [Cart]),
+        ds_scenario('SCEN-EXACT', success, active),
+        fixture_rel(specified_by, 'REQ-EXACT', 'SCEN-EXACT'),
+        fixture_rel(assumes, 'SCEN-EXACT', 'V-CART'),
+        positive_scenario_gaps_json(Text),
+        ds_json(Text, D),
+        get_dict(evaluated, D, Evaluated),
+        get_dict(rows, D, Rows),
+        findall(Id-Reason, (member(Row, Rows), get_dict(id, Row, Id), get_dict(reason, Row, Reason)), Pairs),
+        Summary = [Evaluated, Pairs]
     )).
 
 :- end_tests(domain_subjects).

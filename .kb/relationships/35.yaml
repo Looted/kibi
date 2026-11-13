@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9ab27f1e85b
+  - type: covered_by
+    from: SYM-positive-scenario-acknowledgement
+    to: TEST-kb-must-positive-scenario
+    created_at: 2026-11-13T03:42:09.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-242255a9552a
+  - type: implements
+    from: SYM-positive-scenario-acknowledgement
+    to: REQ-kb-must-positive-scenario
+    created_at: 2026-11-13T03:42:09.435Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e872179e91e8

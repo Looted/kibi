@@ -36,7 +36,9 @@
 // firmness.
 // Schema 16 restores subject facts as domain definitions: a subject needs a
 // definition and no duplicate, and every unmodeled claim names its subjects.
-export const LATEST_KB_SCHEMA_VERSION = 16;
+// Schema 17 requires a must requirement written after the upgrade to have a
+// success scenario that assumes facts on its subjects.
+export const LATEST_KB_SCHEMA_VERSION = 17;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

@@ -39810,3 +39810,54 @@ symbols:
         target: TEST-kibi-approval-evidence-floor
       - type: implements
         target: REQ-kibi-evidence-floors
+  - id: SYM-test-kb-must-positive-scenario
+    title: Positive scenario suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/positive-scenarios.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T04:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-must-positive-scenario
+  - id: SYM-domain-subjects-positive-scenario-gap
+    title: positive_scenario_gap
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T04:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-must-positive-scenario
+      - type: implements
+        target: REQ-kb-must-positive-scenario
+  - id: SYM-positive-scenario-violations
+    title: positiveScenarioViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/positive-scenario.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T04:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-must-positive-scenario
+      - type: implements
+        target: REQ-kb-must-positive-scenario
+  - id: SYM-positive-scenario-acknowledgement
+    title: planPositiveScenarioAcknowledgement
+    status: active
+    sourceFile: packages/cli/src/public/operations/positive-scenario.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T04:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-must-positive-scenario
+      - type: implements
+        target: REQ-kb-must-positive-scenario

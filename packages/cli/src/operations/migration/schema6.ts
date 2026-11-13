@@ -30,6 +30,7 @@ import {
   type MigrationAction,
   migrationAction,
 } from "../../public/operations/migration-plan.js";
+import { POSITIVE_SCENARIO_SCHEMA_VERSION } from "../../public/operations/positive-scenario.js";
 import { CLAIM_BINDING_SCHEMA_VERSION } from "../../public/operations/proof-contract-claims.js";
 import {
   CLOSE_SUPERSEDED_REQUIREMENTS_ACTION_ID,
@@ -100,6 +101,11 @@ import {
   applyPolarityValueBackfill,
   planPolarityValueBackfill,
 } from "./polarity-values.js";
+import {
+  POSITIVE_SCENARIO_ACKNOWLEDGE_CODE,
+  applyPositiveScenarioAcknowledgement,
+  planPositiveScenarioAcknowledgements,
+} from "./positive-scenario.js";
 import {
   type ClaimCandidateRow,
   PROOF_CONTRACT_CLAIMS_PIN_CODE,
@@ -1096,6 +1102,39 @@ export function buildSchema6MigrationFragment(input: {
         }),
       );
   }
+  // Schema 17: a must requirement needs a success scenario that assumes
+  // facts on its subjects. Acknowledge the current must requirements, so
+  // only must requirements written after the upgrade owe one.
+  if (version < POSITIVE_SCENARIO_SCHEMA_VERSION) {
+    const ids = planPositiveScenarioAcknowledgements(input.workspaceRoot);
+    if (ids.length > 0) {
+      const id = "positive-scenario-acknowledge";
+      // Manifest only, but the bumped schema blocks without it.
+      sourceRewriteActionIds.push(id);
+      actions.push(
+        migrationAction({
+          id,
+          code: POSITIVE_SCENARIO_ACKNOWLEDGE_CODE,
+          category: "schema",
+          safety: "automatic",
+          autoApplicable: true,
+          invocation: {
+            kind: "cli",
+            command_argv: ["kibi", "migrate", "--yes"],
+          },
+          affectedEntityIds: ids,
+          affectedFiles: [".kb/manifest.json"],
+          postconditions: [{ rule: "must-positive-scenario", findings: 0 }],
+          evidence: {
+            reason:
+              "Schema 17 blocks a current must requirement without a success scenario that assumes facts on its subjects. Must requirements recorded before that are acknowledged in the manifest and stay exempt; no scenario is invented.",
+            count: ids.length,
+            preserves: "every authored source file",
+          },
+        }),
+      );
+    }
+  }
   const drift = planInventoryRederivation(input.workspaceRoot);
   for (const plan of drift) {
     const action = plan.safe ? rederiveAction(plan) : reviewAction(plan);
@@ -1365,6 +1404,10 @@ export async function applySchema6MigrationAction(
       applyFirmSupersedeAcknowledgement(context.workspaceRoot);
       return;
     }
+    case POSITIVE_SCENARIO_ACKNOWLEDGE_CODE: {
+      applyPositiveScenarioAcknowledgement(context.workspaceRoot);
+      return;
+    }
     case EVIDENCE_FLOOR_PIN_CODE:
     case APPROVAL_FLOOR_PIN_CODE: {
       // The plan decided the pins with the evidence ladder; apply the same
@@ -1544,6 +1587,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   CONTEXT_MISSING_TAG_CODE,
   SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
+  POSITIVE_SCENARIO_ACKNOWLEDGE_CODE,
   EVIDENCE_FLOOR_PIN_CODE,
   APPROVAL_FLOOR_PIN_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,
