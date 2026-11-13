@@ -406,26 +406,72 @@ describe("result rendering", () => {
     ]);
   });
 
-  test("suggestions show only for evidence-floor findings by default", async () => {
+  test("suggestions show their first sentence by default, evidence-floor ones whole", async () => {
     checkResult = {
       structuredContent: {
         violations: [
           violation(),
-          violation({ rule: EVIDENCE_FLOOR_RULE, suggestion: "Add proof" }),
+          violation({
+            entityId: "REQ-2",
+            suggestion: "Add a title. Then sync.",
+          }),
+          violation({
+            rule: EVIDENCE_FLOOR_RULE,
+            suggestion: "Add proof. Then prove.",
+          }),
         ],
       },
     };
     expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 1 });
     expect(logs).toEqual([
-      "Found 2 violation(s):",
+      "Found 3 violation(s):",
       "",
       "[required-fields] REQ-1",
       "  Missing required field: title",
+      "  Suggestion: Add title",
+      "",
+      "[required-fields] REQ-2",
+      "  Missing required field: title",
+      "  Suggestion: Add a title. (kibi check --fix shows more)",
       "",
       `[${EVIDENCE_FLOOR_RULE}] REQ-1`,
       "  Missing required field: title",
-      "  Suggestion: Add proof",
+      "  Suggestion: Add proof. Then prove.",
       "",
     ]);
+  });
+
+  describe("concise suggestions", () => {
+    async function shown(suggestion: string): Promise<string | undefined> {
+      checkResult = {
+        structuredContent: { violations: [violation({ suggestion })] },
+      };
+      logs.length = 0;
+      await checkCommand({ kbPath: "/kb" });
+      return logs.find((line) => line.startsWith("  Suggestion: "));
+    }
+
+    test("keep the first sentence and point to the rest", async () => {
+      expect(await shown("Do a. Then b.")).toBe(
+        "  Suggestion: Do a. (kibi check --fix shows more)",
+      );
+      expect(await shown("Do a.\nThen b.")).toBe(
+        "  Suggestion: Do a. (kibi check --fix shows more)",
+      );
+      expect(await shown("Do a.  Then b.")).toBe(
+        "  Suggestion: Do a. (kibi check --fix shows more)",
+      );
+      expect(await shown(". Then b.")).toBe(
+        "  Suggestion: . (kibi check --fix shows more)",
+      );
+    });
+
+    test("keep a one-sentence suggestion whole", async () => {
+      expect(await shown("Do a.")).toBe("  Suggestion: Do a.");
+      expect(await shown("Do a. ")).toBe("  Suggestion: Do a. ");
+      expect(await shown("Set kibi.x to `a.b`")).toBe(
+        "  Suggestion: Set kibi.x to `a.b`",
+      );
+    });
   });
 });

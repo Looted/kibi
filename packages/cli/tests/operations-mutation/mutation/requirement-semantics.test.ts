@@ -210,7 +210,7 @@ async function boundary(
 function refusal(errors: string) {
   return {
     code: "INCOMPLETE_PROPOSITIONS",
-    message: `Proposition-complete ingestion failed: REQ-1 would be written as a current requirement without a complete proposition inventory (${errors}). Run kb_model mode analyze (CLI: semantic-advisor) with id 'REQ-1' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
+    message: `Proposition-complete ingestion failed: REQ-1 would be written as a current requirement without a complete proposition inventory (${errors}). Run kb_model mode analyze (CLI: kibi model) with id 'REQ-1' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
   };
 }
 

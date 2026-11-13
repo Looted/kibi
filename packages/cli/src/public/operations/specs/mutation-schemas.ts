@@ -92,7 +92,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       uniqueItems: true,
       items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
       description:
-        "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: semantic-advisor). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+        "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: kibi model). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
     },
     semantic_clauses: {
       type: "array",
@@ -105,7 +105,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       const: "kibi.semantic-inventory.v1",
       description:
-        "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: semantic-advisor).",
+        "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: kibi model).",
     },
     semantic_source_field: {
       type: "string",
@@ -449,7 +449,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     semantic_inventory: {
       type: "array",
       description:
-        "Requirement proposition ledger returned by kb_model mode analyze (CLI: semantic-advisor); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
+        "Requirement proposition ledger returned by kb_model mode analyze (CLI: kibi model); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
       items: { type: "object" },
     },
     pair_reviews: {

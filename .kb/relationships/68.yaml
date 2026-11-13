@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cc59f9a40c8
+  - type: implements
+    from: SYM-engine-EngineSession
+    to: REQ-kibi-engine-single-writer-protocol
+    created_at: 2026-11-13T21:37:47.063Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-278a6ae5a2e3
+  - type: covered_by
+    from: SYM-engine-EngineSession
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-11-13T21:37:47.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7650a95d004

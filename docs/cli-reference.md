@@ -96,7 +96,7 @@ for the full catalog operation to MCP call to CLI route table.
 | `1` | The operation started but failed, including Prolog, filesystem, network, or other runtime failures. |
 | `2` | Invocation or input error, including missing/unreadable input, malformed JSON, a non-object root, conflicting flags/positionals, unknown operations, or schema validation failure. |
 
-Errors are written to stderr as `Error [CODE]: detail`. Failed routes do not write a success JSON object.
+A failed route writes its JSON result with `status: "error"` and `error.code`, `error.message` on stdout, and one line on stderr naming the code and pointing to that message (`Error [CODE]: see error.message in the JSON result on stdout`), so the message is printed once. An input error found before the route runs (a missing or conflicting `--input`, unreadable or malformed JSON) has no JSON result and is written to stderr as `Error [CODE]: detail`. Failed routes do not write a success JSON object.
 
 ## `kibi init`
 
@@ -151,6 +151,8 @@ Git never clones `.git/hooks` or the compiled branch store, and agent plugins ar
 - The pre-commit hook blocks commits that stage `.kb/symbol-coordinates.yaml` (it is derived locally and never committed) or a `.kb/symbols.yaml` that is not in the layout sync writes.
 - The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs, authored `.kb/symbols.yaml` entries, or a symbol manifest that already covers every declaration of the edited file). Test-only and docs-only edits are exempt.
 - The pre-commit hook also blocks a commit whose staged knowledge introduces a `domain-contradictions`, `scenario-feasibility`, `exception-claim-keys` or `kb-consistency` violation, the same finding full `kibi check` reports on that tree. A violation already present at the last commit does not block an unrelated commit.
+- The pre-commit hook also runs the requirement-scoped blocking rules on the entity documents the commit stages, from the KB schema that blocks each: `claim-subject-missing`, `claim-subject-undefined` and `subject-definition-missing` (schema 16), `must-positive-scenario` (schema 17, except requirements the upgrade recorded) and `related-requirement-unmodeled` (schema 18, run only when a staged requirement has an unmodeled claim). A finding on an entity the commit does not stage, or one the same entity already had at the last commit, does not block.
+- The pre-commit hook also blocks a commit that adds a current requirement, or changes the fields that set its evidence floor (`status`, `priority`, `firmness`, `required_evidence`, `origin`), while that requirement is below its floor (`evidence-floor`) or is an implemented, unapproved agent-written must requirement past its grace period (`agent-requirement-unapproved-implemented`). Their evidence (tests, symbols, proof receipts) is read from the synced branch store, as `kibi check` reads it, so a requirement the store does not hold yet is not judged; run `kibi sync` first.
 - The pre-commit hook also blocks a commit that adds or edits an entity document without the body context full `kibi check` requires (`entity-context-missing`). An entity that already lacked context at the last commit, or that the schema 8 migration acknowledged in `.kb/manifest.json`, does not block.
 - Idempotent: safe to run multiple times
 - After initialization, ask the coding agent to bootstrap the repository. The
@@ -833,6 +835,7 @@ Validates knowledge base integrity and runs inference rules.
 - `--min-links <N>` - Minimum requirement links per symbol for staged traceability (default: 1)
 - `--dry-run` - Show staged-traceability effects without modifying files
 - `--format json|text` - Output structured JSON for integrations such as OpenCode scheduled checks, or human-readable text output (default: text)
+- `--fix` - Show each violation's whole fix suggestion. Text output otherwise prints the first sentence of each suggestion.
 - `--fresh-evidence` - The `evidence-floor` rule judges proof receipts as they are: a requirement whose receipts are only older than the code fails instead of counting as pending re-proof, and the proof snapshot must be clean. Run it right after `kibi prove`
 - `--write-certificates <file>` - Also save the `kibi.certificates.v1` bundle the `kb-consistency` rule re-checked (not with `--staged`)
 - `--certificates <file>` - Only re-check a saved bundle against the current KB with the independent checker and print the `kibi.verification.v1` report (one verdict per theorem: `proved`, `disproved` or `unresolved`, and every rejected certificate with the reason; `--format json` prints it as JSON). Exits 1 when a certificate is rejected or missing or a theorem is disproved; cannot be combined with `--write-certificates`, `--staged` or `--rules`
@@ -934,7 +937,7 @@ constant and leaves undeclared values unbound. Existing facts are converged by
 
 While editing, agents can run impact diagnostics through MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` or the equivalent `kibi check --input <file|->` JSON route. `kibi check --staged` remains the commit-time git-hook gate once files are staged.
 
-Structured JSON output preserves the same two-lane model used by MCP: hard correctness failures appear under `structuredContent.violations[]`, while advisory audit signals appear under `structuredContent.qualityDiagnostics[]`. For `--staged`, one envelope is emitted for every outcome. `structuredContent.staged.files[]` records each path's Git status, analysis depth, disposition, ownership, evidence, provider, and skipped reason; file-level advisory findings appear in `structuredContent.diagnostics[]`. Advisory-only output is still a successful check; integrations should inspect `blocking` and `severity` instead of treating every diagnostic as a failure.
+`kibi check --format json` (and `--staged --format json`) prints the MCP-shaped payload `{"structuredContent": {...}}`, the form the OpenCode scheduled check and other integrations read. The `kibi check --input <file|->` JSON route is a catalog route and prints the standard `{"kibiProtocol", "operation", "status", "data", ...}` envelope every JSON route prints, with the `kb_check` result (violations, quality diagnostics, migration plan) under `data`. Structured JSON output preserves the same two-lane model used by MCP: hard correctness failures appear under `structuredContent.violations[]`, while advisory audit signals appear under `structuredContent.qualityDiagnostics[]`. For `--staged`, one envelope is emitted for every outcome. `structuredContent.staged.files[]` records each path's Git status, analysis depth, disposition, ownership, evidence, provider, and skipped reason; file-level advisory findings appear in `structuredContent.diagnostics[]`. Advisory-only output is still a successful check; integrations should inspect `blocking` and `severity` instead of treating every diagnostic as a failure.
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.
 
@@ -1373,7 +1376,7 @@ kibi skills validate <path> [--format json|table]
 - `list` - Show all bundled skills with ID, name, version, and description
 - `load <id>` - Load a skill by its bundled ID. Returns the skill body and manifest.
 - `read <id> <resource>` - Read a specific resource file declared in the skill manifest
-- `validate <path>` - Validate a local skill bundle directory against the skill schema
+- `validate <path>` - Validate a local skill bundle directory against the skill schema. The Kibi fields (`id`, `version`, `kibiCompatibility`, `tags`, `resources`) may sit at the top level of the front matter or under `metadata:`, as in the Claude Code and ZCode bundles; a top-level field wins.
 
 **Flags:**
 - `--format json|table` - Output format for `list` and `validate` (default: table)

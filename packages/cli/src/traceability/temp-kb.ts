@@ -109,6 +109,11 @@ const FACT_STRING_ARRAY_FIELDS = new Set([
   "examples",
   "predicate_args",
   "value_set",
+  // The subject hierarchy claim-subject-undefined and the subject pairing
+  // of related-requirement-unmodeled read.
+  "part_of",
+  "kind_of",
+  "distinct_from",
 ]);
 
 function isTraceEnabled(): boolean {
