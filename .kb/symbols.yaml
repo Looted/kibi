@@ -39861,3 +39861,29 @@ symbols:
         target: TEST-kb-must-positive-scenario
       - type: implements
         target: REQ-kb-must-positive-scenario
+  - id: SYM-subject-layer-subject-hierarchy-violations
+    title: subjectHierarchyViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:56:10.486Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-subject-layer-subject-layer-applies
+    title: subjectLayerApplies
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:56:17.973Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer

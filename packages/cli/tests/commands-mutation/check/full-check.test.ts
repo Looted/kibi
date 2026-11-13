@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { checkCommand } from "../../../src/commands/check.js";
 import { EngineClient } from "../../../src/engine.js";
 import { PrologProcess } from "../../../src/prolog.js";
@@ -426,6 +429,33 @@ describe("result rendering", () => {
       "  Missing required field: title",
       "  Suggestion: Add proof",
       "",
+    ]);
+  });
+
+  test("a KB on an older schema is pointed at kibi migrate before the result", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-check-schema-"));
+    mkdirSync(path.join(root, ".kb"));
+    writeFileSync(
+      path.join(root, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 14,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    );
+    const cwd = spyOn(process, "cwd").mockReturnValue(root);
+    try {
+      expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
+    } finally {
+      cwd.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+    expect(logs).toEqual([
+      expect.stringMatching(
+        /^Note: KB schemaVersion 14 is older than the latest version/,
+      ),
+      "",
+      "✓ No violations found. KB is valid.",
     ]);
   });
 });
