@@ -174,3 +174,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-08f69fc83c31
+  - type: requires_predicate
+    from: REQ-kibi-telemetry-skill-load-routes
+    to: FACT-PRED-telemetry-skill-load-routes
+    created_at: 2026-11-13T09:28:38.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8174d8c174e
+  - type: specified_by
+    from: REQ-kibi-telemetry-skill-load-routes
+    to: SCEN-kibi-telemetry-skill-load-routes
+    created_at: 2026-11-13T09:28:38.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df2dd226094d
+  - type: specified_by
+    from: REQ-kibi-telemetry-skill-load-routes
+    to: SCEN-NEG-kibi-telemetry-skill-load-routes-OTHER-WORKSPACE
+    created_at: 2026-11-13T09:28:38.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42bb1c90d9d2
+  - type: verified_by
+    from: REQ-kibi-telemetry-skill-load-routes
+    to: TEST-kibi-telemetry-skill-load-routes-cli
+    created_at: 2026-11-13T09:28:38.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c85247f5fec4
+  - type: relates_to
+    from: REQ-kibi-telemetry-skill-load-routes
+    to: REQ-kibi-telemetry-session-signals
+    created_at: 2026-11-13T09:28:38.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b7083e704f3

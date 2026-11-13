@@ -35248,8 +35248,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-anonymous-usage-telemetry-cli
+      - type: covered_by
+        target: TEST-kibi-telemetry-skill-load-routes-cli
       - type: implements
         target: REQ-kibi-anonymous-usage-telemetry
+      - type: implements
+        target: REQ-kibi-telemetry-skill-load-routes
   - id: SYM-cli-usage-telemetry-finishclitelemetry
     title: finishCliTelemetry
     status: active
@@ -37391,6 +37395,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: executable_for
+        target: TEST-kibi-telemetry-skill-load-routes-cli
   - id: SYM-agent-core-usage-telemetry-telemetryoutcome
     title: telemetryOutcome
     status: active
@@ -37595,10 +37601,14 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T14:24:10.680Z
     relationships:
-      - type: implements
-        target: REQ-kibi-telemetry-session-signals
       - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: covered_by
+        target: TEST-kibi-telemetry-skill-load-routes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-session-signals
+      - type: implements
+        target: REQ-kibi-telemetry-skill-load-routes
   - id: SYM-cli-telemetry-details-schemaissues
     title: schemaIssues
     status: active
@@ -39861,3 +39871,67 @@ symbols:
         target: TEST-kb-must-positive-scenario
       - type: implements
         target: REQ-kb-must-positive-scenario
+  - id: SYM-agent-core-telemetry-signals-operationsignals
+    title: OperationSignals
+    status: active
+    sourceFile: packages/agent-core/src/telemetry-signals.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T10:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-skill-load-routes-cli
+      - type: implements
+        target: REQ-kibi-telemetry-skill-load-routes
+  - id: SYM-test-skillopt-harness-telemetry-silent
+    title: SkillOpt harness telemetry environment suite
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/telemetry-env.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T10:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-harness-telemetry-silent
+  - id: SYM-skillopt-telemetry-env-harness-child-env
+    title: harnessChildEnv
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/telemetry-env.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T10:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-harness-telemetry-silent
+      - type: implements
+        target: REQ-skillopt-harness-telemetry-silent
+  - id: SYM-skillopt-fixture-kb-setup-fixture-cli-env
+    title: fixtureCliEnv
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T10:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-harness-telemetry-silent
+      - type: implements
+        target: REQ-skillopt-harness-telemetry-silent
+  - id: SYM-skillopt-process-run-bounded-process
+    title: runBoundedProcess
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/process.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T10:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-harness-telemetry-silent
+      - type: implements
+        target: REQ-skillopt-harness-telemetry-silent

@@ -833,6 +833,14 @@ export function recordOperationTelemetry(
     },
     env,
   );
+  // A skill loaded through the CLI or MCP counts like one a host hook saw.
+  if (
+    status === "success" &&
+    operation.signals?.skillLoad === true &&
+    source.workspaceRoot
+  ) {
+    rememberTelemetrySkillLoad(source.workspaceRoot, env);
+  }
 }
 
 /** The workspace's hash and its parents', for markers set in a parent. */

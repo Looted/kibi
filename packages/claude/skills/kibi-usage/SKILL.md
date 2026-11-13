@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.45.0
+  version: 2.46.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -45,8 +45,8 @@ Use whichever capability is visible and approved. The surfaces are equal peers:
 
 1. If approved Kibi MCP tools are visible, use them.
 2. Otherwise use `npx --no-install kibi ...` from the trusted project-local CLI.
-3. If the operator capability is unavailable or too old for the needed route,
-   stop and identify the missing capability.
+3. If the operator capability is unavailable or too old for the needed route
+   (including a rule or field this skill names), stop and report the version gap.
 4. Never use a global fallback, an installing runner, or an unapproved route.
 
 Hosts may expose prefixed identifiers such as `kibi_kb_search`,
@@ -163,7 +163,8 @@ For an edit that keeps the governing rule, limit the consultation before the edi
 2. Resolve genuine ambiguity with the human; use `kb_model` for deterministic
    interpretation and typed facts.
 3. Create endpoints before relationships and upsert small batches sequentially.
-   Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain. Recording the
+   Every relationship `from` equals the upserted entity ID: send each link in
+   its source's write (`resources/relationship-directions.md`). Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain. Recording the
    behavior a change adds (a requirement with a scenario, and an `implements`
    link from the symbol) is part of finishing that change, not a separate
    request: do it without asking. Ask only when the change conflicts with a
@@ -598,8 +599,6 @@ clause alone and Kibi fills the key in; a sent key must equal the derived one.
 Use `kb_model` with `mode: "requirement"` for strict scalar clauses. Use
 `fact_kind: observation` only for a true ontology gap. The manifest is not
 grounding: run `logic-coverage` so each key binds to one ground fact.
-Relationship direction is fixed, and every `from` in a relationship batch
-must equal the upserted entity ID.
 
 Worked example. `recommendedAction: "provide_argument_bindings"` means a
 schema fits but `unbound_arguments` lists roles Kibi could not read from the
@@ -715,8 +714,8 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
 - **Split mechanics.** List the parent's symbols, scenarios and tests with
   `kb_graph` from the parent and `kb_query` by id; never read or grep `.kb/`
   to find them. Then, in this order:
-  1. Write each child: the parent's sentences for that behavior verbatim
-     (read them with `kb_query` and `includeBody: true`, not from the file),
+  1. Write each child: a title with the words a reader would search for,
+     the parent's sentences for that behavior verbatim (read them with `kb_query` and `includeBody: true`, not from the file),
      `supersedes` to the parent, a `specified_by` scenario, a `## Context`
      quoting the person's approval, a `## Why this changed` section of at
      least 12 words (the approval, and which behaviors the parent mixed),
@@ -778,11 +777,8 @@ gate, direct KB-store edits, and a generic `strict kb_upsert.properties` field.
 Reject an invented reason, an `implements` link from code that only delegates,
 an `umbrella` tag or rule change made to clear a review finding, and a
 requirement left `closed` when its behavior is gone (`retired`).
-Keep symbol payloads minimal. When a generic `Query failed` appears, do not keep
-retrying the same payload; inspect the typed error and `nextActions`.
+Keep symbol payloads minimal. Never resend a payload a typed error rejected
+twice; fix the rule and field the error names, or follow `nextActions`.
 
-Kibi may now author tracked Markdown/YAML evidence transactionally. The former
-statement “Kibi operation writes do not automatically stage markdown evidence”
-means Kibi writes do not Git-stage it: review and commit remain ordinary Git
-workflows. When `kibi check --staged` or the pre-commit hook blocks a commit,
+When `kibi check --staged` or the pre-commit hook blocks a commit,
 load `kibi-commit-review`.
