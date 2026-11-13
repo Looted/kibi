@@ -111,6 +111,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-comment-routing
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-comment-routing governs the comment-routing guidance a registered hook gives and states no rule about loading, exports or hook registration.
@@ -121,6 +123,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-file-context-guidance-v1
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-file-context-guidance-v1 governs the file lifecycle reminders a registered hook gives and states no rule about loading, exports or hook registration.
@@ -131,6 +135,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-guidance-caching
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-guidance-caching governs how the plugin caches and invalidates guidance and states no rule about loading, exports or hook registration.
@@ -141,6 +147,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-guidance-injection
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-guidance-injection governs the guidance a registered hook injects into the session and states no rule about loading, exports or hook registration.
@@ -151,6 +159,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-kibi-plugin-v1
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-kibi-plugin-v1 governs the plugin's behaviours as an umbrella that defers to its granular requirements and states no rule about loading, exports or hook registration.
@@ -161,6 +171,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-posture-detection
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-posture-detection governs how the plugin classifies the workspace posture and states no rule about loading, exports or hook registration.
@@ -171,6 +183,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-risk-classification
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-risk-classification governs how the plugin classifies the risk of an edit and states no rule about loading, exports or hook registration.
@@ -181,6 +195,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-smart-enforcement-v1
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-smart-enforcement-v1 governs how strongly the plugin enforces by posture and risk and states no rule about loading, exports or hook registration.
@@ -191,6 +207,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-opencode-sync-feedback
   verdict: no_conflict
   separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-sync-feedback governs how the plugin reports sync progress and errors and states no rule about loading, exports or hook registration.
@@ -201,6 +219,8 @@ pair_reviews:
   - claim_key: CLAIM-F6D85429B12F8B60
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 ---
 
 ## Context

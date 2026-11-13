@@ -54,6 +54,8 @@ pair_reviews:
   - claim_key: CLAIM-3A02520E2DF5E118
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 - with: REQ-kibi-evidence-floors
   verdict: no_conflict
   separated_by: REQ-kibi-local-proof-parity says only where the evidence-floor check runs (locally, before a push, the same check as CI); REQ-kibi-evidence-floors says what that check decides.
@@ -61,6 +63,8 @@ pair_reviews:
   - claim_key: CLAIM-3A02520E2DF5E118
   origin:
     kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 ---
 Maintainers can replay the CI proof gate locally against a clean clone of the committed HEAD. The local proof gate runs the same evidence-floor check as the CI proof workflow before a push, without re-proving.
 
