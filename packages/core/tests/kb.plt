@@ -768,6 +768,19 @@ test(search_matches_the_words_of_an_entity_id, [setup(setup_kb), cleanup(cleanup
     assertion(Count == 1),
     assertion(Rows = [['REQ-ZEPHYR-QUOTA', req, _]]).
 
+% The index also holds the words of an entity's type and of its owner,
+% priority, severity, text reference and semantic text.
+test(search_matches_the_type_and_search_fields, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(symbol, 'SYM-BILLING-TOTAL', "Billing total", active, []),
+    assert_fixture_entity(req, 'REQ-BILLING-TOTAL', "Billing total", active, [owner=quillon]),
+    assert_fixture_entity(req, 'REQ-BILLING-OTHER', "Billing total", active, []),
+    kb_search_entities(none, "symbol", 10, 0, TypeRows, TypeCount),
+    assertion(TypeCount == 1),
+    assertion(TypeRows = [['SYM-BILLING-TOTAL', symbol, _]]),
+    kb_search_entities(req, "quillon", 10, 0, OwnerRows, OwnerCount),
+    assertion(OwnerCount == 1),
+    assertion(OwnerRows = [['REQ-BILLING-TOTAL', req, _]]).
+
 test(proof_contract_projection_pages_without_receipt_histories, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Contract = _{
         version: 'kibi.proof-contract.v1',
