@@ -325,6 +325,16 @@ test(intent_claim_level) :-
     once(requirement_proof:intent_claim_level([], L1)), L1 == asserted,
     once(requirement_proof:intent_claim_level([firmness=default], L2)), L2 == unverified.
 
+% Only a firmness kibi knows is explicit: an agent-made requirement with an
+% unknown firmness keeps the approval floor its approval gives it, while an
+% explicit default drops it.
+test(required_evidence_reads_only_known_firmness_as_explicit) :-
+    rqp_origin(_{approved_by: ann, kind: agent}, Approved),
+    once(requirement_proof:required_evidence([firmness=weird, Approved], R1, S1)),
+    [R1, S1] == [tested, approval],
+    once(requirement_proof:required_evidence([firmness=default, Approved], R2, S2)),
+    [R2, S2] == [unverified, firmness].
+
 :- end_tests(requirement_proof_intent).
 
 :- begin_tests(requirement_proof_evidence_levels, [setup(rqp_forget_memo)]).
@@ -2552,9 +2562,11 @@ test(receipts_report_fingerprint_drift) :-
     requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1', _{fingerprint_components: Same}, []),
     requirement_proof:receipt_matches_current_fingerprint(Ctx, 'T-1', _{fingerprint_components: Same}),
     \+ requirement_proof:receipt_matches_current_fingerprint(Ctx, 'T-1', Stored),
-    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-9', Stored, []),
-    requirement_proof:receipt_fingerprint_drift(_{proofTestBindings: _{'T-1': h1}}, 'T-1', Stored, []),
-    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1', _{}, []),
+    % Nothing known to differ is no drift, never an unknown one.
+    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-9', Stored, NoTest), NoTest == [],
+    requirement_proof:receipt_fingerprint_drift(_{proofTestBindings: _{'T-1': h1}}, 'T-1', Stored, NoKey),
+    NoKey == [],
+    requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1', _{}, NoStored), NoStored == [],
     requirement_proof:receipt_fingerprint_drift(Ctx, 'T-1',
         _{fingerprint_components: _{contract: c}}, Partial),
     Partial == [integration, command, bindings, producer],
@@ -2569,7 +2581,9 @@ test(drift_is_attached_to_evidence_only_when_present) :-
     requirement_proof:evidence_with_drift(_{state: stale}, [command], E1),
     get_dict(fingerprintDrift, E1, [command]),
     get_dict(state, E1, stale),
-    requirement_proof:newest_receipt_drift(_{proofTestBindings: _{}}, 'T-1', [], []).
+    first_answer_is_last(requirement_proof:evidence_with_drift(_{state: stale}, [], _)),
+    requirement_proof:newest_receipt_drift(_{proofTestBindings: _{}}, 'T-1', [], NoReceipt),
+    NoReceipt == [].
 
 test(attempt_status_matches_the_entries) :-
     requirement_proof:valid_attempt_status(unavailable, _{}),
@@ -2622,6 +2636,49 @@ test(receipt_evidence_states_for_missing_and_malformed_receipts) :-
                    ;   format(user_error, "~q gave ~q~n", [T, Es]), fail
                    )
                ))
+    )).
+
+% A receipt whose execution fingerprint drifted names the drifted components
+% on its evidence, whichever way the receipts fail to be current: none on the
+% current snapshot, none for the current contract, or none with the current
+% fingerprint. receiptCount counts every receipt of the test.
+test(receipt_evidence_names_the_fingerprint_drift) :-
+    rqp_kb((
+        rqp_hash(0'a, Snap),
+        rqp_hash(0'b, OtherSnap),
+        rqp_hash(0'9, NewCommand),
+        pf_receipt([], Base),
+        Components = Base.fingerprint_components,
+        Drifted = Components.put(command, NewCommand),
+        Contract = "{\"version\":\"kibi.proof-contract.v1\"}",
+        forall(member(T-Receipts-Extra, [
+                   'T-FP'-[[code_snapshot=OtherSnap],
+                           [receipt_id='PR-FIXTURE00002', started_at='2026-05-01T00:02:00Z',
+                            finished_at='2026-05-01T00:03:00Z']]-[],
+                   'T-SNAP'-[[code_snapshot=OtherSnap]]-[],
+                   'T-CONTRACT'-[[]]-[proof_contract=Contract],
+                   'T-SAME'-[[]]-[],
+                   'T-PLAIN'-[[code_snapshot=OtherSnap]]-[]
+               ]),
+               (   findall(R, (member(Options, Receipts), pf_receipt([test_id=T|Options], R)), Rs),
+                   pf_receipts_json(Rs, RJ),
+                   pf_entity(test, T, [status=passing, verification_scope=end_to_end, proof_receipts=RJ|Extra])
+               )),
+        requirement_proof_context(Snap, '2026-05-01T00:05:00Z', 100000, strict_snapshot,
+            _{'$fingerprint_components': _{'T-FP': Drifted, 'T-SNAP': Drifted, 'T-CONTRACT': Drifted,
+                                           'T-SAME': Components}}, C),
+        findall(T-E, (member(T, ['T-FP', 'T-SNAP', 'T-CONTRACT', 'T-SAME', 'T-PLAIN']),
+                      test_receipt_evidence(C, [end_to_end], T, E)), Pairs),
+        Pairs = ['T-FP'-FP, 'T-SNAP'-SnapE, 'T-CONTRACT'-ContractE, 'T-SAME'-Same, 'T-PLAIN'-Plain],
+        same(FP, _{testId: 'T-FP', state: stale, scope: end_to_end, receiptCount: 2,
+                   fingerprintDrift: [command]}),
+        same(SnapE, _{testId: 'T-SNAP', state: stale, scope: end_to_end, receiptCount: 1,
+                      fingerprintDrift: [command]}),
+        get_dict(state, ContractE, contract_mismatch),
+        get_dict(fingerprintDrift, ContractE, [command]),
+        get_dict(state, Same, passed),
+        \+ get_dict(fingerprintDrift, Same, _),
+        same(Plain, _{testId: 'T-PLAIN', state: stale, scope: end_to_end, receiptCount: 1})
     )).
 
 :- end_tests(requirement_proof_direct_helpers).
@@ -3135,6 +3192,13 @@ test(receipt_shape_and_history_decide_the_state) :-
     Good.proof_results = [Result],
     rqp_hash(0'g, NotHex),
     V2 = Good.put(_{version: 'kibi.proof-receipt.v2', kind: e2e, evidence_level: tested}),
+    % A proved receipt is a passed certificate kind with a certificate, its
+    % digest and no rejection.
+    rqp_hash(0'f, CertificateDigest),
+    Proved = V2.put(_{kind: smt, evidence_level: proved, certificate: _{kind: smt},
+                      certificate_digest: CertificateDigest}),
+    del_dict(certificate, Proved, _, NoCertificate),
+    del_dict(certificate_digest, Proved, _, NoDigest),
     pf_receipt([receipt_id='PR-FIXTURE00002', started_at='2026-05-01T00:00:00Z',
                 finished_at='2026-05-01T00:00:30Z'], Earlier),
     forall(member(Receipts-Expected, [
@@ -3176,6 +3240,12 @@ test(receipt_shape_and_history_decide_the_state) :-
                [V2.put(evidence_level, bogus)]-invalid,
                [V2.put(certificate_digest, abc)]-invalid,
                [V2.put(evidence_level, proved)]-invalid,
+               [Proved]-passed,
+               [Proved.put(kind, e2e)]-invalid,
+               [Proved.put(outcome, failed)]-invalid,
+               [NoCertificate]-invalid,
+               [NoDigest]-invalid,
+               [Proved.put(certificate_rejection, _{reason: stale})]-invalid,
                [Good.put(scope, unit)]-contract_mismatch
            ]),
            (   rqp_receipt_state(Receipts, State),
