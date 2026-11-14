@@ -356,3 +356,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b9d95993104
+  - type: requires_predicate
+    from: REQ-skillopt-refused-kb-read-not-critical
+    to: FACT-PRED-skillopt-refused-kb-read-isolation-only
+    created_at: 2026-11-13T19:15:55.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fef02cacd99d
+  - type: requires_predicate
+    from: REQ-skillopt-refused-kb-read-not-critical
+    to: FACT-PRED-skillopt-kb-access-critical
+    created_at: 2026-11-13T19:15:55.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2df9c861009
+  - type: specified_by
+    from: REQ-skillopt-refused-kb-read-not-critical
+    to: SCEN-skillopt-refused-kb-read-not-critical
+    created_at: 2026-11-13T19:15:55.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-020d09da507b
+  - type: specified_by
+    from: REQ-skillopt-refused-kb-read-not-critical
+    to: SCEN-NEG-skillopt-refused-kb-read-ZEROES-CELL
+    created_at: 2026-11-13T19:15:55.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a260957281e
+  - type: specified_by
+    from: REQ-skillopt-refused-kb-read-not-critical
+    to: SCEN-NEG-skillopt-kb-access-REFUSED-COMMAND-FORGIVEN
+    created_at: 2026-11-13T19:15:56.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72a93cd5ab92
+  - type: verified_by
+    from: REQ-skillopt-refused-kb-read-not-critical
+    to: TEST-skillopt-refused-kb-read-not-critical
+    created_at: 2026-11-13T19:15:56.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0561bfa9cb34

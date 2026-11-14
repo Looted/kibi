@@ -154,3 +154,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-141537c9b2c2
+  - type: implements
+    from: SYM-skillopt-verify-references
+    to: REQ-skillopt-reference-answers-score-100
+    created_at: 2026-11-14T04:50:39.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-927e9175d6ce
+  - type: covered_by
+    from: SYM-skillopt-verify-references
+    to: TEST-skillopt-reference-answers-score-100
+    created_at: 2026-11-14T04:50:39.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6240841ccbac

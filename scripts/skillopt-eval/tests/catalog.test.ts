@@ -91,18 +91,19 @@ describe("SkillOpt fixture catalog", () => {
     ).toHaveLength(4);
   });
 
-  test("builds the frozen 8/4/16 core split and the supplemental splits", () => {
+  test("builds the 8/4/13 core split and the supplemental splits", () => {
     const tasks = buildSkillCatalog("kibi-usage");
     const core = buildCoreSkillCatalog("kibi-usage");
 
-    // 28 core tasks, intent-consult 2/1/4, rule-lane-modeling 0/3/2 and
-    // requirement-quality 1/2/3.
-    expect(tasks).toHaveLength(46);
-    expect(core).toHaveLength(28);
-    expect(core.filter((task) => task.split === "held-out")).toHaveLength(16);
+    // 25 core tasks (validation-recovery keeps one held-out case),
+    // intent-consult 2/1/4, rule-lane-modeling 0/3/2 and requirement-quality
+    // 1/2/3.
+    expect(tasks).toHaveLength(43);
+    expect(core).toHaveLength(25);
+    expect(core.filter((task) => task.split === "held-out")).toHaveLength(13);
     expect(() => validateSkillCatalog(tasks, "kibi-usage")).not.toThrow();
     expect(() => validateSkillCatalog(core, "kibi-usage")).toThrow(
-      "expected 46 tasks",
+      "expected 43 tasks",
     );
     // consistency-report carries the joint-contradiction and unit cases
     // (3/4/6).
@@ -139,8 +140,9 @@ describe("SkillOpt fixture catalog", () => {
 
     // 6 skills x 5 families of 7 tasks, six more consistency-report tasks,
     // the five rule-lane-modeling tasks, and the 5-task ownership-precision
-    // and 6-task requirement-quality families.
-    expect(tasks).toHaveLength(232);
+    // and 6-task requirement-quality families, less three retired
+    // validation-recovery held-out cases.
+    expect(tasks).toHaveLength(229);
     expect(
       tasks.every(
         (task) =>
@@ -266,28 +268,29 @@ describe("predicate corpus materializes stable authorized roots", () => {
     expect(first.roots).not.toBe(second.roots);
   });
 
-  test("keeps the 28-task core per skill and adds the supplemental families", () => {
+  test("keeps the core families per skill and adds the supplemental families", () => {
     const usage = buildSkillCatalog("kibi-usage");
-    expect(usage).toHaveLength(46);
-    expect(buildCoreSkillCatalog("kibi-usage")).toHaveLength(28);
+    expect(usage).toHaveLength(43);
+    expect(buildCoreSkillCatalog("kibi-usage")).toHaveLength(25);
     expect(() => validateSkillCatalog(usage, "kibi-usage")).not.toThrow();
     const total = [...buildPublicCatalog(), ...buildHeldOutCatalog()];
-    expect(total).toHaveLength(232);
+    expect(total).toHaveLength(229);
     const usagePublic = buildPublicCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
     const usageHeldOut = buildHeldOutCatalog().filter(
       (task) => task.skill === "kibi-usage",
     );
-    expect(usagePublic.length + usageHeldOut.length).toBe(46);
+    expect(usagePublic.length + usageHeldOut.length).toBe(43);
     const supplementalFamilies = CANONICAL_SKILLS.flatMap((skill) =>
       skillFamilies(skill).slice(4),
     );
     expect(supplementalFamilies).toHaveLength(9);
     // Five 7-task families, one 13-task family (consistency-report), the
     // 5-task rule-lane-modeling and ownership-precision families and the
-    // 6-task requirement-quality family.
-    expect(CANONICAL_SKILLS.length * 28 + 5 * 7 + 13 + 5 + 5 + 6).toBe(232);
+    // 6-task requirement-quality family, less the three retired
+    // validation-recovery held-out cases.
+    expect(CANONICAL_SKILLS.length * 28 + 5 * 7 + 13 + 5 + 5 + 6 - 3).toBe(229);
   });
 
   test("unsigned roots cannot authorize training or evaluation", () => {
@@ -397,7 +400,7 @@ describe("SkillOpt corpus executability invariants", () => {
   }
 
   test("every task carries an objective-specific expectation", () => {
-    expect(allTasks).toHaveLength(232);
+    expect(allTasks).toHaveLength(229);
     const uncovered = allTasks.filter((task) => {
       const manifest = manifestFor(task);
       return (

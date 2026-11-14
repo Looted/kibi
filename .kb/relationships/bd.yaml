@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-113072b55dc7
+  - type: validates
+    from: TEST-skillopt-reference-answers-score-100
+    to: SCEN-skillopt-reference-answers-score-100
+    created_at: 2026-11-14T04:50:29.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61902ba9cb97
+  - type: validates
+    from: TEST-skillopt-reference-answers-score-100
+    to: SCEN-NEG-skillopt-reference-CASE-UNREACHABLE
+    created_at: 2026-11-14T04:50:29.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d877aace60f2
+  - type: validates
+    from: TEST-skillopt-reference-answers-score-100
+    to: SCEN-NEG-skillopt-reference-BELOW-100-PASSES
+    created_at: 2026-11-14T04:50:29.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15438c96fe01

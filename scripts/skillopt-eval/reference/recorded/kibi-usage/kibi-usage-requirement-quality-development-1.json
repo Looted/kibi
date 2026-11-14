@@ -1,0 +1,56 @@
+{
+  "taskId": "kibi-usage-requirement-quality-development-1",
+  "source": "stored 100-score cell",
+  "steps": [
+    {
+      "call": "kb_search",
+      "args": {
+        "query": "fixture family label requirement"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "id": "REQ-fixture-family-label",
+        "includeBody": true
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-label",
+        "dryRun": true,
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-label.md",
+          "body": "A fixture family label must be family: followed by the trimmed name.\n\n## Context\n\nRequested by the export team in the naming review on 2026-09-14 (documentation/requirements/fixture.md). Reason not stated beyond that naming review.\n\n## Source\n\n> Labels: requested by the export team in the naming review on 2026-09-14.\n\nReference: documentation/requirements/fixture.md\n"
+        },
+        "properties": {
+          "title": "A fixture family label is family: followed by the trimmed name",
+          "status": "open"
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-label",
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-label.md",
+          "body": "A fixture family label must be family: followed by the trimmed name.\n\n## Context\n\nRequested by the export team in the naming review on 2026-09-14 (documentation/requirements/fixture.md). Reason not stated beyond that naming review.\n\n## Source\n\n> Labels: requested by the export team in the naming review on 2026-09-14.\n\nReference: documentation/requirements/fixture.md\n"
+        },
+        "properties": {
+          "title": "A fixture family label is family: followed by the trimmed name",
+          "status": "open"
+        }
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {}
+    }
+  ],
+  "files": {},
+  "answer": "`entity-context-missing` on REQ-fixture-family-label is fixed. The unfiltered `kb_check` now reports 0 violations.\n\nWhat changed: I added a sectioned body to `.kb/requirements/REQ-fixture-family-label.md` through `kb_upsert` (dry run first, then the real write). The body has the unchanged statement, a `## Context` section and a `## Source` section. The context cites the project notes in `documentation/requirements/fixture.md`: the export team requested the labels in the naming review on 2026-09-14. The notes give no further reason, so the context says \"Reason not stated beyond that naming review.\" The statement, title and status are unchanged.\n\nThe remaining `kb_check` items are non-blocking review diagnostics. I did not act on them:\n- The requirement has no `logic_claims` manifest. Its one clause is still `status: missing` in the semantic ledger, so logical coverage is unverified. Fixing this needs `kb_model` with `mode: \"analyze\"` and then grounding.\n- Coverage is `unit_only`. Proof status is `missing`, and the only linked test is a passing unit-scope test.\n- Telemetry is incomplete, and I did not run `kb_model` before the write, so the advisor-bypassed warning applies.\n- The migration plan has a ready automatic action, `kibi migrate --yes`, which would move `documentation/requirements/fixture.md` to `.kb/requirements/fixture.md`. I did not run it, because it changes files outside this fix.\n\nThe verdict is about the context fix. The requirement is governed, but its logical coverage and proof are not established.\n\n```kibi-answer\n{\"verdict\": \"governed\", \"governing\": [\"REQ-fixture-family-label\"], \"conflict\": null, \"unknowns\": [\"No logic_claims manifest, so logical coverage is unverified\", \"Coverage is unit_only, with no passing end-to-end test\", \"Proof status is missing\", \"Telemetry acceptance is incomplete\", \"The context gives no reason beyond the 2026-09-14 naming review\"], \"nextStep\": \"Run kb_model with mode analyze on the requirement prose, ground the returned claim keys, and persist logic_claims. Then decide whether the legacy documentation/requirements/fixture.md move (kibi migrate --yes) should run.\", \"proof\": \"missing\"}\n```"
+}

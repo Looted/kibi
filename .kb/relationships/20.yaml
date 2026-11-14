@@ -552,3 +552,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-046f35b0c4a8
+  - type: assumes
+    from: SCEN-NEG-skillopt-family-SINGLE-CELL-REGRESSION
+    to: FACT-NEG-skillopt-family-SINGLE-CELL-REGRESSION
+    created_at: 2026-11-13T19:55:21.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1641dcedb446

@@ -16,7 +16,7 @@ import {
   bootstrapUserMode,
   bootstrapUserProfile,
 } from "../fixtures/bootstrap-user";
-import { fixtureSymbolId, hashWorkspace } from "../fixtures/workspace";
+import { hashWorkspace } from "../fixtures/workspace";
 import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import { scoreCell } from "../scoring/cell";
 import { reserveTargetEpisode } from "../target-episode-budget";
@@ -35,38 +35,15 @@ import {
   type TargetHost,
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
-import {
-  isDecisionSetupMode,
-  setupDecisionFixture,
-} from "./decision-fixture-setup";
-import {
-  isQualitySetupMode,
-  setupQualityFixture,
-} from "./quality-fixture-setup";
 import { IMPACT_REVIEW_PATH } from "./decision-seeds";
-import {
-  FixtureSetupError,
-  setupGeneratedCoordinateDivergence,
-  setupSeededConsistencyKb,
-  setupSeededDirtyKb,
-  setupSeededFreshKb,
-  setupSeededGovernedAreaKb,
-  setupSeededJointContradictionKb,
-  setupSeededPartialKb,
-  setupSeededPreconditionKb,
-  setupSeededSafeMutationKb,
-  setupSeededStaleKb,
-  setupSeededUncoveredKb,
-  setupSeededUnresolvedRuleKb,
-  setupThinRootKb,
-  stopFixtureEngine,
-} from "./fixture-kb-setup";
+import { FixtureSetupError, stopFixtureEngine } from "./fixture-kb-setup";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import { SKILLOPT_EVALUATION_BRANCH } from "./permissions";
 import { ProcessControlError } from "./process";
 import { assembleCanonicalSkills } from "./skill-assembly";
 import { selectedSkillOptHost } from "./skillopt-host";
 import { skillOptHostImplementation } from "./skillopt-host-registry";
+import { setupTaskFixture } from "./task-fixture-setup";
 
 export { FixtureIntegrityError } from "./codex-cell-types";
 export { codexTargetHost } from "./codex-target-host";
@@ -279,74 +256,12 @@ export async function runCodexCell(
         const stagingCliRoot = resolve(options.sourceWorktree, "packages/cli");
         await withHeldOutExecutionLease(cellExecutionLockRoot, async () => {
           try {
-            if (
-              options.evaluatorManifest.fixtureSetup ===
-              "generated_coordinate_divergence"
-            ) {
-              await setupGeneratedCoordinateDivergence(
-                workspace.target,
-                stagingCliRoot,
-                fixtureSymbolId(request.taskId),
-              );
-            } else {
-              const setupMode = options.evaluatorManifest.fixtureSetup;
-              if (setupMode === "seeded_fresh_kb") {
-                await setupSeededFreshKb(workspace.target, stagingCliRoot);
-              } else if (setupMode === "seeded_uncovered_kb") {
-                await setupSeededUncoveredKb(workspace.target, stagingCliRoot);
-              } else if (setupMode === "seeded_safe_mutation_kb") {
-                await setupSeededSafeMutationKb(
-                  workspace.target,
-                  stagingCliRoot,
-                  request.taskId,
-                );
-              } else if (setupMode === "seeded_governed_area_kb") {
-                await setupSeededGovernedAreaKb(
-                  workspace.target,
-                  stagingCliRoot,
-                );
-              } else if (setupMode === "seeded_precondition_kb") {
-                await setupSeededPreconditionKb(
-                  workspace.target,
-                  stagingCliRoot,
-                );
-              } else if (setupMode === "seeded_consistency_kb") {
-                await setupSeededConsistencyKb(
-                  workspace.target,
-                  stagingCliRoot,
-                );
-              } else if (setupMode === "seeded_unresolved_rule_kb") {
-                await setupSeededUnresolvedRuleKb(
-                  workspace.target,
-                  stagingCliRoot,
-                );
-              } else if (setupMode === "seeded_joint_contradiction_kb") {
-                await setupSeededJointContradictionKb(
-                  workspace.target,
-                  stagingCliRoot,
-                );
-              } else if (setupMode === "seeded_dirty_kb") {
-                await setupSeededDirtyKb(workspace.target, stagingCliRoot);
-              } else if (setupMode === "seeded_partial_kb") {
-                await setupSeededPartialKb(workspace.target, stagingCliRoot);
-              } else if (setupMode === "seeded_stale_kb") {
-                await setupSeededStaleKb(workspace.target, stagingCliRoot);
-              } else if (setupMode === "thin_root_kb") {
-                await setupThinRootKb(workspace.target, stagingCliRoot);
-              } else if (isDecisionSetupMode(setupMode)) {
-                await setupDecisionFixture(
-                  workspace.target,
-                  stagingCliRoot,
-                  setupMode,
-                );
-              } else if (isQualitySetupMode(setupMode)) {
-                await setupQualityFixture(
-                  workspace.target,
-                  stagingCliRoot,
-                  setupMode,
-                );
-              }
-            }
+            await setupTaskFixture({
+              setupMode: options.evaluatorManifest.fixtureSetup,
+              target: workspace.target,
+              cliRoot: stagingCliRoot,
+              taskId: request.taskId,
+            });
           } finally {
             await stopFixtureEngine(workspace.target);
           }

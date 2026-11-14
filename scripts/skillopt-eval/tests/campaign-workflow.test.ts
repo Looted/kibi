@@ -67,6 +67,58 @@ describe("campaign paid orchestration", () => {
     }
   });
 
+  test("a noise floor is bound into the evaluation and must name the evaluated skill", async () => {
+    const output = await tempArtifact("evaluate-floor");
+    const fake = dependencies();
+    const floor = {
+      schemaVersion: "1.0.0" as const,
+      artifactType: "skillopt-noise-floor" as const,
+      skill: "kibi-usage",
+      baselineBodyHash: "a".repeat(64),
+      families: { "intent-consult": { noiseFloor: 0.125, cellsPerArm: 16 } },
+    };
+    try {
+      await expect(
+        runEvaluateCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: output.root,
+          skill: "kibi-usage",
+          manifests: [candidateManifest()],
+          repeats: 1,
+          maxTargetEpisodes: 20,
+          allowPaid: true,
+          runId: "evaluate-floor-mismatch",
+          noiseFloor: { ...floor, skill: "kibi-bootstrap" },
+          dependencies: fake.deps,
+        }),
+      ).rejects.toThrow("noise_floor_skill_mismatch");
+      const evaluation = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: output.root,
+        skill: "kibi-usage",
+        manifests: [candidateManifest()],
+        repeats: 1,
+        maxTargetEpisodes: 20,
+        allowPaid: true,
+        runId: "evaluate-floor",
+        noiseFloor: floor,
+        dependencies: fake.deps,
+      });
+      expect(evaluation.context.noiseFloor).toEqual({
+        "intent-consult": 0.125,
+      });
+      // One repeat cannot power any family, so none is judged.
+      expect(evaluation.aggregate.underpowered?.length).toBeGreaterThan(0);
+      expect(
+        evaluation.aggregate.regressions.some((entry) =>
+          entry.includes(":family:"),
+        ),
+      ).toBe(false);
+    } finally {
+      await rm(output.parent, { recursive: true, force: true });
+    }
+  });
+
   test("default evaluation binds the real receipt, request replicate, usage, and evidence", async () => {
     const output = await tempArtifact("default-cell");
     const fake = dependencies();

@@ -117,6 +117,7 @@ an optimization loads `--seed-candidate`; historical files cannot bypass that ga
 | `skillopt:history` | `bun run scripts/skillopt-eval/inspect-history.ts` | Screens historical SkillOpt candidates offline without authentication, model calls, training, mutation, or adoption. |
 | `skillopt:screen` | `bun run scripts/skillopt-eval/screen-history.ts` | Paid, bounded public-development comparison of explicitly selected historical candidates against the current baseline; never trains, runs held-out, or adopts. |
 | `skillopt:campaign` | `bun run scripts/skillopt-eval/campaign.ts` | Portable revision, composition, evaluation, confirmation, and packaging with explicit budgets and immutable evidence. |
+| `skillopt:references` | `bun run scripts/skillopt-eval/reference/verify.ts` | Unpaid harness check for one skill: runs every case's scripted or recorded reference answer against the staged Kibi server, scores it like a paid cell, and fails when a case has no reference or scores below 100. Pass `--skill S`, and `--case ID` to run single cases. |
 
 ```bash
 bun run skillopt:smoke

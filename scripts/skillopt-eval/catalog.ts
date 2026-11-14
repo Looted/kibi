@@ -109,7 +109,7 @@ const FAMILY_BY_SKILL: Readonly<Record<CanonicalSkill, readonly string[]>> = {
  * Supplemental families per skill, after the four core families. They join
  * the public development/train cohort (campaign evaluate, development screen)
  * and the materialized held-out corpus, but not the legacy optimize trainer
- * or the 16-task held-out gate matrix, whose contracts stay on the four core
+ * or the held-out gate matrix, whose contracts stay on the four core
  * families (see buildCoreSkillCatalog).
  */
 const SUPPLEMENTAL_FAMILIES_BY_SKILL: Readonly<
@@ -148,12 +148,16 @@ const SPLIT_COUNTS: Readonly<Record<TaskSplit, number>> = {
 };
 
 /**
- * Supplemental families with a second development task, so a later case is
- * screened next to the family's first development case.
+ * Families whose split counts differ from 2/1/4: supplemental families with
+ * a second development task, so a later case is screened next to the family's
+ * first development case, and families with retired cases.
  */
 const SPLIT_COUNT_OVERRIDES: Readonly<
   Record<string, Readonly<Record<TaskSplit, number>>>
 > = {
+  // Three held-out cases asked for receipts and recorded diagnostic
+  // dispositions no Kibi version produces; no answer could pass them.
+  "validation-recovery": { train: 2, development: 1, "held-out": 1 },
   "consistency-report": { train: 3, development: 4, "held-out": 6 },
   "ownership-precision": { train: 1, development: 2, "held-out": 2 },
   "requirement-quality": { train: 1, development: 2, "held-out": 3 },
@@ -222,7 +226,7 @@ export function buildSkillCatalog(skill: CanonicalSkill): readonly TaskSpec[] {
 
 /**
  * The four core families only: the cohort the legacy optimize trainer and the
- * 16-task held-out gate matrix are contracted to.
+ * held-out gate matrix are contracted to.
  */
 export function buildCoreSkillCatalog(
   skill: CanonicalSkill,
