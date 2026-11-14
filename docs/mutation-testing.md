@@ -51,6 +51,15 @@ The lane has one config at the repository root:
   into `.cache/prolog-packs` (gitignored), leaving the user's own packs
   alone. Set `MUTALOG_HOME` to a
   Mutalog checkout to run that instead.
+- Every worker first loads `scripts/prolog-mutation-guard.pl` (`load/1` in
+  the config). Some mutants leave a list unbound, so a
+  `forall(member(X, List), assertz(...))` keeps asserting until the time
+  limit. The stack limit does not bound the dynamic database, and four
+  such workers at once used up the 16 GB runner. Once a worker's
+  resident memory passes its budget (2560 MB, or
+  `KIBI_MUTATION_WORKER_MEMORY_MB`), the guard stops the worker
+  process. The worker then misses its deadline, and the mutant counts as a
+  timeout, as it would have anyway.
 - `.github/workflows/mutation-prolog.yml` runs the config on the bundled
   SWI-Prolog when dispatched by hand from the Actions tab. The report is
   uploaded as the `prolog-mutation-report` artifact.
