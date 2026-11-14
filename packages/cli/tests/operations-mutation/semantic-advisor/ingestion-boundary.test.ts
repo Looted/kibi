@@ -473,6 +473,42 @@ describe("semanticInventoryContract", () => {
   });
 });
 
+describe("semanticInventoryContract subjects", () => {
+  test("keeps the text subjects the payload anchored each claim to", () => {
+    const contract = semanticInventoryContract(
+      payload({
+        semantic_inventory: [
+          { ...entry(P0), subjects: ["cart", 3, "order"] },
+          { ...entry(P1), subjects: "cart" },
+        ],
+      }),
+      receipt(),
+    );
+    expect(contract.semantic_inventory).toStrictEqual([
+      { ...entry(P0), subjects: ["cart", "order"] },
+      { ...entry(P1) },
+    ]);
+    const unanchored = semanticInventoryContract(
+      payload({
+        semantic_inventory: [{ ...entry(P0), subjects: [3] }, entry(P1)],
+      }),
+      receipt(),
+    );
+    expect(unanchored.semantic_inventory).toStrictEqual([
+      { ...entry(P0) },
+      { ...entry(P1) },
+    ]);
+    const unsent = semanticInventoryContract(
+      payload({ semantic_inventory: [{ ...entry(P0), subjects: ["cart"] }] }),
+      receipt(),
+    );
+    expect(unsent.semantic_inventory).toStrictEqual([
+      { ...entry(P0), subjects: ["cart"] },
+      { ...entry(P1) },
+    ]);
+  });
+});
+
 describe("assertSemanticInventoryBoundary", () => {
   test("passes silently when the inventory is complete", () => {
     expect(

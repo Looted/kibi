@@ -717,6 +717,23 @@ describe("executeCheck", () => {
     expect(calls.granularity.mock.calls[0][3]).toBe("/ws/store");
   });
 
+  test("tells the plan which diagnostics the impact analysis listed", async () => {
+    const listed = { id: "I-1" };
+    const calls = harness({
+      rules: ["aggregated"],
+      impact: { impactDiagnostics: [listed] },
+    });
+    await run({ rules: ["aggregated"] });
+    const [input] = calls.actions.mock.calls.at(-1);
+    expect(input.impactDiagnostics).toStrictEqual(new Set([listed]));
+    expect(input.impactDiagnostics.has(listed)).toBe(true);
+    calls.impact.mockResolvedValue(undefined);
+    await run({ rules: ["aggregated"] });
+    expect(
+      Object.hasOwn(calls.actions.mock.calls.at(-1)[0], "impactDiagnostics"),
+    ).toBe(false);
+  });
+
   test("keeps impact diagnostics when the rules were chosen", async () => {
     const impactResult = { sourceFiles: ["a.ts"] };
     const calls = harness({

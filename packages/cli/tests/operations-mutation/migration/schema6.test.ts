@@ -2,6 +2,7 @@ import { type Mock, afterEach, describe, expect, spyOn, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import * as sync from "../../../src/commands/sync.js";
+import * as domainSubjects from "../../../src/operations/migration/domain-subjects.js";
 import * as bodyContext from "../../../src/operations/migration/entity-body-context.js";
 import * as entityType from "../../../src/operations/migration/entity-type.js";
 import * as evidenceFloor from "../../../src/operations/migration/evidence-floor.js";
@@ -10,8 +11,10 @@ import * as inventory from "../../../src/operations/migration/inventory-rederive
 import * as kbSources from "../../../src/operations/migration/kb-sources.js";
 import * as originBackfill from "../../../src/operations/migration/origin-backfill.js";
 import * as polarity from "../../../src/operations/migration/polarity-values.js";
+import * as positiveScenario from "../../../src/operations/migration/positive-scenario.js";
 import * as proofClaims from "../../../src/operations/migration/proof-contract-claims.js";
 import * as requirementStatus from "../../../src/operations/migration/requirement-status.js";
+import * as retiredStatus from "../../../src/operations/migration/retired-status.js";
 import {
   BODY_CONTEXT_SCHEMA_VERSION,
   DECISION_FIRMNESS_SCHEMA_VERSION,
@@ -20,6 +23,7 @@ import {
   SCHEMA6_AUTOMATIC_CODES,
   applySchema6MigrationAction,
   buildSchema6MigrationFragment,
+  domainSubjectActions,
   migrationSyncAction,
   requirementStatusActions,
   unapprovedExceptionsFromSources,
@@ -280,6 +284,11 @@ describe("planning the source-derived migration actions", () => {
       "/workspace",
       floors,
     );
+    expect(evidenceFloor.planEvidenceFloorPins).toHaveBeenCalledWith(
+      "/workspace",
+      floors,
+      { firm: false, approved: true },
+    );
     expect(proofClaims.planProofContractClaimPins).toHaveBeenCalledWith(
       "/workspace",
       candidates,
@@ -331,6 +340,178 @@ describe("requirements whose status is outside the vocabulary", () => {
       "req-status-vocabulary-map-REQ-M6",
       "req-status-vocabulary-map-REQ-M7",
     ]);
+  });
+});
+
+describe("a status mapped to retired", () => {
+  test("asks for the retired reason the mapping leaves out", () => {
+    spies.push(...stubPlanners(EMPTY));
+    const finding = {
+      requirementId: "REQ-R",
+      path: ".kb/requirements/REQ-R.md",
+      status: "obsolete",
+      automatic: null,
+      extractionError: null,
+      latentDrift: null,
+    };
+    track(
+      spyOn(requirementStatus, "planRequirementStatusMappings").mockReturnValue(
+        [
+          { ...finding, suggestedStatus: "retired" },
+          { ...finding, requirementId: "REQ-C", suggestedStatus: "closed" },
+        ] as never,
+      ),
+    );
+    const [retired, closed] = requirementStatusActions("/workspace");
+    expect(retired?.evidence.retiredReason).toBe(
+      "A retired requirement needs retired_reason; after the mapping, add why the behavior no longer exists, or kibi check reports retired-reason-missing.",
+    );
+    expect(closed?.evidence).not.toHaveProperty("retiredReason");
+  });
+});
+
+describe("schema 17 and the retired status suggestions", () => {
+  const plan = (version: number | null) => {
+    spies.push(...stubPlanners(EMPTY));
+    return buildSchema6MigrationFragment({
+      workspaceRoot: "/workspace",
+      currentSchemaVersion: version,
+      ladderFloors: null,
+    });
+  };
+
+  test("acknowledges the current must requirements below schema 17", () => {
+    const acknowledge = track(
+      spyOn(
+        positiveScenario,
+        "planPositiveScenarioAcknowledgements",
+      ).mockReturnValue(["REQ-1", "REQ-2"]),
+    );
+    const below = plan(16);
+    expect(acknowledge).toHaveBeenCalledWith("/workspace");
+    expect(below.sourceRewriteActionIds).toEqual([
+      "positive-scenario-acknowledge",
+    ]);
+    expect(below.actions).toStrictEqual([
+      {
+        id: "positive-scenario-acknowledge",
+        code: positiveScenario.POSITIVE_SCENARIO_ACKNOWLEDGE_CODE,
+        category: "schema",
+        safety: "automatic",
+        autoApplicable: true,
+        invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+        affectedEntityIds: ["REQ-1", "REQ-2"],
+        affectedFiles: [".kb/manifest.json"],
+        postconditions: [{ rule: "must-positive-scenario", findings: 0 }],
+        preconditions: [],
+        dependsOn: [],
+        state: "ready",
+        dispositionRequired: false,
+        allowedDispositions: ["fixed", "accepted", "deferred"],
+        evidence: {
+          reason:
+            "Schema 17 blocks a current must requirement without a success scenario that assumes facts on its subjects. Must requirements recorded before that are acknowledged in the manifest and stay exempt; no scenario is invented.",
+          count: 2,
+          preserves: "every authored source file",
+        },
+      },
+    ]);
+    expect(plan(17).actions).toStrictEqual([]);
+    expect(plan(null).actions.map(({ id }) => id)).toEqual([
+      "positive-scenario-acknowledge",
+    ]);
+    acknowledge.mockReturnValue([]);
+    expect(plan(16)).toMatchObject({ actions: [], sourceRewriteActionIds: [] });
+  });
+
+  test("suggests retiring at any schema version, for a person to approve", () => {
+    const suggestions = track(
+      spyOn(retiredStatus, "planRetiredStatusSuggestions").mockReturnValue([
+        {
+          requirementId: "REQ-old",
+          path: ".kb/requirements/REQ-old.md",
+          signals: [{ field: "title", text: "Retired" }],
+          retiredReason: "Retired.",
+        },
+      ] as never),
+    );
+    const id = "req-retired-status-REQ-old";
+    const [action] = plan(99).actions;
+    expect(suggestions).toHaveBeenCalledWith("/workspace");
+    expect(action).toStrictEqual({
+      id,
+      code: retiredStatus.REQ_RETIRED_STATUS_SUGGEST_CODE,
+      category: "semantic",
+      safety: "review",
+      autoApplicable: false,
+      invocation: {
+        kind: "cli",
+        command_argv: [
+          "kibi",
+          "migrate",
+          "--apply-safe",
+          "--approved-action",
+          id,
+        ],
+      },
+      affectedEntityIds: ["REQ-old"],
+      affectedFiles: [".kb/requirements/REQ-old.md"],
+      postconditions: [
+        { rule: "retired-reason-missing", entityId: "REQ-old", findings: 0 },
+      ],
+      preconditions: [],
+      dependsOn: [],
+      state: "ready",
+      dispositionRequired: true,
+      allowedDispositions: ["fixed", "deferred"],
+      evidence: {
+        reason:
+          "This requirement is closed, nothing supersedes it, and its own source says it was retired. A closed requirement still governs search, hooks and every current-intent rule; status retired stops that. Approving sets status: retired and retired_reason to the quoted words, editing only those two lines.",
+        signals: [{ field: "title", text: "Retired" }],
+        retiredReason: "Retired.",
+        approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
+        choice:
+          "Retiring is a person's call. If the requirement still states current intent, leave it closed and mark this action deferred; to word the reason differently, set status: retired and retired_reason in the file by hand.",
+      },
+    });
+  });
+});
+
+describe("a claim anchor left for a person", () => {
+  const choiceFor = (candidates: unknown[]) => {
+    track(
+      spyOn(domainSubjects, "planClaimSubjectAnchors").mockReturnValue([
+        {
+          requirementId: "REQ-1",
+          path: ".kb/requirements/REQ-1.md",
+          claimKey: "c1",
+          claimText: "x",
+          candidates,
+        },
+      ] as never),
+    );
+    const [action] = domainSubjectActions("/workspace");
+    expect(action?.code).toBe(domainSubjects.CLAIM_SUBJECT_ANCHOR_REVIEW_CODE);
+    return String(action?.evidence.choice);
+  };
+  const candidate = (score: number, extra: Record<string, unknown> = {}) => ({
+    subjectKey: `s${score}`,
+    score,
+    strong: true,
+    defined: true,
+    ...extra,
+  });
+
+  test("is a tie only when the top two score the same", () => {
+    expect(choiceFor([candidate(2), candidate(2)])).toContain("equally");
+    const undefinedFirst = choiceFor([
+      candidate(3, { defined: false }),
+      candidate(2),
+    ]);
+    expect(undefinedFirst).not.toContain("equally");
+    expect(undefinedFirst).toContain("s3, has no definition yet");
+    const weak = choiceFor([candidate(3, { strong: false }), candidate(2)]);
+    expect(weak).toContain("only one incidental word with s3");
   });
 });
 
@@ -507,11 +688,63 @@ describe("applying a schema 6 action", () => {
         firmSupersede,
         "applyFirmSupersedeAcknowledgement",
       ],
+      [
+        "positive_scenario_acknowledge",
+        positiveScenario,
+        "applyPositiveScenarioAcknowledgement",
+      ],
     ] as const) {
       const spy = stub(module, name as never, undefined);
       await apply(code);
       expect([code, spy.mock.calls]).toEqual([code, [["/workspace"]]]);
     }
+  });
+
+  test("anchors a claim only when the plan names its file, claim and subjects", async () => {
+    const anchor = stub(domainSubjects, "applyClaimSubjectAnchor", undefined);
+    const code = domainSubjects.CLAIM_SUBJECT_ANCHOR_SUGGEST_CODE;
+    const file = ".kb/requirements/REQ-1.md";
+    const refusal =
+      "Claim anchor suggestion names no file, claim or subject; add subjects to the inventory entry by hand.";
+    for (const extra of [
+      { evidence: { claimKey: "c1", subjects: ["s"] } },
+      { affectedFiles: [file], evidence: { subjects: ["s"] } },
+      { affectedFiles: [file], evidence: { claimKey: "c1", subjects: "s" } },
+      {
+        affectedFiles: [file],
+        evidence: { claimKey: "c1", subjects: ["s", 1] },
+      },
+      {
+        affectedFiles: [file],
+        evidence: { claimKey: "c1", subjects: [1, "s"] },
+      },
+    ])
+      await expect(apply(code, extra as never)).rejects.toThrow(refusal);
+    expect(anchor).not.toHaveBeenCalled();
+    await apply(code, {
+      affectedFiles: [file],
+      evidence: { claimKey: "c1", subjects: ["s", "t"] },
+    });
+    expect(anchor.mock.calls).toEqual([["/workspace", file, "c1", ["s", "t"]]]);
+  });
+
+  test("retires a requirement only when the plan names its file and reason", async () => {
+    const retire = stub(retiredStatus, "applyRetiredStatus", undefined);
+    const code = retiredStatus.REQ_RETIRED_STATUS_SUGGEST_CODE;
+    const file = ".kb/requirements/REQ-1.md";
+    for (const extra of [
+      { evidence: { retiredReason: "Gone." } },
+      { affectedFiles: [file], evidence: { retiredReason: 3 } },
+    ])
+      await expect(apply(code, extra as never)).rejects.toThrow(
+        "Retired status suggestion names no file or reason; set status: retired and retired_reason by hand.",
+      );
+    expect(retire).not.toHaveBeenCalled();
+    await apply(code, {
+      affectedFiles: [file],
+      evidence: { retiredReason: "Gone." },
+    });
+    expect(retire.mock.calls).toEqual([["/workspace", file, "Gone."]]);
   });
 
   test("states folder types and refuses to leave a file without one", async () => {

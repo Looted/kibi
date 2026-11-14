@@ -143,6 +143,23 @@ describe("broad requirements", () => {
     );
   });
 
+  test("counts only current requirements as dependents", () => {
+    const dependents = (hub: string, count: number) =>
+      many(`REQ-${hub}`, count).map((id) =>
+        entity(id, "req", claims, [["depends_on", hub]]),
+      );
+    const results = [
+      entity("REQ-hub", "req", claims),
+      ...dependents("REQ-hub", 5),
+      entity("REQ-hub-closed", "req", { ...claims, status: "closed" }, [
+        ["depends_on", "REQ-hub"],
+      ]),
+      entity("REQ-wide", "req", claims),
+      ...dependents("REQ-wide", 6),
+    ];
+    expect(ids(results)).toEqual(["broad_requirement_review REQ-wide"]);
+  });
+
   test("merges relationships of a repeated entity id", () => {
     const results = [
       entity(

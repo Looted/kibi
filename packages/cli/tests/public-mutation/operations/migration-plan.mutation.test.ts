@@ -1083,6 +1083,27 @@ describe("migration plan edges", () => {
     ).toHaveLength(1);
   });
 
+  test("points at an impact diagnostic instead of copying it", () => {
+    const listed = { id: "rule.broad", entityId: "REQ-1", detail: "long" };
+    const workspace = { id: "rule.broad", detail: "long" };
+    const own = { id: "rule.own", entityId: "REQ-2" };
+    const actions = buildActionsFromCheck({
+      qualityDiagnostics: [listed, workspace, own],
+      impactDiagnostics: new Set<object>([listed, workspace]),
+    });
+    expect(actions.map((action) => action.evidence)).toStrictEqual([
+      {
+        diagnostic: {
+          id: "rule.broad",
+          entityId: "REQ-1",
+          listedIn: "impactDiagnostics",
+        },
+      },
+      { diagnostic: { id: "rule.broad", listedIn: "impactDiagnostics" } },
+      { diagnostic: own },
+    ]);
+  });
+
   test("keeps a refresh batch outside source coordinates for review", () => {
     const [action] = buildActionsFromCoverage({
       repairPlan: {
