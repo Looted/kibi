@@ -138,6 +138,23 @@ tested by every `*.test.ts` under its own `tests/` directory: `runtime`,
 single kibi-cli modules and `PLUGIN_MUTATION_MODULES` single files outside a
 `src/` tree (`packages/swipl/index.js`), each with the tests named for it.
 
+The gate holds about 120,000 mutants, far more than one runner can test
+within GitHub's job limit, so `.github/workflows/mutation.yml` splits it into
+parallel jobs. A unit is a whole package or one module of
+`CLI_MUTATION_MODULES` or `PLUGIN_MUTATION_MODULES`. `MUTATION_SHARDS` lists
+groups of units, balanced by the measured cost of their mutants, one job each;
+the last job takes every unit no group lists, so a new module lands there.
+Each job mutates only its own units and runs only their tests: a module's
+named tests, and for a package every test of the whole packages (the host
+packages exercise `agent-core` and `plugin-sdk` through their own entry
+points). That scoping matters for speed: most mutants are static (reached
+while the test files load), and Stryker runs every test file of the run
+against a static mutant. `MUTATION_SHARD=<n> bun run test:mutation` runs one
+job locally and writes its report to `reports/mutation/shard-<n>/`; without
+it one run mutates every unit against every scoped test. A job that grows
+near the job timeout gets split by moving units into a new group, and the
+workflow matrix lists every job (the contract test checks it).
+
 `MUTATION_TEST_EXCLUDES` lists test files of those packages that cannot run
 in the sandbox because they read source text, which the sandbox instruments:
 `packages/claude/tests/distribution.test.ts` compares the committed hook
