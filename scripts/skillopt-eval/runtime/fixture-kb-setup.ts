@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { mkdir, readFile, rmdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -216,6 +216,11 @@ export async function setupGeneratedCoordinateDivergence(
     join(workspaceTarget, "src", "fixture.ts"),
     "export function fixtureFamily() {\n  return true;\n}\n",
   );
+  mkdirSync(join(workspaceTarget, "tests"), { recursive: true });
+  writeFileSync(
+    join(workspaceTarget, "tests", "fixture.test.ts"),
+    'import { expect, test } from "bun:test";\nimport { fixtureFamily } from "../src/fixture";\n\ntest("fixtureFamily returns true", () => {\n  expect(fixtureFamily()).toBe(true);\n});\n',
+  );
   writeFileSync(
     join(workspaceTarget, ".kb", "symbols.yaml"),
     `symbols:
@@ -242,9 +247,31 @@ export async function setupGeneratedCoordinateDivergence(
       type: "req",
       id: "REQ-SETUP-COORD",
       properties: { title: "Coordinate fixture requirement", status: "open" },
-      document: { path: ".kb/requirements/REQ-SETUP-COORD.md" },
+      document: {
+        path: ".kb/requirements/REQ-SETUP-COORD.md",
+        body: "fixtureFamily returns true.\n\n## Context\n\nEvaluator-owned requirement: it exists so the coordinate fixture symbol has a requirement to implement and a test that covers it.",
+      },
     },
     "requirement upsert",
+  );
+  await upsert(
+    {
+      type: "test",
+      id: "TEST-SETUP-COORD",
+      properties: {
+        title: "fixtureFamily returns true",
+        status: "passing",
+        text_ref: "tests/fixture.test.ts",
+        verification_scope: "unit",
+      },
+      document: {
+        body: "This evaluator-owned unit test keeps the coordinate fixture symbol covered, so its requirement has a passing test.",
+      },
+      relationships: [
+        { type: "validates", from: "TEST-SETUP-COORD", to: "REQ-SETUP-COORD" },
+      ],
+    },
+    "test upsert",
   );
   await upsert(
     {
@@ -257,6 +284,7 @@ export async function setupGeneratedCoordinateDivergence(
       },
       relationships: [
         { type: "implements", from: symbolId, to: "REQ-SETUP-COORD" },
+        { type: "covered_by", from: symbolId, to: "TEST-SETUP-COORD" },
       ],
     },
     "symbol upsert",
@@ -269,6 +297,8 @@ export async function setupGeneratedCoordinateDivergence(
     ]),
     "refresh sync",
   );
+  // Sync compiles tracked bytes only: stage the authored setup files first.
+  await execFileAsync("git", ["add", "-A"], { cwd: workspaceTarget });
   await expectOk(
     await runStagedCli(cliRoot, workspaceTarget, ["sync"]),
     "import sync",
@@ -342,6 +372,18 @@ export async function stripSymbolCoordinates(
   const stripped: Record<string, unknown> = { ...fullEntity };
   for (const key of COORDINATE_KEYS) {
     delete stripped[key];
+  }
+  // Readback lists relationships as entity fields; they are not properties,
+  // and the upsert keeps the stored relationship triples.
+  for (const [key, value] of Object.entries(stripped)) {
+    const values = Array.isArray(value) ? value : [value];
+    if (
+      values.length > 0 &&
+      values.every(
+        (entry) => typeof entry === "string" && entry.startsWith("kb:entity/"),
+      )
+    )
+      delete stripped[key];
   }
   const daemon = new EngineClient({
     workspaceRoot: workspaceTarget,

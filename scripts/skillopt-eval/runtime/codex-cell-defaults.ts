@@ -45,6 +45,10 @@ import {
   qualitySignalObserved,
 } from "./quality-signals";
 import {
+  traceabilityForbiddenObserved,
+  traceabilitySignalObserved,
+} from "./traceability-signals";
+import {
   type FinalAnswerEvidence,
   type TranscriptOrdering,
   finalAnswerEvidence,
@@ -304,6 +308,66 @@ function approvesEveryAutomaticAction(
   );
 }
 
+/**
+ * The verifier's symbol readback carries source coordinates and its symbol
+ * coverage plans no coordinate refresh for any symbol.
+ */
+function coordinateGapAbsent(
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
+): boolean {
+  const symbols = latestContent(results, "kb_query")?.entities;
+  const coverage = latestContent(results, "kb_coverage");
+  const repairs = isRecord(coverage?.symbolRepairPlan)
+    ? coverage.symbolRepairPlan.repairs
+    : undefined;
+  return (
+    Array.isArray(symbols) &&
+    symbols.length > 0 &&
+    symbols.every(
+      (symbol) =>
+        isRecord(symbol) &&
+        typeof symbol.sourceLine === "number" &&
+        typeof symbol.sourceEndLine === "number",
+    ) &&
+    coverage !== null &&
+    (!Array.isArray(repairs) ||
+      repairs.every(
+        (repair) =>
+          !isRecord(repair) || repair.action !== "refresh_coordinates",
+      ))
+  );
+}
+
+/**
+ * One applied plan, approved by its own hash, naming only ready automatic
+ * coordinate-refresh actions.
+ */
+function exactCoordinateRefreshApplied(context: CaseSignalContext): boolean {
+  const applied = appliedMigrationPlans(context);
+  if (applied.length !== 1) return false;
+  const [{ plan, args }] = applied;
+  const actions = new Map(
+    (Array.isArray(plan.actions) ? plan.actions : []).flatMap((action) =>
+      isRecord(action) ? [[action.id, action] as const] : [],
+    ),
+  );
+  const approved = args.approvedActionIds;
+  return (
+    args.approvedPlanHash === plan.planHash &&
+    Array.isArray(approved) &&
+    approved.length > 0 &&
+    approved.every((id) => {
+      const action = actions.get(id);
+      return (
+        action !== undefined &&
+        action.code === "symbol_refresh_coordinates" &&
+        action.state === "ready" &&
+        action.safety === "automatic"
+      );
+    })
+  );
+}
+
 function workflowSignalObserved(
   signal: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
@@ -313,7 +377,8 @@ function workflowSignalObserved(
   const caseOutcome =
     caseSignalObserved(signal, context) ??
     decisionSignalObserved(signal, context) ??
-    qualitySignalObserved(signal, context);
+    qualitySignalObserved(signal, context) ??
+    traceabilitySignalObserved(signal, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   // Prose claims may come from the KB or from the agent's final answer (the
@@ -442,8 +507,6 @@ function workflowSignalObserved(
         text.includes("branch_store_missing") ||
         text.includes("sync_metadata_missing")
       );
-    case "final snapshot before verification":
-      return prose.includes("snapshot") && prose.includes("verification");
     case "explicit apply boundary":
       return prose.includes("--apply") || prose.includes("apply boundary");
     case "stale symbol IDs":
@@ -470,30 +533,10 @@ function workflowSignalObserved(
         prose.includes("snapshot") &&
         prose.includes("fresh")
       );
-    case "historical contract receipt preserved":
-      return text.includes("proof_receipts") && text.includes("contract_hash");
-    case "current contract receipt appended":
-      return (
-        text.includes("proof-receipt.v1") &&
-        text.includes("currentcontracthash")
-      );
-    case "contract mismatch remains non-proof":
-      return (
-        text.includes("proof_contract_mismatch") ||
-        text.includes("contract_mismatch")
-      );
     case "diagnostic IDs with dispositions":
       return (
         text.includes("qualitydiagnostics") && text.includes("disposition")
       );
-    case "replacement evidence":
-      return prose.includes("replacement") || prose.includes("remap");
-    case "coverage transfer evidence":
-      return text.includes("covered_by") || text.includes("coverage");
-    case "canonical relationship shard":
-      return text.includes("relationship") && text.includes("shard");
-    case "unrelated records":
-      return prose.includes("unrelated") || prose.includes("preserv");
     case "release defect":
       return (
         prose.includes("release defect") || prose.includes("export surface")
@@ -504,16 +547,6 @@ function workflowSignalObserved(
       return prose.includes("journal") && prose.includes("preserv");
     case "syncState stale":
       return status?.syncState === "stale";
-    case "exact edge absent after sync":
-      return (
-        text.includes("relationships_deleted") || text.includes("edge absent")
-      );
-    case "endpoints preserved":
-      return text.includes("endpoint") || text.includes("preserved");
-    case "passing v2 receipt":
-      return (
-        text.includes("verification-receipt.v2") && text.includes("passed")
-      );
     case "migration plan v2":
       return (
         text.includes("kibi.migration-plan.v2") && text.includes("planhash")
@@ -591,9 +624,15 @@ function workflowSignalObserved(
       return (
         text.includes("passinge2e") && !text.includes("coverage_depth_review")
       );
-    case "evidence-backed repair candidates":
+    case "generated coordinate gap absent":
+      return coordinateGapAbsent(results);
+    case "exact approved automatic refresh applied":
+      return exactCoordinateRefreshApplied(context);
+    case "final status fresh":
       return (
-        prose.includes("staleReasons") || prose.includes("repair candidates")
+        status?.syncState === "fresh" &&
+        Array.isArray(status.staleReasons) &&
+        status.staleReasons.length === 0
       );
     default:
       return prose.includes(signal.toLowerCase());
@@ -609,7 +648,8 @@ function forbiddenActionObserved(
   const caseOutcome =
     caseForbiddenObserved(action, context) ??
     decisionForbiddenObserved(action, context) ??
-    qualityForbiddenObserved(action, context);
+    qualityForbiddenObserved(action, context) ??
+    traceabilityForbiddenObserved(action, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
@@ -689,22 +729,10 @@ function forbiddenActionObserved(
         ) &&
         !text.includes("editor")
       );
-    case "rerun unchanged E2E":
-      return text.includes("rerun") || text.includes("re-run");
     case "reuse pre-integration receipt":
       return (
         text.includes("pre-integration receipt proves") ||
         text.includes("reuse pre-integration receipt")
-      );
-    case "rewrite receipt history":
-      return (
-        text.includes("replace receipt history") ||
-        text.includes("rewrite receipt history")
-      );
-    case "delete historical receipt":
-      return (
-        text.includes("delete historical receipt") ||
-        text.includes("remove old receipt")
       );
     case "claim old contract proof":
       return (
