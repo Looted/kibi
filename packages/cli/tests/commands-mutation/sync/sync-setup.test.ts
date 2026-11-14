@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { SyncError } from "../../../src/commands/sync.js";
 import { SYNC_COMPILER_FINGERPRINT } from "../../../src/commands/sync/cache.js";
 import { engineSocketPath } from "../../../src/engine.js";
 import { branchStorePath } from "../../../src/utils/branch-store-locator.js";
@@ -150,18 +149,21 @@ describe("branch resolution", () => {
     } catch {
       // The conflict is the point.
     }
-    await expect(h.run()).rejects.toThrow("Unresolved Git conflicts");
+    await expect(h.run()).rejects.toMatchObject({
+      message: expect.stringContaining("Unresolved Git conflicts"),
+      code: "GIT_CONFLICTS_UNRESOLVED",
+    });
     expect(h.calls.resolveBranchAttachment).toBeUndefined();
   });
 
   test("only a detached snapshot attachment can be given", async () => {
     await expect(
       h.run({ detachedSnapshot: { kind: "branch" } as never }),
-    ).rejects.toThrow(
-      new SyncError(
+    ).rejects.toMatchObject({
+      message:
         "Only a detached HEAD snapshot attachment can be compiled explicitly",
-      ),
-    );
+      code: "SNAPSHOT_COMPILE_REFUSED",
+    });
     expect(h.errors).toEqual([
       "Error: Only a detached HEAD snapshot attachment can be compiled explicitly",
     ]);
@@ -188,9 +190,10 @@ describe("branch resolution", () => {
 
   test("a resolution error is reported with its diagnostic", async () => {
     h.world.attachment = { error: "no branch", code: "NO_BRANCH" };
-    await expect(h.run()).rejects.toThrow(
-      new SyncError("Failed to resolve active branch: no branch"),
-    );
+    await expect(h.run()).rejects.toMatchObject({
+      message: "Failed to resolve active branch: no branch",
+      code: "BRANCH_RESOLUTION_FAILED",
+    });
     expect(h.errors).toEqual([
       "Failed to resolve active branch: no branch",
       "Error: Failed to resolve active branch: no branch",
@@ -221,11 +224,11 @@ describe("branch resolution", () => {
       gitBranch: "feature/x",
       migrationRequired: true,
     };
-    await expect(h.run()).rejects.toThrow(
-      new SyncError(
+    await expect(h.run()).rejects.toMatchObject({
+      message:
         "Sync blocked: KB is attached through legacy branch storage for 'feature/x'. Run 'kibi branch migrate --from feature-x --to feature/x --apply' first.",
-      ),
-    );
+      code: "LEGACY_BRANCH_STORAGE",
+    });
     expect((await h.run({ validateOnly: true })).success).toBe(true);
   });
 
@@ -281,11 +284,10 @@ describe("exclusive publication", () => {
     const file = socket();
     await expect(
       h.run({ rebuild: true }, { createProlog: () => h.fakeProlog() }),
-    ).rejects.toThrow(
-      new SyncError(
-        `Kibi engine socket remains present but is not reachable: ${file}`,
-      ),
-    );
+    ).rejects.toMatchObject({
+      message: `Kibi engine socket remains present but is not reachable: ${file}`,
+      code: "ENGINE_SOCKET_UNREACHABLE",
+    });
     expect(h.events).toContain("engine.terminate");
     expect(h.events).toContain("lease released");
   });
@@ -345,6 +347,15 @@ describe("manifest upkeep", () => {
     ];
     h.world.hashes[".kb/symbols.yaml"] = "s1";
     h.world.hashes["other/symbols.yaml"] = "s2";
+  });
+
+  test("a quiet compile refreshes coordinates quietly", async () => {
+    await h.run({ validateOnly: false, quiet: true });
+    expect(h.calls.refreshManifestCoordinates?.[0]).toEqual([
+      h.path(".kb/symbols.yaml"),
+      h.world.root,
+      { incremental: true, quiet: true },
+    ]);
   });
 
   test("flow-layout manifests are rewritten and coordinates refreshed", async () => {

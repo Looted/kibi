@@ -8,7 +8,6 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { errorWasReported } from "../../../src/cli-command.js";
-import { SyncError } from "../../../src/commands/sync.js";
 import { formatSyncSummary } from "../../../src/diagnostics.js";
 import type { ExtractionResult } from "../../../src/extractors/markdown.js";
 import {
@@ -201,9 +200,10 @@ describe("a staged compile", () => {
 
   test("a refused attach terminates and cleans up", async () => {
     answers({ [`kb_attach('${staging}')`]: { success: false, error: "busy" } });
-    await expect(h.run({}, staged())).rejects.toThrow(
-      new SyncError("Failed to attach to staging KB: busy"),
-    );
+    await expect(h.run({}, staged())).rejects.toMatchObject({
+      message: "Failed to attach to staging KB: busy",
+      code: "STAGING_ATTACH_FAILED",
+    });
     expect(h.events).toContain("prolog.terminate");
     expect(h.calls.cleanupStaging).toEqual([[staging]]);
     expect(h.calls.persistEntities).toBeUndefined();
@@ -219,9 +219,10 @@ describe("a staged compile", () => {
 
   test("a failed save publishes nothing", async () => {
     answers({ kb_save: { success: false, error: "disk full" } });
-    await expect(h.run({}, staged())).rejects.toThrow(
-      new SyncError("Failed to save staging KB: disk full"),
-    );
+    await expect(h.run({}, staged())).rejects.toMatchObject({
+      message: "Failed to save staging KB: disk full",
+      code: "STAGING_SAVE_FAILED",
+    });
     expect(h.calls.atomicPublish).toBeUndefined();
     expect(goals()).not.toContain("kb_detach");
     expect(h.calls.cleanupStaging).toEqual([[staging]]);
@@ -469,16 +470,18 @@ describe("a staged recovery", () => {
       const { rmSync } = await import("node:fs");
       rmSync(live, { recursive: true, force: true });
     });
-    await expect(recover()).rejects.toThrow(
-      new SyncError(`Recovery target disappeared before publication: ${live}`),
-    );
+    await expect(recover()).rejects.toMatchObject({
+      message: `Recovery target disappeared before publication: ${live}`,
+      code: "RECOVERY_TARGET_MISSING",
+    });
   });
 
   test("an occupied backup path refuses", async () => {
     mkdirSync(backup, { recursive: true });
-    await expect(recover()).rejects.toThrow(
-      new SyncError(`Recovery backup path already exists: ${backup}`),
-    );
+    await expect(recover()).rejects.toMatchObject({
+      message: `Recovery backup path already exists: ${backup}`,
+      code: "RECOVERY_BACKUP_EXISTS",
+    });
     expect(readFileSync(path.join(live, "marker"), "utf8")).toBe("old");
   });
 

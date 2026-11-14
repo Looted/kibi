@@ -190,6 +190,7 @@ describe("proposition-complete ingestion", () => {
     boundary(["stale claims"]);
     const failure = await h.run().catch((error: unknown) => error);
     expect(failure).toBeInstanceOf(SyncError);
+    expect((failure as SyncError).code).toBe("INVENTORY_INGESTION_FAILED");
     expect((failure as Error).message).toBe(
       [
         "3 requirement(s) failed proposition-complete ingestion:",

@@ -94,6 +94,15 @@ describe("rankRequirementCandidates", () => {
     ).toStrictEqual([]);
   });
 
+  test("puts a closed requirement last, however its status is written", () => {
+    expect(
+      rankRequirementCandidates("upload.ts", [
+        req("REQ-a", "Upload upload", " Closed "),
+        req("REQ-b", "Upload", "open"),
+      ]).map((r) => r.id),
+    ).toStrictEqual(["REQ-b", "REQ-a"]);
+  });
+
   test("keeps open and status-less requirements", () => {
     expect(
       rankRequirementCandidates("upload.ts", [
@@ -202,6 +211,29 @@ describe("createUnownedFileDiagnostics", () => {
       candidates: [
         { id: "REQ-c", title: "Upload" },
         { id: "REQ-a", title: "Upload upload upload" },
+      ],
+    });
+  });
+
+  test("only a closed requirement is dropped for its successor", () => {
+    const root = workspace({
+      ".kb/requirements/REQ-e.md":
+        "---\nid: REQ-e\ntitle: Upload limits\nstatus: open\n---\n",
+      ".kb/requirements/REQ-f.md":
+        "---\nid: REQ-f\ntitle: Upload\nstatus: open\nlinks:\n  - type: supersedes\n    target: REQ-e\n---\n",
+      ".kb/requirements/REQ-g.md":
+        "---\nid: REQ-g\ntitle: Upload\nstatus: closed\n---\n",
+    });
+    const [diagnostic] = createUnownedFileDiagnostics({
+      workspaceRoot: root,
+      requestedFiles: ["src/upload.ts"],
+      linkedSourceFiles: new Set(),
+    });
+    expect(diagnostic?.evidence).toStrictEqual({
+      candidates: [
+        { id: "REQ-e", title: "Upload limits" },
+        { id: "REQ-f", title: "Upload" },
+        { id: "REQ-g", title: "Upload" },
       ],
     });
   });

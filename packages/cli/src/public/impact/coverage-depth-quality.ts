@@ -382,7 +382,8 @@ const COARSE_REASONS: ReadonlySet<string> = new Set(COARSE_GRANULARITY_REASONS);
  */
 function hasNarrowerUnit(symbol: ExtractedEntity, sourceFile: string): boolean {
   return (
-    !COARSE_REASONS.has(symbol.granularity_reason ?? "") ||
+    // has(undefined) is false: a symbol without a reason is not coarse.
+    !COARSE_REASONS.has(symbol.granularity_reason as string) ||
     sourceFile === "" ||
     hasDeclarationExtractor(sourceFile)
   );
@@ -422,10 +423,10 @@ export function createCoarseAnchorQualityDiagnostics(
     .flatMap((result): QualityDiagnostic[] => {
       const anchors = anchorsByRequirement.get(result.entity.id);
       if (anchors === undefined) return [];
+      // Every anchor was read from a symbol whose source file was recorded.
       const symbols = uniqueEntities(anchors).filter((symbol) =>
-        hasNarrowerUnit(symbol, sourceFiles.get(symbol.id) ?? ""),
+        hasNarrowerUnit(symbol, sourceFiles.get(symbol.id) as string),
       );
-      // has(undefined) is false: a symbol without a reason is not coarse.
       if (
         symbols.length === 0 ||
         !symbols.every((symbol) =>
