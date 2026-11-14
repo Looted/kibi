@@ -2675,41 +2675,47 @@ check_retired_owner_only(Violations) :-
         ),
         Retired0),
     sort(Retired0, Retired),
-    (   Retired == []
-    ->  Violations = []
-    ;   requirement_sets(_, Past),
-        findall(Type-Id-Owners-Kind,
-            retired_only_dependent(Retired, Past, Type, Id, Owners, Kind),
-            Found0),
-        sort(Found0, Found),
-        maplist(retired_owner_only_violation, Found, Violations)
-    ).
+    % Only what a retired requirement owns can be owned by retired ones only.
+    findall(Type-Id,
+        (   member(ReqId, Retired),
+            dependent_owner(Type, Id, ReqId)
+        ),
+        Dependents0),
+    sort(Dependents0, Dependents),
+    requirement_sets(_, Past),
+    findall(Type-Id-Owners-Kind,
+        (   member(Type-Id, Dependents),
+            retired_only_dependent(Retired, Past, Type, Id, Owners, Kind)
+        ),
+        Found),
+    maplist(retired_owner_only_violation, Found, Violations).
 
-%% retired_only_dependent(+Retired, +Past, -Type, -Id, -Owners, -Kind)
-% Kind is retired when every owner is retired, and mixed when every owner is
-% retired, superseded or deprecated and at least one is retired.
+%% retired_only_dependent(+Retired, +Past, +Type, +Id, -Owners, -Kind)
+% Id, a dependent of at least one retired requirement, has only owners that
+% are retired, superseded or deprecated. Kind is retired when every owner is
+% retired, and mixed when some are superseded or deprecated instead.
 retired_only_dependent(Retired, Past, Type, Id, Owners, Kind) :-
-    member(Type, [fact, scenario, test]),
     kb_entity(Id, Type, Props),
     live_dependent(Type, Props),
     findall(ReqId, dependent_owner(Type, Id, ReqId), Owners0),
     sort(Owners0, Owners),
-    Owners \== [],
     ord_subtract(Owners, Past, []),
-    ord_intersect(Owners, Retired),
-    (   ord_subtract(Owners, Retired, [])
-    ->  Kind = retired
-    ;   Kind = mixed
-    ).
+    ord_subtract(Owners, Retired, NotRetired),
+    retired_owners_kind(NotRetired, Kind).
+
+retired_owners_kind([], retired).
+retired_owners_kind([_|_], mixed).
 
 %% live_dependent(+Type, +Props)
 % A fact or scenario is archived once its status is deprecated (or a legacy
 % archived, inactive or deleted); a test has no archived status, so every
 % test is live until it is deleted or relinked.
-live_dependent(test, _) :- !.
-live_dependent(_, Props) :-
-    requirement_status_atom(Props, Status),
-    \+ memberchk(Status, [deprecated, archived, inactive, deleted]).
+live_dependent(Type, Props) :-
+    (   Type == test
+    ->  true
+    ;   requirement_status_atom(Props, Status),
+        \+ memberchk(Status, [deprecated, archived, inactive, deleted])
+    ).
 
 dependent_owner(fact, FactId, ReqId) :-
     member(Rel, [constrains, requires_property, requires_predicate, requires_rule]),
@@ -2749,11 +2755,11 @@ retired_owner_only_owners(retired, "retired requirements").
 retired_owner_only_owners(mixed,
     "retired requirements and requirements that are superseded or deprecated").
 
-retired_owner_only_suggestion(test,
-    "Link the test to the current requirement or scenario whose behavior it still checks, or delete it (kb_delete) if that behavior is gone").
-retired_owner_only_suggestion(Type,
-    "Link it to the current requirement that took over this behavior, or archive it with status: deprecated") :-
-    Type \== test.
+retired_owner_only_suggestion(Type, Suggestion) :-
+    (   Type == test
+    ->  Suggestion = "Link the test to the current requirement or scenario whose behavior it still checks, or delete it (kb_delete) if that behavior is gone"
+    ;   Suggestion = "Link it to the current requirement that took over this behavior, or archive it with status: deprecated"
+    ).
 
 %% check_strict_fact_shape(-Violations)
 % Finds all strict facts (with fact_kind) that have malformed shape.

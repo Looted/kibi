@@ -1429,6 +1429,12 @@ test(general_rule_reason_renders_the_stored_rule) :-
         Reason == Expected
     )).
 
+% A scoped rule reads the assumptions in its own scope.
+test(general_rule_reads_assumptions_in_its_scope, Verdict == [undecided_rule([rf])]) :-
+    A = m(assumption, a, a, s-p, eu, int, '', eq, 1, t),
+    chk_gr(forbids, eu, applies, false, [s-p], untranslatable, GR),
+    chk_verdict([A], GR, Verdict).
+
 test(general_rule_results_append) :-
     chk_a(a, eq, 1, A),
     chk_gr(forbids, '', applies, false, [s-p], untranslatable, GR),
@@ -1450,6 +1456,12 @@ test(property_assumption_statuses, Statuses == [governed, governed, outside_vali
             checks:property_assumption_status(A, Covers, S)
         ),
         Statuses).
+
+% A scoped assumption is governed by a constraint in its scope.
+test(scoped_assumption_statuses, Statuses == ['F-EU'-governed]) :-
+    A = m(assumption, 'F-EU', 'F-EU', s-p, eu, int, '', eq, 1, t),
+    R = m(requirement, r, f, s-p, eu, int, '', eq, 1, t),
+    chk_kb(checks:assumption_statuses(['F-EU'], [A], [rc(R, applies, false)], [], [], Statuses)).
 
 test(assumption_statuses, Statuses == ['F-PROP'-governed, 'F-ACT'-action, 'F-OTHER'-unmatched, 'F-NONE'-unmatched]) :-
     chk_kb((
@@ -2518,6 +2530,42 @@ test(retired_owner_only_mixed_owners) :-
         violation('retired-owner-only', 'FACT-MIXED', D1, S, 'FACT-MIXED.md', _{entityType: fact, owners: ['REQ-OLD', 'REQ-R1']}),
         violation('retired-owner-only', 'SCEN-MIXED', D2, S, 'SCEN-MIXED.md', _{entityType: scenario, owners: ['REQ-DEP', 'REQ-R1']})
     ]).
+
+% Owners are read by type: only requirements own a dependent, a test's
+% scenario owners come through scenarios only, and a test stays current
+% whatever its status. A non-fact a retired requirement constrains is no
+% dependent.
+test(retired_owner_only_reads_owners_by_type) :-
+    chk_kb((
+        chk_req('REQ-R1', [status=retired, retired_reason="Gone"]),
+        chk_req('REQ-LIVE'),
+        chk_ent(adr, 'ADR-X', []),
+        chk_ent(symbol, 'SYM-X', []),
+        chk_raw_rel(constrains, 'REQ-R1', 'SYM-X'),
+        chk_ent(fact, 'FACT-ADR', []),
+        chk_rel(constrains, 'REQ-R1', 'FACT-ADR'),
+        chk_raw_rel(constrains, 'ADR-X', 'FACT-ADR'),
+        chk_ent(scenario, 'SCEN-ADR', []),
+        chk_rel(specified_by, 'REQ-R1', 'SCEN-ADR'),
+        chk_raw_rel(specified_by, 'ADR-X', 'SCEN-ADR'),
+        chk_ent(test, 'TEST-VALIDATES', [status=passing]),
+        chk_rel(validates, 'TEST-VALIDATES', 'REQ-R1'),
+        chk_ent(fact, 'FACT-ODD', []),
+        chk_ent(test, 'TEST-ODD', [status=passing]),
+        chk_rel(verified_by, 'REQ-R1', 'TEST-ODD'),
+        chk_raw_rel(validates, 'TEST-ODD', 'FACT-ODD'),
+        chk_raw_rel(specified_by, 'REQ-LIVE', 'FACT-ODD'),
+        chk_raw_entity(test, 'TEST-DEPRECATED', [id='TEST-DEPRECATED', title="Fixture entity",
+                                                  status=deprecated, source="kb/TEST-DEPRECATED.md"]),
+        chk_rel(verified_by, 'REQ-R1', 'TEST-DEPRECATED'),
+        check_retired_owner_only(Violations)
+    )),
+    chk_retired_only(fact, 'FACT-ADR', ['REQ-R1'], V1),
+    chk_retired_only(scenario, 'SCEN-ADR', ['REQ-R1'], V2),
+    chk_retired_only(test, 'TEST-DEPRECATED', ['REQ-R1'], V3),
+    chk_retired_only(test, 'TEST-ODD', ['REQ-R1'], V4),
+    chk_retired_only(test, 'TEST-VALIDATES', ['REQ-R1'], V5),
+    chk_same(Violations, [V1, V2, V3, V4, V5]).
 
 test(retired_owner_only_without_retired, Violations == []) :-
     chk_kb((
