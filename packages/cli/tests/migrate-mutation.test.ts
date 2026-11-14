@@ -31,12 +31,15 @@ import * as entityType from "../src/operations/migration/entity-type.js";
 import * as evidenceFloor from "../src/operations/migration/evidence-floor.js";
 import * as firmSupersede from "../src/operations/migration/firm-supersede.js";
 import { INLINE_IMPLEMENTS_REVIEW_CODE } from "../src/operations/migration/inline-implements-comments.js";
+import * as inlineImplements from "../src/operations/migration/inline-implements-comments.js";
 import * as inventory from "../src/operations/migration/inventory-rederive.js";
 import * as originBackfill from "../src/operations/migration/origin-backfill.js";
 import * as pairReview from "../src/operations/migration/pair-review.js";
 import * as polarity from "../src/operations/migration/polarity-values.js";
+import * as positiveScenario from "../src/operations/migration/positive-scenario.js";
 import * as claims from "../src/operations/migration/proof-contract-claims.js";
 import * as reqStatus from "../src/operations/migration/requirement-status.js";
+import * as retiredStatus from "../src/operations/migration/retired-status.js";
 import * as schema6 from "../src/operations/migration/schema6.js";
 import * as sourcePaths from "../src/operations/migration/source-paths.js";
 import * as superseded from "../src/operations/migration/superseded-closure.js";
@@ -1571,6 +1574,86 @@ describe("schema upgrade", () => {
     expect(candidates).toHaveBeenCalledWith(cwd);
   });
 
+  test("pair only from a schema before 18", async () => {
+    atVersion(LATEST);
+    // A storage move still runs the migration at the latest schema.
+    s.plan.mockReturnValue(
+      storagePlan({ moves: [{ from: "a", to: "b" }] }) as never,
+    );
+    const candidates = spyOn(
+      pairReview,
+      "planPairReviewCandidates",
+    ).mockReturnValue(["R1"]);
+    await dry();
+    await yes();
+    expect(candidates).not.toHaveBeenCalled();
+    candidates.mockRestore();
+  });
+
+  test("acknowledge the current must requirements below schema 17", async () => {
+    const musts = spyOn(
+      positiveScenario,
+      "planPositiveScenarioAcknowledgements",
+    ).mockReturnValue(["R2", "R1"]);
+    atVersion(LATEST - 1);
+    await dry();
+    await yes();
+    expect(musts).not.toHaveBeenCalled();
+    atVersion(LATEST - 2);
+    s.read.mockReturnValue({
+      schemaVersion: LATEST - 2,
+      positiveScenarioAcknowledged: ["R0", "R1"],
+    } as never);
+    logs = [];
+    await dry();
+    expect(logs).toContain(
+      "dry run: would acknowledge 2 current must requirement(s) recorded before schema 17, which need no positive scenario (manifest only; no scenario is written).",
+    );
+    logs = [];
+    await yes();
+    expect(logs).toContain(
+      "Acknowledged 2 current must requirement(s) recorded before schema 17; a new must requirement needs a success scenario that assumes facts on its subjects.",
+    );
+    expect(s.write.mock.calls.at(-1)?.[1]).toMatchObject({
+      positiveScenarioAcknowledged: ["R0", "R1", "R2"],
+    });
+    expect(musts).toHaveBeenCalledWith(cwd);
+    musts.mockReturnValue([]);
+    atVersion(LATEST - 2);
+    logs = [];
+    await dry();
+    await yes();
+    expect(logs.join("\n")).not.toContain("current must requirement(s)");
+    expect(s.write.mock.calls.at(-1)?.[1]).not.toHaveProperty(
+      "positiveScenarioAcknowledged",
+    );
+    musts.mockRestore();
+  });
+
+  test("name the closed requirements that say they were retired", async () => {
+    const suggestions = spyOn(
+      retiredStatus,
+      "planRetiredStatusSuggestions",
+    ).mockReturnValue([
+      { requirementId: "REQ-a" },
+      { requirementId: "REQ-b" },
+    ] as never);
+    const note =
+      "2 closed requirement(s) say they were retired: REQ-a, REQ-b. A closed requirement still governs; to retire one, approve req-retired-status-<id> from kibi migrate --format json with kibi migrate --apply-safe, or set status: retired and retired_reason in the file.";
+    atVersion(0);
+    await dry();
+    expect(logs).toContain(note);
+    logs = [];
+    await yes();
+    expect(logs).toContain(note);
+    expect(suggestions).toHaveBeenCalledWith(cwd);
+    suggestions.mockReturnValue([]);
+    logs = [];
+    await dry();
+    expect(logs.join("\n")).not.toContain("say they were retired");
+    suggestions.mockRestore();
+  });
+
   test("apply only the late steps from an earlier schema", async () => {
     atVersion(APPROVAL_FLOOR_FROM);
     s.untrack.mockReturnValue({ outcome: "failed", reason: "locked" } as never);
@@ -2009,6 +2092,38 @@ describe("migration plan", () => {
       ladderFloors: { ladder: true },
       claimCandidates: null,
     });
+    s.read.mockReturnValue({ schemaVersion: 14 } as never);
+    await jsonPlan();
+    expect(h.build.mock.calls.at(-1)?.[0]).toMatchObject({
+      ladderFloors: { ladder: true },
+    });
+    s.read.mockReturnValue({ schemaVersion: 15 } as never);
+    await jsonPlan();
+    expect(h.build.mock.calls.at(-1)?.[0]).toMatchObject({
+      currentSchemaVersion: 15,
+      ladderFloors: null,
+    });
+  });
+
+  test("list the inline implements comments left in source as a symbol plan", async () => {
+    const comments = [{ path: "src/a.ts" }];
+    const find = spyOn(
+      inlineImplements,
+      "findInlineImplementsComments",
+    ).mockReturnValue(comments as never);
+    const review = spyOn(
+      inlineImplements,
+      "inlineImplementsReviewAction",
+    ).mockReturnValue(ready("inline-implements-review") as never);
+    const { plan } = await jsonPlan();
+    expect(ids(plan)).toContain("inline-implements-review");
+    expect(plan.scope.evaluatedDomains).toContain("symbol");
+    expect(find).toHaveBeenCalledWith(cwd);
+    expect(review).toHaveBeenCalledWith(comments);
+    review.mockReturnValue(null);
+    expect(ids((await jsonPlan()).plan)).not.toContain(
+      "inline-implements-review",
+    );
   });
 
   test("keep the status plan", async () => {

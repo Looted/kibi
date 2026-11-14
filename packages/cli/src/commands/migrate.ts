@@ -1057,6 +1057,8 @@ export async function migrateCommand(
     (step) => step.id === "positive-scenarios-v17",
   );
   const pairReviewStep = migrationSteps.some(
+    // rationale: pair-reviews-v18 is the last step, so every non-empty step list holds it and matching any step is the same until a later step exists.
+    // Stryker disable next-line ConditionalExpression
     (step) => step.id === "pair-reviews-v18",
   );
   const domainSubjectsStep = migrationSteps.some(
