@@ -10,6 +10,11 @@ import {
 import path from "node:path";
 import { CANONICAL_SKILLS } from "../catalog";
 import { PRECONDITION_APPROVED_EXCEPTION } from "../runtime/fixture-seeds";
+import {
+  RELATIONSHIP_DELETE_FILE,
+  RELATIONSHIP_DELETE_OBJECTIVES,
+  SHARD_TARGET_EDGE,
+} from "../runtime/traceability-seeds";
 import { bootstrapUserMode } from "./bootstrap-user";
 import type { parseTaskSpec } from "./contracts";
 import { onboardingReviewEvidence } from "./onboarding-review";
@@ -270,6 +275,15 @@ function writeCoordinateRepairObservation(input: WorkspaceInput): void {
   });
 }
 
+function writeRelationshipDeleteRequest(input: WorkspaceInput): void {
+  if (!RELATIONSHIP_DELETE_OBJECTIVES.has(input.task.taskData.objectiveCode))
+    return;
+  writeJson(input.root, RELATIONSHIP_DELETE_FILE, {
+    relationship: SHARD_TARGET_EDGE,
+    endpointsToKeep: [SHARD_TARGET_EDGE.from, SHARD_TARGET_EDGE.to],
+  });
+}
+
 export function hashWorkspace(root: string): string {
   const hash = createHash("sha256");
   for (const relativePath of listFiles(root)) {
@@ -339,6 +353,7 @@ export function writePublicWorkspace(input: WorkspaceInput): string {
   writeAdversarialFiles(input);
   writeSafeMutationEvidence(input);
   writeCoordinateRepairObservation(input);
+  writeRelationshipDeleteRequest(input);
   // Predicate-family tasks materialize the public claim and schema (no expected
   // outcome) from the semantically distinct registry. The private expectation
   // lives only in the evaluator/verifier lane.
