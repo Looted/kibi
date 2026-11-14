@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 import type { CanonicalSkill } from "../catalog";
-import { OBJECTIVE_CASE_CONTRACTS, type RequiredCall } from "./case-contracts";
+import {
+  type FixtureSetupMode,
+  OBJECTIVE_CASE_CONTRACTS,
+  type RequiredCall,
+} from "./case-contracts";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
 import {
@@ -241,6 +245,11 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
       ...READ_TOOLS[task.skill],
       ...(needsStatus(task) ? ["kb_status"] : []),
       "kb_delete",
+      // Moving coverage to the replacement is a typed write; the forbidden
+      // "before discovery" upsert rule needs it in the sequence to allow it.
+      ...(objective === "obsolete_symbol_delete_with_replacement"
+        ? ["kb_upsert"]
+        : []),
       "kb_check",
     ]);
   }
@@ -268,6 +277,20 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
         : [...READ_TOOLS[task.skill], ...extraStatus, "kb_upsert", "kb_check"];
   return dedupe(tools);
 }
+
+/**
+ * Held-out traceability objectives whose premise is a seeded KB state; their
+ * protocol stays the family default.
+ */
+const TRACEABILITY_STATE_FIXTURES: Readonly<
+  Record<string, FixtureSetupMode | undefined>
+> = {
+  relationship_shard_delete: "seeded_relationship_shard_kb",
+  legacy_shard_edge_cleanup: "seeded_stale_relationship_shard_kb",
+  legacy_shard_reconciliation: "seeded_removed_shard_edge_kb",
+  stale_symbol_remap: "seeded_moved_symbol_kb",
+  obsolete_symbol_delete_with_replacement: "seeded_replaced_symbol_kb",
+};
 
 function needsStatus(task: FixtureTaskSpec): boolean {
   return [
@@ -478,28 +501,31 @@ export function buildPrivateManifest(input: {
     fixtureSetup:
       caseContract !== undefined
         ? caseContract.fixtureSetup
-        : input.task.taskData.objectiveCode ===
-            "generated_only_symbol_coordinate_repair"
-          ? ("generated_coordinate_divergence" as const)
-          : input.task.taskData.objectiveCode === "repair_escalation"
-            ? ("seeded_partial_kb" as const)
-            : input.task.taskData.objectiveCode === "executable_coverage"
-              ? ("seeded_uncovered_kb" as const)
-              : input.task.taskData.objectiveCode === "safe_typed_mutation"
-                ? ("seeded_safe_mutation_kb" as const)
-                : input.task.initialState.kb === "fresh" &&
-                    input.task.initialState.worktree === "dirty" &&
-                    DIRTY_SOURCE_OBJECTIVES.has(
-                      input.task.taskData.objectiveCode,
-                    )
-                  ? ("seeded_dirty_kb" as const)
-                  : input.task.initialState.kb === "fresh"
-                    ? ("seeded_fresh_kb" as const)
-                    : input.task.initialState.kb === "stale"
-                      ? ("seeded_stale_kb" as const)
-                      : input.task.initialState.kb === "absent"
-                        ? ("thin_root_kb" as const)
-                        : undefined,
+        : TRACEABILITY_STATE_FIXTURES[input.task.taskData.objectiveCode] !==
+            undefined
+          ? TRACEABILITY_STATE_FIXTURES[input.task.taskData.objectiveCode]
+          : input.task.taskData.objectiveCode ===
+              "generated_only_symbol_coordinate_repair"
+            ? ("generated_coordinate_divergence" as const)
+            : input.task.taskData.objectiveCode === "repair_escalation"
+              ? ("seeded_partial_kb" as const)
+              : input.task.taskData.objectiveCode === "executable_coverage"
+                ? ("seeded_uncovered_kb" as const)
+                : input.task.taskData.objectiveCode === "safe_typed_mutation"
+                  ? ("seeded_safe_mutation_kb" as const)
+                  : input.task.initialState.kb === "fresh" &&
+                      input.task.initialState.worktree === "dirty" &&
+                      DIRTY_SOURCE_OBJECTIVES.has(
+                        input.task.taskData.objectiveCode,
+                      )
+                    ? ("seeded_dirty_kb" as const)
+                    : input.task.initialState.kb === "fresh"
+                      ? ("seeded_fresh_kb" as const)
+                      : input.task.initialState.kb === "stale"
+                        ? ("seeded_stale_kb" as const)
+                        : input.task.initialState.kb === "absent"
+                          ? ("thin_root_kb" as const)
+                          : undefined,
     workspaceAssertions:
       workspaceAssertions.length === 0
         ? undefined

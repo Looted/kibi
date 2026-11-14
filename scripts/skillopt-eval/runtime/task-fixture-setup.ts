@@ -22,6 +22,10 @@ import {
   isQualitySetupMode,
   setupQualityFixture,
 } from "./quality-fixture-setup";
+import {
+  isTraceabilitySetupMode,
+  setupTraceabilityFixture,
+} from "./traceability-fixture-setup";
 
 /**
  * Runs the evaluator-owned precondition setup a task's manifest names, with
@@ -70,6 +74,8 @@ export async function setupTaskFixture(
     await setupThinRootKb(target, cliRoot);
   } else if (setupMode !== undefined && isDecisionSetupMode(setupMode)) {
     await setupDecisionFixture(target, cliRoot, setupMode);
+  } else if (setupMode !== undefined && isTraceabilitySetupMode(setupMode)) {
+    await setupTraceabilityFixture(target, cliRoot, setupMode);
   } else if (setupMode !== undefined && isQualitySetupMode(setupMode)) {
     await setupQualityFixture(target, cliRoot, setupMode);
   }

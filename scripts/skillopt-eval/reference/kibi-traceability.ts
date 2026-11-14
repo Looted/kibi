@@ -515,6 +515,174 @@ const generatedOnlySymbolCoordinateRepair: ReferenceScript = async (agent) => {
   return `kb_status's migration plan (planHash ${String(plan.planHash)}) held one ready automatic action for this gap, ${String(refresh.id)} (symbol_refresh_coordinates, kibi sync --refresh-symbol-coordinates). I applied that plan unchanged with its exact hash and only that action ID. Afterwards ${symbol.id} reads back with its generated coordinates, kb_check is clean, kb_status reports syncState ${String(after.syncState)}, and kb_coverage by symbol shows no coordinate gap. The authored manifest stays coordinate-free; nothing was upserted, deleted or edited by hand.`;
 };
 
+type RelationshipDelete = Readonly<{
+  relationship: Readonly<{ type: string; from: string; to: string }>;
+}>;
+
+async function relationshipDeleteRequest(agent: ScriptedAgent) {
+  return (
+    JSON.parse(
+      await agent.read("relationship-delete.json"),
+    ) as RelationshipDelete
+  ).relationship;
+}
+
+/** Preview and apply one exact relationship delete, then read both ends. */
+async function deleteExactEdge(
+  agent: ScriptedAgent,
+  edge: RelationshipDelete["relationship"],
+): Promise<Json> {
+  await agent.call("kb_delete", { relationships: [edge], dryRun: true });
+  const deleted = await agent.data("kb_delete", { relationships: [edge] });
+  await agent.call("kb_query", { id: edge.from });
+  await agent.call("kb_query", { id: edge.to });
+  return deleted;
+}
+
+/** The sanctioned shard edge goes; its endpoints and shard neighbors stay. */
+const relationshipShardDelete: ReferenceScript = async (agent) => {
+  const edge = await relationshipDeleteRequest(agent);
+  await agent.call("kb_search", {
+    query: `${edge.type} ${edge.from} ${edge.to}`,
+  });
+  await agent.call("kb_query", { id: edge.from });
+  await outgoing(agent, [edge.from], [edge.type]);
+  await agent.call("kb_status", {});
+  const deleted = await deleteExactEdge(agent, edge);
+  await agent.call("kb_check", {});
+  return `Deleted exactly ${edge.type} ${edge.from} -> ${edge.to} with kb_delete (result: ${JSON.stringify(deleted).slice(0, 400)}). The relationship shard keeps its comments, order and the unrelated records; both endpoints remain and kb_check is clean.`;
+};
+
+/** A stale legacy shard: delete the sanctioned edge, then confirm the sync. */
+const legacyShardEdgeCleanup: ReferenceScript = async (agent) => {
+  const edge = await relationshipDeleteRequest(agent);
+  await agent.call("kb_search", {
+    query: `${edge.type} ${edge.from} ${edge.to}`,
+  });
+  await agent.call("kb_query", { id: edge.from });
+  await outgoing(agent, [edge.from], [edge.type]);
+  const deleted = await deleteExactEdge(agent, edge);
+  await agent.call("kb_check", {});
+  const status = await agent.data("kb_status", {});
+  await outgoing(agent, [edge.from], [edge.type]);
+  return `Deleted exactly ${edge.type} ${edge.from} -> ${edge.to} from its legacy relationship shard with kb_delete (${JSON.stringify(deleted).slice(0, 300)}). Both endpoints remain, kb_graph no longer returns the edge, and kb_status reports syncState ${String(status.syncState)} after the sync.`;
+};
+
+/** The shard no longer holds the edge: retract the compiled leftover only. */
+const legacyShardReconciliation: ReferenceScript = async (agent) => {
+  const edge = await relationshipDeleteRequest(agent);
+  await agent.call("kb_search", {
+    query: `${edge.type} ${edge.from} ${edge.to}`,
+  });
+  await agent.call("kb_query", { id: edge.from });
+  await outgoing(agent, [edge.from], [edge.type]);
+  const before = await agent.data("kb_status", {});
+  const preview = await agent.data("kb_delete", {
+    relationships: [edge],
+    dryRun: true,
+  });
+  const deleted = await agent.data("kb_delete", { relationships: [edge] });
+  await agent.call("kb_query", { id: edge.from });
+  await agent.call("kb_query", { id: edge.to });
+  await agent.call("kb_check", {});
+  const after = await agent.data("kb_status", {});
+  return `kb_status reported the KB stale (${JSON.stringify(before.staleReasons).slice(0, 300)}), and the delete preview showed the authored shard no longer holds ${edge.type} ${edge.from} -> ${edge.to} (${JSON.stringify(preview.relationship_results)}). Only the compiled edge was left, so I deleted that exact relationship (${JSON.stringify(deleted.relationship_results)}). Both endpoints remain and kb_status now reports syncState ${String(after.syncState)}.`;
+};
+
+/** Symbol rows whose recorded source file is gone, with their repair plan. */
+async function staleSymbols(agent: ScriptedAgent) {
+  const symbols = entities(await agent.data("kb_query", { type: "symbol" }));
+  const missing: Json[] = [];
+  for (const symbol of symbols) {
+    if (typeof symbol.sourceFile !== "string") continue;
+    const present = await agent.read(symbol.sourceFile).then(
+      () => true,
+      () => false,
+    );
+    if (!present) missing.push(symbol);
+  }
+  return missing;
+}
+
+/** Read-only: report the remap and obsolete-delete options with evidence. */
+const staleSymbolRemap: ReferenceScript = async (agent) => {
+  await agent.call("kb_search", {
+    query: "symbol whose source file was deleted",
+  });
+  const [symbol] = await staleSymbols(agent);
+  if (symbol === undefined) throw new Error("no symbol with a deleted file");
+  const id = idOf(symbol);
+  await outgoing(agent, [id], ["implements", "covered_by"]);
+  const status = await agent.data("kb_status", {});
+  const coverage = await agent.data("kb_coverage", { by: "symbol" });
+  const repair = records(
+    (coverage.symbolRepairPlan as Json | undefined)?.repairs,
+  ).find((entry) => entry.symbolId === id);
+  return [
+    `${id} (${String(symbol.title)}) still points at ${String(symbol.sourceFile)}, which no longer exists. kb_status lists the stale reasons ${JSON.stringify(status.staleReasons)}; kb_coverage's symbol repair plan for it is ${JSON.stringify(repair)}.`,
+    `Repair candidates: remap ${id} to src/fixture.ts, where ${String(symbol.title)} is declared now (it keeps its implements and covered_by links), or delete it as obsolete if that declaration is a different behavior. I changed nothing and wrote no coordinates; the remap needs your approval.`,
+  ].join("\n\n");
+};
+
+/** Delete the obsolete symbol; move coverage only where the test shows it. */
+const obsoleteSymbolDeleteWithReplacement: ReferenceScript = async (agent) => {
+  const { sourceFile, symbols } = await discover(
+    agent,
+    "obsolete symbol with a replacement",
+  );
+  const source = await agent.read(sourceFile);
+  const declared = (symbol: Json): boolean =>
+    new RegExp(`\\b${String(symbol.title)}\\b`).test(source);
+  const obsolete = symbols.filter((symbol) => !declared(symbol));
+  const [old] = obsolete;
+  if (old === undefined || obsolete.length !== 1)
+    throw new Error(`expected one obsolete symbol in ${sourceFile}`);
+  const replacement = symbols.find(
+    (symbol) =>
+      symbol !== old &&
+      String(symbol.title).startsWith(String(old.title).replace(/V\d+$/, "")) &&
+      declared(symbol) &&
+      symbol.covered_by === undefined,
+  );
+  if (replacement === undefined) throw new Error("no replacement symbol");
+  await outgoing(
+    agent,
+    [idOf(old), idOf(replacement)],
+    ["implements", "covered_by"],
+  );
+  await agent.call("kb_status", {});
+  const testId = String(old.covered_by).replace("kb:entity/", "");
+  const [test] = entities(
+    await agent.data("kb_query", { id: testId, includeBody: true }),
+  );
+  if (test === undefined) throw new Error(`${testId} not found`);
+  const testSource = await agent.read(String(test.text_ref));
+  if (!testSource.includes(String(replacement.title)))
+    throw new Error(`${testId} does not exercise ${String(replacement.title)}`);
+  const plan = await agent.data("kb_delete", { ids: [idOf(old)] });
+  await agent.call("kb_delete", {
+    ids: [idOf(old)],
+    approvedPlanHash: (plan.deletionPlan as Json | undefined)?.planHash,
+  });
+  const payload = {
+    type: "symbol",
+    id: idOf(replacement),
+    properties: {
+      title: replacement.title,
+      status: replacement.status,
+      sourceFile: replacement.sourceFile,
+    },
+    relationships: [
+      { type: "covered_by", from: idOf(replacement), to: testId },
+    ],
+  };
+  await agent.call("kb_upsert", { ...payload, dryRun: true });
+  await agent.call("kb_upsert", payload);
+  await agent.call("kb_query", { id: idOf(replacement) });
+  await agent.call("kb_check", {});
+  return `${idOf(old)} (${String(old.title)}) is obsolete: ${sourceFile} no longer declares it, and ${idOf(replacement)} (${String(replacement.title)}) replaces it. I deleted only ${idOf(old)} through kb_delete's approved deletion plan. ${testId} (${String(test.text_ref)}) calls ${String(replacement.title)}, so that test evidence supports moving its coverage: ${idOf(replacement)} is now covered_by ${testId}. The replacement's coordinates come from the sync; none were written by hand.`;
+};
+
 export const KIBI_TRACEABILITY_SCRIPTS: Readonly<
   Record<string, ReferenceScript>
 > = {
@@ -529,4 +697,9 @@ export const KIBI_TRACEABILITY_SCRIPTS: Readonly<
   link_keeps_requirement_size: linkKeepsRequirementSize,
   exact_legacy_branch_migration: exactLegacyBranchMigration,
   generated_only_symbol_coordinate_repair: generatedOnlySymbolCoordinateRepair,
+  relationship_shard_delete: relationshipShardDelete,
+  legacy_shard_edge_cleanup: legacyShardEdgeCleanup,
+  legacy_shard_reconciliation: legacyShardReconciliation,
+  stale_symbol_remap: staleSymbolRemap,
+  obsolete_symbol_delete_with_replacement: obsoleteSymbolDeleteWithReplacement,
 };

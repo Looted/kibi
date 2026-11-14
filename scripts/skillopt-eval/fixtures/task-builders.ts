@@ -8,6 +8,10 @@ import type {
   TaskSplit,
   WorktreeState,
 } from "../catalog";
+import {
+  RELATIONSHIP_DELETE_FILE,
+  RELATIONSHIP_DELETE_OBJECTIVES,
+} from "../runtime/traceability-seeds";
 import { bootstrapDialogueInstruction } from "./bootstrap-user";
 import {
   KIBI_ANSWER_FORMAT_INSTRUCTION,
@@ -484,6 +488,9 @@ function payload(
       : []),
     ...(effectiveObjectiveCode === "generated_only_symbol_coordinate_repair"
       ? COORDINATE_REPAIR_FILES
+      : []),
+    ...(RELATIONSHIP_DELETE_OBJECTIVES.has(effectiveObjectiveCode)
+      ? [RELATIONSHIP_DELETE_FILE]
       : []),
   ];
   const searchThenQuery =

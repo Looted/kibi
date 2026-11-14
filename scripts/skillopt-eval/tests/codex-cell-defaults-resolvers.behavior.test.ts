@@ -411,24 +411,6 @@ describe("workflow signal resolvers over evidence text", () => {
     );
   });
 
-  test("exact edge absence accepts deletion or wording evidence", async () => {
-    await expectSignal(
-      "exact edge absent after sync",
-      { markers: ["relationships_deleted observed"] },
-      true,
-    );
-    await expectSignal(
-      "exact edge absent after sync",
-      { markers: ["edge absent after reconciliation"] },
-      true,
-    );
-    await expectSignal(
-      "exact edge absent after sync",
-      { markers: ["edge retained"] },
-      false,
-    );
-  });
-
   test("passing v2 receipt requires the receipt plus a passed outcome", async () => {
     await expectSignal(
       "passing v2 receipt",
@@ -719,22 +701,6 @@ describe("workflow signal resolvers over evidence text", () => {
       { markers: ["passingE2e evidence", "coverage_depth_review raised"] },
       false,
     );
-  });
-
-  test("repair candidates are detected via wording, not the staleReasons key", async () => {
-    await expectSignal(
-      "evidence-backed repair candidates",
-      { markers: ["repair candidates listed"] },
-      true,
-    );
-    // The probe matches case-sensitively against lowercased evidence text,
-    // so echoing the staleReasons key name never satisfies it.
-    await expectSignal(
-      "evidence-backed repair candidates",
-      { markers: ["staleReasons wording only"] },
-      false,
-    );
-    await expectSignal("evidence-backed repair candidates", {}, false);
   });
 });
 

@@ -44,6 +44,7 @@ import {
   qualityForbiddenObserved,
   qualitySignalObserved,
 } from "./quality-signals";
+import { traceabilitySignalObserved } from "./traceability-signals";
 import {
   type FinalAnswerEvidence,
   type TranscriptOrdering,
@@ -373,7 +374,8 @@ function workflowSignalObserved(
   const caseOutcome =
     caseSignalObserved(signal, context) ??
     decisionSignalObserved(signal, context) ??
-    qualitySignalObserved(signal, context);
+    qualitySignalObserved(signal, context) ??
+    traceabilitySignalObserved(signal, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   // Prose claims may come from the KB or from the agent's final answer (the
@@ -546,14 +548,6 @@ function workflowSignalObserved(
       return (
         text.includes("qualitydiagnostics") && text.includes("disposition")
       );
-    case "replacement evidence":
-      return prose.includes("replacement") || prose.includes("remap");
-    case "coverage transfer evidence":
-      return text.includes("covered_by") || text.includes("coverage");
-    case "canonical relationship shard":
-      return text.includes("relationship") && text.includes("shard");
-    case "unrelated records":
-      return prose.includes("unrelated") || prose.includes("preserv");
     case "release defect":
       return (
         prose.includes("release defect") || prose.includes("export surface")
@@ -564,12 +558,6 @@ function workflowSignalObserved(
       return prose.includes("journal") && prose.includes("preserv");
     case "syncState stale":
       return status?.syncState === "stale";
-    case "exact edge absent after sync":
-      return (
-        text.includes("relationships_deleted") || text.includes("edge absent")
-      );
-    case "endpoints preserved":
-      return text.includes("endpoint") || text.includes("preserved");
     case "passing v2 receipt":
       return (
         text.includes("verification-receipt.v2") && text.includes("passed")
@@ -660,10 +648,6 @@ function workflowSignalObserved(
         status?.syncState === "fresh" &&
         Array.isArray(status.staleReasons) &&
         status.staleReasons.length === 0
-      );
-    case "evidence-backed repair candidates":
-      return (
-        prose.includes("staleReasons") || prose.includes("repair candidates")
       );
     default:
       return prose.includes(signal.toLowerCase());

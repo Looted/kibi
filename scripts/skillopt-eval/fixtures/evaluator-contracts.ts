@@ -306,6 +306,11 @@ const PrivateEvaluatorManifestSchema = z
         "seeded_impact_review_kb",
         "seeded_staged_conflict_kb",
         "seeded_merge_commit_kb",
+        "seeded_relationship_shard_kb",
+        "seeded_stale_relationship_shard_kb",
+        "seeded_removed_shard_edge_kb",
+        "seeded_moved_symbol_kb",
+        "seeded_replaced_symbol_kb",
       ])
       .optional(),
     workspaceAssertions: z.array(WorkspaceAssertionSchema).optional(),
