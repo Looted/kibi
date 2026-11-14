@@ -40478,3 +40478,16 @@ symbols:
         target: TEST-skillopt-reference-answers-score-100
       - type: implements
         target: REQ-skillopt-reference-answers-score-100
+  - id: SYM-cli-engine-socket-directory
+    title: ensureEngineSocketDirectory
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-14T09:17:22.310Z
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-engine-isolation-and-cleanup

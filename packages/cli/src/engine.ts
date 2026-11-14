@@ -573,11 +573,6 @@ export function engineSocketPath(
 const WINDOWS_PIPE_PREFIX = "\\\\.\\pipe\\";
 
 /**
- * A file that sits beside the engine socket, such as its start diagnostic.
- * A Windows named pipe lives in the pipe namespace, where no file can be
- * written, so its files go to the runtime directory under the pipe's name.
- */
-/**
  * Create the private directory an engine socket is bound in. A Windows named
  * pipe has no directory to create.
  */
@@ -589,6 +584,11 @@ export function ensureEngineSocketDirectory(
   mkdir(path.dirname(socketPath), { recursive: true, mode: 0o700 });
 }
 
+/**
+ * A file that sits beside the engine socket, such as its start diagnostic.
+ * A Windows named pipe lives in the pipe namespace, where no file can be
+ * written, so its files go to the runtime directory under the pipe's name.
+ */
 export function engineSidecarPath(socketPath: string, suffix: string): string {
   if (socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
     return path.join(
