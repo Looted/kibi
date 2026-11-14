@@ -313,7 +313,7 @@ export function normalize(value: string): string {
     .toLowerCase()
     .replace(/[-_]/g, " ")
     .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
+    .split(/\s/)
     .filter(Boolean)
     .map((token) =>
       token.length > 4 &&
