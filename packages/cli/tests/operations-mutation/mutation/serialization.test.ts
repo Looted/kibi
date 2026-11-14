@@ -49,6 +49,7 @@ describe("buildPropertyList", () => {
       "argument_constants",
       "argument_aliases",
       "semantic_inventory",
+      "pair_reviews",
       "proof_contract",
       "proof_bindings",
       "proof_receipts",

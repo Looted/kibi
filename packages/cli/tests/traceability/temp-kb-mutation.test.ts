@@ -170,6 +170,7 @@ describe("entity assertion goals", () => {
       semantic_source_field: "title",
       semantic_source_hash: "h",
       semantic_inventory: { a: 1 },
+      pair_reviews: [{ b: 2 }],
       approved_by: "ab",
       approval_ref: "ar",
       failure_side_waiver: "fw",
@@ -178,7 +179,7 @@ describe("entity assertion goals", () => {
       exempts_claims: ["e1", "e2"],
     } as unknown as Partial<ExtractedEntity>;
     expect(await assertionGoal(entity(req))).toBe(
-      `kb_assert_entity_no_audit(req, [${BASE}, semantic_text="st", logic_claims=[c1,c2], semantic_clauses=["cl","c2"], semantic_inventory_version="kibi.semantic-inventory.v1", semantic_source_field="title", semantic_source_hash="h", semantic_inventory="{\\"a\\":1}", approved_by="ab", approval_ref="ar", failure_side_waiver="fw", failure_side_waiver_approved_by="fa", rationale="r", exempts_claims=[e1,e2]])`,
+      `kb_assert_entity_no_audit(req, [${BASE}, semantic_text="st", logic_claims=[c1,c2], semantic_clauses=["cl","c2"], semantic_inventory_version="kibi.semantic-inventory.v1", semantic_source_field="title", semantic_source_hash="h", semantic_inventory="{\\"a\\":1}", pair_reviews="[{\\"b\\":2}]", approved_by="ab", approval_ref="ar", failure_side_waiver="fw", failure_side_waiver_approved_by="fa", rationale="r", exempts_claims=[e1,e2]])`,
     );
     expect(
       await assertionGoal(

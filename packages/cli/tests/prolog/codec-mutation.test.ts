@@ -271,6 +271,7 @@ describe("parsePropertyList", () => {
       "argument_constants",
       "argument_aliases",
       "semantic_inventory",
+      "pair_reviews",
       "proof_receipts",
       "proof_contract",
       "proof_bindings",

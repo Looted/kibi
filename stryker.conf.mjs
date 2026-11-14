@@ -71,6 +71,7 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/logic/ir.ts": ["packages/cli/tests/logic/ir.test.ts"],
   "packages/cli/src/search-hints.ts": [
     "packages/cli/tests/search-hints.test.ts",
+    "packages/cli/tests/negative-path-facts.test.ts",
   ],
   "packages/cli/src/plugins/compose-search-hints.ts": [
     "packages/cli/tests/search-hints.test.ts",
