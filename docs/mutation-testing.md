@@ -130,8 +130,11 @@ single kibi-cli modules and `PLUGIN_MUTATION_MODULES` single files outside a
 `src/` tree (`packages/swipl/index.js`), each with the tests named for it.
 
 `MUTATION_TEST_EXCLUDES` lists test files of those packages that cannot run
-in the sandbox: `packages/claude/tests/distribution.test.ts` compares the
-committed hook bundle with the source, which the sandbox instruments. New
+in the sandbox because they read source text, which the sandbox instruments:
+`packages/claude/tests/distribution.test.ts` compares the committed hook
+bundle with the source, and `packages/agent-core/tests/shared-hook-inputs.test.ts`
+parses the host sources for functions that reimplement a shared decision.
+Neither asserts runtime behaviour, so no mutant depends on them. New
 tests for a package in scope go in its `tests/` directory, where the gate
 picks them up; the contract test checks that every one is registered.
 
@@ -196,4 +199,6 @@ production runtime; the remaining excluded mutants fall into these groups:
 | `packages/agent-core/src/usage-telemetry.ts` | The Node runtime name is unreachable under Bun, whose global cannot be removed; `timer.unref()` only changes process lifetime; `force` on removing claimed or listed queue files only matters in a cross-process race; an empty claimed-batch list and a placeholder path are both dropped as unreadable. |
 | `packages/agent-core/src/snippets.ts`, `packages/agent-core/src/requirement-candidates.ts`, `packages/agent-core/src/path-policy.ts`, `packages/agent-core/src/knowledge-index.ts` | Early returns that only save reading a file, an empty list whose placeholder entry reads as a primitive with no fields, the unowned-path shortcut, and the backslash normalization that cannot show on a POSIX runner. |
 | `packages/plugin-sdk/src/validate.ts`, `packages/zcode/src/hook-runner.ts`, `packages/claude/src/hook-runner.ts` | Fallback `[]` values for absent ownership and markers, the missing-target guard whose throw the caller turns into the same missing context, a missing command start time that matches no file, and the `"read"` snippet surface, which is equivalent to any non-`"edit"` value. |
-| `packages/opencode/src` (`plugin.ts`, `hook-telemetry.ts`, `file-operation-reminders.ts`, `guidance-cache.ts`, `kibi-checkpoint-runner.ts`, `scheduler.ts`, `plugin-startup.ts`, `smart-enforcement-events.ts`, `kibi-bootstrap-capability.ts`) | Literals only used as opaque cache keys or log event names, an `?? "advisory"` default the caller always fills, git's stderr setting (stdout is the same), an SDK lookup by name that cannot succeed in this repository, a read fallback replaced on the next refresh, a catch that returns what an emptied block returns, a suggestion precompute that only non-code files would skip, a checkpoint runner looked up outside hard mode (only hard mode reads its evidence), and a scheduler dispose that only releases a waiter nothing reads after a timed-out run. |
+| `packages/agent-core/src/decision-guard.ts`, `packages/claude/src/hook-runner.ts` (dead `implements` comments) | Any quote-free text in place of an escape leaves the quote counts as they are; a split always yields a first and a last line, so the optional chaining on them never short-circuits; Claude's edit tools carry no `apply_patch` envelope, so the patch base (the event cwd) is never read there. |
+| `packages/mcp/src/server/tools.ts` | The guard around the SDK's `validateToolInput` hook: the pinned SDK always has it, so wrapping it unconditionally changes nothing a test can reach. |
+| `packages/opencode/src` (`plugin.ts`, `hook-telemetry.ts`, `file-operation-reminders.ts`, `guidance-cache.ts`, `kibi-checkpoint-runner.ts`, `scheduler.ts`, `plugin-startup.ts`, `smart-enforcement-events.ts`, `kibi-bootstrap-capability.ts`) | Literals only used as opaque cache keys or log event names, an `?? "advisory"` default the caller always fills, git's stderr setting (stdout is the same), an SDK lookup by name that cannot succeed in this repository, a read fallback replaced on the next refresh, a catch that returns what an emptied block returns, a suggestion precompute and a manifest-link lookup that only non-code files would skip, a checkpoint runner looked up outside hard mode (only hard mode reads its evidence), and a scheduler dispose that only releases a waiter nothing reads after a timed-out run. |

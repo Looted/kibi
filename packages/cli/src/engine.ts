@@ -2739,10 +2739,17 @@ export async function runEngineDaemon(requestedOptions: {
       scheduleIdleExit();
     });
   });
-  await new Promise<void>((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(options.socketPath, () => resolve());
-  });
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(options.socketPath, () => resolve());
+    });
+  } catch (error) {
+    // A daemon that never listened has nothing to watch; a watchdog left
+    // behind would later run the shutdown and exit the hosting process.
+    clearInterval(workspaceWatchdog);
+    throw error;
+  }
   if (process.platform !== "win32") {
     try {
       chmodSync(options.socketPath, 0o600);

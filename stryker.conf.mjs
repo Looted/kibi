@@ -34,11 +34,14 @@ export const MUTATION_PACKAGES = [
 
 /**
  * Test files of a whole package in scope that cannot run in the Stryker
- * sandbox. rationale: the claude distribution test compares the committed hook
- * bundle with the source, and the sandbox source is instrumented, so it always
- * fails the initial run there.
+ * sandbox. rationale: both read source text that the sandbox instruments, so
+ * they always fail the initial run there. The claude distribution test
+ * compares the committed hook bundle with the source; the agent-core
+ * shared-hook-inputs test parses the host sources for local function bodies,
+ * and Stryker's mutant switches make every such body look hand-written.
  */
 export const MUTATION_TEST_EXCLUDES = [
+  "packages/agent-core/tests/shared-hook-inputs.test.ts",
   "packages/claude/tests/distribution.test.ts",
 ];
 
@@ -1470,9 +1473,16 @@ const config = {
   ],
   bun: {
     testFiles: scopedTestFiles(),
-    // Watchdog for a whole `bun test` child; the scoped suites take ~20s
-    // sequentially, and engine-spawning tests legally take seconds each.
-    timeout: 120000,
+    // Watchdog for a whole `bun test` child. It bounds the dry run, which
+    // runs every scoped suite on instrumented source with per-test coverage and
+    // takes two to seven minutes on 4 cores; mutant runs use Stryker's
+    // own per-mutant timeout instead.
+    timeout: 900000,
+    // Bun ignores bunfig.toml's [test].timeout, so every test gets bun's 5s
+    // default. Instrumented source runs several times slower, and a few
+    // tests (the regular-language automaton bounds, the C++ extension
+    // reader) pass that mark in the dry run on a busy machine.
+    bunArgs: ["--timeout=60000"],
     // Bun opens its inspector socket asynchronously; under a loaded machine
     // the 5s default can elapse before the child answers, which Stryker
     // reports as a failed initial run. Give cold starts room to breathe.
@@ -1497,6 +1507,9 @@ const config = {
   buildCommand: "sh scripts/mutation-sandbox-setup.sh",
   // All-or-nothing: a single surviving mutant fails `bun run test:mutation`.
   thresholds: { high: 100, low: 100, break: 100 },
+  // The dry run takes about five minutes of test time on a loaded 4-core
+  // runner, which is Stryker's default limit.
+  dryRunTimeoutMinutes: 20,
   concurrency: 4,
   reporters: ["progress", "html", "json", "clear-text"],
   // `bun.*` is the @hughescr/stryker-bun-runner option namespace; Stryker's
