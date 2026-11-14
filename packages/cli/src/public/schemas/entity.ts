@@ -576,6 +576,8 @@ const entitySchema: Record<string, unknown> = {
                   required: ["claim_key"],
                   properties: {
                     claim_key: { type: "string", minLength: 1 },
+                    // Accepted and ignored: the claim_key already names
+                    // the claim the verdict covers.
                     payload_hash: { type: "string" },
                   },
                   additionalProperties: false,

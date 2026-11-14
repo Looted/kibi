@@ -115,6 +115,50 @@ describe("resolveWorkspaceCwd", () => {
     });
   });
 
+  test("the path kibi skills validate takes keeps pointing where the user meant", () => {
+    const resolved = (...args: string[]) =>
+      resolveWorkspaceCwd(argv(...args), sub, {}).argv;
+    expect(resolved("skills", "validate", "my-skill")).toEqual(
+      argv("skills", "validate", path.join(sub, "my-skill")),
+    );
+    expect(
+      resolved("skills", "validate", "--format", "json", "../x/SKILL.md"),
+    ).toEqual(
+      argv(
+        "skills",
+        "validate",
+        "--format",
+        "json",
+        path.join(root, "apps", "x", "SKILL.md"),
+      ),
+    );
+    expect(
+      resolved("--diagnostic-mode", "skills", "validate", "--format=json", "s"),
+    ).toEqual(
+      argv(
+        "--diagnostic-mode",
+        "skills",
+        "validate",
+        "--format=json",
+        path.join(sub, "s"),
+      ),
+    );
+    expect(resolved("skills", "validate", "/abs/s", "extra")).toEqual(
+      argv("skills", "validate", "/abs/s", "extra"),
+    );
+    // Other subcommands' words and option values are not paths.
+    expect(resolved("skills", "load", "kibi-usage")).toEqual(
+      argv("skills", "load", "kibi-usage"),
+    );
+    expect(resolved("skills", "--format", "json", "validate")).toEqual(
+      argv("skills", "--format", "json", "validate"),
+    );
+    expect(resolved("proof", "validate", "x")).toEqual(
+      argv("proof", "validate", "x"),
+    );
+    expect(resolved("skills", "validate")).toEqual(argv("skills", "validate"));
+  });
+
   test("an unchanged result still copies argv", () => {
     const input = argv("status", "--input", "rel.json");
     const result = resolveWorkspaceCwd(input, root, {});

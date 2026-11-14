@@ -353,7 +353,7 @@ export function remediateTelemetryAcceptance(
             entry,
             requirementId,
             "No recent semantic-advisor event matches this requirement, source hash, and correlation context.",
-            "Run kb_model with mode analyze (CLI: semantic-advisor) on the complete prose in the same session/actor context before the next upsert.",
+            "Run kb_model with mode analyze (CLI: kibi model) on the complete prose in the same session/actor context before the next upsert.",
           ),
         );
       }

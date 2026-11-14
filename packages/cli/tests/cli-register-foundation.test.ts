@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as jsonCommand from "../src/cli-json-command.js";
 import { registerFoundationCommands } from "../src/cli-register-foundation.js";
 import * as hooksInstall from "../src/commands/hooks-install.js";
@@ -8,6 +8,7 @@ import * as query from "../src/commands/query.js";
 import * as search from "../src/commands/search.js";
 import * as status from "../src/commands/status.js";
 import * as sync from "../src/commands/sync.js";
+import * as kbDependency from "../src/dependencies/kb-dependency-cli.js";
 import {
   goldenSurface,
   plainCalls,
@@ -77,6 +78,25 @@ describe("registerFoundationCommands", () => {
     await run("hooks", "install", "--quiet");
     expect(plainCalls(hooksSpy)).toStrictEqual([[{ quiet: true }]]);
     expect(process.exitCode).toBe(3);
+  });
+
+  test("query, search and status stop when the --kb scope is refused", async () => {
+    const scope = spyOn(kbDependency, "applyKbOption").mockImplementation(
+      () => false,
+    );
+    restores.push(() => scope.mockRestore());
+    const querySpy = stub(query, "queryCommand");
+    const searchSpy = stub(search, "searchCommand");
+    const statusSpy = stub(status, "statusCommand");
+    const json = stub(jsonCommand, "runJsonInvocation");
+    await run("query", "req", "--kb", "dep");
+    await run("search", "x", "--kb", "dep", "--input", "-");
+    await run("status", "--kb", "dep");
+    expect(scope.mock.calls.length).toBe(3);
+    expect(querySpy.mock.calls.length).toBe(0);
+    expect(searchSpy.mock.calls.length).toBe(0);
+    expect(statusSpy.mock.calls.length).toBe(0);
+    expect(json.mock.calls.length).toBe(0);
   });
 
   test("query runs the human path or the JSON route", async () => {

@@ -155,6 +155,66 @@ describe("search ranks a negative-path fact below what it guards", () => {
     expect(result.analysis.ambiguous).toBe(false);
   });
 
+  const QUICK = {
+    id: "REQ-plan-quick",
+    type: "req",
+    title: "Building a migration plan is quick",
+    status: "open",
+  };
+  const rankOrder = async (
+    entities: readonly Record<string, unknown>[],
+    guards: ReadonlyMap<string, readonly string[]>,
+  ) =>
+    (
+      await rankIntentEntities(
+        entities,
+        { query, minScore: 0 },
+        workspaceRoot,
+        [],
+        new Map(),
+        guards,
+      )
+    ).matches.map((match) => match.entity.id);
+
+  test("at its requirement's rank it follows it, whatever the input order", async () => {
+    const guards = new Map([[NEG.id, [QUICK.id]]]);
+    expect(await rankOrder([NEG, QUICK], guards)).toEqual([QUICK.id, NEG.id]);
+    expect(await rankOrder([QUICK, NEG], guards)).toEqual([QUICK.id, NEG.id]);
+  });
+
+  test("two at the same rank keep the order of their own scores", async () => {
+    // Both score above the requirement they guard; the closer one leads.
+    const close = {
+      id: "FACT-NEG-z-close",
+      type: "fact",
+      title: "A migration plan changes a tracked file",
+      status: "active",
+    };
+    const loose = {
+      id: "FACT-NEG-a-loose",
+      type: "fact",
+      title: "Building a migration plan changes a file",
+      status: "active",
+    };
+    const guards = new Map([
+      [close.id, [QUICK.id]],
+      [loose.id, [QUICK.id]],
+    ]);
+    const expected = [QUICK.id, close.id, loose.id];
+    expect(await rankOrder([loose, close, QUICK], guards)).toEqual(expected);
+    expect(await rankOrder([close, loose, QUICK], guards)).toEqual(expected);
+  });
+
+  test("it ranks at the best match among its guards", async () => {
+    // QUICK matches the query better than REQ and OTHER.
+    const order = await rankOrder(
+      [REQ, OTHER, NEG, QUICK],
+      new Map([[NEG.id, [REQ.id, QUICK.id]]]),
+    );
+    expect(order.slice(0, 2)).toEqual([QUICK.id, NEG.id]);
+    expect(order.slice(2).sort()).toEqual([OTHER.id, REQ.id]);
+  });
+
   test("whose guard did not match keeps its place, marked", async () => {
     const result = await rankIntentEntities(
       [OTHER, NEG],

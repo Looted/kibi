@@ -13,6 +13,7 @@ import path from "node:path";
 import {
   KB_MANIFEST_VERSION,
   defaultKbManifest,
+  parseKbManifest,
   readKbManifest,
   readKbManifestOrDefault,
   readKbManifestStatus,
@@ -203,5 +204,30 @@ describe("readKbManifest and writeKbManifest", () => {
     writeKbManifest(dir, VALID as never);
     expect<unknown>(readKbManifest(dir)).toStrictEqual(VALID);
     expect(readdirSync(path.join(dir, ".kb"))).toStrictEqual(["manifest.json"]);
+  });
+});
+
+describe("parseKbManifest", () => {
+  test("reads manifest text such as a Git tree's copy", () => {
+    expect(
+      parseKbManifest(
+        JSON.stringify({
+          manifestVersion: 1,
+          schemaVersion: 17,
+          semanticAdvisorBackfill: "completed",
+          positiveScenarioAcknowledged: ["REQ-a", 3],
+        }),
+      ),
+    ).toStrictEqual({
+      manifestVersion: 1,
+      schemaVersion: 17,
+      semanticAdvisorBackfill: "completed",
+      positiveScenarioAcknowledged: ["REQ-a"],
+    });
+  });
+
+  test("is null for text that is not JSON or not a manifest", () => {
+    expect(parseKbManifest("{not json")).toBeNull();
+    expect(parseKbManifest(JSON.stringify({ schemaVersion: 17 }))).toBeNull();
   });
 });

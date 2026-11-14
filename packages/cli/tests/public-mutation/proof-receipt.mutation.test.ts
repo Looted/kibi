@@ -507,7 +507,14 @@ describe("proofReceiptCurrentBindingErrors", () => {
       fingerprint_components: stored,
     };
     expect(
-      proofReceiptCurrentBindingErrors("T", "unit", receipt, contract, "f", drifted),
+      proofReceiptCurrentBindingErrors(
+        "T",
+        "unit",
+        receipt,
+        contract,
+        "f",
+        drifted,
+      ),
     ).toEqual([
       "proof receipt fingerprint does not match the current effective execution fingerprint (changed: integration, command)",
     ]);
@@ -517,7 +524,14 @@ describe("proofReceiptCurrentBindingErrors", () => {
       [receipt, stored],
     ] as const) {
       expect(
-        proofReceiptCurrentBindingErrors("T", "unit", quiet[0], contract, "f", quiet[1]),
+        proofReceiptCurrentBindingErrors(
+          "T",
+          "unit",
+          quiet[0],
+          contract,
+          "f",
+          quiet[1],
+        ),
       ).toEqual([
         "proof receipt fingerprint does not match the current effective execution fingerprint",
       ]);

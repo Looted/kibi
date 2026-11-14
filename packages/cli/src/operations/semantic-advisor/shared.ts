@@ -219,7 +219,8 @@ export function strictSuggestion(
         document: {
           body: notStatedDefinition(
             claim.subject_key,
-            claimText.trim() === ""
+            // statementOf already trims the text.
+            claimText === ""
               ? `requirement ${reqId}`
               : `requirement ${reqId} ("${claimText}")`,
           ),

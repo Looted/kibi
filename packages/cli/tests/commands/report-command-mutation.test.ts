@@ -27,6 +27,7 @@ import { KIBI_BRAND } from "../../src/report/brand.js";
 import * as htmlReport from "../../src/report/html-report.js";
 import * as repository from "../../src/report/repository.js";
 import * as cliRuntime from "../../src/runtime/cli-runtime.js";
+import * as migrateHint from "../../src/utils/migrate-hint.js";
 
 const restores: Array<() => void> = [];
 const dirs: string[] = [];
@@ -312,6 +313,20 @@ describe("reportCommand outputs", () => {
     const target = await reportCommand({ open: true }, value);
     expect(opened).toStrictEqual([target]);
     expect(logs.at(-1)).toBe("Opened Kibi report in the default browser");
+  });
+});
+
+describe("reportCommand migration hint", () => {
+  test("prints the schema migration hint for the workspace before the paths", async () => {
+    const root = tempDir();
+    const hint = track(
+      spyOn(migrateHint, "printSchemaMigrationHint").mockImplementation(() => {
+        logs.push("HINT");
+      }),
+    );
+    await reportCommand({ output: "out" }, deps(root).value);
+    expect(hint).toHaveBeenCalledWith(root);
+    expect(logs[0]).toBe("HINT");
   });
 });
 

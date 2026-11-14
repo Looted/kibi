@@ -2350,8 +2350,12 @@ describe("prove summary", () => {
       row("T-3", {
         certificateRejection: "digest mismatch",
         kind: "typecheck",
+        fingerprintDrift: [],
       }),
-      row("T-4", { certificateRejection: "bad" }),
+      row("T-4", {
+        certificateRejection: "bad",
+        fingerprintDrift: ["argv", "env"],
+      }),
       row("T-5", {
         claimBindings: [
           { claim_key: "c1", binding: "rejected", reason: "no scope" },
@@ -2413,6 +2417,7 @@ describe("prove summary", () => {
     expect(h.stderr.slice(2)).toEqual([
       "prove: T-3 typecheck: certificate rejected, digest mismatch\n",
       "prove: T-4 certificate: certificate rejected, bad\n",
+      "prove: T-4: execution fingerprint changed since its previous receipt (argv, env); earlier receipts no longer count\n",
       "prove: T-5 c1: rejected: no scope\n",
       "prove: T-6 c2 (REQ-1): derived, code scope; the receipt's verification_scope is unit, and a claim is proved only once its requirement is tested end to end, so kibi proof explain keeps it unproved until an end_to_end receipt covers the scenario\n",
       "prove: T-6 c3: attested\n",

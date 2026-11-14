@@ -52,14 +52,22 @@ import {
   CLAIM_SUBJECT_ANCHOR_ACTION_PREFIX,
   CLAIM_SUBJECT_ANCHOR_REVIEW_CODE,
   CLAIM_SUBJECT_ANCHOR_SUGGEST_CODE,
+  DOMAIN_SUBJECTS_SCHEMA_VERSION,
   SUBJECT_DEFINITION_ACTION_PREFIX,
+  SUBJECT_DEFINITION_NOT_STATED_ACTION_ID,
+  SUBJECT_DEFINITION_NOT_STATED_CODE,
   SUBJECT_DEFINITION_REVIEW_CODE,
   SUBJECT_DUPLICATE_ACTION_PREFIX,
   SUBJECT_DUPLICATE_REVIEW_CODE,
+  SUBJECT_HIERARCHY_ACTION_PREFIX,
+  SUBJECT_HIERARCHY_REVIEW_CODE,
   applyClaimSubjectAnchor,
+  applySubjectDefinitionPlaceholders,
   planClaimSubjectAnchors,
+  planSubjectDefinitionPlaceholders,
   planSubjectDefinitionReviews,
   planSubjectDuplicateReviews,
+  planSubjectHierarchyReviews,
 } from "./domain-subjects.js";
 import {
   CONTEXT_MISSING_TAG_CODE,
@@ -503,20 +511,58 @@ export function requirementStatusActions(
 }
 
 /**
+ * What anchoring a claim leads to: the claim now meets the other unmodeled
+ * claims on its subject, so kibi check pairs them.
+ */
+const ANCHOR_PAIRING_NOTE =
+  "Once anchored, the claim meets every other requirement with an unmodeled claim on that subject, so kibi check usually reports the pair as related-requirement-unmodeled until the claims are modeled or a pair_reviews verdict settles it.";
+
+/** The review choice of a claim Kibi suggests no subject for. */
+function anchorReviewChoice(
+  candidates: readonly Readonly<{
+    subjectKey: string;
+    strong: boolean;
+    defined: boolean;
+    score: number;
+  }>[],
+): string {
+  const [first, second] = candidates;
+  const add =
+    "add the subject it is about as subjects: [<subject_key>] on the inventory entry";
+  let why: string;
+  if (first === undefined)
+    why = `No defined subject matches the claim's words. Define the subject it is about as a subject fact (fact_kind subject, a body saying what it is and is not), then ${add}.`;
+  else if (second !== undefined && first.score === second.score)
+    why = `Several defined subjects match the claim's words equally. Pick the one (or ones) it is about and ${add}, or define a narrower subject first.`;
+  else if (!first.defined)
+    why = `The closest subject, ${first.subjectKey}, has no definition yet, so it is not suggested. Define it first (subject_definition_review), then ${add}, or define the subject the claim is about.`;
+  else
+    why = `The claim shares only one incidental word with ${first.subjectKey}, which is too weak to suggest. If the claim is about it, ${add}; otherwise define the subject it is about first.`;
+  return `${why} ${ANCHOR_PAIRING_NOTE}`;
+}
+
+/**
  * Domain subject layer review (KB schema 16), planned at any schema version.
  * A claim anchor whose words match a defined subject is a suggestion a person
  * approves by id (it writes the best match as the entry's subjects); a claim
  * no subject matches, a subject without a definition and two subjects that
  * read as one are listed for a person to fix by hand.
  */
-export function domainSubjectActions(workspaceRoot: string): MigrationAction[] {
+export function domainSubjectActions(
+  workspaceRoot: string,
+  /** Subject facts the not-stated note fills before the upgrade. */
+  filledBySchemaUpgrade: ReadonlySet<string> = new Set(),
+): MigrationAction[] {
   const actions: MigrationAction[] = [];
   for (const claim of planClaimSubjectAnchors(workspaceRoot)) {
     const id = `${CLAIM_SUBJECT_ANCHOR_ACTION_PREFIX}${claim.requirementId}-${claim.claimKey}`;
     const [first, second] = claim.candidates;
-    // A tie at the top is no suggestion: a person picks between them.
+    // Only a clear, defined match is a suggestion: a tie at the top, a match
+    // on one incidental word or a subject without a definition is left for a
+    // person to pick.
     const best =
-      first !== undefined &&
+      first?.strong &&
+      first.defined &&
       (second === undefined || first.score > second.score)
         ? first
         : undefined;
@@ -543,6 +589,7 @@ export function domainSubjectActions(workspaceRoot: string): MigrationAction[] {
           {
             rule: "claim-subject-missing",
             entityId: claim.requirementId,
+            claimKey: claim.claimKey,
             findings: 0,
           },
         ],
@@ -555,22 +602,18 @@ export function domainSubjectActions(workspaceRoot: string): MigrationAction[] {
           claimText: claim.claimText,
           candidates: claim.candidates.map((candidate) => ({ ...candidate })),
           ...(best === undefined
-            ? {
-                choice:
-                  claim.candidates.length === 0
-                    ? "No defined subject matches the claim's words. Define the subject it is about as a subject fact (fact_kind subject, a body saying what it is and is not), then add subjects: [<subject_key>] to the inventory entry."
-                    : "Several defined subjects match the claim's words equally. Add the one (or ones) it is about as subjects: [<subject_key>] on the inventory entry, or define a narrower subject first.",
-              }
+            ? { choice: anchorReviewChoice(claim.candidates) }
             : {
                 subjects: [best.subjectKey],
                 approve: `kibi migrate --apply-safe --approved-plan-hash <this plan's planHash> --approved-action ${id}`,
-                choice: `Approving adds subjects: [${best.subjectKey}] to the entry, inserting only those lines. If another candidate, or a subject not listed, is what the claim is about, add it by hand and mark this action deferred.`,
+                choice: `Approving adds subjects: [${best.subjectKey}] to the entry, inserting only those lines; it clears claim-subject-missing for this claim only. ${ANCHOR_PAIRING_NOTE} If another candidate, or a subject not listed, is what the claim is about, add it by hand and mark this action deferred.`,
               }),
         },
       }),
     );
   }
   for (const subject of planSubjectDefinitionReviews(workspaceRoot)) {
+    if (filledBySchemaUpgrade.has(subject.id)) continue;
     actions.push(
       migrationAction({
         id: `${SUBJECT_DEFINITION_ACTION_PREFIX}${subject.id}`,
@@ -604,30 +647,76 @@ export function domainSubjectActions(workspaceRoot: string): MigrationAction[] {
     );
   }
   for (const pair of planSubjectDuplicateReviews(workspaceRoot)) {
+    const { left, right, sameKey } = pair;
     actions.push(
       migrationAction({
-        id: `${SUBJECT_DUPLICATE_ACTION_PREFIX}${pair.left.id}-${pair.right.id}`,
+        id: `${SUBJECT_DUPLICATE_ACTION_PREFIX}${left.id}-${right.id}`,
         code: SUBJECT_DUPLICATE_REVIEW_CODE,
         category: "semantic",
         safety: "review",
         autoApplicable: false,
         invocation: {
           kind: "review",
-          instruction: `Merge subjects ${pair.left.subjectKey} and ${pair.right.subjectKey}, or relate them with distinct_from, part_of or kind_of and say how they differ.`,
+          instruction: sameKey
+            ? `Subject facts ${left.id} and ${right.id} both define ${left.subjectKey}: keep one, merge what the other adds into it and archive the other.`
+            : `Merge subjects ${left.subjectKey} and ${right.subjectKey}, or relate them with distinct_from, part_of or kind_of and say how they differ.`,
         },
-        affectedEntityIds: [pair.left.id, pair.right.id],
-        affectedFiles: [pair.left.path, pair.right.path],
+        affectedEntityIds: [left.id, right.id],
+        affectedFiles: [left.path, right.path],
         postconditions: [
-          { rule: "subject-duplicate", entityId: pair.left.id, findings: 0 },
+          { rule: "subject-duplicate", entityId: left.id, findings: 0 },
         ],
         dispositionRequired: true,
         allowedDispositions: ["fixed", "deferred"],
         evidence: {
-          reason: `Subjects ${pair.left.subjectKey} and ${pair.right.subjectKey} read as one thing defined twice (word similarity ${pair.similarity}), so requirements about it never meet. kb_check blocks the pair (subject-duplicate).`,
-          subjectKeys: [pair.left.subjectKey, pair.right.subjectKey],
+          reason: sameKey
+            ? `Subject facts ${left.id} and ${right.id} both define subject_key ${left.subjectKey}, so readers cannot tell which definition a requirement means. kb_check blocks the pair (subject-duplicate).`
+            : `Subjects ${left.subjectKey} and ${right.subjectKey} read as one thing defined twice (word similarity ${pair.similarity}), so requirements about it never meet. kb_check blocks the pair (subject-duplicate).`,
+          subjectKeys: [left.subjectKey, right.subjectKey],
           similarity: pair.similarity,
-          choice:
-            "If they are one subject, keep one fact, point constrains links, claim anchors and subject_key values at its key and archive the other. If they differ, name the other key under distinct_from (or part_of or kind_of) and say in the definition how they differ.",
+          ...(sameKey ? { sameKey: true } : {}),
+          choice: sameKey
+            ? "Keep one subject fact for the key: merge what the other definition adds into it, point its constrains links at the kept fact and archive (or supersede) the other."
+            : "If they are one subject, keep one fact, point constrains links, claim anchors and subject_key values at its key and archive the other. If they differ, name the other key under distinct_from (or part_of or kind_of) and say in the definition how they differ.",
+        },
+      }),
+    );
+  }
+  // Every hierarchy finding carries its source, suggestion and evidence.
+  for (const finding of planSubjectHierarchyReviews(workspaceRoot)) {
+    const evidence: Record<string, unknown> = { ...finding.evidence };
+    const cycle = Array.isArray(evidence.cycle)
+      ? (evidence.cycle as string[])
+      : null;
+    actions.push(
+      migrationAction({
+        id: `${SUBJECT_HIERARCHY_ACTION_PREFIX}${finding.entityId}${cycle === null ? "" : "-cycle"}`,
+        code: SUBJECT_HIERARCHY_REVIEW_CODE,
+        category: "semantic",
+        safety: "review",
+        autoApplicable: false,
+        invocation: {
+          kind: "review",
+          instruction:
+            cycle === null
+              ? `Remove ${finding.entityId}'s own key from its part_of, kind_of or distinct_from.`
+              : `Break the loop between subjects ${cycle.join(", ")}: remove the part_of, kind_of or dotted-key link that points the wrong way.`,
+        },
+        affectedEntityIds: [finding.entityId],
+        affectedFiles: [finding.source as string],
+        postconditions: [
+          {
+            rule: "subject-hierarchy-invalid",
+            entityId: finding.entityId,
+            findings: 0,
+          },
+        ],
+        dispositionRequired: true,
+        allowedDispositions: ["fixed", "deferred"],
+        evidence: {
+          reason: `${finding.description}. kb_check blocks it (subject-hierarchy-invalid).`,
+          ...evidence,
+          choice: finding.suggestion,
         },
       }),
     );
@@ -1151,8 +1240,42 @@ export function buildSchema6MigrationFragment(input: {
   // Closed requirements whose source says they were retired are suggested
   // at any schema version: a person approves each by id.
   actions.push(...retiredStatusActions(input.workspaceRoot));
+  // Schema 16: a legacy subject fact without a body gets the same
+  // "Definition not stated" note bootstrap writes; authored bodies, even
+  // too-short ones, are listed for review below and never replaced.
+  const notStated =
+    version < DOMAIN_SUBJECTS_SCHEMA_VERSION
+      ? planSubjectDefinitionPlaceholders(input.workspaceRoot)
+      : [];
+  if (notStated.length > 0) {
+    sourceRewriteActionIds.push(SUBJECT_DEFINITION_NOT_STATED_ACTION_ID);
+    actions.push(
+      migrationAction({
+        id: SUBJECT_DEFINITION_NOT_STATED_ACTION_ID,
+        code: SUBJECT_DEFINITION_NOT_STATED_CODE,
+        category: "schema",
+        safety: "automatic",
+        autoApplicable: true,
+        invocation: { kind: "cli", command_argv: ["kibi", "migrate", "--yes"] },
+        affectedEntityIds: notStated.map((row) => row.id),
+        affectedFiles: notStated.map((row) => row.path),
+        postconditions: [{ rule: "subject-definition-missing", findings: 0 }],
+        evidence: {
+          reason:
+            "Schema 16 requires a definition as the body of every subject fact. These subject facts have no body at all, so each gets the note Kibi writes on the subjects it creates: 'Definition not stated:', where the subject is named and who could define it. No definition is invented; a person replaces the note with one.",
+          count: notStated.length,
+          preserves: "front matter and every authored body",
+        },
+      }),
+    );
+  }
   // The domain subject layer is reviewed at any schema version too.
-  actions.push(...domainSubjectActions(input.workspaceRoot));
+  actions.push(
+    ...domainSubjectActions(
+      input.workspaceRoot,
+      new Set(notStated.map((row) => row.id)),
+    ),
+  );
   if (
     statusActions.some(
       (action) => action.id === REQ_STATUS_DELIVERED_MAP_ACTION_ID,
@@ -1408,6 +1531,14 @@ export async function applySchema6MigrationAction(
       applyPositiveScenarioAcknowledgement(context.workspaceRoot);
       return;
     }
+    case SUBJECT_DEFINITION_NOT_STATED_CODE: {
+      const result = applySubjectDefinitionPlaceholders(context.workspaceRoot);
+      if (result.skipped.length > 0)
+        throw new Error(
+          `Could not record 'Definition not stated' on ${result.skipped.map((skip) => `${skip.path} (${skip.reason})`).join(", ")}; rerun kibi migrate and approve the new plan.`,
+        );
+      return;
+    }
     case EVIDENCE_FLOOR_PIN_CODE:
     case APPROVAL_FLOOR_PIN_CODE: {
       // The plan decided the pins with the evidence ladder; apply the same
@@ -1588,6 +1719,7 @@ export const SCHEMA6_AUTOMATIC_CODES: ReadonlySet<string> = new Set([
   SUPERSEDES_REASON_ACKNOWLEDGE_CODE,
   FIRM_SUPERSEDE_ACKNOWLEDGE_CODE,
   POSITIVE_SCENARIO_ACKNOWLEDGE_CODE,
+  SUBJECT_DEFINITION_NOT_STATED_CODE,
   EVIDENCE_FLOOR_PIN_CODE,
   APPROVAL_FLOOR_PIN_CODE,
   SEMANTIC_INVENTORY_REDERIVE_CODE,

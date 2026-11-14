@@ -2782,7 +2782,10 @@ freshness_only_candidate(Candidate) :-
 % Rows for the check rules that read a current requirement's proof beside its
 % evidence floor.  Kind unapproved_implemented: a must requirement an agent
 % wrote that no person approved (origin.approved_by) while production symbols
-% implement it; the row carries created_at so the rule can judge its age.
+% implement it.  The row carries origin.recorded_at and the authored source,
+% so the rule can judge its age from authored data only: the stored
+% created_at is stamped at sync time when the front matter has none, so it
+% says nothing about when the requirement was written.
 % Exempt and non-current requirements carry no stages and produce no row.
 requirement_review_row(unapproved_implemented, Props, Proof, Row) :-
     must_requirement(Props),
@@ -2793,15 +2796,21 @@ requirement_review_row(unapproved_implemented, Props, Proof, Row) :-
     get_dict(symbols, Stage, Symbols0),
     sort(Symbols0, Symbols),
     Symbols \== [],
-    (   prop_text(Props, created_at, CreatedAt)
+    (   origin_field(Props, recorded_at, RecordedAt)
     ->  true
-    ;   CreatedAt = ''
+    ;   RecordedAt = ''
     ),
-    Row = _{createdAt: CreatedAt, symbols: Symbols}.
+    (   memberchk(source=RawSource, Props),
+        source_path_atom(RawSource, Source)
+    ->  true
+    ;   Source = ''
+    ),
+    Row = _{recordedAt: RecordedAt, source: Source, symbols: Symbols}.
+
+% Must the same way coverage reads it (kb:must_priority/1).
 must_requirement(Props) :-
     memberchk(priority=Raw, Props),
-    normalize_atom(Raw, Priority),
-    Priority == must.
+    kb:must_priority(Raw).
 
 %% human_intent(+Props, -Basis, -Ref)
 % A person stands behind the requirement: someone approved it

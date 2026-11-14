@@ -65,6 +65,8 @@ describe("createRepoIgnorePolicy globs", () => {
       ".git/hooks/.gitignore": "git\n",
       "vendor/.gitignore": "v\n",
       "docs/README.txt": "readme\n",
+      // Only a file named .gitignore holds patterns.
+      "src/notes.txt": "*.ts\n",
     });
     symlinkSync(
       join(root, "docs", ".gitignore"),

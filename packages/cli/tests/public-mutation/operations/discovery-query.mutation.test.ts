@@ -9,6 +9,7 @@ import {
   executeQuery,
 } from "../../../src/public/operations/discovery-executors.js";
 import * as prologJson from "../../../src/public/operations/prolog-json.js";
+import * as subjects from "../../../src/public/operations/subject-domain.js";
 import * as branchStore from "../../../src/utils/branch-store.js";
 import { expectGolden } from "../helpers/golden.js";
 
@@ -842,5 +843,202 @@ describe("executeQuery bodies", () => {
     expect(
       (await body(root, { id: "REQ-1", source: "a/empty.md" }, { fs })).body,
     ).toStrictEqual({ id: "REQ-1", path: "a/empty.md", text: "" });
+  });
+});
+
+describe("executeQuery subject domain", () => {
+  const FACT = {
+    id: "FACT-s",
+    title: "Order",
+    source: "s.md",
+    partOf: [],
+    kindOf: [],
+    definition: "  An order\n placed by a customer ",
+  };
+  function domain(extra: Record<string, unknown> = {}): Loose {
+    return {
+      subjectKey: "order",
+      defined: true,
+      subjectFacts: [FACT],
+      broader: [],
+      ancestors: [],
+      narrower: [],
+      distinctFrom: [],
+      requirements: [],
+      claims: [],
+      unmodeledClaims: [],
+      scenarios: [],
+      ...extra,
+    };
+  }
+  async function subject(input: Record<string, unknown>, found: Loose) {
+    const read = spy(subjects, "readSubjectDomain").mockResolvedValue(found);
+    const run = spy(prologJson, "runOperationJsonQuery");
+    const result = await executeQuery(
+      { factKind: "subject", ...input } as never,
+      context(),
+    );
+    expect(run).not.toHaveBeenCalled();
+    expect(read).toHaveBeenCalledWith(PROLOG, "/ws", "order");
+    expect(undefinedKeys(result)).toEqual([]);
+    return result;
+  }
+
+  test("a defined subject lists its neighbours, requirements and claims", async () => {
+    const found = domain({
+      broader: ["commerce", "trade"],
+      narrower: ["rush_order", "bulk_order"],
+      distinctFrom: ["quote", "invoice"],
+      requirements: [
+        {
+          id: "REQ-1",
+          title: "Ship",
+          status: "open",
+          via: [
+            { subjectKey: "order", link: "constrains" },
+            { subjectKey: "order", link: "constrains" },
+            { subjectKey: "rush_order", link: "anchor" },
+          ],
+        },
+        {
+          id: "REQ-2",
+          title: "Bill",
+          status: "open",
+          via: [{ subjectKey: "order", link: "grounds" }],
+        },
+      ],
+      claims: [{ id: "FACT-c" }],
+      scenarios: [{ id: "SCEN-1", title: "S" }],
+    });
+    const result = await subject({ subjectKey: " order " }, found);
+    expect(result.content).toStrictEqual([
+      {
+        type: "text",
+        text: [
+          "Subject order: An order placed by a customer",
+          "Broader: commerce, trade",
+          "Narrower: rush_order, bulk_order",
+          "Distinct from: quote, invoice",
+          "2 current requirement(s) govern it: REQ-1 (Ship; constrains order, anchor rush_order); REQ-2 (Bill; grounds order)",
+          "1 claim(s), 1 scenario(s) assuming them.",
+          'Next: kb_query({"factKind":"subject","subjectKey":"commerce"}) (the broader subject\'s rules also apply here)',
+          'Next: kb_query({"factKind":"subject","subjectKey":"trade"}) (the broader subject\'s rules also apply here)',
+          'Next: kb_query({"subjectKey":"order"}) (typed values of the property claims on this subject)',
+        ].join("\n"),
+      },
+    ]);
+    expect(result.structuredContent).toStrictEqual({
+      entities: [
+        {
+          id: "FACT-s",
+          type: "fact",
+          title: "Order",
+          subjectKey: "order",
+          definition: FACT.definition,
+        },
+      ],
+      count: 1,
+      factQuery: {
+        mode: "subject",
+        subjectFacts: ["FACT-s"],
+        domain: found,
+        warnings: [],
+        next: [
+          {
+            call: 'kb_query({"factKind":"subject","subjectKey":"commerce"})',
+            why: "the broader subject's rules also apply here",
+          },
+          {
+            call: 'kb_query({"factKind":"subject","subjectKey":"trade"})',
+            why: "the broader subject's rules also apply here",
+          },
+          {
+            call: 'kb_query({"subjectKey":"order"})',
+            why: "typed values of the property claims on this subject",
+          },
+        ],
+      },
+    });
+  });
+
+  test("a subject without a definition or a fact is warned about", async () => {
+    const bare = await subject(
+      { subjectKey: "order" },
+      domain({ subjectFacts: [{ ...FACT, definition: "" }] }),
+    );
+    expect(bare.content[0]?.text).toBe(
+      [
+        "Subject order",
+        "0 current requirement(s) govern it.",
+        "0 claim(s), 0 scenario(s) assuming them.",
+        "Warning: Subject order has no definition in its fact body; requirements that name it can mean different things by it.",
+      ].join("\n"),
+    );
+    expect(bare.structuredContent?.factQuery?.next).toStrictEqual([]);
+    const partly = await subject(
+      { subjectKey: "order" },
+      domain({
+        subjectFacts: [FACT, { ...FACT, id: "FACT-t", definition: "" }],
+      }),
+    );
+    expect(partly.structuredContent?.factQuery?.warnings).toStrictEqual([
+      "Subject order has no definition in its fact body; requirements that name it can mean different things by it.",
+    ]);
+    const missing = await subject(
+      { subjectKey: "order" },
+      domain({ defined: false, subjectFacts: [] }),
+    );
+    expect(missing.content[0]?.text).toBe(
+      [
+        "Subject order is not defined.",
+        "0 current requirement(s) govern it.",
+        "0 claim(s), 0 scenario(s) assuming them.",
+        "Warning: No active subject fact defines order. Define it (fact_kind subject) before claims or requirements name it.",
+      ].join("\n"),
+    );
+    expect(missing.structuredContent).toMatchObject({
+      entities: [],
+      count: 0,
+      factQuery: {
+        warnings: [
+          "No active subject fact defines order. Define it (fact_kind subject) before claims or requirements name it.",
+        ],
+      },
+    });
+  });
+
+  test("other filters and a blank key are refused", async () => {
+    const read = spy(subjects, "readSubjectDomain");
+    const ask = (input: Record<string, unknown>) =>
+      executeQuery({ factKind: "subject", ...input } as never, context());
+    await expect(ask({ subjectKey: "order", scope: "all" })).rejects.toThrow(
+      "scope does not apply to a subject question; allowed with it: factKind, subjectKey.",
+    );
+    await expect(
+      ask({ subjectKey: "order", predicate: "p", propertyKey: "k" }),
+    ).rejects.toThrow(
+      "predicate, propertyKey do not apply to a subject question; allowed with it: factKind, subjectKey.",
+    );
+    await expect(ask({ subjectKey: " " })).rejects.toThrow(
+      "subjectKey must be a non-empty string.",
+    );
+    expect(read).not.toHaveBeenCalled();
+  });
+
+  test("a subject key without the subject kind is a property question", async () => {
+    const read = spy(subjects, "readSubjectDomain");
+    spy(prologJson, "runOperationJsonQuery").mockResolvedValue({
+      mode: "property",
+      rows: [],
+      count: 0,
+    });
+    await executeQuery({ subjectKey: "order" } as never, context());
+    await expect(
+      executeQuery(
+        { factKind: "claim", subjectKey: "order" } as never,
+        context(),
+      ),
+    ).rejects.toThrow("factKind does not apply to a property question");
+    expect(read).not.toHaveBeenCalled();
   });
 });

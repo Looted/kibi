@@ -39939,6 +39939,432 @@ symbols:
         target: TEST-skillopt-harness-telemetry-silent
       - type: implements
         target: REQ-skillopt-harness-telemetry-silent
+  - id: SYM-subject-layer-subject-hierarchy-violations
+    title: subjectHierarchyViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:56:10.486Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-subject-layer-subject-layer-applies
+    title: subjectLayerApplies
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:56:17.973Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+  - id: SYM-domain-subjects-subject-neighbours-json
+    title: subject_neighbours_json
+    status: active
+    sourceFile: packages/core/src/domain_subjects.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:17:35.499Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
+  - id: SYM-subject-domain-read-subject-neighbours
+    title: readSubjectNeighbours
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-domain.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:17:46.260Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-view
+  - id: SYM-subject-warnings-pair-review-partners
+    title: pairReviewPartners
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:18:01.578Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-related-requirement-unmodeled
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-unmodeled-pair-review
+  - id: SYM-checks-with-kb-schema-version
+    title: with_kb_schema_version
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:18:17.467Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-related-requirement-unmodeled
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-unmodeled-pair-review
+  - id: SYM-cli-schema-scoped-goal
+    title: schemaScopedGoal
+    status: active
+    sourceFile: packages/cli/src/commands/aggregated-checks.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:18:27.299Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-related-requirement-unmodeled
+      - type: covered_by
+        target: TEST-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-domain-subject-layer
+      - type: implements
+        target: REQ-kb-unmodeled-pair-review
+  - id: SYM-cli-approval-clock
+    title: approvalClock
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:57:15.864Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-cli-authored-created-at-reader
+    title: authoredCreatedAtReader
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:57:30.635Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-cli-plan-unapproved-agent-musts
+    title: planUnapprovedAgentMusts
+    status: active
+    sourceFile: packages/cli/src/operations/migration/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:57:45.132Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-cli-unapproved-agent-must-note
+    title: unapprovedAgentMustNote
+    status: active
+    sourceFile: packages/cli/src/operations/migration/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:57:55.228Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-staged-requirement-rules-stagedRequirementRules
+    title: stagedRequirementRules
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-requirement-rules.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:48:33.775Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-consistency
+      - type: implements
+        target: REQ-cli-staged-consistency
+  - id: SYM-staged-requirement-rules-readTreeManifest
+    title: readTreeManifest
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-requirement-rules.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:48:45.672Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-consistency
+      - type: implements
+        target: REQ-cli-staged-consistency
+  - id: SYM-staged-requirement-rules-selectStagedRequirementRules
+    title: selectStagedRequirementRules
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-requirement-rules.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:48:56.896Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-consistency
+      - type: implements
+        target: REQ-cli-staged-consistency
+  - id: SYM-staged-requirement-rules-STAGED_REQUIREMENT_RULE_SCHEMAS
+    title: STAGED_REQUIREMENT_RULE_SCHEMAS
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-requirement-rules.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:49:08.465Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-consistency
+      - type: implements
+        target: REQ-cli-staged-consistency
+  - id: SYM-staged-evidence-floor-floorChangedRequirementIds
+    title: floorChangedRequirementIds
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:49:21.237Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-floors
+  - id: SYM-staged-evidence-floor-collectStagedEvidenceFloorViolations
+    title: collectStagedEvidenceFloorViolations
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:49:35.093Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-evidence-floors
+      - type: implements
+        target: REQ-kibi-evidence-floors
+  - id: SYM-inventory-commit-warning-inventoryCommitWarnings
+    title: inventoryCommitWarnings
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/inventory-commit-warning.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:49:48.837Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
+      - type: implements
+        target: REQ-kibi-complete-proposition-ledgers
+  - id: SYM-kb-manifest-parseKbManifest
+    title: parseKbManifest
+    status: active
+    sourceFile: packages/cli/src/utils/kb-manifest.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:50:00.133Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-must-positive-scenario
+      - type: implements
+        target: REQ-kb-must-positive-scenario
+  - id: SYM-cli-protocol-envelopeErrorLine
+    title: envelopeErrorLine
+    status: active
+    sourceFile: packages/cli/src/cli-protocol.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:50:15.051Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-json-command-resultErrorText
+    title: resultErrorText
+    status: active
+    sourceFile: packages/cli/src/cli-json-command.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:50:43.823Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-specs-upsert-PLANNED_FACTS_SCHEMA
+    title: PLANNED_FACTS_SCHEMA
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:51:02.265Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-specs-upsert-UPSERT_DOCUMENT_SCHEMA
+    title: UPSERT_DOCUMENT_SCHEMA
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:51:10.720Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-package-versions-builtPackageVersions
+    title: builtPackageVersions
+    status: active
+    sourceFile: packages/cli/src/package-versions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:51:23.059Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-daemon-package-versions
+      - type: implements
+        target: REQ-engine-daemon-package-versions
+  - id: SYM-package-versions-prologSourcesDigest
+    title: prologSourcesDigest
+    status: active
+    sourceFile: packages/cli/src/package-versions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:51:36.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-daemon-runtime-identity
+      - type: implements
+        target: REQ-prolog-daemon-runtime-identity
+  - id: SYM-package-versions-coreSourcesDirectory
+    title: coreSourcesDirectory
+    status: active
+    sourceFile: packages/cli/src/package-versions.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T20:51:50.882Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-daemon-runtime-identity
+      - type: implements
+        target: REQ-prolog-daemon-runtime-identity
+  - id: SYM-engine-EngineSession-interrupt
+    title: EngineSession.interrupt
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:37:00.609Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-kibi-engine-single-writer-protocol
+  - id: SYM-engine-EngineSession-ensureLive
+    title: EngineSession.ensureLive
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:37:06.983Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-kibi-engine-single-writer-protocol
+  - id: SYM-telemetry-remediation-remediateTelemetryAcceptance
+    title: remediateTelemetryAcceptance
+    status: active
+    sourceFile: packages/cli/src/public/telemetry-remediation.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:37:19.006Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-report
+  - id: SYM-test-staged-check-harness
+    title: stagedHarness
+    status: active
+    sourceFile: packages/cli/tests/commands-mutation/check/staged-harness.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:37:23.246Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-staged-consistency
+  - id: SYM-engine-EngineSession
+    title: EngineSession
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T21:37:45.930Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-kibi-engine-single-writer-protocol
+  - id: SYM-cli-approval-date-problem
+    title: approvalDateProblem
+    status: active
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T23:44:16.968Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-approval-evidence-floor
+      - type: implements
+        target: REQ-kibi-unapproved-implemented-requirement
   - id: SYM-test-skillopt-codex-events-suite
     title: Codex JSONL normalization suite
     status: active
@@ -40052,3 +40478,16 @@ symbols:
         target: TEST-skillopt-reference-answers-score-100
       - type: implements
         target: REQ-skillopt-reference-answers-score-100
+  - id: SYM-cli-engine-socket-directory
+    title: ensureEngineSocketDirectory
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-14T09:17:22.310Z
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-engine-isolation-and-cleanup

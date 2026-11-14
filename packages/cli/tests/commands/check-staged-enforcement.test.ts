@@ -266,12 +266,15 @@ function createUnlinkedSymbolFixture(): FileMap {
   };
 }
 
+// firmness: default keeps these requirements without an evidence floor, so the
+// staged gate reports only the advisory fan-out review this test is about.
 function createMultiRequirementSymbolFixture(): FileMap {
   return {
     ".kb/requirements/REQ-MULTI-001.md": `---
 id: REQ-MULTI-001
 title: Multi requirement one
 status: open
+firmness: default
 ---
 
 # Multi requirement one
@@ -284,6 +287,7 @@ Fixture requirement for the staged gate test: one symbol implements several requ
 id: REQ-MULTI-002
 title: Multi requirement two
 status: open
+firmness: default
 ---
 
 # Multi requirement two
@@ -296,6 +300,7 @@ Fixture requirement for the staged gate test: one symbol implements several requ
 id: REQ-MULTI-003
 title: Multi requirement three
 status: open
+firmness: default
 ---
 
 # Multi requirement three

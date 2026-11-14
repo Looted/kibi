@@ -44,11 +44,48 @@ function read(root: string, relative: string): string {
 
 const OLD = "2026-01-01T00:00:00.000Z";
 
+/**
+ * A requirement document as a person or an older Kibi wrote it. Like a
+ * kb_upsert write it states no created_at unless `created` is given.
+ */
 function requirement(
   id: string,
-  { created = OLD, priority = "must", origin = "  kind: agent\n", extra = "" },
+  {
+    created,
+    priority = "must",
+    origin = "  kind: agent\n",
+    extra = "",
+  }: { created?: string; priority?: string; origin?: string; extra?: string },
 ): string {
-  return `---\nid: ${id}\ntype: req\ntitle: ${id} keeps the review canvas editable\nstatus: open\npriority: ${priority}\ncreated_at: ${created}\nupdated_at: ${created}\norigin:\n${origin}${extra}---\n\n${id} keeps the review canvas editable for its owner.\n\n## Context\n\nA fixture requirement; reason not stated.\n`;
+  const stamps =
+    created === undefined
+      ? ""
+      : `created_at: ${created}\nupdated_at: ${created}\n`;
+  return `---\nid: ${id}\ntype: req\ntitle: ${id} keeps the review canvas editable\nstatus: open\npriority: ${priority}\n${stamps}origin:\n${origin}${extra}---\n\n${id} keeps the review canvas editable for its owner.\n\n## Context\n\nA fixture requirement; reason not stated.\n`;
+}
+
+/** Write a requirement through kb_upsert, as an agent does. */
+function upsert(root: string, id: string, properties: object = {}): void {
+  write(
+    root,
+    "upsert.json",
+    JSON.stringify({
+      type: "req",
+      id,
+      properties: {
+        title: `${id} keeps the review canvas editable`,
+        status: "open",
+        priority: "must",
+        ...properties,
+      },
+      document: {
+        body: `${id} keeps the review canvas editable for its owner.\n\n## Context\n\nA fixture requirement written by an agent; reason not stated.\n`,
+      },
+    }),
+  );
+  const result = runKibi(["upsert", "--input", "upsert.json"], root);
+  expect(result.status).toBe(0);
+  rmSync(path.join(root, "upsert.json"));
 }
 
 type Finding = {
@@ -94,7 +131,17 @@ describe("approved requirements and implemented unapproved requirements", () => 
   test(
     "an approval gives the tested floor, the schema 15 upgrade pins it, and an old unapproved must requirement that code implements fails kibi check",
     () => {
-      const today = new Date().toISOString();
+      // Written by kb_upsert today: no created_at in its front matter, only
+      // origin.recorded_at, which is what the approval clock reads.
+      upsert(root, "REQ-unapproved-new");
+      expect(
+        read(root, ".kb/requirements/REQ-unapproved-new.md"),
+      ).not.toContain("created_at");
+      // A created_at the caller states is written to the front matter.
+      upsert(root, "REQ-upserted-dated", { created_at: OLD });
+      expect(read(root, ".kb/requirements/REQ-upserted-dated.md")).toContain(
+        `created_at: '${OLD}'`,
+      );
       // Approved, no firmness: tested floor (pinned by the upgrade).
       write(
         root,
@@ -112,16 +159,24 @@ describe("approved requirements and implemented unapproved requirements", () => 
           extra: "firmness: default\n",
         }),
       );
-      // Unapproved must requirements code implements: one old, one new.
+      // Unapproved must requirements code implements: old by
+      // origin.recorded_at, old by an authored created_at, and undated.
       write(
         root,
         ".kb/requirements/REQ-unapproved-old.md",
-        requirement("REQ-unapproved-old", {}),
+        requirement("REQ-unapproved-old", {
+          origin: `  kind: agent\n  recorded_at: '${OLD}'\n`,
+        }),
       );
       write(
         root,
-        ".kb/requirements/REQ-unapproved-new.md",
-        requirement("REQ-unapproved-new", { created: today }),
+        ".kb/requirements/REQ-unapproved-created.md",
+        requirement("REQ-unapproved-created", { created: OLD }),
+      );
+      write(
+        root,
+        ".kb/requirements/REQ-unapproved-undated.md",
+        requirement("REQ-unapproved-undated", {}),
       );
       // Only a should requirement, or an approved one, is not reported.
       write(
@@ -140,6 +195,8 @@ describe("approved requirements and implemented unapproved requirements", () => 
         `symbols:\n  - id: SYM-open-canvas\n    title: openCanvas\n    sourceFile: src/canvas.ts\n    status: active\n    relationships:\n${[
           "REQ-approved",
           "REQ-unapproved-old",
+          "REQ-unapproved-created",
+          "REQ-unapproved-undated",
           "REQ-unapproved-new",
           "REQ-unapproved-should",
         ]
@@ -183,6 +240,10 @@ describe("approved requirements and implemented unapproved requirements", () => 
 
       const migrate = runKibi(["migrate", "--yes"], root);
       expect(migrate.status).toBe(0);
+      // The upgrade lists the agent requirements the new rule can fail.
+      expect(migrate.stdout).toContain(
+        "3 must requirement(s) an agent wrote have no person's approval (origin.approved_by) and waited longer than 14 days or record no date: REQ-unapproved-created, REQ-unapproved-old, REQ-unapproved-undated (no origin.recorded_at or created_at).",
+      );
       expect(read(root, ".kb/requirements/REQ-approved.md")).toContain(
         "required_evidence: asserted",
       );
@@ -190,18 +251,63 @@ describe("approved requirements and implemented unapproved requirements", () => 
         read(root, ".kb/requirements/REQ-approved-default.md"),
       ).not.toContain("required_evidence");
       git(root, "add", "-A");
+      git(root, "commit", "-m", "upgrade", "--no-verify");
       expect(runKibi(["sync"], root).status).toBe(0);
 
-      const after = findings(root, rules);
-      expect(after.map(({ rule, entityId }) => `${rule}:${entityId}`)).toEqual([
-        "agent-requirement-unapproved-implemented:REQ-unapproved-old",
-      ]);
-      expect(after[0]?.evidence).toMatchObject({
-        createdAt: OLD,
-        symbols: ["SYM-open-canvas"],
-        graceDays: 14,
-      });
+      const expected = [
+        {
+          rule: "agent-requirement-unapproved-implemented",
+          entityId: "REQ-unapproved-created",
+          evidence: {
+            since: OLD,
+            sinceField: "created_at",
+            symbols: ["SYM-open-canvas"],
+            graceDays: 14,
+          },
+        },
+        {
+          rule: "agent-requirement-unapproved-implemented",
+          entityId: "REQ-unapproved-old",
+          evidence: {
+            since: OLD,
+            sinceField: "origin.recorded_at",
+            symbols: ["SYM-open-canvas"],
+            graceDays: 14,
+          },
+        },
+        {
+          rule: "agent-requirement-unapproved-implemented",
+          entityId: "REQ-unapproved-undated",
+          evidence: {
+            since: "",
+            sinceField: "none",
+            symbols: ["SYM-open-canvas"],
+            graceDays: 14,
+          },
+        },
+      ];
+      expect(findings(root, rules)).toEqual(expected);
+      // The verdict rests on authored data: a rebuilt store and a fresh
+      // clone, whose sync stamps every missing created_at anew, agree.
+      expect(runKibi(["sync", "--rebuild"], root).status).toBe(0);
+      expect(findings(root, rules)).toEqual(expected);
+      const clone = `${root}-clone`;
+      spawnSync("git", ["clone", "-q", root, clone], { encoding: "utf8" });
+      try {
+        expect(runKibi(["sync"], clone).status).toBe(0);
+        expect(findings(clone, rules)).toEqual(expected);
+      } finally {
+        runKibi(["engine", "stop"], clone);
+        rmSync(clone, { recursive: true, force: true });
+      }
 
+      // Editing an authored created_at re-imports the requirement.
+      const today = new Date().toISOString();
+      write(
+        root,
+        ".kb/requirements/REQ-unapproved-created.md",
+        requirement("REQ-unapproved-created", { created: today }),
+      );
       // Removing the pin puts the approved requirement below its floor.
       write(
         root,
@@ -213,11 +319,135 @@ describe("approved requirements and implemented unapproved requirements", () => 
       );
       git(root, "add", "-A");
       expect(runKibi(["sync"], root).status).toBe(0);
+      const stored = JSON.parse(
+        runKibi(
+          [
+            "query",
+            "req",
+            "--id",
+            "REQ-unapproved-created",
+            "--format",
+            "json",
+          ],
+          root,
+        ).stdout,
+      ) as { created_at: string }[];
+      expect(stored[0]?.created_at).toBe(today);
       expect(
-        findings(root, "evidence-floor").map(
+        findings(root, rules).map(
           ({ rule, entityId }) => `${rule}:${entityId}`,
         ),
-      ).toEqual(["evidence-floor:REQ-approved"]);
+      ).toEqual([
+        "agent-requirement-unapproved-implemented:REQ-unapproved-old",
+        "agent-requirement-unapproved-implemented:REQ-unapproved-undated",
+        "evidence-floor:REQ-approved",
+      ]);
+    },
+    TIMEOUT_MS,
+  );
+
+  test(
+    "a future or unreadable start date never keeps an unapproved must requirement out of kibi check, and kb_upsert refuses one",
+    () => {
+      const rejected = (properties: object) => {
+        write(
+          root,
+          "upsert.json",
+          JSON.stringify({
+            type: "req",
+            id: "REQ-dated-by-agent",
+            properties: {
+              title: "REQ-dated-by-agent keeps the review canvas editable",
+              status: "open",
+              priority: "must",
+              ...properties,
+            },
+          }),
+        );
+        const result = runKibi(["upsert", "--input", "upsert.json"], root);
+        rmSync(path.join(root, "upsert.json"));
+        expect(result.status).not.toBe(0);
+        return `${result.stdout}${result.stderr}`;
+      };
+      expect(rejected({ created_at: "2030-01-01T00:00:00Z" })).toContain(
+        'created_at \\"2030-01-01T00:00:00Z\\" is later than now',
+      );
+      expect(
+        rejected({ origin: { kind: "agent", recorded_at: "2026-13-45" } }),
+      ).toContain(
+        'origin.recorded_at \\"2026-13-45\\" is not an ISO 8601 date or timestamp',
+      );
+      expect(
+        existsSync(path.join(root, ".kb/requirements/REQ-dated-by-agent.md")),
+      ).toBe(false);
+
+      // Hand-edited documents are read as written: the dates count as unknown.
+      upsert(root, "REQ-unapproved-new");
+      write(
+        root,
+        ".kb/requirements/REQ-unapproved-future.md",
+        requirement("REQ-unapproved-future", {
+          created: "2030-01-01T00:00:00Z",
+        }),
+      );
+      write(
+        root,
+        ".kb/requirements/REQ-unapproved-vague.md",
+        requirement("REQ-unapproved-vague", { created: "yesterday" }),
+      );
+      write(
+        root,
+        "src/canvas.ts",
+        "export function openCanvas() { return 1; }\n",
+      );
+      write(
+        root,
+        ".kb/symbols.yaml",
+        `symbols:\n  - id: SYM-open-canvas\n    title: openCanvas\n    sourceFile: src/canvas.ts\n    status: active\n    relationships:\n${[
+          "REQ-unapproved-new",
+          "REQ-unapproved-future",
+          "REQ-unapproved-vague",
+        ]
+          .map((id) => `      - type: implements\n        target: ${id}\n`)
+          .join("")}`,
+      );
+      git(root, "add", "-A");
+      git(root, "commit", "-m", "fixture", "--no-verify");
+      expect(runKibi(["sync"], root).status).toBe(0);
+      const check = runKibi(
+        [
+          "check",
+          "--rules",
+          "agent-requirement-unapproved-implemented",
+          "--format",
+          "json",
+        ],
+        root,
+      );
+      const violations = (
+        JSON.parse(check.stdout) as {
+          structuredContent: {
+            violations: (Finding & { description: string })[];
+          };
+        }
+      ).structuredContent.violations.sort((left, right) =>
+        left.entityId.localeCompare(right.entityId),
+      );
+      expect(
+        violations.map(({ entityId, evidence }) => [
+          entityId,
+          evidence?.sinceProblem,
+        ]),
+      ).toEqual([
+        ["REQ-unapproved-future", "future"],
+        ["REQ-unapproved-vague", "not-a-date"],
+      ]);
+      expect(violations[0]?.description).toContain(
+        "its created_at 2030-01-01T00:00:00.000Z lies in the future, so it counts as older than 14 days",
+      );
+      expect(violations[1]?.description).toContain(
+        'its created_at "yesterday" is not an ISO 8601 date, so it counts as older than 14 days',
+      );
     },
     TIMEOUT_MS,
   );

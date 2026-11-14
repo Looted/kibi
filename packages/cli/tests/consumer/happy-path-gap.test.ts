@@ -39,10 +39,16 @@ function requirement(
   }
   ws.write(
     ".kb/facts/FACT-QUOTA-POSITIVE.md",
-    quotaValueFact("FACT-QUOTA-POSITIVE", "Remaining quota above zero", "gt", 0, {
-      key: claim.claim_key,
-      text: claim.claim_text,
-    }),
+    quotaValueFact(
+      "FACT-QUOTA-POSITIVE",
+      "Remaining quota above zero",
+      "gt",
+      0,
+      {
+        key: claim.claim_key,
+        text: claim.claim_text,
+      },
+    ),
   );
   const links = scenarios
     .map((id) => `  - type: specified_by\n    target: ${id}`)
@@ -125,9 +131,9 @@ describe("failure-side proof stage through the kibi CLI", () => {
       expects: "rejection",
       assumption: { operator: "eq", value: 0, property_key: "remaining" },
     });
-    expect(
-      ws.text(["proof", "explain", "REQ-QUOTA-CALL"]),
-    ).toContain("Failure side: missing");
+    expect(ws.text(["proof", "explain", "REQ-QUOTA-CALL"])).toContain(
+      "Failure side: missing",
+    );
 
     // A rejection scenario whose assumptions the requirement permits
     // predicts success, so it does not count and the check reports it.

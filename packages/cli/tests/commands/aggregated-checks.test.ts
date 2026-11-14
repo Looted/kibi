@@ -3,7 +3,10 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { runAggregatedChecks } from "../../src/commands/aggregated-checks";
+import {
+  runAggregatedChecks,
+  schemaScopedGoal,
+} from "../../src/commands/aggregated-checks";
 import type { PrologProcess } from "../../src/prolog";
 
 type QueryResult = {
@@ -470,5 +473,42 @@ describe("runAggregatedChecks", () => {
     expect(capture.lastQuery).toContain(
       "call(checks:check_selected_json(['logic-coverage'], JsonString))",
     );
+  });
+
+  test("a schema version scopes the checks, also when asked again", async () => {
+    const goals: string[] = [];
+    const prolog = {
+      async query(goal: string) {
+        goals.push(goal);
+        return goals.length === 1
+          ? { success: true, bindings: { Transport: "file" } }
+          : {
+              success: true,
+              bindings: { Transport: "answer", JsonString: "{}" },
+            };
+      },
+    } as unknown as PrologProcess;
+    expect(await runAggregatedChecks(prolog, new Set(["rule-a"]), 15)).toEqual(
+      [],
+    );
+    expect(goals).toHaveLength(2);
+    for (const goal of goals) {
+      expect(goal).toContain("call(checks:with_kb_schema_version(15, (");
+    }
+  });
+});
+
+describe("schemaScopedGoal", () => {
+  test("leaves a goal without a version alone", () => {
+    expect(schemaScopedGoal("(g)", undefined)).toBe("(g)");
+  });
+
+  test("runs the goal at the version, or as it is on an older core", () => {
+    expect(
+      schemaScopedGoal("(g)", 17),
+    ).toBe(`(   predicate_property(checks:with_kb_schema_version(_, _), defined)
+    ->  call(checks:with_kb_schema_version(17, (g)))
+    ;   (g)
+    )`);
   });
 });

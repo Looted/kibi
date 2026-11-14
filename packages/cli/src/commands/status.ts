@@ -1,6 +1,7 @@
 import { executeOperation } from "../public/operations/runtime-types.js";
 import { statusSpec } from "../public/operations/specs/discovery.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
+import { printSchemaMigrationHint } from "../utils/migrate-hint.js";
 import { printDiscoveryResult } from "./discovery-shared.js";
 
 interface StatusOptions {
@@ -14,6 +15,8 @@ export async function statusCommand(options: StatusOptions): Promise<void> {
     {},
     { workspaceRoot: process.cwd() },
   );
+  // JSON carries schemaStatus and migrationPlan; text says it in one line.
+  if (options.format !== "json") printSchemaMigrationHint(process.cwd());
   printDiscoveryResult(
     options.format,
     result.structuredContent,

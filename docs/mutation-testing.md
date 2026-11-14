@@ -51,6 +51,15 @@ The lane has one config at the repository root:
   into `.cache/prolog-packs` (gitignored), leaving the user's own packs
   alone. Set `MUTALOG_HOME` to a
   Mutalog checkout to run that instead.
+- Every worker first loads `scripts/prolog-mutation-guard.pl` (`load/1` in
+  the config). Some mutants leave a list unbound, so a
+  `forall(member(X, List), assertz(...))` keeps asserting until the time
+  limit. The stack limit does not bound the dynamic database, and four
+  such workers at once used up the 16 GB runner. Once a worker's
+  resident memory passes its budget (2560 MB, or
+  `KIBI_MUTATION_WORKER_MEMORY_MB`), the guard stops the worker
+  process. The worker then misses its deadline, and the mutant counts as a
+  timeout, as it would have anyway.
 - `.github/workflows/mutation-prolog.yml` runs the config on the bundled
   SWI-Prolog when dispatched by hand from the Actions tab. The report is
   uploaded as the `prolog-mutation-report` artifact.
@@ -129,9 +138,32 @@ tested by every `*.test.ts` under its own `tests/` directory: `runtime`,
 single kibi-cli modules and `PLUGIN_MUTATION_MODULES` single files outside a
 `src/` tree (`packages/swipl/index.js`), each with the tests named for it.
 
+The gate holds about 120,000 mutants, far more than one runner can test
+within GitHub's job limit, so `.github/workflows/mutation.yml` splits it into
+parallel jobs. A unit is a whole package or one module of
+`CLI_MUTATION_MODULES` or `PLUGIN_MUTATION_MODULES`. `MUTATION_SHARDS` lists
+groups of units, balanced by the measured cost of their mutants, one job each;
+the last job takes every unit no group lists, so a new module lands there.
+Each job mutates only its own units and runs only their tests: a module's
+named tests, and for a package every test of the whole packages (the host
+packages exercise `agent-core` and `plugin-sdk` through their own entry
+points). That scoping matters for speed: most mutants are static (reached
+while the test files load), and Stryker runs every test file of the run
+against a static mutant. A group's time therefore grows with its static
+mutants times the run time of all its tests, so a module with many static
+mutants (such as `public/schemas/entity.ts`) goes in a group whose tests are
+few or quick. `MUTATION_SHARD=<n> bun run test:mutation` runs one
+job locally and writes its report to `reports/mutation/shard-<n>/`; without
+it one run mutates every unit against every scoped test. A job that grows
+near the job timeout gets split by moving units into a new group, and the
+workflow matrix lists every job (the contract test checks it).
+
 `MUTATION_TEST_EXCLUDES` lists test files of those packages that cannot run
-in the sandbox: `packages/claude/tests/distribution.test.ts` compares the
-committed hook bundle with the source, which the sandbox instruments. New
+in the sandbox because they read source text, which the sandbox instruments:
+`packages/claude/tests/distribution.test.ts` compares the committed hook
+bundle with the source, and `packages/agent-core/tests/shared-hook-inputs.test.ts`
+parses the host sources for functions that reimplement a shared decision.
+Neither asserts runtime behaviour, so no mutant depends on them. New
 tests for a package in scope go in its `tests/` directory, where the gate
 picks them up; the contract test checks that every one is registered.
 
@@ -196,4 +228,9 @@ production runtime; the remaining excluded mutants fall into these groups:
 | `packages/agent-core/src/usage-telemetry.ts` | The Node runtime name is unreachable under Bun, whose global cannot be removed; `timer.unref()` only changes process lifetime; `force` on removing claimed or listed queue files only matters in a cross-process race; an empty claimed-batch list and a placeholder path are both dropped as unreadable. |
 | `packages/agent-core/src/snippets.ts`, `packages/agent-core/src/requirement-candidates.ts`, `packages/agent-core/src/path-policy.ts`, `packages/agent-core/src/knowledge-index.ts` | Early returns that only save reading a file, an empty list whose placeholder entry reads as a primitive with no fields, the unowned-path shortcut, and the backslash normalization that cannot show on a POSIX runner. |
 | `packages/plugin-sdk/src/validate.ts`, `packages/zcode/src/hook-runner.ts`, `packages/claude/src/hook-runner.ts` | Fallback `[]` values for absent ownership and markers, the missing-target guard whose throw the caller turns into the same missing context, a missing command start time that matches no file, and the `"read"` snippet surface, which is equivalent to any non-`"edit"` value. |
-| `packages/opencode/src` (`plugin.ts`, `hook-telemetry.ts`, `file-operation-reminders.ts`, `guidance-cache.ts`, `kibi-checkpoint-runner.ts`, `scheduler.ts`, `plugin-startup.ts`, `smart-enforcement-events.ts`, `kibi-bootstrap-capability.ts`) | Literals only used as opaque cache keys or log event names, an `?? "advisory"` default the caller always fills, git's stderr setting (stdout is the same), an SDK lookup by name that cannot succeed in this repository, a read fallback replaced on the next refresh, a catch that returns what an emptied block returns, a suggestion precompute that only non-code files would skip, a checkpoint runner looked up outside hard mode (only hard mode reads its evidence), and a scheduler dispose that only releases a waiter nothing reads after a timed-out run. |
+| `packages/agent-core/src/decision-guard.ts`, `packages/claude/src/hook-runner.ts` (dead `implements` comments) | Any quote-free text in place of an escape leaves the quote counts as they are; a split always yields a first and a last line, so the optional chaining on them never short-circuits; Claude's edit tools carry no `apply_patch` envelope, so the patch base (the event cwd) is never read there. |
+| `packages/cli/src/commands/migrate.ts` (`pairReviewStep`) | The step-id match for pair-reviews-v18: it is the last migration step, so every non-empty step list holds it and matching any step gives the same answer until a later step is added. |
+| `packages/cli/src/proof/step-runner.ts` (`child.kill`) | The fallback signal after a failed process-group signal: on POSIX the group is gone only once the child has exited, so the call does nothing; it matters only on Windows. |
+| `packages/cli/src/public/impact/analyzer.ts` | The empty hunk list of the whole-file symbol read: a placeholder hunk keeps every declaration as well, and no reader of `sourceSymbolsByFile` looks at a symbol's hunks. |
+| `packages/mcp/src/server/tools.ts` | The guard around the SDK's `validateToolInput` hook: the pinned SDK always has it, so wrapping it unconditionally changes nothing a test can reach. |
+| `packages/opencode/src` (`plugin.ts`, `hook-telemetry.ts`, `file-operation-reminders.ts`, `guidance-cache.ts`, `kibi-checkpoint-runner.ts`, `scheduler.ts`, `plugin-startup.ts`, `smart-enforcement-events.ts`, `kibi-bootstrap-capability.ts`) | Literals only used as opaque cache keys or log event names, an `?? "advisory"` default the caller always fills, git's stderr setting (stdout is the same), an SDK lookup by name that cannot succeed in this repository, a read fallback replaced on the next refresh, a catch that returns what an emptied block returns, a suggestion precompute and a manifest-link lookup that only non-code files would skip, a checkpoint runner looked up outside hard mode (only hard mode reads its evidence), and a scheduler dispose that only releases a waiter nothing reads after a timed-out run. |

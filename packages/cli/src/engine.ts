@@ -513,15 +513,10 @@ function fsyncJournalTree(
   platform: NodeJS.Platform,
 ): string[] {
   const directories: string[] = [];
-  // readdir order depends on the filesystem; sort it so the barrier syncs
-  // in the same order everywhere: a directory's files, then its
-  // subdirectories, each by name.
-  const entries = readdirSync(directory, { withFileTypes: true }).sort(
-    (left, right) =>
-      Number(left.isDirectory()) - Number(right.isDirectory()) ||
-      (left.name < right.name ? -1 : left.name > right.name ? 1 : 0),
-  );
-  for (const entry of entries) {
+  // Every file is synced before the barrier returns, so the order the
+  // directory lists them in does not matter; a directory still follows the
+  // directories below it.
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory())
       directories.push(...fsyncJournalTree(entryPath, platform));
@@ -576,6 +571,18 @@ export function engineSocketPath(
 }
 
 const WINDOWS_PIPE_PREFIX = "\\\\.\\pipe\\";
+
+/**
+ * Create the private directory an engine socket is bound in. A Windows named
+ * pipe has no directory to create.
+ */
+export function ensureEngineSocketDirectory(
+  socketPath: string,
+  mkdir: typeof mkdirSync = mkdirSync,
+): void {
+  if (socketPath.startsWith(WINDOWS_PIPE_PREFIX)) return;
+  mkdir(path.dirname(socketPath), { recursive: true, mode: 0o700 });
+}
 
 /**
  * A file that sits beside the engine socket, such as its start diagnostic.
@@ -929,8 +936,11 @@ export function parseEngineStartDiagnostic(text: string): {
 async function connectWithRetry(
   socketPath: string,
   timeoutMs: number,
-  /** How the daemon this client spawned exited, or null while it runs. */
-  daemonExit: () => string | null = () => null,
+  /**
+   * How the daemon this client spawned exited, or null while it runs; absent
+   * when this client connects to a daemon it did not spawn.
+   */
+  daemonExit?: () => string | null,
 ): Promise<net.Socket> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
@@ -957,9 +967,12 @@ async function connectWithRetry(
     }
     // A daemon that died without a diagnostic never listens: report it
     // instead of waiting out the whole start timeout.
-    const exit = daemonExit();
+    const exit = daemonExit === undefined ? null : daemonExit();
     if (exit !== null) {
       exitedAt ??= Date.now();
+      // rationale: the loop polls every 25 ms, so counting the exact grace
+      // millisecond or not only moves the report by one poll
+      // Stryker disable next-line EqualityOperator
       if (Date.now() - exitedAt >= DAEMON_EXIT_GRACE_MS) {
         throw Object.assign(
           new Error(
@@ -1067,17 +1080,18 @@ export class EngineClient {
         return;
       } catch (error) {
         // A listener can begin draining after the kernel accepts a connection
-        // but before the read-only runtime and attachment handshakes finish.
-        // Retry those handshakes once; request() never retries an application
-        // RPC.
+        // but before the read-only runtime and attachment handshakes finish:
+        // another client replacing the same daemon stops it under this one.
+        // Retry those handshakes on a new connection a few times; request()
+        // never retries an application RPC.
         if (
-          attempt > 0 ||
+          attempt >= ENGINE_HANDSHAKE_ATTEMPTS - 1 ||
           !allowSpawn ||
-          !(error instanceof Error) ||
-          error.message !== "Kibi engine connection closed"
+          !isDrainingDaemonError(error)
         )
           throw error;
-        // The closed connection has already cleared the socket.
+        this.socket?.destroy();
+        this.socket = null;
       }
     }
   }
@@ -1829,6 +1843,28 @@ function recoverInterruptedGeneration(branchPath: string): void {
   }
 }
 
+/** The refusal a daemon sends once it has begun shutting down. */
+const ENGINE_SHUTTING_DOWN_ERROR =
+  "Kibi engine is shutting down; request was not executed";
+
+/** Connections a client tries while daemons replace each other under it. */
+const ENGINE_HANDSHAKE_ATTEMPTS = 4;
+
+/**
+ * Whether a handshake failed because its daemon was draining: the daemon
+ * closed the connection, refused the request, or was gone before the write.
+ */
+function isDrainingDaemonError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  if (
+    error.message === "Kibi engine connection closed" ||
+    error.message === ENGINE_SHUTTING_DOWN_ERROR
+  )
+    return true;
+  const code = (error as NodeJS.ErrnoException).code;
+  return code === "EPIPE" || code === "ECONNRESET";
+}
+
 function isEngineLifecycleRequest(request: EngineRequest): boolean {
   if (
     request.method === "stop" ||
@@ -1919,13 +1955,23 @@ export class EngineSession {
   }
 
   /**
+   * Stop the goal that runs now by ending the SWI child: SWI cannot cancel
+   * a running interactive goal, and a goal nobody waits for would hold the
+   * CPU and the request queue until the query timeout. The next request
+   * recycles the session.
+   */
+  interrupt(): Promise<void> {
+    return this.prolog.terminate();
+  }
+
+  /**
    * Restart a lost interactive session. Returns true when a recycle ran. A
    * failed recycle leaves the process stopped so the next request retries.
    */
   async ensureLive(): Promise<boolean> {
     if (!this.prolog.needsRestart()) return false;
     console.error(
-      "[KIBI] engine Prolog session was lost (output overflow, timeout, or crash); restarting and reattaching the branch store",
+      "[KIBI] engine Prolog session was lost (output overflow, timeout, cancellation, or crash); restarting and reattaching the branch store",
     );
     try {
       await this.boot();
@@ -1980,13 +2026,7 @@ export async function runEngineDaemon(requestedOptions: {
   const serverPrologIdentity = engineSwiplIdentity();
   const serverPackageVersions = enginePackageVersions();
 
-  // A Windows named pipe has no directory to create.
-  if (!options.socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
-    mkdirSync(path.dirname(options.socketPath), {
-      recursive: true,
-      mode: 0o700,
-    });
-  }
+  ensureEngineSocketDirectory(options.socketPath);
   // A missing socket refuses the probe like a stale one.
   {
     const isLivePeerSignal = (error: unknown): boolean => {
@@ -2537,14 +2577,11 @@ export async function runEngineDaemon(requestedOptions: {
         setImmediate(() => void shutdown());
         return { stopped: true };
       case "cancel":
-        // Best-effort: marks the id so a *queued* request on this connection
-        // is skipped before handle(). A request already inside
-        // `await prolog.query(...)` cannot be interrupted without redesigning
-        // SWI interactive cancellation; the client still rejects locally on
-        // AbortSignal, but the daemon queue remains occupied until that Prolog
-        // call returns. Cancel marks are per-connection. See
-        // docs/mcp-reference.md ("Engine cancellation limits"). The mark
-        // itself is set when the cancel frame arrives, ahead of the queue.
+        // The mark is set when the cancel frame arrives, ahead of the
+        // queue: a *queued* request on this connection is skipped before
+        // handle(), and a running one has its Prolog session stopped. Cancel
+        // marks are per-connection. See docs/mcp-reference.md ("Engine
+        // cancellation limits").
         return { cancelled: request.cancelOf ?? null };
     }
   };
@@ -2613,6 +2650,16 @@ export async function runEngineDaemon(requestedOptions: {
   process.once("SIGTERM", requestSignalShutdown);
   process.once("SIGINT", requestSignalShutdown);
 
+  // The request whose handler runs now, and the connection that sent it.
+  let running: { socket: net.Socket; id: number } | null = null;
+  const interruptRunning = (why: string): void => {
+    running = null;
+    console.error(
+      `[KIBI] engine request ${why} while it ran; stopping its Prolog goal (the next request restarts the session)`,
+    );
+    void session.interrupt();
+  };
+
   server.on("connection", (socket) => {
     // A peer may disappear while the daemon refuses or drains its socket.
     socket.on("error", () => undefined);
@@ -2636,14 +2683,18 @@ export async function runEngineDaemon(requestedOptions: {
               writeSocketFrame(socket, {
                 id: request.id,
                 ok: false,
-                error: "Kibi engine is shutting down; request was not executed",
+                error: ENGINE_SHUTTING_DOWN_ERROR,
                 serverPackageVersions,
               } satisfies EngineResponse);
               return;
             }
             // A mark that is not a number never matches a request id.
-            if (request.method === "cancel")
+            if (request.method === "cancel") {
               cancelledRequests.add(request.cancelOf as number);
+              // A request that already runs cannot be skipped: stop it.
+              if (running?.socket === socket && running.id === request.cancelOf)
+                interruptRunning("was cancelled");
+            }
             queue = queue
               .then(async () => {
                 if (cancelledRequests.delete(request.id)) {
@@ -2655,6 +2706,7 @@ export async function runEngineDaemon(requestedOptions: {
                   } satisfies EngineResponse);
                   return;
                 }
+                running = { socket, id: request.id };
                 try {
                   const result = await handle(request, cancelledRequests);
                   writeSocketFrame(socket, {
@@ -2672,8 +2724,9 @@ export async function runEngineDaemon(requestedOptions: {
                     serverPackageVersions,
                   } satisfies EngineResponse);
                 } finally {
-                  // Drop stale cancel marks for in-flight goals that still ran
-                  // to completion after cancelOf (SWI cannot interrupt them).
+                  running = null;
+                  // Drop the cancel mark of a request that ran before its
+                  // cancel arrived.
                   cancelledRequests.delete(request.id);
                 }
               })
@@ -2687,14 +2740,23 @@ export async function runEngineDaemon(requestedOptions: {
       }
     });
     socket.on("close", () => {
+      // Nobody reads the answer of a request whose client went away.
+      if (running?.socket === socket) interruptRunning("lost its client");
       clients.delete(socket);
       scheduleIdleExit();
     });
   });
-  await new Promise<void>((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(options.socketPath, () => resolve());
-  });
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(options.socketPath, () => resolve());
+    });
+  } catch (error) {
+    // A daemon that never listened has nothing to watch; a watchdog left
+    // behind would later run the shutdown and exit the hosting process.
+    clearInterval(workspaceWatchdog);
+    throw error;
+  }
   if (process.platform !== "win32") {
     try {
       chmodSync(options.socketPath, 0o600);

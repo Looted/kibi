@@ -3,6 +3,7 @@ import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import * as discovery from "../../../src/commands/sync/discovery.js";
 import * as extraction from "../../../src/commands/sync/extraction.js";
+import type { ExtractionResult } from "../../../src/extractors/markdown.js";
 import type {
   PrologPort,
   PrologQueryResult,
@@ -10,6 +11,7 @@ import type {
 import {
   collectSourceRelationshipParityViolations,
   compareRelationshipParity,
+  duplicateEntityViolations,
   parseCompiledRelationshipRows,
 } from "../../../src/public/operations/source-relationship-parity.js";
 import {
@@ -370,5 +372,27 @@ describe("collectSourceRelationshipParityViolations", () => {
       "source-relationship-parity-untracked",
       JSON.parse(JSON.stringify(violations).replaceAll(root, "<root>")),
     );
+  });
+});
+
+describe("duplicateEntityViolations", () => {
+  test("lists the declarations by file, and within a file as written", () => {
+    const declared = (source: string, title: string) =>
+      ({
+        entity: { id: "REQ-d", type: "req", title, status: "open", source },
+        relationships: [],
+      }) as unknown as ExtractionResult;
+    const [violation] = duplicateEntityViolations("/ws", [
+      declared("/ws/.kb/z.md", "z first"),
+      declared("/ws/.kb/a.md", "a"),
+      declared("/ws/.kb/z.md", "z second"),
+      declared("/ws/.kb/m.md", "m"),
+    ]);
+    expect(violation?.source).toBe(".kb/a.md, .kb/m.md, .kb/z.md");
+    expect(
+      (
+        violation?.evidence as { declarations: Array<{ title: string }> }
+      ).declarations.map(({ title }) => title),
+    ).toEqual(["a", "m", "z first", "z second"]);
   });
 });

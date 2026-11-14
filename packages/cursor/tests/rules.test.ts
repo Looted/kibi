@@ -23,10 +23,13 @@ describe("kibi-workflow always-on rule", () => {
     expect(workflowRule).toContain("bunx --no-install kibi");
   });
 
-  test("prefers MCP when Kibi tools are visible", () => {
+  test("treats visible MCP tools and the project-local CLI as equal peers", () => {
     expect(workflowRule).toContain(
-      "If any `kb_*` or `kibi_kb_*` tool is in the tool list, use MCP only",
+      "If any `kb_*` or `kibi_kb_*` tool is in the tool list, use those tools",
     );
+    expect(workflowRule).toContain("equal peers");
+    expect(workflowRule).not.toContain("Do not use the CLI path");
+    expect(workflowRule).not.toContain("use MCP only");
   });
 
   test("missing MCP tools does not mean Kibi is unavailable", () => {

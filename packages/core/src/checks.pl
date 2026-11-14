@@ -11,6 +11,7 @@
     check_selected_json_file/2,      % Writes selected rule violations as JSON to a file
     check_all_json_transport/4,      % File transport with an answer fallback
     check_selected_json_transport/4, % Same, for selected rules
+    with_kb_schema_version/2,       % Runs a check goal at the KB's manifest schemaVersion
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
     check_changed_symbol_coverage/2, % symbol-coverage restricted to a staged change set
@@ -88,6 +89,8 @@
 :- use_module('domain_subjects.pl', [check_claim_subject_missing/1, check_claim_subject_undefined/1]).
 :- reexport('domain_subjects.pl', [check_related_requirement_unmodeled/1]).
 
+:- thread_local kb_schema_version_override/1.
+
 % Required fields for all entities
 required_fields([id, title, status, created_at, updated_at, source]).
 
@@ -137,9 +140,9 @@ aggregated_check(logic_coverage, 'logic-coverage', check_logic_coverage).
 aggregated_check(rule_safety, 'rule-safety', check_rule_safety).
 aggregated_check(rule_verifiability, 'rule-verifiability', check_rule_verifiability).
 aggregated_check(semantic_completeness, 'semantic-completeness', check_semantic_completeness).
-aggregated_check(related_requirement_unmodeled, 'related-requirement-unmodeled', check_related_requirement_unmodeled).
-aggregated_check(claim_subject_missing, 'claim-subject-missing', check_claim_subject_missing).
-aggregated_check(claim_subject_undefined, 'claim-subject-undefined', check_claim_subject_undefined).
+aggregated_check(related_requirement_unmodeled, 'related-requirement-unmodeled', check_related_requirement_unmodeled_for_schema).
+aggregated_check(claim_subject_missing, 'claim-subject-missing', check_claim_subject_missing_for_schema).
+aggregated_check(claim_subject_undefined, 'claim-subject-undefined', check_claim_subject_undefined_for_schema).
 aggregated_check(req_status_vocabulary, 'req-status-vocabulary', check_req_status_vocabulary).
 aggregated_check(retired_reason_missing, 'retired-reason-missing', check_retired_reason_missing).
 aggregated_check(retired_owner_only, 'retired-owner-only', check_retired_owner_only).
@@ -163,6 +166,129 @@ run_aggregated_check(RequireAdr, Key-check_symbol_traceability, Key-Violations) 
     check_symbol_traceability(RequireAdr, Violations).
 run_aggregated_check(_, Key-Check, Key-Violations) :-
     call(Check, Violations).
+
+%% with_kb_schema_version(+Version, :Goal)
+% Run Goal once with the KB's manifest schemaVersion set to Version, so the
+% rules a schema upgrade introduced judge only a store that took the upgrade:
+% upgrading the CLI alone must never turn `kibi check` red.  Without a
+% version (an engine caller that names none) every rule runs at the latest
+% schema.
+:- meta_predicate with_kb_schema_version(+, 0).
+with_kb_schema_version(Version, Goal) :-
+    setup_call_cleanup(
+        asserta(kb_schema_version_override(Version)),
+        once(Goal),
+        retractall(kb_schema_version_override(_))
+    ).
+
+%% kb_schema_at_least(+Minimum)
+kb_schema_at_least(Minimum) :-
+    (   kb_schema_version_override(Version)
+    ->  Version >= Minimum
+    ;   true
+    ).
+
+% Schema 16 introduced the subject anchors of unmodeled claims.
+check_claim_subject_missing_for_schema(Violations) :-
+    (   kb_schema_at_least(16)
+    ->  check_claim_subject_missing(Violations)
+    ;   Violations = []
+    ).
+
+check_claim_subject_undefined_for_schema(Violations) :-
+    (   kb_schema_at_least(16)
+    ->  check_claim_subject_undefined(Violations)
+    ;   Violations = []
+    ).
+
+% Schema 18 blocks every stored pair with an unmodeled rule claim; a store
+% that did not take that upgrade keeps the earlier rule.
+check_related_requirement_unmodeled_for_schema(Violations) :-
+    (   kb_schema_at_least(18)
+    ->  check_related_requirement_unmodeled(Violations)
+    ;   check_related_requirement_unmodeled_before_schema_18(Violations)
+    ).
+
+%% check_related_requirement_unmodeled_before_schema_18(-Violations)
+% related-requirement-unmodeled as it reads a store below schema 18.
+% domain-contradictions compares grounded facts only. A current requirement
+% whose proposition ledger still carries `missing` entries contributes no
+% facts, so when it relates_to a current requirement that is modeled (strict
+% subject/property facts or ground predicate facts) its claims are never
+% compared with that requirement. The relates_to edge says the author knew
+% the two overlap, so the gap is blocking: model the missing propositions
+% against the same subject keys or predicates, or supersede the older
+% requirement.
+check_related_requirement_unmodeled_before_schema_18(Violations) :-
+    findall(Violation, legacy_related_requirement_unmodeled_violation(Violation), Raw),
+    sort(Raw, Violations).
+
+legacy_related_requirement_unmodeled_violation(violation(
+    'related-requirement-unmodeled',
+    ReqId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb:current_req(ReqId),
+    requirement_missing_proposition_count(ReqId, MissingCount),
+    MissingCount > 0,
+    legacy_related_current_requirement(ReqId, OtherId),
+    modeled_requirement_summary(OtherId, Summary),
+    format(
+        string(Description),
+        "Requirement ~w leaves ~w proposition(s) unmodeled (status missing) while it relates_to ~w, which models ~w; domain-contradictions compares grounded facts only, so these claims are never checked against ~w",
+        [ReqId, MissingCount, OtherId, Summary, OtherId]
+    ),
+    format(
+        string(Suggestion),
+        "Model the missing propositions of ~w against ~w (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that ~w supersedes ~w if it replaces that requirement",
+        [ReqId, Summary, ReqId, OtherId]
+    ),
+    violation_source(ReqId, req, Source).
+
+requirement_missing_proposition_count(ReqId, Count) :-
+    kb_entity(ReqId, req, Props),
+    memberchk(semantic_inventory=RawInventory, Props),
+    inventory_entries(RawInventory, Entries),
+    aggregate_all(
+        count,
+        ( member(Entry, Entries), inventory_entry_status(Entry, missing) ),
+        Count
+    ).
+
+legacy_related_current_requirement(ReqId, OtherId) :-
+    (   kb_relationship(relates_to, ReqId, OtherId)
+    ;   kb_relationship(relates_to, OtherId, ReqId)
+    ),
+    OtherId \== ReqId,
+    kb:current_req(OtherId).
+
+%% modeled_requirement_summary(+ReqId, -Summary)
+% Comma-separated list of the subject.property keys the requirement constrains
+% through contradiction-ready strict facts and the canonical keys of the ground
+% predicate facts it requires. Fails when the requirement models nothing.
+modeled_requirement_summary(ReqId, Summary) :-
+    setof(Key, modeled_requirement_key(ReqId, Key), Keys),
+    atomic_list_concat(Keys, ', ', Summary).
+
+modeled_requirement_key(ReqId, Key) :-
+    kb:effective_req_property_fact(
+        ReqId, SubjectKey, _FactId, PropertyKey,
+        _Operator, _ValueType, _Value, _Unit, _Scope, _Polarity, _ValidFrom, _ValidTo
+    ),
+    normalize_term_atom(SubjectKey, SubjectAtom),
+    normalize_term_atom(PropertyKey, PropertyAtom),
+    format(atom(Key), "~w.~w", [SubjectAtom, PropertyAtom]).
+modeled_requirement_key(ReqId, Key) :-
+    kb_relationship(requires_predicate, ReqId, FactId),
+    kb_entity(FactId, fact, Props),
+    predicate_verifiability_fact_kind(Props, predicate),
+    (   memberchk(canonical_key=RawKey, Props)
+    ->  normalize_term_atom(RawKey, Key)
+    ;   memberchk(predicate_name=RawName, Props),
+        normalize_term_atom(RawName, Key)
+    ).
 
 %% check_must_priority_coverage(-Violations)
 % Finds all must-priority requirements lacking scenario and/or test coverage.
@@ -2549,41 +2675,47 @@ check_retired_owner_only(Violations) :-
         ),
         Retired0),
     sort(Retired0, Retired),
-    (   Retired == []
-    ->  Violations = []
-    ;   requirement_sets(_, Past),
-        findall(Type-Id-Owners-Kind,
-            retired_only_dependent(Retired, Past, Type, Id, Owners, Kind),
-            Found0),
-        sort(Found0, Found),
-        maplist(retired_owner_only_violation, Found, Violations)
-    ).
+    % Only what a retired requirement owns can be owned by retired ones only.
+    findall(Type-Id,
+        (   member(ReqId, Retired),
+            dependent_owner(Type, Id, ReqId)
+        ),
+        Dependents0),
+    sort(Dependents0, Dependents),
+    requirement_sets(_, Past),
+    findall(Type-Id-Owners-Kind,
+        (   member(Type-Id, Dependents),
+            retired_only_dependent(Retired, Past, Type, Id, Owners, Kind)
+        ),
+        Found),
+    maplist(retired_owner_only_violation, Found, Violations).
 
-%% retired_only_dependent(+Retired, +Past, -Type, -Id, -Owners, -Kind)
-% Kind is retired when every owner is retired, and mixed when every owner is
-% retired, superseded or deprecated and at least one is retired.
+%% retired_only_dependent(+Retired, +Past, +Type, +Id, -Owners, -Kind)
+% Id, a dependent of at least one retired requirement, has only owners that
+% are retired, superseded or deprecated. Kind is retired when every owner is
+% retired, and mixed when some are superseded or deprecated instead.
 retired_only_dependent(Retired, Past, Type, Id, Owners, Kind) :-
-    member(Type, [fact, scenario, test]),
     kb_entity(Id, Type, Props),
     live_dependent(Type, Props),
     findall(ReqId, dependent_owner(Type, Id, ReqId), Owners0),
     sort(Owners0, Owners),
-    Owners \== [],
     ord_subtract(Owners, Past, []),
-    ord_intersect(Owners, Retired),
-    (   ord_subtract(Owners, Retired, [])
-    ->  Kind = retired
-    ;   Kind = mixed
-    ).
+    ord_subtract(Owners, Retired, NotRetired),
+    retired_owners_kind(NotRetired, Kind).
+
+retired_owners_kind([], retired).
+retired_owners_kind([_|_], mixed).
 
 %% live_dependent(+Type, +Props)
 % A fact or scenario is archived once its status is deprecated (or a legacy
 % archived, inactive or deleted); a test has no archived status, so every
 % test is live until it is deleted or relinked.
-live_dependent(test, _) :- !.
-live_dependent(_, Props) :-
-    requirement_status_atom(Props, Status),
-    \+ memberchk(Status, [deprecated, archived, inactive, deleted]).
+live_dependent(Type, Props) :-
+    (   Type == test
+    ->  true
+    ;   requirement_status_atom(Props, Status),
+        \+ memberchk(Status, [deprecated, archived, inactive, deleted])
+    ).
 
 dependent_owner(fact, FactId, ReqId) :-
     member(Rel, [constrains, requires_property, requires_predicate, requires_rule]),
@@ -2623,11 +2755,11 @@ retired_owner_only_owners(retired, "retired requirements").
 retired_owner_only_owners(mixed,
     "retired requirements and requirements that are superseded or deprecated").
 
-retired_owner_only_suggestion(test,
-    "Link the test to the current requirement or scenario whose behavior it still checks, or delete it (kb_delete) if that behavior is gone").
-retired_owner_only_suggestion(Type,
-    "Link it to the current requirement that took over this behavior, or archive it with status: deprecated") :-
-    Type \== test.
+retired_owner_only_suggestion(Type, Suggestion) :-
+    (   Type == test
+    ->  Suggestion = "Link the test to the current requirement or scenario whose behavior it still checks, or delete it (kb_delete) if that behavior is gone"
+    ;   Suggestion = "Link it to the current requirement that took over this behavior, or archive it with status: deprecated"
+    ).
 
 %% check_strict_fact_shape(-Violations)
 % Finds all strict facts (with fact_kind) that have malformed shape.

@@ -237,7 +237,8 @@ export function doc(frontMatter: string, body = ""): string {
   return `---\n${frontMatter.trim()}\n---\n${body}\n`;
 }
 
-export const QUOTA_SUBJECT = doc(`
+export const QUOTA_SUBJECT = doc(
+  `
 id: FACT-QUOTA-SUBJECT
 title: Client call quota
 type: fact

@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-728228460d72
+  - type: implements
+    from: SYM-staged-requirement-rules-selectStagedRequirementRules
+    to: REQ-cli-staged-consistency
+    created_at: 2026-11-13T20:48:58.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2595681028be
+  - type: covered_by
+    from: SYM-staged-requirement-rules-selectStagedRequirementRules
+    to: TEST-cli-staged-consistency
+    created_at: 2026-11-13T20:48:58.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63aacd7ab393

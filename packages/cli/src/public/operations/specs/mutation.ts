@@ -9,6 +9,8 @@ import { executeValidateUpsert } from "../../../operations/mutation/validate-ups
 import type { OperationSpec } from "../types.js";
 import { ENTITY_TYPES } from "./mutation-schemas.js";
 
+import { PLANNED_FACTS_SCHEMA, UPSERT_DOCUMENT_SCHEMA } from "./upsert.js";
+
 export { upsertSpec } from "./upsert.js";
 
 export const validateUpsertSpec = {
@@ -28,6 +30,9 @@ export const validateUpsertSpec = {
           "Entity properties to validate using the same snake_case field names accepted by kb_upsert.",
       },
       relationships: { type: "array", items: { type: "object" } },
+      // The same preview kb_upsert dryRun gives, so both accept one payload.
+      plannedFacts: PLANNED_FACTS_SCHEMA,
+      document: UPSERT_DOCUMENT_SCHEMA,
     },
   },
   requiresProlog: true,

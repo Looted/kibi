@@ -139,6 +139,9 @@ describe("classifyDiagnosticError, exact", () => {
       "handler_error",
     );
     expect(category("Kibi engine exited (exit code 1)")).toBe("handler_error");
+    expect(
+      category("x Kibi engine exited before it accepted connections"),
+    ).toBe("handler_error");
     expect(category("use h for help")).toBe("handler_error");
     expect(category("timed out after ms")).toBe("handler_error");
     expect(category("x Entity validation failed:")).toBe("handler_error");

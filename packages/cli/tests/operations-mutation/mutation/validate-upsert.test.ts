@@ -275,6 +275,26 @@ describe("a dry run against a store", () => {
     });
   });
 
+  test("reads the body the subject notes check from the document it would update", async () => {
+    const bodyCalls: unknown[][] = [];
+    const body = spyOn(contextWarning, "upsertDocumentBody").mockImplementation(
+      (...args) => {
+        bodyCalls.push(args);
+        return "";
+      },
+    );
+    try {
+      const context = storeContext({ fs: {} });
+      scope = { existing: { id: "REQ-dry", source: "docs/old.md" } };
+      await run(requirement(), context);
+      expect(bodyCalls.map((call) => call[3])).toStrictEqual([
+        { targetPath: "docs/rendered.md" },
+      ]);
+    } finally {
+      body.mockRestore();
+    }
+  });
+
   test("refuses what the commit goal would refuse", async () => {
     answers["preview-goal"] = {
       success: false,

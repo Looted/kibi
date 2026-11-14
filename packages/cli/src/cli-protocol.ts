@@ -34,6 +34,14 @@ export type CliProtocolResult = {
   readonly stderr?: string;
 };
 
+/**
+ * The stderr line of a failed route that also prints its JSON result: the
+ * code, and where the message is, so the message is printed once.
+ */
+export function envelopeErrorLine(code: string): string {
+  return `Error [${code}]: see error.message in the JSON result on stdout\n`;
+}
+
 function errorResult(
   operation: string,
   error: InputError | OperationError,
@@ -67,7 +75,7 @@ function errorResult(
   return {
     exitCode: error.exitCode,
     stdout: `${JSON.stringify(envelope)}\n`,
-    stderr: `Error [${error.code}]: ${error.detail}\n`,
+    stderr: envelopeErrorLine(error.code),
   };
 }
 
@@ -178,7 +186,7 @@ export async function executeOperation(
       return {
         exitCode: 1,
         stdout: `${JSON.stringify(envelope)}\n`,
-        stderr: `Error [${error.code}]: ${error.message}\n`,
+        stderr: envelopeErrorLine(error.code),
       };
     }
     return { exitCode: 0, stdout: `${JSON.stringify(envelope)}\n` };

@@ -92,7 +92,7 @@ function semanticSourceDerivation(
     : "no semantic_source_field was sent; ";
   const derived =
     field === "semantic_text"
-      ? "the prose comes from semantic_text because it is set"
+      ? "the prose comes from semantic_text (its front matter value, or the body statement a document without one states)"
       : field === "text_ref"
         ? "the prose comes from text_ref because semantic_text is unset"
         : "the prose comes from title because semantic_text and text_ref are unset";

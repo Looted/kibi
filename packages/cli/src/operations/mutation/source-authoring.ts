@@ -383,8 +383,9 @@ export function authoredFrontmatter(content: string): Record<string, unknown> {
 }
 
 /**
- * Front matter keys an upsert never writes: runtime provenance/timestamps
- * belong to the compiled entity, not to the authored source artifact, and
+ * Front matter keys an upsert never writes on its own: runtime
+ * provenance/timestamps belong to the compiled entity, not to the authored
+ * source artifact (a created_at the caller states is the exception), and
  * relationships live in `links`/shards. Keeping them out also makes the
  * source diff deterministic across CLI and MCP transports.
  */
@@ -559,6 +560,10 @@ function renderEntityDocument(
           ? `${String(entity.semantic_text ?? "").trim()}\n`
           : "";
   const updates = entityFrontmatterUpdates(entity, existing.frontmatter, body);
+  // A created_at the caller states is authored: it is written so the source
+  // says what the store holds, and sync and the approval clock read it back.
+  if (input.properties.created_at !== undefined)
+    updates.created_at = entity.created_at;
   const bodySuffix = `${body.startsWith("\n") ? "" : "\n"}${body}`;
   // An existing document keeps its authored front matter bytes; only the
   // keys this upsert changes are rewritten.

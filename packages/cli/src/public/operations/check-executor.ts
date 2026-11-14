@@ -5,6 +5,7 @@ import {
   inspectBranchStore,
   uncompiledBranchStoreReason,
 } from "../../utils/branch-store.js";
+import { readKbManifest } from "../../utils/kb-manifest.js";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -393,9 +394,11 @@ export async function executeCheck(
 
     invalidatePrologCache(prolog);
 
+    // A store without a manifest predates every schema-gated rule.
     const aggregatedFindings = await runAggregatedChecks(
       prolog,
       rulesAllowlist,
+      readKbManifest(workspaceRoot)?.schemaVersion ?? 0,
     );
     const queryPlanViolations = rulesAllowlist.has("query-plan-safety")
       ? collectQueryPlanSafetyViolations()

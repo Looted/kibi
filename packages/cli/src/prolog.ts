@@ -489,7 +489,7 @@ export class PrologProcess {
         };
         const timeoutId = setTimeout(() => {
           const stage = this.lastDiagnosticStage(this.errorBuffer) ?? "unknown";
-          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${child.pid ?? 0}, killed=${child.killed ? "yes" : "no"}, exitCode=${child.exitCode}, signal=${child.signalCode}, goal=${goalLabel}). If several fresh Kibi commands hang or crawl the same way, the engine state is likely wedged: run 'kibi engine stop' (then 'kibi sync --rebuild' if needed) and retry.`;
+          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${child.pid ?? 0}, killed=${child.killed ? "yes" : "no"}, exitCode=${child.exitCode}, signal=${child.signalCode}, goal=${goalLabel}). Kibi stopped that Prolog session and the next command starts a fresh one, so a goal that times out again is too slow for this knowledge base, not stuck: narrow it (for example kibi check --rules <rule>). Run 'kibi engine stop' only when fresh commands hang before their first goal.`;
           if (debug) {
             console.error(`[prolog debug] timeout: ${msg}`);
             const runtime = this.errorBuffer

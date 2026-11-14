@@ -246,6 +246,11 @@ export interface ExtractionResult {
   entity: ExtractedEntity;
   relationships: ExtractedRelationship[];
   sourceFile?: string;
+  /**
+   * Set when the front matter states created_at. Without it the entity's
+   * created_at is the extraction time, which sync must not read as an edit.
+   */
+  createdAtAuthored?: true;
 }
 
 type FrontmatterData = Record<string, unknown> &
@@ -702,13 +707,13 @@ function extractFromMarkdownContent(
     }
 
     // Build base entity with explicit field list
+    const authoredCreatedAt = normalizeDateLike(data.created_at);
     const entity: ExtractedEntity = {
       id,
       type,
       title: data.title,
       status: data.status || DEFAULT_STATUS_BY_TYPE[String(type)] || "active",
-      created_at:
-        normalizeDateLike(data.created_at) || new Date().toISOString(),
+      created_at: authoredCreatedAt || new Date().toISOString(),
       updated_at:
         normalizeDateLike(data.updated_at) || new Date().toISOString(),
       source: filePath,
@@ -1169,6 +1174,7 @@ function extractFromMarkdownContent(
     return {
       entity,
       relationships,
+      ...(authoredCreatedAt ? { createdAtAuthored: true as const } : {}),
     };
   } catch (error) {
     if (error instanceof FrontmatterError) {

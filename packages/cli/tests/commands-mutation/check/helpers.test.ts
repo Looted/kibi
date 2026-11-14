@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   checkDeprecatedAdrs,
   checkDomainContradictions,
@@ -11,8 +14,10 @@ import {
   checkStrictReqFactPairing,
   findMustPriorityReqs,
   getAllEntityIds,
+  schemaUpgradeNote,
 } from "../../../src/commands/check.js";
 import type { PrologProcess } from "../../../src/prolog.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../../src/utils/schema-version.js";
 
 type Answer = { success: boolean; bindings: Record<string, string> };
 const no: Answer = { success: false, bindings: {} };
@@ -472,5 +477,47 @@ describe("strict violation rows", () => {
     expect(goals[0]).toBe(`findall(violation(Rule, EntityId, Desc, Sugg, Src),
       checks:${predicate}(violation(Rule, EntityId, Desc, Sugg, Src)),
       Violations)`);
+  });
+});
+
+describe("schemaUpgradeNote", () => {
+  function workspace(schemaVersion?: number): string {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-check-note-"));
+    if (schemaVersion !== undefined) {
+      mkdirSync(path.join(root, ".kb"));
+      writeFileSync(
+        path.join(root, ".kb", "manifest.json"),
+        JSON.stringify({
+          manifestVersion: 1,
+          schemaVersion,
+          semanticAdvisorBackfill: "not_applicable",
+        }),
+      );
+    }
+    return root;
+  }
+
+  test.each([
+    [undefined],
+    [LATEST_KB_SCHEMA_VERSION],
+    [LATEST_KB_SCHEMA_VERSION + 1],
+  ])("schema %p needs no note", (schemaVersion) => {
+    const root = workspace(schemaVersion);
+    try {
+      expect(schemaUpgradeNote(root)).toBeNull();
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("an older schema points at kibi migrate", () => {
+    const root = workspace(14);
+    try {
+      expect(schemaUpgradeNote(root)).toBe(
+        `Note: KB schemaVersion 14 is older than the latest version ${LATEST_KB_SCHEMA_VERSION}; run 'kibi migrate' to plan the upgrade. Rules a later schema adds are not checked until the upgrade runs.`,
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

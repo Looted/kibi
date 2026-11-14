@@ -220,6 +220,18 @@ export function readKbManifestStatus(workspaceRoot: string): KbManifestStatus {
   return { state: "ok", manifest, manifestHash };
 }
 
+/**
+ * Parse manifest text, such as the copy a Git tree holds; null when it is not
+ * valid JSON or not a manifest this build reads.
+ */
+export function parseKbManifest(contents: string): KbManifest | null {
+  try {
+    return validateManifest(JSON.parse(contents));
+  } catch {
+    return null;
+  }
+}
+
 export function readKbManifest(workspaceRoot: string): KbManifest | null {
   // Only an "ok" status carries a manifest.
   return readKbManifestStatus(workspaceRoot).manifest;

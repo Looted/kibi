@@ -1348,22 +1348,27 @@ test(evidence_floor_rows_list_unmet_floors) :-
 test(evidence_floor_json_lists_requirement_review_rows) :-
     dsc_kb((
         pf_entity(req, 'REQ-U', [status=open, priority=must, created_at='2026-01-01T00:00:00Z',
-                                 origin='{"kind":"agent"}']),
+                                 source=".kb/requirements/REQ-U.md",
+                                 origin='{"kind":"agent","recorded_at":"2026-01-02T00:00:00Z"}']),
         Params = snap-'2026-05-02T00:00:00Z'-100-per_contract-_{'T': h},
         dsc_stub(Params, 'REQ-U', _{evidenceLevel: unverified, proofStatus: missing, proofGaps: [],
             evidenceFloor: _{required: unverified, source: firmness, status: met},
             proofStages: _{productionSymbols: _{symbols: ['SYM-B', 'SYM-A']}}}),
         dsc_json(evidence_floor_json(per_contract, _{'T': h}, snap, '2026-05-02T00:00:00Z', 100), Dict),
         same(Dict.unapprovedImplemented,
-             [_{id: 'REQ-U', createdAt: '2026-01-01T00:00:00Z', symbols: ['SYM-A', 'SYM-B']}])
+             [_{id: 'REQ-U', recordedAt: '2026-01-02T00:00:00Z',
+                source: '.kb/requirements/REQ-U.md', symbols: ['SYM-A', 'SYM-B']}])
     )).
 
 test(requirement_review_row_needs_must_agent_unapproved_and_production_symbols) :-
     Proof = _{proofGaps: [], proofStages: _{productionSymbols: _{symbols: ['SYM-A']}}},
     Agent = '{"kind":"agent"}',
     once(requirement_proof:requirement_review_row(unapproved_implemented,
-        [priority=must, origin=Agent], Proof, Row)),
-    same(Row, _{createdAt: '', symbols: ['SYM-A']}),
+        [priority=must, origin=Agent, created_at='2026-01-01T00:00:00Z'], Proof, Row)),
+    same(Row, _{recordedAt: '', source: '', symbols: ['SYM-A']}),
+    % A priority that ends in must reads as must, as coverage reads it.
+    once(requirement_proof:requirement_review_row(unapproved_implemented,
+        [priority='p0-must', origin=Agent], Proof, _)),
     \+ requirement_proof:requirement_review_row(unapproved_implemented,
         [priority=should, origin=Agent], Proof, _),
     \+ requirement_proof:requirement_review_row(unapproved_implemented,

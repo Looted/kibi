@@ -68,7 +68,7 @@ describe("cursor hook runner edges", () => {
     expect(reads).toBeGreaterThan(1);
     expect(result).toStrictEqual({
       additional_context:
-        'Kibi MCP has not been observed in this session and workspace trust is unknown. Do not probe or execute a CLI fallback; ask the operator to enable MCP or explicitly approve the trusted project-local CLI workflow.\nKibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.\nRecord traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.',
+        'Kibi MCP has not been observed in this session. Use approved Kibi MCP tools when they are visible; otherwise the project-local CLI JSON routes are an equal peer (npx --no-install kibi <route> --input -), never a global or installing runner. If neither is available, stop and tell the operator.\nKibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.\nRecord traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.',
     });
   });
 });

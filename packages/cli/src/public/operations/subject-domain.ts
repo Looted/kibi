@@ -63,6 +63,7 @@ export type SubjectDomain = Readonly<{
   narrower: readonly string[];
   distinctFrom: readonly string[];
   requirements: readonly DomainRequirement[];
+  /** Grounded claims: active facts other than subject facts on the subject. */
   claims: readonly Readonly<{
     id: string;
     factKind: string;
@@ -70,7 +71,38 @@ export type SubjectDomain = Readonly<{
     title: string;
     requirements: readonly string[];
   }>[];
+  /**
+   * Inventory claims that name the subject (or a narrower one) and that no
+   * fact grounds yet (missing, ontology_gap or ambiguous). Nothing compares
+   * them with the grounded claims; related-requirement-unmodeled pairs them.
+   */
+  unmodeledClaims: readonly Readonly<{
+    requirement: string;
+    claimKey: string;
+    subjectKey: string;
+    claimText: string;
+    role: string;
+    status: string;
+  }>[];
   scenarios: readonly Readonly<{ id: string; title: string }>[];
+}>;
+
+/** One subject a requirement write names, with what a writer must compare. */
+export type SubjectNeighbourhood = Readonly<{
+  subjectKey: string;
+  defined: boolean;
+  subjectFacts: readonly DomainSubjectFact[];
+  /**
+   * The other current requirements check pairs with a requirement on this
+   * subject: on it, on a narrower subject or on a broader one.
+   */
+  requirements: readonly Readonly<{ id: string; title: string }>[];
+}>;
+
+export type SubjectNeighbours = Readonly<{
+  subjects: readonly SubjectNeighbourhood[];
+  /** The pair_reviews partners that are not current requirements. */
+  notCurrent: readonly string[];
 }>;
 
 function domainModulePath(): string {
@@ -130,11 +162,56 @@ export async function readSubjectDomain(
   };
 }
 
+/**
+ * Everything a requirement write needs about the subjects its claims name,
+ * in one store read: each subject's facts and the other current requirements
+ * paired with it, and which of withIds are not current requirements.
+ */
+export async function readSubjectNeighbours(
+  prolog: Pick<PrologPort, "query">,
+  workspaceRoot: string,
+  input: Readonly<{
+    requirementId: string;
+    subjectKeys: readonly string[];
+    withIds: readonly string[];
+  }>,
+): Promise<SubjectNeighbours> {
+  const modulePath = escapeAtom(domainModulePath());
+  const keys = input.subjectKeys.map(toPrologAtom).join(",");
+  const withIds = input.withIds.map(toPrologAtom).join(",");
+  const result = await prolog.query(
+    `(use_module('${modulePath}'), call(domain_subjects:subject_neighbours_json([${keys}], ${toPrologAtom(input.requirementId)}, [${withIds}], Json)))`,
+  );
+  if (!result.success) {
+    throw new Error(
+      `Subject neighbours query failed: ${result.error ?? "unknown error"}`,
+    );
+  }
+  const parsed = parseJson(result.bindings.Json) as {
+    subjects: readonly (Omit<SubjectNeighbourhood, "subjectFacts"> & {
+      subjectFacts: readonly Omit<DomainSubjectFact, "definition">[];
+    })[];
+    notCurrent: readonly string[];
+  };
+  return {
+    notCurrent: parsed.notCurrent,
+    subjects: parsed.subjects.map((subject) => ({
+      ...subject,
+      subjectFacts: subject.subjectFacts.map((fact) => ({
+        ...fact,
+        definition: readSubjectDefinition(workspaceRoot, fact.source),
+      })),
+    })),
+  };
+}
+
 /** The longest definition text a summary line quotes. */
 const MAX_DEFINITION_QUOTE = 200;
 
 /** The subject's definition for a one-line summary, bounded. */
-export function definitionQuote(domain: SubjectDomain): string {
+export function definitionQuote(
+  domain: Pick<SubjectDomain, "subjectFacts">,
+): string {
   const definition =
     domain.subjectFacts.find((fact) => fact.definition !== "")?.definition ??
     "";

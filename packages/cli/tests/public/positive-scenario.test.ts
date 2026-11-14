@@ -72,10 +72,26 @@ describe("must-positive-scenario findings", () => {
       "Add a scenario with expects: success that specifies REQ-B (specified_by)",
     );
     expect(unassumed?.description).toBe(
-      "Must requirement REQ-C has success scenarios (SCEN-C), but none assumes a fact on its subjects (client.call_quota), so its positive behaviour cannot be compared with other requirements",
+      "Must requirement REQ-C has success scenarios (SCEN-C), but none assumes a property_value, predicate or rule fact on its subjects (client.call_quota), so its positive behaviour cannot be compared with other requirements",
     );
     expect(unassumed?.suggestion).toContain(
       "Link at least one of those scenarios",
+    );
+    expect(unassumed?.suggestion).toContain(
+      "assuming the subject fact itself does not count",
+    );
+  });
+
+  test("an undefined subject is defined first", () => {
+    const [undefinedSubject] = positiveScenarioViolations(
+      [gap("REQ-D", "undefined_subjects", { subjects: ["text.nothing"] })],
+      new Set(),
+    );
+    expect(undefinedSubject?.description).toBe(
+      "Must requirement REQ-D names only subjects no active subject fact defines (text.nothing), so no scenario can state the behaviour it promises on them yet",
+    );
+    expect(undefinedSubject?.suggestion).toStartWith(
+      "Define the subject first (claim-subject-undefined): a subject fact for text.nothing",
     );
   });
 

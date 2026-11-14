@@ -2453,10 +2453,16 @@ coverage_gap(Req, missing_test) :-
 must_requirement(Req) :-
     kb_entity(Req, req, Props),
     memberchk(priority=Priority, Props),
+    must_priority(Priority),
+    coverage_current_requirement(Req, Props).
+
+%% must_priority(+Priority)
+% A stored priority reads as must when it ends in "must" (must, p0-must).
+% Every rule that asks whether a requirement is must reads it here.
+must_priority(Priority) :-
     normalize_term_atom(Priority, PriorityAtom),
     atom_string(PriorityAtom, PriorityStr),
-    sub_string(PriorityStr, _, 4, 0, "must"),
-    coverage_current_requirement(Req, Props).
+    sub_string(PriorityStr, _, 4, 0, "must").
 
 %% coverage_current_requirement(+Req, +Props)
 % A requirement is still owed coverage unless it is retired: superseded by

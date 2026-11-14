@@ -115,6 +115,21 @@ describe("boot id", () => {
     expect(currentBootId()).toBe(expected);
     expect(currentBootId()).toBe(expected);
   });
+
+  test("is read once into its cache, even when there is none", () => {
+    const reads: string[] = [];
+    const cache: { value?: string | null } = {};
+    const read = (value: string | null) => () => {
+      reads.push(String(value));
+      return value;
+    };
+    expect(currentBootId(cache, read("boot-1"))).toBe("boot-1");
+    expect(currentBootId(cache, read("boot-2"))).toBe("boot-1");
+    const none: { value?: string | null } = {};
+    expect(currentBootId(none, read(null))).toBeNull();
+    expect(currentBootId(none, read("late"))).toBeNull();
+    expect(reads).toEqual(["boot-1", "null"]);
+  });
 });
 
 describe("isProcessAlive", () => {

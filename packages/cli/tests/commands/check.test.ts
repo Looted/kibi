@@ -2870,7 +2870,8 @@ links:
 id: REQ-E2E-LOGIN
 title: E2E Login Requirement
 status: open
-priority: must
+priority: should
+firmness: default
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: .kb/requirements/REQ-E2E-LOGIN.md
@@ -2959,7 +2960,8 @@ links:
 id: REQ-E2E-LOGOUT
 title: E2E Logout Requirement
 status: open
-priority: must
+priority: should
+firmness: default
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: .kb/requirements/REQ-E2E-LOGOUT.md
@@ -3117,7 +3119,8 @@ source: .kb/tests/TEST-E2E-BARE.md
 id: REQ-E2E-WEAK
 title: E2E Weak Requirement
 status: open
-priority: must
+priority: should
+firmness: default
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: .kb/requirements/REQ-E2E-WEAK.md

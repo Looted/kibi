@@ -122,3 +122,85 @@ describe("resolveUpsertOrigin", () => {
     expect(fake.goals[1]).toContain("kb_entity('REQ-1', 'req', Props)");
   });
 });
+
+describe("requirement clock dates", () => {
+  const refusal = (field: string, value: string, why: string) =>
+    `Entity validation failed: ${field} ${JSON.stringify(value)} ${why}. It starts the review grace period of an agent-written requirement, so it must be the real time the requirement was written: leave it out and kb_upsert records the write time.`;
+
+  test("refuses a requirement created_at or origin.recorded_at that is not a past date", async () => {
+    for (const [properties, field, value, why] of [
+      [
+        { created_at: "2030-01-01T00:00:00Z" },
+        "created_at",
+        "2030-01-01T00:00:00Z",
+        "is later than now (2026-01-02T03:04:05.000Z)",
+      ],
+      [
+        { created_at: "yesterday" },
+        "created_at",
+        "yesterday",
+        "is not an ISO 8601 date or timestamp",
+      ],
+      [
+        { origin: { kind: "agent", recorded_at: "2026-13-45T00:00:00Z" } },
+        "origin.recorded_at",
+        "2026-13-45T00:00:00Z",
+        "is not an ISO 8601 date or timestamp",
+      ],
+      [
+        {
+          created_at: "2026-01-01T00:00:00Z",
+          origin: { kind: "agent", recorded_at: "2026-01-04T00:00:00Z" },
+        },
+        "origin.recorded_at",
+        "2026-01-04T00:00:00Z",
+        "is later than now (2026-01-02T03:04:05.000Z)",
+      ],
+    ] as const) {
+      // Refused before anything is resolved, even without a store.
+      await expect(
+        resolveUpsertOrigin(input(properties), undefined, NOW),
+      ).rejects.toMatchObject({
+        code: "ENTITY_VALIDATION_FAILED",
+        message: refusal(field, value, why),
+      });
+    }
+  });
+
+  test("accepts past dates, a day of clock skew, other types and stored values", async () => {
+    for (const properties of [
+      {},
+      { created_at: "2026-01-01" },
+      { created_at: "2026-01-03T03:04:05.000Z" },
+      { origin: { kind: "agent", recorded_at: "2025-12-31T23:00:00+01:00" } },
+      { origin: { kind: "agent" } },
+      { origin: "agent" },
+    ])
+      await expect(
+        resolveUpsertOrigin(input(properties), undefined, NOW),
+      ).resolves.toBeDefined();
+    await expect(
+      resolveUpsertOrigin(
+        {
+          type: "scenario",
+          id: "SCEN-1",
+          properties: { title: "T", created_at: "2030-01-01" },
+        },
+        undefined,
+        NOW,
+      ),
+    ).resolves.toBeDefined();
+    // A stored origin the write keeps is not the payload's statement.
+    const stored = await resolveUpsertOrigin(
+      input(),
+      scriptedProlog([]).prolog,
+      NOW,
+      undefined,
+      lookupOf({ origin: { kind: "agent", recorded_at: "2030-01-01" } }),
+    );
+    expect(stored.properties.origin).toEqual({
+      kind: "agent",
+      recorded_at: "2030-01-01",
+    });
+  });
+});

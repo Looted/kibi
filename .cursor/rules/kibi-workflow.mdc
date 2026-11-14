@@ -3,11 +3,11 @@ description: Kibi capability-based discovery-first workflow and KB mutation disc
 alwaysApply: true
 ---
 
-Use Kibi via MCP tools when available, or via CLI JSON routes when MCP is unavailable.
+Use Kibi through whichever approved interface is visible. MCP tools and the trusted project-local CLI JSON routes are equal peers over the same operations.
 
 Interface selection:
-1. If any `kb_*` or `kibi_kb_*` tool is in the tool list, use MCP only. Do not use the CLI path.
-2. Else if Shell (or equivalent) is available and the project-local CLI is trusted, run the non-installing JSON recipe below. Missing MCP tools does not mean Kibi is unavailable.
+1. If any `kb_*` or `kibi_kb_*` tool is in the tool list, use those tools.
+2. Otherwise, if Shell (or equivalent) is available and the project-local CLI is trusted, run the non-installing JSON recipe below. Missing MCP tools does not mean Kibi is unavailable.
 3. Else stop and tell the operator. Do not probe the CLI, do not install packages, and do not infer MCP availability from config file existence.
 4. Shell is in-policy only for the trusted project-local `npx --no-install kibi ...` (or `bunx --no-install kibi ...`) command when step 2 applies.
 5. Never use a global fallback, an installing runner, or an unapproved route. Do not read or edit `.kb/` files directly.

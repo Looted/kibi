@@ -371,7 +371,8 @@ export type OperationRecall = {
 /**
  * Compare this call with the recent ones and remember it. `retryHash` and
  * `searchHash` are one-way hashes of what the call worked on;
- * `workspaceHashes` are the hashes of the workspace and its parents.
+ * `workspaceHashes` are the hashes a skill marker must match: the
+ * workspace root's own.
  */
 export function recallOperation(
   directory: string,

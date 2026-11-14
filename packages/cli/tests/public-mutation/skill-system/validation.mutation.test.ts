@@ -124,6 +124,76 @@ describe("parseSkillBundle", () => {
   });
 });
 
+describe("nested host metadata", () => {
+  const nested = {
+    name: "X",
+    description: "Does x",
+    license: "MIT",
+    metadata: {
+      id: "kibi-x",
+      version: "1.2.3",
+      kibiCompatibility: ">=1",
+      tags: ["a"],
+      resources: ["r.md"],
+    },
+  };
+
+  test("reads the Kibi fields a host mirror nests under metadata", () => {
+    const root = skill(nested, "Body\n", { "r.md": "r" });
+    expect(validateSkillBundle(root)).toStrictEqual({
+      valid: true,
+      errors: [],
+    });
+    expect(parseSkillBundle(root).manifest).toStrictEqual({
+      id: "kibi-x",
+      name: "X",
+      description: "Does x",
+      version: "1.2.3",
+      kibiCompatibility: ">=1",
+      tags: ["a"],
+      resources: ["r.md"],
+    });
+  });
+
+  test("a top-level field wins over a nested one", () => {
+    const root = skill({ ...nested, version: "2.0.0" }, "Body\n", {
+      "r.md": "r",
+    });
+    expect(parseSkillBundle(root).manifest.version).toBe("2.0.0");
+  });
+
+  test("validates nested fields like top-level ones", () => {
+    const root = skill({
+      ...nested,
+      metadata: { ...nested.metadata, version: "x", resources: undefined },
+    });
+    expect(
+      validateSkillBundle(root).errors.map((error) => error.message),
+    ).toStrictEqual(["Invalid skill version: x"]);
+  });
+
+  test.each([null, ["id"], "kibi-x"])(
+    "ignores a metadata value that is not a mapping (%p)",
+    (metadata) => {
+      const root = skill({ ...VALID, metadata });
+      expect(parseSkillBundle(root).manifest.id).toBe("kibi-x");
+      expect(
+        validateSkillBundle(skill({ name: "X", description: "d", metadata }))
+          .valid,
+      ).toBe(false);
+    },
+  );
+
+  test("accepts the shipped Claude Code and ZCode mirrors", () => {
+    for (const host of ["claude", "zcode"])
+      expect(
+        validateSkillBundle(
+          join(import.meta.dir, `../../../../${host}/skills/kibi-usage`),
+        ).errors,
+      ).toStrictEqual([]);
+  });
+});
+
 describe("validateSkillBundle", () => {
   test("reports a missing SKILL.md", () => {
     const root = tempDir();

@@ -228,7 +228,10 @@ describe("deriveDiagnosticFields, exact", () => {
               staleReceiptTests: ["T2", "T1"],
               receiptEvidence: [
                 { testId: "T2", fingerprintDrift: ["command"] },
-                { testId: "T1", fingerprintDrift: ["integration", 4, "command"] },
+                {
+                  testId: "T1",
+                  fingerprintDrift: ["integration", 4, "command"],
+                },
                 { testId: "T3", fingerprintDrift: [] },
                 { fingerprintDrift: ["command"] },
                 "not a row",

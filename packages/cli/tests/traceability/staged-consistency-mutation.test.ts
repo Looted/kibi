@@ -156,6 +156,24 @@ describe("formatConsistencyViolations", () => {
     ]);
   });
 
+  test("shows a violation's suggestion", () => {
+    expect(
+      formatConsistencyViolations([
+        {
+          ...violation("r1", "REQ-1", "first"),
+          suggestion: "fix it",
+        } as Violation,
+      ]),
+    ).toStrictEqual([
+      "Found 1 consistency violation(s) introduced by the staged changes:",
+      "",
+      "[r1] REQ-1",
+      "  first",
+      "  Suggestion: fix it",
+      "",
+    ]);
+  });
+
   test("uses the given kind", () => {
     expect(formatConsistencyViolations([], "context")).toStrictEqual([
       "Found 0 context violation(s) introduced by the staged changes:",
@@ -252,6 +270,65 @@ describe("collectIntroducedConsistencyViolations", () => {
       "cleanup /tmp-2",
     ]);
     expect(h.projected[1]).toStrictEqual([result("REQ-base", "req")]);
+  });
+
+  test("adds requirement-scoped rules and judges them on staged entities", async () => {
+    const stagedNew = violation("must-positive-scenario", "REQ-1", "now");
+    const stagedOld = violation("claim-subject-missing", "REQ-2", "now");
+    const unstaged = violation("must-positive-scenario", "REQ-3", "now");
+    const h = harness([
+      [stagedOld, unstaged],
+      [violation("claim-subject-missing", "REQ-2", "then")],
+    ]);
+    const evaluated: unknown[][] = [];
+    const scoped = {
+      rules: ["claim-subject-missing"],
+      entityIds: new Set(["REQ-1", "REQ-2"]),
+      async evaluate(...args: unknown[]) {
+        evaluated.push(args);
+        return evaluated.length === 1 ? [stagedNew] : [];
+      },
+    };
+    const head = [result("REQ-1", "req")];
+    const found = await collectIntroducedConsistencyViolations(
+      snapshot,
+      head,
+      scoped,
+    );
+    // REQ-2's finding was already at the base, by rule and entity.
+    expect(found).toStrictEqual([stagedNew]);
+    expect(h.rules[0]).toStrictEqual(
+      new Set([
+        "domain-contradictions",
+        "scenario-feasibility",
+        "exception-claim-keys",
+        "kb-consistency",
+        "claim-subject-missing",
+      ]),
+    );
+    expect(evaluated).toStrictEqual([
+      [{ name: "prolog-1" }, "HEAD", head],
+      [{ name: "prolog-2" }, "BASE", [result("REQ-base", "req")]],
+    ]);
+  });
+
+  test("skips the base tree when scoped findings are all on unstaged entities", async () => {
+    const h = harness([[violation("claim-subject-missing", "REQ-3", "x")]]);
+    expect(
+      await collectIntroducedConsistencyViolations(snapshot, [], {
+        rules: [],
+        entityIds: new Set(["REQ-1"]),
+        evaluate: async () => [],
+      }),
+    ).toStrictEqual([]);
+    expect(h.snapshotCalls).toStrictEqual([]);
+  });
+
+  test("drops findings of other rules when no scoped rules were asked for", async () => {
+    harness([[violation("must-positive-scenario", "REQ-1", "x")]]);
+    expect(
+      await collectIntroducedConsistencyViolations(snapshot, []),
+    ).toStrictEqual([]);
   });
 
   test("cleans up the temporary KB when a check fails", async () => {

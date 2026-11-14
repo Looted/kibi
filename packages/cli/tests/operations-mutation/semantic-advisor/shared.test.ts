@@ -365,6 +365,16 @@ describe("strictSuggestion", () => {
     });
   });
 
+  test("a requirement without a statement names only its id in the subject note", () => {
+    const suggestion = strictSuggestion({ id: "REQ-1" }, "ev", CLAIM, "");
+    const subject = (
+      suggestion.applyPlan as { document?: { body: string } }[]
+    )[0];
+    expect(subject?.document?.body).toBe(
+      "Definition not stated: the subject cart is named by requirement REQ-1. The people who own that source can say what it is in the product and what it is not.\n",
+    );
+  });
+
   test("copies each value field present and keys on the first", () => {
     const fields = (claim: Partial<SemanticStrictPropertyClaim>) => {
       const suggestion = strictSuggestion({}, "ev", { ...CLAIM, ...claim }, "");

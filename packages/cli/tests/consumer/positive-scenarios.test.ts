@@ -66,7 +66,11 @@ ${scenarioLink ? "  - type: specified_by\n    target: SCEN-FREE-TIER-CALL\n" : "
   );
 }
 
-function writeFreeTierScenario(ws: ConsumerWorkspace, assumes: boolean): void {
+function writeFreeTierScenario(
+  ws: ConsumerWorkspace,
+  assumes: boolean | string,
+): void {
+  const target = assumes === true ? "FACT-QUOTA-EXHAUSTED" : assumes;
   ws.write(
     ".kb/scenarios/SCEN-FREE-TIER-CALL.md",
     doc(
@@ -76,7 +80,7 @@ title: A free-tier client with no quota left makes a call
 type: scenario
 status: active
 expects: success
-${assumes ? "links:\n  - type: assumes\n    target: FACT-QUOTA-EXHAUSTED\n" : ""}`,
+${target ? `links:\n  - type: assumes\n    target: ${target}\n` : ""}`,
       "Given a free-tier client with no calls remaining, when it makes a call, then the gateway serves it.",
     ),
   );
@@ -133,8 +137,15 @@ describe("positive scenarios through the kibi CLI", () => {
     const [unassumed] = checkViolations(ws, RULE);
     expect(unassumed?.entityId).toBe("REQ-FREE-TIER-CALLS");
     expect(unassumed?.description).toContain(
-      "none assumes a fact on its subjects (client.call_quota)",
+      "none assumes a property_value, predicate or rule fact on its subjects (client.call_quota)",
     );
+
+    // Assuming the subject fact itself states no behaviour either.
+    writeFreeTierScenario(ws, "FACT-QUOTA-SUBJECT");
+    ws.sync();
+    const [subjectOnly] = checkViolations(ws, RULE);
+    expect(subjectOnly?.entityId).toBe("REQ-FREE-TIER-CALLS");
+    expect(subjectOnly?.description).toContain("none assumes a property_value");
 
     // Once it assumes the quota is used up, the rule passes and the existing
     // quota rule refuses the scenario: the conflict nobody modeled surfaces.

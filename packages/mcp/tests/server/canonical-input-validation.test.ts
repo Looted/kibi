@@ -71,6 +71,19 @@ describe("MCP canonical input validation", () => {
     });
   });
 
+  test("every contract violation is reported, separated by semicolons", async () => {
+    await withClient(async (client) => {
+      const result = (await client.callTool({
+        name: "kb_plan_bootstrap",
+        arguments: { maxCandidates: "many", legacyAlias: true },
+      })) as ToolResult;
+      expect(result.structuredContent?.error?.code).toBe("VALIDATION_FAILED");
+      expect(result.structuredContent?.error?.message).toBe(
+        "/ must NOT have additional properties: legacyAlias; /maxCandidates must be integer: integer",
+      );
+    });
+  });
+
   test("the MCP request id is not part of the operation contract", async () => {
     await withClient(async (client) => {
       const result = (await client.callTool({

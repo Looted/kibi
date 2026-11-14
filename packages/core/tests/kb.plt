@@ -348,6 +348,8 @@ test(negative_path_facts_are_assumed_by_rejecting_scenarios_and_ground_nothing,
     % A fact a requirement grounds a claim on states what must hold.
     kb_assert_relationship(assumes, 'SCEN-NEGP-REJECT', 'FACT-NEGP-CLAIM', []),
     kb_assert_relationship(requires_property, 'REQ-NEGP', 'FACT-NEGP-CLAIM', []),
+    % Only a fact is a negative-path fact, whatever a rejecting scenario assumes.
+    assert_raw_relationship(assumes, 'SCEN-NEGP-ERROR', 'REQ-NEGP'),
     kb_negative_path_facts(['FACT-NEGP-ALONE', 'FACT-NEGP-ERRORS', 'FACT-NEGP-OK',
                             'FACT-NEGP-CLAIM', 'FACT-NEGP-WRITES', 'REQ-NEGP',
                             'FACT-NEGP-WRITES', 'FACT-NEGP-MISSING'], Rows),
@@ -765,6 +767,19 @@ test(search_matches_the_words_of_an_entity_id, [setup(setup_kb), cleanup(cleanup
     kb_search_entities(req, "zephyr", 10, 0, Rows, Count),
     assertion(Count == 1),
     assertion(Rows = [['REQ-ZEPHYR-QUOTA', req, _]]).
+
+% The index also holds the words of an entity's type and of its owner,
+% priority, severity, text reference and semantic text.
+test(search_matches_the_type_and_search_fields, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(symbol, 'SYM-BILLING-TOTAL', "Billing total", active, []),
+    assert_fixture_entity(req, 'REQ-BILLING-TOTAL', "Billing total", active, [owner=quillon]),
+    assert_fixture_entity(req, 'REQ-BILLING-OTHER', "Billing total", active, []),
+    kb_search_entities(none, "symbol", 10, 0, TypeRows, TypeCount),
+    assertion(TypeCount == 1),
+    assertion(TypeRows = [['SYM-BILLING-TOTAL', symbol, _]]),
+    kb_search_entities(req, "quillon", 10, 0, OwnerRows, OwnerCount),
+    assertion(OwnerCount == 1),
+    assertion(OwnerRows = [['REQ-BILLING-TOTAL', req, _]]).
 
 test(proof_contract_projection_pages_without_receipt_histories, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Contract = _{
@@ -6564,9 +6579,9 @@ test(related_requirement_unmodeled_reports_unresolved_ledger_linked_to_modeled_r
     related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
     kb_assert_relationship(relates_to, 'REQ-CONVERSATIONS', 'REQ-NOTIFY-GROUPED', []),
     check_related_requirement_unmodeled(Violations),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Violations), Ids),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Violations), Ids),
     assertion(Ids == ['REQ-CONVERSATIONS']),
-    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, Suggestion, _), Violations),
+    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, Suggestion, _, _), Violations),
     assertion(sub_string(Description, _, _, _, "2 unmodeled claim(s)")),
     assertion(sub_string(Description, _, _, _, "REQ-NOTIFY-GROUPED")),
     assertion(sub_string(Suggestion, _, _, _, "pair_reviews")).
@@ -6576,7 +6591,7 @@ test(related_requirement_unmodeled_follows_relates_to_in_either_direction, [setu
     related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
     kb_assert_relationship(relates_to, 'REQ-NOTIFY-GROUPED', 'REQ-CONVERSATIONS', []),
     check_related_requirement_unmodeled(Violations),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Violations), Ids),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Violations), Ids),
     assertion(Ids == ['REQ-CONVERSATIONS']).
 
 test(related_requirement_unmodeled_skips_ledgerless_and_superseded_neighbours, [setup(setup_kb), cleanup(cleanup_kb)]) :-
@@ -6602,7 +6617,7 @@ test(related_requirement_unmodeled_skips_ledgerless_and_superseded_neighbours, [
     ]),
     kb_assert_relationship(relates_to, 'REQ-GAP', 'REQ-NOTIFY-GROUPED', []),
     check_related_requirement_unmodeled(Linked),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Linked), LinkedIds),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Linked), LinkedIds),
     assertion(LinkedIds == ['REQ-GAP']),
     % Once it supersedes the modeled requirement, the older one is no longer
     % current and the pair is gone.

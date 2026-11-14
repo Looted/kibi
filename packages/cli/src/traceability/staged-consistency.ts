@@ -3,6 +3,12 @@ import type { ExtractionResult } from "../extractors/markdown.js";
 import type { Violation } from "../public/check-types.js";
 import { isEntityLanePath } from "../utils/kb-paths.js";
 import { readSnapshotKnowledge } from "./snapshot-knowledge.js";
+import type { stagedRequirementRules } from "./staged-requirement-rules.js";
+
+/** The requirement-scoped rules a staged tree's KB schema enables. */
+type StagedRequirementRules = NonNullable<
+  ReturnType<typeof stagedRequirementRules>
+>;
 import {
   cleanupTempKb,
   createTempKb,
@@ -73,16 +79,26 @@ function withoutSymbols(knowledge: ExtractionResult[]): ExtractionResult[] {
     }));
 }
 
+/** A requirement-scoped finding is one per rule and entity. */
+function scopedKey(violation: Violation): string {
+  return JSON.stringify([violation.rule, violation.entityId]);
+}
+
 async function consistencyViolations(
   knowledge: ExtractionResult[],
+  tree: string,
+  scoped: StagedRequirementRules | undefined,
 ): Promise<Violation[]> {
   const ctx = await createTempKb();
   try {
     await projectStagedEntities(ctx.prolog, withoutSymbols(knowledge));
-    return await runAggregatedChecks(
+    const found = await runAggregatedChecks(
       ctx.prolog,
-      new Set(STAGED_CONSISTENCY_RULES),
+      new Set([...STAGED_CONSISTENCY_RULES, ...(scoped?.rules ?? [])]),
     );
+    if (scoped !== undefined)
+      found.push(...(await scoped.evaluate(ctx.prolog, tree, knowledge)));
+    return found;
   } finally {
     await cleanupTempKb(ctx.tempDir);
   }
@@ -93,12 +109,28 @@ async function consistencyViolations(
  * A violation already present at the base commit does not block an
  * unrelated commit; full `kibi check` still reports it. The base tree is
  * only analyzed when the staged tree has violations.
+ *
+ * `scoped` adds requirement-scoped rules (see staged-requirement-rules):
+ * their findings block only on an entity the commit stages, and only when
+ * the base tree has no finding of the same rule on that entity.
  */
 export async function collectIntroducedConsistencyViolations(
   snapshot: SnapshotReader,
   headKnowledge: ExtractionResult[],
+  scoped?: StagedRequirementRules,
 ): Promise<Violation[]> {
-  const head = await consistencyViolations(headKnowledge);
+  const consistencyRules = new Set(STAGED_CONSISTENCY_RULES);
+  const key = (violation: Violation): string =>
+    consistencyRules.has(violation.rule)
+      ? violationKey(violation)
+      : scopedKey(violation);
+  const head = (
+    await consistencyViolations(headKnowledge, snapshot.headTree, scoped)
+  ).filter(
+    (violation) =>
+      consistencyRules.has(violation.rule) ||
+      scoped?.entityIds.has(violation.entityId) === true,
+  );
   if (head.length === 0) return [];
   const base = await consistencyViolations(
     readSnapshotKnowledge(
@@ -106,9 +138,11 @@ export async function collectIntroducedConsistencyViolations(
       snapshot.baseTree,
       snapshot.readBlobs,
     ),
+    snapshot.baseTree,
+    scoped,
   );
-  const existing = new Set(base.map(violationKey));
-  return head.filter((violation) => !existing.has(violationKey(violation)));
+  const existing = new Set(base.map(key));
+  return head.filter((violation) => !existing.has(key(violation)));
 }
 
 /** Text lines for introduced consistency violations, in `kibi check` form. */
@@ -123,7 +157,10 @@ export function formatConsistencyViolations(
   for (const violation of violations) {
     lines.push(`[${violation.rule}] ${violation.entityId}`);
     if (violation.source) lines.push(`  Source: ${violation.source}`);
-    lines.push(`  ${violation.description}`, "");
+    lines.push(`  ${violation.description}`);
+    if (violation.suggestion)
+      lines.push(`  Suggestion: ${violation.suggestion}`);
+    lines.push("");
   }
   return lines;
 }

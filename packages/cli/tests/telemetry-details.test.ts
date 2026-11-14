@@ -326,6 +326,33 @@ describe("engine start failures", () => {
   });
 });
 
+describe("engine start failure causes", () => {
+  const failed = () =>
+    Object.assign(new Error("Kibi engine failed to start: x"), {
+      code: "ENGINE_START_FAILED",
+      startFailure: "swipl_not_found",
+    });
+  const wrap = (error: Error, times: number): Error =>
+    times === 0
+      ? error
+      : wrap(new Error("wrapped", { cause: error }), times - 1);
+  const kind = (error: unknown) =>
+    operationTelemetrySignals({ operation: "sync", error }).rejectionCode;
+
+  test("a kind that is not text is passed over for one further in", () => {
+    const outer = Object.assign(new Error("x", { cause: failed() }), {
+      code: "ENGINE_START_FAILED",
+      startFailure: 7,
+    });
+    expect(kind(outer)).toBe("swipl_not_found");
+  });
+
+  test("only the first five errors of a chain are looked at", () => {
+    expect(kind(wrap(failed(), 4))).toBe("swipl_not_found");
+    expect(kind(wrap(failed(), 5))).toBeUndefined();
+  });
+});
+
 describe("signal edges", () => {
   test("schema names come from properties maps of both schemas only", () => {
     const names = kibiSchemaFieldNames();

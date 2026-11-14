@@ -369,6 +369,9 @@ function preToolUse(
   const firm = removesOnlyDeadImplementsComments(
     target.absolute,
     input.toolInput,
+    // rationale: Claude's edit tools carry no apply_patch envelope, and the
+    // base only resolves patch paths.
+    // Stryker disable next-line LogicalOperator
     input.cwd ?? workspace.root,
   )
     ? undefined

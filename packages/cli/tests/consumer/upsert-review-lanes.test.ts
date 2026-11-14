@@ -53,6 +53,12 @@ function bootstrappedRequirement(): { ws: ConsumerWorkspace; req: Json } {
   return { ws: workspace, req };
 }
 
+/** The origin the store holds for an entity, as an object. */
+function storedOrigin(entity: Json): Json {
+  const origin = entity.origin;
+  return (typeof origin === "string" ? JSON.parse(origin) : origin) as Json;
+}
+
 describe("kb_upsert review lanes through the real CLI", () => {
   test("links a scenario without resending the ledger and records a review observation quoting its claim", () => {
     const { ws: workspace, req } = bootstrappedRequirement();
@@ -83,13 +89,30 @@ describe("kb_upsert review lanes through the real CLI", () => {
     expect(afterLink?.semantic_inventory).toEqual(req.semantic_inventory);
     expect(afterLink?.logic_claims).toEqual(req.logic_claims);
 
-    // Changing the prose without a new ledger is still rejected.
-    const retitled = workspace.json(["upsert"], {
+    // The bootstrap requirement is a firm decision: a retitle that cites no
+    // new human words is refused before its ledger is read.
+    const unapproved = workspace.json(["upsert"], {
       type: "req",
       id: reqId,
       properties: {
         title: "Users must be able to export reports.",
         status: "open",
+      },
+    });
+    expect(unapproved.status).toBe("error");
+    expect(JSON.stringify(unapproved.error)).toContain(
+      "is a firm decision, so kb_upsert does not change its title in place",
+    );
+    // Citing the person's words, changing the prose (the semantic_text its
+    // ledger reads) without a new ledger is still rejected.
+    const retitled = workspace.json(["upsert"], {
+      type: "req",
+      id: reqId,
+      properties: {
+        title: req.title,
+        status: "open",
+        semantic_text: "Users must be able to export reports.",
+        origin: { ...storedOrigin(req), ref: "spec:claim:2" },
       },
     });
     expect(retitled.status).toBe("error");

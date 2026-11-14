@@ -663,8 +663,13 @@ function readSessionMarkers(env: Env): SessionMarkers {
   }
 }
 
+/**
+ * The hashed key of a workspace path. A symlinked path and its target are one
+ * workspace, so a hook given the host's path and a CLI or MCP process that
+ * reads its own directory agree.
+ */
 function workspaceKey(workspaceRoot: string): string {
-  return hashTelemetryId(`workspace\0${path.resolve(workspaceRoot)}`);
+  return hashTelemetryId(`workspace\0${realDirectory(workspaceRoot)}`);
 }
 
 /**
@@ -843,22 +848,17 @@ export function recordOperationTelemetry(
   }
 }
 
-/** The workspace's hash and its parents', for markers set in a parent. */
+/**
+ * The hash a skill marker must carry to count for this workspace: its own
+ * root only. A marker on a parent directory, such as the home directory a
+ * global MCP server started in, says nothing about the repositories below it.
+ */
 function workspaceHashes(workspaceRoot: string | undefined): string[] {
   // rationale: a placeholder entry is not a workspace key, and skill markers
   // only ever hold workspace keys, so it matches none.
   // Stryker disable next-line ArrayDeclaration
   if (!workspaceRoot) return [];
-  // rationale: as above, a placeholder entry matches no skill marker.
-  // Stryker disable next-line ArrayDeclaration
-  const hashes: string[] = [];
-  let current = path.resolve(workspaceRoot);
-  for (;;) {
-    hashes.push(workspaceKey(current));
-    const parent = path.dirname(current);
-    if (parent === current) return hashes;
-    current = parent;
-  }
+  return [workspaceKey(workspaceRoot)];
 }
 
 /**
@@ -919,9 +919,10 @@ function signalProperties(
 }
 
 /**
- * Remember that a host hook saw a Kibi skill load in a workspace, so later
- * CLI and MCP events there carry `skill_loaded_before`. Only the workspace
- * path's hash is stored.
+ * Remember that a Kibi skill was loaded in a workspace, so later CLI and MCP
+ * events from that same workspace root carry `skill_loaded_before`. Callers
+ * pass the resolved workspace root, never a subdirectory or a parent. Only
+ * the workspace path's hash is stored.
  */
 export function rememberTelemetrySkillLoad(
   workspaceRoot: string,

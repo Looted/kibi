@@ -40,6 +40,30 @@ describe("validateUpsertInput golden cases", () => {
   }
 });
 
+describe("a retired requirement", () => {
+  const upsert = (type: string, properties: Record<string, unknown>) =>
+    outcome({
+      type,
+      id: type === "req" ? "REQ-old" : "ADR-old",
+      properties: { title: "Old", ...properties },
+    } as UpsertInput);
+
+  test("needs the reason its behavior is gone", () => {
+    expect(upsert("req", { status: "retired" })).toStrictEqual({
+      code: "ENTITY_VALIDATION_FAILED",
+      message:
+        "Entity validation failed: status retired requires retired_reason saying why the behavior no longer exists (with the date or change that retired it)",
+      issues: [{ rule: "required", field: "retired_reason" }],
+    });
+    for (const accepted of [
+      upsert("req", { status: "retired", retired_reason: "Gone in v2." }),
+      upsert("req", { status: "closed" }),
+      upsert("adr", { status: "retired" }),
+    ])
+      expect(accepted).not.toHaveProperty("code");
+  });
+});
+
 describe("upsert schema helpers", () => {
   test("knows the added and the schema's own properties", () => {
     expect(isUpsertEntityProperty("granularity_reason")).toBe(true);

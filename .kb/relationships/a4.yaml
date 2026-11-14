@@ -468,3 +468,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-57e9a2b334a2
+  - type: executable_for
+    from: SYM-test-staged-check-harness
+    to: TEST-cli-staged-consistency
+    created_at: 2026-11-13T21:37:24.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fd2ac9a9ab1
