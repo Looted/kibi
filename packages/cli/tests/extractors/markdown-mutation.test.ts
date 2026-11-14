@@ -650,6 +650,8 @@ describe("requirement-only fields", () => {
       "failure_side_waiver: a",
       "failure_side_waiver_approved_by: a",
       "rationale: a",
+      "retired_reason: a",
+      "pair_reviews: [{ with: REQ-A, verdict: conflict }]",
     ]) {
       expect([field, flag(field)]).toStrictEqual([
         field,
@@ -701,6 +703,17 @@ describe("requirement-only fields", () => {
         filePath: "/kb/requirements/r.md",
       });
     }
+  });
+
+  test("keeps the pair reviews that are records", () => {
+    expect(
+      extract(
+        "id: R\ntitle: T\npair_reviews: [{ with: REQ-A, verdict: conflict }, 5, [2]]",
+      ).entity.pair_reviews,
+    ).toStrictEqual([{ with: "REQ-A", verdict: "conflict" }]);
+    expect(
+      extract("id: R\ntitle: T\npair_reviews: x").entity.pair_reviews,
+    ).toBe(undefined);
   });
 
   test("validates the retired reason", () => {
