@@ -980,7 +980,7 @@ describe("interactive queries", () => {
       .query("kb_wait(x)")
       .catch((e: Error) => e.message);
     expect(message).toBe(
-      `Query timeout after 0.03s (stage=load, pid=${child.pid}, killed=no, exitCode=null, signal=null, goal=kb_wait). If several fresh Kibi commands hang or crawl the same way, the engine state is likely wedged: run 'kibi engine stop' (then 'kibi sync --rebuild' if needed) and retry.`,
+      `Query timeout after 0.03s (stage=load, pid=${child.pid}, killed=no, exitCode=null, signal=null, goal=kb_wait). Kibi stopped that Prolog session and the next command starts a fresh one, so a goal that times out again is too slow for this knowledge base, not stuck: narrow it (for example kibi check --rules <rule>). Run 'kibi engine stop' only when fresh commands hang before their first goal.`,
     );
     expect(logs).toStrictEqual([
       "[prolog debug] start query: kb_wait",

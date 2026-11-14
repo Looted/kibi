@@ -150,6 +150,9 @@ function signalGroup(
     }
   }
   // An exited child returns false here rather than throwing.
+  // rationale: on POSIX this is reached only once the group is gone, when
+  // the child has exited and the call does nothing; it matters on Windows.
+  // Stryker disable next-line CallExpression
   child.kill(signal);
 }
 

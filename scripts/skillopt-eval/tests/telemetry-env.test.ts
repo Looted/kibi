@@ -4,11 +4,17 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { PassThrough } from "node:stream";
+
 import { fixtureCliEnv } from "../runtime/fixture-kb-setup";
+import { runMcpBroker } from "../runtime/mcp-broker-process";
 import { runBoundedProcess } from "../runtime/process";
 import { harnessChildEnv } from "../runtime/telemetry-env";
 
-const KIBI_BIN = path.resolve(import.meta.dir, "../../../packages/cli/bin/kibi");
+const KIBI_BIN = path.resolve(
+  import.meta.dir,
+  "../../../packages/cli/bin/kibi",
+);
 const roots: string[] = [];
 
 afterEach(() => {
@@ -82,8 +88,63 @@ describe("harness child environment", () => {
       expect(child.exitCode).toBe(0);
       expect(child.stdout).toBe("0");
     } finally {
-      if (previous === undefined) delete process.env.KIBI_TELEMETRY;
+      if (previous === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_TELEMETRY");
       else process.env.KIBI_TELEMETRY = previous;
     }
   }, 120_000);
+
+  test("the MCP broker starts the downstream Kibi MCP server with telemetry off", async () => {
+    const root = temporaryDirectory("kibi-harness-broker-");
+    const serverPath = path.join(root, "server.ts");
+    const seenPath = path.join(root, "telemetry.txt");
+    fs.writeFileSync(
+      serverPath,
+      `require("node:fs").writeFileSync(${JSON.stringify(seenPath)}, String(process.env.KIBI_TELEMETRY));
+const decoder = new TextDecoder();
+let buffer = "";
+for await (const chunk of Bun.stdin.stream()) {
+  buffer += decoder.decode(chunk);
+  let newline;
+  while ((newline = buffer.indexOf("\\n")) >= 0) {
+    const line = buffer.slice(0, newline);
+    buffer = buffer.slice(newline + 1);
+    if (!line) continue;
+    const request = JSON.parse(line);
+    console.log(JSON.stringify({jsonrpc:"2.0",id:request.id,result:{protocolVersion:"2024-11-05",capabilities:{tools:{}},serverInfo:{name:"fake",version:"1"}}}));
+  }
+}
+`,
+    );
+    const previous = process.env.KIBI_TELEMETRY;
+    process.env.KIBI_TELEMETRY = "1";
+    try {
+      const input = new PassThrough();
+      const attempt = runMcpBroker(
+        {
+          downstream: {
+            command: process.execPath,
+            args: [serverPath],
+            cwd: root,
+          },
+          tracePath: path.join(root, "trace.jsonl"),
+          startupTimeoutMs: 5_000,
+          toolTimeoutMs: 2_000,
+          killGraceMs: 50,
+        },
+        { input, output: new PassThrough(), error: new PassThrough() },
+      );
+      input.write(
+        `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} })}\n`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      input.end();
+      await attempt;
+    } finally {
+      if (previous === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_TELEMETRY");
+      else process.env.KIBI_TELEMETRY = previous;
+    }
+    expect(fs.readFileSync(seenPath, "utf8")).toBe("0");
+  });
 });

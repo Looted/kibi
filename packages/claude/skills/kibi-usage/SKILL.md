@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.47.0
+  version: 2.48.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -56,8 +56,9 @@ The MCP server keeps its tool list short. Load skills with `kb_skills`
 (`action: "list" | "load" | "read"`; CLI `kibi skill` or `kibi skills
 list|load|read`). Model prose with `kb_model` (`mode: "analyze"` for the
 semantic advisor, `"requirement"` for strict claims, `"predicates"` for
-ontology predicates; CLI `kibi model` or `semantic-advisor`,
-`model-requirement`, `suggest-predicates`). Preflight a write with
+ontology predicates; CLI `kibi model` takes the same input, `mode` and
+`requirementId` included; the single-mode routes `semantic-advisor`,
+`model-requirement`, `suggest-predicates` take only their mode's fields). Preflight a write with
 `kb_upsert` plus `dryRun: true` (CLI `upsert` with `"dryRun": true` or
 `validate-upsert`); it validates and writes nothing. Result payloads still name
 catalog operations such as `kb_model_requirement` or `kb_validate_upsert` in
@@ -330,7 +331,11 @@ authored. Each one is the order the write path accepts.
    one (see Quantified claims below). Set
    `expects` only on a scenario that has `assumes` links; `expects: success`
    without them only yields `scenario-feasibility-unknown` ("assumes
-   nothing"). A
+   nothing"). Between the scenario's write and the requirement's, the
+   check also reports the new success scenario as
+   `scenario-feasibility-unknown` ("not constrained by any current
+   requirement"): that is expected, it clears once the requirement write
+   lands, so do not edit the scenario to silence it. A
    `modeled` entry and its grounding link must arrive in the same write
    (`modeled semantic_inventory entries (n) must equal logical grounding
    relationships (m)`); a clause not grounded yet stays `status: missing`
@@ -514,7 +519,10 @@ words: what it is, what it includes and what it is not); `kb_check` blocks a
 subject without one (`subject-definition-missing`) and two subjects whose key
 and title read as one (`subject-duplicate`). Relate subjects instead of
 copying them: a dotted key (`drawing.read_only_view`) is part of its prefix,
-and `part_of`, `kind_of` and `distinct_from` name other subject keys.
+and `part_of`, `kind_of` and `distinct_from` name other subject keys. A
+subject that names itself under `part_of`, `kind_of` or `distinct_from`, or a
+chain of broader subjects that leads back to it, is blocked
+(`subject-hierarchy-invalid`).
 
 Every unmodeled `normative`, `condition`, `exception` or `definition` claim
 of a current requirement names the subjects it is about in its inventory
@@ -522,9 +530,11 @@ entry, `subjects: [<subject_key>, ...]` (`claim-subject-missing`), and each
 key must be defined (`claim-subject-undefined`). Prose Kibi cannot compare
 still meets the other requirements on the same subject:
 `kb_query {"factKind":"subject","subjectKey":"<key>"}` returns the
-definition, broader and narrower subjects and every current requirement about
-it or a narrower one. `kb_upsert` of a requirement lists those neighbours:
-read them, and when one contradicts the new claim, or restricts what it
+definition, broader and narrower subjects, every current requirement about
+it or a narrower one, and under `unmodeledClaims` the prose claims Kibi cannot
+compare. `kb_upsert` of a requirement lists those neighbours, on the subject,
+a narrower or a broader one, and warns when a `pair_reviews` entry's `with`
+names no current requirement: read them, and when one contradicts the new claim, or restricts what it
 describes without saying so, ask the person which rule holds (see
 `kibi-decisions`). Pick an existing subject before defining a new one; when
 none fits, define it from what the project's people and code say; when nobody
@@ -534,8 +544,10 @@ named and who could define it, rather than inventing one.
 A `must` requirement written after the schema 17 upgrade states the behaviour
 it promises as a success scenario (`must-positive-scenario`): a scenario with
 `expects: success` that the requirement links through `specified_by` and that
-`assumes` a `property_value` fact on one of the requirement's subjects or a
-narrower one. Write the positive case even when the requirement is prose
+`assumes` a `property_value`, predicate or rule fact (a subject fact does not
+count) on one of the requirement's subjects or a narrower one. When the
+requirement names a subject no subject fact defines, define the subject
+first. Write the positive case even when the requirement is prose
 nobody modeled: `scenario-feasibility` then refuses the scenario when another
 current requirement forbids what it assumes, which is how a prose requirement
 that quietly contradicts a modeled one is caught. Must requirements the
@@ -556,13 +568,21 @@ requirement's subject keys when you can. When it cannot be modeled yet, link
 the two with `relates_to` and record one `pair_reviews` entry on the
 requirement: `with` (the other id), `verdict` (`no_conflict` with
 `separated_by`, the condition that keeps them apart; `interacts` with
-`resolved_by`, a scenario, fact, requirement or claim key that settles how
-they combine; or `conflict`), `claims` (`{claim_key, payload_hash}` of each
-unmodeled claim of both, so the verdict goes stale when one changes) and
-`origin`. A `conflict` never settles a pair: ask the person which rule holds.
-Your own verdict on a pair with a `must` or firm requirement counts only once
-the person confirms it and you set `origin.approved_by`; never set it
-yourself.
+`resolved_by`, which settles how they combine: a scenario either of them
+`specified_by`, a fact either links, a third current requirement, or a
+`condition` or `exception` claim key of either, never the two requirements
+themselves; or `conflict`), `claims` (`{claim_key}` of each unmodeled claim,
+so the verdict goes stale when a claim it does not name appears; a
+`payload_hash` is accepted and ignored) and `origin`. A `conflict` never
+settles a pair: ask the person which rule holds. On a pair with a `must` or
+firm requirement, a verdict whose `origin` is missing or not `kind: human`,
+or that sits on a requirement an agent wrote, counts only once the person
+confirms it and you set `origin.approved_by`; never set it yourself. The
+finding lists each requirement once per problem with the partners it pairs
+with. A claim with status `missing` whose role states no rule (`descriptive`)
+is modeled, set to `ontology_gap` with a reason when no predicate can state
+it, or reviewed; `nonlogical` is accepted only for `rationale`, `example` and
+`subjective` claims.
 
 ## Quantified claims: model the dimension
 

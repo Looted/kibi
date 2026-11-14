@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { checkCommand } from "../../../src/commands/check.js";
 import { EngineClient } from "../../../src/engine.js";
 import { PrologProcess } from "../../../src/prolog.js";
@@ -340,6 +343,23 @@ describe("result rendering", () => {
     ]);
   });
 
+  test("json output carries the check's migration plan", async () => {
+    const migrationPlan = { version: "kibi.migration-plan.v2", steps: [] };
+    checkResult = { structuredContent: { violations: [], migrationPlan } };
+    expect(await checkCommand({ kbPath: "/kb", format: "json" })).toEqual({
+      exitCode: 0,
+    });
+    expect(JSON.parse(logs[0] as string)).toEqual({
+      structuredContent: {
+        violations: [],
+        count: 0,
+        diagnostics: [],
+        qualityDiagnostics: [],
+        migrationPlan,
+      },
+    });
+  });
+
   test("json output without content passes", async () => {
     checkResult = {};
     expect(await checkCommand({ kbPath: "/kb", format: "json" })).toEqual({
@@ -406,26 +426,129 @@ describe("result rendering", () => {
     ]);
   });
 
-  test("suggestions show only for evidence-floor findings by default", async () => {
+  test("suggestions show their first sentence by default, evidence-floor ones whole", async () => {
     checkResult = {
       structuredContent: {
         violations: [
           violation(),
-          violation({ rule: EVIDENCE_FLOOR_RULE, suggestion: "Add proof" }),
+          violation({
+            entityId: "REQ-2",
+            suggestion: "Add a title. Then sync.",
+          }),
+          violation({
+            rule: EVIDENCE_FLOOR_RULE,
+            suggestion: "Add proof. Then prove.",
+          }),
         ],
       },
     };
     expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 1 });
     expect(logs).toEqual([
-      "Found 2 violation(s):",
+      "Found 3 violation(s):",
       "",
       "[required-fields] REQ-1",
       "  Missing required field: title",
+      "  Suggestion: Add title",
+      "",
+      "[required-fields] REQ-2",
+      "  Missing required field: title",
+      "  Suggestion: Add a title. (kibi check --fix shows more)",
       "",
       `[${EVIDENCE_FLOOR_RULE}] REQ-1`,
       "  Missing required field: title",
-      "  Suggestion: Add proof",
+      "  Suggestion: Add proof. Then prove.",
       "",
     ]);
+  });
+
+  test("a KB on an older schema is pointed at kibi migrate before the result", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-check-schema-"));
+    mkdirSync(path.join(root, ".kb"));
+    writeFileSync(
+      path.join(root, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 14,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    );
+    const cwd = spyOn(process, "cwd").mockReturnValue(root);
+    try {
+      expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
+    } finally {
+      cwd.mockRestore();
+      rmSync(root, { recursive: true, force: true });
+    }
+    expect(logs).toEqual([
+      expect.stringMatching(
+        /^Note: KB schemaVersion 14 is older than the latest version/,
+      ),
+      "",
+      "✓ No violations found. KB is valid.",
+    ]);
+  });
+
+  describe("concise suggestions", () => {
+    async function shown(suggestion: string): Promise<string | undefined> {
+      checkResult = {
+        structuredContent: { violations: [violation({ suggestion })] },
+      };
+      logs.length = 0;
+      await checkCommand({ kbPath: "/kb" });
+      return logs.find((line) => line.startsWith("  Suggestion: "));
+    }
+
+    test("keep the first sentence and point to the rest", async () => {
+      expect(await shown("Do a. Then b.")).toBe(
+        "  Suggestion: Do a. (kibi check --fix shows more)",
+      );
+      expect(await shown("Do a.\nThen b.")).toBe(
+        "  Suggestion: Do a. (kibi check --fix shows more)",
+      );
+      expect(await shown("Do a.  Then b.")).toBe(
+        "  Suggestion: Do a. (kibi check --fix shows more)",
+      );
+      expect(await shown(". Then b.")).toBe(
+        "  Suggestion: . (kibi check --fix shows more)",
+      );
+    });
+
+    test("do not end the first sentence at an abbreviation", async () => {
+      expect(await shown("Pick one, e.g. `a`. Then b.")).toBe(
+        "  Suggestion: Pick one, e.g. `a`. (kibi check --fix shows more)",
+      );
+      expect(await shown("Pick one (e.g. a). Then b.")).toBe(
+        "  Suggestion: Pick one (e.g. a). (kibi check --fix shows more)",
+      );
+      expect(await shown("E.g. a. Then b.")).toBe(
+        "  Suggestion: E.g. a. (kibi check --fix shows more)",
+      );
+      expect(await shown("Name it, i.e. x.")).toBe(
+        "  Suggestion: Name it, i.e. x.",
+      );
+      expect(await shown("Run it, e.g. (kibi sync)")).toBe(
+        "  Suggestion: Run it, e.g. (kibi sync)",
+      );
+      expect(await shown("Use eg. Then b.")).toBe(
+        "  Suggestion: Use eg. (kibi check --fix shows more)",
+      );
+      expect(await shown("Set the.e.g. Then b.")).toBe(
+        "  Suggestion: Set the.e.g. (kibi check --fix shows more)",
+      );
+      expect(await shown("Set xe.g. Then b.")).toBe(
+        "  Suggestion: Set xe.g. (kibi check --fix shows more)",
+      );
+      expect(await shown("Set e.gx. Then b.")).toBe(
+        "  Suggestion: Set e.gx. (kibi check --fix shows more)",
+      );
+    });
+
+    test("keep a one-sentence suggestion whole", async () => {
+      expect(await shown("Do a.")).toBe("  Suggestion: Do a.");
+      expect(await shown("Do a. ")).toBe("  Suggestion: Do a. ");
+      expect(await shown("Set kibi.x to `a.b`")).toBe(
+        "  Suggestion: Set kibi.x to `a.b`",
+      );
+    });
   });
 });

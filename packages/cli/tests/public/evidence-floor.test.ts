@@ -22,8 +22,6 @@ import {
   type EvidenceFloorRow,
   collectEvidenceFloorViolations,
   evidenceFloorViolations,
-  pastApprovalGrace,
-  unapprovedImplementedViolations,
 } from "../../src/public/operations/evidence-floor.js";
 
 const roots: string[] = [];
@@ -259,8 +257,32 @@ describe("approval floor and requirement review rules", () => {
       },
     ],
     unapprovedImplemented: [
-      { id: "REQ-OLD", createdAt: "2026-01-01T00:00:00Z", symbols: ["SYM-A"] },
-      { id: "REQ-NEW", createdAt: "2026-02-10T00:00:00Z", symbols: ["SYM-B"] },
+      {
+        id: "REQ-OLD",
+        recordedAt: "2026-01-01T00:00:00Z",
+        source: ".kb/requirements/REQ-OLD.md",
+        symbols: ["SYM-A"],
+      },
+      {
+        id: "REQ-NEW",
+        recordedAt: "2026-02-10T00:00:00Z",
+        source: ".kb/requirements/REQ-NEW.md",
+        symbols: ["SYM-B"],
+      },
+      // No origin.recorded_at: the document's created_at decides.
+      {
+        id: "REQ-DOC-NEW",
+        recordedAt: "",
+        source: ".kb/requirements/REQ-DOC-NEW.md",
+        symbols: ["SYM-C"],
+      },
+      // Neither: it counts as older.
+      {
+        id: "REQ-UNDATED",
+        recordedAt: "",
+        source: ".kb/requirements/REQ-UNDATED.md",
+        symbols: ["SYM-D"],
+      },
     ],
   });
   const context = (root: string) => ({
@@ -288,13 +310,21 @@ describe("approval floor and requirement review rules", () => {
   ]);
   const byRule = (violations: { rule: string; entityId: string }[]) =>
     violations.map((v) => `${v.rule}:${v.entityId}`).sort();
+  const documents = {
+    ".kb/requirements/REQ-DOC-NEW.md": requirement(
+      "REQ-DOC-NEW",
+      "created_at: 2026-02-10T00:00:00Z\n",
+    ),
+    ".kb/requirements/REQ-UNDATED.md": requirement("REQ-UNDATED"),
+  };
 
   test("from schema 15 an approval floor and an old unapproved implemented must requirement fail", async () => {
-    const root = workspace({ ".kb/manifest.json": manifest(15) });
+    const root = workspace({ ".kb/manifest.json": manifest(15), ...documents });
     expect(
       byRule(await collectEvidenceFloorViolations(context(root), allRules)),
     ).toEqual([
       "agent-requirement-unapproved-implemented:REQ-OLD",
+      "agent-requirement-unapproved-implemented:REQ-UNDATED",
       "evidence-floor:REQ-APPROVED",
       "evidence-floor:REQ-FIRM",
     ]);
@@ -308,7 +338,7 @@ describe("approval floor and requirement review rules", () => {
   });
 
   test("each rule runs only when selected", async () => {
-    const root = workspace({ ".kb/manifest.json": manifest(15) });
+    const root = workspace({ ".kb/manifest.json": manifest(15), ...documents });
     expect(
       byRule(
         await collectEvidenceFloorViolations(
@@ -316,7 +346,10 @@ describe("approval floor and requirement review rules", () => {
           new Set([AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE]),
         ),
       ),
-    ).toEqual(["agent-requirement-unapproved-implemented:REQ-OLD"]);
+    ).toEqual([
+      "agent-requirement-unapproved-implemented:REQ-OLD",
+      "agent-requirement-unapproved-implemented:REQ-UNDATED",
+    ]);
   });
 
   test("an approval floor finding says it comes from the approval", () => {
@@ -326,22 +359,6 @@ describe("approval floor and requirement review rules", () => {
     expect(finding?.description).toContain(
       "the floor of an approved requirement",
     );
-  });
-
-  test("the approval grace period counts from created_at, and no date counts as past it", () => {
-    expect(
-      pastApprovalGrace("2026-01-01T00:00:00Z", "2026-01-15T00:00:01Z"),
-    ).toBe(true);
-    expect(
-      pastApprovalGrace("2026-01-01T00:00:00Z", "2026-01-14T00:00:00Z"),
-    ).toBe(false);
-    expect(pastApprovalGrace("", "2026-01-14T00:00:00Z")).toBe(true);
-    const [finding] = unapprovedImplementedViolations(
-      [{ id: "REQ-X", createdAt: "", symbols: ["SYM-A"] }],
-      "2026-01-14T00:00:00Z",
-    );
-    expect(finding?.description).toContain("with no created_at");
-    expect(finding?.suggestion).toContain("origin.approved_by");
   });
 });
 

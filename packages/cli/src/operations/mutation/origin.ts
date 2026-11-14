@@ -16,7 +16,9 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { KbRejection } from "../../cli-errors.js";
 import { readEntityOrigin } from "../../public/entity-origin.js";
+import { approvalDateProblem } from "../../public/operations/evidence-floor.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import {
   type StoredEntityLookup,
@@ -30,6 +32,35 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function withOrigin(input: UpsertInput, origin: unknown): UpsertInput {
   return { ...input, properties: { ...input.properties, origin } };
+}
+
+/**
+ * A requirement's `origin.recorded_at`, else its `created_at`, starts the
+ * grace period agent-requirement-unapproved-implemented gives an agent's
+ * requirement before a person must approve it. A requirement write that
+ * states either must state a real past time: free text, a day that does not
+ * exist or a time more than a day later than now is
+ * refused, so an agent cannot keep its own requirement out of review with a
+ * date. Only the values the payload states are judged; a stored origin the
+ * write keeps is not.
+ */
+function assertRequirementClockDates(input: UpsertInput, now: Date): void {
+  if (input.type !== "req") return;
+  const origin = input.properties.origin;
+  const stated: Array<[string, unknown]> = [
+    ["created_at", input.properties.created_at],
+    ["origin.recorded_at", isRecord(origin) ? origin.recorded_at : undefined],
+  ];
+  for (const [field, value] of stated) {
+    if (value === undefined) continue;
+    const text = String(value);
+    const problem = approvalDateProblem(text, now.toISOString());
+    if (problem === undefined) continue;
+    throw new KbRejection(
+      "ENTITY_VALIDATION_FAILED",
+      `Entity validation failed: ${field} ${JSON.stringify(text)} ${problem === "future" ? `is later than now (${now.toISOString()})` : "is not an ISO 8601 date or timestamp"}. It starts the review grace period of an agent-written requirement, so it must be the real time the requirement was written: leave it out and kb_upsert records the write time.`,
+    );
+  }
 }
 
 /**
@@ -56,6 +87,7 @@ export async function resolveUpsertOrigin(
   staged?: StagedUpsertState,
   lookup?: StoredEntityLookup,
 ): Promise<UpsertInput> {
+  assertRequirementClockDates(input, now);
   const supplied = input.properties.origin;
   if (supplied !== undefined) {
     return isRecord(supplied) && supplied.recorded_at === undefined

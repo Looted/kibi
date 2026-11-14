@@ -126,4 +126,88 @@ describe("kibi check --staged consistency", () => {
     );
     expect(stagedCheck(ws)).toEqual({ status: 0, violations: [] });
   }, 600_000);
+
+  test("blocks requirement-scoped rules only on the staged requirements", () => {
+    const ws = createConsumerWorkspace("kibi-staged-requirement-rules-");
+    workspace = ws;
+    const text = "Login must return a session token to the user.";
+    const requirement = (
+      id: string,
+      priority: string,
+      subjects: string[] | undefined,
+    ) => ({
+      type: "req",
+      id,
+      properties: {
+        title: "Login returns a session token",
+        status: "open",
+        priority,
+        origin: { kind: "agent" },
+        semantic_text: text,
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "semantic_text",
+        semantic_source_hash:
+          "92116e95c4bd443925a5980bae40d4c14d0f47c65536e27652acce5d25d6e2ac",
+        semantic_inventory: [
+          {
+            claim_key: "CLAIM-AE4C8E430987981E",
+            claim_text: "Login must return a session token to the user",
+            role: "normative",
+            status: "ontology_gap",
+            span: { start: 0, end: 45 },
+            reason: "No predicate grounds it yet.",
+            ...(subjects ? { subjects } : {}),
+          },
+        ],
+        logic_claims: ["CLAIM-AE4C8E430987981E"],
+      },
+      document: {
+        body: `${text}\n\n## Context\n\nFixture requirement for the staged gate test; the reason is not stated.`,
+      },
+    });
+    expect(
+      ws.json(["upsert"], {
+        type: "fact",
+        id: "FACT-subject-login",
+        properties: {
+          title: "Login",
+          status: "active",
+          fact_kind: "subject",
+          subject_key: "auth.login",
+        },
+        document: {
+          body: "Login is the product action by which a registered user proves their identity to obtain access; it is not account registration.",
+        },
+      }),
+    ).toMatchObject({ status: "success" });
+    expect(
+      ws.json(
+        ["upsert"],
+        requirement("REQ-login-session", "must", ["auth.login"]),
+      ),
+    ).toMatchObject({ status: "success" });
+    expect(
+      ws.json(
+        ["upsert"],
+        requirement("REQ-login-anchorless", "should", undefined),
+      ),
+    ).toMatchObject({ status: "success" });
+
+    expect(stagedCheck(ws)).toEqual({
+      status: 1,
+      violations: [
+        { rule: "claim-subject-missing", entityId: "REQ-login-anchorless" },
+        { rule: "must-positive-scenario", entityId: "REQ-login-session" },
+      ],
+    });
+
+    // Committed anyway: an unrelated staged change no longer judges them.
+    ws.git("add", "-A");
+    ws.git("commit", "-q", "-m", "login rules");
+    ws.write(
+      ".kb/facts/FACT-cart-total-zero.md",
+      zeroTotalFact("FACT-cart-total-zero"),
+    );
+    expect(stagedCheck(ws)).toEqual({ status: 0, violations: [] });
+  }, 600_000);
 });

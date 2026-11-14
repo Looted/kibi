@@ -54,6 +54,20 @@ describe("strictWriteSetToApplyPlan", () => {
     ]);
   });
 
+  test("carries the subject fact's document body", () => {
+    const withBody = {
+      ...strict,
+      subjectFact: { ...fact("fact", "FACT-subject"), body: "Subject body" },
+    } as unknown as StrictWriteSet;
+    expect(strictWriteSetToApplyPlan(withBody)[0]).toStrictEqual({
+      type: "fact",
+      id: "FACT-subject",
+      properties: { title: "FACT-subject title" },
+      relationships: [],
+      document: { body: "Subject body" },
+    });
+  });
+
   test("emits one observation row for a non-strict write set", () => {
     expect(strictWriteSetToApplyPlan(observation)).toStrictEqual([
       {

@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { detectTelemetryHost } from "kibi-agent-core/usage-telemetry";
 
 import {
   appendPayloadCountField,
@@ -277,16 +278,15 @@ export function diagnosticEnvOptIn(
 }
 
 /**
- * The host that ran this CLI call. Hosts that launch Kibi set `KIBI_HOST`;
- * Claude Code marks every shell it runs with `CLAUDECODE=1`, which is the
- * only ambient signal trusted here. Anything else stays `unknown`.
+ * The host that ran this CLI call, detected as usage telemetry detects it:
+ * an explicit `KIBI_HOST`/`KIBI_MCP_HOST`, the variables each agent host
+ * sets for the shells it runs (Claude Code, Cursor, Codex, Gemini CLI,
+ * OpenCode) or the `AI_AGENT` convention. Anything else stays `unknown`.
  */
 export function diagnosticCliHost(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
-  const explicit = env.KIBI_HOST?.trim() || env.KIBI_MCP_HOST?.trim();
-  if (explicit) return explicit;
-  return env.CLAUDECODE === "1" ? "claude-code" : "unknown";
+  return detectTelemetryHost(env) ?? "unknown";
 }
 
 function manifestVersion(manifestPath: string): string | null {

@@ -211,7 +211,10 @@ export function registerReportingCommands(program: Command): void {
     .command("check")
     .description(getCliOperationMetadata("kb_check").description)
     .option("--input <path>", "JSON input file (use - for stdin)")
-    .option("--fix", "Suggest fixes for violations")
+    .option(
+      "--fix",
+      "Show each violation's whole fix suggestion (text output shows its first sentence)",
+    )
     .option(
       "--kb-path <dir>",
       "Path to KB directory (overrides branch resolution)",

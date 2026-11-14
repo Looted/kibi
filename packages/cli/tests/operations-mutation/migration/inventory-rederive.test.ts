@@ -439,6 +439,40 @@ describe("re-deriving one claim at a time", () => {
     ]);
   });
 
+  test("keeps the subjects of a claim only while it stays unmodeled", () => {
+    const root = tempWorkspace({ [REQ]: "stub" });
+    noShards();
+    extracted(root, {
+      [REQ]: {
+        entity: {
+          id: "REQ-1",
+          type: "req",
+          semantic_inventory: [
+            {
+              ...claim(2, "normative", "ambiguous"),
+              subjects: ["cart", 5, "order"],
+            },
+            { ...claim(3, "normative", "modeled"), subjects: ["cart"] },
+            { ...claim(4, "normative", "ambiguous"), subjects: [] },
+          ],
+        },
+      },
+    });
+    advisor([
+      claim(2, "normative", "ambiguous"),
+      claim(3, "normative", "modeled"),
+      claim(4, "normative", "ambiguous"),
+    ]);
+
+    const [plan] = planInventoryRederivation(root);
+
+    expect(plan?.contract.semantic_inventory).toStrictEqual([
+      { ...claim(2, "normative", "ambiguous"), subjects: ["cart", "order"] },
+      claim(3, "normative", "modeled"),
+      claim(4, "normative", "ambiguous"),
+    ]);
+  });
+
   test("treats an inventory that is not a list as empty", () => {
     const root = tempWorkspace({ [REQ]: "stub" });
     noShards();

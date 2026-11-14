@@ -49,7 +49,8 @@ export type EntityOrigin = {
 /** `ref` recorded on entities backfilled by the schema v5 -> v6 migration. */
 export const SCHEMA6_MIGRATION_ORIGIN_REF = "kibi migrate v5->v6";
 
-const ISO_TIMESTAMP_PATTERN =
+/** An ISO-8601 date, optionally with a time and zone offset. */
+export const ISO_TIMESTAMP_PATTERN =
   "^\\d{4}-\\d{2}-\\d{2}(?:[T ]\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?(?:Z|[+-]\\d{2}:?\\d{2})?)?$";
 
 /** JSON Schema shared by the entity schema and the kb_upsert input schema. */

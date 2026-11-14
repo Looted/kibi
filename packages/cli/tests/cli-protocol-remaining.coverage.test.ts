@@ -114,7 +114,7 @@ describe("executeOperation leftover protocol and error branches", () => {
     });
     const result = await executeOperation("kb_status", {}, createContext());
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("boom");
+    expect(JSON.parse(result.stdout ?? "").error.message).toContain("boom");
     expect(JSON.parse(result.stdout ?? "")).toMatchObject({
       error: { code: "OPERATION_FAILED" },
     });
@@ -126,6 +126,8 @@ describe("executeOperation leftover protocol and error branches", () => {
     });
     const result = await executeOperation("kb_status", {}, createContext());
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("unexpectedly");
+    expect(JSON.parse(result.stdout ?? "").error.message).toContain(
+      "unexpectedly",
+    );
   });
 });

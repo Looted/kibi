@@ -1716,6 +1716,31 @@ describe("ZCode decision guard", () => {
         "PreToolUse",
       ),
     ).toContain("which implements a firm requirement");
+    // A patch path relative to an event cwd below the workspace root
+    // resolves against that cwd.
+    const nested = expectAdditionalContext(
+      await event(
+        {
+          cwd: path.join(fixture.cwd, "src"),
+          hook_event_name: "PreToolUse",
+          tool_name: "apply_patch",
+          tool_input: {
+            patchText: [
+              "*** Begin Patch",
+              "*** Update File: checkout.ts",
+              "@@ export function computeTotal() {",
+              "-  // implements REQ-checkout-rounding",
+              "   return 1;",
+              "*** End Patch",
+            ].join("\n"),
+          },
+        },
+        "comments-3",
+      ),
+      "PreToolUse",
+    );
+    expect(nested).toStartWith("Kibi knowledge for src/checkout.ts");
+    expect(nested).not.toContain("which implements a firm requirement");
   });
 
   test("KIBI_CONFIRM_FIRM_EDITS=0 turns the firm-edit notice off", async () => {

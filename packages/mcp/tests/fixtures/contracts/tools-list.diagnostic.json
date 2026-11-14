@@ -3822,7 +3822,7 @@
                 "type": "array"
               },
               "logic_claims": {
-                "description": "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: semantic-advisor). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+                "description": "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: kibi model). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
                 "items": {
                   "pattern": "^CLAIM-[A-F0-9]{16}$",
                   "type": "string"
@@ -3927,7 +3927,7 @@
                 "type": "string"
               },
               "pair_reviews": {
-                "description": "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming a current scenario, fact, requirement or claim_key that resolves it; conflict, which stays blocking until a person decides), claims (claim_key and payload_hash of each unmodeled claim of both requirements) and origin (kind human or agent; an agent's verdict on a must or firm requirement counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
+                "description": "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming what resolves it: a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim_key of either, never the two requirements themselves; conflict, which stays blocking until a person decides), claims (the claim_key of each unmodeled claim; a payload_hash is accepted and ignored) and origin (kind human or agent; on a must or firm pair, a verdict whose origin is missing or agent, or that sits on a requirement an agent wrote, counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
                 "items": {
                   "additionalProperties": {},
                   "properties": {},
@@ -4905,7 +4905,7 @@
                 "type": "array"
               },
               "semantic_inventory": {
-                "description": "Requirement proposition ledger returned by kb_model mode analyze (CLI: semantic-advisor); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
+                "description": "Requirement proposition ledger returned by kb_model mode analyze (CLI: kibi model); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
                 "items": {
                   "additionalProperties": {},
                   "properties": {},
@@ -4915,7 +4915,7 @@
               },
               "semantic_inventory_version": {
                 "const": "kibi.semantic-inventory.v1",
-                "description": "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: semantic-advisor).",
+                "description": "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: kibi model).",
                 "type": "string"
               },
               "semantic_key": {
@@ -6006,7 +6006,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, retired-reason-missing, retired-owner-only, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, claim-subject-missing, claim-subject-undefined, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, subject-definition-missing, subject-duplicate, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, agent-requirement-unapproved-implemented, must-positive-scenario, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, retired-reason-missing, retired-owner-only, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, claim-subject-missing, claim-subject-undefined, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, subject-definition-missing, subject-duplicate, subject-hierarchy-invalid, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, agent-requirement-unapproved-implemented, must-positive-scenario, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "anyOf": [
                 {
@@ -6219,6 +6219,10 @@
                 },
                 {
                   "const": "subject-duplicate",
+                  "type": "string"
+                },
+                {
+                  "const": "subject-hierarchy-invalid",
                   "type": "string"
                 },
                 {

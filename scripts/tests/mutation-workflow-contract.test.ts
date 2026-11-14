@@ -11,8 +11,14 @@ import { join } from "node:path";
 import strykerConfig, {
   CLI_MUTATION_MODULES,
   MUTATION_PACKAGES,
+  MUTATION_SHARDS,
   MUTATION_TEST_EXCLUDES,
   PLUGIN_MUTATION_MODULES,
+  mutateFor,
+  mutationUnits,
+  packageTestFiles,
+  shardUnits,
+  testFilesFor,
 } from "../../stryker.conf.mjs";
 import editorsConfig, {
   EDITOR_MUTATION_BUNFIG,
@@ -171,6 +177,77 @@ describe("mutation testing workflow contract", () => {
     const workflow = manualOnlyWorkflow("mutation.yml");
     expect(workflow).toContain("run: bun run build");
     expect(workflow).toContain("run: bun run test:mutation");
+  });
+
+  test("the CI shards mutate every unit exactly once", () => {
+    const units = mutationUnits();
+    expect(units).toEqual([
+      ...MUTATION_PACKAGES,
+      ...Object.keys(CLI_MUTATION_MODULES),
+      ...Object.keys(PLUGIN_MUTATION_MODULES),
+    ]);
+    const listed = MUTATION_SHARDS.flat();
+    expect(new Set(listed).size).toBe(listed.length);
+    for (const unit of listed) expect(units).toContain(unit);
+    const shards = Array.from(
+      { length: MUTATION_SHARDS.length + 1 },
+      (_, index) => shardUnits(String(index + 1)),
+    );
+    for (const [index, group] of MUTATION_SHARDS.entries()) {
+      expect(group.length).toBeGreaterThan(0);
+      expect(shards[index]).toEqual(group);
+    }
+    const rest = shards[MUTATION_SHARDS.length];
+    expect(rest.length).toBeGreaterThan(0);
+    expect(rest).toEqual(units.filter((unit) => !listed.includes(unit)));
+    expect(shards.flat().sort()).toEqual([...units].sort());
+    expect(shardUnits(undefined)).toEqual(units);
+    expect(shardUnits("")).toEqual(units);
+    for (const bad of ["0", String(MUTATION_SHARDS.length + 2), "1.5", "x"]) {
+      expect(() => shardUnits(bad)).toThrow("MUTATION_SHARD must be");
+    }
+  });
+
+  test("a shard mutates its units and runs only their tests", () => {
+    for (let index = 1; index <= MUTATION_SHARDS.length + 1; index++) {
+      const shard = String(index);
+      const units = shardUnits(shard);
+      const expectedMutate = units.flatMap((unit) =>
+        MUTATION_PACKAGES.includes(unit)
+          ? [
+              `${unit}/src/**/*.ts`,
+              ...(unit === "packages/runtime"
+                ? ["!packages/runtime/src/index.ts"]
+                : []),
+            ]
+          : [unit],
+      );
+      expect(mutateFor(shard)).toEqual(expectedMutate);
+      const expectedTests = new Set<string>();
+      for (const unit of units) {
+        const tests = MUTATION_PACKAGES.includes(unit)
+          ? packageTestFiles()
+          : (CLI_MUTATION_MODULES[unit] ?? PLUGIN_MUTATION_MODULES[unit]);
+        for (const test of tests) expectedTests.add(`./${test}`);
+      }
+      expect(testFilesFor(shard)).toEqual([...expectedTests].sort());
+    }
+    expect(mutateFor(undefined)).toEqual(config.mutate);
+    expect(testFilesFor(undefined)).toEqual(config.bun?.testFiles);
+  });
+
+  test("the workflow runs one job per shard with its own report", () => {
+    const workflow = manualOnlyWorkflow("mutation.yml");
+    const shards = Array.from(
+      { length: MUTATION_SHARDS.length + 1 },
+      (_, index) => index + 1,
+    );
+    expect(workflow).toContain(`shard: [${shards.join(", ")}]`);
+    expect(workflow).toContain("MUTATION_SHARD: ${{ matrix.shard }}");
+    expect(workflow).toContain(
+      "path: reports/mutation/shard-${{ matrix.shard }}/",
+    );
+    expect(workflow).toContain("fail-fast: false");
   });
 
   test("every kibi-cli module in scope is mutated and has its own tests", () => {

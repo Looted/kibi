@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a97e8078e55b
+  - type: implements
+    from: SYM-cli-unapproved-agent-must-note
+    to: REQ-kibi-unapproved-implemented-requirement
+    created_at: 2026-11-13T19:57:56.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bd0faea7e7d
+  - type: covered_by
+    from: SYM-cli-unapproved-agent-must-note
+    to: TEST-kibi-approval-evidence-floor
+    created_at: 2026-11-13T19:57:56.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8b5d98501db

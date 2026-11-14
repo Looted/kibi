@@ -384,6 +384,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-523df1059097
+  - type: implements
+    from: SYM-cli-plan-unapproved-agent-musts
+    to: REQ-kibi-unapproved-implemented-requirement
+    created_at: 2026-11-13T19:57:46.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-075ca82ed877
+  - type: covered_by
+    from: SYM-cli-plan-unapproved-agent-musts
+    to: TEST-kibi-approval-evidence-floor
+    created_at: 2026-11-13T19:57:46.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-274d628d2670
   - type: executable_for
     from: SYM-test-skillopt-reference-verify-suite
     to: TEST-skillopt-reference-answers-score-100

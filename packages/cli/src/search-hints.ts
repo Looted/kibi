@@ -176,7 +176,9 @@ async function liftToRequirements(
   );
   const negativePath: NegativePathFacts = await queryNegativePathFacts(
     prolog,
-    [...seeds].filter((id) => byId.get(id)?.type === "fact"),
+    [...seeds].filter(
+      (id) => (byId.get(id) as SearchHintsEntity).type === "fact",
+    ),
   );
   const requirementsOf = new Map<string, Set<string>>();
   for (const [fact, guards] of negativePath) {
@@ -201,7 +203,8 @@ async function liftToRequirements(
       if (shown.has(target)) continue;
       shown.add(target);
       const title = (byId.get(target) as SearchHintsEntity).title;
-      const guards = target === hint.id ? negativePath.get(target) : undefined;
+      // Only seeds are asked about, and a lifted target is a requirement.
+      const guards = negativePath.get(target);
       items.push({
         id: target,
         title: guards !== undefined ? negativePathTitle(title) : title,

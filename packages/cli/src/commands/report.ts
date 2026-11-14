@@ -19,6 +19,7 @@ import {
   type ReportRepository,
   resolveReportRepository,
 } from "../report/repository.js";
+import { printSchemaMigrationHint } from "../utils/migrate-hint.js";
 import { listGitRemotes } from "./github-init.js";
 
 export type ReportOptions = Readonly<{
@@ -362,6 +363,7 @@ export async function reportCommand(
   if (kbCertificatesSource !== undefined)
     await writeAtomically(kbCertificatesPath, kbCertificatesSource.raw);
 
+  printSchemaMigrationHint(workspace);
   console.log(`Kibi report written to ${outputPath}`);
   console.log(`Kibi badge written to ${badgePath}`);
   if (kbCertificatesSource !== undefined)

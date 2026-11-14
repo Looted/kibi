@@ -347,8 +347,9 @@ export function trackedRelationshipFiles(
 export function normalizedEntityHash(result: ExtractionResult): string {
   const entity = { ...result.entity } as Record<string, unknown>;
   // Manifest defaults are generated at extraction time. They must not turn a
-  // one-record edit into 10,000 false-positive symbol updates.
-  entity.created_at = undefined;
+  // one-record edit into 10,000 false-positive symbol updates. A created_at
+  // the front matter states is authored, so editing it re-imports the entity.
+  if (result.createdAtAuthored !== true) entity.created_at = undefined;
   entity.updated_at = undefined;
   return hashNormalized({
     entity,
@@ -1316,7 +1317,7 @@ export async function syncCommand(
           ...inventoryFailures.map((failure) => `  ${failure}`),
           ...(uninventoried.length > 0
             ? [
-                `${uninventoried.join(", ")} state(s) no inventory, which 'kibi migrate' does not derive: for each, run kb_model mode analyze (CLI: semantic-advisor) with the requirement's id and its complete semantic_text, then write the returned inventory contract into the requirement (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims), or retire it through a superseding requirement.`,
+                `${uninventoried.join(", ")} state(s) no inventory, which 'kibi migrate' does not derive: for each, run kb_model mode analyze (CLI: kibi model) with the requirement's id and its complete semantic_text, then write the returned inventory contract into the requirement (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims), or retire it through a superseding requirement.`,
               ]
             : []),
           ...(uninventoried.length < inventoryFailures.length

@@ -135,7 +135,7 @@ describe("executeOperation", () => {
     expect(result.stdout?.endsWith("\n")).toBe(true);
   });
 
-  test("returns exit 2 and stderr-only diagnostics for invalid input", async () => {
+  test("returns exit 2 and the diagnostics once, in the JSON result", async () => {
     const result = await executeOperation(
       "kb_status",
       { unexpected: true },
@@ -148,8 +148,12 @@ describe("executeOperation", () => {
       status: "error",
       error: { code: "VALIDATION_FAILED" },
     });
-    expect(result.stderr).toContain("VALIDATION_FAILED");
-    expect(result.stderr).toContain("unexpected");
+    expect(JSON.parse(result.stdout ?? "").error.message).toContain(
+      "unexpected",
+    );
+    expect(result.stderr).toBe(
+      "Error [VALIDATION_FAILED]: see error.message in the JSON result on stdout\n",
+    );
   });
 
   test("returns exit 2 for an unknown operation", async () => {
@@ -157,12 +161,14 @@ describe("executeOperation", () => {
 
     expect(result).toMatchObject({
       exitCode: 2,
-      stderr: "Error [UNKNOWN_OPERATION]: Unknown operation 'unknown'.\n",
+      stderr:
+        "Error [UNKNOWN_OPERATION]: see error.message in the JSON result on stdout\n",
     });
     expect(JSON.parse(result.stdout ?? "")).toMatchObject({
       kibiProtocol: 1,
       operation: "unknown",
       status: "error",
+      error: { message: "Unknown operation 'unknown'." },
     });
   });
 
@@ -180,7 +186,9 @@ describe("executeOperation", () => {
 
     // Then
     expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("_skipContradictionCheck");
+    expect(JSON.parse(result.stdout ?? "").error.message).toContain(
+      "_skipContradictionCheck",
+    );
     // The operation never ran, so none of its declared writes happened.
     expect(JSON.parse(result.stdout ?? "").effects).toEqual([
       { kind: "kb-write", status: "not_applicable" },

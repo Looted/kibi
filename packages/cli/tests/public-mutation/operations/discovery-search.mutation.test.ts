@@ -388,6 +388,19 @@ describe("executeSearch intent ranking", () => {
     });
   });
 
+  test("a forbidden situation is named so in the top matches", async () => {
+    intentFakes({
+      matches: [
+        match("FACT-n", { negativePath: { kind: "forbidden" } }),
+        match("REQ-1"),
+      ],
+    });
+    const result = await search({ query: "q", answer: false, hints: false });
+    expect(result.content[0].text).toBe(
+      "Found 2 intent search results for 'q'. Top: FACT-n (forbidden situation), REQ-1.",
+    );
+  });
+
   test("keeps the answer and hints to the first page", async () => {
     const calls = intentFakes({
       matches: [match("REQ-1"), { entity: {}, score: 0, reasons: [] }],

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
+import { InputError } from "../src/cli-errors.js";
 import * as cliInput from "../src/cli-input.js";
 import {
   type JsonInvocation,
@@ -12,6 +13,7 @@ import {
 } from "../src/cli-json-command.js";
 import * as loader from "../src/cli-operation-loader.js";
 import * as protocol from "../src/cli-protocol.js";
+import * as kbDependency from "../src/dependencies/kb-dependency-cli.js";
 import * as diagnosticUsage from "../src/public/diagnostic-usage.js";
 import * as cliRuntime from "../src/runtime/cli-runtime.js";
 import * as telemetry from "../src/usage-telemetry.js";
@@ -292,6 +294,64 @@ describe("runJsonInvocation input loading", () => {
   });
 });
 
+describe("runJsonInvocation kb scope", () => {
+  test("runs the operation on the scoped input", async () => {
+    const scoped: unknown[] = [];
+    track(
+      spyOn(kbDependency, "scopeJsonInputToKbDependency").mockImplementation(
+        (input, schema) => {
+          scoped.push([input, schema]);
+          return { q: "scoped" };
+        },
+      ),
+    );
+    const calls = stubRuntime({ exitCode: 0 });
+    await runJsonInvocation(invocation(inputFile('{"q":"a","kb":"dep"}')));
+    expect(scoped).toStrictEqual([
+      [
+        { q: "a", kb: "dep" },
+        { type: "object", properties: { q: { type: "string" } } },
+      ],
+    ]);
+    expect(calls.executed).toStrictEqual([
+      ["kb_status", { q: "scoped" }, CONTEXT],
+    ]);
+  });
+
+  test("an unknown dependency is an input error", async () => {
+    track(
+      spyOn(kbDependency, "scopeJsonInputToKbDependency").mockImplementation(
+        () => {
+          throw new InputError("KB_DEPENDENCY_UNKNOWN", "No dependency dep");
+        },
+      ),
+    );
+    const calls = stubRuntime({ exitCode: 0 });
+    await runJsonInvocation(invocation(inputFile('{"kb":"dep"}')));
+    expect(stderr).toStrictEqual([
+      "Error [KB_DEPENDENCY_UNKNOWN]: No dependency dep\n",
+    ]);
+    expect(process.exitCode).toBe(2);
+    expect(calls.runtimeOptions).toStrictEqual([]);
+  });
+
+  test("any other scoping failure is thrown", async () => {
+    track(
+      spyOn(kbDependency, "scopeJsonInputToKbDependency").mockImplementation(
+        () => {
+          throw new Error("disk gone");
+        },
+      ),
+    );
+    const calls = stubRuntime({ exitCode: 0 });
+    await expect(
+      runJsonInvocation(invocation(inputFile('{"kb":"dep"}'))),
+    ).rejects.toThrow("disk gone");
+    expect(stderr).toStrictEqual([]);
+    expect(calls.runtimeOptions).toStrictEqual([]);
+  });
+});
+
 describe("runJsonInvocation execution", () => {
   test("a successful read writes its stdout and nothing else", async () => {
     const calls = stubRuntime({ exitCode: 0, stdout: "{}\n" });
@@ -362,8 +422,13 @@ describe("runJsonInvocation execution", () => {
     await runJsonInvocation(invocation(inputFile("{}")));
     expect(calls.executed).toStrictEqual([]);
     expect(calls.closed).toStrictEqual([]);
-    expect(stderr).toStrictEqual(["Error [OPERATION_FAILED]: no branch\n"]);
-    expect(JSON.parse(stdout.join("")).error.code).toBe("OPERATION_FAILED");
+    expect(stderr).toStrictEqual([
+      "Error [OPERATION_FAILED]: see error.message in the JSON result on stdout\n",
+    ]);
+    expect(JSON.parse(stdout.join("")).error).toMatchObject({
+      code: "OPERATION_FAILED",
+      message: "no branch",
+    });
     expect(process.exitCode).toBe(1);
   });
 
@@ -424,6 +489,23 @@ describe("runJsonInvocation diagnostic records", () => {
     expect(appended).toStrictEqual([
       base({ status: "error", result: undefined, error: "bad" }),
     ]);
+  });
+
+  test("a failure records the JSON result's error, which stderr points to", async () => {
+    for (const [out, recorded] of [
+      [
+        '{"error":{"code":"VALIDATION_FAILED","message":"bad field"}}\n',
+        "Error [VALIDATION_FAILED]: bad field",
+      ],
+      ['{"error":{"code":"X"}}\n', "pointer"],
+      ['{"error":{"message":"m"}}\n', "pointer"],
+      ["null\n", "pointer"],
+    ] as const) {
+      appended.length = 0;
+      stubRuntime({ exitCode: 1, stdout: out, stderr: " pointer\n" });
+      await runJsonInvocation(invocation(inputFile(INPUT)));
+      expect((appended[0] as { error?: unknown }).error).toBe(recorded);
+    }
   });
 
   test("a failure without stderr or stdout records no error text", async () => {

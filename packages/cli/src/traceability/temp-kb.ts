@@ -109,6 +109,11 @@ const FACT_STRING_ARRAY_FIELDS = new Set([
   "examples",
   "predicate_args",
   "value_set",
+  // The subject hierarchy claim-subject-undefined and the subject pairing
+  // of related-requirement-unmodeled read.
+  "part_of",
+  "kind_of",
+  "distinct_from",
 ]);
 
 function isTraceEnabled(): boolean {
@@ -251,12 +256,32 @@ function buildEntityAssertionGoal(
       `pair_reviews=${toPrologString(JSON.stringify(entity.pair_reviews))}`,
     );
   }
+  // The floor fields, as sync stores them: the staged evidence floor reads
+  // them from a projected requirement.
+  if (entity.type === "req" && entity.proof_exempt !== undefined) {
+    props.push(`proof_exempt=${entity.proof_exempt}`);
+  }
+  if (
+    (entity.type === "req" || entity.type === "adr") &&
+    entity.firmness !== undefined
+  ) {
+    props.push(`firmness=${toPrologAtom(entity.firmness)}`);
+  }
+  if (entity.type === "req" && entity.required_evidence !== undefined) {
+    props.push(`required_evidence=${toPrologAtom(entity.required_evidence)}`);
+  }
+  if (entity.type === "req" && entity.proof_exempt_reason !== undefined) {
+    props.push(
+      `proof_exempt_reason=${toPrologString(entity.proof_exempt_reason)}`,
+    );
+  }
   for (const field of [
     "approved_by",
     "approval_ref",
     "failure_side_waiver",
     "failure_side_waiver_approved_by",
     "rationale",
+    "retired_reason",
   ] as const) {
     const value = entity.type === "req" ? entity[field] : undefined;
     if (value !== undefined) props.push(`${field}=${toPrologString(value)}`);

@@ -17,6 +17,7 @@ import {
 import * as manifestModule from "../../../src/extractors/manifest.js";
 import * as contextWarning from "../../../src/operations/mutation/context-warning.js";
 import * as contradictions from "../../../src/operations/mutation/contradictions.js";
+import * as inventoryWarning from "../../../src/operations/mutation/inventory-commit-warning.js";
 import * as journalModule from "../../../src/operations/mutation/plan-apply-journal.js";
 import { MutationRollbackFailureError } from "../../../src/operations/mutation/saga.js";
 import * as sourceAuthoring from "../../../src/operations/mutation/source-authoring.js";
@@ -683,6 +684,55 @@ describe("source-first writes", () => {
       { path: "docs/a.md", afterHash: "h" },
     ] as never);
     expect(events.slice(0, 1)).toStrictEqual(["workspace-lock true"]);
+  });
+
+  test("read the subject notes' body from the document the write published", async () => {
+    scope = { existing: { id: "FACT-a", source: "docs/old.md" } };
+    sourceWrite = { receipt: { path: "docs/a.md", afterHash: "h" } };
+    const bodyCalls: unknown[][] = [];
+    const body = spyOn(contextWarning, "upsertDocumentBody").mockImplementation(
+      (...args) => {
+        bodyCalls.push(args);
+        return "";
+      },
+    );
+    try {
+      await executeUpsert(fact(), context({ fs: nodeFilesystem }));
+      expect(bodyCalls.map((call) => call[3])).toStrictEqual([
+        { writtenPath: "docs/a.md" },
+      ]);
+    } finally {
+      body.mockRestore();
+    }
+  });
+
+  test("warn after the context warning when the written document lacks its inventory", async () => {
+    scope = { existing: undefined };
+    sourceWrite = { receipt: { path: "docs/a.md", afterHash: "h" } };
+    const calls: unknown[][] = [];
+    const spy = spyOn(
+      inventoryWarning,
+      "inventoryCommitWarnings",
+    ).mockImplementation((...args) => {
+      calls.push(args);
+      return ["inventory"];
+    });
+    try {
+      const result = await executeUpsert(
+        fact(),
+        context({ fs: nodeFilesystem }),
+      );
+      expect(calls).toStrictEqual([["fact", root, "docs/a.md"]]);
+      expect(result.structuredContent?.warnings.slice(-2)).toStrictEqual([
+        "context",
+        "inventory",
+      ]);
+      sourceWrite = null;
+      await executeUpsert(fact(), context({ fs: nodeFilesystem }));
+      expect(calls.at(-1)).toStrictEqual(["fact", root, undefined]);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   test("write nothing when the scope names no document or the writer declines", async () => {

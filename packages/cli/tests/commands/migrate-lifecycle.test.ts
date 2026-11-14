@@ -350,7 +350,7 @@ describe("kibi migrate lifecycle repairs", () => {
         `Path field of ${MULTI} not repaired: ${REFUSED}`,
       );
       expect(output).toContain(
-        "Run 'kibi sync' to recompile the rewritten sources.",
+        "Recompiled the branch store from the migrated sources (kibi sync).",
       );
       expect(read(root, OLD)).toContain("status: closed\n");
       expect(read(root, SELF)).not.toContain("source:");

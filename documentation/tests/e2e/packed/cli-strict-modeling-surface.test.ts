@@ -48,7 +48,11 @@ async function adviseOn(
 ): Promise<AdvisorSuggestion[]> {
   const inputPath = join(sandbox.repoDir, "advisor-input.json");
   writeFileSync(inputPath, `${JSON.stringify({ text })}\n`, "utf8");
-  const result = await kibi(sandbox, ["semantic-advisor", "--input", inputPath]);
+  const result = await kibi(sandbox, [
+    "semantic-advisor",
+    "--input",
+    inputPath,
+  ]);
   assert.strictEqual(result.exitCode, 0, `${result.stdout}${result.stderr}`);
   const envelope = JSON.parse(result.stdout) as {
     data?: { receipt?: { suggestions?: AdvisorSuggestion[] } };
@@ -166,8 +170,7 @@ if (RUN_NODE_TEST_SUITE) {
         assert.ok(
           guard.some(
             (s) =>
-              s.kind === "predicate" &&
-              s.predicate?.predicate_name === "guard",
+              s.kind === "predicate" && s.predicate?.predicate_name === "guard",
           ),
           `prose matching a core predicate rule must get a predicate suggestion: ${JSON.stringify(guard)}`,
         );

@@ -91,6 +91,16 @@ function captureWarnings(): string[] {
   return warnings;
 }
 
+/** The code of the error `run` throws. */
+function codeOf(run: () => unknown): unknown {
+  try {
+    run();
+  } catch (error) {
+    return (error as SyncError).code;
+  }
+  return "no error";
+}
+
 describe("git output", () => {
   test("git runs in the given folder and returns text", () => {
     const repo = gitRepo();
@@ -124,6 +134,9 @@ describe("git output", () => {
       new SyncError(
         "Unresolved Git conflicts block Kibi compilation; resolve these authored files first: a.md, b.md",
       ),
+    );
+    expect(codeOf(() => assertNoUnresolvedGitConflicts(repo))).toBe(
+      "GIT_CONFLICTS_UNRESOLVED",
     );
   });
 
@@ -169,6 +182,9 @@ describe("relationship keys", () => {
   test.each(["", "a", "a\0b"])("key %p is invalid", (key) => {
     expect(() => relationshipFromKey(key)).toThrow(
       new SyncError(`Invalid cached relationship key: ${key}`),
+    );
+    expect(codeOf(() => relationshipFromKey(key))).toBe(
+      "SYNC_CACHE_KEY_INVALID",
     );
   });
 
@@ -238,6 +254,28 @@ describe("entity hashes", () => {
     expect(
       normalizedEntityHash({ ...extraction([a]), sourceFile: "docs/two.md" }),
     ).not.toBe(base);
+  });
+
+  test("an authored created_at is content: editing it changes the hash", () => {
+    const authored = (created_at: string) =>
+      normalizedEntityHash({
+        ...extraction([a], { created_at, updated_at: created_at }),
+        createdAtAuthored: true,
+      });
+    expect(authored("2020-01-01")).not.toBe(authored("2021-01-01"));
+    expect(authored("2020-01-01")).toBe(
+      hashNormalized({
+        entity: {
+          id: "REQ-1",
+          type: "req",
+          title: "One",
+          created_at: "2020-01-01",
+          updated_at: undefined,
+        },
+        sourceFile: "docs/one.md",
+        relationships: [relationshipKey(a)],
+      }),
+    );
   });
 
   test("the entity itself is left untouched", () => {
@@ -536,6 +574,9 @@ describe("sync diagnostics", () => {
     ).toThrow(
       new SyncError("Failed to clear changed relationship shards: locked"),
     );
+    expect(
+      codeOf(() => assertRelationshipsCleared({ success: false, error: "x" })),
+    ).toBe("RELATIONSHIP_SHARD_CLEAR_FAILED");
     expect(() =>
       assertRelationshipsCleared({ success: false, error: "" }),
     ).toThrow(
@@ -598,6 +639,9 @@ describe("engine helpers", () => {
     await expect(checkpointNoopSync("/w", "main")).rejects.toThrow(
       new SyncError("Failed to publish the no-op sync checkpoint: x"),
     );
+    expect(
+      await checkpointNoopSync("/w", "main").catch((error) => error.code),
+    ).toBe("SYNC_CHECKPOINT_FAILED");
     expect(events.at(-1)).toBe("terminate");
     fakeEngine({ checkpoint: { success: false } });
     await expect(checkpointNoopSync("/w", "main")).rejects.toThrow(

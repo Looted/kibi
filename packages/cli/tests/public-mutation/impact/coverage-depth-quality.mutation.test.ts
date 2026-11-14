@@ -206,6 +206,28 @@ describe("coverage depth", () => {
     ).toEqual(["R-0", "R-1", "R-2", "R-3", "R-4", "R-closed-done", "R-new"]);
   });
 
+  test("leaves out a requirement exempt from proof for a stated reason", () => {
+    const results = [
+      entity("R-exempt", "req", {
+        proof_exempt: true,
+        proof_exempt_reason: "Docs only.",
+      }),
+      entity("R-blank", "req", {
+        proof_exempt: true,
+        proof_exempt_reason: "  ",
+      }),
+      entity("R-unstated", "req", { proof_exempt: true }),
+      entity("R-reason", "req", { proof_exempt_reason: "Docs only." }),
+      entity("R-not", "req", {
+        proof_exempt: false,
+        proof_exempt_reason: "Docs only.",
+      }),
+    ];
+    expect(
+      createCoverageDepthQualityDiagnostics(results).map((row) => row.entityId),
+    ).toEqual(["R-blank", "R-not", "R-reason", "R-unstated"]);
+  });
+
   test("defers to proof evidence", () => {
     const results = [
       entity("R-b", "req"),
@@ -304,5 +326,36 @@ describe("coarse anchors", () => {
       "coverage-depth-quality-coarse",
       createCoarseAnchorQualityDiagnostics(results),
     );
+  });
+
+  test("passes over a whole-file anchor on a file with no smaller unit", () => {
+    const coarse = COARSE_GRANULARITY_REASONS[0];
+    const anchor = (id: string, req: string, sourceFile?: string) => ({
+      ...entity(id, "symbol", { granularity_reason: coarse }, [
+        ["implements", req],
+      ]),
+      ...(sourceFile === undefined ? {} : { sourceFile }),
+    });
+    const results = [
+      anchor("SYM-yaml", "R-yaml", ".github/workflows/ci.yml"),
+      anchor("SYM-ts", "R-ts", " src/a.ts "),
+      anchor("SYM-blank", "R-blank", "   "),
+      anchor("SYM-yaml2", "R-both", "config.yaml"),
+      anchor("SYM-ts2", "R-both", "src/b.ts"),
+      entity("R-yaml", "req"),
+      entity("R-ts", "req"),
+      entity("R-blank", "req"),
+      entity("R-both", "req"),
+    ];
+    expect(
+      createCoarseAnchorQualityDiagnostics(results).map((row) => [
+        row.entityId,
+        (row.evidence?.symbols as { id: string }[]).map(({ id }) => id),
+      ]),
+    ).toEqual([
+      ["R-blank", ["SYM-blank"]],
+      ["R-both", ["SYM-ts2"]],
+      ["R-ts", ["SYM-ts"]],
+    ]);
   });
 });

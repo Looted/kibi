@@ -842,7 +842,7 @@ describe("semantic advisor operation", () => {
       "semantic_source_field must be 'text_ref' for the current requirement prose (no semantic_source_field was sent; the prose comes from text_ref because semantic_text is unset. Set semantic_source_field to 'text_ref' and hash that field's text, or declare one of semantic_text, text_ref or title explicitly)",
     ]);
     expect(errorsFor({ text_ref: text, semantic_text: text })[0]).toContain(
-      "comes from semantic_text because it is set",
+      "comes from semantic_text (its front matter value, or the body statement a document without one states)",
     );
     expect(
       errorsFor({ title: "System must support OAuth2 authentication." })[0],

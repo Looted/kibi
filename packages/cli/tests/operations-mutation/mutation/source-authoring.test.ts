@@ -434,6 +434,35 @@ describe("new Markdown documents", () => {
     ).toBe("---\ntitle: T\nid: S-1\ntype: scenario\n---\n");
   });
 
+  test("write a created_at the caller states, never a filled-in one", () => {
+    const entity = {
+      id: "S-1",
+      type: "scenario",
+      created_at: "2026-01-01T00:00:00.000Z",
+    };
+    expect(
+      markdown("scenario", entity, undefined, {
+        properties: { created_at: "2026-01-01T00:00:00.000Z" },
+      }),
+    ).toBe(
+      "---\nid: S-1\ntitle: S-1\ntype: scenario\ncreated_at: '2026-01-01T00:00:00.000Z'\n---\n",
+    );
+    expect(markdown("scenario", entity, undefined)).toBe(
+      "---\nid: S-1\ntitle: S-1\ntype: scenario\n---\n",
+    );
+    // An existing document gets the stated value in place.
+    expect(
+      markdown(
+        "scenario",
+        { ...entity, created_at: "2026-02-01" },
+        "---\nid: S-1\ntitle: S-1\ntype: scenario\ncreated_at: 2025-01-01\n---\n",
+        { properties: { created_at: "2026-02-01" } },
+      ),
+    ).toBe(
+      "---\nid: S-1\ntitle: S-1\ntype: scenario\ncreated_at: '2026-02-01'\n---\n",
+    );
+  });
+
   test("dump long values on one line without anchors", () => {
     const shared = { k: 1 };
     expect(

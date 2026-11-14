@@ -67,6 +67,7 @@ known_rule('predicate-schema-conformance').
 known_rule('entity-context-missing').
 known_rule('subject-definition-missing').
 known_rule('subject-duplicate').
+known_rule('subject-hierarchy-invalid').
 known_rule('entity-context-acknowledged').
 known_rule('decision-firm-unreferenced').
 known_rule('decision-firm-superseded').
@@ -135,6 +136,7 @@ rule_enforcement_class('predicate-schema-conformance', advisory).
 rule_enforcement_class('entity-context-missing', canonical).
 rule_enforcement_class('subject-definition-missing', canonical).
 rule_enforcement_class('subject-duplicate', canonical).
+rule_enforcement_class('subject-hierarchy-invalid', canonical).
 rule_enforcement_class('entity-context-acknowledged', advisory).
 rule_enforcement_class('decision-firm-unreferenced', canonical).
 rule_enforcement_class('decision-firm-superseded', canonical).
@@ -203,6 +205,7 @@ rule_implementation('predicate-schema-conformance', typescript).
 rule_implementation('entity-context-missing', typescript).
 rule_implementation('subject-definition-missing', typescript).
 rule_implementation('subject-duplicate', typescript).
+rule_implementation('subject-hierarchy-invalid', typescript).
 rule_implementation('entity-context-acknowledged', typescript).
 rule_implementation('decision-firm-unreferenced', typescript).
 rule_implementation('decision-firm-superseded', typescript).
@@ -244,9 +247,9 @@ rule_predicate('strict-req-fact-pairing', check_strict_req_fact_pairing).
 rule_predicate('predicate-verifiability', check_predicate_verifiability).
 rule_predicate('strict-readiness', check_strict_readiness).
 rule_predicate('semantic-completeness', check_semantic_completeness).
-rule_predicate('related-requirement-unmodeled', check_related_requirement_unmodeled).
-rule_predicate('claim-subject-missing', check_claim_subject_missing).
-rule_predicate('claim-subject-undefined', check_claim_subject_undefined).
+rule_predicate('related-requirement-unmodeled', check_related_requirement_unmodeled_for_schema).
+rule_predicate('claim-subject-missing', check_claim_subject_missing_for_schema).
+rule_predicate('claim-subject-undefined', check_claim_subject_undefined_for_schema).
 rule_predicate('proof-contract-symbols', check_proof_contract_symbols).
 rule_predicate('entity-id-style', check_entity_id_style).
 rule_predicate('domain-redundancy', check_domain_redundancy).
@@ -334,9 +337,9 @@ rule_description('strict-req-fact-pairing', 'Detect requirements with incomplete
 rule_description('predicate-verifiability', 'Detect requires_predicate links that do not target ground fact_kind: predicate facts').
 rule_description('strict-readiness', 'Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready').
 rule_description('semantic-completeness', 'Every inventoried assertive proposition is modeled or explicitly classified').
-rule_description('related-requirement-unmodeled', 'A current requirement whose rule claims are still unmodeled (missing, ontology_gap or ambiguous) in a stored pair with another current requirement (a relates_to edge, or a subject they share, the claims naming that subject or a narrower one); nothing compares those claims, so the pair blocks until they are modeled, one requirement supersedes the other, or a pair_reviews verdict settles it: no_conflict naming what separates them, interacts naming the current scenario, fact, requirement or claim that resolves it, covering each unmodeled claim at its current payload, recorded while a relates_to edge links the pair, and approved by a person (origin.approved_by) when an agent recorded it on a must or firm requirement; a conflict verdict stays blocking until a person decides').
-rule_description('claim-subject-missing', 'A current requirement\'s unmodeled claim (ambiguous, ontology_gap or missing) that states or scopes a rule (normative, condition, exception or definition) must name the subjects it is about in its semantic_inventory entry\'s subjects, so Kibi can pair it with the other requirements on those subjects').
-rule_description('claim-subject-undefined', 'Every subject key a current requirement\'s inventory claim names, and every part_of, kind_of or distinct_from key of an active subject fact, must be defined by an active subject fact').
+rule_description('related-requirement-unmodeled', 'A current requirement whose rule claims are still unmodeled (missing, ontology_gap or ambiguous) in a stored pair with another current requirement (a relates_to edge, or a subject they share, the claims naming that subject or a narrower one); nothing compares those claims, so the pair blocks until they are modeled, one requirement supersedes the other, or a pair_reviews verdict settles it: no_conflict naming what separates them, interacts naming what resolves it (a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim key of either), naming each unmodeled claim by claim_key (a payload_hash is accepted and ignored), recorded while a relates_to edge links the pair, and, on a must or firm pair, approved by a person (origin.approved_by) when its origin is missing or an agent\'s or it sits on a requirement an agent wrote; a conflict verdict stays blocking until a person decides. One finding per requirement and problem lists the requirements it pairs with (KB schema 18; older schemas keep the earlier rule)').
+rule_description('claim-subject-missing', 'A current requirement\'s unmodeled claim (ambiguous, ontology_gap or missing) that states or scopes a rule (normative, condition, exception or definition) must name the subjects it is about in its semantic_inventory entry\'s subjects, so Kibi can pair it with the other requirements on those subjects (KB schema 16)').
+rule_description('claim-subject-undefined', 'Every subject key a current requirement\'s inventory claim names, and every part_of, kind_of or distinct_from key of an active subject fact, must be defined by an active subject fact (KB schema 16)').
 rule_description('proof-contract-symbols', 'Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile').
 rule_description('entity-id-style', 'Entity IDs name the governed behavior and match their filename stem; new purely numeric IDs are reported at creation boundaries').
 rule_description('domain-redundancy', 'Two current requirements must not ground the identical logical term or share a ground fact unless linked by supersedes or restates').
@@ -353,8 +356,9 @@ rule_description('adr-unlinked', 'Advisory: an accepted ADR that no requirement 
 rule_description('adr-proposed', 'Informational: an ADR that is still proposed and not superseded, so nobody accepted or withdrew the decision').
 rule_description('predicate-schema-conformance', 'Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants').
 rule_description('entity-context-missing', 'A current requirement, scenario, test, ADR or observation/meta fact must carry body context: at least 12 words of prose (requirements: under a Context, Rationale, Why, Background, Source, Notes or Evidence heading) that do not restate the title or semantic_text; entities tagged review:context-missing are acknowledged legacy and exempt').
-rule_description('subject-definition-missing', 'An active subject fact is a domain definition: its body must say what the subject is (at least 8 words of prose that do not restate the title or subject_key)').
-rule_description('subject-duplicate', 'Two active subject facts whose subject_key and title words mostly coincide (token Jaccard at least 0.7) define one thing twice, unless one key is a dotted prefix of the other or either lists the other under distinct_from').
+rule_description('subject-definition-missing', 'An active subject fact is a domain definition: its body must say what the subject is (at least 8 words of prose, each Chinese or Japanese character counting as a word, that do not restate the title or subject_key and add at least 3 words of their own beyond them and function words), and must not be a template that 3 or more subjects repeat with only the key or title changed; a body opening with \'Definition not stated:\' records the gap instead').
+rule_description('subject-duplicate', 'Two active subject facts define one thing twice when they carry the same subject_key, or when their keys have the same words up to simple plurals, or when their subject_key and title words mostly coincide (token Jaccard at least 0.7, plurals and function words removed); a pair is exempt when one key\'s words begin the other\'s (an ancestor and its descendant), when the keys sit under different parents, or when either lists the other under distinct_from, part_of or kind_of').
+rule_description('subject-hierarchy-invalid', 'Active subject facts form a hierarchy: no subject lists its own key under part_of, kind_of or distinct_from, and following part_of, kind_of and nearest defined dotted prefixes upward never leads back to the subject it started from').
 rule_description('entity-context-acknowledged', 'Informational: how many current entities carry the review:context-missing tag, so the legacy context backlog stays visible; one summary finding per check').
 rule_description('decision-firm-unreferenced', 'A requirement or ADR marked firmness: firm must name the human words it rests on: origin.ref (or approval_ref on a requirement); Kibi checks that the reference is present, not that it is genuine').
 rule_description('decision-firm-superseded', 'A requirement or ADR that supersedes a firm decision, retired or not, must itself be firm (and so carry a ref to the human who changed the rule); a default or exploratory replacement cannot overrule a firm decision').
@@ -366,6 +370,6 @@ rule_description('policy-markers', 'When a plugin activated for kibi.check-polic
 rule_description('kb-consistency', 'The facts current requirements name must hold together, jointly and not only pairwise: every property context needs a value that satisfies all its facts, every atom and decision key one truth value, and stored rules a stratification. Each finding is a contradiction certificate (an irreducible core, two disagreeing facts or a negation cycle) re-verified by the independent checker, or a certificate that checker rejects').
 rule_description('kb-consistency-unresolved', 'Advisory: a property context, atom or decision key whose facts the consistency checker cannot compare (mixed value types or units, an unsupported operator or polarity, or a contradiction whose validity windows never overlap); it never counts as consistent').
 rule_description('evidence-floor', 'Every current requirement\'s computed evidence level (proved, tested, asserted, unverified) must reach its floor: required_evidence when set, otherwise tested for a firm requirement or one a person approved (origin.approved_by) that states no firmness, and no floor for any other. Receipts that are only older than the code count as pending re-proof and pass, unless kibi check runs with --fresh-evidence, which also needs a clean proof snapshot').
-rule_description('agent-requirement-unapproved-implemented', 'A current priority must requirement authored by an agent (origin.kind agent) that production symbols implement must have a human approval (origin.approved_by) once it is older than 14 days by created_at; a missing created_at counts as older (KB schema 15)').
-rule_description('must-positive-scenario', 'A current must requirement must have an active scenario that specifies it, expects success, and assumes a fact on one of its subjects or a narrower one, so scenario-feasibility can refuse the behaviour it promises when another current requirement forbids it; must requirements the schema 17 migration recorded are exempt (KB schema 17)').
+rule_description('agent-requirement-unapproved-implemented', 'A current priority must requirement authored by an agent (origin.kind agent) that production symbols implement must have a human approval (origin.approved_by) once it is older than 14 days by origin.recorded_at, else by an authored created_at; one with neither counts as older (KB schema 15)').
+rule_description('must-positive-scenario', 'A current must requirement must have an active scenario that specifies it, expects success, and assumes a property_value, predicate or rule fact (not the subject fact itself) on one of its subjects or a narrower one, which must be defined, so scenario-feasibility can refuse the behaviour it promises when another current requirement forbids it; must requirements the schema 17 migration recorded are exempt (KB schema 17)').
 rule_description('proof-contract-claims', 'From schema 12, every certificate-kind proof contract (exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex) must name the claims it proves in proves, and each named claim must be a modeled claim of a current requirement the test reaches through its scenarios, grounded by a fact that proof kind can express or attest').

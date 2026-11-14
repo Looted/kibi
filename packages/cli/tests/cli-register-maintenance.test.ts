@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { registerMaintenanceCommands } from "../src/cli-register-maintenance.js";
 import * as branch from "../src/commands/branch.js";
+import * as deps from "../src/commands/deps.js";
 import * as doctor from "../src/commands/doctor.js";
 import * as engine from "../src/commands/engine.js";
 import * as gc from "../src/commands/gc.js";
@@ -41,6 +42,23 @@ describe("registerMaintenanceCommands", () => {
       registerMaintenanceCommands,
     );
     expect(actual).toStrictEqual(expected);
+  });
+
+  test("deps subcommands run their implementations and set the exit code", async () => {
+    const lock = stub(deps, "depsLockCommand", { exitCode: 3 });
+    const fetch = stub(deps, "depsFetchCommand", { exitCode: 4 });
+    const status = stub(deps, "depsStatusCommand", { exitCode: 5 });
+    await run("deps", "lock", "a", "b", "--update");
+    expect(process.exitCode).toBe(3);
+    await run("deps", "fetch", "--format", "json");
+    expect(process.exitCode).toBe(4);
+    await run("deps", "status");
+    expect(process.exitCode).toBe(5);
+    expect([plainCalls(lock), plainCalls(fetch), plainCalls(status)]).toEqual([
+      [[["a", "b"], { update: true, format: "text" }]],
+      [[{ format: "json" }]],
+      [[{ format: "text" }]],
+    ]);
   });
 
   test("engine and storage subcommands run their implementations", async () => {

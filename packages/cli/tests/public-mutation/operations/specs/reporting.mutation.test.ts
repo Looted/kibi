@@ -304,7 +304,13 @@ describe("perContractTestBindings", () => {
     });
     const value = await perContractTestBindings(ctx);
     const hex = "'[0-9a-f]{64}'";
-    const components = ["contract", "integration", "command", "bindings", "producer"]
+    const components = [
+      "contract",
+      "integration",
+      "command",
+      "bindings",
+      "producer",
+    ]
       .map((name) => `${name}: ${hex}`)
       .join(", ");
     expect(value).toMatch(

@@ -285,17 +285,18 @@ export function duplicateEntityViolations(
     if (declarations.length < 2) return [];
     // Ordered by file, and within a file as written, whatever order
     // discovery listed the files in.
-    const shown = declarations
-      .map(({ entity, sourceFile }) => ({
-        source: path
-          .relative(workspaceRoot, path.resolve(workspaceRoot, entity.source))
-          .replaceAll(path.sep, "/"),
-        title: entity.title,
-        status: entity.status,
-        ...(sourceFile !== undefined ? { sourceFile } : {}),
-      }))
-      .sort((a, b) => (a.source < b.source ? -1 : a.source > b.source ? 1 : 0));
-    const sources = [...new Set(shown.map(({ source }) => source))];
+    const listed = declarations.map(({ entity, sourceFile }) => ({
+      source: path
+        .relative(workspaceRoot, path.resolve(workspaceRoot, entity.source))
+        .replaceAll(path.sep, "/"),
+      title: entity.title,
+      status: entity.status,
+      ...(sourceFile !== undefined ? { sourceFile } : {}),
+    }));
+    const sources = [...new Set(listed.map(({ source }) => source))].sort();
+    const shown = sources.flatMap((source) =>
+      listed.filter((declaration) => declaration.source === source),
+    );
     return [
       {
         rule: "source-relationship-parity",

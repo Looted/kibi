@@ -86,6 +86,9 @@ const TRAILING_DEAD_IMPLEMENTS =
  * where the "comment" after it would be part of the string.
  */
 function quotesClosed(code: string): boolean {
+  // rationale: any quote-free text in place of an escape leaves every quote
+  // count as it is.
+  // Stryker disable next-line StringLiteral
   const unescaped = code.replace(/\\./g, "");
   return ["'", '"', "`"].every(
     (quote) => unescaped.split(quote).length % 2 === 1,
@@ -103,7 +106,7 @@ export function removesTrailingDeadImplementsComment(
   after: string,
 ): boolean {
   const code = after.trimEnd();
-  if (code.trim() === "" || !before.startsWith(code)) return false;
+  if (code === "" || !before.startsWith(code)) return false;
   const cut = before.slice(code.length);
   if (!TRAILING_DEAD_IMPLEMENTS.test(cut)) return false;
   // The marker needs whitespace or the code's own `;` before it, as for
@@ -143,7 +146,6 @@ function removesOnlyDeadComments(before: string, after: string): boolean {
 type PatchSection = {
   kind: string;
   path: string;
-  moved: boolean;
   lines: string[];
 };
 
@@ -155,7 +157,12 @@ const PATCH_SECTION_HEADER = /^\*\*\* (Update|Add|Delete) File: (.+)$/;
  */
 function parsePatchSections(patch: string): PatchSection[] | undefined {
   const lines = patch.trim().split(/\r?\n/);
+  // rationale: split always yields at least one line, so the first and the
+  // last line exist.
+  // Stryker disable next-line OptionalChaining
   if (lines[0]?.trim() !== "*** Begin Patch") return undefined;
+  // rationale: as above, the last line exists.
+  // Stryker disable next-line OptionalChaining
   if (lines.at(-1)?.trim() !== "*** End Patch") return undefined;
   const sections: PatchSection[] = [];
   let current: PatchSection | undefined;
@@ -165,19 +172,18 @@ function parsePatchSections(patch: string): PatchSection[] | undefined {
       current = {
         kind: header[1],
         path: normalizeWorkspacePath(header[2]),
-        moved: false,
         lines: [],
       };
       sections.push(current);
     } else if (current === undefined) {
       return undefined;
-    } else if (line.startsWith("*** Move to:")) {
-      current.moved = true;
     } else {
+      // A `*** Move to:` line lands here too, and no section that holds one
+      // only removes comments.
       current.lines.push(line);
     }
   }
-  return sections.length > 0 ? sections : undefined;
+  return sections;
 }
 
 /**
@@ -187,7 +193,7 @@ function parsePatchSections(patch: string): PatchSection[] | undefined {
  * trailing dead comment.
  */
 function patchSectionRemovesOnlyDeadComments(section: PatchSection): boolean {
-  if (section.kind !== "Update" || section.moved) return false;
+  if (section.kind !== "Update") return false;
   let removed = 0;
   const lines = section.lines;
   for (let index = 0; index < lines.length; index += 1) {
@@ -270,8 +276,9 @@ export function removesOnlyDeadImplementsComments(
 ): boolean {
   type Fields = Record<string, unknown>;
   const input = (toolInput ?? {}) as Fields;
-  const edits: unknown[] = Array.isArray(input.edits) ? input.edits : [];
-  const records = [input, ...edits.map((edit) => (edit ?? {}) as Fields)];
+  const records = Array.isArray(input.edits)
+    ? [input, ...input.edits.map((edit: unknown) => (edit ?? {}) as Fields)]
+    : [input];
   const pairs: [string, string][] = [];
   for (const entry of records) {
     const before = entry.old_string ?? entry.oldString;

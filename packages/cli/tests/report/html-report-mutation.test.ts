@@ -450,6 +450,23 @@ describe("renderHtmlReport rows", () => {
     );
   });
 
+  test("names where each evidence floor comes from", () => {
+    const floor = (source: string | undefined) =>
+      row(`REQ-${source}`, {
+        evidenceFloor: { required: "tested", source, status: "met" },
+      });
+    const html = page([floor("approval"), floor("firm"), floor("explicit")]);
+    expect(article(html, "REQ-approval")).toContain(
+      'title="Evidence floor: tested, the default floor for an approved requirement">floor tested · met</span>',
+    );
+    expect(article(html, "REQ-firm")).toContain(
+      'title="Evidence floor: tested, the default floor for a firm requirement">floor tested · met</span>',
+    );
+    expect(article(html, "REQ-explicit")).toContain(
+      'title="Evidence floor: tested, set by required_evidence">floor tested* · met</span>',
+    );
+  });
+
   test("counts only finite numbers", () => {
     const html = renderHtmlReport({
       requirements: {

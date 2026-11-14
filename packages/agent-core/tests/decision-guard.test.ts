@@ -109,6 +109,50 @@ describe("dead implements comments", () => {
     }
   });
 
+  test("each comment marker, spacing and id list form is read exactly", () => {
+    for (const line of [
+      "/// implements REQ-a",
+      "## implements REQ-a",
+      "%% implements REQ-a",
+      "/** implements REQ-a */",
+      "/* implements REQ-a */  ",
+      "//implements REQ-a",
+      "// implements : REQ-a",
+      "// implements:REQ-a",
+      "// implements  REQ-a",
+      "// implements REQ-a , REQ-b",
+      "// implements REQ-a,REQ-b",
+      "// implements REQ-a, REQ-b",
+    ]) {
+      expect(isDeadImplementsComment(line)).toBe(true);
+    }
+  });
+
+  test("a trailing comment is read with the same markers and forms", () => {
+    const cut = removesTrailingDeadImplementsComment;
+    for (const comment of [
+      "/// implements REQ-a",
+      "## implements REQ-a",
+      "%% implements REQ-a",
+      "/** implements REQ-a */",
+      "/* implements REQ-a */  ",
+      "//implements REQ-a",
+      "// implements : REQ-a",
+      "// implements:REQ-a",
+      "// implements  REQ-a",
+      "// implements REQ-ab",
+      "// implements REQ-a , REQ-b",
+      "// implements REQ-a,REQ-b",
+      "// implements REQ-a, REQ-b",
+      "// implements REQ-a, REQ-bc",
+    ]) {
+      expect(cut(`f(); ${comment}`, "f();")).toBe(true);
+    }
+    // The comment must start the cut text and end the line.
+    expect(cut("f(); y // implements REQ-a", "f();")).toBe(false);
+    expect(cut("f(); // implements REQ-a x", "f();")).toBe(false);
+  });
+
   test("an edit that only deletes such comments is recognized", () => {
     const only = (input: unknown) =>
       removesOnlyDeadImplementsComments("/nonexistent", input);
@@ -145,6 +189,24 @@ describe("dead implements comments", () => {
         ],
       }),
     ).toBe(false);
+    // A code line dropped, or a line added after the kept code.
+    expect(only({ old_string: "a\nb", new_string: "a" })).toBe(false);
+    expect(
+      only({ old_string: "// implements REQ-a\nx\ny", new_string: "y" }),
+    ).toBe(false);
+    expect(
+      only({ old_string: "// implements REQ-a\nx", new_string: "x\ny" }),
+    ).toBe(false);
+    // A half or malformed edit beside a good one spoils the whole call.
+    const good = { old_string: "// implements REQ-b\nx", new_string: "x" };
+    expect(only({ edits: [good] })).toBe(true);
+    expect(only({ edits: [{ old_string: "// implements REQ-a" }, good] })).toBe(
+      false,
+    );
+    expect(only({ edits: [{ new_string: "x" }, good] })).toBe(false);
+    expect(only({ edits: [{ old_string: 5, new_string: "x" }, good] })).toBe(
+      false,
+    );
     // Half an edit, no edit at all, or a shell command.
     expect(only({ old_string: "// implements REQ-a" })).toBe(false);
     expect(only({})).toBe(false);
@@ -167,6 +229,12 @@ describe("dead implements comments", () => {
     expect(cut("s = 'a # implements REQ-a'", "s = 'a")).toBe(false);
     expect(cut("x#implements REQ-a", "x")).toBe(false);
     expect(cut("// implements REQ-a", "")).toBe(false);
+    expect(cut("  // implements REQ-a", "")).toBe(false);
+    // A quote the kept code leaves open makes the cut text part of a string;
+    // an escaped quote does not count.
+    expect(cut('s = "a // implements REQ-a', 's = "a')).toBe(false);
+    expect(cut("s = `a // implements REQ-a", "s = `a")).toBe(false);
+    expect(cut('s = "a\\"b"; // implements REQ-a', 's = "a\\"b";')).toBe(true);
     expect(
       removesOnlyDeadImplementsComments("/nonexistent", {
         old_string: "a();\nb(); // implements REQ-a\n// implements REQ-b\nc();",
@@ -201,6 +269,28 @@ describe("dead implements comments", () => {
         content: "x",
       }),
     ).toBe(false);
+    // No content, or content that is not text, says nothing about the file.
+    expect(removesOnlyDeadImplementsComments(file, {})).toBe(false);
+    expect(removesOnlyDeadImplementsComments(file, { content: 5 })).toBe(false);
+  });
+
+  test("a whole-file write of a file over 2 MiB is not compared", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-"));
+    dirs.push(dir);
+    const file = path.join(dir, "big.ts");
+    const header = "// implements REQ-a\n";
+    const limit = 2 * 1024 * 1024;
+    const body = (size: number) => "x".repeat(size - header.length - 1);
+    fs.writeFileSync(file, `${header}${body(limit)}\n`);
+    expect(
+      removesOnlyDeadImplementsComments(file, { content: `${body(limit)}\n` }),
+    ).toBe(true);
+    fs.writeFileSync(file, `${header}${body(limit + 1)}\n`);
+    expect(
+      removesOnlyDeadImplementsComments(file, {
+        content: `${body(limit + 1)}\n`,
+      }),
+    ).toBe(false);
   });
 
   describe("apply_patch envelopes", () => {
@@ -215,6 +305,30 @@ describe("dead implements comments", () => {
         at ?? undefined,
       );
 
+    test("a section header is a whole line of its own", () => {
+      // Header text inside an added line is content, not a new section.
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "@@",
+            "-// implements REQ-a",
+            "+x *** Delete File: src/b.ts",
+          ),
+        ),
+      ).toBe(false);
+      // A path that runs past a line separator is no header.
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts\u2028x",
+            "@@",
+            "-// implements REQ-a",
+          ),
+        ),
+      ).toBe(false);
+    });
+
     test("a section that only removes implements comments is recognized", () => {
       const patch = envelope(
         "*** Update File: src/a.ts",
@@ -226,6 +340,32 @@ describe("dead implements comments", () => {
         "*** End of File",
       );
       expect(only(patch)).toBe(true);
+      // Blank lines in a hunk, and whitespace around the envelope and its
+      // markers and headers.
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "@@",
+            "-// implements REQ-a",
+            "",
+            " export const a = 1;",
+          ),
+        ),
+      ).toBe(true);
+      expect(
+        only(
+          [
+            "",
+            "*** Begin Patch  ",
+            "  *** Update File: src/a.ts ",
+            "@@",
+            "-// implements REQ-a",
+            "  *** End Patch",
+            "",
+          ].join("\n"),
+        ),
+      ).toBe(true);
       // Every field a host carries a patch in, and an absolute header path.
       for (const key of ["patch", "input", "patchText"]) {
         expect(only(patch, key)).toBe(true);
@@ -281,6 +421,16 @@ describe("dead implements comments", () => {
           ),
         ),
       ).toBe(false);
+      // The stripped line must be added back, not kept as context.
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "-export const f = () => 1; // implements REQ-a",
+            " export const f = () => 1;",
+          ),
+        ),
+      ).toBe(false);
     });
 
     test("a section that also changes code, adds a line or removes nothing is not", () => {
@@ -310,6 +460,17 @@ describe("dead implements comments", () => {
           envelope("*** Update File: src/a.ts", "@@", " export const a = 1;"),
         ),
       ).toBe(false);
+      // A code line deleted beside a comment.
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "@@",
+            "-// implements REQ-a",
+            "-export const a = 1;",
+          ),
+        ),
+      ).toBe(false);
     });
 
     test("adding, deleting or moving the file is not", () => {
@@ -317,6 +478,9 @@ describe("dead implements comments", () => {
         only(envelope("*** Add File: src/a.ts", "+// implements REQ-a")),
       ).toBe(false);
       expect(only(envelope("*** Delete File: src/a.ts"))).toBe(false);
+      expect(
+        only(envelope("*** Delete File: src/a.ts", "-// implements REQ-a")),
+      ).toBe(false);
       expect(
         only(
           envelope(
@@ -380,10 +544,25 @@ describe("dead implements comments", () => {
       expect(only(envelope("-// implements REQ-a"))).toBe(false);
       expect(only(envelope())).toBe(false);
       expect(only(envelope(...section, "garbage line"))).toBe(false);
+      // Text outside the markers, or before the first file header.
+      expect(only(["garbage", ...section, "*** End Patch"].join("\n"))).toBe(
+        false,
+      );
+      expect(only(["*** Begin Patch", ...section, "garbage"].join("\n"))).toBe(
+        false,
+      );
+      expect(only(envelope("-// implements REQ-b", ...section))).toBe(false);
       expect(only(`apply_patch <<'EOF'\n${envelope(...section)}\nEOF`)).toBe(
         false,
       );
-      // A patch beside replacement fields is no shape a host sends.
+      // A patch beside replacement fields or content is no shape a host sends.
+      expect(
+        removesOnlyDeadImplementsComments(
+          file,
+          { command: envelope(...section), content: "" },
+          base,
+        ),
+      ).toBe(false);
       expect(
         removesOnlyDeadImplementsComments(
           file,

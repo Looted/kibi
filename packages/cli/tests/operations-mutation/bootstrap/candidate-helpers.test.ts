@@ -90,6 +90,27 @@ describe("strictPlan", () => {
     ]);
   });
 
+  test("a strict write set carries the subject fact's document body", () => {
+    const writeSet = {
+      isStrict: true,
+      confidence: 0.9,
+      subjectFact: {
+        type: "fact",
+        id: "FACT-s",
+        properties: { title: "S" },
+        body: "Subject body",
+      },
+      propertyFact: { type: "fact", id: "FACT-p", properties: { title: "P" } },
+      req: { type: "req", id: "REQ-r", properties: { title: "R" } },
+      relationships: [],
+    } as unknown as StrictWriteSet;
+    const [subject] = strictPlan(writeSet);
+    expect(subject?.id).toBe("FACT-s");
+    expect((subject as { document?: unknown }).document).toStrictEqual({
+      body: "Subject body",
+    });
+  });
+
   test("a strict write set plans subject, property and requirement with the claim", () => {
     const writeSet = {
       isStrict: true,

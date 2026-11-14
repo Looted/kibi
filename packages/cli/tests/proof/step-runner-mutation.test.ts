@@ -23,6 +23,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  readlinkSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -353,6 +354,29 @@ describe("runProofSteps", () => {
       "report.json",
     ]);
   });
+
+  test.if(process.platform === "linux")(
+    "a step writes to the runner's own output",
+    async () => {
+      const root = workspace([
+        {
+          test_id: "T-a",
+          steps: [["sh", "-c", "readlink /proc/self/fd/2 > out.txt"]],
+        },
+      ]);
+      expect(
+        await runProofSteps({
+          workspaceRoot: root,
+          stepsPath: "steps.json",
+          env: baseEnv({}),
+          write: () => {},
+        }),
+      ).toBe(0);
+      expect(readFileSync(path.join(root, "out.txt"), "utf8").trim()).toBe(
+        readlinkSync("/proc/self/fd/2"),
+      );
+    },
+  );
 
   test("lists every failing test", async () => {
     const root = workspace([

@@ -111,7 +111,7 @@ describe("stagedInventoryDriftViolations", () => {
   test("uncontracted new and restated requirements have their own messages", () => {
     const [created] = drift([plain("REQ-a", ORIGINAL)], {});
     expect(created?.message).toBe(
-      `REQ-a (${path("REQ-a")}): a new requirement needs a semantic inventory that matches its prose, so the next kibi sync rejects it: ${created?.errors.join("; ")}. Run kb_model mode analyze (CLI: semantic-advisor) with its id and complete semantic_text, then write the returned inventory contract into it (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims).`,
+      `REQ-a (${path("REQ-a")}): a new requirement needs a semantic inventory that matches its prose before it is committed, or kibi sync refuses it in every workspace that synced before and has not compiled it yet (a teammate's checkout, a CI store), even where kb_upsert already compiled it into this one: ${created?.errors.join("; ")}. Run kb_model mode analyze (CLI: kibi model) with its id and complete semantic_text, then write the returned inventory contract into it (kb_upsert with semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims).`,
     );
     const [restated] = drift([plain("REQ-a", EDITED)], {
       [path("REQ-a")]: plain("REQ-a", ORIGINAL),
@@ -193,7 +193,7 @@ describe("stagedStatementDriftViolations", () => {
         rule: "requirement-statement-drift",
         entityId: id,
         source: path(id),
-        message: `${id} (${path(id)}): the body's statement changed but the pinned semantic_text did not, so Kibi still models, grounds and proves the old wording. Restate semantic_text to say what the body now says and re-derive its inventory (kb_model mode analyze, CLI: semantic-advisor, then kb_upsert the returned contract), or move the new text under a context section (## Context, ## Rationale or ## Notes) if it does not change the requirement.`,
+        message: `${id} (${path(id)}): the body's statement changed but the pinned semantic_text did not, so Kibi still models, grounds and proves the old wording. Restate semantic_text to say what the body now says and re-derive its inventory (kb_model mode analyze, CLI: kibi model, then kb_upsert the returned contract), or move the new text under a context section (## Context, ## Rationale or ## Notes) if it does not change the requirement.`,
       })),
     );
   });

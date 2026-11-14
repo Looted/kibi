@@ -165,6 +165,18 @@ describe("candidate requirements for an unlinked file", () => {
         new Set(["REQ-c"]),
       ),
     ).toEqual(new Set());
+    // An open requirement the path reaches stays offered even though a
+    // current one names it in a supersedes link.
+    const reached = workspace({
+      "REQ-a": "title: Coach dashboard shows totals\nstatus: open",
+      "REQ-b":
+        "title: Payments settle hourly\nstatus: open\nlinks:\n  - type: supersedes\n    target: REQ-a",
+    });
+    expect(
+      requirementCandidatesForPath(reached, COACH_PAGE).map(
+        (candidate) => candidate.id,
+      ),
+    ).toEqual(["REQ-a"]);
   });
 
   test("supersedes links in relationship shards also retire a closed requirement", () => {

@@ -246,6 +246,14 @@ describe("Kibi skill loads", () => {
       status: "success" as const,
       durationMs: 1,
     };
+    const linked = path.join(tempDir("kibi-skill-link-"), "ws");
+    fs.symlinkSync(workspace, linked);
+    recordOperationTelemetry(
+      { ...source, workspaceRoot: workspace },
+      base,
+      env,
+    );
+    recordOperationTelemetry({ ...source, workspaceRoot: linked }, base, env);
     recordOperationTelemetry(
       { ...source, workspaceRoot: path.join(workspace, "packages", "x") },
       base,
@@ -256,14 +264,66 @@ describe("Kibi skill loads", () => {
       base,
       env,
     );
-    const [hook, inside, elsewhere] = await sent(env);
+    const [hook, inside, throughLink, subdirectory, elsewhere] =
+      await sent(env);
     expect(hook).toMatchObject({
       hook_action: "skill_loaded",
       skill: "kibi-usage",
     });
     expect(inside?.skill_loaded_before).toBe(true);
+    expect(throughLink?.skill_loaded_before).toBe(true);
+    // Callers resolve the workspace root; a subdirectory key is not it.
+    expect(subdirectory?.skill_loaded_before).toBe(false);
     expect(elsewhere?.skill_loaded_before).toBe(false);
     expect(JSON.stringify([hook, inside, elsewhere])).not.toContain(workspace);
+  });
+
+  test("a skill loaded in a parent directory does not count for a workspace below it", async () => {
+    const env = enabledEnv();
+    const home = tempDir("kibi-skill-home-");
+    const repo = path.join(home, "code", "repo");
+    fs.mkdirSync(repo, { recursive: true });
+    const source = { packageName: "kibi-mcp", packageVersion: "1.0.0" };
+    recordOperationTelemetry(
+      { ...source, workspaceRoot: home },
+      {
+        interface: "mcp",
+        operation: "kb_skills",
+        status: "success",
+        durationMs: 1,
+        signals: { skillLoad: true },
+      },
+      env,
+    );
+    const status = {
+      interface: "mcp" as const,
+      operation: "kb_status",
+      status: "success" as const,
+      durationMs: 1,
+    };
+    recordOperationTelemetry({ ...source, workspaceRoot: repo }, status, env);
+    recordOperationTelemetry({ ...source, workspaceRoot: home }, status, env);
+    // A path that does not exist keys by itself, not with every other one.
+    const missing = path.join(home, "missing-a");
+    rememberTelemetrySkillLoad(missing, env);
+    recordOperationTelemetry(
+      { ...source, workspaceRoot: path.join(home, "missing-b") },
+      status,
+      env,
+    );
+    recordOperationTelemetry(
+      { ...source, workspaceRoot: missing },
+      status,
+      env,
+    );
+    const events = await sent(env);
+    expect(events.map((event) => event.skill_loaded_before)).toEqual([
+      false,
+      false,
+      true,
+      false,
+      true,
+    ]);
   });
 
   test("a successful CLI or MCP skill load marks the workspace too", async () => {
@@ -288,7 +348,11 @@ describe("Kibi skill loads", () => {
       { ...load, status: "error", errorCategory: "skill_not_found" },
       env,
     );
-    recordOperationTelemetry({ ...source }, { ...load, status: "success" }, env);
+    recordOperationTelemetry(
+      { ...source },
+      { ...load, status: "success" },
+      env,
+    );
     recordOperationTelemetry(
       { ...source, workspaceRoot: loaded },
       { ...load, status: "success" },
@@ -296,12 +360,18 @@ describe("Kibi skill loads", () => {
     );
     recordOperationTelemetry({ ...source, workspaceRoot: loaded }, upsert, env);
     recordOperationTelemetry({ ...source, workspaceRoot: failed }, upsert, env);
+    // A successful call that loads no skill marks nothing.
+    const other = tempDir("kibi-skill-none-ws-");
+    recordOperationTelemetry({ ...source, workspaceRoot: other }, upsert, env);
+    recordOperationTelemetry({ ...source, workspaceRoot: other }, upsert, env);
     const events = await sent(env);
     expect(events.map((event) => event.skill_loaded_before)).toEqual([
       false,
       false,
       false,
       true,
+      false,
+      false,
       false,
     ]);
     expect(JSON.stringify(events)).not.toContain(loaded);

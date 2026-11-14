@@ -178,9 +178,9 @@ export function extractPatchFilePaths(patch: string): string[] {
  * `apply_patch` call carries its envelope in (Codex uses `command`).
  */
 export function extractPatchTexts(toolInput: unknown): string[] {
-  if (!isRecord(toolInput)) return [];
+  const fields: Record<string, unknown> = isRecord(toolInput) ? toolInput : {};
   return patchTextKeys
-    .map((key) => toolInput[key])
+    .map((key) => fields[key])
     .filter((value): value is string => typeof value === "string");
 }
 

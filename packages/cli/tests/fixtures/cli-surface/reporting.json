@@ -363,7 +363,7 @@
       },
       {
         "flags": "--fix",
-        "description": "Suggest fixes for violations",
+        "description": "Show each violation's whole fix suggestion (text output shows its first sentence)",
         "default": null,
         "mandatory": false
       },

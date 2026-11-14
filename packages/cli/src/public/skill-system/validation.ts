@@ -21,10 +21,11 @@ export function parseSkillBundle(rootDir: string): SkillBundle {
   assertMaxBytes(path, SKILL_MARKDOWN_MAX_BYTES);
   // gray-matter decodes a Buffer as UTF-8 itself.
   const parsed = matter(readFileSync(path));
-  const [error] = validateManifestData(parsed.data);
+  const data = manifestFields(parsed.data);
+  const [error] = validateManifestData(data);
   if (error) throw error;
   return {
-    manifest: coerceManifest(parsed.data),
+    manifest: coerceManifest(data),
     body: parsed.content,
     rootDir: resolve(rootDir),
   };
@@ -42,11 +43,32 @@ export function validateSkillBundle(pathLike: string): {
         new SkillValidationError("SKILL.md", `Missing ${SKILL_FILE_NAME}`),
       ],
     };
-  const parsed = matter(readFileSync(path));
-  errors.push(...validateManifestData(parsed.data));
+  const data = manifestFields(matter(readFileSync(path)).data);
+  errors.push(...validateManifestData(data));
   if (errors.length === 0)
-    validateBundleContents(path, coerceManifest(parsed.data), errors);
+    validateBundleContents(path, coerceManifest(data), errors);
   return { valid: errors.length === 0, errors };
+}
+/**
+ * The skill manifest fields of a SKILL.md front matter. Host mirrors whose
+ * loaders accept only a few top-level keys (the Claude Code and ZCode
+ * bundles) nest the Kibi fields under `metadata:`; a top-level field wins
+ * over a nested one.
+ */
+function manifestFields(
+  data: Record<string, unknown>,
+): Record<string, unknown> {
+  const metadata = data.metadata;
+  if (
+    typeof metadata !== "object" ||
+    metadata === null ||
+    Array.isArray(metadata)
+  )
+    return data;
+  const fields: Record<string, unknown> = { ...data };
+  for (const [key, value] of Object.entries(metadata))
+    if (fields[key] === undefined) fields[key] = value;
+  return fields;
 }
 // fs calls and assertMaxBytes only ever throw Error instances.
 function messageOf(error: unknown): string {

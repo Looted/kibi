@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c21ce33b10d
+  - type: implements
+    from: SYM-specs-upsert-UPSERT_DOCUMENT_SCHEMA
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-13T20:51:12.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8194e0102fca
+  - type: covered_by
+    from: SYM-specs-upsert-UPSERT_DOCUMENT_SCHEMA
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-13T20:51:12.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc7f3ce655a1

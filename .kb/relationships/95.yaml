@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e1f4770a1b67
+  - type: implements
+    from: SYM-staged-requirement-rules-readTreeManifest
+    to: REQ-cli-staged-consistency
+    created_at: 2026-11-13T20:48:47.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3da399562cd
+  - type: covered_by
+    from: SYM-staged-requirement-rules-readTreeManifest
+    to: TEST-cli-staged-consistency
+    created_at: 2026-11-13T20:48:47.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c64edf117059

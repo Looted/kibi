@@ -187,9 +187,8 @@ function extractExplicitPathFields(input) {
 }
 var patchTextKeys = ["command", "patch", "input", "patchText"];
 function extractPatchTexts(toolInput) {
-  if (!isRecord(toolInput))
-    return [];
-  return patchTextKeys.map((key) => toolInput[key]).filter((value) => typeof value === "string");
+  const fields = isRecord(toolInput) ? toolInput : {};
+  return patchTextKeys.map((key) => fields[key]).filter((value) => typeof value === "string");
 }
 function classifyPath(relativePath) {
   const segments = pathSegments(relativePath);
@@ -1379,7 +1378,7 @@ function quotesClosed(code) {
 }
 function removesTrailingDeadImplementsComment(before, after) {
   const code = after.trimEnd();
-  if (code.trim() === "" || !before.startsWith(code))
+  if (code === "" || !before.startsWith(code))
     return false;
   const cut = before.slice(code.length);
   if (!TRAILING_DEAD_IMPLEMENTS.test(cut))
@@ -1425,22 +1424,19 @@ function parsePatchSections(patch) {
       current = {
         kind: header[1],
         path: normalizeWorkspacePath(header[2]),
-        moved: false,
         lines: []
       };
       sections.push(current);
     } else if (current === undefined) {
       return;
-    } else if (line.startsWith("*** Move to:")) {
-      current.moved = true;
     } else {
       current.lines.push(line);
     }
   }
-  return sections.length > 0 ? sections : undefined;
+  return sections;
 }
 function patchSectionRemovesOnlyDeadComments(section) {
-  if (section.kind !== "Update" || section.moved)
+  if (section.kind !== "Update")
     return false;
   let removed = 0;
   const lines = section.lines;
@@ -1475,8 +1471,7 @@ function patchesRemoveOnlyDeadComments(absolutePath, patches, base) {
 }
 function removesOnlyDeadImplementsComments(absolutePath, toolInput, base) {
   const input = toolInput ?? {};
-  const edits = Array.isArray(input.edits) ? input.edits : [];
-  const records = [input, ...edits.map((edit) => edit ?? {})];
+  const records = Array.isArray(input.edits) ? [input, ...input.edits.map((edit) => edit ?? {})] : [input];
   const pairs = [];
   for (const entry of records) {
     const before = entry.old_string ?? entry.oldString;
@@ -2196,7 +2191,7 @@ function readSessionMarkers(env) {
   }
 }
 function workspaceKey(workspaceRoot) {
-  return hashTelemetryId(`workspace\x00${path7.resolve(workspaceRoot)}`);
+  return hashTelemetryId(`workspace\x00${realDirectory(workspaceRoot)}`);
 }
 function rememberHookSession(workspaceRoot, sessionId, env = process.env) {
   if (!sessionId.trim() || !telemetryEnabled(env))
@@ -2578,9 +2573,9 @@ function interfaceAdvisory(mcpState, workspaceTrusted) {
     case "mcp":
       return;
     case "cli":
-      return "Kibi MCP has not been observed in this session. In this explicitly trusted workspace, the project-local CLI is an advisory fallback: use npx --no-install kibi or bunx --no-install kibi. Do not use global or installing runners.";
+      return "Kibi MCP has not been observed in this session. In this explicitly trusted workspace, use the project-local CLI JSON routes, an equal peer of MCP: npx --no-install kibi <route> --input - (or bunx --no-install kibi). Never use a global or installing runner.";
     case "setup":
-      return "Kibi MCP has not been observed in this session and workspace trust is unknown. Do not probe or execute a CLI fallback; ask the operator to enable MCP or explicitly approve the trusted project-local CLI workflow.";
+      return "Kibi MCP has not been observed in this session. Use approved Kibi MCP tools when they are visible; otherwise the project-local CLI JSON routes are an equal peer (npx --no-install kibi <route> --input -), never a global or installing runner. If neither is available, stop and tell the operator.";
   }
 }
 function stopFollowupMessage(state) {

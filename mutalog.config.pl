@@ -69,5 +69,10 @@ tests([
 % first goal of a clause no later clause can also match, which can change
 % neither the answers nor their number.
 
+% Every worker loads the memory guard first: a mutant that asserts without
+% end grows the dynamic database, which the stack limit does not bound.
+% See scripts/prolog-mutation-guard.pl.
+load(["scripts/prolog-mutation-guard.pl"]).
+
 thresholds(high(100), low(90), break(100)).
 report_dir("reports/mutation/prolog").

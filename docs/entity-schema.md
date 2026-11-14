@@ -657,6 +657,31 @@ Facts support two authoring lanes:
   - `rule_schema`: declares the stable `kibi.logic.v1` signature used by rule facts
   - `rule`: stores schema-validated canonical Logic IR JSON, a full `rule_hash`, semantic key, provenance span, and `rule_schema_id`
 
+#### Subject facts
+
+A `fact_kind: subject` fact is the definition of one thing the product talks about, named by its `subject_key`. Its body is the definition: what the subject is in the product, what it includes and what it is not. From KB schema 16 `kibi check` reads it as such:
+
+- `subject-definition-missing` blocks a body shorter than 8 words (each Chinese or Japanese character counts as a word), one that only restates the title or key, one that adds fewer than 3 words of its own beyond the title, the key and function words ("The cart is the cart of the cart." says nothing), and a definition that 3 or more subjects repeat with only their key or title changed. When nobody has said what the subject is, write `Definition not stated:` followed by where it is named and who could define it; that records the gap instead of inventing a definition, and is what bootstrap, `kb_model` and `kb_compile_intent` write on the subjects they create. The older bootstrap body `Subject <key>, shared by the requirements bootstrap planned from ...` is read the same way.
+- `subject-duplicate` blocks two facts with the same `subject_key`, and two keys that read as one: the same words up to simple plurals (`report.export` and `report.exports`), or key and title words that mostly coincide. An ancestor and its descendant (`report.export` or `report_export` and `report.export.pdf`) and siblings under different parents (`web.drawing.view` and `mobile.drawing.view`) are not duplicates.
+- Subjects nest. A dotted key sits under its nearest defined prefix (`kibi.cli` is broader than `kibi.cli.check`), and three optional lists name other subject keys: `part_of` (this subject is a part of that one), `kind_of` (this subject is a kind of that one) and `distinct_from` (a similar subject this one is not). Listing the other key in any of them also settles a `subject-duplicate` pair. Every key they name must be defined (`claim-subject-undefined`), and `subject-hierarchy-invalid` blocks a subject that names itself in one of them and a chain of `part_of`, `kind_of` and dotted prefixes that leads back to where it started.
+
+```yaml
+# .kb/facts/FACT-SHOP-CART.md
+---
+id: FACT-SHOP-CART
+title: Shopping cart
+fact_kind: subject
+subject_key: shop.cart
+part_of: [shop]
+distinct_from: [shop.wishlist]
+---
+
+The products a signed-in customer has chosen to buy and not yet paid for. It
+holds quantities and prices; it is not the saved wishlist.
+```
+
+A requirement's unmodeled claims name the subjects they are about in their inventory entries (`subjects`, below), so `kb_query` with `factKind: subject` and a `subjectKey` lists every current requirement, claim and scenario about a subject or a narrower one.
+
 Legacy prose facts without `fact_kind` remain readable during migration, but new requirements should prefer the strict lane when the fact expresses a rule that should block contradictions.
 
 `fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, ontology predicates, and safe rules). Requirements can link to strict facts using `constrains` and `requires_property`, ontology predicate facts using `requires_predicate`, or safe Logic IR rules using `requires_rule`, so domain claims become structural and queryable. When `claim_key` is supplied, `claim_text` is required too, and a fact of any other kind that supplies `claim_text` must also supply `claim_key`. An `observation` or `meta` fact is a non-grounding review note and may quote the claim it is about in `claim_text` without `claim_key`.
@@ -667,7 +692,7 @@ Legacy prose facts without `fact_kind` remain readable during migration, but new
 
 `rule_ir` is a JSON object with `version: kibi.logic.v1`; it is validated and canonicalized before persistence. It supports typed atoms, variables, conjunction/disjunction, comparisons, bounded counts, temporal intervals, exceptions, and the modalities `assert`, `deny`, `oblige`, `permit`, and `forbid`. `rule_hash` is the full SHA-256 of canonical IR; `semantic_key` is a shorter stable identity for paraphrase convergence. Kibi renders Prolog for inspection, but never evaluates stored source text. `rule-safety` and `rule-verifiability` are blocking checks for new rule records.
 
-Requirements also retain a `semantic_inventory` proposition ledger. Each entry binds a claim key and exact claim text to a UTF-8 byte span and one of `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`. An assertive proposition that is not modeled must be explicitly unresolved; prose alone is not logical coverage.
+Requirements also retain a `semantic_inventory` proposition ledger. Each entry binds a claim key and exact claim text to a UTF-8 byte span and one of `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`. An assertive proposition that is not modeled must be explicitly unresolved; prose alone is not logical coverage. From KB schema 16 an unresolved entry (`ambiguous`, `ontology_gap` or `missing`) whose role is `normative`, `condition`, `exception` or `definition` names the subjects it is about as `subjects: [<subject_key>, ...]` (`claim-subject-missing`), and each key must be defined by an active subject fact (`claim-subject-undefined`; see [Subject facts](#subject-facts)). `kibi migrate` suggests a subject for each such entry when its words clearly match one defined subject.
 
 Symbol coordinates are generated compiler state. Callers cannot author `sourceLine`, `sourceColumn`, `sourceEndLine`, or `sourceEndColumn` through `kb_upsert`: source-first symbol upserts re-extract the canonical manifest plus `.kb/symbol-coordinates.yaml` before committing, so partial payloads can no longer erase persisted coordinates, and coordinate refresh failures abort the mutation instead of being reported as complete. A file the parser reads only partly because of a local gap (a C `#include`, a Rust macro, a nested HCL block) is not a failure: symbols declared outside its uncovered ranges keep their coordinates, symbols declared inside one get none, and one warning names the file, lines and diagnostics. A file the analyzer cannot read as a whole (a syntax error, which a grammar can also report for valid code such as an `#ifdef` inside an `if`, a timeout, a changed grammar) gives its own symbols no coordinates and is named as a failed refresh; every other file still refreshes. Files past the 64-diagnostic cap merge their local gaps into the fewest ranges that fit, closing first the gaps that hold no symbol start, instead of turning into a whole-file limit. C and C++ include guards, linkage guards and `#if 0` blocks, and Terraform nested blocks, are not gaps. The artifact is version 2: every record carries an identity hash bound to the extraction that produced it and a hash of the source file it was read from, malformed artifacts fail explicit refreshes and mutations closed, and publication is atomic. This lets conservative proof reporting validate the exact source-bound symbols that carry implementation and executable-test evidence; the authored manifest remains coordinate-free and `.kb/symbol-coordinates.yaml` remains the generated source of truth. From schema 13 the artifact is a gitignored local cache, never committed: every `kibi sync` re-extracts only the symbols whose identity or source bytes changed and rebuilds a missing or damaged file, so parallel branches never conflict on it.
 

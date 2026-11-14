@@ -127,7 +127,45 @@ describe("withStoredRequirementSemantics", () => {
     expect(
       (await merged(req({ title: "T" }), stored)).properties,
     ).toStrictEqual({ ...LEDGER, title: "T" });
-    expect((await merged(req({ title: "U" }), stored)).same).toBe(true);
+  });
+
+  test("a changed title is prose unless the ledger reads semantic_text", async () => {
+    const rename = req({ title: "U", status: "open" });
+    expect(
+      (await merged(rename, { type: "req", title: "T", ...LEDGER })).properties,
+    ).toStrictEqual({ ...LEDGER, title: "U", status: "open" });
+    for (const stored of [
+      { type: "req", title: "T", ...LEDGER, semantic_source_field: "title" },
+      { type: "req", title: "T", ...LEDGER, semantic_text: "" },
+    ]) {
+      expect((await merged(rename, stored)).same).toBe(true);
+    }
+    // A title the payload leaves out is no change either.
+    expect(
+      (
+        await merged(req({ status: "open" }), {
+          type: "req",
+          title: "T",
+          ...LEDGER,
+          semantic_source_field: "title",
+        })
+      ).properties,
+    ).toStrictEqual({
+      ...LEDGER,
+      semantic_source_field: "title",
+      status: "open",
+    });
+    // A title the payload repeats is no change, whatever the source.
+    expect(
+      (
+        await merged(req({ title: "T" }), {
+          type: "req",
+          title: "T",
+          ...LEDGER,
+          semantic_source_field: "title",
+        })
+      ).properties,
+    ).toStrictEqual({ ...LEDGER, semantic_source_field: "title", title: "T" });
   });
 
   test("a changed text_ref is prose unless the ledger reads semantic_text", async () => {
@@ -210,7 +248,7 @@ async function boundary(
 function refusal(errors: string) {
   return {
     code: "INCOMPLETE_PROPOSITIONS",
-    message: `Proposition-complete ingestion failed: REQ-1 would be written as a current requirement without a complete proposition inventory (${errors}). Run kb_model mode analyze (CLI: semantic-advisor) with id 'REQ-1' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
+    message: `Proposition-complete ingestion failed: REQ-1 would be written as a current requirement without a complete proposition inventory (${errors}). Run kb_model mode analyze (CLI: kibi model) with id 'REQ-1' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
   };
 }
 

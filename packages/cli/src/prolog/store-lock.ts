@@ -54,12 +54,18 @@ export function readBootId(
   }
 }
 
-let cachedBootId: { readonly value: string | null } | undefined;
+const bootIdCache: { value?: string | null } = {};
 
-/** Linux boot id; guards against PID reuse across reboots. Null elsewhere. */
-export function currentBootId(): string | null {
-  cachedBootId ??= { value: readBootId() };
-  return cachedBootId.value;
+/**
+ * Linux boot id; guards against PID reuse across reboots. Null elsewhere.
+ * It is read once into `cache`, which defaults to the process's own.
+ */
+export function currentBootId(
+  cache: { value?: string | null } = bootIdCache,
+  read: () => string | null = readBootId,
+): string | null {
+  if (!("value" in cache)) cache.value = read();
+  return cache.value as string | null;
 }
 
 export function isProcessAlive(

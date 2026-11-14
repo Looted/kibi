@@ -31,6 +31,85 @@
         "items": {
           "type": "object"
         }
+      },
+      "plannedFacts": {
+        "type": "array",
+        "description": "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
+        "items": {
+          "type": "object",
+          "required": ["type", "id", "properties"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "fact"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "properties": {
+              "type": "object"
+            },
+            "relationships": {
+              "type": "array",
+              "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+              "items": {
+                "type": "object",
+                "required": ["type", "from", "to"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "depends_on",
+                      "specified_by",
+                      "verified_by",
+                      "validates",
+                      "implements",
+                      "covered_by",
+                      "executable_for",
+                      "constrained_by",
+                      "constrains",
+                      "requires_property",
+                      "requires_predicate",
+                      "requires_rule",
+                      "guards",
+                      "publishes",
+                      "consumes",
+                      "supersedes",
+                      "restates",
+                      "assumes",
+                      "exempts",
+                      "relates_to"
+                    ],
+                    "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test)."
+                  },
+                  "from": {
+                    "type": "string",
+                    "description": "Source entity ID (must exist). Example: 'SYM-login-handler'."
+                  },
+                  "to": {
+                    "type": "string",
+                    "description": "Target entity ID (must exist). Example: 'REQ-cli-gc'."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "document": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes (a requirement whose semantic_text changes gets the new statement in place of the old one, with its context sections kept). For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "body": {
+            "type": "string"
+          }
+        }
       }
     }
   },

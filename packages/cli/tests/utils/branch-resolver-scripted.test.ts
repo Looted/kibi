@@ -509,6 +509,28 @@ describe("resolveReadBranchAttachment and detachedHeadWriteRefusal", () => {
     );
   });
 
+  test("a KB dependency's snapshot names the dependency, not a detached HEAD", () => {
+    const root = fresh();
+    const storePath = branchStorePath(root, DETACHED_SNAPSHOT_KB_BRANCH);
+    const saved = process.env.KIBI_KB_DEPENDENCY;
+    const notice = (value: string) => {
+      detached("a\nb\n");
+      process.env.KIBI_KB_DEPENDENCY = value;
+      const attachment = resolveReadBranchAttachment(root);
+      return "readOnly" in attachment ? attachment.readOnly?.notice : undefined;
+    };
+    try {
+      expect(notice(" shared-kb ")).toBe(
+        `KB dependency shared-kb: read-only answers come from that repository's own KB at the pinned commit (store ${storePath}), kept apart from this project's KB; writes are refused.`,
+      );
+      expect(notice("  ")).toStartWith("Detached HEAD at 0123456789ab: ");
+    } finally {
+      if (saved === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_KB_DEPENDENCY");
+      else process.env.KIBI_KB_DEPENDENCY = saved;
+    }
+  });
+
   test("a snapshot store with another identity is refused", () => {
     const root = fresh();
     const storePath = branchStorePath(root, DETACHED_SNAPSHOT_KB_BRANCH);
