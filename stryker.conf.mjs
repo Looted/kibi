@@ -1419,9 +1419,10 @@ export const PLUGIN_MUTATION_MODULES = {
   "packages/swipl/index.js": ["packages/swipl/tests/index.test.ts"],
 };
 
-// Explicit test-file list, enumerated relative to the repo root (the Stryker
-// sandbox root). Helpers and fixtures are never picked up — only *.test.ts.
-function scopedTestFiles() {
+// Every *.test.ts file under the tests/ directories of the whole packages in
+// scope, relative to the repo root (the Stryker sandbox root). Helpers and
+// fixtures are never picked up.
+export function packageTestFiles() {
   const files = [];
   for (const pkg of MUTATION_PACKAGES) {
     const walk = (rel) => {
@@ -1432,20 +1433,353 @@ function scopedTestFiles() {
           walk(posix.join(rel, entry.name));
         } else if (entry.name.endsWith(".test.ts")) {
           const file = posix.join(pkg, "tests", rel, entry.name);
-          if (!MUTATION_TEST_EXCLUDES.includes(file)) files.push(`./${file}`);
+          if (!MUTATION_TEST_EXCLUDES.includes(file)) files.push(file);
         }
       }
     };
     walk("");
   }
-  for (const tests of [
-    ...Object.values(CLI_MUTATION_MODULES),
-    ...Object.values(PLUGIN_MUTATION_MODULES),
-  ]) {
-    for (const test of tests) files.push(`./${test}`);
-  }
-  return [...new Set(files)].sort();
+  return files.sort();
 }
+
+// The units the gate mutates: a whole package (every src/**/*.ts file) or a
+// single module of CLI_MUTATION_MODULES or PLUGIN_MUTATION_MODULES.
+export function mutationUnits() {
+  return [
+    ...MUTATION_PACKAGES,
+    ...Object.keys(CLI_MUTATION_MODULES),
+    ...Object.keys(PLUGIN_MUTATION_MODULES),
+  ];
+}
+
+// Pure re-export barrel of kibi-cli: no logic of its own to mutate.
+const UNIT_EXCLUDES = { "packages/runtime": ["packages/runtime/src/index.ts"] };
+
+function unitMutate(unit) {
+  if (!MUTATION_PACKAGES.includes(unit)) return [unit];
+  return [
+    `${unit}/src/**/*.ts`,
+    ...(UNIT_EXCLUDES[unit] ?? []).map((file) => `!${file}`),
+  ];
+}
+
+// A module runs against the tests named for it. A package runs against the
+// tests of every whole package, since the host packages exercise the shared
+// ones (agent-core, plugin-sdk) through their own entry points.
+function unitTests(unit) {
+  if (MUTATION_PACKAGES.includes(unit)) return packageTestFiles();
+  return CLI_MUTATION_MODULES[unit] ?? PLUGIN_MUTATION_MODULES[unit];
+}
+
+// CI splits the run into parallel jobs (.github/workflows/mutation.yml): one
+// runner would need many hours. Most mutants are static (reached while the
+// test files load), and Stryker runs every test file of the run against a
+// static mutant, so each job also runs only the tests of its own units. Each
+// listed group is one job, balanced by the measured cost of its mutants; the
+// last job (MUTATION_SHARDS.length + 1) takes every unit no group lists.
+// Locally, with MUTATION_SHARD unset, one run mutates every unit.
+export const MUTATION_SHARDS = [
+  [
+    "packages/plugin-search-hints",
+    "packages/cli/src/utils/git-repository-context.ts",
+    "packages/cli/src/report/repository.ts",
+    "packages/cli/src/extractors/playwright-cases.ts",
+    "packages/cli/src/proof/integrations.ts",
+    "packages/cli/src/plugins/source-change-analysis.ts",
+    "packages/cli/src/cli-register-reporting.ts",
+    "packages/cli/src/commands/sync/staging.ts",
+    "packages/cli/src/commands/init.ts",
+    "packages/cli/src/commands/hook-managers.ts",
+    "packages/cli/src/operations/modeling/logic-modeling.ts",
+    "packages/cli/src/operations/modeling/predicate-applyplan.ts",
+    "packages/cli/src/operations/modeling/predicate-catalog-1.ts",
+    "packages/cli/src/operations/modeling/predicate-score-2.ts",
+    "packages/cli/src/operations/mutation/relationships.ts",
+    "packages/cli/src/operations/mutation/strict-fact.ts",
+    "packages/cli/src/operations/bootstrap/activation.ts",
+    "packages/cli/src/operations/migration/evidence-floor.ts",
+    "packages/cli/src/public/operations/specs/sparql.ts",
+    "packages/cli/src/operations/bootstrap/presentation.ts",
+    "packages/cli/src/operations/mutation/delete.ts",
+    "packages/cli/src/public/operations/decision-firmness.ts",
+    "packages/cli/src/engine.ts",
+  ],
+  [
+    "packages/codex",
+    "packages/agent-core",
+    "packages/cli/src/engine-limits.ts",
+    "packages/cli/src/proof/evaluate.ts",
+    "packages/cli/src/traceability/staged-impact-contract.ts",
+    "packages/cli/src/env/bootstrap.ts",
+    "packages/cli/src/extractors/symbols-coordinator.ts",
+    "packages/cli/src/cli-register-json.ts",
+    "packages/cli/src/cli-json-command.ts",
+    "packages/cli/src/intent-search.ts",
+    "packages/cli/src/commands/merge-driver.ts",
+    "packages/cli/src/commands/engine.ts",
+    "packages/cli/src/commands/branch.ts",
+    "packages/cli/src/commands/sync/manifest.ts",
+    "packages/cli/src/commands/hooks-install.ts",
+    "packages/cli/src/plugins/source-classification.ts",
+    "packages/cli/src/plugins/source-analysis-service.ts",
+    "packages/cli/src/operations/modeling/predicate-catalog-2.ts",
+    "packages/cli/src/operations/semantic-advisor/shared.ts",
+    "packages/cli/src/public/impact/symbol-quality-model.ts",
+    "packages/cli/src/public/telemetry-remediation.ts",
+    "packages/cli/src/public/distribution-parity.ts",
+    "packages/cli/src/operations/mutation/validate-upsert.ts",
+    "packages/cli/src/public/operations/impact-review-preparation.ts",
+    "packages/cli/src/public/operations/schema6-check-actions.ts",
+  ],
+  [
+    "packages/plugin-builtin",
+    "packages/cli/src/entity-body-context.ts",
+    "packages/cli/src/search-hints.ts",
+    "packages/cli/src/telemetry-details.ts",
+    "packages/cli/src/plugins/compose-semantic-classifier.ts",
+    "packages/cli/src/extractors/manifest.ts",
+    "packages/cli/src/proof/inspect.ts",
+    "packages/cli/src/proof/integration-plan.ts",
+    "packages/cli/src/cli-validate.ts",
+    "packages/cli/src/prolog/codec.ts",
+    "packages/cli/src/commands/sync/cache.ts",
+    "packages/cli/src/traceability/temp-kb.ts",
+    "packages/cli/src/operations/modeling/predicate-inference-3.ts",
+    "packages/cli/src/operations/modeling/predicate-ranker.ts",
+    "packages/cli/src/operations/mutation/serialization.ts",
+    "packages/cli/src/operations/mutation/workspace-mutation-lock.ts",
+    "packages/cli/src/operations/semantic-advisor/case-preview.ts",
+    "packages/cli/src/public/impact/diagnostics.ts",
+    "packages/cli/src/public/operations/check-helpers.ts",
+    "packages/cli/src/public/diagnostic-usage.ts",
+    "packages/cli/src/public/operations/result-envelope.ts",
+    "packages/cli/src/operations/semantic-advisor/strict-rules.ts",
+    "packages/cli/src/public/proof-protocol.ts",
+    "packages/cli/src/prolog.ts",
+    "packages/cli/src/public/operations/discovery-executors.ts",
+    "packages/swipl/index.js",
+  ],
+  [
+    "packages/cursor",
+    "packages/cli/src/plugins/generated-sources.ts",
+    "packages/cli/src/utils/branch-store.ts",
+    "packages/cli/src/utils/branch-resolver.ts",
+    "packages/cli/src/relationships/shards.ts",
+    "packages/cli/src/signoff/markdown.ts",
+    "packages/cli/src/signoff/html.ts",
+    "packages/cli/src/plugins/approved-source-analyzers.ts",
+    "packages/cli/src/traceability/impact-side-evidence.ts",
+    "packages/cli/src/commands/gc.ts",
+    "packages/cli/src/commands/check-generated.ts",
+    "packages/cli/src/commands/init-helpers.ts",
+    "packages/cli/src/plugins/resolve-package.ts",
+    "packages/cli/src/plugins/maintenance-source-analysis.ts",
+    "packages/cli/src/traceability/impact-review.ts",
+    "packages/cli/src/operations/modeling/predicate-bindings.ts",
+    "packages/cli/src/operations/modeling/predicate-inference-1.ts",
+    "packages/cli/src/operations/proof/receipt-document.ts",
+    "packages/cli/src/operations/bootstrap/plugin-offers.ts",
+    "packages/cli/src/operations/migration/kb-sources.ts",
+    "packages/cli/src/operations/migration/proof-contract-claims.ts",
+    "packages/cli/src/operations/semantic-advisor/predicate-rules-core.ts",
+    "packages/cli/src/operations/semantic-advisor/predicate-rules-policy.ts",
+    "packages/cli/src/operations/semantic-advisor/predicate-rules-product.ts",
+    "packages/cli/src/operations/semantic-advisor/predicate-rules-product-tail.ts",
+    "packages/cli/src/operations/semantic-advisor/predicate-rules-launcher.ts",
+    "packages/cli/src/public/operations/repair-plan.ts",
+    "packages/cli/src/public/operations/contracts.ts",
+    "packages/cli/src/operations/planning/apply-plan.ts",
+    "packages/cli/src/operations/mutation/upsert.ts",
+    "packages/cli/src/operations/proof/prolog-source-reader.ts",
+    "packages/cli/src/public/operations/legacy-migration-plan.ts",
+    "packages/cli/src/commands/doctor.ts",
+  ],
+  [
+    "packages/cli/src/utils/config.ts",
+    "packages/cli/src/utils/strict-modeling.ts",
+    "packages/cli/src/extractors/symbol-title-match.ts",
+    "packages/cli/src/traceability/trusted-pr-event.ts",
+    "packages/cli/src/signoff/collect.ts",
+    "packages/cli/src/extractors/symbol-coordinates.ts",
+    "packages/cli/src/cli-register-proof.ts",
+    "packages/cli/src/prolog/swipl-resolver.ts",
+    "packages/cli/src/search-answer.ts",
+    "packages/cli/src/commands/sync/errors.ts",
+    "packages/cli/src/commands/report.ts",
+    "packages/cli/src/commands/discovery-table.ts",
+    "packages/cli/src/traceability/staged-symbols-manifest.ts",
+    "packages/cli/src/operations/modeling/predicate-applicability.ts",
+    "packages/cli/src/operations/modeling/predicate-binding-hints.ts",
+    "packages/cli/src/operations/modeling/vocabulary-alignment.ts",
+    "packages/cli/src/operations/proof/prolog-evaluator.ts",
+    "packages/cli/src/operations/bootstrap/markdown-candidates.ts",
+    "packages/cli/src/operations/semantic-advisor/clauses.ts",
+    "packages/cli/src/operations/bootstrap/intent-claims.ts",
+    "packages/cli/src/operations/mutation/plan-apply-journal.ts",
+    "packages/cli/src/operations/mutation/source-authoring.ts",
+    "packages/cli/src/operations/proof/code-certificates.ts",
+    "packages/cli/src/operations/mutation/contradictions.ts",
+    "packages/cli/src/operations/modeling/suggest-predicates.ts",
+    "packages/cli/src/public/operations/entity-context.ts",
+    "packages/cli/src/public/operations/source-relationship-parity.ts",
+    "packages/cli/src/commands/check.ts",
+  ],
+  [
+    "packages/plugin-jev",
+    "packages/cli/src/extractors/markdown.ts",
+    "packages/cli/src/proof/command-test-report.ts",
+    "packages/cli/src/proof/step-runner.ts",
+    "packages/cli/src/cli-register-maintenance.ts",
+    "packages/cli/src/commands/check-certificates.ts",
+    "packages/cli/src/commands/github-init.ts",
+    "packages/cli/src/commands/legacy-storage-migration.ts",
+    "packages/cli/src/commands/agent-instructions.ts",
+    "packages/cli/src/traceability/impact-evaluator.ts",
+    "packages/cli/src/plugins/reference-language-suggestion.ts",
+    "packages/cli/src/traceability/git-change-snapshot.ts",
+    "packages/cli/src/operations/mutation/save.ts",
+    "packages/cli/src/operations/mutation/symbol-refresh.ts",
+    "packages/cli/src/operations/proof/java-package-shadow.ts",
+    "packages/cli/src/operations/semantic-advisor/analysis-receipt.ts",
+    "packages/cli/src/public/telemetry-acceptance.ts",
+    "packages/cli/src/public/operations/check-format-shared.ts",
+    "packages/cli/src/public/ignore-policy.ts",
+    "packages/cli/src/public/operations/node-ports.ts",
+    "packages/cli/src/public/proof-receipt.ts",
+    "packages/cli/src/operations/proof/code-models.ts",
+    "packages/cli/src/operations/proof/source-code-readers.ts",
+    "packages/cli/src/public/impact/full-kb-quality.ts",
+    "packages/cli/src/public/operations/specs/reporting.ts",
+    "packages/cli/src/public/operations/origin-review.ts",
+    "packages/cli/src/public/operations/check-policy-rules.ts",
+  ],
+  [
+    "packages/runtime",
+    "packages/cli/src/utils/manifest-paths.ts",
+    "packages/cli/src/runtime/cli-runtime.ts",
+    "packages/cli/src/traceability/snapshot-knowledge.ts",
+    "packages/cli/src/traceability/impact-record-validation.ts",
+    "packages/cli/src/cli-command.ts",
+    "packages/cli/src/prolog/error-terms.ts",
+    "packages/cli/src/commands/sync/discovery.ts",
+    "packages/cli/src/commands/sync/persistence.ts",
+    "packages/cli/src/operations/modeling/predicate-catalog-3.ts",
+    "packages/cli/src/operations/modeling/predicate-inference-2.ts",
+    "packages/cli/src/operations/modeling/predicate-inference.ts",
+    "packages/cli/src/operations/modeling/predicate-score-3.ts",
+    "packages/cli/src/operations/mutation/symbol-compiler-lock.ts",
+    "packages/cli/src/operations/bootstrap/candidates.ts",
+    "packages/cli/src/operations/semantic-advisor/ingestion-boundary.ts",
+    "packages/cli/src/public/operations/evidence-floor.ts",
+    "packages/cli/src/public/skill-system/validation.ts",
+    "packages/cli/src/operations/migration/inventory-rederive.ts",
+    "packages/cli/src/operations/migration/schema6.ts",
+    "packages/cli/src/operations/semantic-advisor/analyze-prose.ts",
+    "packages/cli/src/operations/modeling/model-requirement.ts",
+    "packages/cli/src/operations/proof/regular-language.ts",
+    "packages/cli/src/public/operations/migration-plan.ts",
+    "packages/cli/src/public/proof-sources.ts",
+    "packages/cli/src/public/impact/requirement-quality.ts",
+    "packages/cli/src/public/operations/check-executor.ts",
+    "packages/cli/src/public/operations/discovery-entities.ts",
+  ],
+  [
+    "packages/plugin-sdk",
+    "packages/zcode",
+    "packages/cli/src/utils/canonical-path.ts",
+    "packages/cli/src/traceability/impact-knowledge.ts",
+    "packages/cli/src/report/html-report.ts",
+    "packages/cli/src/cli-register-foundation.ts",
+    "packages/cli/src/prolog/janitor.ts",
+    "packages/cli/src/prolog/store-lock.ts",
+    "packages/cli/src/commands/signoff.ts",
+    "packages/cli/src/commands/usage-metrics.ts",
+    "packages/cli/src/commands/prove.ts",
+    "packages/cli/src/traceability/staged-file-coverage.ts",
+    "packages/cli/src/traceability/git-staged.ts",
+    "packages/cli/src/traceability/symbol-extract.ts",
+    "packages/cli/src/plugins/registry.ts",
+    "packages/cli/src/operations/modeling/predicate-catalog-4.ts",
+    "packages/cli/src/operations/modeling/predicate-catalog-5.ts",
+    "packages/cli/src/operations/modeling/predicate-utils.ts",
+    "packages/cli/src/operations/modeling/predicate-vocabulary.ts",
+    "packages/cli/src/operations/bootstrap/guidance.ts",
+    "packages/cli/src/public/impact/symbol-quality.ts",
+    "packages/cli/src/public/impact/unowned-files.ts",
+    "packages/cli/src/operations/bootstrap/requirement-claims.ts",
+    "packages/cli/src/operations/planning/compile-intent.ts",
+    "packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts",
+    "packages/cli/src/public/impact/coverage-depth-quality.ts",
+    "packages/cli/src/commands/sync.ts",
+  ],
+  [
+    "packages/claude",
+    "packages/cli/src/search-ranking.ts",
+    "packages/cli/src/logic/ir.ts",
+    "packages/cli/src/utils/content-freshness.ts",
+    "packages/cli/src/signoff/model.ts",
+    "packages/cli/src/env.ts",
+    "packages/cli/src/update-check.ts",
+    "packages/cli/src/commands/query.ts",
+    "packages/cli/src/plugins/compose-ontology-packs.ts",
+    "packages/cli/src/operations/modeling/predicate-score-1.ts",
+    "packages/cli/src/operations/mutation/validation.ts",
+    "packages/cli/src/operations/proof/code-runner.ts",
+    "packages/cli/src/operations/bootstrap/guidance-actions.ts",
+    "packages/cli/src/operations/bootstrap/discovery-evidence.ts",
+    "packages/cli/src/operations/migration/entity-body-context.ts",
+    "packages/cli/src/operations/semantic-advisor/conditional-rules.ts",
+    "packages/cli/src/public/evidence-levels.ts",
+    "packages/cli/src/public/schemas/entity.ts",
+    "packages/cli/src/public/impact/diff-meaning.ts",
+    "packages/cli/src/operations/bootstrap/generate.ts",
+    "packages/cli/src/operations/migration/source-paths.ts",
+    "packages/cli/src/operations/migration/symbol-legacy-links.ts",
+    "packages/cli/src/operations/proof/explain.ts",
+    "packages/cli/src/operations/proof/claim-bindings.ts",
+    "packages/cli/src/operations/proof/ingest-proof.ts",
+    "packages/cli/src/public/operations/symbol-repair-plan.ts",
+    "packages/cli/src/public/operations/predicate-schema-conformance.ts",
+    "packages/cli/src/commands/migrate.ts",
+  ],
+];
+
+// The units of one CI job (1-based), or every unit.
+export function shardUnits(shard) {
+  const units = mutationUnits();
+  if (shard === undefined || shard === "") return units;
+  const index = Number(shard);
+  if (
+    !Number.isInteger(index) ||
+    index < 1 ||
+    index > MUTATION_SHARDS.length + 1
+  ) {
+    throw new Error(
+      `MUTATION_SHARD must be 1..${MUTATION_SHARDS.length + 1}, got ${shard}`,
+    );
+  }
+  if (index <= MUTATION_SHARDS.length) return MUTATION_SHARDS[index - 1];
+  const listed = new Set(MUTATION_SHARDS.flat());
+  return units.filter((unit) => !listed.has(unit));
+}
+
+// The mutate globs of one CI job, or of the whole run.
+export function mutateFor(shard) {
+  return shardUnits(shard).flatMap(unitMutate);
+}
+
+// The "./"-prefixed test files of one CI job, or of the whole run. Bun gets an
+// explicit file list: bunfig.toml's `[test] root = "test"` breaks bun's
+// directory-argument discovery.
+export function testFilesFor(shard) {
+  const files = shardUnits(shard).flatMap(unitTests);
+  return [...new Set(files)].sort().map((file) => `./${file}`);
+}
+
+const SHARD = process.env.MUTATION_SHARD;
+const REPORT_DIR = SHARD
+  ? `reports/mutation/shard-${SHARD}`
+  : "reports/mutation";
 
 /** @type {import('@stryker-mutator/api/core').StrykerOptions} */
 const config = {
@@ -1454,25 +1788,9 @@ const config = {
   // runner must be registered explicitly.
   plugins: ["@hughescr/stryker-bun-runner"],
   coverageAnalysis: "perTest",
-  mutate: [
-    "packages/runtime/src/**/*.ts",
-    // Pure re-export barrel of kibi-cli: no logic of its own to mutate.
-    "!packages/runtime/src/index.ts",
-    "packages/codex/src/**/*.ts",
-    "packages/cursor/src/**/*.ts",
-    "packages/plugin-sdk/src/**/*.ts",
-    "packages/plugin-jev/src/**/*.ts",
-    "packages/agent-core/src/**/*.ts",
-    "packages/zcode/src/**/*.ts",
-    "packages/claude/src/**/*.ts",
-    "packages/plugin-ui/src/**/*.ts",
-    "packages/plugin-search-hints/src/**/*.ts",
-    "packages/plugin-builtin/src/**/*.ts",
-    ...Object.keys(CLI_MUTATION_MODULES),
-    ...Object.keys(PLUGIN_MUTATION_MODULES),
-  ],
+  mutate: mutateFor(SHARD),
   bun: {
-    testFiles: scopedTestFiles(),
+    testFiles: testFilesFor(SHARD),
     // Watchdog for a whole `bun test` child. It bounds the dry run, which
     // runs every scoped suite on instrumented source with per-test coverage and
     // takes two to seven minutes on 4 cores; mutant runs use Stryker's
@@ -1512,6 +1830,8 @@ const config = {
   dryRunTimeoutMinutes: 20,
   concurrency: 4,
   reporters: ["progress", "html", "json", "clear-text"],
+  htmlReporter: { fileName: `${REPORT_DIR}/mutation.html` },
+  jsonReporter: { fileName: `${REPORT_DIR}/mutation.json` },
   // `bun.*` is the @hughescr/stryker-bun-runner option namespace; Stryker's
   // core schema does not know it, but the plugin reads it from settings.
   warnings: { unknownOptions: false },
