@@ -12,6 +12,7 @@ import {
   buildHeldOutCatalog,
   buildPublicCatalog,
 } from "../catalog";
+import { KIBI_TRACEABILITY_SCRIPTS } from "./kibi-traceability";
 import { KIBI_USAGE_SCRIPTS } from "./kibi-usage";
 import { readRecordedReference, replayScript } from "./replay";
 import type { ReferenceScript } from "./runner";
@@ -22,6 +23,7 @@ const SCRIPTS: Readonly<
   Partial<Record<CanonicalSkill, Readonly<Record<string, ReferenceScript>>>>
 > = {
   "kibi-usage": KIBI_USAGE_SCRIPTS,
+  "kibi-traceability": KIBI_TRACEABILITY_SCRIPTS,
 };
 
 export function skillCases(skill: CanonicalSkill): readonly TaskSpec[] {

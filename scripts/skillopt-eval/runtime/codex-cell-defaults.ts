@@ -304,6 +304,66 @@ function approvesEveryAutomaticAction(
   );
 }
 
+/**
+ * The verifier's symbol readback carries source coordinates and its symbol
+ * coverage plans no coordinate refresh for any symbol.
+ */
+function coordinateGapAbsent(
+  results: readonly Readonly<{ tool: string; result: unknown }>[],
+): boolean {
+  const symbols = latestContent(results, "kb_query")?.entities;
+  const coverage = latestContent(results, "kb_coverage");
+  const repairs = isRecord(coverage?.symbolRepairPlan)
+    ? coverage.symbolRepairPlan.repairs
+    : undefined;
+  return (
+    Array.isArray(symbols) &&
+    symbols.length > 0 &&
+    symbols.every(
+      (symbol) =>
+        isRecord(symbol) &&
+        typeof symbol.sourceLine === "number" &&
+        typeof symbol.sourceEndLine === "number",
+    ) &&
+    coverage !== null &&
+    (!Array.isArray(repairs) ||
+      repairs.every(
+        (repair) =>
+          !isRecord(repair) || repair.action !== "refresh_coordinates",
+      ))
+  );
+}
+
+/**
+ * One applied plan, approved by its own hash, naming only ready automatic
+ * coordinate-refresh actions.
+ */
+function exactCoordinateRefreshApplied(context: CaseSignalContext): boolean {
+  const applied = appliedMigrationPlans(context);
+  if (applied.length !== 1) return false;
+  const [{ plan, args }] = applied;
+  const actions = new Map(
+    (Array.isArray(plan.actions) ? plan.actions : []).flatMap((action) =>
+      isRecord(action) ? [[action.id, action] as const] : [],
+    ),
+  );
+  const approved = args.approvedActionIds;
+  return (
+    args.approvedPlanHash === plan.planHash &&
+    Array.isArray(approved) &&
+    approved.length > 0 &&
+    approved.every((id) => {
+      const action = actions.get(id);
+      return (
+        action !== undefined &&
+        action.code === "symbol_refresh_coordinates" &&
+        action.state === "ready" &&
+        action.safety === "automatic"
+      );
+    })
+  );
+}
+
 function workflowSignalObserved(
   signal: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
@@ -590,6 +650,16 @@ function workflowSignalObserved(
     case "proof-aware depth warning not emitted":
       return (
         text.includes("passinge2e") && !text.includes("coverage_depth_review")
+      );
+    case "generated coordinate gap absent":
+      return coordinateGapAbsent(results);
+    case "exact approved automatic refresh applied":
+      return exactCoordinateRefreshApplied(context);
+    case "final status fresh":
+      return (
+        status?.syncState === "fresh" &&
+        Array.isArray(status.staleReasons) &&
+        status.staleReasons.length === 0
       );
     case "evidence-backed repair candidates":
       return (

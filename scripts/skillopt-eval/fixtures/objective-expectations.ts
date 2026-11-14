@@ -376,7 +376,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     generated_only_symbol_coordinate_repair: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
+      // The refresh rewrites only the gitignored coordinate cache, so the
+      // verification snapshot stays fresh.
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -503,7 +505,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     exact_legacy_branch_migration: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
+      // The applied migration writes workspace files, so the verification
+      // snapshot is dirty afterwards, as for safe_schema_application.
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
