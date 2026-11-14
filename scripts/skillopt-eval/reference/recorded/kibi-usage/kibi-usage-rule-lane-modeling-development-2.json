@@ -1,0 +1,1057 @@
+{
+  "taskId": "kibi-usage-rule-lane-modeling-development-2",
+  "source": "stored 100-score cell",
+  "steps": [
+    {
+      "call": "kb_search",
+      "args": {
+        "query": "API client rate limit, export access review, audit log retention, export deletion, refund manager approval, session token expiry"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "factKind": "predicate_schema"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "analyze",
+        "text": "An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.",
+        "clauses": [
+          "An API client must send at most 100 requests per minute.",
+          "An export requires an access review before download.",
+          "Audit logs must be retained for 365 days.",
+          "Export files must be deleted after 30 days.",
+          "A refund requires manager approval before payout.",
+          "Session tokens must expire after 60 minutes."
+        ],
+        "type": "req"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "predicates",
+        "text": "An export requires an access review before download.",
+        "claimKey": "CLAIM-F44D306DB012652D",
+        "existingLogicClaims": [
+          "CLAIM-AAB2A1BBC1B587ED",
+          "CLAIM-F44D306DB012652D",
+          "CLAIM-9056355FB39F4452",
+          "CLAIM-E0AF0EA8B33DCE3E",
+          "CLAIM-A0CBA6BDFB4BBE49",
+          "CLAIM-43A4485CCAD79F9B"
+        ],
+        "id": "REQ-api-operational-controls"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "predicates",
+        "text": "Export files must be deleted after 30 days.",
+        "claimKey": "CLAIM-E0AF0EA8B33DCE3E",
+        "existingLogicClaims": [
+          "CLAIM-AAB2A1BBC1B587ED",
+          "CLAIM-F44D306DB012652D",
+          "CLAIM-9056355FB39F4452",
+          "CLAIM-E0AF0EA8B33DCE3E",
+          "CLAIM-A0CBA6BDFB4BBE49",
+          "CLAIM-43A4485CCAD79F9B"
+        ],
+        "id": "REQ-api-operational-controls"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "predicates",
+        "text": "A refund requires manager approval before payout.",
+        "claimKey": "CLAIM-A0CBA6BDFB4BBE49",
+        "existingLogicClaims": [
+          "CLAIM-AAB2A1BBC1B587ED",
+          "CLAIM-F44D306DB012652D",
+          "CLAIM-9056355FB39F4452",
+          "CLAIM-E0AF0EA8B33DCE3E",
+          "CLAIM-A0CBA6BDFB4BBE49",
+          "CLAIM-43A4485CCAD79F9B"
+        ],
+        "id": "REQ-api-operational-controls"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "predicates",
+        "text": "Export files must be deleted after 30 days.",
+        "schemaId": "FACT-SCHEMA-LIFECYCLE-RULE",
+        "argumentBindings": {
+          "subject": "export_files",
+          "action": "deleted",
+          "duration": "30",
+          "unit": "days"
+        }
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "requirement",
+        "text": "Audit logs must be retained for 365 days.",
+        "subjectKey": "audit.log",
+        "propertyKey": "retention_days",
+        "operator": "eq",
+        "value": 365,
+        "confidence": 0.9,
+        "claimText": "Audit logs must be retained for 365 days"
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-api-operational-controls",
+        "dryRun": true,
+        "plannedFacts": [
+          {
+            "type": "fact",
+            "id": "FACT-SUBJECT-requests-per-minute",
+            "properties": {
+              "title": "requests.per.minute subject",
+              "status": "active",
+              "fact_kind": "subject",
+              "subject_key": "requests.per.minute",
+              "canonical_key": "requests.per.minute",
+              "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+              "claim_text": "An API client must send at most 100 requests per minute",
+              "claim_span_start": 0,
+              "claim_span_end": 55
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PROP-requests-per-minute-count-lte-100",
+            "properties": {
+              "title": "requests.per.minute count lte 100",
+              "status": "active",
+              "fact_kind": "property_value",
+              "subject_key": "requests.per.minute",
+              "property_key": "count",
+              "operator": "lte",
+              "value_type": "int",
+              "value_int": 100,
+              "canonical_key": "requests.per.minute.count.lte.100",
+              "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+              "claim_text": "An API client must send at most 100 requests per minute",
+              "claim_span_start": 0,
+              "claim_span_end": 55
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PRED-export-access-review-dependency",
+            "properties": {
+              "title": "Export requires access review before download",
+              "status": "active",
+              "fact_kind": "predicate",
+              "predicate_name": "dependency_rule",
+              "predicate_args": ["an_export", "access_review", "download"],
+              "canonical_key": "dependency_rule(an_export,access_review,download)",
+              "polarity": "assert",
+              "claim_key": "CLAIM-F44D306DB012652D",
+              "claim_text": "An export requires an access review before download",
+              "claim_span_start": 57,
+              "claim_span_end": 108
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-SUBJECT-audit-log",
+            "properties": {
+              "title": "audit.log subject",
+              "status": "active",
+              "fact_kind": "subject",
+              "subject_key": "audit.log",
+              "canonical_key": "audit.log",
+              "claim_key": "CLAIM-9056355FB39F4452",
+              "claim_text": "Audit logs must be retained for 365 days",
+              "claim_span_start": 110,
+              "claim_span_end": 150
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PROP-audit-log-retention-days-eq-365",
+            "properties": {
+              "title": "audit.log retention_days eq 365",
+              "status": "active",
+              "fact_kind": "property_value",
+              "subject_key": "audit.log",
+              "property_key": "retention_days",
+              "operator": "eq",
+              "value_type": "int",
+              "value_int": 365,
+              "unit": "days",
+              "canonical_key": "audit.log.retention_days.eq.365",
+              "claim_key": "CLAIM-9056355FB39F4452",
+              "claim_text": "Audit logs must be retained for 365 days",
+              "claim_span_start": 110,
+              "claim_span_end": 150
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PRED-export-files-deleted-after-30-days",
+            "properties": {
+              "title": "Export files deleted after 30 days",
+              "status": "active",
+              "fact_kind": "predicate",
+              "predicate_name": "lifecycle_rule",
+              "predicate_args": ["export_files", "deleted", "30", "days"],
+              "canonical_key": "lifecycle_rule(export_files,deleted,30,days)",
+              "polarity": "assert",
+              "claim_key": "CLAIM-E0AF0EA8B33DCE3E",
+              "claim_text": "Export files must be deleted after 30 days",
+              "claim_span_start": 152,
+              "claim_span_end": 194
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PRED-refund-manager-approval-dependency",
+            "properties": {
+              "title": "Refund requires manager approval before payout",
+              "status": "active",
+              "fact_kind": "predicate",
+              "predicate_name": "dependency_rule",
+              "predicate_args": ["a_refund", "manager_approval", "payout"],
+              "canonical_key": "dependency_rule(a_refund,manager_approval,payout)",
+              "polarity": "assert",
+              "claim_key": "CLAIM-A0CBA6BDFB4BBE49",
+              "claim_text": "A refund requires manager approval before payout",
+              "claim_span_start": 196,
+              "claim_span_end": 244
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-SUBJECT-session-token",
+            "properties": {
+              "title": "session.token subject",
+              "status": "active",
+              "fact_kind": "subject",
+              "subject_key": "session.token",
+              "canonical_key": "session.token",
+              "claim_key": "CLAIM-43A4485CCAD79F9B",
+              "claim_text": "Session tokens must expire after 60 minutes",
+              "claim_span_start": 246,
+              "claim_span_end": 289
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PROP-session-token-expiry-minutes-eq-60",
+            "properties": {
+              "title": "session.token expiry_minutes eq 60",
+              "status": "active",
+              "fact_kind": "property_value",
+              "subject_key": "session.token",
+              "property_key": "expiry_minutes",
+              "operator": "eq",
+              "value_type": "int",
+              "value_int": 60,
+              "unit": "minutes",
+              "canonical_key": "session.token.expiry_minutes.eq.60",
+              "claim_key": "CLAIM-43A4485CCAD79F9B",
+              "claim_text": "Session tokens must expire after 60 minutes",
+              "claim_span_start": 246,
+              "claim_span_end": 289
+            }
+          }
+        ],
+        "properties": {
+          "title": "API client, export, audit log, refund and session token controls",
+          "status": "open",
+          "firmness": "default",
+          "semantic_text": "An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "e322ecaa5a9383a161ca4610151bd2b61a414b90cfb76f57aed9f46d0e8d8f89",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+              "claim_text": "An API client must send at most 100 requests per minute",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 55
+              }
+            },
+            {
+              "claim_key": "CLAIM-F44D306DB012652D",
+              "claim_text": "An export requires an access review before download",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 57,
+                "end": 108
+              }
+            },
+            {
+              "claim_key": "CLAIM-9056355FB39F4452",
+              "claim_text": "Audit logs must be retained for 365 days",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 110,
+                "end": 150
+              }
+            },
+            {
+              "claim_key": "CLAIM-E0AF0EA8B33DCE3E",
+              "claim_text": "Export files must be deleted after 30 days",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 152,
+                "end": 194
+              }
+            },
+            {
+              "claim_key": "CLAIM-A0CBA6BDFB4BBE49",
+              "claim_text": "A refund requires manager approval before payout",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 196,
+                "end": 244
+              }
+            },
+            {
+              "claim_key": "CLAIM-43A4485CCAD79F9B",
+              "claim_text": "Session tokens must expire after 60 minutes",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 246,
+                "end": 289
+              }
+            }
+          ],
+          "semantic_clauses": [
+            "An API client must send at most 100 requests per minute",
+            "An export requires an access review before download",
+            "Audit logs must be retained for 365 days",
+            "Export files must be deleted after 30 days",
+            "A refund requires manager approval before payout",
+            "Session tokens must expire after 60 minutes"
+          ],
+          "logic_claims": [
+            "CLAIM-AAB2A1BBC1B587ED",
+            "CLAIM-F44D306DB012652D",
+            "CLAIM-9056355FB39F4452",
+            "CLAIM-E0AF0EA8B33DCE3E",
+            "CLAIM-A0CBA6BDFB4BBE49",
+            "CLAIM-43A4485CCAD79F9B"
+          ],
+          "document": {
+            "body": "An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.\n\n## Context\n\nReason not stated. The requester did not give a reason; this requirement was modeled from the development-split case kibi-usage-rule-lane-modeling-development-2 in predicate-claim.json.\n\n## Source\n\n> An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.\n\nReference: predicate-claim.json (caseId kibi-usage-rule-lane-modeling-development-2)."
+          }
+        },
+        "relationships": [
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-requests-per-minute"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-requests-per-minute-count-lte-100"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-export-access-review-dependency"
+          },
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-audit-log"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-audit-log-retention-days-eq-365"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-export-files-deleted-after-30-days"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-refund-manager-approval-dependency"
+          },
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-session-token"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-session-token-expiry-minutes-eq-60"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-api-operational-controls",
+        "dryRun": true,
+        "document": {
+          "body": "An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.\n\n## Context\n\nReason not stated. The requester did not give a reason; this requirement was modeled from the development-split case kibi-usage-rule-lane-modeling-development-2 in predicate-claim.json.\n\n## Source\n\n> An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.\n\nReference: predicate-claim.json (caseId kibi-usage-rule-lane-modeling-development-2)."
+        },
+        "plannedFacts": [
+          {
+            "type": "fact",
+            "id": "FACT-SUBJECT-requests-per-minute",
+            "properties": {
+              "title": "requests.per.minute subject",
+              "status": "active",
+              "fact_kind": "subject",
+              "subject_key": "requests.per.minute",
+              "canonical_key": "requests.per.minute",
+              "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+              "claim_text": "An API client must send at most 100 requests per minute",
+              "claim_span_start": 0,
+              "claim_span_end": 55
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PROP-requests-per-minute-count-lte-100",
+            "properties": {
+              "title": "requests.per.minute count lte 100",
+              "status": "active",
+              "fact_kind": "property_value",
+              "subject_key": "requests.per.minute",
+              "property_key": "count",
+              "operator": "lte",
+              "value_type": "int",
+              "value_int": 100,
+              "canonical_key": "requests.per.minute.count.lte.100",
+              "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+              "claim_text": "An API client must send at most 100 requests per minute",
+              "claim_span_start": 0,
+              "claim_span_end": 55
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PRED-export-access-review-dependency",
+            "properties": {
+              "title": "Export requires access review before download",
+              "status": "active",
+              "fact_kind": "predicate",
+              "predicate_name": "dependency_rule",
+              "predicate_args": ["an_export", "access_review", "download"],
+              "canonical_key": "dependency_rule(an_export,access_review,download)",
+              "polarity": "assert",
+              "claim_key": "CLAIM-F44D306DB012652D",
+              "claim_text": "An export requires an access review before download",
+              "claim_span_start": 57,
+              "claim_span_end": 108
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-SUBJECT-audit-log",
+            "properties": {
+              "title": "audit.log subject",
+              "status": "active",
+              "fact_kind": "subject",
+              "subject_key": "audit.log",
+              "canonical_key": "audit.log",
+              "claim_key": "CLAIM-9056355FB39F4452",
+              "claim_text": "Audit logs must be retained for 365 days",
+              "claim_span_start": 110,
+              "claim_span_end": 150
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PROP-audit-log-retention-days-eq-365",
+            "properties": {
+              "title": "audit.log retention_days eq 365",
+              "status": "active",
+              "fact_kind": "property_value",
+              "subject_key": "audit.log",
+              "property_key": "retention_days",
+              "operator": "eq",
+              "value_type": "int",
+              "value_int": 365,
+              "unit": "days",
+              "canonical_key": "audit.log.retention_days.eq.365",
+              "claim_key": "CLAIM-9056355FB39F4452",
+              "claim_text": "Audit logs must be retained for 365 days",
+              "claim_span_start": 110,
+              "claim_span_end": 150
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PRED-export-files-deleted-after-30-days",
+            "properties": {
+              "title": "Export files deleted after 30 days",
+              "status": "active",
+              "fact_kind": "predicate",
+              "predicate_name": "lifecycle_rule",
+              "predicate_args": ["export_files", "deleted", "30", "days"],
+              "canonical_key": "lifecycle_rule(export_files,deleted,30,days)",
+              "polarity": "assert",
+              "claim_key": "CLAIM-E0AF0EA8B33DCE3E",
+              "claim_text": "Export files must be deleted after 30 days",
+              "claim_span_start": 152,
+              "claim_span_end": 194
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PRED-refund-manager-approval-dependency",
+            "properties": {
+              "title": "Refund requires manager approval before payout",
+              "status": "active",
+              "fact_kind": "predicate",
+              "predicate_name": "dependency_rule",
+              "predicate_args": ["a_refund", "manager_approval", "payout"],
+              "canonical_key": "dependency_rule(a_refund,manager_approval,payout)",
+              "polarity": "assert",
+              "claim_key": "CLAIM-A0CBA6BDFB4BBE49",
+              "claim_text": "A refund requires manager approval before payout",
+              "claim_span_start": 196,
+              "claim_span_end": 244
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-SUBJECT-session-token",
+            "properties": {
+              "title": "session.token subject",
+              "status": "active",
+              "fact_kind": "subject",
+              "subject_key": "session.token",
+              "canonical_key": "session.token",
+              "claim_key": "CLAIM-43A4485CCAD79F9B",
+              "claim_text": "Session tokens must expire after 60 minutes",
+              "claim_span_start": 246,
+              "claim_span_end": 289
+            }
+          },
+          {
+            "type": "fact",
+            "id": "FACT-PROP-session-token-expiry-minutes-eq-60",
+            "properties": {
+              "title": "session.token expiry_minutes eq 60",
+              "status": "active",
+              "fact_kind": "property_value",
+              "subject_key": "session.token",
+              "property_key": "expiry_minutes",
+              "operator": "eq",
+              "value_type": "int",
+              "value_int": 60,
+              "unit": "minutes",
+              "canonical_key": "session.token.expiry_minutes.eq.60",
+              "claim_key": "CLAIM-43A4485CCAD79F9B",
+              "claim_text": "Session tokens must expire after 60 minutes",
+              "claim_span_start": 246,
+              "claim_span_end": 289
+            }
+          }
+        ],
+        "properties": {
+          "title": "API client, export, audit log, refund and session token controls",
+          "status": "open",
+          "firmness": "default",
+          "semantic_text": "An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "e322ecaa5a9383a161ca4610151bd2b61a414b90cfb76f57aed9f46d0e8d8f89",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+              "claim_text": "An API client must send at most 100 requests per minute",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 55
+              }
+            },
+            {
+              "claim_key": "CLAIM-F44D306DB012652D",
+              "claim_text": "An export requires an access review before download",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 57,
+                "end": 108
+              }
+            },
+            {
+              "claim_key": "CLAIM-9056355FB39F4452",
+              "claim_text": "Audit logs must be retained for 365 days",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 110,
+                "end": 150
+              }
+            },
+            {
+              "claim_key": "CLAIM-E0AF0EA8B33DCE3E",
+              "claim_text": "Export files must be deleted after 30 days",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 152,
+                "end": 194
+              }
+            },
+            {
+              "claim_key": "CLAIM-A0CBA6BDFB4BBE49",
+              "claim_text": "A refund requires manager approval before payout",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 196,
+                "end": 244
+              }
+            },
+            {
+              "claim_key": "CLAIM-43A4485CCAD79F9B",
+              "claim_text": "Session tokens must expire after 60 minutes",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 246,
+                "end": 289
+              }
+            }
+          ],
+          "semantic_clauses": [
+            "An API client must send at most 100 requests per minute",
+            "An export requires an access review before download",
+            "Audit logs must be retained for 365 days",
+            "Export files must be deleted after 30 days",
+            "A refund requires manager approval before payout",
+            "Session tokens must expire after 60 minutes"
+          ],
+          "logic_claims": [
+            "CLAIM-AAB2A1BBC1B587ED",
+            "CLAIM-F44D306DB012652D",
+            "CLAIM-9056355FB39F4452",
+            "CLAIM-E0AF0EA8B33DCE3E",
+            "CLAIM-A0CBA6BDFB4BBE49",
+            "CLAIM-43A4485CCAD79F9B"
+          ]
+        },
+        "relationships": [
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-requests-per-minute"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-requests-per-minute-count-lte-100"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-export-access-review-dependency"
+          },
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-audit-log"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-audit-log-retention-days-eq-365"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-export-files-deleted-after-30-days"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-refund-manager-approval-dependency"
+          },
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-session-token"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-session-token-expiry-minutes-eq-60"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-SUBJECT-requests-per-minute",
+        "properties": {
+          "title": "requests.per.minute subject",
+          "status": "active",
+          "fact_kind": "subject",
+          "subject_key": "requests.per.minute",
+          "canonical_key": "requests.per.minute",
+          "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+          "claim_text": "An API client must send at most 100 requests per minute",
+          "claim_span_start": 0,
+          "claim_span_end": 55
+        },
+        "document": {
+          "body": "Definition not stated: the subject requests.per.minute is named by requirement REQ-api-operational-controls. The people who own the product can say what API client request rate it covers and what it does not cover."
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PROP-requests-per-minute-count-lte-100",
+        "properties": {
+          "title": "requests.per.minute count lte 100",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "requests.per.minute",
+          "property_key": "count",
+          "operator": "lte",
+          "value_type": "int",
+          "value_int": 100,
+          "canonical_key": "requests.per.minute.count.lte.100",
+          "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+          "claim_text": "An API client must send at most 100 requests per minute",
+          "claim_span_start": 0,
+          "claim_span_end": 55
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PRED-export-access-review-dependency",
+        "properties": {
+          "title": "Export requires access review before download",
+          "status": "active",
+          "fact_kind": "predicate",
+          "predicate_name": "dependency_rule",
+          "predicate_args": ["an_export", "access_review", "download"],
+          "canonical_key": "dependency_rule(an_export,access_review,download)",
+          "polarity": "assert",
+          "claim_key": "CLAIM-F44D306DB012652D",
+          "claim_text": "An export requires an access review before download",
+          "claim_span_start": 57,
+          "claim_span_end": 108
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-SUBJECT-audit-log",
+        "properties": {
+          "title": "audit.log subject",
+          "status": "active",
+          "fact_kind": "subject",
+          "subject_key": "audit.log",
+          "canonical_key": "audit.log",
+          "claim_key": "CLAIM-9056355FB39F4452",
+          "claim_text": "Audit logs must be retained for 365 days",
+          "claim_span_start": 110,
+          "claim_span_end": 150
+        },
+        "document": {
+          "body": "Definition not stated: the subject audit.log is named by requirement REQ-api-operational-controls. The people who own the product can say which audit logs it covers and what it does not cover."
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PROP-audit-log-retention-days-eq-365",
+        "properties": {
+          "title": "audit.log retention_days eq 365",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "audit.log",
+          "property_key": "retention_days",
+          "operator": "eq",
+          "value_type": "int",
+          "value_int": 365,
+          "unit": "days",
+          "canonical_key": "audit.log.retention_days.eq.365",
+          "claim_key": "CLAIM-9056355FB39F4452",
+          "claim_text": "Audit logs must be retained for 365 days",
+          "claim_span_start": 110,
+          "claim_span_end": 150
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PRED-export-files-deleted-after-30-days",
+        "properties": {
+          "title": "Export files deleted after 30 days",
+          "status": "active",
+          "fact_kind": "predicate",
+          "predicate_name": "lifecycle_rule",
+          "predicate_args": ["export_files", "deleted", "30", "days"],
+          "canonical_key": "lifecycle_rule(export_files,deleted,30,days)",
+          "polarity": "assert",
+          "claim_key": "CLAIM-E0AF0EA8B33DCE3E",
+          "claim_text": "Export files must be deleted after 30 days",
+          "claim_span_start": 152,
+          "claim_span_end": 194
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PRED-refund-manager-approval-dependency",
+        "properties": {
+          "title": "Refund requires manager approval before payout",
+          "status": "active",
+          "fact_kind": "predicate",
+          "predicate_name": "dependency_rule",
+          "predicate_args": ["a_refund", "manager_approval", "payout"],
+          "canonical_key": "dependency_rule(a_refund,manager_approval,payout)",
+          "polarity": "assert",
+          "claim_key": "CLAIM-A0CBA6BDFB4BBE49",
+          "claim_text": "A refund requires manager approval before payout",
+          "claim_span_start": 196,
+          "claim_span_end": 244
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-SUBJECT-session-token",
+        "properties": {
+          "title": "session.token subject",
+          "status": "active",
+          "fact_kind": "subject",
+          "subject_key": "session.token",
+          "canonical_key": "session.token",
+          "claim_key": "CLAIM-43A4485CCAD79F9B",
+          "claim_text": "Session tokens must expire after 60 minutes",
+          "claim_span_start": 246,
+          "claim_span_end": 289
+        },
+        "document": {
+          "body": "Definition not stated: the subject session.token is named by requirement REQ-api-operational-controls. The people who own the product can say which session tokens it covers and what it does not cover."
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PROP-session-token-expiry-minutes-eq-60",
+        "properties": {
+          "title": "session.token expiry_minutes eq 60",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "session.token",
+          "property_key": "expiry_minutes",
+          "operator": "eq",
+          "value_type": "int",
+          "value_int": 60,
+          "unit": "minutes",
+          "canonical_key": "session.token.expiry_minutes.eq.60",
+          "claim_key": "CLAIM-43A4485CCAD79F9B",
+          "claim_text": "Session tokens must expire after 60 minutes",
+          "claim_span_start": 246,
+          "claim_span_end": 289
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-api-operational-controls",
+        "document": {
+          "body": "An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.\n\n## Context\n\nReason not stated. The requester did not give a reason; this requirement was modeled from the development-split case kibi-usage-rule-lane-modeling-development-2 in predicate-claim.json.\n\n## Source\n\n> An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.\n\nReference: predicate-claim.json (caseId kibi-usage-rule-lane-modeling-development-2)."
+        },
+        "properties": {
+          "title": "API client, export, audit log, refund and session token controls",
+          "status": "open",
+          "firmness": "default",
+          "semantic_text": "An API client must send at most 100 requests per minute. An export requires an access review before download. Audit logs must be retained for 365 days. Export files must be deleted after 30 days. A refund requires manager approval before payout. Session tokens must expire after 60 minutes.",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "e322ecaa5a9383a161ca4610151bd2b61a414b90cfb76f57aed9f46d0e8d8f89",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-AAB2A1BBC1B587ED",
+              "claim_text": "An API client must send at most 100 requests per minute",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 55
+              }
+            },
+            {
+              "claim_key": "CLAIM-F44D306DB012652D",
+              "claim_text": "An export requires an access review before download",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 57,
+                "end": 108
+              }
+            },
+            {
+              "claim_key": "CLAIM-9056355FB39F4452",
+              "claim_text": "Audit logs must be retained for 365 days",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 110,
+                "end": 150
+              }
+            },
+            {
+              "claim_key": "CLAIM-E0AF0EA8B33DCE3E",
+              "claim_text": "Export files must be deleted after 30 days",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 152,
+                "end": 194
+              }
+            },
+            {
+              "claim_key": "CLAIM-A0CBA6BDFB4BBE49",
+              "claim_text": "A refund requires manager approval before payout",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 196,
+                "end": 244
+              }
+            },
+            {
+              "claim_key": "CLAIM-43A4485CCAD79F9B",
+              "claim_text": "Session tokens must expire after 60 minutes",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 246,
+                "end": 289
+              }
+            }
+          ],
+          "semantic_clauses": [
+            "An API client must send at most 100 requests per minute",
+            "An export requires an access review before download",
+            "Audit logs must be retained for 365 days",
+            "Export files must be deleted after 30 days",
+            "A refund requires manager approval before payout",
+            "Session tokens must expire after 60 minutes"
+          ],
+          "logic_claims": [
+            "CLAIM-AAB2A1BBC1B587ED",
+            "CLAIM-F44D306DB012652D",
+            "CLAIM-9056355FB39F4452",
+            "CLAIM-E0AF0EA8B33DCE3E",
+            "CLAIM-A0CBA6BDFB4BBE49",
+            "CLAIM-43A4485CCAD79F9B"
+          ]
+        },
+        "relationships": [
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-requests-per-minute"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-requests-per-minute-count-lte-100"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-export-access-review-dependency"
+          },
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-audit-log"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-audit-log-retention-days-eq-365"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-export-files-deleted-after-30-days"
+          },
+          {
+            "type": "requires_predicate",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PRED-refund-manager-approval-dependency"
+          },
+          {
+            "type": "constrains",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-SUBJECT-session-token"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-api-operational-controls",
+            "to": "FACT-PROP-session-token-expiry-minutes-eq-60"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {}
+    }
+  ],
+  "files": {},
+  "answer": "Modeled the six-obligation claim as one requirement, REQ-api-operational-controls, with six claim keys and nine ground facts (three strict property_value facts, three predicate facts: two dependency_rule, one lifecycle_rule, plus three subject facts). logic_claims holds all six keys; logic_coverage is complete and kb_check reports zero violations. projectLocalSchemas was empty, so no schemas were created; built-in dependency_rule and lifecycle_rule were used. Gaps: the requirement is agent-authored with no human approval; it has no scenarios or tests (evidence unverified); the subject facts carry placeholder definitions; only the requirement was dry-run, not each fact individually. Closeout: taskOutcome complete; kbState not_evaluated; verificationState not_evaluated; proofState unresolved; limitationDisposition unaccepted."
+}

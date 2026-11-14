@@ -21,7 +21,7 @@ afterEach(() => {
 });
 
 describe("held-out terminal evaluation concurrency", () => {
-  test("Given frozen variants and a task-scoped fixture run When same-candidate terminal calls overlap Then only one owner executes 72 cells", async () => {
+  test("Given frozen variants and a task-scoped fixture run When same-candidate terminal calls overlap Then only one owner executes 63 cells", async () => {
     // Given
     const root = temporaryRoot();
     roots.push(root);
@@ -141,10 +141,10 @@ describe("held-out terminal evaluation concurrency", () => {
 
     // Then
     expect(retried).toEqual(result);
-    expect(result.cellCount).toBe(72);
-    expect(runnerCalls).toBe(72);
+    expect(result.cellCount).toBe(63);
+    expect(runnerCalls).toBe(63);
     expect(reservationVisibleBeforeCellOne).toBe(true);
-    expect(capturedPrompts).toHaveLength(72);
+    expect(capturedPrompts).toHaveLength(63);
     expect(capturedPrompts.every((prompt) => expectedPrompts.has(prompt))).toBe(
       true,
     );

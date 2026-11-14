@@ -40014,3 +40014,41 @@ symbols:
         target: TEST-skillopt-pooled-family-gate
       - type: implements
         target: REQ-skillopt-pooled-family-gate
+  - id: SYM-test-skillopt-reference-verify-suite
+    title: Reference answer check suite
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/reference-verify.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-reference-answers-score-100
+  - id: SYM-skillopt-verify-references
+    title: verifyReferences
+    status: active
+    sourceFile: scripts/skillopt-eval/reference/verify.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-reference-answers-score-100
+      - type: implements
+        target: REQ-skillopt-reference-answers-score-100
+  - id: SYM-skillopt-run-reference
+    title: runReference
+    status: active
+    sourceFile: scripts/skillopt-eval/reference/runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-reference-answers-score-100
+      - type: implements
+        target: REQ-skillopt-reference-answers-score-100

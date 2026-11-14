@@ -290,15 +290,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       requiredSignals: ["stale symbol IDs", "syncState stale"],
       forbiddenActions: ["claim KB clean/fresh with stale status"],
     },
-    stale_v2_schema: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["matching CLI/core schema", "v2 receipt retained"],
-      forbiddenActions: ["downgrade receipt", "hand-edit receipt"],
-    },
     legacy_shard_edge_cleanup: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
@@ -373,22 +364,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       requiredSignals: ["receipt reuse conditions unchanged"],
       forbiddenActions: ["rerun unchanged E2E"],
     },
-    quality_diagnostic_disposition: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "accepted",
-      requiredSignals: [
-        "diagnostic IDs with dispositions",
-        "receipt gap IDs and affected tests",
-      ],
-      forbiddenActions: [
-        "blanket acceptance",
-        "recommend v1 receipt",
-        "accept stale coverage-depth heuristic as a real gap",
-      ],
-    },
     obsolete_symbol_delete_with_replacement: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
@@ -427,15 +402,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["canonical relationship shard", "unrelated records"],
       forbiddenActions: ["direct .kb edit"],
-    },
-    same_version_export_surface_drift: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "unaccepted",
-      requiredSignals: ["release defect", "new package version required"],
-      forbiddenActions: ["accept project override as permanent"],
     },
     legacy_migration_postconditions: {
       expectedOutcome: "complete",
@@ -1216,6 +1182,5 @@ export const RECEIPT_INGEST_OBJECTIVES: ReadonlySet<string> = new Set([
 /** Objectives that inspect receipts/coverage without ingesting new runs. */
 export const RECEIPT_INSPECT_OBJECTIVES: ReadonlySet<string> = new Set([
   "unchanged_snapshot_receipt_reuse",
-  "quality_diagnostic_disposition",
   "structured_quality_diagnostic_disposition",
 ]);

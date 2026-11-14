@@ -10,13 +10,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { buildPublicCatalog } from "./catalog";
-import { buildPrivateManifest } from "./fixtures/evaluator";
-import { parsePrivateEvaluatorManifest } from "./fixtures/private";
-import { sealDefaultCellEvidence } from "./runtime/codex-cell-defaults";
-import { deniedReadScore } from "./runtime/codex-episode";
-import { normalizeCodexJsonl } from "./runtime/codex-events";
-import { taskFinalStateRequests } from "./runtime/final-state-requests";
-import { scoreCell } from "./scoring/cell";
+import { scoreCellEvidence } from "./runtime/evidence-score";
 
 type StoredCell = Readonly<{
   taskId: string;
@@ -78,65 +72,23 @@ export async function rescoreCell(cell: StoredCell): Promise<RescoredCell> {
   const task = buildPublicCatalog().find(({ id }) => id === cell.taskId);
   if (task === undefined) throw new Error(`unknown task ${cell.taskId}`);
   const dir = cell.artifactDirectory;
-  const finalState = await readOptional(join(dir, "final-state.json"));
-  // The stored final state is bound to the workspace the cell ran in.
-  const roots = (
-    finalState === ""
-      ? {}
-      : (JSON.parse(finalState) as { binding?: { roots?: object } }).binding
-          ?.roots
-  ) as { publicManifestHash?: string; workspaceHash?: string } | undefined;
-  const manifest = parsePrivateEvaluatorManifest(
-    JSON.stringify(
-      buildPrivateManifest({
-        task: task as never,
-        publicManifestHash: roots?.publicManifestHash ?? "0".repeat(64),
-        workspaceHash: roots?.workspaceHash ?? "0".repeat(64),
-      }),
-    ),
-  );
-  const transcript = await readOptional(join(dir, "raw-host.jsonl"));
   const workspaceText = await readOptional(
     join(dir, "final-workspace-src.json"),
   );
-  const sealed = sealDefaultCellEvidence(
-    {
-      evaluatorManifest: manifest,
-      finalStateRequests: taskFinalStateRequests(
-        cell.taskId,
-        manifest.protocolContract?.exactMigrationApply !== undefined,
-      ),
-    },
-    {
-      finalState,
-      brokerTrace: await readOptional(join(dir, "broker-trace.jsonl")),
-      diagnosticReceipt: await readOptional(
-        join(dir, "diagnostic-receipt.jsonl"),
-      ),
-      transcript,
-      workspaceFiles:
-        workspaceText === "" ? undefined : JSON.parse(workspaceText),
-    },
-  );
-  const score = scoreCell(manifest, {
-    ...sealed,
-    finalState: {
-      ...sealed.finalState,
-      snapshot: finalState === "" ? undefined : finalState,
-    },
+  const scored = scoreCellEvidence(task, {
+    finalState: await readOptional(join(dir, "final-state.json")),
+    brokerTrace: await readOptional(join(dir, "broker-trace.jsonl")),
+    diagnosticReceipt: await readOptional(
+      join(dir, "diagnostic-receipt.jsonl"),
+    ),
+    transcript: await readOptional(join(dir, "raw-host.jsonl")),
+    workspaceFiles:
+      workspaceText === "" ? undefined : JSON.parse(workspaceText),
   });
-  const normalized = normalizeCodexJsonl(transcript, {
-    hiddenMarkers: [],
-    forbiddenRoots: [],
-  });
-  const newScore =
-    normalized.violations.length > 0
-      ? 0
-      : deniedReadScore(score.score, score, normalized.deniedKbReads);
   return {
     ...base,
-    newScore,
-    newFailures: [...normalized.violations, ...score.criticalFailures],
+    newScore: scored.score,
+    newFailures: scored.criticalFailures,
   };
 }
 

@@ -1,0 +1,358 @@
+{
+  "taskId": "kibi-usage-rule-lane-modeling-development-1",
+  "source": "stored 100-score cell",
+  "steps": [
+    {
+      "call": "kb_search",
+      "args": {
+        "query": "A refund may be issued only when the order's settled amount is greater than zero"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "type": "req"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "factKind": "predicate_schema"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "analyze",
+        "text": "A refund may be issued only when the order's settled amount is greater than zero.",
+        "type": "req"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "predicates",
+        "text": "A refund may be issued only when the order's settled amount is greater than zero.",
+        "claimKey": "CLAIM-091C133267AFDD36",
+        "existingLogicClaims": ["CLAIM-091C133267AFDD36"]
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "requirement",
+        "text": "A refund may be issued only when the order's settled amount is greater than zero.",
+        "subjectKey": "order.refund",
+        "propertyKey": "settled_amount",
+        "operator": "gt",
+        "value": 0,
+        "claimKey": "CLAIM-091C133267AFDD36"
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-refund-issue-requires-settled-amount",
+        "dryRun": true,
+        "document": {
+          "path": ".kb/requirements/REQ-refund-issue-requires-settled-amount.md",
+          "body": "A refund may be issued only when the order's settled amount is greater than zero.\n\n## Context\n\nReason not stated. The requester supplied this claim as the normative rule to model for refund issuance; no rationale, owner or ticket was given.\n\n## Source\n\n> A refund may be issued only when the order's settled amount is greater than zero.\n\nReference: requester's modeling request (predicate-claim.json, case kibi-usage-rule-lane-modeling-development-1)."
+        },
+        "plannedFacts": [
+          {
+            "type": "fact",
+            "id": "FACT-RULE-SCHEMA-LOGIC-V1",
+            "properties": {
+              "title": "kibi.logic.v1 rule schema",
+              "status": "active",
+              "source": "mcp://kibi/semantic-advisor",
+              "fact_kind": "rule_schema",
+              "rule_name": "kibi.logic.v1",
+              "argument_names": ["rule_ir"],
+              "argument_types": ["logic_ir"],
+              "aliases": ["conditional rule", "constraint", "policy rule"],
+              "examples": [
+                "forbid(refund_issued(V1)) :- 'order:settled_amount'(V1,V2)."
+              ],
+              "claim_key": "CLAIM-091C133267AFDD36",
+              "claim_text": "A refund may be issued only when the order's settled amount is greater than zero",
+              "claim_span_start": 0,
+              "claim_span_end": 80
+            },
+            "relationships": []
+          },
+          {
+            "type": "fact",
+            "id": "FACT-RULE-8DAF22273D6DEAAA",
+            "properties": {
+              "title": "Rule: A refund may be issued only when the order's settled amount is greater than zero",
+              "status": "active",
+              "source": "mcp://kibi/semantic-advisor",
+              "fact_kind": "rule",
+              "rule_ir": {
+                "version": "kibi.logic.v1",
+                "kind": "rule",
+                "modality": "forbid",
+                "head": {
+                  "kind": "atom",
+                  "name": "refund_issued",
+                  "args": [
+                    {
+                      "kind": "var",
+                      "name": "V1",
+                      "type": "order"
+                    }
+                  ]
+                },
+                "body": {
+                  "kind": "atom",
+                  "namespace": "order",
+                  "name": "settled_amount",
+                  "args": [
+                    {
+                      "kind": "var",
+                      "name": "V1",
+                      "type": "order"
+                    },
+                    {
+                      "kind": "var",
+                      "name": "V2",
+                      "type": "number"
+                    }
+                  ]
+                },
+                "variables": [
+                  {
+                    "name": "V1",
+                    "type": "order",
+                    "quantifier": "forall"
+                  },
+                  {
+                    "name": "V2",
+                    "type": "number",
+                    "quantifier": "forall"
+                  }
+                ],
+                "exceptions": [
+                  {
+                    "kind": "compare",
+                    "operator": "gt",
+                    "left": {
+                      "kind": "var",
+                      "name": "V2",
+                      "type": "number"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              "rule_hash": "9c7a62d88ea913ee3ea1b96eedb6e861642ed4d4c16d335c234a9e426ad80a2c",
+              "semantic_key": "SEM-9C7A62D88EA913EE3EA1B96E",
+              "rule_schema_id": "FACT-RULE-SCHEMA-LOGIC-V1",
+              "rule_name": "kibi.logic.v1",
+              "canonical_key": "SEM-9C7A62D88EA913EE3EA1B96E",
+              "tags": ["lane:logic", "semantic-advisor-suggestion"],
+              "claim_key": "CLAIM-091C133267AFDD36",
+              "claim_text": "A refund may be issued only when the order's settled amount is greater than zero",
+              "claim_span_start": 0,
+              "claim_span_end": 80
+            },
+            "relationships": []
+          }
+        ],
+        "properties": {
+          "title": "A refund may be issued only when the order's settled amount is greater than zero",
+          "status": "open",
+          "semantic_text": "A refund may be issued only when the order's settled amount is greater than zero.",
+          "semantic_clauses": [
+            "A refund may be issued only when the order's settled amount is greater than zero."
+          ],
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "32869103e72b877295350d37141fc87951188b9fb563649b4f58aab19569fce5",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-091C133267AFDD36",
+              "claim_text": "A refund may be issued only when the order's settled amount is greater than zero",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 80
+              }
+            }
+          ],
+          "logic_claims": ["CLAIM-091C133267AFDD36"],
+          "tags": ["lane:logic"]
+        },
+        "relationships": [
+          {
+            "type": "requires_rule",
+            "from": "REQ-refund-issue-requires-settled-amount",
+            "to": "FACT-RULE-8DAF22273D6DEAAA"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-RULE-SCHEMA-LOGIC-V1",
+        "properties": {
+          "title": "kibi.logic.v1 rule schema",
+          "status": "active",
+          "source": "mcp://kibi/semantic-advisor",
+          "fact_kind": "rule_schema",
+          "rule_name": "kibi.logic.v1",
+          "argument_names": ["rule_ir"],
+          "argument_types": ["logic_ir"],
+          "aliases": ["conditional rule", "constraint", "policy rule"],
+          "examples": [
+            "forbid(refund_issued(V1)) :- 'order:settled_amount'(V1,V2)."
+          ],
+          "claim_key": "CLAIM-091C133267AFDD36",
+          "claim_text": "A refund may be issued only when the order's settled amount is greater than zero",
+          "claim_span_start": 0,
+          "claim_span_end": 80
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-RULE-8DAF22273D6DEAAA",
+        "properties": {
+          "title": "Rule: A refund may be issued only when the order's settled amount is greater than zero",
+          "status": "active",
+          "source": "mcp://kibi/semantic-advisor",
+          "fact_kind": "rule",
+          "rule_ir": {
+            "version": "kibi.logic.v1",
+            "kind": "rule",
+            "modality": "forbid",
+            "head": {
+              "kind": "atom",
+              "name": "refund_issued",
+              "args": [
+                {
+                  "kind": "var",
+                  "name": "V1",
+                  "type": "order"
+                }
+              ]
+            },
+            "body": {
+              "kind": "atom",
+              "namespace": "order",
+              "name": "settled_amount",
+              "args": [
+                {
+                  "kind": "var",
+                  "name": "V1",
+                  "type": "order"
+                },
+                {
+                  "kind": "var",
+                  "name": "V2",
+                  "type": "number"
+                }
+              ]
+            },
+            "variables": [
+              {
+                "name": "V1",
+                "type": "order",
+                "quantifier": "forall"
+              },
+              {
+                "name": "V2",
+                "type": "number",
+                "quantifier": "forall"
+              }
+            ],
+            "exceptions": [
+              {
+                "kind": "compare",
+                "operator": "gt",
+                "left": {
+                  "kind": "var",
+                  "name": "V2",
+                  "type": "number"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          "rule_hash": "9c7a62d88ea913ee3ea1b96eedb6e861642ed4d4c16d335c234a9e426ad80a2c",
+          "semantic_key": "SEM-9C7A62D88EA913EE3EA1B96E",
+          "rule_schema_id": "FACT-RULE-SCHEMA-LOGIC-V1",
+          "rule_name": "kibi.logic.v1",
+          "canonical_key": "SEM-9C7A62D88EA913EE3EA1B96E",
+          "tags": ["lane:logic", "semantic-advisor-suggestion"],
+          "claim_key": "CLAIM-091C133267AFDD36",
+          "claim_text": "A refund may be issued only when the order's settled amount is greater than zero",
+          "claim_span_start": 0,
+          "claim_span_end": 80
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-refund-issue-requires-settled-amount",
+        "document": {
+          "path": ".kb/requirements/REQ-refund-issue-requires-settled-amount.md",
+          "body": "A refund may be issued only when the order's settled amount is greater than zero.\n\n## Context\n\nReason not stated. The requester supplied this claim as the normative rule to model for refund issuance; no rationale, owner or ticket was given.\n\n## Source\n\n> A refund may be issued only when the order's settled amount is greater than zero.\n\nReference: requester's modeling request (predicate-claim.json, case kibi-usage-rule-lane-modeling-development-1)."
+        },
+        "properties": {
+          "title": "A refund may be issued only when the order's settled amount is greater than zero",
+          "status": "open",
+          "semantic_text": "A refund may be issued only when the order's settled amount is greater than zero.",
+          "semantic_clauses": [
+            "A refund may be issued only when the order's settled amount is greater than zero."
+          ],
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "32869103e72b877295350d37141fc87951188b9fb563649b4f58aab19569fce5",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-091C133267AFDD36",
+              "claim_text": "A refund may be issued only when the order's settled amount is greater than zero",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 80
+              }
+            }
+          ],
+          "logic_claims": ["CLAIM-091C133267AFDD36"],
+          "tags": ["lane:logic"]
+        },
+        "relationships": [
+          {
+            "type": "requires_rule",
+            "from": "REQ-refund-issue-requires-settled-amount",
+            "to": "FACT-RULE-8DAF22273D6DEAAA"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {}
+    }
+  ],
+  "files": {},
+  "answer": "Modeled the refund claim \"A refund may be issued only when the order's settled amount is greater than zero.\" as one obligation with claim key CLAIM-091C133267AFDD36. Writes, in order: rule_schema FACT-RULE-SCHEMA-LOGIC-V1; kibi.logic.v1 forbid-unless rule FACT-RULE-8DAF22273D6DEAAA (refund_issued forbidden unless order:settled_amount > 0), carrying the claim key; requirement REQ-refund-issue-requires-settled-amount (status open, origin agent) with logic_claims [\"CLAIM-091C133267AFDD36\"], a modeled semantic_inventory entry, a sectioned body, and a requires_rule link to the rule. projectLocalSchemas was empty, so no ontology schema was created; kb_model predicates found no fitting schema and recorded an ontology-gap observation, which was not written. Preflight: kb_search and kb_query before writes, a dryRun of the batch (valid), then kb_model analyze/predicates/requirement. Final unfiltered kb_check: 0 violations. Open review items, not blocking: no scenario or test covers the requirement; no human approval recorded (origin.approved_by unset); telemetry notes that per-fact dryRun preflights were not run and the advisor was not re-run immediately before the requirement write. REQ-SETUP-BASE review findings were not touched."
+}

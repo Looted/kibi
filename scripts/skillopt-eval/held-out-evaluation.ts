@@ -55,7 +55,7 @@ function terminalTasks(skill: CanonicalSkill): readonly TerminalTask[] {
           replicates: [1, 2, 3] as const,
         }))
       : [];
-  // The 16-task held-out gate matrix is contracted to the core families.
+  // The held-out gate matrix is contracted to the core families.
   const skills = buildCoreSkillCatalog(skill)
     .filter(
       (task) =>
