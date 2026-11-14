@@ -360,12 +360,18 @@ describe("Kibi skill loads", () => {
     );
     recordOperationTelemetry({ ...source, workspaceRoot: loaded }, upsert, env);
     recordOperationTelemetry({ ...source, workspaceRoot: failed }, upsert, env);
+    // A successful call that loads no skill marks nothing.
+    const other = tempDir("kibi-skill-none-ws-");
+    recordOperationTelemetry({ ...source, workspaceRoot: other }, upsert, env);
+    recordOperationTelemetry({ ...source, workspaceRoot: other }, upsert, env);
     const events = await sent(env);
     expect(events.map((event) => event.skill_loaded_before)).toEqual([
       false,
       false,
       false,
       true,
+      false,
+      false,
       false,
     ]);
     expect(JSON.stringify(events)).not.toContain(loaded);
