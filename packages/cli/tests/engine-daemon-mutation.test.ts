@@ -133,10 +133,20 @@ describe("runEngineDaemonCli", () => {
     await runEngineDaemonCli(["first", "--workspace", "w"]);
     await runEngineDaemonCli(["--workspace", "w", "--branch", "b", "--socket"]);
     await runEngineDaemonCli(["--workspace", "", "--branch", "b"]);
+    // An empty socket path names no file either.
+    await runEngineDaemonCli([
+      "--workspace",
+      "w",
+      "--branch",
+      "b",
+      "--socket",
+      "",
+    ]);
     expect(errors).toStrictEqual([
       "Missing --branch argument",
       "Missing --socket argument",
       "Missing --workspace argument",
+      "Missing --socket argument",
     ]);
     expect(readdirSync(sandbox)).toStrictEqual([]);
     expect(existsSync(path.join(sandbox, "undefined.error"))).toBe(false);

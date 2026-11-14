@@ -6,6 +6,7 @@ import {
   CLOSED_REQUIREMENT_STATUS,
   applySupersededClosures,
   planSupersededClosures,
+  supersededRequirementIds,
   supersessionCycles,
 } from "../../../src/operations/migration/superseded-closure.js";
 import * as shards from "../../../src/relationships/shards.js";
@@ -203,6 +204,19 @@ describe("planSupersededClosures", () => {
       ["REQ-b", "REQ-a"],
     ]);
     expect(plan.closures.map((closure) => closure.id)).toStrictEqual(["REQ-c"]);
+  });
+});
+
+describe("supersededRequirementIds", () => {
+  test("names every requirement another one supersedes", () => {
+    const root = workspace({
+      "REQ-a": req("REQ-a", "open"),
+      "REQ-b": req("REQ-b", "closed"),
+      "REQ-c": req("REQ-c", "open", ["REQ-a", "REQ-b"]),
+      "REQ-d": req("REQ-d", "open", ["REQ-a"]),
+    });
+    const ids = withShards([], () => supersededRequirementIds(root));
+    expect([...ids].sort()).toStrictEqual(["REQ-a", "REQ-b"]);
   });
 });
 
