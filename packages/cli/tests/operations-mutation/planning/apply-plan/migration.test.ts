@@ -627,7 +627,7 @@ describe("migration action execution", () => {
     expect(sync.mock.calls).toEqual([[{ workspaceRoot: s.root }]]);
     sync.mockRestore();
     const synced = stubSync(true);
-    const clean = (await setup([reviewAction]).run()).structuredContent as {
+    const clean = (await setup([reviewAction]).run()).structuredContent as unknown as {
       outcome: string;
       actionResults: Array<{ actionId: string }>;
     };
