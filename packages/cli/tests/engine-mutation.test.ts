@@ -47,6 +47,7 @@ import {
   engineStartFailureKind,
   engineStartLockPath,
   engineSwiplIdentity,
+  ensureEngineSocketDirectory,
   ensureJournaledBranchStoreAsync,
   formatEngineAttachmentMismatch,
   fsyncJournaledBranchStore,
@@ -1495,7 +1496,11 @@ let nextRequestId = 1;
 
 async function startDaemon(
   answer: (goal: string) => Answer | Promise<Answer> = () => OK,
-  extra: { maxOutputBytes?: number; workspace?: string } = {},
+  extra: {
+    maxOutputBytes?: number;
+    workspace?: string;
+    socketPath?: string;
+  } = {},
 ): Promise<Daemon> {
   const workspace = extra.workspace ?? tempDir("kibi-ws-");
   const stub = stubProlog((goal) =>
@@ -1505,7 +1510,7 @@ async function startDaemon(
   spyOn(process, "exit").mockImplementation(((code: number) => {
     exits.push(code);
   }) as never);
-  const socketPath = engineSocketPath(workspace, "main");
+  const socketPath = extra.socketPath ?? engineSocketPath(workspace, "main");
   let finished = false;
   const run = runEngineDaemon({
     workspaceRoot: workspace,
@@ -3155,6 +3160,27 @@ describe("engine lifecycle", () => {
     expect(exit).not.toHaveBeenCalled();
   });
 
+  test("create no directory for a Windows named pipe", () => {
+    const made: unknown[][] = [];
+    const mkdir = ((...args: unknown[]) => {
+      made.push(args);
+    }) as never;
+    ensureEngineSocketDirectory("\\\\.\\pipe\\kibi-x", mkdir);
+    expect(made).toStrictEqual([]);
+    ensureEngineSocketDirectory("/run/kibi/engine.sock", mkdir);
+    expect(made).toStrictEqual([
+      ["/run/kibi", { recursive: true, mode: 0o700 }],
+    ]);
+  });
+
+  test("create the socket's missing directory, private to the user", async () => {
+    const socketPath = path.join(tempDir(), "run", "kibi", "engine.sock");
+    const daemon = await startDaemon(undefined, { socketPath });
+    expect(existsSync(socketPath)).toBe(true);
+    expect(statSync(path.dirname(socketPath)).mode & 0o777).toBe(0o700);
+    await daemon.stop();
+  });
+
   test("save, detach and stop at once on shutdown", async () => {
     const daemon = await startDaemon();
     await settled(daemon);
@@ -4341,6 +4367,15 @@ describe("engine client start", () => {
       kind: "daemon_error",
       message: '{"kind":1,"message":"m"}',
     });
+    expect(
+      parseEngineStartDiagnostic('{"kind":"store_locked","message":2}'),
+    ).toStrictEqual({
+      kind: "store_locked",
+      message: '{"kind":"store_locked","message":2}',
+    });
+    // Neither a missing error nor null has a code.
+    expect(kind(undefined)).toBe("daemon_error");
+    expect(kind(null)).toBe("daemon_error");
   });
 
   test("keep waiting past an empty diagnostic", async () => {
@@ -4351,6 +4386,18 @@ describe("engine client start", () => {
     fakeSpawn(() => {
       writeFileSync(`${socketPath}.error`, " \n");
       setTimeout(() => void fakeEngine(workspace), 60);
+    });
+    const c = client(workspace);
+    await c.start();
+    expect(c.isRunning()).toBe(true);
+  });
+
+  test("keep waiting for a spawned daemon that is slow to listen", async () => {
+    const workspace = tempDir();
+    prepareStore(workspace);
+    onlyEntry(path.join(SRC_DIR, "engine-daemon.js"));
+    fakeSpawn(() => {
+      setTimeout(() => void fakeEngine(workspace), 1300);
     });
     const c = client(workspace);
     await c.start();

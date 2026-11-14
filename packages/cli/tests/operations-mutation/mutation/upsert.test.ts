@@ -686,6 +686,26 @@ describe("source-first writes", () => {
     expect(events.slice(0, 1)).toStrictEqual(["workspace-lock true"]);
   });
 
+  test("read the subject notes' body from the document the write published", async () => {
+    scope = { existing: { id: "FACT-a", source: "docs/old.md" } };
+    sourceWrite = { receipt: { path: "docs/a.md", afterHash: "h" } };
+    const bodyCalls: unknown[][] = [];
+    const body = spyOn(contextWarning, "upsertDocumentBody").mockImplementation(
+      (...args) => {
+        bodyCalls.push(args);
+        return "";
+      },
+    );
+    try {
+      await executeUpsert(fact(), context({ fs: nodeFilesystem }));
+      expect(bodyCalls.map((call) => call[3])).toStrictEqual([
+        { writtenPath: "docs/a.md" },
+      ]);
+    } finally {
+      body.mockRestore();
+    }
+  });
+
   test("warn after the context warning when the written document lacks its inventory", async () => {
     scope = { existing: undefined };
     sourceWrite = { receipt: { path: "docs/a.md", afterHash: "h" } };

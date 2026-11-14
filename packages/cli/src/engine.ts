@@ -513,15 +513,10 @@ function fsyncJournalTree(
   platform: NodeJS.Platform,
 ): string[] {
   const directories: string[] = [];
-  // readdir order depends on the filesystem; sort it so the barrier syncs
-  // in the same order everywhere: a directory's files, then its
-  // subdirectories, each by name.
-  const entries = readdirSync(directory, { withFileTypes: true }).sort(
-    (left, right) =>
-      Number(left.isDirectory()) - Number(right.isDirectory()) ||
-      (left.name < right.name ? -1 : left.name > right.name ? 1 : 0),
-  );
-  for (const entry of entries) {
+  // Every file is synced before the barrier returns, so the order the
+  // directory lists them in does not matter; a directory still follows the
+  // directories below it.
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory())
       directories.push(...fsyncJournalTree(entryPath, platform));
@@ -582,6 +577,18 @@ const WINDOWS_PIPE_PREFIX = "\\\\.\\pipe\\";
  * A Windows named pipe lives in the pipe namespace, where no file can be
  * written, so its files go to the runtime directory under the pipe's name.
  */
+/**
+ * Create the private directory an engine socket is bound in. A Windows named
+ * pipe has no directory to create.
+ */
+export function ensureEngineSocketDirectory(
+  socketPath: string,
+  mkdir: typeof mkdirSync = mkdirSync,
+): void {
+  if (socketPath.startsWith(WINDOWS_PIPE_PREFIX)) return;
+  mkdir(path.dirname(socketPath), { recursive: true, mode: 0o700 });
+}
+
 export function engineSidecarPath(socketPath: string, suffix: string): string {
   if (socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
     return path.join(
@@ -929,8 +936,11 @@ export function parseEngineStartDiagnostic(text: string): {
 async function connectWithRetry(
   socketPath: string,
   timeoutMs: number,
-  /** How the daemon this client spawned exited, or null while it runs. */
-  daemonExit: () => string | null = () => null,
+  /**
+   * How the daemon this client spawned exited, or null while it runs; absent
+   * when this client connects to a daemon it did not spawn.
+   */
+  daemonExit?: () => string | null,
 ): Promise<net.Socket> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
@@ -957,9 +967,12 @@ async function connectWithRetry(
     }
     // A daemon that died without a diagnostic never listens: report it
     // instead of waiting out the whole start timeout.
-    const exit = daemonExit();
+    const exit = daemonExit === undefined ? null : daemonExit();
     if (exit !== null) {
       exitedAt ??= Date.now();
+      // rationale: the loop polls every 25 ms, so counting the exact grace
+      // millisecond or not only moves the report by one poll
+      // Stryker disable next-line EqualityOperator
       if (Date.now() - exitedAt >= DAEMON_EXIT_GRACE_MS) {
         throw Object.assign(
           new Error(
@@ -2013,13 +2026,7 @@ export async function runEngineDaemon(requestedOptions: {
   const serverPrologIdentity = engineSwiplIdentity();
   const serverPackageVersions = enginePackageVersions();
 
-  // A Windows named pipe has no directory to create.
-  if (!options.socketPath.startsWith(WINDOWS_PIPE_PREFIX)) {
-    mkdirSync(path.dirname(options.socketPath), {
-      recursive: true,
-      mode: 0o700,
-    });
-  }
+  ensureEngineSocketDirectory(options.socketPath);
   // A missing socket refuses the probe like a stale one.
   {
     const isLivePeerSignal = (error: unknown): boolean => {

@@ -626,6 +626,16 @@ describe("migration action execution", () => {
     // An approved source change is compiled once, after the last action.
     expect(sync.mock.calls).toEqual([[{ workspaceRoot: s.root }]]);
     sync.mockRestore();
+    const synced = stubSync(true);
+    const clean = (await setup([reviewAction]).run()).structuredContent as {
+      outcome: string;
+      actionResults: Array<{ actionId: string }>;
+    };
+    expect(clean.outcome).toBe("applied");
+    expect(clean.actionResults.map((result) => result.actionId)).toEqual([
+      "m2",
+    ]);
+    synced.mockRestore();
 
     // A compile action after it leaves nothing to compile.
     const compiled = stubSync(true);
@@ -636,6 +646,7 @@ describe("migration action execution", () => {
     stubSync(false);
     expect((await setup([reviewAction]).run()).structuredContent).toMatchObject(
       {
+        outcome: "partially_applied",
         actionResults: [
           { actionId: "m2", outcome: "applied" },
           {

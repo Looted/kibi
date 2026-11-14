@@ -3022,9 +3022,10 @@ async function applyMigrationPlan(
       (error: unknown) =>
         error instanceof Error ? error.message : String(error),
     );
+    // An applied action is what left sources to compile, so the outcome is
+    // partially_applied whatever the failure count says.
     if (syncFailure !== undefined) {
       failed = true;
-      failures += 1;
       results.push({
         actionId: "post-apply-sync",
         outcome: "failed",
