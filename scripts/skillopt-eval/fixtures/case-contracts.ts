@@ -40,7 +40,11 @@ export type FixtureSetupMode =
   | "seeded_stale_relationship_shard_kb"
   | "seeded_removed_shard_edge_kb"
   | "seeded_moved_symbol_kb"
-  | "seeded_replaced_symbol_kb";
+  | "seeded_replaced_symbol_kb"
+  | "seeded_receipt_reuse_kb"
+  | "seeded_receipt_contract_drift_kb"
+  | "seeded_receipt_integration_kb"
+  | "seeded_receipt_ontology_gap_kb";
 
 /** A regex over one final workspace source file. */
 export type WorkspaceAssertion = Readonly<{

@@ -44,7 +44,10 @@ import {
   qualityForbiddenObserved,
   qualitySignalObserved,
 } from "./quality-signals";
-import { traceabilitySignalObserved } from "./traceability-signals";
+import {
+  traceabilityForbiddenObserved,
+  traceabilitySignalObserved,
+} from "./traceability-signals";
 import {
   type FinalAnswerEvidence,
   type TranscriptOrdering,
@@ -504,8 +507,6 @@ function workflowSignalObserved(
         text.includes("branch_store_missing") ||
         text.includes("sync_metadata_missing")
       );
-    case "final snapshot before verification":
-      return prose.includes("snapshot") && prose.includes("verification");
     case "explicit apply boundary":
       return prose.includes("--apply") || prose.includes("apply boundary");
     case "stale symbol IDs":
@@ -532,18 +533,6 @@ function workflowSignalObserved(
         prose.includes("snapshot") &&
         prose.includes("fresh")
       );
-    case "historical contract receipt preserved":
-      return text.includes("proof_receipts") && text.includes("contract_hash");
-    case "current contract receipt appended":
-      return (
-        text.includes("proof-receipt.v1") &&
-        text.includes("currentcontracthash")
-      );
-    case "contract mismatch remains non-proof":
-      return (
-        text.includes("proof_contract_mismatch") ||
-        text.includes("contract_mismatch")
-      );
     case "diagnostic IDs with dispositions":
       return (
         text.includes("qualitydiagnostics") && text.includes("disposition")
@@ -558,10 +547,6 @@ function workflowSignalObserved(
       return prose.includes("journal") && prose.includes("preserv");
     case "syncState stale":
       return status?.syncState === "stale";
-    case "passing v2 receipt":
-      return (
-        text.includes("verification-receipt.v2") && text.includes("passed")
-      );
     case "migration plan v2":
       return (
         text.includes("kibi.migration-plan.v2") && text.includes("planhash")
@@ -663,7 +648,8 @@ function forbiddenActionObserved(
   const caseOutcome =
     caseForbiddenObserved(action, context) ??
     decisionForbiddenObserved(action, context) ??
-    qualityForbiddenObserved(action, context);
+    qualityForbiddenObserved(action, context) ??
+    traceabilityForbiddenObserved(action, context);
   if (caseOutcome !== undefined) return caseOutcome;
   const text = JSON.stringify(results).toLowerCase();
   const status = latestContent(results, "kb_status");
@@ -743,22 +729,10 @@ function forbiddenActionObserved(
         ) &&
         !text.includes("editor")
       );
-    case "rerun unchanged E2E":
-      return text.includes("rerun") || text.includes("re-run");
     case "reuse pre-integration receipt":
       return (
         text.includes("pre-integration receipt proves") ||
         text.includes("reuse pre-integration receipt")
-      );
-    case "rewrite receipt history":
-      return (
-        text.includes("replace receipt history") ||
-        text.includes("rewrite receipt history")
-      );
-    case "delete historical receipt":
-      return (
-        text.includes("delete historical receipt") ||
-        text.includes("remove old receipt")
       );
     case "claim old contract proof":
       return (

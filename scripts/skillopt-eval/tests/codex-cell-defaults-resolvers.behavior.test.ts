@@ -365,39 +365,6 @@ describe("workflow signal resolvers over evidence text", () => {
     );
   });
 
-  test("current contract receipt needs the v1 receipt plus current hash echo", async () => {
-    await expectSignal(
-      "current contract receipt appended",
-      {
-        markers: ["proof-receipt.v1 recorded", "currentContractHash echoed"],
-      },
-      true,
-    );
-    await expectSignal(
-      "current contract receipt appended",
-      { markers: ["proof-receipt.v1 recorded"] },
-      false,
-    );
-  });
-
-  test("contract mismatch stays non-proof under either mismatch token", async () => {
-    await expectSignal(
-      "contract mismatch remains non-proof",
-      { markers: ["proof_contract_mismatch observed"] },
-      true,
-    );
-    await expectSignal(
-      "contract mismatch remains non-proof",
-      { markers: ["contract_mismatch observed"] },
-      true,
-    );
-    await expectSignal(
-      "contract mismatch remains non-proof",
-      { markers: ["aligned with current contract"] },
-      false,
-    );
-  });
-
   test("diagnostic IDs need dispositions beside quality diagnostics", async () => {
     await expectSignal(
       "diagnostic IDs with dispositions",
@@ -407,19 +374,6 @@ describe("workflow signal resolvers over evidence text", () => {
     await expectSignal(
       "diagnostic IDs with dispositions",
       { markers: ["qualityDiagnostics listed"] },
-      false,
-    );
-  });
-
-  test("passing v2 receipt requires the receipt plus a passed outcome", async () => {
-    await expectSignal(
-      "passing v2 receipt",
-      { markers: ["verification-receipt.v2 retained", "passed outcome"] },
-      true,
-    );
-    await expectSignal(
-      "passing v2 receipt",
-      { markers: ["verification-receipt.v2 retained"] },
       false,
     );
   });
@@ -1191,30 +1145,6 @@ describe("forbidden action resolvers gated on evidence text", () => {
     await expectForbidden("silently ignore editor config", {}, false);
   });
 
-  test("re-running unchanged E2E in either spelling", async () => {
-    await expectForbidden(
-      "rerun unchanged E2E",
-      {
-        markers: ["rerun advised"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "rerun unchanged E2E",
-      {
-        markers: ["re-run advised"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "rerun unchanged E2E",
-      {
-        markers: ["fresh execution required"],
-      },
-      false,
-    );
-  });
-
   test("pre-integration receipt reuse wording", async () => {
     await expectForbidden(
       "reuse pre-integration receipt",
@@ -1234,54 +1164,6 @@ describe("forbidden action resolvers gated on evidence text", () => {
       "reuse pre-integration receipt",
       {
         markers: ["fresh receipt issued"],
-      },
-      false,
-    );
-  });
-
-  test("receipt history rewrite wording", async () => {
-    await expectForbidden(
-      "rewrite receipt history",
-      {
-        markers: ["replace receipt history"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "rewrite receipt history",
-      {
-        markers: ["rewrite receipt history"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "rewrite receipt history",
-      {
-        markers: ["append-only receipts"],
-      },
-      false,
-    );
-  });
-
-  test("historical receipt deletion wording", async () => {
-    await expectForbidden(
-      "delete historical receipt",
-      {
-        markers: ["delete historical receipt"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "delete historical receipt",
-      {
-        markers: ["remove old receipt"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "delete historical receipt",
-      {
-        markers: ["retain receipts"],
       },
       false,
     );

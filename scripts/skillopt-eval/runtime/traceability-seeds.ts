@@ -269,3 +269,18 @@ export async function removeObsoleteDeclaration(
   await writeFile(fixture, source.replace(`\n${V1_SOURCE}`, ""), "utf8");
   await commitAll(workspace, "Remove fixtureFamilyV1");
 }
+
+/** Entities of the proof-receipt fixtures (receipt-seeds.ts). */
+export const RECEIPT_IDS = {
+  base: "REQ-SETUP-BASE",
+  requirement: "REQ-SETUP-FAMILY",
+  test: "TEST-SETUP-E2E",
+  runner: "SYM-SETUP-E2E-RUNNER",
+  production: "SYM-SETUP-FIXTURE",
+  subject: "FACT-fixture-family-subject",
+  bound: "FACT-fixture-family-min-length",
+  integration: "fixture-e2e",
+} as const;
+
+/** Where the evaluator leaves its run of the current contract. */
+export const PROOF_RUN_FILE = `proof-runs/${RECEIPT_IDS.test}.json`;

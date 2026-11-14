@@ -157,7 +157,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/executable-coverage/held-out/0": {
     prompt:
-      "Use the exact proof contract through kibi prove to append a passing kibi.proof-receipt.v1. Mark the task complete while keeping overall proof unresolved when ontology gaps remain, and do not accept a contradictory coverage-depth warning when current passingE2e evidence is present.",
+      "The evaluator ran the test's exact proof contract through kibi prove on the live snapshot and left the kibi.proof-run.v1 artifact in proof-runs/. Ingest it to append a passing proof receipt. Mark the task complete while keeping overall proof unresolved when ontology gaps remain, and do not accept a contradictory coverage-depth warning when current passingE2e evidence is present.",
     objectiveCode: "contracted_e2e_with_ontology_gap",
     kb: "fresh",
     worktree: "clean",
@@ -183,7 +183,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/executable-coverage/held-out/1": {
     prompt:
-      "A test has append-only passing receipts for an earlier verification contract, and the contract has now changed. Preserve the historical receipts, keep proof unresolved for the mismatch, run the exact current contract, append its receipt, and verify that only current-contract evidence proves the test.",
+      "A test has append-only passing receipts for an earlier verification contract, and the contract has now changed. The evaluator ran the exact current contract and left its kibi.proof-run.v1 artifact in proof-runs/. Preserve the historical receipts, keep proof unresolved for the mismatch until current evidence exists, append the receipt of that run, and verify that only current-contract evidence proves the test.",
     objectiveCode: "append_only_contract_drift",
     kb: "fresh",
     worktree: "clean",
@@ -271,7 +271,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/executable-coverage/held-out/3": {
     prompt:
-      "A standardization branch has passing receipts, but final integration also merges dependency pins. Merge and establish the final snapshot first, then run only the exact current contracts and append receipts; never reuse pre-integration evidence as proof.",
+      "A standardization branch has passing receipts, and final integration has since merged dependency pins into the final snapshot. The evaluator ran the exact current contract on that final snapshot and left its kibi.proof-run.v1 artifact in proof-runs/. Establish the final snapshot first, then append only that run's receipt; never reuse pre-integration evidence as proof.",
     objectiveCode: "final_integration_invalidates_receipts",
     kb: "fresh",
     worktree: "clean",

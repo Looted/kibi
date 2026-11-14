@@ -683,10 +683,153 @@ const obsoleteSymbolDeleteWithReplacement: ReferenceScript = async (agent) => {
   return `${idOf(old)} (${String(old.title)}) is obsolete: ${sourceFile} no longer declares it, and ${idOf(replacement)} (${String(replacement.title)}) replaces it. I deleted only ${idOf(old)} through kb_delete's approved deletion plan. ${testId} (${String(test.text_ref)}) calls ${String(replacement.title)}, so that test evidence supports moving its coverage: ${idOf(replacement)} is now covered_by ${testId}. The replacement's coordinates come from the sync; none were written by hand.`;
 };
 
+/** The end-to-end test with a proof contract on the requirement's chain. */
+async function contractedTest(
+  agent: ScriptedAgent,
+  query: string,
+  graph: boolean,
+): Promise<Readonly<{ test: Json; status: Json; coverage: Json }>> {
+  const { symbols } = await discover(agent, query);
+  if (graph)
+    await outgoing(agent, symbols.map(idOf), ["implements", "covered_by"]);
+  const tests = entities(await agent.data("kb_query", { type: "test" })).filter(
+    (test) => test.proof_contract !== undefined,
+  );
+  const [test] = tests;
+  if (test === undefined || tests.length !== 1)
+    throw new Error(`expected one contracted test, found ${tests.length}`);
+  const status = await agent.data("kb_status", {});
+  const coverage = await agent.data("kb_coverage", { by: "req" });
+  return { test, status, coverage };
+}
+
+function receiptsOf(test: Json): Json[] {
+  const receipts = test.proof_receipts;
+  return (Array.isArray(receipts) ? receipts : []).filter(
+    (receipt): receipt is Json =>
+      typeof receipt === "object" && receipt !== null,
+  );
+}
+
+function proofGaps(coverage: Json): string[] {
+  const rows = Array.isArray(coverage.rows) ? coverage.rows : [];
+  return [
+    ...new Set(
+      rows.flatMap((row) =>
+        typeof row === "object" && row !== null && Array.isArray(row.proofGaps)
+          ? row.proofGaps.filter(
+              (gap: unknown): gap is string => typeof gap === "string",
+            )
+          : [],
+      ),
+    ),
+  ];
+}
+
+/**
+ * Ingest the evaluator's run of the current contract against the live
+ * snapshot, then read the test back and validate.
+ */
+async function ingestCurrentRun(
+  agent: ScriptedAgent,
+  test: Json,
+  status: Json,
+): Promise<Readonly<{ ingest: Json; receipts: Json[] }>> {
+  const snapshot = status.proofSnapshot;
+  if (typeof snapshot !== "string")
+    throw new Error(
+      `kb_status has no proofSnapshot: ${JSON.stringify(status)}`,
+    );
+  const artifact = JSON.parse(
+    await agent.read(`proof-runs/${idOf(test)}.json`),
+  ) as Json;
+  if (artifact.code_snapshot !== snapshot)
+    throw new Error("the proof run is not for the live snapshot");
+  const ingest = await agent.data("kb_ingest_proof", {
+    snapshot,
+    artifact,
+    testIds: [idOf(test)],
+  });
+  await agent.data("kb_coverage", { by: "req" });
+  await agent.data("kb_check", {});
+  const [readback] = entities(await agent.data("kb_query", { id: idOf(test) }));
+  return {
+    ingest,
+    receipts: readback === undefined ? [] : receiptsOf(readback),
+  };
+}
+
+const unchangedSnapshotReceiptReuse: ReferenceScript = async (agent) => {
+  const { test, status, coverage } = await contractedTest(
+    agent,
+    "end-to-end test proving the fixture family requirement",
+    true,
+  );
+  await agent.data("kb_check", {});
+  const latest = receiptsOf(test).at(-1);
+  if (latest === undefined) throw new Error("the test has no receipt");
+  return [
+    `${idOf(test)}'s latest receipt ${String(latest.receipt_id)} passed on code snapshot ${String(latest.code_snapshot)}, which is the live snapshot kb_status reports (${String(status.proofSnapshot)}), under contract hash ${String(latest.contract_hash)}, the current contract's hash.`,
+    `It finished at ${String(latest.finished_at)}, inside the seven-day freshness window, and every required case passed, so the receipt is reused and the end-to-end command is not run again. kb_coverage reports ${proofGaps(coverage).length === 0 ? "no proof gaps" : proofGaps(coverage).join(", ")}.`,
+  ].join("\n\n");
+};
+
+const appendOnlyContractDrift: ReferenceScript = async (agent) => {
+  const { test, status, coverage } = await contractedTest(
+    agent,
+    "end-to-end test proving the fixture family requirement",
+    false,
+  );
+  const before = receiptsOf(test);
+  const gaps = proofGaps(coverage);
+  const { ingest, receipts } = await ingestCurrentRun(agent, test, status);
+  const [result] = Array.isArray(ingest.results) ? ingest.results : [];
+  const compacted =
+    typeof result === "object" && result !== null
+      ? Number(result.compacted)
+      : 0;
+  return [
+    `Before the run, kb_coverage reported ${gaps.join(", ")}: the ${before.length} historical receipt(s) of ${idOf(test)} were for the earlier contract, so they did not prove the test: a contract mismatch is never proof.`,
+    `I ingested the run of the exact current contract on the live snapshot and edited no receipt by hand. The ingest appended the current-contract receipt ${String(receipts.at(-1)?.receipt_id)}, the only one that proves the test${compacted > 0 ? `, and Kibi's receipt compaction dropped ${compacted} superseded earlier-contract receipt(s) that could no longer decide proof` : ""}.`,
+  ].join("\n\n");
+};
+
+const finalIntegrationInvalidatesReceipts: ReferenceScript = async (agent) => {
+  const { test, status, coverage } = await contractedTest(
+    agent,
+    "end-to-end test proving the fixture family requirement",
+    true,
+  );
+  const gaps = proofGaps(coverage);
+  const { receipts } = await ingestCurrentRun(agent, test, status);
+  return [
+    `The final integration snapshot is ${String(status.proofSnapshot)}. The pre-integration receipts were for an older snapshot, so kb_coverage reported ${gaps.join(", ") || "them as stale"} and they were not reused as proof.`,
+    `With the final snapshot established before verification, I ingested the run of the exact current contract on it; ${idOf(test)} now ends with the appended receipt ${String(receipts.at(-1)?.receipt_id)} and keeps its earlier receipts as history.`,
+  ].join("\n\n");
+};
+
+const contractedE2eWithOntologyGap: ReferenceScript = async (agent) => {
+  const { test, status, coverage } = await contractedTest(
+    agent,
+    "end-to-end test proving the fixture family requirement",
+    true,
+  );
+  const { receipts } = await ingestCurrentRun(agent, test, status);
+  const after = await agent.data("kb_coverage", { by: "req" });
+  return [
+    `I ingested the run of ${idOf(test)}'s exact proof contract on the live snapshot; it appended the passing kibi.proof-receipt.v1 ${String(receipts.at(-1)?.receipt_id)}.`,
+    `The task is complete, but overall proof stays unresolved: the requirement still has a clause no fact grounds (${proofGaps(after).join(", ")}). The passing end-to-end evidence is current, so a coverage-depth warning would contradict it and is not accepted. Coverage before the run reported ${proofGaps(coverage).join(", ") || "no gaps"}.`,
+  ].join("\n\n");
+};
+
 export const KIBI_TRACEABILITY_SCRIPTS: Readonly<
   Record<string, ReferenceScript>
 > = {
   discover_requirement: discoverRequirement,
+  unchanged_snapshot_receipt_reuse: unchangedSnapshotReceiptReuse,
+  append_only_contract_drift: appendOnlyContractDrift,
+  final_integration_invalidates_receipts: finalIntegrationInvalidatesReceipts,
+  contracted_e2e_with_ontology_gap: contractedE2eWithOntologyGap,
   symbol_granularity: symbolGranularity,
   trace_relationship_chain: traceRelationshipChain,
   executable_coverage: executableCoverage,

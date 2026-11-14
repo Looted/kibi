@@ -5,13 +5,17 @@ import type {
 } from "../runtime/case-signals";
 import {
   MOVED_SYMBOL,
+  RECEIPT_IDS,
   REPLACED_SYMBOL,
   SHARD_IDS,
   SHARD_KEPT_EDGE,
   SHARD_PATH,
   SHARD_TARGET_EDGE,
 } from "../runtime/traceability-seeds";
-import { traceabilitySignalObserved } from "../runtime/traceability-signals";
+import {
+  traceabilityForbiddenObserved,
+  traceabilitySignalObserved,
+} from "../runtime/traceability-signals";
 
 type Entity = Record<string, unknown>;
 
@@ -202,5 +206,112 @@ describe("symbol repair signals", () => {
 
   test("names it does not own stay undefined", () => {
     expect(signal("final check executed", context())).toBeUndefined();
+  });
+});
+
+describe("proof receipt signals", () => {
+  const receipt = (id: string, contract: string): Entity => ({
+    receipt_id: id,
+    outcome: "passed",
+    contract_hash: contract,
+  });
+  const e2eTest = (receipts: readonly Entity[]): Entity => ({
+    id: RECEIPT_IDS.test,
+    type: "test",
+    proof_receipts: receipts,
+  });
+  function ingestCall(result: Entity, snapshot = "snap"): BrokerCallEvidence {
+    return {
+      tool: "kb_ingest_proof",
+      args: { snapshot, artifact: {}, testIds: [RECEIPT_IDS.test] },
+      resultOk: true,
+      result: {
+        structuredContent: {
+          results: [
+            {
+              testId: RECEIPT_IDS.test,
+              outcome: "passed",
+              applied: true,
+              ...result,
+            },
+          ],
+        },
+      },
+    };
+  }
+  const coverageCall = (gap: string): BrokerCallEvidence => ({
+    tool: "kb_coverage",
+    args: { by: "req" },
+    resultOk: true,
+    result: { structuredContent: { rows: [{ proofGaps: [gap] }] } },
+  });
+
+  test("an ingested passing receipt that ends the history counts", () => {
+    const done = context({
+      entities: [e2eTest([receipt("PR-new", "c2")])],
+      calls: [ingestCall({ receiptId: "PR-new", receiptCount: 1 })],
+      status: { syncState: "fresh", staleReasons: [], proofSnapshot: "snap" },
+    });
+    expect(signal("current contract receipt appended", done)).toBe(true);
+    expect(signal("passing v2 receipt", done)).toBe(true);
+    expect(signal("final snapshot before verification", done)).toBe(true);
+    expect(signal("historical contract receipt preserved", done)).toBe(true);
+    const seeded = context({ entities: [e2eTest([receipt("PR-old", "c1")])] });
+    expect(signal("current contract receipt appended", seeded)).toBe(false);
+    const otherSnapshot = context({
+      entities: [e2eTest([receipt("PR-new", "c2")])],
+      calls: [ingestCall({ receiptId: "PR-new" }, "older")],
+      status: { syncState: "fresh", staleReasons: [], proofSnapshot: "snap" },
+    });
+    expect(signal("final snapshot before verification", otherSnapshot)).toBe(
+      false,
+    );
+  });
+
+  test("a hand-edited history is neither preserved nor allowed", () => {
+    const edited = context({
+      entities: [e2eTest([receipt("PR-new", "c2")])],
+      calls: [
+        ingestCall({ receiptId: "PR-new", receiptCount: 1 }),
+        { tool: "kb_upsert", args: { id: RECEIPT_IDS.test }, resultOk: true },
+      ],
+    });
+    expect(signal("historical contract receipt preserved", edited)).toBe(false);
+    expect(
+      traceabilityForbiddenObserved("rewrite receipt history", edited),
+    ).toBe(true);
+  });
+
+  test("the mismatch counts only when seen before a contract-drift ingest", () => {
+    const drift = ingestCall({
+      receiptId: "PR-new",
+      fingerprintDrift: ["contract"],
+    });
+    expect(
+      signal(
+        "contract mismatch remains non-proof",
+        context({ calls: [coverageCall("stale_proof_receipt"), drift] }),
+      ),
+    ).toBe(true);
+    expect(
+      signal(
+        "contract mismatch remains non-proof",
+        context({ calls: [drift, coverageCall("stale_proof_receipt")] }),
+      ),
+    ).toBe(false);
+  });
+
+  test("reusing a receipt means no ingest and no new receipt", () => {
+    const reused = context({ entities: [e2eTest([receipt("PR-old", "c1")])] });
+    expect(traceabilityForbiddenObserved("rerun unchanged E2E", reused)).toBe(
+      false,
+    );
+    expect(
+      traceabilityForbiddenObserved(
+        "rerun unchanged E2E",
+        context({ calls: [ingestCall({ receiptId: "PR-new" })] }),
+      ),
+    ).toBe(true);
+    expect(traceabilityForbiddenObserved("other", reused)).toBeUndefined();
   });
 });

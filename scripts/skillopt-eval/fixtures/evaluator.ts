@@ -290,6 +290,10 @@ const TRACEABILITY_STATE_FIXTURES: Readonly<
   legacy_shard_reconciliation: "seeded_removed_shard_edge_kb",
   stale_symbol_remap: "seeded_moved_symbol_kb",
   obsolete_symbol_delete_with_replacement: "seeded_replaced_symbol_kb",
+  unchanged_snapshot_receipt_reuse: "seeded_receipt_reuse_kb",
+  append_only_contract_drift: "seeded_receipt_contract_drift_kb",
+  final_integration_invalidates_receipts: "seeded_receipt_integration_kb",
+  contracted_e2e_with_ontology_gap: "seeded_receipt_ontology_gap_kb",
 };
 
 function needsStatus(task: FixtureTaskSpec): boolean {

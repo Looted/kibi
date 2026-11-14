@@ -7,6 +7,12 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { commitAndSync, setupSeededFreshKb } from "./fixture-kb-setup";
 import {
+  setupContractDrift,
+  setupFinalIntegration,
+  setupOntologyGapRun,
+  setupReceiptReuse,
+} from "./receipt-seeds";
+import {
   MOVED_SYMBOL,
   MOVED_SYMBOL_DOCUMENTS,
   REPLACED_SYMBOL,
@@ -26,6 +32,10 @@ export const TRACEABILITY_SETUP_MODES = [
   "seeded_removed_shard_edge_kb",
   "seeded_moved_symbol_kb",
   "seeded_replaced_symbol_kb",
+  "seeded_receipt_reuse_kb",
+  "seeded_receipt_contract_drift_kb",
+  "seeded_receipt_integration_kb",
+  "seeded_receipt_ontology_gap_kb",
 ] as const;
 
 export type TraceabilitySetupMode = (typeof TRACEABILITY_SETUP_MODES)[number];
@@ -124,5 +134,17 @@ export async function setupTraceabilityFixture(
       await removeObsoleteDeclaration(workspace);
       return;
     }
+    case "seeded_receipt_reuse_kb":
+      await setupReceiptReuse(workspace, cliRoot);
+      return;
+    case "seeded_receipt_contract_drift_kb":
+      await setupContractDrift(workspace, cliRoot);
+      return;
+    case "seeded_receipt_integration_kb":
+      await setupFinalIntegration(workspace, cliRoot);
+      return;
+    case "seeded_receipt_ontology_gap_kb":
+      await setupOntologyGapRun(workspace, cliRoot);
+      return;
   }
 }
