@@ -876,6 +876,19 @@ export async function setupSeededStaleKb(
     `${original}\nUnabsorbed evaluator drift: stale-state classification seed.\n`,
     "utf8",
   );
+  // The legacy requirement the migration moves into .kb/ states its context,
+  // so a safe application leaves a clean check without semantic writes.
+  const legacyPath = join(
+    workspaceTarget,
+    "documentation/requirements/fixture.md",
+  );
+  const legacy = await readFile(legacyPath, "utf8").catch(() => null);
+  if (legacy?.startsWith("---\n") === true && !legacy.includes("## Context"))
+    await writeFile(
+      legacyPath,
+      `${legacy}\n## Context\n\nSeeded by the evaluator as the project's legacy requirement; it carries no product rationale.\n`,
+      "utf8",
+    );
   await stageCommitAll(workspaceTarget);
 }
 

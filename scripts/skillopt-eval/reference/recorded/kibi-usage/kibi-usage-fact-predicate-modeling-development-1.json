@@ -1,0 +1,176 @@
+{
+  "taskId": "kibi-usage-fact-predicate-modeling-development-1",
+  "source": "stored 100-score cell",
+  "steps": [
+    {
+      "call": "kb_search",
+      "args": {
+        "query": "deployment candidate releasable lineage artifact digest test evidence source revision"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "id": "FACT-SCHEMA-DELIVERY-LINEAGE"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "analyze",
+        "text": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.",
+        "type": "req"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "predicates",
+        "text": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.",
+        "schemaId": "FACT-SCHEMA-DELIVERY-LINEAGE",
+        "argumentBindings": {
+          "artifact_digest": "artifact digest",
+          "test_evidence": "test evidence",
+          "source_revision": "source revision"
+        },
+        "existingLogicClaims": ["CLAIM-BB19AD400CE2A93A"]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-delivery-release-lineage-binding",
+        "dryRun": true,
+        "document": {
+          "path": ".kb/requirements/REQ-delivery-release-lineage-binding.md",
+          "body": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.\n\n## Context\n\nReason not stated. Requested in this task as the release gate for deployment candidates. Source: the task's claim text supplied by the requester.\n\n## Source\n\n> A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.\n\nReference: the task request (predicate-claim.json, case kibi-usage-fact-predicate-modeling-development-1)."
+        },
+        "plannedFacts": [
+          {
+            "type": "fact",
+            "id": "FACT-PRED-F916A6F22187",
+            "properties": {
+              "title": "Predicate: delivery_lineage(artifact digest,test evidence,source revision)",
+              "status": "active",
+              "source": "mcp://kibi/suggest-predicates",
+              "tags": ["lane:ontology", "predicate-suggestion"],
+              "fact_kind": "predicate",
+              "predicate_name": "delivery_lineage",
+              "predicate_args": [
+                "artifact digest",
+                "test evidence",
+                "source revision"
+              ],
+              "canonical_key": "delivery_lineage(artifact digest,test evidence,source revision)",
+              "polarity": "assert",
+              "claim_key": "CLAIM-BB19AD400CE2A93A",
+              "claim_text": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision"
+            }
+          }
+        ],
+        "properties": {
+          "title": "Deployment candidate releasability requires lineage binding",
+          "status": "open",
+          "logic_claims": ["CLAIM-BB19AD400CE2A93A"],
+          "semantic_text": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "2cf4785efe25f0200ac8a16445713fcd6f0d2faf0d415d0289a576b4f92c6337",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-BB19AD400CE2A93A",
+              "claim_text": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 120
+              },
+              "payload_hash": "55853df5473b60810b95ae2d89bba2bc7d28dfc8a602e6e2c8a22ecf41953c01"
+            }
+          ],
+          "rationale": "Reason not stated; requested as the release gate for deployment candidates."
+        },
+        "relationships": [
+          {
+            "type": "requires_predicate",
+            "from": "REQ-delivery-release-lineage-binding",
+            "to": "FACT-PRED-F916A6F22187"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PRED-F916A6F22187",
+        "properties": {
+          "title": "Predicate: delivery_lineage(artifact digest,test evidence,source revision)",
+          "status": "active",
+          "source": "mcp://kibi/suggest-predicates",
+          "tags": ["lane:ontology", "predicate-suggestion"],
+          "fact_kind": "predicate",
+          "predicate_name": "delivery_lineage",
+          "predicate_args": [
+            "artifact digest",
+            "test evidence",
+            "source revision"
+          ],
+          "canonical_key": "delivery_lineage(artifact digest,test evidence,source revision)",
+          "polarity": "assert",
+          "claim_key": "CLAIM-BB19AD400CE2A93A",
+          "claim_text": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision"
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-delivery-release-lineage-binding",
+        "document": {
+          "path": ".kb/requirements/REQ-delivery-release-lineage-binding.md",
+          "body": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.\n\n## Context\n\nReason not stated. Requested in this task as the release gate for deployment candidates. Source: the task's claim text supplied by the requester.\n\n## Source\n\n> A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.\n\nReference: the task request (predicate-claim.json, case kibi-usage-fact-predicate-modeling-development-1)."
+        },
+        "properties": {
+          "title": "Deployment candidate releasability requires lineage binding",
+          "status": "open",
+          "logic_claims": ["CLAIM-BB19AD400CE2A93A"],
+          "semantic_text": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "2cf4785efe25f0200ac8a16445713fcd6f0d2faf0d415d0289a576b4f92c6337",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-BB19AD400CE2A93A",
+              "claim_text": "A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 120
+              },
+              "payload_hash": "55853df5473b60810b95ae2d89bba2bc7d28dfc8a602e6e2c8a22ecf41953c01"
+            }
+          ],
+          "rationale": "Reason not stated; requested as the release gate for deployment candidates."
+        },
+        "relationships": [
+          {
+            "type": "requires_predicate",
+            "from": "REQ-delivery-release-lineage-binding",
+            "to": "FACT-PRED-F916A6F22187"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {}
+    }
+  ],
+  "files": {},
+  "answer": "Modeled \"A deployment candidate is releasable only when its lineage binds the artifact digest, test evidence, and source revision.\" as one normative clause (CLAIM-BB19AD400CE2A93A) with one ground predicate fact (FACT-PRED-F916A6F22187, delivery_lineage over artifact_digest, test_evidence, source_revision) using the existing FACT-SCHEMA-DELIVERY-LINEAGE schema (no new schema needed). Created REQ-delivery-release-lineage-binding with logic_claims [CLAIM-BB19AD400CE2A93A], a modeled ledger entry, Context and Source sections, and a requires_predicate link to the fact. Unfiltered kb_check: 0 violations. Caveats: the \"only when\" condition is not encoded (advisor reports conditional represented: false; a forbid rule with requires_rule would be needed); the fact write had no dryRun preflight and the requirement was not re-analyzed before writing (telemetry flags both); the requirement is agent-authored and unapproved by a person and has no test or scenario coverage (advisory only). Requirement context states \"Reason not stated\" because the requester gave no reason."
+}

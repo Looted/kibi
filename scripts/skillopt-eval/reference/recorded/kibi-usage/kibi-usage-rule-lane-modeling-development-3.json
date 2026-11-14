@@ -1,0 +1,322 @@
+{
+  "taskId": "kibi-usage-rule-lane-modeling-development-3",
+  "source": "stored 100-score cell",
+  "steps": [
+    {
+      "call": "kb_search",
+      "args": {
+        "query": "Every file loaded into a module must be instrumented"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "factKind": "predicate_schema"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "analyze",
+        "text": "Every file loaded into a module must be instrumented.",
+        "type": "req"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "predicates",
+        "text": "Every file loaded into a module must be instrumented.",
+        "claimKey": "CLAIM-3C8353363B606DDC"
+      }
+    },
+    {
+      "call": "kb_model",
+      "args": {
+        "mode": "requirement",
+        "text": "Every file loaded into a module must be instrumented.",
+        "subjectKey": "module.loaded_file",
+        "propertyKey": "uninstrumented_loaded_files",
+        "operator": "eq",
+        "value": 0,
+        "claimText": "Every file loaded into a module must be instrumented",
+        "claimKey": "CLAIM-3C8353363B606DDC",
+        "type": "req"
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-SUBJECT-module-loaded-file",
+        "properties": {
+          "title": "Module Loaded File",
+          "status": "active",
+          "fact_kind": "subject",
+          "subject_key": "module.loaded_file",
+          "canonical_key": "module.loaded_file",
+          "claim_key": "CLAIM-3C8353363B606DDC",
+          "claim_text": "Every file loaded into a module must be instrumented.",
+          "origin": {
+            "kind": "agent",
+            "ref": "Model request: Every file loaded into a module must be instrumented."
+          }
+        },
+        "document": {
+          "path": ".kb/facts/FACT-SUBJECT-module-loaded-file.md",
+          "body": "Definition not stated: module.loaded_file is the set of source files a module loads at runtime. Source of the claim: the modeling request in documentation/requirements/fixture.md. Reason not stated; the people who own the module loader can say what counts as a loaded file and what does not.\n"
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PROP-module-loaded-file-uninstrumented-zero",
+        "properties": {
+          "title": "Uninstrumented Loaded Files = 0",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "module.loaded_file",
+          "property_key": "uninstrumented_loaded_files",
+          "operator": "eq",
+          "value_type": "int",
+          "value_int": 0,
+          "claim_key": "CLAIM-3C8353363B606DDC",
+          "claim_text": "Every file loaded into a module must be instrumented.",
+          "origin": {
+            "kind": "agent",
+            "ref": "Model request: Every file loaded into a module must be instrumented."
+          }
+        },
+        "document": {
+          "path": ".kb/facts/FACT-PROP-module-loaded-file-uninstrumented-zero.md",
+          "body": "The count of files loaded into a module that are not instrumented equals zero. This is the quantified dimension of the claim Every file loaded into a module must be instrumented, modeled as a count instead of a verdict. Reason not stated; the request gave no further context.\n"
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "fact",
+        "id": "FACT-PROP-module-loaded-file-uninstrumented-one",
+        "properties": {
+          "title": "Uninstrumented Loaded Files = 1",
+          "status": "active",
+          "fact_kind": "property_value",
+          "subject_key": "module.loaded_file",
+          "property_key": "uninstrumented_loaded_files",
+          "operator": "eq",
+          "value_type": "int",
+          "value_int": 1,
+          "origin": {
+            "kind": "agent",
+            "ref": "Model request: Every file loaded into a module must be instrumented."
+          }
+        },
+        "document": {
+          "path": ".kb/facts/FACT-PROP-module-loaded-file-uninstrumented-one.md",
+          "body": "One loaded file of a module is not instrumented. Assumed by the rejection scenario only; it is a counterexample value, not grounding for the claim, so it carries no claim key. Reason not stated; the rejection case was derived from the claim's own quantifier.\n"
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "scenario",
+        "id": "SCEN-module-loaded-files-all-instrumented",
+        "properties": {
+          "title": "Every file loaded into a module is instrumented",
+          "status": "active",
+          "expects": "success",
+          "origin": {
+            "kind": "agent",
+            "ref": "Model request: Every file loaded into a module must be instrumented."
+          }
+        },
+        "document": {
+          "body": "Given a module whose loaded files are all instrumented, when the module is checked, then the count of uninstrumented loaded files is zero and the module passes. Assumes that the uninstrumented loaded file count is zero. Reason not stated; the request gave no further context."
+        },
+        "relationships": [
+          {
+            "type": "assumes",
+            "from": "SCEN-module-loaded-files-all-instrumented",
+            "to": "FACT-PROP-module-loaded-file-uninstrumented-zero"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "scenario",
+        "id": "SCEN-module-loaded-file-uninstrumented-rejected",
+        "properties": {
+          "title": "A module with one uninstrumented loaded file is rejected",
+          "status": "active",
+          "expects": "rejection",
+          "origin": {
+            "kind": "agent",
+            "ref": "Model request: Every file loaded into a module must be instrumented."
+          }
+        },
+        "document": {
+          "body": "Given a module that loads one file which is not instrumented, when the module is checked, then the check rejects it because the count of uninstrumented loaded files is one, not zero. Assumes that the uninstrumented loaded file count is one. Reason not stated; the rejection case follows from the claim's universal quantifier."
+        },
+        "relationships": [
+          {
+            "type": "assumes",
+            "from": "SCEN-module-loaded-file-uninstrumented-rejected",
+            "to": "FACT-PROP-module-loaded-file-uninstrumented-one"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-module-loaded-files-instrumented",
+        "dryRun": true,
+        "properties": {
+          "title": "Every file loaded into a module must be instrumented",
+          "status": "open",
+          "rationale": "Reason not stated. Modeled from the request to record the claim Every file loaded into a module must be instrumented.",
+          "semantic_text": "Every file loaded into a module must be instrumented.",
+          "semantic_clauses": [
+            "Every file loaded into a module must be instrumented."
+          ],
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "a38c16a2bf79bb29e5bcd6c9346180739d53f695a73a81e1cdae22606d1e9054",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-3C8353363B606DDC",
+              "claim_text": "Every file loaded into a module must be instrumented",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 52
+              },
+              "subjects": ["module.loaded_file"]
+            }
+          ],
+          "logic_claims": ["CLAIM-3C8353363B606DDC"],
+          "origin": {
+            "kind": "agent",
+            "ref": "Model request: Every file loaded into a module must be instrumented."
+          },
+          "tags": ["strict-modeling", "lane:strict"]
+        },
+        "document": {
+          "path": ".kb/requirements/REQ-module-loaded-files-instrumented.md",
+          "body": "Every file loaded into a module must be instrumented.\n\n## Context\n\nReason not stated. The request asked to record this claim as a requirement with the scenarios that specify it. Who asked: the modeling request in documentation/requirements/fixture.md.\n\n## Source\n\n> Every file loaded into a module must be instrumented.\n\nReference: documentation/requirements/fixture.md (modeling request).\n"
+        },
+        "relationships": [
+          {
+            "type": "constrains",
+            "from": "REQ-module-loaded-files-instrumented",
+            "to": "FACT-SUBJECT-module-loaded-file"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-module-loaded-files-instrumented",
+            "to": "FACT-PROP-module-loaded-file-uninstrumented-zero"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-module-loaded-files-instrumented",
+            "to": "SCEN-module-loaded-files-all-instrumented"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-module-loaded-files-instrumented",
+            "to": "SCEN-module-loaded-file-uninstrumented-rejected"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-module-loaded-files-instrumented",
+        "properties": {
+          "title": "Every file loaded into a module must be instrumented",
+          "status": "open",
+          "rationale": "Reason not stated. Modeled from the request to record the claim Every file loaded into a module must be instrumented.",
+          "semantic_text": "Every file loaded into a module must be instrumented.",
+          "semantic_clauses": [
+            "Every file loaded into a module must be instrumented."
+          ],
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_source_field": "semantic_text",
+          "semantic_source_hash": "a38c16a2bf79bb29e5bcd6c9346180739d53f695a73a81e1cdae22606d1e9054",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-3C8353363B606DDC",
+              "claim_text": "Every file loaded into a module must be instrumented",
+              "role": "normative",
+              "status": "modeled",
+              "span": {
+                "start": 0,
+                "end": 52
+              },
+              "subjects": ["module.loaded_file"]
+            }
+          ],
+          "logic_claims": ["CLAIM-3C8353363B606DDC"],
+          "origin": {
+            "kind": "agent",
+            "ref": "Model request: Every file loaded into a module must be instrumented."
+          },
+          "tags": ["strict-modeling", "lane:strict"]
+        },
+        "document": {
+          "path": ".kb/requirements/REQ-module-loaded-files-instrumented.md",
+          "body": "Every file loaded into a module must be instrumented.\n\n## Context\n\nReason not stated. The request asked to record this claim as a requirement with the scenarios that specify it. Who asked: the modeling request in documentation/requirements/fixture.md.\n\n## Source\n\n> Every file loaded into a module must be instrumented.\n\nReference: documentation/requirements/fixture.md (modeling request).\n"
+        },
+        "relationships": [
+          {
+            "type": "constrains",
+            "from": "REQ-module-loaded-files-instrumented",
+            "to": "FACT-SUBJECT-module-loaded-file"
+          },
+          {
+            "type": "requires_property",
+            "from": "REQ-module-loaded-files-instrumented",
+            "to": "FACT-PROP-module-loaded-file-uninstrumented-zero"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-module-loaded-files-instrumented",
+            "to": "SCEN-module-loaded-files-all-instrumented"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-module-loaded-files-instrumented",
+            "to": "SCEN-module-loaded-file-uninstrumented-rejected"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {
+        "rules": [
+          "logic-coverage",
+          "strict-req-fact-pairing",
+          "domain-contradictions",
+          "subject-definition-missing",
+          "entity-context-missing",
+          "must-positive-scenario",
+          "scenario-feasibility",
+          "no-dangling-refs"
+        ]
+      }
+    }
+  ],
+  "files": {},
+  "answer": "Recorded the claim \"Every file loaded into a module must be instrumented.\" as requirement REQ-module-loaded-files-instrumented (status open). Its logic_claims is [CLAIM-3C8353363B606DDC], and its semantic_inventory marks that single claim as modeled.\n\nDecomposition: the claim is one proposition relating one file, one module and one instrumentation state, so it has one claim key and one ground fact.\n\nGround fact: FACT-PROP-module-loaded-file-uninstrumented-zero, a property_value stating uninstrumented_loaded_files eq 0 on subject module.loaded_file, carrying the advisor claim key. The universal quantifier is modeled as a count.\n\nSubject: FACT-SUBJECT-module-loaded-file, constrained by the requirement. Its definition is a placeholder (\"Definition not stated\"), because the repository does not define module, loaded file or instrumented.\n\nScenarios (both linked to the requirement via specified_by, both assume a count fact):\n- SCEN-module-loaded-files-all-instrumented (expects success), assumes the zero-count fact.\n- SCEN-module-loaded-file-uninstrumented-rejected (expects rejection), assumes FACT-PROP-module-loaded-file-uninstrumented-one, a counterexample fact without a claim key.\n\nSchemas: predicate-claim.json declares projectLocalSchemas as empty, so none were created. The predicate lookup found no fitting schema, so no predicate fact was written.\n\nVerification: the targeted kb_check (logic-coverage, strict-req-fact-pairing, domain-contradictions, subject-definition-missing, entity-context-missing, must-positive-scenario, scenario-feasibility, no-dangling-refs) reported 0 violations. The unfiltered kb_check was not run. Its returned migration plan (legacy storage move, dirty proof snapshot) was not applied.\n\nOpen items: the subject definition needs a human-written definition; rationale and scenario context say \"Reason not stated\"; the requirement has no code links and no proof yet."
+}

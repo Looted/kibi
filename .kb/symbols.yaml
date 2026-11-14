@@ -38921,10 +38921,14 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-harness-shared-scoring
       - type: covered_by
         target: TEST-e2e-skillopt-claude-code-host
+      - type: covered_by
+        target: TEST-skillopt-refused-kb-read-not-critical
+      - type: implements
+        target: REQ-skillopt-harness-shared-scoring
+      - type: implements
+        target: REQ-skillopt-refused-kb-read-not-critical
   - id: SYM-skillopt-codex-violations
     title: CODEX_VIOLATIONS
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
@@ -40361,3 +40365,116 @@ symbols:
         target: TEST-kibi-approval-evidence-floor
       - type: implements
         target: REQ-kibi-unapproved-implemented-requirement
+  - id: SYM-test-skillopt-codex-events-suite
+    title: Codex JSONL normalization suite
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/codex-events.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-refused-kb-read-not-critical
+  - id: SYM-skillopt-denied-read-score
+    title: deniedReadScore
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-episode.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-refused-kb-read-not-critical
+      - type: implements
+        target: REQ-skillopt-refused-kb-read-not-critical
+  - id: SYM-test-skillopt-refused-kb-read-e2e
+    title: Refused .kb/ read end-to-end suite
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/refused-kb-read-e2e.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-refused-kb-read-not-critical
+  - id: SYM-test-skillopt-family-gate-suite
+    title: Pooled family gate suite
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/family-gate.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-pooled-family-gate
+  - id: SYM-skillopt-judge-family
+    title: judgeFamily
+    status: active
+    sourceFile: scripts/skillopt-eval/scoring/family-gate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-pooled-family-gate
+      - type: implements
+        target: REQ-skillopt-pooled-family-gate
+  - id: SYM-skillopt-measure-noise-floor
+    title: measureNoiseFloor
+    status: active
+    sourceFile: scripts/skillopt-eval/scoring/family-gate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-pooled-family-gate
+      - type: implements
+        target: REQ-skillopt-pooled-family-gate
+  - id: SYM-test-skillopt-reference-verify-suite
+    title: Reference answer check suite
+    status: active
+    sourceFile: scripts/skillopt-eval/tests/reference-verify.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-reference-answers-score-100
+  - id: SYM-skillopt-verify-references
+    title: verifyReferences
+    status: active
+    sourceFile: scripts/skillopt-eval/reference/verify.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-reference-answers-score-100
+      - type: implements
+        target: REQ-skillopt-reference-answers-score-100
+  - id: SYM-skillopt-run-reference
+    title: runReference
+    status: active
+    sourceFile: scripts/skillopt-eval/reference/runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-13T19:10:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-reference-answers-score-100
+      - type: implements
+        target: REQ-skillopt-reference-answers-score-100

@@ -66,13 +66,29 @@ function writeAdversarialFiles(input: WorkspaceInput): void {
   ) {
     // A rejected mutation that names its target: the documented fixture
     // requirement. Validation diagnostics expose the invalid type and status,
-    // so the intended write is recoverable without guessing.
+    // so the intended write is recoverable without guessing. The payload
+    // carries its own Context, so repairing only the diagnosed fields
+    // finishes the write without inventing text.
     writeJson(input.root, "inputs/malformed.json", {
       type: "requirement",
       id: fixtureEntityIds(input.task.id).requirement,
       properties: {
         title: `${input.task.family} fixture requirement`,
         status: "opened",
+      },
+      document: {
+        body: [
+          `The ${input.task.family} fixture keeps one documented requirement.`,
+          "",
+          "## Context",
+          "",
+          "The fixture records this requirement so a rejected write has a named target to repair. Reason not stated.",
+          "",
+          "## Source",
+          "",
+          "validation-recovery fixture requirement",
+          "",
+        ].join("\n"),
       },
     });
   } else if (cases.includes("malformed-input")) {

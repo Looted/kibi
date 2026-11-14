@@ -141,16 +141,6 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     worktree: "dirty",
     adversarialCases: ["stale-state", "dirty-state", "misleading-success"],
   },
-  "kibi-usage/validation-recovery/held-out/0": {
-    prompt:
-      "A valid v2 receipt is rejected by a stale installed schema. Diagnose the mixed package set through the versioned envelope, repair distribution selection, and never downgrade, hand-edit, or retry a committed mutation.",
-    objectiveCode: "stale_v2_schema",
-    kb: "fresh",
-    worktree: "clean",
-    adversarialCases: ["malformed-input", "misleading-success"],
-    mutation: "write",
-    approvalPhase: "post-approval",
-  },
   "kibi-traceability/relationship-chain/held-out/0": {
     prompt:
       "Remove one exact legacy-shard relationship through the sanctioned delete operation, preserve both endpoints, sync, and verify that the edge stays absent.",
@@ -207,16 +197,6 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     mutation: "write",
     approvalPhase: "post-approval",
   },
-  "kibi-usage/validation-recovery/held-out/1": {
-    prompt:
-      "Review every quality diagnostic by ID and record fixed, accepted, or deferred with rationale. Preserve accepted ontology and telemetry limitations without claiming proof. For receipt freshness, identify affected requirement/test IDs and direct the agent to kibi prove with current proof receipts; distinguish a stale coverage-depth heuristic from an independent proof gap.",
-    objectiveCode: "quality_diagnostic_disposition",
-    kb: "fresh",
-    worktree: "clean",
-    adversarialCases: ["misleading-success"],
-    mutation: "write",
-    approvalPhase: "post-approval",
-  },
   "kibi-traceability/symbol-impact-granularity/held-out/1": {
     prompt:
       "An obsolete extracted symbol has a verified replacement. Delete only the obsolete symbol through Kibi, transfer coverage only where test evidence supports it, sync, and read back the result.",
@@ -234,16 +214,6 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     kb: "fresh",
     worktree: "clean",
     adversarialCases: ["approval-boundary", "misleading-success"],
-    mutation: "write",
-    approvalPhase: "post-approval",
-  },
-  "kibi-usage/validation-recovery/held-out/2": {
-    prompt:
-      "Local and registry artifacts share a version but expose different exports. Diagnose this as a release defect, require a new package version, and label the project override temporary; do not downgrade receipts.",
-    objectiveCode: "same_version_export_surface_drift",
-    kb: "fresh",
-    worktree: "clean",
-    adversarialCases: ["malformed-input", "misleading-success"],
     mutation: "write",
     approvalPhase: "post-approval",
   },

@@ -465,3 +465,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24c2a6853736
+  - type: assumes
+    from: SCEN-NEG-skillopt-kb-access-REFUSED-COMMAND-FORGIVEN
+    to: FACT-NEG-skillopt-kb-access-REFUSED-COMMAND-FORGIVEN
+    created_at: 2026-11-13T19:15:48.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccd36464f8fb

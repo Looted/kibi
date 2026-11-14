@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-274d628d2670
+  - type: executable_for
+    from: SYM-test-skillopt-reference-verify-suite
+    to: TEST-skillopt-reference-answers-score-100
+    created_at: 2026-11-14T04:50:33.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bf0aaa651d3
