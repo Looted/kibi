@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.47.0
+  version: 2.48.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -703,6 +703,11 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
   vocabulary (a set of states or statuses) stays whole. Keep the parent's
   sentences verbatim where they still fit, so their claim keys and facts
   keep binding; new wording is a statement change the person approves.
+  Review findings such as this one are listed in the unfiltered
+  `kb_check` result's `qualityDiagnostics`, not in `violations`: zero
+  violations does not mean the finding is gone. Read its `evidence` counts
+  instead of counting links yourself, and never pass a finding id as a
+  `rules` filter.
 - **Umbrella.** Tag a requirement `umbrella` (or `epic`) only when it is a
   real feature-level rule whose parts have their own requirements linked to
   it with `depends_on`. Code that decides one part implements that part's
@@ -745,7 +750,15 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
      whose behavior it decides.
   4. Remove each wrapper's symbol entry (`kb_delete` by id, then apply the
      returned plan).
-  5. Set the parent `status: closed`, then run the unfiltered `kb_check` and
+  5. Children of one parent usually share a subject, so each pair trips
+     `related-requirement-unmodeled` while its claims are unmodeled. Link
+     each pair with `relates_to` and record a `pair_reviews` entry on one of
+     them: verdict `no_conflict` with `separated_by` naming the behavior that
+     keeps them apart, `claims` with the `{claim_key, payload_hash}` of every
+     unmodeled claim of both, and `origin.kind: agent`. When neither child is
+     `must` or firm, your verdict counts as written: no `approved_by` is
+     needed, so do not stop to ask for one. Write one entry per pair.
+  6. Set the parent `status: closed`, then run the unfiltered `kb_check` and
      fix what it reports before you finish.
 - **Do not fit the check.** Zero findings is the floor, not the goal. Do not
   relax a rule, add an exemption, lower `required_evidence`, or add a
