@@ -349,7 +349,7 @@ export function formatQualityDiagnostics(
 export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
-  migrationPlan?: MigrationPlan;
+  migrationPlan?: MigrationPlan | undefined;
 }): void {
   console.log(
     JSON.stringify({
@@ -358,10 +358,9 @@ export function printStructuredCheckResult(input: {
         count: input.violations.length,
         diagnostics: [],
         qualityDiagnostics: input.qualityDiagnostics,
-        // The same migration plan kb_check returns, so the CLI and MCP agree.
-        ...(input.migrationPlan !== undefined
-          ? { migrationPlan: input.migrationPlan }
-          : {}),
+        // The same migration plan kb_check returns, so the CLI and MCP agree
+        // (JSON leaves the key out when there is none).
+        migrationPlan: input.migrationPlan,
       },
     }),
   );
@@ -1419,11 +1418,10 @@ export async function checkCommand(
     const qualityDiagnostics =
       result.structuredContent?.qualityDiagnostics ?? [];
     if (options.format === "json") {
-      const migrationPlan = result.structuredContent?.migrationPlan;
       printStructuredCheckResult({
         violations,
         qualityDiagnostics,
-        ...(migrationPlan !== undefined ? { migrationPlan } : {}),
+        migrationPlan: result.structuredContent?.migrationPlan,
       });
       return { exitCode: violations.length === 0 ? 0 : 1 };
     }

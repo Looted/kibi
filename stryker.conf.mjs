@@ -414,6 +414,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/search-answer.test.ts",
     "packages/cli/tests/proofs/claims/search-answer-limits.proof.test.ts",
     "packages/cli/tests/search-provenance-stubs.test.ts",
+    "packages/cli/tests/negative-path-facts.test.ts",
   ],
   "packages/cli/src/commands/status.ts": [
     "packages/cli/tests/commands/discovery-wrappers-mutation.test.ts",

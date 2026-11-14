@@ -343,6 +343,23 @@ describe("result rendering", () => {
     ]);
   });
 
+  test("json output carries the check's migration plan", async () => {
+    const migrationPlan = { version: "kibi.migration-plan.v2", steps: [] };
+    checkResult = { structuredContent: { violations: [], migrationPlan } };
+    expect(await checkCommand({ kbPath: "/kb", format: "json" })).toEqual({
+      exitCode: 0,
+    });
+    expect(JSON.parse(logs[0] as string)).toEqual({
+      structuredContent: {
+        violations: [],
+        count: 0,
+        diagnostics: [],
+        qualityDiagnostics: [],
+        migrationPlan,
+      },
+    });
+  });
+
   test("json output without content passes", async () => {
     checkResult = {};
     expect(await checkCommand({ kbPath: "/kb", format: "json" })).toEqual({

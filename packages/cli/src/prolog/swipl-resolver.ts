@@ -347,8 +347,9 @@ function searchPath(
   platform: string = process.platform,
 ): string | undefined {
   if (platform !== "win32") return env.PATH;
-  const key = Object.keys(env).find((name) => name.toUpperCase() === "PATH");
-  return key === undefined ? undefined : env[key];
+  return Object.entries(env).find(
+    ([name]) => name.toUpperCase() === "PATH",
+  )?.[1];
 }
 
 /** The executable file name of swipl: Windows needs its `.exe` suffix. */

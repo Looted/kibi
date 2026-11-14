@@ -156,7 +156,13 @@ describe("isCurrentAuthoredEntity", () => {
         authored({ data: { status } }),
         new Set(superseded),
       );
-    for (const status of ["deprecated", "superseded", "archived", "removed"])
+    for (const status of [
+      "deprecated",
+      "superseded",
+      "archived",
+      "removed",
+      "retired",
+    ])
       expect(current(status)).toBe(false);
     expect(current("active")).toBe(true);
     expect(current(["deprecated"])).toBe(true);
