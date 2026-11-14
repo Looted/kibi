@@ -348,6 +348,8 @@ test(negative_path_facts_are_assumed_by_rejecting_scenarios_and_ground_nothing,
     % A fact a requirement grounds a claim on states what must hold.
     kb_assert_relationship(assumes, 'SCEN-NEGP-REJECT', 'FACT-NEGP-CLAIM', []),
     kb_assert_relationship(requires_property, 'REQ-NEGP', 'FACT-NEGP-CLAIM', []),
+    % Only a fact is a negative-path fact, whatever a rejecting scenario assumes.
+    assert_raw_relationship(assumes, 'SCEN-NEGP-ERROR', 'REQ-NEGP'),
     kb_negative_path_facts(['FACT-NEGP-ALONE', 'FACT-NEGP-ERRORS', 'FACT-NEGP-OK',
                             'FACT-NEGP-CLAIM', 'FACT-NEGP-WRITES', 'REQ-NEGP',
                             'FACT-NEGP-WRITES', 'FACT-NEGP-MISSING'], Rows),
