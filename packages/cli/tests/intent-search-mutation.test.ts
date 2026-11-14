@@ -27,6 +27,7 @@ import {
   topicText,
   validateIntentSearchInput,
 } from "../src/intent-search.js";
+import { negativePathFactsGoal } from "../src/negative-path-facts.js";
 import * as discovery from "../src/public/operations/discovery-entities.js";
 import type { PrologPort } from "../src/public/operations/runtime-types.js";
 import * as ranking from "../src/search-ranking.js";
@@ -1280,6 +1281,26 @@ describe("executeIntentSearch", () => {
         graphGoal(["S0", "S1", "S2", "S3", "S4"], 1),
       ]);
       expect(stub.calls.at(-1)).toStrictEqual(["rows", []]);
+    } finally {
+      stub.restore();
+    }
+  });
+
+  test("asks which matched or neighbouring facts are negative paths", async () => {
+    const prolog = port("[[verified_by,'A','RF'],[verified_by,'A','RR']]");
+    const stub = stubDiscovery({
+      load: () => [
+        { type: "req", id: "A", title: "alpha" },
+        { type: "fact", id: "F1", title: "alpha" },
+      ],
+      rows: () => [
+        { type: "fact", id: "RF", title: "alpha" },
+        { type: "req", id: "RR", title: "alpha" },
+      ],
+    });
+    try {
+      await executeIntentSearch({ query: "alpha" }, prolog, temp());
+      expect(prolog.goals.at(-1)).toBe(negativePathFactsGoal(["F1", "RF"]));
     } finally {
       stub.restore();
     }

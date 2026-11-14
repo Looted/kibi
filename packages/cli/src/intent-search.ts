@@ -859,7 +859,7 @@ export async function rankIntentEntities(
         ? "implemented at the source location"
         : reason,
     );
-    const guards = negativePathFacts.get(String(entity.id ?? ""));
+    const guards = negativePathFacts.get(String(entity.id));
     ranked.push({
       entity,
       score: scored.score,
@@ -940,13 +940,13 @@ function negativePathRankScores(
 ): Map<IntentSearchMatch, number> {
   const scoreById = new Map<string, number>();
   for (const match of ranked) {
-    const id = String(match.entity.id ?? "");
+    const id = String(match.entity.id);
     scoreById.set(id, Math.max(scoreById.get(id) ?? 0, match.score));
   }
   const scores = new Map<IntentSearchMatch, number>();
   for (const match of ranked) {
-    const guards = match.negativePath?.guards ?? [];
-    const guardScores = guards.flatMap((id) => {
+    if (match.negativePath === undefined) continue;
+    const guardScores = match.negativePath.guards.flatMap((id) => {
       const score = scoreById.get(id);
       return score === undefined ? [] : [score];
     });
@@ -1175,7 +1175,7 @@ export async function executeIntentSearch(
     prolog,
     [...firstPass.matches.map((match) => match.entity), ...related]
       .filter((entity) => entity.type === "fact")
-      .map((entity) => String(entity.id ?? "")),
+      .map((entity) => String(entity.id)),
   );
   return rankIntentEntities(
     candidates,

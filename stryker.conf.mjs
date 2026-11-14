@@ -408,6 +408,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/intent-search.test.ts",
     "packages/cli/tests/intent-search.coverage.test.ts",
     "packages/cli/tests/intent-search-remaining.coverage.test.ts",
+    "packages/cli/tests/negative-path-facts.test.ts",
   ],
   "packages/cli/src/search-answer.ts": [
     "packages/cli/tests/search-answer-mutation.test.ts",

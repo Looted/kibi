@@ -112,6 +112,7 @@ describe("dead implements comments", () => {
   test("each comment marker, spacing and id list form is read exactly", () => {
     for (const line of [
       "/// implements REQ-a",
+      "## implements REQ-a",
       "%% implements REQ-a",
       "/** implements REQ-a */",
       "/* implements REQ-a */  ",
