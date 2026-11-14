@@ -197,9 +197,8 @@ function extractPatchFilePaths(patch) {
   return [...new Set(paths)];
 }
 function extractPatchTexts(toolInput) {
-  if (!isRecord(toolInput))
-    return [];
-  return patchTextKeys.map((key) => toolInput[key]).filter((value) => typeof value === "string");
+  const fields = isRecord(toolInput) ? toolInput : {};
+  return patchTextKeys.map((key) => fields[key]).filter((value) => typeof value === "string");
 }
 function extractEditedPaths(toolInput) {
   const paths = extractExplicitPathFields(toolInput);
@@ -1579,7 +1578,7 @@ function quotesClosed(code) {
 }
 function removesTrailingDeadImplementsComment(before, after) {
   const code = after.trimEnd();
-  if (code.trim() === "" || !before.startsWith(code))
+  if (code === "" || !before.startsWith(code))
     return false;
   const cut = before.slice(code.length);
   if (!TRAILING_DEAD_IMPLEMENTS.test(cut))
@@ -1625,22 +1624,19 @@ function parsePatchSections(patch) {
       current = {
         kind: header[1],
         path: normalizeWorkspacePath(header[2]),
-        moved: false,
         lines: []
       };
       sections.push(current);
     } else if (current === undefined) {
       return;
-    } else if (line.startsWith("*** Move to:")) {
-      current.moved = true;
     } else {
       current.lines.push(line);
     }
   }
-  return sections.length > 0 ? sections : undefined;
+  return sections;
 }
 function patchSectionRemovesOnlyDeadComments(section) {
-  if (section.kind !== "Update" || section.moved)
+  if (section.kind !== "Update")
     return false;
   let removed = 0;
   const lines = section.lines;
@@ -1675,8 +1671,7 @@ function patchesRemoveOnlyDeadComments(absolutePath, patches, base) {
 }
 function removesOnlyDeadImplementsComments(absolutePath, toolInput, base) {
   const input = toolInput ?? {};
-  const edits = Array.isArray(input.edits) ? input.edits : [];
-  const records = [input, ...edits.map((edit) => edit ?? {})];
+  const records = Array.isArray(input.edits) ? [input, ...input.edits.map((edit) => edit ?? {})] : [input];
   const pairs = [];
   for (const entry of records) {
     const before = entry.old_string ?? entry.oldString;
