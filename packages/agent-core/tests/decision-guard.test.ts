@@ -109,6 +109,49 @@ describe("dead implements comments", () => {
     }
   });
 
+  test("each comment marker, spacing and id list form is read exactly", () => {
+    for (const line of [
+      "/// implements REQ-a",
+      "%% implements REQ-a",
+      "/** implements REQ-a */",
+      "/* implements REQ-a */  ",
+      "//implements REQ-a",
+      "// implements : REQ-a",
+      "// implements:REQ-a",
+      "// implements  REQ-a",
+      "// implements REQ-a , REQ-b",
+      "// implements REQ-a,REQ-b",
+      "// implements REQ-a, REQ-b",
+    ]) {
+      expect(isDeadImplementsComment(line)).toBe(true);
+    }
+  });
+
+  test("a trailing comment is read with the same markers and forms", () => {
+    const cut = removesTrailingDeadImplementsComment;
+    for (const comment of [
+      "/// implements REQ-a",
+      "## implements REQ-a",
+      "%% implements REQ-a",
+      "/** implements REQ-a */",
+      "/* implements REQ-a */  ",
+      "//implements REQ-a",
+      "// implements : REQ-a",
+      "// implements:REQ-a",
+      "// implements  REQ-a",
+      "// implements REQ-ab",
+      "// implements REQ-a , REQ-b",
+      "// implements REQ-a,REQ-b",
+      "// implements REQ-a, REQ-b",
+      "// implements REQ-a, REQ-bc",
+    ]) {
+      expect(cut(`f(); ${comment}`, "f();")).toBe(true);
+    }
+    // The comment must start the cut text and end the line.
+    expect(cut("f(); y // implements REQ-a", "f();")).toBe(false);
+    expect(cut("f(); // implements REQ-a x", "f();")).toBe(false);
+  });
+
   test("an edit that only deletes such comments is recognized", () => {
     const only = (input: unknown) =>
       removesOnlyDeadImplementsComments("/nonexistent", input);
@@ -260,6 +303,30 @@ describe("dead implements comments", () => {
         { [key]: patch },
         at ?? undefined,
       );
+
+    test("a section header is a whole line of its own", () => {
+      // Header text inside an added line is content, not a new section.
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts",
+            "@@",
+            "-// implements REQ-a",
+            "+x *** Delete File: src/b.ts",
+          ),
+        ),
+      ).toBe(false);
+      // A path that runs past a line separator is no header.
+      expect(
+        only(
+          envelope(
+            "*** Update File: src/a.ts\u2028x",
+            "@@",
+            "-// implements REQ-a",
+          ),
+        ),
+      ).toBe(false);
+    });
 
     test("a section that only removes implements comments is recognized", () => {
       const patch = envelope(
