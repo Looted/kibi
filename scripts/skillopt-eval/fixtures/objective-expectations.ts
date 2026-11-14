@@ -332,7 +332,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     dirty_editor_config: {
       expectedOutcome: "complete",
-      expectedKbState: "stale",
+      // An uncommitted editor file is not a KB source: sync stays fresh and
+      // only the proof snapshot is dirty.
+      expectedKbState: "clean_fresh",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
@@ -437,8 +439,11 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     missing_branch_store_status: {
       expectedOutcome: "complete",
-      expectedKbState: "dirty",
-      expectedVerificationState: "unavailable",
+      // The required kb_query compiles the missing store from the authored
+      // sources, so the final state is fresh; the missing store is what the
+      // agent's first status read reports.
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["missing branch-store status"],
@@ -487,7 +492,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     partial_plan_destructive_refusal: {
       expectedOutcome: "complete",
       expectedKbState: "stale",
-      expectedVerificationState: "fresh",
+      // Approving every automatic action includes the layout migration,
+      // which rewrites tracked sources.
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["automatic action IDs", "destructive action refused"],
@@ -495,7 +502,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     unreadable_store_without_prolog: {
       expectedOutcome: "complete",
-      expectedKbState: "stale",
+      // Recovery rebuilds the store from the authored sources, which leaves
+      // it fresh.
+      expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",

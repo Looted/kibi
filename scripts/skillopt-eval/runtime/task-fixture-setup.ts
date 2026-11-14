@@ -19,6 +19,10 @@ import {
   setupThinRootKb,
 } from "./fixture-kb-setup";
 import {
+  isFreshnessSetupMode,
+  setupFreshnessFixture,
+} from "./freshness-fixture-setup";
+import {
   isQualitySetupMode,
   setupQualityFixture,
 } from "./quality-fixture-setup";
@@ -76,6 +80,8 @@ export async function setupTaskFixture(
     await setupDecisionFixture(target, cliRoot, setupMode);
   } else if (setupMode !== undefined && isTraceabilitySetupMode(setupMode)) {
     await setupTraceabilityFixture(target, cliRoot, setupMode);
+  } else if (setupMode !== undefined && isFreshnessSetupMode(setupMode)) {
+    await setupFreshnessFixture(target, cliRoot, setupMode);
   } else if (setupMode !== undefined && isQualitySetupMode(setupMode)) {
     await setupQualityFixture(target, cliRoot, setupMode);
   }
