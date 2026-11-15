@@ -258,3 +258,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e445f62d9f93
+  - type: constrains
+    from: REQ-kibi-scoped-check-output
+    to: FACT-SUBJ-MCP-KB-CHECK
+    created_at: 2026-11-15T18:42:15.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec5ea8396751
+  - type: requires_property
+    from: REQ-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-lists-change-violations
+    created_at: 2026-11-15T18:42:15.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d2554ad01be
+  - type: requires_property
+    from: REQ-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-counts-omitted
+    created_at: 2026-11-15T18:42:15.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46a2abfb416a
+  - type: requires_property
+    from: REQ-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-summarizes-migration-plan
+    created_at: 2026-11-15T18:42:15.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f712cbfbfd0
+  - type: requires_property
+    from: REQ-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-fits-budget
+    created_at: 2026-11-15T18:42:15.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b67601c3bf3c
+  - type: specified_by
+    from: REQ-kibi-scoped-check-output
+    to: SCEN-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:15.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d46891bc6e9
+  - type: specified_by
+    from: REQ-kibi-scoped-check-output
+    to: SCEN-NEG-kibi-scoped-check-output-UNRELATED-VIOLATION
+    created_at: 2026-11-15T18:42:15.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3bcbd48ee2c
+  - type: specified_by
+    from: REQ-kibi-scoped-check-output
+    to: SCEN-NEG-kibi-scoped-check-output-RULE-DROPPED
+    created_at: 2026-11-15T18:45:00.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-703b499aec05

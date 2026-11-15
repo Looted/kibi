@@ -25,7 +25,12 @@ export const checkSpec = {
         type: "array",
         items: { type: "string" },
         description:
-          "Optional repo-relative source files to inspect for early impact diagnostics. Use with includeImpactDiagnostics after meaningful source edits.",
+          "Optional repo-relative source files to inspect for early impact diagnostics. Use with includeImpactDiagnostics after meaningful source edits. Scopes the result to those files: blocking violations are listed for entities the changed symbols link to, entities whose KB document changed, and store-level rules; the rest are counted in omittedViolations (count still includes them). The migration plan comes as migrationPlanSummary, and a result over its size budget is cut (truncated: true).",
+      },
+      includeMigrationPlan: {
+        type: "boolean",
+        description:
+          "With sourceFiles: return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary.",
       },
       staged: {
         type: "boolean",

@@ -626,3 +626,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e34336bce8f
+  - type: implements
+    from: SYM-cli-changed-kb-entity-ids
+    to: REQ-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:25.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e94b474e5cc
+  - type: covered_by
+    from: SYM-cli-changed-kb-entity-ids
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:25.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9c856f3242a

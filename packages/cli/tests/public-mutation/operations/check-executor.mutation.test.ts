@@ -497,7 +497,11 @@ describe("executeCheck", () => {
   });
 
   test("lists impact diagnostics for an empty rule set over changed files", async () => {
-    const impactResult = { sourceFiles: ["a.ts"] };
+    const impactResult = {
+      sourceFiles: ["a.ts"],
+      linkedEntities: [],
+      extractedSymbols: [],
+    };
     const calls = harness({ impact: impactResult });
     const result = await run({ sourceFiles: ["a.ts"] });
     expect(result.structuredContent.qualityDiagnostics).toStrictEqual([
@@ -735,7 +739,11 @@ describe("executeCheck", () => {
   });
 
   test("keeps impact diagnostics when the rules were chosen", async () => {
-    const impactResult = { sourceFiles: ["a.ts"] };
+    const impactResult = {
+      sourceFiles: ["a.ts"],
+      linkedEntities: [],
+      extractedSymbols: [],
+    };
     const calls = harness({
       rules: ["aggregated"],
       impact: impactResult,
@@ -764,6 +772,58 @@ describe("executeCheck", () => {
       id: "Q-advisory",
     });
     expect(calls.full).not.toHaveBeenCalled();
+  });
+
+  test("lists a scoped check's blocking findings about the change and counts the rest", async () => {
+    const impactResult = {
+      sourceFiles: ["a.ts"],
+      linkedEntities: [
+        {
+          id: "E-aggregated",
+          relationshipType: "implements",
+          sourceSymbolId: "SYM-a",
+          sourceSymbolName: "a",
+        },
+      ],
+      extractedSymbols: [],
+    };
+    const calls = harness({ rules: ALL_RULES, impact: impactResult });
+    const changed = spy(helpers, "changedKbEntityIds").mockReturnValue(
+      new Set(["E-origin"]),
+    );
+    const fit = spy(format, "fitScopedCheckToBudget");
+    const scoped = await run({ sourceFiles: ["a.ts"] });
+    expect(changed).toHaveBeenCalledWith(ROOT);
+    const structured = calls.structured.mock.calls.at(-1)[0];
+    // Linked, changed and store-level findings are listed.
+    expect(structured.violations.map((v: Loose) => v.rule)).toEqual([
+      "aggregated",
+      "source-relationship-parity",
+      "origin",
+    ]);
+    expect(structured.diagnostics).toHaveLength(3);
+    expect(structured.omittedViolations.total).toBe(10);
+    expect(structured.summarizePlan).toBe(true);
+    expect(fit).toHaveBeenCalledWith(structured);
+    // The plan still repairs every finding.
+    expect(calls.actions.mock.calls.at(-1)[0].violations).toHaveLength(13);
+    expect(scoped.content[0].text.summaryOf.omittedViolations).toEqual(
+      structured.omittedViolations,
+    );
+
+    await run({ sourceFiles: ["a.ts"], includeMigrationPlan: true });
+    expect(
+      Object.hasOwn(calls.structured.mock.calls.at(-1)[0], "summarizePlan"),
+    ).toBe(false);
+
+    fit.mockClear();
+    const unscoped = await run({});
+    const full = calls.structured.mock.calls.at(-1)[0];
+    expect(full.violations).toHaveLength(13);
+    expect(Object.hasOwn(full, "omittedViolations")).toBe(false);
+    expect(Object.hasOwn(full, "summarizePlan")).toBe(false);
+    expect(fit).not.toHaveBeenCalled();
+    expect(unscoped.structuredContent).toBe(full);
   });
 
   test("lists only impact diagnostics for explicit rules without impact", async () => {
