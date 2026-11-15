@@ -244,3 +244,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d7e750d4775
+  - type: executable_for
+    from: SYM-e2e-test-kibi-symbol-coverage-source-missing
+    to: TEST-kibi-symbol-coverage-source-missing
+    created_at: 2026-11-15T10:58:37.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75333ed27f81
