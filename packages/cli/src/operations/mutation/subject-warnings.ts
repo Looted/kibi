@@ -21,12 +21,12 @@ import { rankSubjectCandidates } from "kibi-plugin-builtin";
 import { contextProse } from "../../entity-body-context.js";
 import { resolveKbPlPath } from "../../prolog.js";
 import { escapeAtom, toPrologAtom } from "../../prolog/codec.js";
+import { readAuthoredEntity } from "../../public/operations/entity-context.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import {
   definitionQuote,
   readSubjectNeighbours,
 } from "../../public/operations/subject-domain.js";
-import { readAuthoredEntity } from "../../public/operations/entity-context.js";
 import {
   MIN_DEFINITION_WORDS,
   SUBJECT_DUPLICATE_JACCARD,
@@ -36,8 +36,8 @@ import {
   subjectHierarchyCycles,
   subjectSimilarity,
 } from "../../public/operations/subject-layer.js";
-import { listLaneMarkdownSources } from "../migration/kb-sources.js";
 import { readKbManifest } from "../../utils/kb-manifest.js";
+import { listLaneMarkdownSources } from "../migration/kb-sources.js";
 import { readSubjectVocabulary } from "../modeling/vocabulary-alignment.js";
 
 /** The schema that made subjects domain definitions (claim anchors). */
@@ -198,7 +198,7 @@ async function requirementWarnings(
           `${candidate.subjectKey}${informativeTitle(candidate.subjectKey, candidate.title) ? ` ("${candidate.title}")` : ""}`,
       );
       warnings.push(
-        `claim-subject-missing: inventory claim ${text(entry.claim_key)} of ${id} ("${text(entry.claim_text)}") is not modeled and names no subjects, so kb_check blocks it and Kibi cannot pair it with the other requirements on its subjects. Add subjects: [<subject_key>, ...] to that entry${suggestions.length > 0 ? `; existing subjects its words suggest: ${suggestions.join(", ")}` : ""}. Define a missing subject as a subject fact first.`,
+        `claim-subject-missing: ${id} is recorded; its inventory claim ${text(entry.claim_key)} ("${text(entry.claim_text)}") is not modeled and names no subjects yet, which kb_check reports until it does, and Kibi cannot pair it with the other requirements on its subjects until then. Next: add subjects: [<subject_key>, ...] to that entry${suggestions.length > 0 ? `; existing subjects its words suggest: ${suggestions.join(", ")}` : ""}. Define a missing subject as a subject fact first.`,
       );
     }
   }

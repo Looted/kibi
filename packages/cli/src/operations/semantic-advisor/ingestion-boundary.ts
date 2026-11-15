@@ -309,7 +309,7 @@ export function assertSemanticInventoryBoundary(
   if (result.errors.length > 0) {
     throw new KbRejection(
       "INCOMPLETE_PROPOSITIONS",
-      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. The contract kb_model mode analyze returns for this prose, to merge into properties and resend (a claim marked modeled needs one requires_property, requires_predicate or requires_rule link to a fact with its claim_key; otherwise keep the advisor's status): ${JSON.stringify(semanticInventoryContract(payload, receipt))}`,
+      `Proposition-complete ingestion failed: ${result.errors.join("; ")}. The contract kb_model mode analyze returns for this prose, to merge into properties and resend (a claim marked modeled needs one requires_property, requires_predicate or requires_rule link to a fact with its claim_key; otherwise keep the advisor's status). A kb_upsert can instead leave semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims out, and Kibi derives them: ${JSON.stringify(semanticInventoryContract(payload, receipt))}`,
       inventoryIssues(payload, result.errors),
     );
   }
@@ -421,7 +421,7 @@ export function stagedLogicalGroundingError(
   return groundingClaimKeyError(modeledClaimKeys, grounded);
 }
 
-async function storedClaimKey(
+export async function storedClaimKey(
   prolog: PrologPort,
   target: string,
 ): Promise<string> {

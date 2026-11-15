@@ -326,7 +326,8 @@ describe("legacy requirement statuses and uncompiled sources", () => {
       expect(queryEntity(root, "REQ-EDITOR-004").status).toBe("closed");
 
       // One written after the first compilation is new authoring: closing it
-      // would leave a current requirement without an inventory.
+      // must not leave a current requirement without an inventory. A write
+      // that sends a ledger field for other prose is refused as sent...
       const later = writeLegacyRequirement(root, "REQ-EDITOR-008", "wip", [
         `semantic_text: ${JSON.stringify(TABLE_BODY)}`,
       ]);
@@ -338,7 +339,11 @@ describe("legacy requirement statuses and uncompiled sources", () => {
         JSON.stringify({
           id: "REQ-EDITOR-008",
           type: "req",
-          properties: { title: "Editor saves drafts", status: "closed" },
+          properties: {
+            title: "Editor saves drafts",
+            status: "closed",
+            semantic_source_hash: "0".repeat(64),
+          },
         }),
       );
       expect(refusedClose.status).not.toBe(0);
@@ -346,6 +351,28 @@ describe("legacy requirement statuses and uncompiled sources", () => {
         "Proposition-complete ingestion failed: REQ-EDITOR-008 would be written as a current requirement without a complete proposition inventory",
       );
       expect(readFileSync(later, "utf8")).toBe(before);
+
+      // ...and one that sends none gets the ledger Kibi derives from the
+      // prose, so the closed file carries its inventory.
+      const derivedClose = runKibi(
+        ["upsert", "--input", "-"],
+        root,
+        JSON.stringify({
+          id: "REQ-EDITOR-008",
+          type: "req",
+          properties: { title: "Editor saves drafts", status: "closed" },
+        }),
+      );
+      expect(
+        derivedClose.status,
+        `${derivedClose.stdout}${derivedClose.stderr}`,
+      ).toBe(0);
+      expect(derivedClose.stdout).toContain('"inventoryApplied"');
+      const derived = readFileSync(later, "utf8");
+      expect(derived).toContain("\nstatus: closed\n");
+      expect(derived).toContain(
+        "semantic_inventory_version: kibi.semantic-inventory.v1",
+      );
 
       // A write that leaves the file uncompilable is refused, naming the file.
       const broken = path.join(root, ".kb/requirements/REQ-EDITOR-007.md");

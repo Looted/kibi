@@ -40685,3 +40685,41 @@ symbols:
         target: TEST-kibi-pending-receipt-committed-elsewhere
       - type: implements
         target: REQ-kibi-pending-receipt-committed-elsewhere
+  - id: SYM-test-kb-upsert-derives-proposition-ledger
+    title: Derived requirement ledger suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/requirement-semantics.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T20:20:23.554Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-derives-proposition-ledger
+  - id: SYM-cli-with-server-semantic-inventory
+    title: withServerSemanticInventory
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T20:20:37.094Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-derives-proposition-ledger
+      - type: implements
+        target: REQ-kb-upsert-derives-proposition-ledger
+  - id: SYM-cli-semantic-advisor-receipt-summary
+    title: semanticAdvisorReceiptSummary
+    status: active
+    sourceFile: packages/cli/src/operations/semantic-advisor/types.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T20:20:41.137Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-derives-proposition-ledger
+      - type: implements
+        target: REQ-kb-upsert-derives-proposition-ledger

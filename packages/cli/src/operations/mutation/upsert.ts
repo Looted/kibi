@@ -33,7 +33,11 @@ import {
   assertLogicalGroundingClaimKeys,
   assertSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
-import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
+import {
+  type SemanticAdvisorReceipt,
+  type SemanticAdvisorReceiptSummary,
+  semanticAdvisorReceiptSummary,
+} from "../semantic-advisor/types.js";
 import {
   entityContextWarnings,
   upsertDocumentBody,
@@ -57,7 +61,9 @@ import {
   validateSupersedesSourceHistory,
 } from "./relationships.js";
 import {
+  type ServerInventoryEntry,
   assertStoredRequirementBoundary,
+  withServerSemanticInventory,
   withStoredRequirementSemantics,
 } from "./requirement-semantics.js";
 import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
@@ -143,10 +149,17 @@ export function storedClaimKey(
 }
 
 /** The written result's semantic advisor receipt, omitted for a non-requirement. */
+/**
+ * A committed write reports the advisor's verdict, not its per-clause
+ * analysis: the write already passed the inventory boundary, and the full
+ * receipt is what kb_model mode analyze and kb_validate_upsert return.
+ */
 function advisorReceipt(
   receipt: SemanticAdvisorReceipt | null,
-): { semanticAdvisor: SemanticAdvisorReceipt } | Record<string, never> {
-  return receipt === null ? {} : { semanticAdvisor: receipt };
+): { semanticAdvisor: SemanticAdvisorReceiptSummary } | Record<string, never> {
+  return receipt === null
+    ? {}
+    : { semanticAdvisor: semanticAdvisorReceiptSummary(receipt) };
 }
 
 function fileHash(pathname: string): string | null {
@@ -405,6 +418,8 @@ export type UpsertValidation = Readonly<{
   /** The upsert's relationships merged with the entity's existing ones. */
   readonly relationships: readonly RelationshipInput[];
   readonly semantic: UpsertSemanticAnalysis;
+  /** The inventory contract the server filled in for a requirement sent without one. */
+  readonly inventoryApplied?: readonly ServerInventoryEntry[];
 }>;
 
 /**
@@ -516,14 +531,46 @@ export async function validateUpsertForCommit(
     undefined,
     staged,
   );
-  const semantic = analyzeUpsertSemantics({ ...input, relationships });
-  await assertStoredRequirementBoundary(
-    input,
-    relationships,
-    prolog,
-    staged,
-    lookup,
-  );
+  const boundary = async (candidate: UpsertInput) => {
+    const analysis = analyzeUpsertSemantics({ ...candidate, relationships });
+    await assertStoredRequirementBoundary(
+      candidate,
+      relationships,
+      prolog,
+      staged,
+      lookup,
+    );
+    return analysis;
+  };
+  let semantic: UpsertSemanticAnalysis;
+  let inventoryApplied: readonly ServerInventoryEntry[] | undefined;
+  try {
+    semantic = await boundary(input);
+  } catch (error) {
+    // A requirement the boundary refuses because it was sent without its
+    // inventory contract gets the one the advisor derives for its prose, and
+    // is judged again as if it had been sent: a write the boundary accepts
+    // (legacy prose kept as it was) is never filled in, and a contract sent
+    // in any part is judged exactly as sent.
+    if (
+      !(error instanceof KbRejection) ||
+      error.code !== "INCOMPLETE_PROPOSITIONS"
+    )
+      throw error;
+    const server = await withServerSemanticInventory(
+      payload,
+      input,
+      relationships,
+      prolog,
+      staged,
+      lookup,
+    );
+    if (server.applied === undefined) throw error;
+    input = server.input;
+    validated = validateUpsertInput(input, context.clock());
+    semantic = await boundary(input);
+    inventoryApplied = server.applied;
+  }
   await assertLogicalGroundingClaimKeys(
     prolog,
     { ...input, relationships },
@@ -549,6 +596,7 @@ export async function validateUpsertForCommit(
         : validateUpsertInput(decided, context.clock()),
     relationships,
     semantic,
+    ...(inventoryApplied !== undefined ? { inventoryApplied } : {}),
     ...(uncompiledSource !== null ? { uncompiledSource } : {}),
   };
 }
@@ -755,10 +803,15 @@ export async function executeUpsert(
       // upserts cannot lose updates.
       compilerLock = await acquireSymbolCompilerLock(context.workspaceRoot);
     }
-    const { validated, relationships, semantic, uncompiledSource } =
-      await validateUpsertForCommit(input, context, {
-        allowReceiptsPrune: options.allowReceiptsPrune === true,
-      });
+    const {
+      validated,
+      relationships,
+      semantic,
+      uncompiledSource,
+      inventoryApplied,
+    } = await validateUpsertForCommit(input, context, {
+      allowReceiptsPrune: options.allowReceiptsPrune === true,
+    });
     relationshipCount = validated.relationships.length;
     semanticAdvisor = semantic.receipt;
     const sourceScope = await sourceWriteScope(input, context);
@@ -1076,6 +1129,7 @@ export async function executeUpsert(
         ...coordinateWarnings,
       ],
       ...advisorReceipt(semantic.receipt),
+      ...(inventoryApplied !== undefined ? { inventoryApplied } : {}),
       ...storedClaimKey(commitEntity ?? validated.entity),
       ...(shardWarnings.length > 0
         ? {

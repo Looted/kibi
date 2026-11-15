@@ -449,6 +449,9 @@ function capabilityInput(capability: RequirementCompilerCapability): {
             title: "Omitted semantic inventory",
             status: "open",
             text_ref: "The runtime must retain every proposition.",
+            // A sent ledger field is checked as sent; without one Kibi would
+            // derive the ledger instead of refusing the write.
+            semantic_inventory_version: "kibi.semantic-inventory.v1",
           },
         },
       };

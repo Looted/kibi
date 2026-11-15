@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.48.0
+  version: 2.49.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -321,7 +321,12 @@ authored. Each one is the order the write path accepts.
    `predicates` ignores it and warns). `kb_upsert` the returned `applyPlan`
    fact first (it carries the clause's `claim_key`). Then write the
    requirement in one `kb_upsert` with the ledger (that clause `status:
-   modeled`), a sectioned `document.body`, `constrains` to the subject
+   modeled`), or leave the four scalar ledger fields out and send
+   `semantic_inventory` entries (`{claim_key, status, subjects}`) only for
+   the claims you classify: `kb_upsert` derives the rest, records a claim
+   `modeled` when a grounding link names its `claim_key` and `missing` when
+   nobody classified it, and lists each claim in `inventoryApplied`. Send
+   a sectioned `document.body`, `constrains` to the subject
    fact, `requires_predicate` to `relationshipTarget` and `specified_by` to
    its scenario: `specified_by` (req → scenario) is sent in the
    requirement's write, never in the scenario's, so create the scenario
