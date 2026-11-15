@@ -274,7 +274,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     legacy_branch_storage: {
       expectedOutcome: "complete",
-      expectedKbState: "stale",
+      // The migrated store is compiled from the current sources before
+      // the apply's own readback, so the KB ends fresh.
+      expectedKbState: "clean_fresh",
       expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
