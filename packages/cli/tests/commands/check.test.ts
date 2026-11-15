@@ -1391,6 +1391,10 @@ links:
         path.join(tmpDir, "src/list/item-card.component.ts"),
         "export class ItemCardComponent {}\n",
       );
+      writeFileSync(
+        path.join(tmpDir, "src/list/confirm-delete.component.ts"),
+        'export class ConfirmDeleteComponent {}\n// role="alertdialog"\n',
+      );
       const factDir = path.join(tmpDir, ".kb/facts");
       const reqDir = path.join(tmpDir, ".kb/requirements");
       mkdirSync(factDir, { recursive: true });
@@ -1429,6 +1433,69 @@ links:
         ]),
       );
       writeFileSync(
+        path.join(factDir, "FACT-DIALOG-MARKER.md"),
+        predicate("FACT-DIALOG-MARKER", "pattern_marker", [
+          "modal_alert_dialog",
+          "alertdialog",
+        ]),
+      );
+      // A quantified claim grounded as a rule: every confirmation dialog is
+      // a modal alert dialog. Its head grounds ui_pattern like a predicate.
+      const variable = (indent: string) =>
+        [
+          `${indent}- kind: var`,
+          `${indent}  name: V1`,
+          `${indent}  type: dialog`,
+        ].join("\n");
+      writeFileSync(
+        path.join(factDir, "FACT-DIALOG-RULE.md"),
+        yamlDoc([
+          "id: FACT-DIALOG-RULE",
+          "title: confirmation dialogs are modal alert dialogs",
+          "type: fact",
+          "status: active",
+          "fact_kind: rule",
+          `rule_hash: ${"a".repeat(64)}`,
+          "rule_schema_id: FACT-RULE-SCHEMA-LOGIC-V1",
+          "rule_name: FACT-RULE-SCHEMA-LOGIC-V1",
+          `semantic_key: SEM-${"A".repeat(24)}`,
+          "rule_ir:",
+          "  version: kibi.logic.v1",
+          "  kind: rule",
+          "  modality: assert",
+          "  head:",
+          "    kind: atom",
+          "    name: ui_pattern",
+          "    args:",
+          variable("      "),
+          "      - kind: const",
+          "        value: modal_alert_dialog",
+          "        type: pattern",
+          "  body:",
+          "    kind: atom",
+          "    name: confirmation_dialog",
+          "    args:",
+          variable("      "),
+          "  variables:",
+          "    - name: V1",
+          "      type: dialog",
+          "      quantifier: forall",
+        ]),
+      );
+      writeFileSync(
+        path.join(reqDir, "REQ-DIALOG-PATTERN.md"),
+        yamlDoc([
+          "id: REQ-DIALOG-PATTERN",
+          "title: Every confirmation dialog is a modal alert dialog",
+          "type: req",
+          "status: open",
+          "priority: should",
+          "links:",
+          "  - type: requires_rule",
+          "    target: FACT-DIALOG-RULE",
+        ]),
+      );
+      writeFileSync(
         path.join(reqDir, "REQ-LIST-PATTERN.md"),
         yamlDoc([
           "id: REQ-LIST-PATTERN",
@@ -1455,6 +1522,16 @@ links:
     title: ItemCardComponent
     status: active
     sourceFile: src/list/item-card.component.ts
+    links:
+      - type: implements
+        target: REQ-DIALOG-PATTERN
+  - id: SYM-CONFIRM-DELETE
+    title: ConfirmDeleteComponent
+    status: active
+    sourceFile: src/list/confirm-delete.component.ts
+    links:
+      - type: implements
+        target: REQ-DIALOG-PATTERN
 `,
       );
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
@@ -1490,7 +1567,7 @@ links:
           violation.evidence?.marker,
         ]),
       ).toEqual([
-        ["policy-ownership", "SYM-ITEM-CARD", undefined],
+        ["policy-markers", "SYM-ITEM-CARD", "alertdialog"],
         ["policy-markers", "SYM-ITEM-LIST", "timeline-connector"],
       ]);
     },

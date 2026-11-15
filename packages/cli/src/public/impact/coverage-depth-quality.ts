@@ -376,16 +376,29 @@ function byEntityId(left: QualityDiagnostic, right: QualityDiagnostic): number {
 const COARSE_REASONS: ReadonlySet<string> = new Set(COARSE_GRANULARITY_REASONS);
 
 /**
+ * Answers whether a source file declares at least one behavioral symbol
+ * (function, method, accessor, behavioral property) that a coarse anchor
+ * could move to.
+ */
+export type BehavioralUnitProbe = (sourceFile: string) => boolean;
+
+/**
  * A whole-file anchor on a file no source extractor covers (JSON, YAML,
  * workflows, extensionless scripts) has no smaller unit to link, so it is as
- * precise as it can be and the review leaves it out.
+ * precise as it can be and the review leaves it out. The same holds for a
+ * file an extractor reads but that declares nothing behavioral, such as a
+ * flat `eslint.config.js` that only exports a config array.
  */
-function hasNarrowerUnit(symbol: ExtractedEntity, sourceFile: string): boolean {
+function hasNarrowerUnit(
+  symbol: ExtractedEntity,
+  sourceFile: string,
+  hasBehavioralUnit: BehavioralUnitProbe,
+): boolean {
   return (
     // has(undefined) is false: a symbol without a reason is not coarse.
     !COARSE_REASONS.has(symbol.granularity_reason as string) ||
     sourceFile === "" ||
-    hasDeclarationExtractor(sourceFile)
+    (hasDeclarationExtractor(sourceFile) && hasBehavioralUnit(sourceFile))
   );
 }
 
@@ -397,6 +410,8 @@ function hasNarrowerUnit(symbol: ExtractedEntity, sourceFile: string): boolean {
  */
 export function createCoarseAnchorQualityDiagnostics(
   manifestResults: readonly ExtractionResult[],
+  // Without a probe every file an extractor reads counts as having one.
+  hasBehavioralUnit: BehavioralUnitProbe = () => true,
 ): readonly QualityDiagnostic[] {
   const superseded = supersededRequirementIds(manifestResults);
   const anchorsByRequirement = new Map<string, ExtractedEntity[]>();
@@ -425,7 +440,11 @@ export function createCoarseAnchorQualityDiagnostics(
       if (anchors === undefined) return [];
       // Every anchor was read from a symbol whose source file was recorded.
       const symbols = uniqueEntities(anchors).filter((symbol) =>
-        hasNarrowerUnit(symbol, sourceFiles.get(symbol.id) as string),
+        hasNarrowerUnit(
+          symbol,
+          sourceFiles.get(symbol.id) as string,
+          hasBehavioralUnit,
+        ),
       );
       if (
         symbols.length === 0 ||

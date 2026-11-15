@@ -1461,18 +1461,18 @@ test(property_assumption_statuses, Statuses == [governed, governed, outside_vali
 test(scoped_assumption_statuses, Statuses == ['F-EU'-governed]) :-
     A = m(assumption, 'F-EU', 'F-EU', s-p, eu, int, '', eq, 1, t),
     R = m(requirement, r, f, s-p, eu, int, '', eq, 1, t),
-    chk_kb(checks:assumption_statuses(['F-EU'], [A], [rc(R, applies, false)], [], [], Statuses)).
+    chk_kb(checks:assumption_statuses(['F-EU'], [A], [rc(R, applies, false)], [], [], [], Statuses)).
 
-test(assumption_statuses, Statuses == ['F-PROP'-governed, 'F-ACT'-action, 'F-OTHER'-unmatched, 'F-NONE'-unmatched]) :-
+test(assumption_statuses, Statuses == ['F-PROP'-governed, 'F-ACT'-action, 'F-OTHER'-unmatched, 'F-NONE'-unmatched, 'F-GROUND'-grounding]) :-
     chk_kb((
         chk_ent(fact, 'F-ACT', [fact_kind=predicate, predicate_name="pay", predicate_args=["cart"], canonical_key="pay(cart)"]),
         chk_ent(fact, 'F-OTHER', [fact_kind=predicate, predicate_name="ship", predicate_args=["cart"], canonical_key="ship(cart)"]),
         A = m(assumption, 'F-PROP', 'F-PROP', s-p, '', int, '', eq, 1, t),
         R = m(requirement, r, f, s-q, '', int, '', eq, 1, t),
-        checks:assumption_statuses(['F-PROP', 'F-ACT', 'F-OTHER', 'F-NONE'], [A],
+        checks:assumption_statuses(['F-PROP', 'F-ACT', 'F-OTHER', 'F-NONE', 'F-GROUND'], [A],
             [rc(R, applies, false)],
             [gr(r, g, forbids, '', applies, false, [s-p], untranslatable)],
-            [default-pay], Statuses)
+            [default-pay], ['F-GROUND'], Statuses)
     )).
 
 :- end_tests(checks_feasibility_rules).
@@ -1948,6 +1948,44 @@ test(rules_that_do_not_restrict_the_scenario, Analyses == [U, U, U, D, U]) :-
             ))
         ),
         Analyses).
+
+% A success scenario that assumes the fact grounding the requirement it
+% specifies (what must-positive-scenario asks for) is matched, not unmatched;
+% the grounding fact is neither a witness nor a reason it is not applicable.
+test(assumed_grounding_fact_is_matched, Results == [
+        rule-success-specified-analysis([], [], false, [])-feasible,
+        rule-success-none-analysis([], [unmatched_assumption(['FACT-RULE'])], false, [])-unknown,
+        rule-success-superseded-analysis([], [unmatched_assumption(['FACT-RULE'])], false, [])-unknown,
+        rule-rejection-specified-analysis([], [unmatched_assumption(['FACT-RULE'])], false, [])-none,
+        predicate-success-specified-analysis([], [], false, [])-feasible
+    ]) :-
+    findall(Lane-Expects-Link-A-Outcome,
+        (   member(Lane-Expects-Link,
+                   [ rule-success-specified,
+                     rule-success-none,
+                     rule-success-superseded,
+                     rule-rejection-specified,
+                     predicate-success-specified
+                   ]),
+            chk_kb((
+                chk_grounded_req(Lane, Fact),
+                chk_scenario('SCEN-R', Expects, [Fact]),
+                chk_rule_link(Link),
+                chk_analysis('SCEN-R', A),
+                (   checks:scenario_feasibility_outcome('SCEN-R', O)
+                ->  functor(O, Outcome, _)
+                ;   Outcome = none
+                )
+            ))
+        ),
+        Results).
+
+chk_grounded_req(rule, 'FACT-RULE') :-
+    chk_rule_req(rule, assert, checkout, [total-gt-0], []).
+chk_grounded_req(predicate, 'FACT-PAY') :-
+    chk_req('REQ-RULE'),
+    chk_ent(fact, 'FACT-PAY', [fact_kind=predicate, predicate_name="pay", predicate_args=["cart"], canonical_key="pay(cart)"]),
+    chk_rel(requires_predicate, 'REQ-RULE', 'FACT-PAY').
 
 chk_rule_link(none).
 chk_rule_link(specified) :- chk_rel(specified_by, 'REQ-RULE', 'SCEN-R').

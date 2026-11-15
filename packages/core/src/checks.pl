@@ -1477,7 +1477,8 @@ compute_scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, Unknowns, 
         findall(Context, scenario_context(Assumptions, Constraints, Context), Contexts),
         foldl(context_results, Contexts, [], ContextResults),
         foldl(general_rule_results(Assumptions), GeneralRules, ContextResults, Results),
-        assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, Statuses),
+        scenario_grounding_facts(ScenarioId, Grounding),
+        assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, Grounding, Statuses),
         findall(Witness, member(witness(Witness), Results), Witnesses0),
         sort(Witnesses0, Witnesses),
         status_ids(unmatched, Statuses, Unmatched),
@@ -2076,7 +2077,26 @@ general_rule_reason(FactId, Core, Reason) :-
         'Assumed ~w satisfy every condition of rule ~w (~w), which forbids the scenario''s action',
         [AssumedText, FactId, RuleText]).
 
-%% assumption_statuses(+Assumed, +Assumptions, +Constraints, +GeneralRules, +Actions, -Statuses)
+%% scenario_grounding_facts(+ScenarioId, -FactIds)
+% The facts that ground (requires_rule, requires_predicate, requires_property)
+% the current requirements a success scenario specifies.  Assuming one of them
+% states the situation the requirement promises; must-positive-scenario asks a
+% success scenario for exactly that.  A scenario that expects rejection or
+% error gets none, so its assumptions are judged as before.
+scenario_grounding_facts(ScenarioId, FactIds) :-
+    (   success_scenario(ScenarioId)
+    ->  findall(FactId,
+            (   kb_relationship(specified_by, ReqId, ScenarioId),
+                kb:current_req(ReqId),
+                member(Relationship, [requires_rule, requires_predicate, requires_property]),
+                kb_relationship(Relationship, ReqId, FactId)
+            ),
+            FactIds0),
+        sort(FactIds0, FactIds)
+    ;   FactIds = []
+    ).
+
+%% assumption_statuses(+Assumed, +Assumptions, +Constraints, +GeneralRules, +Actions, +Grounding, -Statuses)
 % FactId-Status for every assumed fact:
 %   governed          a constraint that is not outside its validity window
 %                     constrains the assumed property in an intersecting scope
@@ -2085,8 +2105,13 @@ general_rule_reason(FactId, Core, Reason) :-
 %                     elsewhere
 %   action            a predicate fact naming the action a governing rule
 %                     restricts
+%   grounding         a rule or predicate fact that grounds a current
+%                     requirement the success scenario specifies
+%                     (scenario_grounding_facts/2)
 %   unmatched         anything else
-assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, Statuses) :-
+% Like action, grounding is matched: it is neither a witness nor a reason the
+% scenario is not applicable.
+assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, Grounding, Statuses) :-
     findall(cover(Key, Scope, Applicability),
         (   member(rc(Member, Applicability, _), Constraints),
             member_key(Key, Member),
@@ -2095,15 +2120,17 @@ assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, St
             member(Key, ReadKeys)
         ),
         Covers),
-    maplist(assumption_status(Assumptions, Covers, Actions), Assumed, Statuses).
+    maplist(assumption_status(Assumptions, Covers, Actions, Grounding), Assumed, Statuses).
 
-assumption_status(Assumptions, Covers, Actions, FactId, FactId-Status) :-
+assumption_status(Assumptions, Covers, Actions, Grounding, FactId, FactId-Status) :-
     (   member(Assumption, Assumptions),
         member_fact(Assumption, FactId)
     ->  property_assumption_status(Assumption, Covers, Status)
     ;   kb:predicate_fact(FactId, Namespace, Name, _, assert),
         memberchk(Namespace-Name, Actions)
     ->  Status = action
+    ;   memberchk(FactId, Grounding)
+    ->  Status = grounding
     ;   Status = unmatched
     ).
 
