@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f02217764482
+  - type: assumes
+    from: SCEN-kibi-cli-legacy-apply-safe
+    to: FACT-kibi-cli-legacy-apply-safe-migrates-previewed-store
+    created_at: 2026-11-15T17:19:05.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3111eb2bfb81

@@ -38,6 +38,48 @@ import {
   resolveOperationAttachment,
 } from "./detached-snapshot.js";
 
+/**
+ * The operation that can migrate a legacy branch store. Its CLI runtime
+ * defers the engine until the migration has run.
+ */
+const LEGACY_MIGRATING_OPERATION = "kb_apply_plan";
+
+/**
+ * A plan apply's context on a legacy branch store. The engine serves only
+ * the hashed store, so it starts once the plan's legacy action has moved the
+ * store there; until then the plan is checked against the legacy store it
+ * was previewed on, and no empty hashed store is created beside it. An
+ * engine asked for while the store is still legacy is refused.
+ */
+export function legacyMigratingContext(
+  base: Omit<OperationContext, "prolog">,
+  resolveCurrent: () => Promise<BranchAttachment>,
+  createEngine: (
+    context: OperationContext,
+    branch: string,
+  ) => ManagedPrologPort & { readonly start: () => Promise<void> },
+  signal: AbortSignal,
+): OperationContext {
+  let lazyProlog: ManagedPrologPort | undefined;
+  const context: OperationContext = {
+    ...base,
+    ensureProlog: async () => {
+      if (lazyProlog !== undefined) return bindSignal(lazyProlog, signal);
+      const current = await resolveCurrent();
+      if (current.migrationRequired) {
+        throw new Error(
+          `Legacy branch store for '${current.gitBranch}' is not migrated yet; approve its legacy_branch_storage action so it runs first.`,
+        );
+      }
+      const engine = createEngine(context, current.kbBranch);
+      await engine.start();
+      lazyProlog = engine;
+      return bindSignal(engine, signal);
+    },
+  };
+  return context;
+}
+
 export function attachmentFailureMessage(
   attachment: BranchResolutionError,
 ): string {
@@ -255,6 +297,28 @@ export function createCliRuntime(
         );
       }
       const usesEngine = merged.prolog === undefined;
+      if (
+        usesEngine &&
+        attachment.migrationRequired &&
+        spec.name === LEGACY_MIGRATING_OPERATION
+      ) {
+        return legacyMigratingContext(
+          { ...contextBase, branchAttachment: attachment },
+          async () => {
+            const current = await resolveOperationAttachment(root, spec);
+            if ("error" in current) {
+              throw new Error(attachmentFailureMessage(current));
+            }
+            return current;
+          },
+          (context, branch) => {
+            const engine = createDefaultProlog(root, branch);
+            ownedPrologs.set(context, engine);
+            return engine;
+          },
+          signal,
+        );
+      }
       // An injected Prolog port (tests, hosts) owns its own store.
       if (usesEngine) {
         await ensureBranchStoreCompiled(root, attachment, spec);

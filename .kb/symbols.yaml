@@ -40559,6 +40559,31 @@ symbols:
         target: TEST-kibi-legacy-attachment-apply-migration
       - type: implements
         target: REQ-kibi-legacy-attachment-apply-migration
+  - id: SYM-e2e-test-kibi-cli-legacy-apply-safe
+    title: legacy-attachment-cli-apply.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T17:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-cli-legacy-apply-safe
+  - id: SYM-kibi-cli-legacy-migrating-context
+    title: legacyMigratingContext
+    status: active
+    sourceFile: packages/cli/src/runtime/cli-runtime.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-cli-legacy-apply-safe
   - id: SYM-e2e-test-kibi-pending-receipt-branch-scope
     title: pending-receipt-branch-scope.test
     status: active
