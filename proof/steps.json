@@ -7737,5 +7737,15 @@
         "documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-symbol-coverage-source-missing",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/symbol-coverage-missing-source.test.ts"
+      ]
+    ]
   }
 ]
