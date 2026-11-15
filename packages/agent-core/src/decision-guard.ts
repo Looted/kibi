@@ -346,17 +346,53 @@ export function firmEditContext(ids: readonly string[]): string {
 }
 
 /**
- * Phrases that make a request read as a rule or decision. Matching is
- * deliberately loose: the note it triggers only asks whether there is
- * something to record.
+ * Phrases that make a sentence read as a rule or decision wherever they
+ * stand: a deontic modal ("must", "is not allowed", "has to") or a marker
+ * that the request sets a rule ("from now on", "only admins").
  */
 const RULE_PHRASES =
-  /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+  /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
 
-/** The phrase that makes `prompt` read as a rule, or undefined. */
+/**
+ * "never" and "always" set a rule only as an instruction: at the start of a
+ * clause ("Never log keys", "and always require 2FA"), or after a phrase that
+ * asks for the behavior ("make sure we never", "ensure keys always"). In a
+ * description of how the code behaves today ("keys currently never expire")
+ * they state a fact, not a rule.
+ */
+const IMPERATIVE_ADVERB =
+  /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please)\s+|\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+)(never|always)\b/i;
+
+/** A question that asks for a change ("Can you make sure ...?") is a request. */
+const REQUEST_QUESTION =
+  /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i;
+
+/** Fenced and inline code, whose words are not the person's phrasing. */
+const CODE_SPANS = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
+
+/** The request's sentences, with code removed; a question keeps its `?`. */
+function requestSentences(prompt: string): string[] {
+  return prompt
+    .replace(CODE_SPANS, " ")
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.length > 0);
+}
+
+/**
+ * The phrase that makes `prompt` read as a rule, or undefined. A sentence
+ * that asks a question (other than a request such as "Can you make sure
+ * ...?") states no rule.
+ */
 export function statedRule(prompt: string): string | undefined {
-  const match = RULE_PHRASES.exec(prompt);
-  return match ? match[0].toLowerCase() : undefined;
+  for (const sentence of requestSentences(prompt)) {
+    if (sentence.endsWith("?") && !REQUEST_QUESTION.test(sentence)) continue;
+    const match = RULE_PHRASES.exec(sentence);
+    if (match) return match[0].toLowerCase();
+    const adverb = IMPERATIVE_ADVERB.exec(sentence);
+    if (adverb) return (adverb[1] as string).toLowerCase();
+  }
+  return undefined;
 }
 
 /** Prompt-time note for a request that reads as a rule or decision. */

@@ -2,7 +2,7 @@
 id: kibi-decisions
 name: kibi-decisions
 description: "Use when the person states a rule or decision (must, never, always, from now on, we decided), when a Kibi hook asks to confirm or warns about an edit to code that implements a firm requirement, when the Stop hook says source files changed but nothing was recorded, when kb_check quotes requirement_statement_unverified, or when a request conflicts with a recorded requirement or ADR. Covers reading firmness and origin, recording a person's rule as firm with origin.ref, superseding with a Why this changed section, the kb_compile_intent unresolved/reviewCandidates/conflictReviews loop, asking before overriding a firm rule, putting decisions to the person as one numbered kibi signoff --questions view, and getting a batch of statement changes, splits, reasons or retirements approved during a knowledge base cleanup."
-version: 1.10.0
+version: 1.11.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -74,8 +74,10 @@ name the missing capability. Never read or edit `.kb/` files directly.
 
 ## Decide
 
-- **Request conflicts with a recorded rule (any firmness):** name the rule (id
-  and what it requires) and ask whether to change it. Do not implement the
+- **Request conflicts with a recorded rule (any firmness):** the request would
+  make the rule's statement false, including narrowing it or adding an
+  exception (touching the same code is not a conflict; when you cannot tell,
+  ask). Name the rule (id and what it requires) and ask whether to change it. Do not implement the
   request and do not supersede the rule until the person says to change that
   rule.
 - **Edit confirmation declined, or nobody could answer:** the requirement

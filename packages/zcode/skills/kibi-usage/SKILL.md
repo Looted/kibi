@@ -4,7 +4,7 @@ description: "Use Kibi's source-first, exact-Git, migration-aware, proof-aware o
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.48.0
+  version: 2.49.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -459,8 +459,10 @@ Search answers, `kb_query` rows and hook snippets show it (snippets label only
 - `exploratory`: a flagged guess; revisit it when you touch the area.
 
 **A request that conflicts with a recorded rule is a question, whatever the
-rule's firmness.** The request is not evidence against the rule: it is the
-conflict a person has to decide. Name the rule (id and what it requires) and
+rule's firmness.** A conflict means the request would make the rule's
+statement false, including narrowing it or adding an exception; touching the
+same code is not a conflict, and when you cannot tell, ask. The request is not
+evidence against the rule: it is the conflict a person has to decide. Name the rule (id and what it requires) and
 ask whether to change it; do not implement the request and do not supersede
 the rule. Go ahead only when the person has said to change that rule, in this
 task or in reply: then supersede it with `firmness: firm` and `origin.ref` to
