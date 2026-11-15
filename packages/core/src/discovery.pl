@@ -36,7 +36,7 @@
 :- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4, requirement_review_row/4, test_receipt_evidence/4]).
 :- use_module('checks.pl', [scenario_feasibility_outcome/2, infeasible_scenario/5]).
 :- use_module('logic_ir.pl', [logic_rule_conflict/4]).
-:- use_module('status.pl', [status_meta_dict/1, status_scope_dict/1]).
+:- use_module('status.pl', [status_meta_dict/1, status_scope_dict/1, entity_source_file_missing/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 
 find_gaps_json(TypeFilter, MissingRelationships, PresentRelationships, Tags, SourceFilter, Limit, Offset, JsonString) :-
@@ -568,8 +568,10 @@ binding_coverage_rows(By, Tags, IncludePassing, _BindingMode, _TestBindings, Inc
 % Large coverage reports are fetched in bounded pages so no single answer
 % approaches the engine's output cap. Every page would otherwise recompute
 % the whole report; keep the most recent sorted result for the exact
-% arguments, graph, and RDF generation. Coverage reads only the store and its
-% arguments, so the memo is invalidated by any store change. The status meta
+% arguments, graph, and RDF generation. Coverage reads the store, its
+% arguments and whether symbol source files exist; every caller passes its
+% own check time, so a new report re-reads the workspace and the memo is
+% invalidated by any store change. The status meta
 % is kept with it: its freshness check stats every indexed source, which cost
 % more than the page itself, and the pages of one report share its arguments
 % (including the check time), so they describe the same snapshot.
@@ -1219,11 +1221,10 @@ symbol_coverage_row(Tags, Row) :-
         Gaps = [],
         CoverageStatus = not_applicable
     ;   TraceabilityRole = production,
-        (   symbol_no_req_coverage(Id, _)
-        ->  Gaps = [missing_requirement],
-            CoverageStatus = uncovered
-        ;   Gaps = [],
-            CoverageStatus = fully_covered
+        production_symbol_gaps(Id, Props, Gaps),
+        (   Gaps == []
+        ->  CoverageStatus = fully_covered
+        ;   CoverageStatus = uncovered
         )
     ),
     Row = _{
@@ -1238,6 +1239,19 @@ symbol_coverage_row(Tags, Row) :-
         gaps: Gaps,
         coverageStatus: CoverageStatus
     }.
+
+% A production symbol whose source file is gone is not covered: its links
+% describe code the workspace no longer has (source_missing), so it is
+% reported until the symbol is repaired, moved or retired.
+production_symbol_gaps(Id, Props, Gaps) :-
+    (   symbol_no_req_coverage(Id, _)
+    ->  RequirementGaps = [missing_requirement]
+    ;   RequirementGaps = []
+    ),
+    (   entity_source_file_missing(Props, _)
+    ->  append(RequirementGaps, [source_missing], Gaps)
+    ;   Gaps = RequirementGaps
+    ).
 
 % Link coverage (evaluated, fullyCovered, uncovered, notApplicable and the
 % missing* counts) judges only priority: must requirements; linkCoverageScope
