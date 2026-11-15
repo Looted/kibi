@@ -28,7 +28,10 @@ import {
   CANONICAL_ENTITY_PATHS,
   isSymbolsManifestPath,
 } from "../../utils/kb-paths.js";
-import { pendingReceiptScope } from "../../utils/pending-source-branch.js";
+import {
+  committedOnLocalBranch,
+  pendingReceiptScope,
+} from "../../utils/pending-source-branch.js";
 import {
   SyncError,
   pendingSourceHashDriftError,
@@ -122,12 +125,16 @@ function pendingSourcePaths(
 ): {
   paths: Map<string, string>;
   recoveredReceipts: PendingSourceReceiptSnapshot[];
+  committedElsewhere: Set<string>;
 } {
   const root = path.join(cwd, ".kb", "recovery", "pending-sources");
   const paths = new Map<string, string>();
   const recoveredReceipts: PendingSourceReceiptSnapshot[] = [];
-  if (!existsSync(root)) return { paths, recoveredReceipts };
+  const committedElsewhere = new Set<string>();
+  if (!existsSync(root))
+    return { paths, recoveredReceipts, committedElsewhere };
   const inScope = pendingReceiptScope(cwd);
+  const committedOnBranch = committedOnLocalBranch(cwd);
   for (const name of readdirSync(root)) {
     if (!name.endsWith(".json")) continue;
     const receiptPath = path.join(root, name);
@@ -150,6 +157,13 @@ function pendingSourcePaths(
       // A file committed on the branch that wrote the receipt is absent
       // here; that branch keeps the receipt.
       if (!inScope(receipt.receipt)) continue;
+      // A file committed on another local branch (one made after the
+      // receipt, say) was not lost: that branch's Git owns it, and the
+      // receipt is retired below.
+      if (committedOnBranch(relative)) {
+        committedElsewhere.add(relative);
+        continue;
+      }
       if (recoverMissing) {
         recoveredReceipts.push({
           receiptPath,
@@ -175,7 +189,7 @@ function pendingSourcePaths(
     }
     paths.set(relative, receipt.afterHash);
   }
-  return { paths, recoveredReceipts };
+  return { paths, recoveredReceipts, committedElsewhere };
 }
 
 export function isFsEnoent(error: unknown): boolean {
@@ -351,12 +365,14 @@ export async function discoverSourceFiles(
         const file = readReceiptFile(receiptPath);
         // Leave malformed receipts for explicit recovery diagnostics. A
         // receipt whose file Git tracks on this branch is retired whichever
-        // branch wrote it: Git owns those bytes here.
+        // branch wrote it: Git owns those bytes here. So is one whose missing
+        // file another local branch has committed.
         if (file === null) continue;
         const recorded = file.receipt?.path;
         if (
           typeof recorded === "string" &&
-          tracked.has(recorded.replaceAll("\\", "/"))
+          (tracked.has(recorded.replaceAll("\\", "/")) ||
+            pending.committedElsewhere.has(recorded.replaceAll("\\", "/")))
         ) {
           try {
             unlinkSync(receiptPath);

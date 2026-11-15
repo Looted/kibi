@@ -40597,3 +40597,28 @@ symbols:
         target: TEST-kibi-pending-receipt-branch-scope
       - type: implements
         target: REQ-kibi-pending-receipt-branch-scope
+  - id: SYM-e2e-test-kibi-pending-receipt-committed-elsewhere
+    title: pending-receipt-committed-elsewhere.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/pending-receipt-committed-elsewhere.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T17:30:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-pending-receipt-committed-elsewhere
+  - id: SYM-kibi-committed-on-local-branch
+    title: committedOnLocalBranch
+    status: active
+    sourceFile: packages/cli/src/utils/pending-source-branch.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-committed-elsewhere
+      - type: implements
+        target: REQ-kibi-pending-receipt-committed-elsewhere

@@ -311,3 +311,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a17b8a287a1
+  - type: requires_property
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: FACT-kibi-pending-receipt-committed-elsewhere-retired
+    created_at: 2026-11-15T17:27:30.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-faec198c9c07
+  - type: requires_property
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: FACT-kibi-pending-receipt-uncommitted-missing-fails
+    created_at: 2026-11-15T17:27:30.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d516c6026a7
+  - type: constrains
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-15T17:27:30.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76bc7f70fd7f
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-kibi-pending-receipt-committed-elsewhere
+    created_at: 2026-11-15T17:27:30.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a3af90e66f6
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-NEG-kibi-pending-receipt-COMMITTED-ELSEWHERE-FAILS
+    created_at: 2026-11-15T17:27:30.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be6bb3218c22
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
+    created_at: 2026-11-15T17:27:30.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab5ace118f81
+  - type: verified_by
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: TEST-kibi-pending-receipt-committed-elsewhere
+    created_at: 2026-11-15T17:27:30.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41bb251afcc4
+  - type: relates_to
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: REQ-kibi-pending-receipt-branch-scope
+    created_at: 2026-11-15T17:27:30.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dfcdf2cb2dd

@@ -79,7 +79,10 @@ import {
   ensureBranchStoreManifest,
   expectedBranchStoreManifest,
 } from "../utils/branch-store-locator.js";
-import { pendingReceiptScope } from "../utils/pending-source-branch.js";
+import {
+  committedOnLocalBranch,
+  pendingReceiptScope,
+} from "../utils/pending-source-branch.js";
 import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
@@ -273,6 +276,7 @@ export function trackedRelationshipFiles(
   );
   if (existsSync(pendingRoot)) {
     const inScope = pendingReceiptScope(workspaceRoot);
+    const committedOnBranch = committedOnLocalBranch(workspaceRoot);
     for (const receiptName of readdirSync(pendingRoot)) {
       if (!receiptName.endsWith(".json")) continue;
       let receipt: { path?: unknown; afterHash?: unknown };
@@ -304,6 +308,8 @@ export function trackedRelationshipFiles(
         // A shard committed on the branch that wrote the receipt is absent
         // here; that branch keeps the receipt.
         if (!inScope(receipt)) continue;
+        // Committed on another local branch: discovery retires the receipt.
+        if (committedOnBranch(relative)) continue;
         if (recoverMissingPendingSources) {
           const receiptPath = path.join(pendingRoot, receiptName);
           if (

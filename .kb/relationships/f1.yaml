@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4fa73f096d47
+  - type: assumes
+    from: SCEN-NEG-kibi-pending-receipt-COMMITTED-ELSEWHERE-FAILS
+    to: FACT-NEG-kibi-pending-receipt-COMMITTED-ELSEWHERE-FAILS
+    created_at: 2026-11-15T17:27:23.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0323655b5d1c
