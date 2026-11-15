@@ -183,6 +183,13 @@
           "whatIf": {
             "type": "object",
             "additionalProperties": true
+          },
+          "inventoryApplied": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
           }
         }
       },
