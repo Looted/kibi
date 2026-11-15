@@ -533,8 +533,11 @@ describe("migration action execution", () => {
         actionResults: [{ actionId: "m1", outcome: "failed" }],
       });
       expect(
-        (result.structuredContent as { actionResults: { detail: string }[] })
-          .actionResults[0]?.detail,
+        (
+          result.structuredContent as {
+            actionResults: readonly { detail: string }[];
+          }
+        ).actionResults[0]?.detail,
       ).toMatch(detail);
     }
     hash.mockReturnValue(undefined);
