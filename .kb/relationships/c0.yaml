@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-50c0c4d6012e
+  - type: assumes
+    from: SCEN-NEG-kibi-symbol-coverage-VANISHED-SOURCE-COVERED
+    to: FACT-NEG-kibi-symbol-coverage-VANISHED-SOURCE-COVERED
+    created_at: 2026-11-15T10:58:35.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f97ef8f598b3
