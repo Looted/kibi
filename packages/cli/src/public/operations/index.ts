@@ -1,3 +1,4 @@
+export * from "./advertised-schema.js";
 export * from "./catalog.js";
 export * from "./check-executor.js";
 export * from "./impact-review-preparation.js";

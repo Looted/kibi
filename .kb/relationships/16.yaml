@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0bea821de48e
+  - type: implements
+    from: SYM-cli-advertised-input-schema
+    to: REQ-mcp-upsert-proof-fields-advertised-as-stubs
+    created_at: 2026-11-15T18:31:06.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6778a5853a2a
+  - type: covered_by
+    from: SYM-cli-advertised-input-schema
+    to: TEST-mcp-upsert-proof-field-stubs
+    created_at: 2026-11-15T18:31:06.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58a1b5ec3ee8
