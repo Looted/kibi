@@ -75,21 +75,15 @@ describe("MCP upsert semantic advisor", () => {
       | undefined;
 
     expect(structured).toMatchObject({ created: 1, updated: 0 });
+    // A committed write reports the advisor's verdict; the per-clause
+    // suggestions are what kb_validate_upsert and kb_model analyze return.
     expect(structured?.semanticAdvisor).toMatchObject({
       logic_readiness: "needs_modeling",
       candidate_lane: "strict_property",
-      suggestions: [
-        expect.objectContaining({
-          kind: "strict_property",
-          claim: expect.objectContaining({
-            subject_key: "user.session",
-            property_key: "active_count",
-            operator: "lte",
-            value_int: 2,
-          }),
-        }),
-      ],
+      suggested_next_tools: expect.arrayContaining(["kb_model_requirement"]),
     });
+    expect(structured?.semanticAdvisor).not.toHaveProperty("suggestions");
+    expect(structured?.semanticAdvisor).not.toHaveProperty("propositions");
     expect(structured?.warnings).toEqual(
       expect.arrayContaining([
         expect.stringContaining("kb_model (mode requirement)"),

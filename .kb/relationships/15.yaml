@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-294631764610
+  - type: implements
+    from: SYM-kibi-pending-receipt-branch
+    to: REQ-kibi-pending-receipt-branch-scope
+    created_at: 2026-11-15T11:03:03.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d231903f6cb0
+  - type: covered_by
+    from: SYM-kibi-pending-receipt-branch
+    to: TEST-kibi-pending-receipt-branch-scope
+    created_at: 2026-11-15T11:03:03.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef63ac171af5

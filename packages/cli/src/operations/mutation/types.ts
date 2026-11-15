@@ -1,4 +1,7 @@
-import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
+import type {
+  SemanticAdvisorReceipt,
+  SemanticAdvisorReceiptSummary,
+} from "../semantic-advisor/types.js";
 import type { SagaRollbackFailure } from "./saga.js";
 
 export type RelationshipInput = Readonly<Record<string, unknown>>;
@@ -58,14 +61,29 @@ export type UpsertPayload = {
   readonly updated: number;
   readonly relationships_created: number;
   readonly warnings: readonly string[];
-  /** The requirement semantic advisor receipt; absent for other entity types. */
-  readonly semanticAdvisor?: SemanticAdvisorReceipt;
+  /**
+   * The requirement semantic advisor's verdict (readiness, lane, coverage,
+   * next tools); absent for other entity types.
+   */
+  readonly semanticAdvisor?: SemanticAdvisorReceiptSummary;
   /**
    * For a fact that carries claim_text: the stored claim_key, derived from
    * claim_text when the payload did not supply it, so the writer learns the
    * grounding key without a kb_query.
    */
   readonly claimKey?: string;
+  /**
+   * For a requirement sent without its inventory contract: the claims the
+   * server recorded, each with its role and status, so the writer sees what
+   * was filled in for it.
+   */
+  readonly inventoryApplied?: readonly {
+    readonly claim_key: string;
+    readonly role: string;
+    readonly status: string;
+    readonly claim_text: string;
+    readonly advisor_status?: string;
+  }[];
   readonly status?: "committed_with_repairs";
   readonly effectFailures?: readonly {
     readonly kind: string;
@@ -113,6 +131,18 @@ export type ValidateUpsertPayload = {
   readonly warnings: readonly string[];
   readonly semanticAdvisor: SemanticAdvisorReceipt | null;
   readonly normalizedPreview: Readonly<Record<string, unknown>> | null;
+  /**
+   * For a requirement sent without its inventory contract: the claims the
+   * server recorded, each with its role and status, so the writer sees what
+   * was filled in for it.
+   */
+  readonly inventoryApplied?: readonly {
+    readonly claim_key: string;
+    readonly role: string;
+    readonly status: string;
+    readonly claim_text: string;
+    readonly advisor_status?: string;
+  }[];
   /**
    * When the payload is invalid and the write would refuse it with a coded
    * error (for example DOCUMENT_PATH_REQUIRED): that code.

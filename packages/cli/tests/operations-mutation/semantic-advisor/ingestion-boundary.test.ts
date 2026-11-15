@@ -528,7 +528,7 @@ describe("assertSemanticInventoryBoundary", () => {
     const rejection = error as KbRejection;
     expect(rejection.code).toBe("INCOMPLETE_PROPOSITIONS");
     expect(rejection.message).toBe(
-      `Proposition-complete ingestion failed: semantic_source_hash must equal the SHA-256 hash of semantic_text (expected '${sha(TEXT)}'). The contract kb_model mode analyze returns for this prose, to merge into properties and resend (a claim marked modeled needs one requires_property, requires_predicate or requires_rule link to a fact with its claim_key; otherwise keep the advisor's status): ${JSON.stringify(semanticInventoryContract(bad, receipt()))}`,
+      `Proposition-complete ingestion failed: semantic_source_hash must equal the SHA-256 hash of semantic_text (expected '${sha(TEXT)}'). The contract kb_model mode analyze returns for this prose, to merge into properties and resend (a claim marked modeled needs one requires_property, requires_predicate or requires_rule link to a fact with its claim_key; otherwise keep the advisor's status). A kb_upsert can instead leave semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims out, and Kibi derives them: ${JSON.stringify(semanticInventoryContract(bad, receipt()))}`,
     );
     expect(rejection.issues).toStrictEqual([
       { rule: "source_hash", field: "semantic_source_hash" },

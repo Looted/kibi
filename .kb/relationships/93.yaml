@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a175061f69d3
+  - type: implements
+    from: SYM-cli-with-server-semantic-inventory
+    to: REQ-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:37.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1643cf7b3a71
+  - type: covered_by
+    from: SYM-cli-with-server-semantic-inventory
+    to: TEST-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:37.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40a0a0d8565d

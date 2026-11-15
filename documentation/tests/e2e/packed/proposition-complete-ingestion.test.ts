@@ -44,6 +44,7 @@ async function packedCliEnforcesPropositionCompleteIngestion(
         title: "Direct incomplete requirement",
         status: "open",
         text_ref: "Service must retain audit records.",
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
       },
     }),
   );
@@ -61,6 +62,37 @@ async function packedCliEnforcesPropositionCompleteIngestion(
   assert.match(
     directResult.errors.join("\n"),
     /Proposition-complete ingestion failed/,
+  );
+
+  // Without any ledger field the write is accepted with the ledger Kibi
+  // derives from the prose, and the claim nobody classified is missing.
+  const derivedInput = join(sandbox.repoDir, "derived-ledger.json");
+  writeFileSync(
+    derivedInput,
+    JSON.stringify({
+      type: "req",
+      id: "REQ-DIRECT-INCOMPLETE",
+      properties: {
+        title: "Direct incomplete requirement",
+        status: "open",
+        text_ref: "Service must retain audit records.",
+      },
+    }),
+  );
+  const derived = await kibi(sandbox, [
+    "validate-upsert",
+    "--input",
+    derivedInput,
+  ]);
+  assert.strictEqual(derived.exitCode, 0);
+  const derivedResult = parseKibiResult<{
+    valid: boolean;
+    inventoryApplied?: { status: string }[];
+  }>(derived.stdout);
+  assert.strictEqual(derivedResult.valid, true);
+  assert.deepStrictEqual(
+    derivedResult.inventoryApplied?.map((entry) => entry.status),
+    ["missing"],
   );
 
   createMarkdownFile(

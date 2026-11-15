@@ -310,3 +310,42 @@ export interface SemanticAdvisorOperationResult {
     readonly capabilityPlugins?: Readonly<Record<string, unknown>>;
   };
 }
+
+/**
+ * The advisor receipt a committed write reports: its readiness, lane,
+ * coverage and next tools, without the per-clause analysis (propositions,
+ * suggestions, clauses, signals, interpretations) that kb_model mode analyze
+ * and kb_validate_upsert return in full.
+ */
+const RECEIPT_SUMMARY_FIELDS = [
+  "version",
+  "payload_hash",
+  "inventory_contract",
+  "logic_readiness",
+  "candidate_lane",
+  "logic_coverage",
+  "suggested_next_tools",
+  "summary",
+] as const;
+
+export type SemanticAdvisorReceiptSummary = Pick<
+  SemanticAdvisorReceipt,
+  | "version"
+  | "payload_hash"
+  | "inventory_contract"
+  | "logic_readiness"
+  | "candidate_lane"
+  | "logic_coverage"
+  | "suggested_next_tools"
+  | "summary"
+>;
+
+export function semanticAdvisorReceiptSummary(
+  receipt: SemanticAdvisorReceipt,
+): SemanticAdvisorReceiptSummary {
+  const summary: Record<string, unknown> = {};
+  for (const field of RECEIPT_SUMMARY_FIELDS) {
+    if (receipt[field] !== undefined) summary[field] = receipt[field];
+  }
+  return summary as SemanticAdvisorReceiptSummary;
+}

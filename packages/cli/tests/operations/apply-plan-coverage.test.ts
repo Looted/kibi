@@ -608,8 +608,10 @@ describe("compile plan application", () => {
           properties: {
             title: "Token expiry",
             status: "open",
-            // Current normative prose without its proposition inventory.
+            // Current normative prose with an incomplete inventory: a sent
+            // contract is judged as sent, never completed by the server.
             semantic_text: "The service must reject expired tokens.",
+            semantic_inventory_version: "kibi.semantic-inventory.v1",
           },
           relationships: [],
         },

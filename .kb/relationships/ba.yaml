@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-032751cb81f2
+  - type: validates
+    from: TEST-kb-upsert-derives-proposition-ledger
+    to: REQ-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:35.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70f4ad16a1ee
+  - type: validates
+    from: TEST-kb-upsert-derives-proposition-ledger
+    to: SCEN-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:35.148Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-905ca26efd90
