@@ -7737,5 +7737,20 @@
         "documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-mcp-upsert-proof-field-stubs",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/mcp/tests/server/tool-surface-consumer.test.ts",
+        "./packages/cli/tests/operations/advertised-schema.test.ts"
+      ]
+    ]
   }
 ]
