@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -145,6 +145,124 @@ export function scopeQualityDiagnosticsToImpact(
     evidence: { omitted, byRule: Object.fromEntries(rules) },
   });
   return kept;
+}
+
+/**
+ * Rules whose findings describe the store or the KB as a whole (the compiled
+ * store, joint consistency, source/compile parity). They are never scoped
+ * out: an edit anywhere can cause them, and a scoped check that hid them
+ * could read as a pass.
+ */
+const UNSCOPED_RULES: ReadonlySet<string> = new Set([
+  "branch-store-not-compiled",
+  "kb-consistency",
+  "source-relationship-parity",
+]);
+
+/** Blocking findings a scoped check left out, by rule. */
+export type OmittedViolations = {
+  readonly total: number;
+  readonly byRule: Readonly<Record<string, number>>;
+};
+
+/** The entity id a `.kb/<kind>/<ID>.md` path holds, or undefined. */
+function kbDocumentEntityId(file: string): string | undefined {
+  const match = /^\.kb\/[^/]+\/([^/]+)\.md$/.exec(file.replace(/\\/g, "/"));
+  return match?.[1];
+}
+
+/**
+ * Ids of the KB entities whose authored document differs from HEAD: staged,
+ * unstaged or untracked `.kb/<kind>/<ID>.md` files. These are the agent's own
+ * writes, so a scoped check always reports their findings. Outside a Git
+ * work tree there is nothing to compare with, and none is returned.
+ */
+export function changedKbEntityIds(workspaceRoot: string): Set<string> {
+  const ids = new Set<string>();
+  let output = "";
+  try {
+    output = execFileSync(
+      "git",
+      ["status", "--porcelain=v1", "-z", "--untracked-files=all", "--", ".kb"],
+      {
+        cwd: workspaceRoot,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      },
+    );
+  } catch {
+    return ids;
+  }
+  const entries = output.split("\0");
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index] as string;
+    if (entry.length < 4) continue;
+    // A rename lists its old path as the next entry.
+    if (entry[0] === "R" || entry[0] === "C") index += 1;
+    const id = kbDocumentEntityId(entry.slice(3));
+    if (id !== undefined) ids.add(id);
+  }
+  return ids;
+}
+
+/**
+ * The blocking findings of a check scoped to `sourceFiles` that concern the
+ * change: findings on an entity the changed symbols link to (or on those
+ * symbols), on an entity whose KB document changed, on a relationship with
+ * either end among them, or whose source is a checked file, plus every
+ * store-level finding. The rest is counted by rule, so the result says how
+ * many blocking findings the unfiltered check still reports.
+ */
+export function scopeViolationsToImpact(
+  violations: readonly Violation[],
+  impactResult: ChangedFileImpactResult,
+  changedEntityIds: ReadonlySet<string>,
+): { kept: Violation[]; omitted: OmittedViolations | undefined } {
+  const normalizePath = (value: string) =>
+    value.replace(/\\/g, "/").replace(/^\.\//, "");
+  const files = new Set(impactResult.sourceFiles.map(normalizePath));
+  const ids = new Set<string>(changedEntityIds);
+  for (const linked of impactResult.linkedEntities) {
+    ids.add(linked.id);
+    ids.add(linked.sourceSymbolId);
+  }
+  for (const symbol of impactResult.extractedSymbols) ids.add(symbol.id);
+  const endpoints = (violation: Violation): unknown[] => {
+    const relationship = (
+      violation.evidence as { relationship?: { from?: unknown; to?: unknown } }
+    )?.relationship;
+    return [relationship?.from, relationship?.to];
+  };
+  const inScope = (violation: Violation) =>
+    !violation.entityId ||
+    UNSCOPED_RULES.has(violation.rule) ||
+    ids.has(violation.entityId) ||
+    endpoints(violation).some(
+      (endpoint) => typeof endpoint === "string" && ids.has(endpoint),
+    ) ||
+    (violation.source !== undefined &&
+      files.has(normalizePath(violation.source)));
+
+  const kept: Violation[] = [];
+  const byRule = new Map<string, number>();
+  for (const violation of violations) {
+    if (inScope(violation)) {
+      kept.push(violation);
+    } else {
+      byRule.set(violation.rule, (byRule.get(violation.rule) ?? 0) + 1);
+    }
+  }
+  if (byRule.size === 0) return { kept, omitted: undefined };
+  const rules = [...byRule.entries()].sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+  );
+  return {
+    kept,
+    omitted: {
+      total: rules.reduce((sum, [, count]) => sum + count, 0),
+      byRule: Object.fromEntries(rules),
+    },
+  };
 }
 
 function resolveChecksPlPath(): string {

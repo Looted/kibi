@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75775e7ea9e3
+  - type: implements
+    from: SYM-cli-summarize-migration-plan
+    to: REQ-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:30.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cf10beea012
+  - type: covered_by
+    from: SYM-cli-summarize-migration-plan
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:30.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20cabe784201

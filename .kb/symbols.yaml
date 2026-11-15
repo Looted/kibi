@@ -40774,3 +40774,67 @@ symbols:
         target: TEST-kb-upsert-derives-proposition-ledger
       - type: implements
         target: REQ-kb-upsert-derives-proposition-ledger
+  - id: SYM-test-kibi-scoped-check-output
+    title: Scoped kb_check output suite
+    status: active
+    sourceFile: packages/cli/tests/public/operations/check-scope.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:42:06.863Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-scoped-check-output
+  - id: SYM-cli-scope-violations-to-impact
+    title: scopeViolationsToImpact
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:42:19.431Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-scoped-check-output
+      - type: implements
+        target: REQ-kibi-scoped-check-output
+  - id: SYM-cli-changed-kb-entity-ids
+    title: changedKbEntityIds
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-helpers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:42:24.943Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-scoped-check-output
+      - type: implements
+        target: REQ-kibi-scoped-check-output
+  - id: SYM-cli-summarize-migration-plan
+    title: summarizeMigrationPlan
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:42:30.110Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-scoped-check-output
+      - type: implements
+        target: REQ-kibi-scoped-check-output
+  - id: SYM-cli-fit-scoped-check-to-budget
+    title: fitScopedCheckToBudget
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:42:35.005Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-scoped-check-output
+      - type: implements
+        target: REQ-kibi-scoped-check-output

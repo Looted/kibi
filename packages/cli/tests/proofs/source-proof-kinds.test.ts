@@ -815,6 +815,20 @@ describe("references the code makes", () => {
       const result = await env(text);
       expect({ text, ok: result.ok }).toEqual({ text, ok: false });
     }
+    // A browser global only tested for presence reads nothing.
+    expect(
+      await env(
+        "const view = globalThis.window;\nif (view) {\n  view.addEventListener('offline', onOffline);\n}\nconst s = import.meta.env.FOO;\n",
+      ),
+    ).toEqual({ ok: true, model: { members: ["FOO"] } });
+    // The global object handed to a function stays refused: the callee may read its process.env.
+    for (const text of [
+      "export function readStored(key, host = globalThis) { return host.getItem(key); }\n",
+      "function w(h) { return h.process.env.SECRET; }\nw(globalThis);\n",
+    ]) {
+      const result = await env(text);
+      expect({ text, ok: result.ok }).toEqual({ text, ok: false });
+    }
     // A local named process is not the global one.
     expect(
       await env(
