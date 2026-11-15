@@ -654,7 +654,7 @@ describe("operations that require Prolog", () => {
     expect(await context.ensureProlog?.()).toBeDefined();
     expect(prolog).toBeDefined();
     expect(engineCalls.map(([name]) => name)).toEqual(["start"]);
-    await runtime.close?.(context);
+    await runtime.close(context, { status: "success", result: null });
     expect(engineCalls.map(([name]) => name)).toEqual(["start", "terminate"]);
   });
 
