@@ -324,7 +324,7 @@ const legacyBranchStorage: ReferenceScript = async (agent) => {
   return [
     `kb_status reports a historical literal-path store (${String(store.errorCode)}) at ${String(store.path)} while Git uses ${String(attachmentOf(status).gitBranch)}. ${refusal}`,
     `The migration preview (planHash ${plan.planHash}) moves it from that old literal path to the new hashed store via ${JSON.stringify((migrate.invocation as Json | undefined)?.command_argv)}. I applied only that action, bound to the previewed hash, at an explicit apply boundary; nothing in .kb was edited by hand.`,
-    `Afterwards the store is ${String(storeOf(after).state)} at ${String(storeOf(after).path)} and the KB is still ${String(after.syncState)}, since the stale sources were not part of this migration.`,
+    `Afterwards the store is ${String(storeOf(after).state)} at ${String(storeOf(after).path)} and the KB is ${String(after.syncState)}: the migrated store was compiled from the current sources.`,
   ].join("\n\n");
 };
 
