@@ -40622,3 +40622,41 @@ symbols:
         target: TEST-kibi-symbol-coverage-source-missing
       - type: implements
         target: REQ-kibi-symbol-coverage-source-missing
+  - id: SYM-e2e-test-kibi-pending-receipt-branch-scope
+    title: pending-receipt-branch-scope.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/pending-receipt-branch-scope.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-pending-receipt-branch-scope
+  - id: SYM-kibi-pending-receipt-scope
+    title: pendingReceiptScope
+    status: active
+    sourceFile: packages/cli/src/utils/pending-source-branch.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-branch-scope
+      - type: implements
+        target: REQ-kibi-pending-receipt-branch-scope
+  - id: SYM-kibi-pending-receipt-branch
+    title: pendingReceiptBranch
+    status: active
+    sourceFile: packages/cli/src/utils/pending-source-branch.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-branch-scope
+      - type: implements
+        target: REQ-kibi-pending-receipt-branch-scope

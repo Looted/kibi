@@ -7747,5 +7747,15 @@
         "documentation/tests/e2e/packed/symbol-coverage-missing-source.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-pending-receipt-branch-scope",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/pending-receipt-branch-scope.test.ts"
+      ]
+    ]
   }
 ]
