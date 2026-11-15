@@ -188,6 +188,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad54ba8d5d13
+  - type: implements
+    from: SYM-kibi-legacy-branch-migration-approval-hash
+    to: REQ-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:34:48.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be8842866e44
+  - type: covered_by
+    from: SYM-kibi-legacy-branch-migration-approval-hash
+    to: TEST-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:34:48.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50c0c4d6012e
   - type: assumes
     from: SCEN-NEG-kibi-symbol-coverage-VANISHED-SOURCE-COVERED
     to: FACT-NEG-kibi-symbol-coverage-VANISHED-SOURCE-COVERED

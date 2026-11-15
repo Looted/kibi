@@ -34,6 +34,11 @@ import {
   defaultKbManifest,
   writeKbManifest,
 } from "../../../src/utils/kb-manifest.js";
+import { branchMigrationApprovalHash } from "../../../src/commands/branch.js";
+import {
+  branchStorePath,
+  legacyBranchStorePath,
+} from "../../../src/utils/branch-store-locator.js";
 import { expectGolden } from "../helpers/golden.js";
 
 const roots: string[] = [];
@@ -802,6 +807,49 @@ describe("buildActionsFromStatus", () => {
     ).toEqual(["kb"]);
   });
 
+  test("binds a same-identity legacy migration to its preview hash", () => {
+    const root = workspace();
+    const store = legacyBranchStorePath(root, "main");
+    write(root, join(store.slice(root.length + 1), "kb.rdf"), "facts\n");
+    const [action] = status(root, {
+      branchAttachment: {
+        migrationRequired: true,
+        kind: "legacy_compat",
+        gitBranch: "main",
+        kbBranch: "main",
+      },
+    }).actions;
+    const approvalHash = branchMigrationApprovalHash(
+      "main",
+      "main",
+      store,
+      branchStorePath(root, "main"),
+    );
+    expect(action).toMatchObject({
+      code: "legacy_branch_storage",
+      state: "ready",
+      safety: "automatic",
+      autoApplicable: true,
+      dispositionRequired: false,
+      evidence: { approvalHash },
+      invocation: {
+        kind: "cli",
+        command_argv: [
+          "kibi",
+          "branch",
+          "migrate",
+          "--from",
+          "main",
+          "--to",
+          "main",
+          "--apply",
+          "--approval-hash",
+          approvalHash,
+        ],
+      },
+    });
+  });
+
   test("plans branch store repairs", () => {
     const root = workspace();
     expectGolden("migration-plan-status-store", [
@@ -977,6 +1025,17 @@ describe("buildActionsFromStatus", () => {
           kind: "legacy_compat",
           gitBranch: "a",
           kbBranch: "b",
+        },
+      }),
+    ).toEqual(["kb"]);
+    write(root, ".kb/branches/a/kb.rdf", "facts\n");
+    expect(
+      incomplete({
+        branchAttachment: {
+          migrationRequired: true,
+          kind: "legacy_compat",
+          gitBranch: "a",
+          kbBranch: "a",
         },
       }),
     ).toEqual([]);
