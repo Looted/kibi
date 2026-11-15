@@ -7782,5 +7782,20 @@
         "./packages/mcp/tests/tools/upsert-semantic-advisor.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-scoped-check-output",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/cli/tests/public/operations/check-scope.test.ts",
+        "./packages/cli/tests/public-mutation/operations/check-executor.mutation.test.ts"
+      ]
+    ]
   }
 ]

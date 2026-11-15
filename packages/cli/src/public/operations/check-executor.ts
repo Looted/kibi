@@ -34,16 +34,19 @@ import {
   type CheckStructuredContent,
   buildStructuredContent,
   buildSummary,
+  fitScopedCheckToBudget,
 } from "./check-format-shared.js";
 import {
   SCOPED_CHECK_OMITTED_ID,
   analyzeKbCheckImpact,
+  changedKbEntityIds,
   collectQueryPlanSafetyViolations,
   getEffectiveRules,
   partitionCheckFindings,
   qualityDiagnosticsFromImpact,
   resolveCheckRules,
   scopeQualityDiagnosticsToImpact,
+  scopeViolationsToImpact,
   stagedEntityIdStyleDiagnostics,
 } from "./check-helpers.js";
 import { collectCheckPolicyViolations } from "./check-policy-rules.js";
@@ -82,6 +85,8 @@ export type CheckInput = {
   readonly maxDiagnostics?: number;
   /** evidence-floor judges receipts as they are and needs a clean snapshot. */
   readonly freshEvidence?: boolean;
+  /** A scoped check returns the full migration plan instead of its summary. */
+  readonly includeMigrationPlan?: boolean;
 };
 
 export type CheckPayload = CheckStructuredContent;
@@ -482,8 +487,23 @@ export async function executeCheck(
       ...proofContractClaimFindings,
       ...positiveScenarioFindings,
     ]);
-    const violations: Violation[] = partitioned.violations;
+    const allViolations: Violation[] = partitioned.violations;
     const evaluated = await describeEvaluation(prolog, rulesAllowlist);
+    // A check scoped to sourceFiles answers about those files: blocking
+    // findings elsewhere are counted, not listed (kb_check without
+    // sourceFiles lists them all).
+    const scoped =
+      impactResult !== undefined &&
+      args.sourceFiles !== undefined &&
+      !hasExplicitRules;
+    const violationScope = scoped
+      ? scopeViolationsToImpact(
+          allViolations,
+          impactResult,
+          changedKbEntityIds(workspaceRoot),
+        )
+      : undefined;
+    const violations: Violation[] = violationScope?.kept ?? allViolations;
 
     const diagnostics: CheckDiagnostic[] = violations.map((v) => ({
       category: "SYNC_ERROR",
@@ -502,7 +522,9 @@ export async function executeCheck(
         ? impactQualityDiagnostics
         : await collectFullKbQualityDiagnostics({
             prolog,
-            hardViolationEntityIds: new Set(violations.map((v) => v.entityId)),
+            hardViolationEntityIds: new Set(
+              allViolations.map((v) => v.entityId),
+            ),
             workspaceRoot,
             ...(proofSnapshot !== undefined ? { proofSnapshot } : {}),
             checkedAt,
@@ -512,22 +534,23 @@ export async function executeCheck(
           });
     // A check scoped to sourceFiles answers about those files; the KB-wide
     // advisory scan only lists what concerns them.
-    const advisoryQualityDiagnostics =
-      impactResult && args.sourceFiles !== undefined && !hasExplicitRules
-        ? scopeQualityDiagnosticsToImpact(
-            partitioned.qualityDiagnostics,
-            impactResult,
-          )
-        : partitioned.qualityDiagnostics;
+    const advisoryQualityDiagnostics = scoped
+      ? scopeQualityDiagnosticsToImpact(
+          partitioned.qualityDiagnostics,
+          impactResult,
+        )
+      : partitioned.qualityDiagnostics;
     const qualityDiagnostics = [
       ...advisoryQualityDiagnostics,
       ...extraQualityDiagnostics,
     ];
 
     const statusPlan = await readStatusMigrationPlan(context);
+    // The plan repairs every finding, so a scoped check plans from all of
+    // them too; it shows the plan's summary unless asked for the plan.
     const migrationPlan = await migrationPlanForCheck(
       context,
-      violations,
+      allViolations,
       // The omitted-findings count is a pointer, not a repair to plan.
       qualityDiagnostics.filter(
         (diagnostic) => diagnostic.id !== SCOPED_CHECK_OMITTED_ID,
@@ -535,26 +558,45 @@ export async function executeCheck(
       statusPlan,
       impactResult,
     );
+    const structured = buildStructuredContent({
+      violations,
+      evaluated,
+      diagnostics,
+      qualityDiagnostics,
+      impactResult,
+      migrationPlan,
+      ...(violationScope?.omitted !== undefined
+        ? { omittedViolations: violationScope.omitted }
+        : {}),
+      ...(scoped && args.includeMigrationPlan !== true
+        ? { summarizePlan: true }
+        : {}),
+    });
+    const structuredContent = scoped
+      ? fitScopedCheckToBudget(structured)
+      : structured;
     return {
       content: [
         {
           type: "text",
           text: buildSummary({
-            violations,
+            violations: structuredContent.violations,
             evaluated,
             impactResult,
-            qualityDiagnostics,
+            qualityDiagnostics: structuredContent.qualityDiagnostics ?? [],
+            ...(structuredContent.violationGroups !== undefined
+              ? { violationGroups: structuredContent.violationGroups }
+              : {}),
+            ...(structuredContent.omittedViolations !== undefined
+              ? { omittedViolations: structuredContent.omittedViolations }
+              : {}),
+            ...(structuredContent.truncation !== undefined
+              ? { truncation: structuredContent.truncation }
+              : {}),
           }),
         },
       ],
-      structuredContent: buildStructuredContent({
-        violations,
-        evaluated,
-        diagnostics,
-        qualityDiagnostics,
-        impactResult,
-        migrationPlan,
-      }),
+      structuredContent,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
