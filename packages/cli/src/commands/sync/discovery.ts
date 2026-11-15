@@ -28,6 +28,7 @@ import {
   CANONICAL_ENTITY_PATHS,
   isSymbolsManifestPath,
 } from "../../utils/kb-paths.js";
+import { pendingReceiptScope } from "../../utils/pending-source-branch.js";
 import {
   SyncError,
   pendingSourceHashDriftError,
@@ -74,11 +75,12 @@ type PendingReceipt = Readonly<{
   raw: string;
   path: string;
   afterHash: string;
+  receipt: unknown;
 }>;
 
 type ReceiptFile = Readonly<{
   raw: string;
-  receipt: { path?: unknown; afterHash?: unknown } | null;
+  receipt: { path?: unknown; afterHash?: unknown; branch?: unknown } | null;
 }>;
 
 /** The receipt's text and JSON, or null when it cannot be read or parsed. */
@@ -104,7 +106,7 @@ function readPendingReceipt(receiptPath: string): PendingReceipt | null {
     !/^[a-f0-9]{64}$/i.test(afterHash)
   )
     return null;
-  return { raw: file.raw, path: recorded, afterHash };
+  return { raw: file.raw, path: recorded, afterHash, receipt: file.receipt };
 }
 
 /**
@@ -125,6 +127,7 @@ function pendingSourcePaths(
   const paths = new Map<string, string>();
   const recoveredReceipts: PendingSourceReceiptSnapshot[] = [];
   if (!existsSync(root)) return { paths, recoveredReceipts };
+  const inScope = pendingReceiptScope(cwd);
   for (const name of readdirSync(root)) {
     if (!name.endsWith(".json")) continue;
     const receiptPath = path.join(root, name);
@@ -144,6 +147,9 @@ function pendingSourcePaths(
       );
     }
     if (!existsSync(absolute)) {
+      // A file committed on the branch that wrote the receipt is absent
+      // here; that branch keeps the receipt.
+      if (!inScope(receipt.receipt)) continue;
       if (recoverMissing) {
         recoveredReceipts.push({
           receiptPath,
@@ -339,12 +345,14 @@ export async function discoverSourceFiles(
       options.consumeTrackedPendingReceipts !== false &&
       existsSync(pendingRoot)
     ) {
+      const inScope = pendingReceiptScope(cwd);
       for (const name of readdirSync(pendingRoot)) {
         if (!name.endsWith(".json")) continue;
         const receiptPath = path.join(pendingRoot, name);
         const file = readReceiptFile(receiptPath);
-        // Leave malformed receipts for explicit recovery diagnostics.
-        if (file === null) continue;
+        // Leave malformed receipts for explicit recovery diagnostics, and
+        // another branch's receipts for that branch.
+        if (file === null || !inScope(file.receipt)) continue;
         const recorded = file.receipt?.path;
         if (
           typeof recorded === "string" &&

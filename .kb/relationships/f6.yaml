@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-54329818e060
+  - type: assumes
+    from: SCEN-kibi-pending-receipt-branch-scope
+    to: FACT-kibi-pending-receipt-scoped-to-branch
+    created_at: 2026-11-15T11:02:52.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-712ae6254221
+  - type: assumes
+    from: SCEN-kibi-pending-receipt-branch-scope
+    to: FACT-kibi-present-or-unscoped-receipt-checked-everywhere
+    created_at: 2026-11-15T11:02:52.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32932298c3eb
