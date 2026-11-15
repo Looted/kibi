@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { execFileSync } from "node:child_process";
 import { resolveActiveBranch } from "./branch-resolver.js";
 
 /**
@@ -50,4 +51,51 @@ export function pendingReceiptScope(
     active ??= { branch: pendingReceiptBranch(workspaceRoot) };
     return active.branch === undefined || active.branch === recorded;
   };
+}
+
+/**
+ * Decides whether a pending source missing from this checkout is committed on
+ * another local branch. That branch's Git owns the bytes, so the receipt's
+ * file was not lost: it was committed somewhere else, often on a branch made
+ * after the receipt was written. The local branches are listed once, on the
+ * first path asked about; outside Git nothing is committed anywhere.
+ */
+export function committedOnLocalBranch(
+  workspaceRoot: string,
+): (relative: string) => boolean {
+  let refs: readonly string[] | undefined;
+  return (relative) => {
+    refs ??= localBranchRefs(workspaceRoot);
+    if (refs.length === 0) return false;
+    let output: string;
+    try {
+      output = execFileSync("git", ["cat-file", "--batch-check"], {
+        cwd: workspaceRoot,
+        input: refs.map((ref) => `${ref}:${relative}\n`).join(""),
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "ignore"],
+      });
+    } catch {
+      return false;
+    }
+    return output.split("\n").some((line) => / blob \d+$/.test(line));
+  };
+}
+
+function localBranchRefs(workspaceRoot: string): readonly string[] {
+  try {
+    return execFileSync(
+      "git",
+      ["for-each-ref", "--format=%(refname)", "refs/heads"],
+      {
+        cwd: workspaceRoot,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      },
+    )
+      .split("\n")
+      .filter((ref) => ref.length > 0);
+  } catch {
+    return [];
+  }
 }

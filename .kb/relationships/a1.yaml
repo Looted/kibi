@@ -237,3 +237,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b33c0544d0b
+  - type: validates
+    from: TEST-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-kibi-pending-receipt-committed-elsewhere
+    created_at: 2026-11-15T17:27:25.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da0b38ff6dbc
+  - type: validates
+    from: TEST-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-NEG-kibi-pending-receipt-COMMITTED-ELSEWHERE-FAILS
+    created_at: 2026-11-15T17:27:25.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf853d884cea
+  - type: validates
+    from: TEST-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
+    created_at: 2026-11-15T17:27:25.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90cdf5180217
