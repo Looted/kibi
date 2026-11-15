@@ -5995,6 +5995,10 @@
             "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation, symbol_semantic_review_needed, source_file_unowned and requirement_statement_unverified (each current requirement the changed code implements, with its statement and firmness, since the check never compares code with a statement) in structured output.",
             "type": "boolean"
           },
+          "includeMigrationPlan": {
+            "description": "With sourceFiles: return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary.",
+            "type": "boolean"
+          },
           "includeWorkingTreeDiff": {
             "description": "When true, inspect current unstaged working-tree diffs for impact diagnostics. Pair with sourceFiles to scope the analysis.",
             "type": "boolean"
@@ -6286,7 +6290,7 @@
             "type": "array"
           },
           "sourceFiles": {
-            "description": "Optional repo-relative source files to inspect for early impact diagnostics. Use with includeImpactDiagnostics after meaningful source edits.",
+            "description": "Optional repo-relative source files to inspect for early impact diagnostics. Use with includeImpactDiagnostics after meaningful source edits. Scopes the result to those files: blocking violations are listed for entities the changed symbols link to, entities whose KB document changed, and store-level rules; the rest are counted in omittedViolations (count still includes them). The migration plan comes as migrationPlanSummary, and a result over its size budget is cut (truncated: true).",
             "items": {
               "type": "string"
             },
@@ -6360,9 +6364,19 @@
                     "properties": {},
                     "type": "object"
                   },
+                  "migrationPlanSummary": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
+                  },
                   "nextActions": {
                     "items": {},
                     "type": "array"
+                  },
+                  "omittedViolations": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
                   },
                   "qualityDiagnostics": {
                     "items": {
@@ -6375,6 +6389,23 @@
                   "sourceFiles": {
                     "items": {
                       "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "truncated": {
+                    "const": true,
+                    "type": "boolean"
+                  },
+                  "truncation": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
+                  },
+                  "violationGroups": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
                     },
                     "type": "array"
                   },

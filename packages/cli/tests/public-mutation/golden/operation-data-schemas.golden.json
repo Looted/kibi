@@ -1007,6 +1007,28 @@
           "migrationPlan": {
             "type": "object",
             "additionalProperties": true
+          },
+          "migrationPlanSummary": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "omittedViolations": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "violationGroups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "truncated": {
+            "const": true
+          },
+          "truncation": {
+            "type": "object",
+            "additionalProperties": true
           }
         }
       },
