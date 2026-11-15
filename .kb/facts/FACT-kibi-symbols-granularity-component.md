@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-symbols-granularity-component
 type: fact
 ---
-The kibi.symbols.granularity component, as the structural requirements that name it constrain it.
+
+The roles a symbol can have (behavioral, structural, type-shape, config, module, unknown) and the allowed reasons for a coarse link, such as config-artifact or legacy-link. It is vocabulary for the granularity policy, not the policy.

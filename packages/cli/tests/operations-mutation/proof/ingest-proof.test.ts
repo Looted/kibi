@@ -441,6 +441,25 @@ describe("receipt histories", () => {
     expect(output.content[0]?.text).toBe("Ingested proof evidence. Passed 1 test(s), 1 unchanged.");
   });
 
+  test("reports which fingerprint components moved since the newest earlier receipt", async () => {
+    await ingest();
+    const receipt = receiptsOf().at(-1) as Row & { receipt_id: string };
+    const components = receipt.fingerprint_components as Row;
+    const moved = {
+      ...receipt,
+      receipt_id: "PR-moved",
+      fingerprint_components: { ...components, command: "b".repeat(64) },
+    };
+    tests = { "TEST-1": testEntity("TEST-1", { proof_receipts: [moved, receipt, moved] }) };
+    const output = await ingest();
+    expect(output.structuredContent.results[0]).toMatchObject({
+      duplicate: true,
+      fingerprintDrift: ["command"],
+    });
+    tests = { "TEST-1": testEntity("TEST-1", { proof_receipts: [moved, moved, receipt] }) };
+    expect((await ingest()).structuredContent.results[0]).not.toHaveProperty("fingerprintDrift");
+  });
+
   test("a failed duplicate counts as failed", async () => {
     await executeIngestProof({ snapshot: SNAPSHOT, artifact: failing(), testIds: ["TEST-1"] }, context());
     const receipt = receiptsOf().at(-1) as Row & { receipt_id: string };

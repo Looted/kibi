@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Which branch KB the MCP server is attached to and how it notices that the store on the same branch was replaced externally, refreshing before serving queries or mutations, based on filesystem metadata. It does not change branch-switch handling.

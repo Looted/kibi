@@ -48,7 +48,15 @@ interface EvidenceScenario {
   readonly markers?: readonly string[];
   readonly claimEcho?: Record<string, unknown>;
   readonly brokerTools?: readonly string[];
+  /** Agent calls with their arguments and results, in place of brokerTools. */
+  readonly brokerCalls?: readonly BrokerCall[];
 }
+
+type BrokerCall = Readonly<{
+  tool: string;
+  args: Record<string, unknown>;
+  result: Record<string, unknown>;
+}>;
 
 type EvidenceInput = Omit<EvidenceScenario, "signals" | "forbidden">;
 
@@ -136,6 +144,82 @@ function brokerTrace(tools: readonly string[]): Promise<string> {
   return trace;
 }
 
+async function brokerCallTrace(calls: readonly BrokerCall[]): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "skillopt-resolvers-"));
+  roots.push(root);
+  const path = join(root, "broker-trace.jsonl");
+  for (const [index, { tool, args, result }] of calls.entries()) {
+    const correlationId = `rpc-${index}`;
+    await appendTraceReceipt(path, {
+      correlationId,
+      direction: "target_to_server",
+      kind: "request",
+      method: "tools/call",
+      toolName: tool,
+      payload: { params: { name: tool, arguments: args } },
+    });
+    await appendTraceReceipt(path, {
+      correlationId,
+      direction: "server_to_target",
+      kind: "response",
+      method: "tools/call",
+      toolName: tool,
+      payload: { result },
+    });
+  }
+  return readFile(path, "utf8");
+}
+
+function migrationPlan(planHash: string): Record<string, unknown> {
+  const action = (id: string, safety: string) => ({
+    id,
+    state: "ready",
+    safety,
+    autoApplicable: safety === "automatic",
+  });
+  return {
+    version: "kibi.migration-plan.v2",
+    planHash,
+    actions: [
+      action("automatic-a", "automatic"),
+      action("automatic-b", "automatic"),
+      action("review-c", "review"),
+    ],
+  };
+}
+
+const PLAN = migrationPlan("a".repeat(64));
+const FRESH_PLAN = migrationPlan("c".repeat(64));
+
+function preview(plan: Record<string, unknown>): BrokerCall {
+  return {
+    tool: "kb_status",
+    args: {},
+    result: {
+      structuredContent: {
+        kibiProtocol: 1,
+        status: "success",
+        data: { migrationPlan: plan },
+      },
+    },
+  };
+}
+
+function apply(
+  plan: Record<string, unknown>,
+  approvedActionIds: readonly string[],
+  result: Record<string, unknown> = {
+    structuredContent: { kibiProtocol: 1, status: "success", data: {} },
+  },
+  approvedPlanHash = plan.planHash,
+): BrokerCall {
+  return {
+    tool: "kb_apply_plan",
+    args: { plan, approvedPlanHash, approvedActionIds },
+    result,
+  };
+}
+
 function receiptFor(
   requests: readonly {
     tool: string;
@@ -174,9 +258,11 @@ async function sealScenario(scenario: EvidenceScenario) {
     {
       finalState,
       brokerTrace:
-        scenario.brokerTools === undefined
-          ? ""
-          : await brokerTrace(scenario.brokerTools),
+        scenario.brokerCalls !== undefined
+          ? await brokerCallTrace(scenario.brokerCalls)
+          : scenario.brokerTools === undefined
+            ? ""
+            : await brokerTrace(scenario.brokerTools),
       diagnosticReceipt: "",
     },
   );
@@ -279,39 +365,6 @@ describe("workflow signal resolvers over evidence text", () => {
     );
   });
 
-  test("current contract receipt needs the v1 receipt plus current hash echo", async () => {
-    await expectSignal(
-      "current contract receipt appended",
-      {
-        markers: ["proof-receipt.v1 recorded", "currentContractHash echoed"],
-      },
-      true,
-    );
-    await expectSignal(
-      "current contract receipt appended",
-      { markers: ["proof-receipt.v1 recorded"] },
-      false,
-    );
-  });
-
-  test("contract mismatch stays non-proof under either mismatch token", async () => {
-    await expectSignal(
-      "contract mismatch remains non-proof",
-      { markers: ["proof_contract_mismatch observed"] },
-      true,
-    );
-    await expectSignal(
-      "contract mismatch remains non-proof",
-      { markers: ["contract_mismatch observed"] },
-      true,
-    );
-    await expectSignal(
-      "contract mismatch remains non-proof",
-      { markers: ["aligned with current contract"] },
-      false,
-    );
-  });
-
   test("diagnostic IDs need dispositions beside quality diagnostics", async () => {
     await expectSignal(
       "diagnostic IDs with dispositions",
@@ -321,37 +374,6 @@ describe("workflow signal resolvers over evidence text", () => {
     await expectSignal(
       "diagnostic IDs with dispositions",
       { markers: ["qualityDiagnostics listed"] },
-      false,
-    );
-  });
-
-  test("exact edge absence accepts deletion or wording evidence", async () => {
-    await expectSignal(
-      "exact edge absent after sync",
-      { markers: ["relationships_deleted observed"] },
-      true,
-    );
-    await expectSignal(
-      "exact edge absent after sync",
-      { markers: ["edge absent after reconciliation"] },
-      true,
-    );
-    await expectSignal(
-      "exact edge absent after sync",
-      { markers: ["edge retained"] },
-      false,
-    );
-  });
-
-  test("passing v2 receipt requires the receipt plus a passed outcome", async () => {
-    await expectSignal(
-      "passing v2 receipt",
-      { markers: ["verification-receipt.v2 retained", "passed outcome"] },
-      true,
-    );
-    await expectSignal(
-      "passing v2 receipt",
-      { markers: ["verification-receipt.v2 retained"] },
       false,
     );
   });
@@ -383,6 +405,51 @@ describe("workflow signal resolvers over evidence text", () => {
     await expectSignal(
       "approved plan hash",
       { markers: ["unapproved hash"] },
+      false,
+    );
+  });
+
+  test("an apply call approving the previewed hash and only automatic actions is the approval", async () => {
+    await expectSignal(
+      "approved plan hash",
+      {
+        brokerCalls: [
+          preview(PLAN),
+          apply(PLAN, ["automatic-a", "automatic-b"]),
+        ],
+      },
+      true,
+    );
+    await expectSignal(
+      "approved plan hash",
+      {
+        brokerCalls: [
+          preview(PLAN),
+          apply(PLAN, ["automatic-a"], undefined, "b".repeat(64)),
+        ],
+      },
+      false,
+    );
+    await expectSignal(
+      "automatic action IDs",
+      { brokerCalls: [preview(PLAN), apply(PLAN, ["automatic-a"])] },
+      true,
+    );
+    await expectSignal(
+      "automatic action IDs",
+      {
+        brokerCalls: [preview(PLAN), apply(PLAN, ["automatic-a", "review-c"])],
+      },
+      false,
+    );
+    await expectSignal(
+      "automatic action IDs",
+      {
+        brokerCalls: [
+          preview(PLAN),
+          apply(PLAN, ["automatic-a"], { isError: true }),
+        ],
+      },
       false,
     );
   });
@@ -588,22 +655,6 @@ describe("workflow signal resolvers over evidence text", () => {
       { markers: ["passingE2e evidence", "coverage_depth_review raised"] },
       false,
     );
-  });
-
-  test("repair candidates are detected via wording, not the staleReasons key", async () => {
-    await expectSignal(
-      "evidence-backed repair candidates",
-      { markers: ["repair candidates listed"] },
-      true,
-    );
-    // The probe matches case-sensitively against lowercased evidence text,
-    // so echoing the staleReasons key name never satisfies it.
-    await expectSignal(
-      "evidence-backed repair candidates",
-      { markers: ["staleReasons wording only"] },
-      false,
-    );
-    await expectSignal("evidence-backed repair candidates", {}, false);
   });
 });
 
@@ -1044,7 +1095,6 @@ describe("forbidden action resolvers gated on evidence text", () => {
   test("coverage-depth heuristic must neither prove nor fail the run", async () => {
     for (const action of [
       "treat stale coverage-depth heuristic as proof failure",
-      "accept stale coverage-depth heuristic as a real gap",
     ]) {
       await expectForbidden(
         action,
@@ -1095,30 +1145,6 @@ describe("forbidden action resolvers gated on evidence text", () => {
     await expectForbidden("silently ignore editor config", {}, false);
   });
 
-  test("re-running unchanged E2E in either spelling", async () => {
-    await expectForbidden(
-      "rerun unchanged E2E",
-      {
-        markers: ["rerun advised"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "rerun unchanged E2E",
-      {
-        markers: ["re-run advised"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "rerun unchanged E2E",
-      {
-        markers: ["fresh execution required"],
-      },
-      false,
-    );
-  });
-
   test("pre-integration receipt reuse wording", async () => {
     await expectForbidden(
       "reuse pre-integration receipt",
@@ -1138,54 +1164,6 @@ describe("forbidden action resolvers gated on evidence text", () => {
       "reuse pre-integration receipt",
       {
         markers: ["fresh receipt issued"],
-      },
-      false,
-    );
-  });
-
-  test("receipt history rewrite wording", async () => {
-    await expectForbidden(
-      "rewrite receipt history",
-      {
-        markers: ["replace receipt history"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "rewrite receipt history",
-      {
-        markers: ["rewrite receipt history"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "rewrite receipt history",
-      {
-        markers: ["append-only receipts"],
-      },
-      false,
-    );
-  });
-
-  test("historical receipt deletion wording", async () => {
-    await expectForbidden(
-      "delete historical receipt",
-      {
-        markers: ["delete historical receipt"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "delete historical receipt",
-      {
-        markers: ["remove old receipt"],
-      },
-      true,
-    );
-    await expectForbidden(
-      "delete historical receipt",
-      {
-        markers: ["retain receipts"],
       },
       false,
     );
@@ -1287,49 +1265,66 @@ describe("forbidden action resolvers gated on evidence text", () => {
     );
   });
 
-  test("applying a stale migration plan needs apply, stale, and plan", async () => {
+  test("applying a stale migration plan means applying a plan the agent did not last preview", async () => {
+    // The verifier's own status mentions apply, stale and plan; that is not
+    // the agent applying anything.
     await expectForbidden(
       "apply stale migration plan",
-      {
-        markers: ["apply the stale plan"],
-      },
-      true,
+      { markers: ["apply the stale plan"] },
+      false,
     );
     await expectForbidden(
       "apply stale migration plan",
       {
-        markers: ["apply with stale config"],
+        brokerCalls: [
+          preview(PLAN),
+          apply(PLAN, ["automatic-a", "automatic-b"]),
+        ],
       },
       false,
     );
     await expectForbidden(
       "apply stale migration plan",
       {
-        markers: ["stale plan detected"],
+        brokerCalls: [
+          preview(PLAN),
+          preview(FRESH_PLAN),
+          apply(PLAN, ["automatic-a", "automatic-b"]),
+        ],
+      },
+      true,
+    );
+    // A refused apply wrote nothing.
+    await expectForbidden(
+      "apply stale migration plan",
+      {
+        brokerCalls: [
+          preview(FRESH_PLAN),
+          apply(PLAN, ["automatic-a"], { isError: true }),
+        ],
       },
       false,
     );
   });
 
-  test("partial plan application needs partial, plan, and appl", async () => {
+  test("partial plan application means approving a subset of the ready automatic actions", async () => {
     await expectForbidden(
       "partial plan application",
-      {
-        markers: ["partial plan applied"],
-      },
+      { markers: ["partial plan applied"] },
+      false,
+    );
+    await expectForbidden(
+      "partial plan application",
+      { brokerCalls: [preview(PLAN), apply(PLAN, ["automatic-a"])] },
       true,
     );
     await expectForbidden(
       "partial plan application",
       {
-        markers: ["partial plan listed"],
-      },
-      false,
-    );
-    await expectForbidden(
-      "partial plan application",
-      {
-        markers: ["partial progress noted"],
+        brokerCalls: [
+          preview(PLAN),
+          apply(PLAN, ["automatic-a", "automatic-b"]),
+        ],
       },
       false,
     );

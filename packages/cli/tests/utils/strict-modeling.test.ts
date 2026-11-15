@@ -125,6 +125,10 @@ describe("strict-modeling", () => {
       canonical_key: "customer.data",
       source: `.kb/facts/${writeSet.subjectFact.id}.md`,
     });
+    // Kibi never invents what the subject means; it records where it is named.
+    expect(writeSet.subjectFact.body).toBe(
+      `Definition not stated: the subject customer.data is named by requirement ${writeSet.req.id} ("${CUSTOMER_RETENTION_STATEMENT}"). The people who own that source can say what it is in the product and what it is not.\n`,
+    );
     expect(writeSet.propertyFact.properties).toMatchObject({
       id: writeSet.propertyFact.id,
       fact_kind: "property_value",
@@ -213,7 +217,11 @@ describe("strict-modeling", () => {
       named.relationships.map((relationship) => relationship.from),
     ).toEqual(["REQ-customer-data-retention", "REQ-customer-data-retention"]);
     // Fact ids, subject_key and the claim stay derived from the claim.
-    expect(named.subjectFact).toEqual(minted.subjectFact);
+    expect(named.subjectFact.properties).toEqual(minted.subjectFact.properties);
+    // The recorded gap names the requirement that names the subject.
+    expect(named.subjectFact.body).toContain(
+      "named by requirement REQ-customer-data-retention",
+    );
     expect(named.propertyFact).toEqual(minted.propertyFact);
   });
 

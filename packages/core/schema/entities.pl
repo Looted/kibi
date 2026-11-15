@@ -40,6 +40,10 @@ entity_property(req, semantic_inventory_version, string).
 entity_property(req, semantic_source_field, string).
 entity_property(req, semantic_source_hash, string).
 entity_property(req, semantic_inventory, list_or_json).
+% Verdicts on stored pairs whose unmodeled claims cannot be modeled
+% (related-requirement-unmodeled): with, verdict, separated_by or
+% resolved_by, claims and origin.
+entity_property(req, pair_reviews, list_or_json).
 entity_property(req, proof_exempt, boolean).
 entity_property(req, proof_exempt_reason, string).
 % Why a retired requirement no longer governs (required with status retired).
@@ -109,6 +113,11 @@ entity_property(fact, argument_aliases, string).
 entity_property(fact, aliases, list).
 entity_property(fact, examples, list).
 entity_property(fact, predicate_args, list).
+% Subject facts: broader subjects (part_of, kind_of) and similar subjects
+% checked to differ (distinct_from), each a list of subject keys.
+entity_property(fact, part_of, list).
+entity_property(fact, kind_of, list).
+entity_property(fact, distinct_from, list).
 entity_property(fact, rule_ir, string).
 entity_property(fact, rule_hash, string).
 % Rule schema references are JSON strings at the public boundary, but the
@@ -158,6 +167,7 @@ optional_property(req, semantic_inventory_version).
 optional_property(req, semantic_source_field).
 optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
+optional_property(req, pair_reviews).
 optional_property(req, proof_exempt).
 optional_property(req, proof_exempt_reason).
 optional_property(req, retired_reason).

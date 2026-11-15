@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-plugin-source-analysis-component
 type: fact
 ---
-The kibi.plugin.source_analysis component, as the structural requirements that name it constrain it.
+
+The maximum input a source analysis plugin accepts: 5242880 UTF-16 code units. It bounds input size, not analysis time.

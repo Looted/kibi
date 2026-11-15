@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-report-brand-colors-component
 type: fact
 ---
-The kibi.report.brand_colors component, as the structural requirements that name it constrain it.
+
+The named brand colours of the Kibi health report, such as carbon #1d1e23, signal, success, warning and danger. They style the report; they carry no meaning about the KB.

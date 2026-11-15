@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-impact-review-file-component
 type: fact
 ---
-The kibi.impact_review.file component, as the structural requirements that name it constrain it.
+
+The file .kibi/impact-review.json where an impact review is recorded. It is the location only, not the review format or policy.

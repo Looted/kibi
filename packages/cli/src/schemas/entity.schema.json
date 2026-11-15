@@ -704,6 +704,14 @@
           "reason": {
             "type": "string"
           },
+          "subjects": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
           "dimension": {
             "type": "object",
             "required": [
@@ -726,6 +734,90 @@
                     "set"
                   ]
                 }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "pair_reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "with",
+          "verdict"
+        ],
+        "properties": {
+          "with": {
+            "type": "string",
+            "minLength": 1
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "no_conflict",
+              "interacts",
+              "conflict"
+            ]
+          },
+          "separated_by": {
+            "type": "string"
+          },
+          "resolved_by": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "claims": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "claim_key"
+                  ],
+                  "properties": {
+                    "claim_key": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "payload_hash": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "note": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "human",
+                  "agent"
+                ]
+              },
+              "ref": {
+                "type": "string"
+              },
+              "approved_by": {
+                "type": "string"
               }
             },
             "additionalProperties": false
@@ -1748,6 +1840,30 @@
         "type": "string"
       }
     },
+    "part_of": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "kind_of": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "distinct_from": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "predicate_args": {
       "type": "array",
       "items": {
@@ -2003,6 +2119,21 @@
             },
             {
               "required": [
+                "part_of"
+              ]
+            },
+            {
+              "required": [
+                "kind_of"
+              ]
+            },
+            {
+              "required": [
+                "distinct_from"
+              ]
+            },
+            {
+              "required": [
                 "predicate_args"
               ]
             },
@@ -2121,6 +2252,11 @@
             {
               "required": [
                 "semantic_inventory"
+              ]
+            },
+            {
+              "required": [
+                "pair_reviews"
               ]
             },
             {

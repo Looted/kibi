@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-migration-action-codes-component
 type: fact
 ---
-The kibi.migration.action_codes component, as the structural requirements that name it constrain it.
+
+Codes for the requirement status migration, such as the req-status-delivered-map action and the implemented tag placed on delivered requirements. They identify actions, not the mapping rules.

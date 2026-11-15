@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-entity-body-rules-component
 type: fact
 ---
-The kibi.entity_body.rules component, as the structural requirements that name it constrain it.
+
+The check rules and tag for missing entity context: entity-context-missing, entity-context-acknowledged and the review:context-missing tag. It names rules and tags, not what counts as context.

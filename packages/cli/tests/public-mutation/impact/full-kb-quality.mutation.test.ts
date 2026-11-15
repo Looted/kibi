@@ -224,6 +224,27 @@ describe("entity projection", () => {
     expect(Object.keys(results[2] ?? {})).toEqual(["entity", "relationships"]);
   });
 
+  test("reads a proof exemption stored as a boolean or an atom", async () => {
+    const results = await load(
+      [true, "true", false, "false", "yes", 1, undefined].map((value, index) =>
+        base(
+          `R-${index}`,
+          "req",
+          value === undefined ? {} : { proof_exempt: value },
+        ),
+      ),
+    );
+    expect(results.map((result) => result.entity.proof_exempt)).toEqual([
+      true,
+      true,
+      false,
+      false,
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
   test("keeps every allowed value of each closed field", async () => {
     const allowed: Record<string, string[]> = {
       semantic_source_field: ["semantic_text", "text_ref", "title"],

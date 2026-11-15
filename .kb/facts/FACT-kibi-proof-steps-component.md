@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-proof-steps-component
 type: fact
 ---
-The kibi.proof.steps component, as the structural requirements that name it constrain it.
+
+Settings of proof steps and per-test reports: the default steps file proof/steps.json and the KIBI_PROOF_TEST_REPORT variable. They locate inputs, not step ordering.

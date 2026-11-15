@@ -175,13 +175,12 @@ describe("v1 symbol extractor", () => {
     // so fail it for methods alone.
     const original = MethodDeclaration.prototype.getEnd;
     spies.push(
-      spyOn(MethodDeclaration.prototype, "getEnd").mockImplementation(
-        function (this: unknown) {
-          if (this instanceof MethodDeclaration)
-            throw new Error("method failed");
-          return original.call(this as MethodDeclaration);
-        },
-      ),
+      spyOn(MethodDeclaration.prototype, "getEnd").mockImplementation(function (
+        this: unknown,
+      ) {
+        if (this instanceof MethodDeclaration) throw new Error("method failed");
+        return original.call(this as MethodDeclaration);
+      }),
     );
     const result = createBuiltinTsMorphSymbolExtractor().analyze({
       path: "src/box.ts",

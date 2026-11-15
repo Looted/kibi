@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-query-fact-kinds-component
 type: fact
 ---
-The kibi.query.fact_kinds component, as the structural requirements that name it constrain it.
+
+The fact kinds a fact query can filter on: subject, property_value, predicate, predicate_schema, observation, meta, rule and rule_schema. It is the filter vocabulary, not query results.

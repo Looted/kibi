@@ -13,3 +13,5 @@ origin:
 id: FACT-subject-skillopt-host-neutral-optimization
 type: fact
 ---
+
+The SkillOpt optimization loop independent of any one host: evidence stays with the harness chosen for the run, public feedback names the first missing required MCP call without private content, and adoption needs every gate plus reviewer approval of exact hashes. It changes only skill bodies.

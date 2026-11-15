@@ -88,6 +88,10 @@ import {
 import { collectIntroducedEntityContextViolations } from "../traceability/staged-entity-context.js";
 import { createStagedEntityIdStyleDiagnostics } from "../traceability/staged-entity-id-style.js";
 import {
+  collectStagedEvidenceFloorViolations,
+  floorChangedRequirementIds,
+} from "../traceability/staged-evidence-floor.js";
+import {
   type StagedFileCoverageResult,
   analyzeStagedFileCoverage,
 } from "../traceability/staged-file-coverage.js";
@@ -100,6 +104,10 @@ import {
   stagedStatementDriftViolations,
 } from "../traceability/staged-inventory-drift.js";
 import { stagedCommitCarriesMigration } from "../traceability/staged-migration.js";
+import {
+  readTreeManifest,
+  stagedRequirementRules,
+} from "../traceability/staged-requirement-rules.js";
 import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
@@ -125,9 +133,11 @@ import {
 } from "../traceability/validate.js";
 import { ensureBranchStoreCompiled } from "../utils/auto-compile.js";
 import { resolveReadBranchAttachment } from "../utils/branch-resolver.js";
+import { readKbManifest } from "../utils/kb-manifest.js";
 import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import type { Violation } from "../utils/rule-registry.js";
+import { getSchemaVersionStatus } from "../utils/schema-version.js";
 
 export type { Violation };
 
@@ -339,7 +349,7 @@ export function formatQualityDiagnostics(
 export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
-  migrationPlan?: MigrationPlan;
+  migrationPlan?: MigrationPlan | undefined;
 }): void {
   console.log(
     JSON.stringify({
@@ -348,10 +358,9 @@ export function printStructuredCheckResult(input: {
         count: input.violations.length,
         diagnostics: [],
         qualityDiagnostics: input.qualityDiagnostics,
-        // The same migration plan kb_check returns, so the CLI and MCP agree.
-        ...(input.migrationPlan !== undefined
-          ? { migrationPlan: input.migrationPlan }
-          : {}),
+        // The same migration plan kb_check returns, so the CLI and MCP agree
+        // (JSON leaves the key out when there is none).
+        migrationPlan: input.migrationPlan,
       },
     }),
   );
@@ -613,6 +622,25 @@ export function buildStagedKibiImpactEvidence(options: {
   };
 }
 
+/**
+ * A suggestion's first sentence, the rest pointed to: text `kibi check`
+ * lists every blocking finding with how to fix it, and `--fix` (or
+ * `--format json`) carries the whole suggestion.
+ */
+function conciseSuggestion(suggestion: string): string {
+  // A full stop that another sentence follows ends the first sentence,
+  // unless it closes an abbreviation such as "e.g." or "i.e.".
+  for (const next of suggestion.matchAll(/\.\s+\S/g)) {
+    const head = suggestion.slice(0, next.index);
+    if (SUGGESTION_ABBREVIATION.test(head)) continue;
+    return `${head}. (kibi check --fix shows more)`;
+  }
+  return suggestion;
+}
+
+/** Abbreviations whose full stop does not end a suggestion's sentence. */
+const SUGGESTION_ABBREVIATION = /(?:^|[\s(])(?:e\.g|i\.e)$/i;
+
 export function requireActiveProlog<E, P>(
   engine: E | null | undefined,
   prolog: P | null | undefined,
@@ -870,18 +898,23 @@ export async function checkCommand(
           snapshot.readBlobs,
         );
         // A commit must not introduce a contradiction or an infeasible
-        // scenario that full `kibi check` would report on the same tree.
+        // scenario that full `kibi check` would report on the same tree, nor
+        // a requirement-scoped blocking finding on an entity it stages.
         if (stagesKnowledge(stagedInventory.map((file) => file.path))) {
           const consistency = await collectIntroducedConsistencyViolations(
             snapshot,
             snapshotEntities,
+            stagedRequirementRules(snapshot, {
+              stagedPaths: markdownFiles.map((file) => file.path),
+              knowledge: snapshotEntities,
+            }) ?? undefined,
           );
           if (consistency.length > 0) {
             printSnapshotResult({
               format: options.format,
               coverage: stagedCoverage,
               violations: consistency,
-              messages: formatConsistencyViolations(consistency),
+              messages: formatConsistencyViolations(consistency, "blocking"),
             });
             return { exitCode: options.dryRun ? 0 : 1 };
           }
@@ -938,6 +971,31 @@ export async function checkCommand(
               `${statementDrift.length} staged requirement(s) changed their body statement without restating their pinned semantic_text:`,
               ...statementDrift.map((violation) => `  ${violation.message}`),
             ],
+          });
+          return { exitCode: options.dryRun ? 0 : 1 };
+        }
+        // A requirement whose floor the commit moves must reach that floor,
+        // judged on its staged front matter and the evidence the synced
+        // store holds.
+        const floor =
+          "branch" in store
+            ? await collectStagedEvidenceFloorViolations({
+                workspaceRoot: process.cwd(),
+                branch: store.branch,
+                requirementIds: floorChangedRequirementIds(
+                  markdownFiles,
+                  readStagedBase,
+                ),
+                schemaVersion: readTreeManifest(snapshot)?.schemaVersion,
+                stagedEntities: snapshotEntities,
+              })
+            : [];
+        if (floor.length > 0) {
+          printSnapshotResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            violations: floor,
+            messages: formatConsistencyViolations(floor, "blocking"),
           });
           return { exitCode: options.dryRun ? 0 : 1 };
         }
@@ -1360,13 +1418,17 @@ export async function checkCommand(
     const qualityDiagnostics =
       result.structuredContent?.qualityDiagnostics ?? [];
     if (options.format === "json") {
-      const migrationPlan = result.structuredContent?.migrationPlan;
       printStructuredCheckResult({
         violations,
         qualityDiagnostics,
-        ...(migrationPlan !== undefined ? { migrationPlan } : {}),
+        migrationPlan: result.structuredContent?.migrationPlan,
       });
       return { exitCode: violations.length === 0 ? 0 : 1 };
+    }
+    const schemaNote = schemaUpgradeNote(process.cwd());
+    if (schemaNote !== null) {
+      console.log(schemaNote);
+      console.log();
     }
     const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);
     if (violations.length === 0) {
@@ -1393,9 +1455,12 @@ export async function checkCommand(
       console.log(`  ${v.description}`);
       // An evidence-floor finding names no fix in its description; its
       // suggestion carries the proof gaps and the tests and symbols behind
-      // them, so it is always shown.
-      if (v.suggestion && (options.fix || v.rule === EVIDENCE_FLOOR_RULE)) {
-        console.log(`  Suggestion: ${v.suggestion}`);
+      // them, so it is always shown whole. Other suggestions show their
+      // first sentence unless --fix asks for all of it.
+      if (v.suggestion) {
+        console.log(
+          `  Suggestion: ${options.fix || v.rule === EVIDENCE_FLOOR_RULE ? v.suggestion : conciseSuggestion(v.suggestion)}`,
+        );
       }
       console.log();
     }
@@ -1414,6 +1479,19 @@ export async function checkCommand(
     await engine?.terminate();
     await safeCleanupProlog(prolog);
   }
+}
+
+/**
+ * The text check's pointer to `kibi migrate` on a KB whose manifest records
+ * an older schema: rules a later schema introduced wait for the upgrade, so a
+ * clean result does not yet cover them. Null on a current, newer or
+ * unreadable manifest.
+ */
+export function schemaUpgradeNote(workspaceRoot: string): string | null {
+  const status = getSchemaVersionStatus(readKbManifest(workspaceRoot));
+  return status.status === "older"
+    ? `Note: ${status.warning} Rules a later schema adds are not checked until the upgrade runs.`
+    : null;
 }
 
 export async function checkMustPriorityCoverage(

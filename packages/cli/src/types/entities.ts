@@ -95,6 +95,12 @@ export interface FactFields {
   aliases?: string[];
   examples?: string[];
   predicate_args?: string[];
+  /** subject only: broader subjects this one is a part of. */
+  part_of?: string[];
+  /** subject only: broader subjects this one is a kind of. */
+  kind_of?: string[];
+  /** subject only: similar subjects this one was checked to differ from. */
+  distinct_from?: string[];
 }
 
 export interface TestVerificationFields {

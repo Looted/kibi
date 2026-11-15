@@ -171,7 +171,10 @@
                 "claim_span_start": 0,
                 "claim_span_end": 46
               },
-              "relationships": []
+              "relationships": [],
+              "document": {
+                "body": "Definition not stated: the subject reports.per.minute is named by requirement REQ-SEMANTIC-ADVISOR-PREVIEW (\"Users must export at most 5 reports per minute.\"). The people who own that source can say what it is in the product and what it is not.\n"
+              }
             },
             {
               "type": "fact",

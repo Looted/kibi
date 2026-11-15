@@ -2,7 +2,7 @@
 title: The minimum context section length shall be 12 words
 status: active
 fact_kind: property_value
-subject_key: kibi.entity_body.context
+subject_key: kibi.entity_body_context
 claim_key: CLAIM-3AE5FD48C8040C7C
 claim_text: The minimum context section length shall be 12 words
 text_ref: REQ-kb-entity-body-context-settings

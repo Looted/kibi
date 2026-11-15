@@ -286,3 +286,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-19c38e0f54fa
+  - type: constrains
+    from: REQ-kb-domain-subject-layer
+    to: FACT-SUBJECT-kibi-domain-subjects
+    created_at: 2026-11-12T18:44:24.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-131f9a508751
+  - type: requires_property
+    from: REQ-kb-domain-subject-layer
+    to: FACT-kb-domain-subject-layer-definition-reported
+    created_at: 2026-11-12T18:44:24.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3faf42b7cc01
+  - type: requires_property
+    from: REQ-kb-domain-subject-layer
+    to: FACT-kb-domain-subject-layer-duplicate-reported
+    created_at: 2026-11-12T18:44:24.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c51edf8342a8
+  - type: requires_property
+    from: REQ-kb-domain-subject-layer
+    to: FACT-kb-domain-subject-layer-unanchored-claim-reported
+    created_at: 2026-11-12T18:44:24.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c996bf1457b
+  - type: requires_property
+    from: REQ-kb-domain-subject-layer
+    to: FACT-kb-domain-subject-layer-undefined-subject-reported
+    created_at: 2026-11-12T18:44:24.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d61685b0725
+  - type: relates_to
+    from: REQ-kb-domain-subject-layer
+    to: REQ-check-related-requirement-unmodeled
+    created_at: 2026-11-12T18:44:24.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33c6d1f056f7
+  - type: specified_by
+    from: REQ-kb-domain-subject-layer
+    to: SCEN-kb-domain-subject-layer
+    created_at: 2026-11-12T18:45:07.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e161e564bf6
+  - type: specified_by
+    from: REQ-kb-domain-subject-layer
+    to: SCEN-NEG-kb-domain-subject-layer-DEFINITION-UNREPORTED
+    created_at: 2026-11-12T18:45:07.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84377b3062e6
+  - type: specified_by
+    from: REQ-kb-domain-subject-layer
+    to: SCEN-NEG-kb-domain-subject-layer-DUPLICATE-UNREPORTED
+    created_at: 2026-11-12T18:45:07.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4cd61947be9
+  - type: specified_by
+    from: REQ-kb-domain-subject-layer
+    to: SCEN-NEG-kb-domain-subject-layer-UNANCHORED-UNREPORTED
+    created_at: 2026-11-12T18:45:07.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da3daba25ba8
+  - type: specified_by
+    from: REQ-kb-domain-subject-layer
+    to: SCEN-NEG-kb-domain-subject-layer-UNDEFINED-UNREPORTED
+    created_at: 2026-11-12T18:45:07.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff5b3aa247a1

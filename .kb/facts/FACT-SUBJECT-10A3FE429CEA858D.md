@@ -20,3 +20,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The benchmark that measures staged-impact check timing on an installed Kibi package, with bounded timing integrity that fails closed on malformed or truncated source-analysis observations. It is a measurement harness, not the staged check itself.

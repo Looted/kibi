@@ -57,8 +57,9 @@ async function storedRequirement(
  * `logic_claims` field, and no `title` or `text_ref` that differs from the
  * stored value, is merged over the stored semantic contract (and the stored
  * `text_ref` it omits) before validation. When the stored ledger reads its
- * prose from `semantic_text`, a changed `text_ref` is merged the same way,
- * since it is not the prose. The
+ * prose from `semantic_text`, a changed `title` or `text_ref` is merged the
+ * same way, since neither is the prose: the authored file keeps its ledger,
+ * and the store must not lose the claims and subjects it records. The
  * proposition-complete check then runs against the merged requirement, which
  * is also what the write records. A payload that supplies any ledger field or
  * changes the prose is validated exactly as given.
@@ -74,19 +75,18 @@ export async function withStoredRequirementSemantics(
   if (suppliesSemanticContract(properties)) return input;
   const stored = await storedRequirement(input.id, lookup, staged);
   if (stored === undefined) return input;
-  // text_ref is prose only while it is the semantic source. Once the stored
-  // ledger reads semantic_text, changing it (for example clearing a text_ref
-  // whose file is gone) changes no proposition. A changed title stays a
-  // prose change: it is what a reader takes the requirement to say.
+  // Title and text_ref are prose only while they are the semantic source.
+  // Once the stored ledger reads semantic_text, changing either (renaming the
+  // requirement, or clearing a text_ref whose file is gone) changes no
+  // proposition: the authored file keeps its ledger, so the store must too.
   const readsSemanticText =
     stored.semantic_source_field === "semantic_text" &&
     stringValue(stored.semantic_text).length > 0;
   if (
+    !readsSemanticText &&
     PROSE_FIELDS.some(
       (field) =>
-        !(field === "text_ref" && readsSemanticText) &&
-        properties[field] !== undefined &&
-        properties[field] !== stored[field],
+        properties[field] !== undefined && properties[field] !== stored[field],
     )
   )
     return input;
@@ -191,6 +191,6 @@ export async function assertStoredRequirementBoundary(
   }
   throw new KbRejection(
     "INCOMPLETE_PROPOSITIONS",
-    `Proposition-complete ingestion failed: ${input.id} would be written as a current requirement without a complete proposition inventory (${after.errors.join("; ")}). Run kb_model mode analyze (CLI: semantic-advisor) with id '${input.id}' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
+    `Proposition-complete ingestion failed: ${input.id} would be written as a current requirement without a complete proposition inventory (${after.errors.join("; ")}). Run kb_model mode analyze (CLI: kibi model) with id '${input.id}' and its complete semantic_text, then send the returned inventory contract (semantic_inventory, semantic_inventory_version, semantic_source_field, semantic_source_hash, logic_claims) in this kb_upsert, or retire the requirement through a superseding one instead.`,
   );
 }

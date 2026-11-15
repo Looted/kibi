@@ -13,4 +13,5 @@ origin:
 id: FACT-SUBJECT-kibi-telemetry-acceptance
 type: fact
 ---
-The subject kibi.telemetry.acceptance.
+
+The usage acceptance gate built from telemetry: metrics credit validation, advisor use, recovery and lookup before first edit only when events correlate in order, and the report passes only on fresh complete evidence and sets the CLI exit code. It judges workflow, not product health.

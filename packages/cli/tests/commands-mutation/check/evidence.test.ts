@@ -239,6 +239,20 @@ describe("markdown evidence", () => {
     expect(evidence.mode).toEqual({ kind: "missing" });
   });
 
+  test("a parsed entity outside the entity lanes is not evidence", () => {
+    const evidence = build({
+      sourceFiles: [file("src/behavior.ts")],
+      symbolsByFile: new Map([["src/behavior.ts", [{}]]]) as never,
+      markdownFiles: [
+        file("docs/REQ-1.md", { content: "---\nid: REQ-1\n---\n" }),
+      ],
+      markdownResultsByPath: new Map([
+        ["docs/REQ-1.md", entity("req", "REQ-1")],
+      ]),
+    });
+    expect(evidence.mode).toEqual({ kind: "missing" });
+  });
+
   test("an entity document quoting a no-impact line stays evidence", () => {
     const evidence = build({
       sourceFiles: [file("src/behavior.ts")],

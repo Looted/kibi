@@ -207,6 +207,9 @@ export function replacedRequirements(
   const replaced = new Set<string>();
   for (const head of requirements) {
     if (isClosed(head) || RETIRED_STATUS.test(String(head.status))) continue;
+    // rationale: a placeholder entry in place of no links is not an object,
+    // so it never reads as a supersedes link.
+    // Stryker disable next-line ArrayDeclaration
     for (const link of readEntitySummary(workspaceRoot, head.id).links ?? [])
       if (link.type === "supersedes" && closed.has(link.target))
         replaced.add(link.target);

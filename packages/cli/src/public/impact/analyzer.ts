@@ -103,6 +103,9 @@ export async function analyzeChangedFileImpact(
   const manifestResults =
     snapshotKnowledge ?? readImpactManifestResults(workspaceRoot);
   const manifestLookup = createImpactManifestLookup(manifestResults);
+  const snapshotEntities = new Map(
+    snapshotKnowledge?.map((result) => [result.entity.id, result.entity]),
+  );
   const symbolsByFile = new Map<string, ExtractedSymbol[]>();
   const sourceSymbolsByFile = new Map<string, ExtractedSymbol[]>();
 
@@ -133,6 +136,9 @@ export async function analyzeChangedFileImpact(
         path: change.file,
         status: change.status,
         content: change.content,
+        // rationale: a placeholder hunk keeps every declaration too, and no
+        // reader of sourceSymbolsByFile looks at a symbol's hunks
+        // Stryker disable next-line ArrayDeclaration
         hunkRanges: [],
       },
       manifestLookup,
@@ -176,10 +182,10 @@ export async function analyzeChangedFileImpact(
           ...createRequirementStatementDiagnostics({
             workspaceRoot,
             symbolsByFile,
+            // A snapshot holds every endpoint its symbols link to.
             readRequirement: (id) =>
               snapshotKnowledge
-                ? snapshotKnowledge.find((result) => result.entity.id === id)
-                    ?.entity
+                ? snapshotEntities.get(id)
                 : readWorkspaceRequirement(workspaceRoot, id),
             requirementChanged: (requirement) =>
               snapshot

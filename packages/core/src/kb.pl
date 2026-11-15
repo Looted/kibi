@@ -2229,7 +2229,7 @@ integer_property_key(Key) :-
 % intact: JSON arrays are also valid Prolog list syntax, but parsing them as
 % Prolog terms corrupts their object entries before the JSON decoder sees them.
 literal_to_value(Key, Literal, Value) :-
-    memberchk(Key, [semantic_inventory, proof_receipts, proof_contract, proof_bindings]),
+    memberchk(Key, [semantic_inventory, pair_reviews, proof_receipts, proof_contract, proof_bindings]),
     !,
     structured_literal_value(Literal, Value).
 literal_to_value(_Key, Literal, Value) :-
@@ -2453,10 +2453,16 @@ coverage_gap(Req, missing_test) :-
 must_requirement(Req) :-
     kb_entity(Req, req, Props),
     memberchk(priority=Priority, Props),
+    must_priority(Priority),
+    coverage_current_requirement(Req, Props).
+
+%% must_priority(+Priority)
+% A stored priority reads as must when it ends in "must" (must, p0-must).
+% Every rule that asks whether a requirement is must reads it here.
+must_priority(Priority) :-
     normalize_term_atom(Priority, PriorityAtom),
     atom_string(PriorityAtom, PriorityStr),
-    sub_string(PriorityStr, _, 4, 0, "must"),
-    coverage_current_requirement(Req, Props).
+    sub_string(PriorityStr, _, 4, 0, "must").
 
 %% coverage_current_requirement(+Req, +Props)
 % A requirement is still owed coverage unless it is retired: superseded by
@@ -2471,7 +2477,7 @@ coverage_current_requirement(Req, Props) :-
     ->  normalize_term_atom(RawStatus, Status)
     ;   Status = missing
     ),
-    \+ memberchk(Status, [deprecated, superseded, archived, removed, deleted, rejected]),
+    \+ memberchk(Status, [deprecated, superseded, retired, archived, removed, deleted, rejected]),
     (   Status == closed
     ->  memberchk(tags=RawTags, Props),
         normalize_term_atom_list(RawTags, Tags),

@@ -209,3 +209,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eeeeab371f47
+  - type: requires_rule
+    from: REQ-skillopt-reference-answers-score-100
+    to: FACT-RULE-4CA3241DB4F4EE49
+    created_at: 2026-11-14T04:50:30.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2bcc3225d49
+  - type: requires_predicate
+    from: REQ-skillopt-reference-answers-score-100
+    to: FACT-PRED-skillopt-reference-verification-fails
+    created_at: 2026-11-14T04:50:30.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e62566043c5
+  - type: specified_by
+    from: REQ-skillopt-reference-answers-score-100
+    to: SCEN-skillopt-reference-answers-score-100
+    created_at: 2026-11-14T04:50:30.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0357df51ee79
+  - type: specified_by
+    from: REQ-skillopt-reference-answers-score-100
+    to: SCEN-NEG-skillopt-reference-CASE-UNREACHABLE
+    created_at: 2026-11-14T04:50:30.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3928cb00366
+  - type: specified_by
+    from: REQ-skillopt-reference-answers-score-100
+    to: SCEN-NEG-skillopt-reference-BELOW-100-PASSES
+    created_at: 2026-11-14T04:50:30.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4862269cae5e
+  - type: verified_by
+    from: REQ-skillopt-reference-answers-score-100
+    to: TEST-skillopt-reference-answers-score-100
+    created_at: 2026-11-14T04:50:30.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ade0b779778f

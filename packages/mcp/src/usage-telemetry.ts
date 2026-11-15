@@ -11,6 +11,7 @@ import { operationTelemetrySignals } from "kibi-runtime";
 
 import { classifyDiagnosticError } from "./diagnostics-helpers.js";
 import { readMcpPackageVersion } from "./diagnostics.js";
+import { resolveWorkspaceRoot } from "./workspace.js";
 
 /**
  * Anonymous usage telemetry for the MCP server: one summary event per tool
@@ -27,6 +28,15 @@ let packageVersion: string | null | undefined;
 /**
  * The host comes from the launcher's `KIBI_MCP_HOST` or the host's own
  * variables, else from the client name the host sent on initialize.
+ *
+ * The workspace is the one this process answers from: its pin
+ * (`KIBI_WORKSPACE`), else the Kibi or git root of the directory it runs in,
+ * the same root the workspace router attaches to. A call routed to another
+ * workspace is answered and recorded by that workspace's own child server,
+ * which is pinned to it. The raw start directory is never used: a server
+ * started in a home directory would otherwise mark it for every repository
+ * below, and a routed child inheriting the launcher's `KIBI_MCP_ATTACH_ROOT`
+ * would mark the parent's checkout instead of its own.
  */
 function telemetrySource(clientName: string | undefined): TelemetrySource {
   if (packageVersion === undefined) packageVersion = readMcpPackageVersion();
@@ -34,10 +44,7 @@ function telemetrySource(clientName: string | undefined): TelemetrySource {
     packageName: "kibi-mcp",
     packageVersion,
     host: detectTelemetryHost() ?? clientName,
-    workspaceRoot:
-      process.env.KIBI_MCP_ATTACH_ROOT ??
-      process.env.KIBI_WORKSPACE ??
-      process.cwd(),
+    workspaceRoot: resolveWorkspaceRoot(),
   };
 }
 

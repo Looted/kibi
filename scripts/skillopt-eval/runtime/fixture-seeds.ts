@@ -7,6 +7,7 @@
  * (fixture family names, client call quotas) so no case leaks a held-out
  * checkout analogue.
  */
+import { QUALITY_SEEDED_IDS } from "./quality-seeds";
 
 /** Entity IDs seeded by `seeded_governed_area_kb`. */
 export const GOVERNED_AREA_IDS = {
@@ -195,6 +196,7 @@ export const SEEDED_ENTITY_IDS: ReadonlySet<string> = new Set([
   ...Object.values(CONSISTENCY_IDS),
   ...Object.values(UNRESOLVED_RULE_IDS),
   ...Object.values(JOINT_CONTRADICTION_IDS),
+  ...QUALITY_SEEDED_IDS,
 ]);
 
 export const GOVERNED_FIXTURE_SOURCE = [
@@ -360,14 +362,17 @@ export const PRECONDITION_APPROVED_EXCEPTION = {
 } as const;
 
 /** Subject fact shared by the consistency requirements. */
-export const CONSISTENCY_SUBJECT_DOCUMENT = doc([
-  `id: ${CONSISTENCY_IDS.subject}`,
-  "title: Client call quota",
-  "type: fact",
-  "status: active",
-  "fact_kind: subject",
-  "subject_key: client.call_quota",
-]);
+export const CONSISTENCY_SUBJECT_DOCUMENT = doc(
+  [
+    `id: ${CONSISTENCY_IDS.subject}`,
+    "title: Client call quota",
+    "type: fact",
+    "status: active",
+    "fact_kind: subject",
+    "subject_key: client.call_quota",
+  ],
+  "The number of calls a client may still make in the current quota window of the gateway; it is not the account's billing plan.",
+);
 
 /** A `client.call_quota.remaining` property fact grounding one claim. */
 export function consistencyValueFact(input: {
@@ -405,6 +410,8 @@ export type LedgerProposition = Readonly<{
   role: string;
   status: string;
   span: Readonly<{ start: number; end: number }>;
+  /** Defined subject keys an unmodeled claim is about. */
+  subjects?: readonly string[];
 }>;
 
 /** A current requirement carrying the advisor's clause ledger. */
@@ -419,6 +426,8 @@ export function ledgerRequirement(input: {
   }>;
   readonly propositions: readonly LedgerProposition[];
   readonly links: readonly Readonly<{ type: string; target: string }>[];
+  /** Front-matter lines written before the links, such as pair_reviews. */
+  readonly extra?: readonly string[];
 }): string {
   return doc(
     [
@@ -438,8 +447,12 @@ export function ledgerRequirement(input: {
         `    role: ${proposition.role}`,
         `    status: ${proposition.status}`,
         `    span: {start: ${proposition.span.start}, end: ${proposition.span.end}}`,
+        ...(proposition.subjects === undefined
+          ? []
+          : [`    subjects: [${proposition.subjects.join(", ")}]`]),
       ]),
       `logic_claims: [${input.propositions.map((p) => p.claim_key).join(", ")}]`,
+      ...(input.extra ?? []),
       "links:",
       ...input.links.flatMap((link) => [
         `  - type: ${link.type}`,

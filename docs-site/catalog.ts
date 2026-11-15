@@ -246,6 +246,27 @@ export function publishedPageHref(page: DocPage, fragment = ""): string {
   return `${PUBLISHED_SITE_ORIGIN}/${sitePagePath(page)}${hash}`;
 }
 
+/**
+ * Link-preview image (Open Graph and Twitter cards), copied from assets/ to
+ * the site root. Previews need an absolute URL, so pages reference it through
+ * publishedOgImageHref().
+ */
+export const OG_IMAGE = {
+  path: "og-image.png",
+  source: "assets/og-image.png",
+  width: 1200,
+  height: 630,
+  alt: "Kibi: Say what the software should do. Your agent won't forget why.",
+} as const;
+
+export function publishedOgImageHref(): string {
+  return `${PUBLISHED_SITE_ORIGIN}/${OG_IMAGE.path}`;
+}
+
+export function publishedLandingHref(): string {
+  return `${PUBLISHED_SITE_ORIGIN}/`;
+}
+
 export function publishedLlmsIndexHref(): string {
   return `${PUBLISHED_SITE_ORIGIN}/${LLMS_INDEX_PATH}`;
 }

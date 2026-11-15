@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-knowledge-sources-vocabulary-component
 type: fact
 ---
-The kibi.knowledge_sources.vocabulary component, as the structural requirements that name it constrain it.
+
+The words bootstrap uses to describe knowledge sources: kinds such as issue_tracker, wiki, specification and chat, authorities authoritative, supporting or stale, and claim kinds. It is vocabulary, not the sources themselves.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-logic-rule-limits-component
 type: fact
 ---
-The kibi.logic.rule_limits component, as the structural requirements that name it constrain it.
+
+Limits of the logic representation: the IR version kibi.logic.v1 and at most 64 atoms per logical rule. They bound modeled rules, not which claims are modeled.

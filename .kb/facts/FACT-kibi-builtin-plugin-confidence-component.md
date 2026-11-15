@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-builtin-plugin-confidence-component
 type: fact
 ---
-The kibi.builtin_plugin.confidence component, as the structural requirements that name it constrain it.
+
+The confidence score of 0.84 the built-in plugin assigns when one of its predicate rules matches requirement prose. It is a single scoring constant, not the predicate suggestion threshold.

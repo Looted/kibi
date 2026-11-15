@@ -5,6 +5,7 @@ import {
   normalizeSourceKey,
   normalizeSubjectKey,
 } from "../../utils/strict-modeling.js";
+import { notStatedDefinition } from "../../utils/subject-definition.js";
 import type { Candidate } from "./types.js";
 
 export function normalizeClaimStatement(statement: string): string {
@@ -497,7 +498,10 @@ export function shareSubjectFacts(candidates: readonly Candidate[]): {
             ],
           },
           document: {
-            body: `Subject ${sharing.key}, shared by the requirements bootstrap planned from ${sharing.owner.sources.join(", ")}. Each of them links to this fact through constrains.\n`,
+            body: notStatedDefinition(
+              sharing.key,
+              `the requirements bootstrap planned from ${sharing.owner.sources.join(", ")}, each of which links to this fact through constrains`,
+            ),
           },
         };
       }),

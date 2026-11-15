@@ -13,3 +13,5 @@ subject_key: predicate_catalog.ui_patterns
 id: FACT-predicate-catalog-ui-patterns-subject
 type: fact
 ---
+
+The built-in predicate schemas for describing user interface structure: ui_pattern, same_pattern, pattern_marker and ui_container, and the routing of UI pattern prose to them instead of coding-standard rules.

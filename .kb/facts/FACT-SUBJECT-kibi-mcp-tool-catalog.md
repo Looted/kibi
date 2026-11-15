@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-mcp-tool-catalog
 type: fact
 ---
-The subject kibi.mcp.tool_catalog.
+
+The list of tools the Kibi MCP server registers: sixteen default tools plus the optional kb_sparql_remote and kb_job_status. It names the tools, not their behavior or the CLI commands.

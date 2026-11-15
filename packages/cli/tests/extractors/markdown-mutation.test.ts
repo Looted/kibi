@@ -516,6 +516,24 @@ describe("base fields", () => {
     ]);
   });
 
+  test("marks a created_at the front matter states, and only that one", () => {
+    freezeTime();
+    expect(
+      extractFromMarkdownString(
+        md("id: R\ntitle: T\ncreated_at: c"),
+        "/kb/requirements/r.md",
+      ).createdAtAuthored,
+    ).toBe(true);
+    for (const stated of ["", "created_at: ''\n", "created_at: 5\n"]) {
+      const result = extractFromMarkdownString(
+        md(`id: R\ntitle: T\n${stated}`),
+        "/kb/requirements/r.md",
+      );
+      expect("createdAtAuthored" in result).toBe(false);
+      expect(result.entity.created_at).toBe(NOW);
+    }
+  });
+
   test("rejects an invalid origin", () => {
     expect(shape(fails("id: R\ntitle: T\norigin: human"))).toStrictEqual({
       message: "Invalid origin: origin must be a mapping with at least a kind",
@@ -632,6 +650,8 @@ describe("requirement-only fields", () => {
       "failure_side_waiver: a",
       "failure_side_waiver_approved_by: a",
       "rationale: a",
+      "retired_reason: a",
+      "pair_reviews: [{ with: REQ-A, verdict: conflict }]",
     ]) {
       expect([field, flag(field)]).toStrictEqual([
         field,
@@ -683,6 +703,17 @@ describe("requirement-only fields", () => {
         filePath: "/kb/requirements/r.md",
       });
     }
+  });
+
+  test("keeps the pair reviews that are records", () => {
+    expect(
+      extract(
+        "id: R\ntitle: T\npair_reviews: [{ with: REQ-A, verdict: conflict }, 5, [2]]",
+      ).entity.pair_reviews,
+    ).toStrictEqual([{ with: "REQ-A", verdict: "conflict" }]);
+    expect(
+      extract("id: R\ntitle: T\npair_reviews: x").entity.pair_reviews,
+    ).toBe(undefined);
   });
 
   test("validates the retired reason", () => {

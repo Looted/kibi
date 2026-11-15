@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-staged-impact-file-coverage-component
 type: fact
 ---
-The kibi.staged_impact.file_coverage component, as the structural requirements that name it constrain it.
+
+The version kibi.staged-file-coverage.v1 of the staged file coverage result. It versions a result document, not the staged check.

@@ -29,6 +29,7 @@ import * as granularity from "../../../src/public/operations/symbol-granularity-
 import * as snapshots from "../../../src/public/operations/workspace-snapshot.js";
 import * as resolver from "../../../src/utils/branch-resolver.js";
 import * as branchStore from "../../../src/utils/branch-store.js";
+import * as kbManifest from "../../../src/utils/kb-manifest.js";
 
 // biome-ignore lint/suspicious/noExplicitAny: spies on many differently typed exports
 type AnySpy = any;
@@ -98,6 +99,7 @@ type HarnessOptions = {
   statusError?: unknown;
   partitionQuality?: readonly Record<string, unknown>[];
   aggregated?: readonly Record<string, unknown>[];
+  manifest?: unknown;
 };
 
 /** Replace every collaborator with a recording fake. */
@@ -154,6 +156,9 @@ function harness(options: HarnessOptions = {}) {
     ),
     structured: spy(format, "buildStructuredContent").mockImplementation(
       (input: unknown) => input,
+    ),
+    manifest: spy(kbManifest, "readKbManifest").mockReturnValue(
+      (options.manifest ?? null) as never,
     ),
     aggregated: spy(aggregated, "runAggregatedChecks").mockResolvedValue(
       options.aggregated ?? [finding("aggregated")],
@@ -536,6 +541,20 @@ describe("executeCheck", () => {
     );
   });
 
+  test("runs the aggregated checks at the manifest's schema version", async () => {
+    const calls = harness({
+      rules: ALL_RULES,
+      manifest: { schemaVersion: 17 },
+    });
+    const prolog = prologPort();
+    await run({ workspaceRoot: "/ws/args" }, context({ prolog }));
+    expect(calls.aggregated).toHaveBeenCalledWith(
+      prolog,
+      new Set(ALL_RULES),
+      17,
+    );
+  });
+
   test("runs every selected rule and gathers its findings", async () => {
     const calls = harness({
       rules: ALL_RULES,
@@ -564,7 +583,9 @@ describe("executeCheck", () => {
     );
     expect(invalidate.count).toBe(1);
     const rules = new Set(ALL_RULES);
-    expect(calls.aggregated).toHaveBeenCalledWith(prolog, rules);
+    // A store without a manifest runs every schema-gated rule as before it.
+    expect(calls.aggregated).toHaveBeenCalledWith(prolog, rules, 0);
+    expect(calls.manifest).toHaveBeenCalledWith("/ws/args");
     expect(calls.queryPlan).toHaveBeenCalledWith();
     expect(calls.parity).toHaveBeenCalledWith("/ws/args", prolog);
     expect(calls.predicates).toHaveBeenCalledWith(prolog);
@@ -694,6 +715,23 @@ describe("executeCheck", () => {
     const calls = harness({ rules: ["aggregated"] });
     await run({}, context({ branchAttachment: ATTACHED as never }));
     expect(calls.granularity.mock.calls[0][3]).toBe("/ws/store");
+  });
+
+  test("tells the plan which diagnostics the impact analysis listed", async () => {
+    const listed = { id: "I-1" };
+    const calls = harness({
+      rules: ["aggregated"],
+      impact: { impactDiagnostics: [listed] },
+    });
+    await run({ rules: ["aggregated"] });
+    const [input] = calls.actions.mock.calls.at(-1);
+    expect(input.impactDiagnostics).toStrictEqual(new Set([listed]));
+    expect(input.impactDiagnostics.has(listed)).toBe(true);
+    calls.impact.mockResolvedValue(undefined);
+    await run({ rules: ["aggregated"] });
+    expect(
+      Object.hasOwn(calls.actions.mock.calls.at(-1)[0], "impactDiagnostics"),
+    ).toBe(false);
   });
 
   test("keeps impact diagnostics when the rules were chosen", async () => {

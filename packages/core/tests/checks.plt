@@ -1429,6 +1429,12 @@ test(general_rule_reason_renders_the_stored_rule) :-
         Reason == Expected
     )).
 
+% A scoped rule reads the assumptions in its own scope.
+test(general_rule_reads_assumptions_in_its_scope, Verdict == [undecided_rule([rf])]) :-
+    A = m(assumption, a, a, s-p, eu, int, '', eq, 1, t),
+    chk_gr(forbids, eu, applies, false, [s-p], untranslatable, GR),
+    chk_verdict([A], GR, Verdict).
+
 test(general_rule_results_append) :-
     chk_a(a, eq, 1, A),
     chk_gr(forbids, '', applies, false, [s-p], untranslatable, GR),
@@ -1450,6 +1456,12 @@ test(property_assumption_statuses, Statuses == [governed, governed, outside_vali
             checks:property_assumption_status(A, Covers, S)
         ),
         Statuses).
+
+% A scoped assumption is governed by a constraint in its scope.
+test(scoped_assumption_statuses, Statuses == ['F-EU'-governed]) :-
+    A = m(assumption, 'F-EU', 'F-EU', s-p, eu, int, '', eq, 1, t),
+    R = m(requirement, r, f, s-p, eu, int, '', eq, 1, t),
+    chk_kb(checks:assumption_statuses(['F-EU'], [A], [rc(R, applies, false)], [], [], Statuses)).
 
 test(assumption_statuses, Statuses == ['F-PROP'-governed, 'F-ACT'-action, 'F-OTHER'-unmatched, 'F-NONE'-unmatched]) :-
     chk_kb((
@@ -2519,6 +2531,42 @@ test(retired_owner_only_mixed_owners) :-
         violation('retired-owner-only', 'SCEN-MIXED', D2, S, 'SCEN-MIXED.md', _{entityType: scenario, owners: ['REQ-DEP', 'REQ-R1']})
     ]).
 
+% Owners are read by type: only requirements own a dependent, a test's
+% scenario owners come through scenarios only, and a test stays current
+% whatever its status. A non-fact a retired requirement constrains is no
+% dependent.
+test(retired_owner_only_reads_owners_by_type) :-
+    chk_kb((
+        chk_req('REQ-R1', [status=retired, retired_reason="Gone"]),
+        chk_req('REQ-LIVE'),
+        chk_ent(adr, 'ADR-X', []),
+        chk_ent(symbol, 'SYM-X', []),
+        chk_raw_rel(constrains, 'REQ-R1', 'SYM-X'),
+        chk_ent(fact, 'FACT-ADR', []),
+        chk_rel(constrains, 'REQ-R1', 'FACT-ADR'),
+        chk_raw_rel(constrains, 'ADR-X', 'FACT-ADR'),
+        chk_ent(scenario, 'SCEN-ADR', []),
+        chk_rel(specified_by, 'REQ-R1', 'SCEN-ADR'),
+        chk_raw_rel(specified_by, 'ADR-X', 'SCEN-ADR'),
+        chk_ent(test, 'TEST-VALIDATES', [status=passing]),
+        chk_rel(validates, 'TEST-VALIDATES', 'REQ-R1'),
+        chk_ent(fact, 'FACT-ODD', []),
+        chk_ent(test, 'TEST-ODD', [status=passing]),
+        chk_rel(verified_by, 'REQ-R1', 'TEST-ODD'),
+        chk_raw_rel(validates, 'TEST-ODD', 'FACT-ODD'),
+        chk_raw_rel(specified_by, 'REQ-LIVE', 'FACT-ODD'),
+        chk_raw_entity(test, 'TEST-DEPRECATED', [id='TEST-DEPRECATED', title="Fixture entity",
+                                                  status=deprecated, source="kb/TEST-DEPRECATED.md"]),
+        chk_rel(verified_by, 'REQ-R1', 'TEST-DEPRECATED'),
+        check_retired_owner_only(Violations)
+    )),
+    chk_retired_only(fact, 'FACT-ADR', ['REQ-R1'], V1),
+    chk_retired_only(scenario, 'SCEN-ADR', ['REQ-R1'], V2),
+    chk_retired_only(test, 'TEST-DEPRECATED', ['REQ-R1'], V3),
+    chk_retired_only(test, 'TEST-ODD', ['REQ-R1'], V4),
+    chk_retired_only(test, 'TEST-VALIDATES', ['REQ-R1'], V5),
+    chk_same(Violations, [V1, V2, V3, V4, V5]).
+
 test(retired_owner_only_without_retired, Violations == []) :-
     chk_kb((
         chk_req('REQ-DEP', [status=deprecated]),
@@ -3528,6 +3576,7 @@ test(semantic_completeness, Violations == [V1, V2]) :-
     V1 = violation('semantic-completeness', 'REQ-S', "Requirement proposition ledger contains an unclassified assertive span (CLAIM-1)", S, 'REQ-S.md'),
     V2 = violation('semantic-completeness', 'REQ-S', "Requirement proposition ledger contains an unclassified assertive span (entry without claim_key)", S, 'REQ-S.md').
 
+
 chk_unmodeled_fixture :-
     chk_subject('FACT-CART', cart),
     chk_total('FACT-TOTAL', gt, 0),
@@ -3566,11 +3615,7 @@ chk_unmodeled_fixture :-
     chk_lreq('REQ-NOLEDGER', open, []),
     chk_raw_rel(relates_to, 'REQ-NOLEDGER', 'REQ-M').
 
-test(related_requirement_unmodeled, Violations == [V1, V2]) :-
-    chk_kb((
-        chk_unmodeled_fixture,
-        check_related_requirement_unmodeled(Violations)
-    )),
+chk_legacy_unmodeled_violations([V1, V2]) :-
     V1 = violation('related-requirement-unmodeled', 'REQ-N',
         "Requirement REQ-N leaves 1 proposition(s) unmodeled (status missing) while it relates_to REQ-M2, which models owns; domain-contradictions compares grounded facts only, so these claims are never checked against REQ-M2",
         "Model the missing propositions of REQ-N against owns (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that REQ-N supersedes REQ-M2 if it replaces that requirement",
@@ -3579,6 +3624,15 @@ test(related_requirement_unmodeled, Violations == [V1, V2]) :-
         "Requirement REQ-U leaves 2 proposition(s) unmodeled (status missing) while it relates_to REQ-M, which models cart.total, holds([cart]); domain-contradictions compares grounded facts only, so these claims are never checked against REQ-M",
         "Model the missing propositions of REQ-U against cart.total, holds([cart]) (a subject fact via constrains and property_value facts via requires_property on the same subject_key, or ground predicate facts via requires_predicate), or record that REQ-U supersedes REQ-M if it replaces that requirement",
         'REQ-U.md').
+
+% Below schema 18 the rule keeps its earlier reading: missing propositions
+% of a requirement that relates_to a modeled one.
+test(related_requirement_unmodeled_before_schema_18, Violations == Expected) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        checks:check_related_requirement_unmodeled_before_schema_18(Violations)
+    )),
+    chk_legacy_unmodeled_violations(Expected).
 
 test(missing_counts, Counts == [2, 1, 0]) :-
     chk_kb((
@@ -3594,11 +3648,50 @@ test(modeled_summaries, Summaries == ['cart.total, holds([cart])', owns]) :-
                     checks:modeled_requirement_summary(R, S)), Summaries)
     )).
 
+% Each schema-gated domain rule judges only a store that took its upgrade:
+% the claim anchors from 16, the pair semantics of
+% related-requirement-unmodeled from 18 (the earlier rule below it).
+test(domain_rules_follow_the_schema_version, Results == [
+        none-[1, 1, 1, 0],
+        v15-[0, 0, 0, 2],
+        v16-[1, 1, 0, 2],
+        v17-[1, 1, 0, 2],
+        v18-[1, 1, 1, 0]
+    ]) :-
+    chk_kb((
+        chk_unmodeled_fixture,
+        chk_lreq('REQ-ANCHOR', open, [semantic_inventory="[{\"claim_key\":\"CLAIM-A\",\"claim_text\":\"x\",\"role\":\"normative\",\"status\":\"ontology_gap\",\"subjects\":[\"nowhere\"]},{\"claim_key\":\"CLAIM-B\",\"claim_text\":\"y\",\"role\":\"normative\",\"status\":\"ontology_gap\"}]"]),
+        chk_raw_rel(relates_to, 'REQ-ANCHOR', 'REQ-M'),
+        findall(Version-Counts,
+                (   member(Version, [none, v15, v16, v17, v18]),
+                    Goal = ( checks:check_claim_subject_missing_for_schema(A),
+                             checks:check_claim_subject_undefined_for_schema(B),
+                             checks:check_related_requirement_unmodeled_for_schema(C),
+                             include([violation(_, 'REQ-ANCHOR', _, _, _, _)]>>true, C, Anchored),
+                             include([violation(_, Id, _, _, _)]>>memberchk(Id, ['REQ-N', 'REQ-U']), C, Legacy),
+                             % A skipped rule still answers a list.
+                             is_list(A), is_list(B),
+                             length(A, NA), length(B, NB), length(Anchored, NC), length(Legacy, NL),
+                             Counts0 = [NA, NB, NC, NL] ),
+                    (   Version == none
+                    ->  once(Goal), Counts = Counts0
+                    ;   atom_concat(v, Text, Version),
+                        atom_number(Text, Number),
+                        with_kb_schema_version(Number, Goal),
+                        Counts = Counts0
+                    )
+                ),
+                Results0),
+        % The version applies only inside the goal it scopes.
+        \+ checks:kb_schema_version_override(_),
+        Results = Results0
+    )).
+
 :- end_tests(checks_semantic_ledger).
 
 % --- the aggregated dict and its JSON transports ------------------------------
 
-chk_all_keys([adr_proposed, adr_unlinked, deprecated_adr_no_successor, domain_contradictions,
+chk_all_keys([adr_proposed, adr_unlinked, claim_subject_missing, claim_subject_undefined, deprecated_adr_no_successor, domain_contradictions,
               domain_implication, domain_redundancy, entity_id_style, exception_claim_keys,
               kb_consistency, kb_consistency_unresolved, logic_coverage, must_priority_coverage,
               no_cycles, no_dangling_refs, numeric_string_value, ontology_quality,

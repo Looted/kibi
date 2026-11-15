@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-UNOWNED-FILE-CANDIDATES
 type: fact
 ---
+
+Candidate requirements Kibi names for a changed source file that has no symbol linked to a requirement, ranked by shared path words with closed ones last and replaced ones left out, so the file is never reported as ungoverned. It is a suggestion, not a link.

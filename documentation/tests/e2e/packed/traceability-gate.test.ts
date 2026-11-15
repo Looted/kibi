@@ -431,6 +431,8 @@ function requirementMarkdown(): string {
     "id: REQ-001",
     "title: Traceability baseline requirement",
     "status: active",
+    // No evidence floor: the gate under test is symbol ownership, not proof.
+    "firmness: default",
     `created_at: ${FIXTURE_TIME}`,
     `updated_at: ${FIXTURE_TIME}`,
     "source: .kb/requirements/REQ-001.md",

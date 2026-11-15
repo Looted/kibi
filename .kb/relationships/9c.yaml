@@ -276,3 +276,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-843ec593d506
+  - type: verified_by
+    from: SCEN-kibi-approval-evidence-floor
+    to: TEST-kibi-approval-evidence-floor
+    created_at: 2026-11-12T18:08:51.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61d137025063

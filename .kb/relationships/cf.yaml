@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7a308995d81
+  - type: implements
+    from: SYM-docs-site-theme-linkPreviewMeta
+    to: REQ-docs-site-link-preview
+    created_at: 2026-11-12T18:29:59.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aecd667ae68
+  - type: covered_by
+    from: SYM-docs-site-theme-linkPreviewMeta
+    to: TEST-docs-site-pages
+    created_at: 2026-11-12T18:29:59.372Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c62bd583b5d2

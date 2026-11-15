@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-operations-rows-component
 type: fact
 ---
-The kibi.operations.rows component, as the structural requirements that name it constrain it.
+
+The limit of 200 rows in one entity row batch that operations read from the engine. It is a batch size, not a result limit.

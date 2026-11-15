@@ -69,6 +69,12 @@ export interface KbManifest {
    * exempt from decision-firm-superseded.
    */
   firmSupersedeAcknowledged?: string[];
+  /**
+   * Current must requirements the schema 17 migration recorded. Only these
+   * are exempt from must-positive-scenario; a must requirement written later
+   * needs a success scenario that assumes facts on its subjects.
+   */
+  positiveScenarioAcknowledged?: string[];
 }
 
 export function defaultKbManifest(): KbManifest {
@@ -122,6 +128,7 @@ function validateManifest(document: unknown): KbManifest | null {
   const acknowledged = parsed.contextAcknowledged;
   const supersedesAcknowledged = parsed.supersedesReasonAcknowledged;
   const firmAcknowledged = parsed.firmSupersedeAcknowledged;
+  const positiveAcknowledged = parsed.positiveScenarioAcknowledged;
   return {
     manifestVersion,
     schemaVersion,
@@ -143,6 +150,13 @@ function validateManifest(document: unknown): KbManifest | null {
     ...(Array.isArray(firmAcknowledged)
       ? {
           firmSupersedeAcknowledged: firmAcknowledged.filter(
+            (id): id is string => typeof id === "string",
+          ),
+        }
+      : {}),
+    ...(Array.isArray(positiveAcknowledged)
+      ? {
+          positiveScenarioAcknowledged: positiveAcknowledged.filter(
             (id): id is string => typeof id === "string",
           ),
         }
@@ -204,6 +218,18 @@ export function readKbManifestStatus(workspaceRoot: string): KbManifestStatus {
     };
   }
   return { state: "ok", manifest, manifestHash };
+}
+
+/**
+ * Parse manifest text, such as the copy a Git tree holds; null when it is not
+ * valid JSON or not a manifest this build reads.
+ */
+export function parseKbManifest(contents: string): KbManifest | null {
+  try {
+    return validateManifest(JSON.parse(contents));
+  } catch {
+    return null;
+  }
 }
 
 export function readKbManifest(workspaceRoot: string): KbManifest | null {

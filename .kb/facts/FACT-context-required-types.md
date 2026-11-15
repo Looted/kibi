@@ -2,7 +2,7 @@
 title: The entity types that must carry body context shall be req, scenario, test, adr and fact
 status: active
 fact_kind: property_value
-subject_key: kibi.entity_body.context
+subject_key: kibi.entity_body_context
 claim_key: CLAIM-F79D10EECC5C5800
 claim_text: The entity types that must carry body context shall be req, scenario, test, adr and fact
 text_ref: REQ-kb-entity-body-context-settings

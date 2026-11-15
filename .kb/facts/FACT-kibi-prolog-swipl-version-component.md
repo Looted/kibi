@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-prolog-swipl-version-component
 type: fact
 ---
-Kibi SWI-Prolog version policy, named kibi.prolog.swipl_version in the structural requirements that constrain it.
+
+The minimum SWI-Prolog version Kibi accepts: major version 9 or newer. It is the version floor, not the required libraries.

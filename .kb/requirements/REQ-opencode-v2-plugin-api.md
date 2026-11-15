@@ -14,6 +14,26 @@ tags:
   - compatibility
   - umbrella
 links:
+  - type: relates_to
+    target: REQ-opencode-background-sync
+  - type: relates_to
+    target: REQ-opencode-comment-routing
+  - type: relates_to
+    target: REQ-opencode-file-context-guidance-v1
+  - type: relates_to
+    target: REQ-opencode-guidance-caching
+  - type: relates_to
+    target: REQ-opencode-guidance-injection
+  - type: relates_to
+    target: REQ-opencode-kibi-plugin-v1
+  - type: relates_to
+    target: REQ-opencode-posture-detection
+  - type: relates_to
+    target: REQ-opencode-risk-classification
+  - type: relates_to
+    target: REQ-opencode-smart-enforcement-v1
+  - type: relates_to
+    target: REQ-opencode-sync-feedback
   - type: specified_by
     target: SCEN-opencode-v2-plugin-load
   - type: verified_by
@@ -31,6 +51,9 @@ semantic_inventory:
     claim_text: kibi-opencode must load on both OpenCode v1 and OpenCode v2 from a single package
     role: normative
     status: ontology_gap
+    subjects:
+      - opencode.kibi_plugin
+      - opencode.plugin.package_root
     span:
       start: 0
       end: 81
@@ -38,6 +61,8 @@ semantic_inventory:
     claim_text: The default export must be a plugin definition object with a non-empty id, a server function for OpenCode v1, and a setup function for OpenCode v2
     role: normative
     status: ontology_gap
+    subjects:
+      - opencode.plugin.package_root
     span:
       start: 83
       end: 229
@@ -52,6 +77,8 @@ semantic_inventory:
     claim_text: The TUI entry must export a definition with id, tui, and setup
     role: normative
     status: ontology_gap
+    subjects:
+      - opencode.kibi_plugin
     span:
       start: 278
       end: 340
@@ -59,6 +86,8 @@ semantic_inventory:
     claim_text: On OpenCode v2, a hook registration failure must not prevent the remaining hooks from registering and must be reported
     role: normative
     status: ontology_gap
+    subjects:
+      - opencode.kibi_plugin
     span:
       start: 342
       end: 460
@@ -71,6 +100,127 @@ logic_claims:
 type: req
 proof_exempt: true
 proof_exempt_reason: 'Four clauses stay ontology_gap: no predicate schema binds the dual-host package load, the default-export shape, or the TUI export, and failure_behavior cannot state both hook isolation and reporting. OpenCode 1.19.3 and 2.0.32 host proof is outside the contracted runner.'
+pair_reviews:
+- with: REQ-opencode-background-sync
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-background-sync governs what the registered sync hook does after file edits (a failing sync degrades the plugin, it does not unregister hooks) and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-comment-routing
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-comment-routing governs the comment-routing guidance a registered hook gives and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-file-context-guidance-v1
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-file-context-guidance-v1 governs the file lifecycle reminders a registered hook gives and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-guidance-caching
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-guidance-caching governs how the plugin caches and invalidates guidance and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-guidance-injection
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-guidance-injection governs the guidance a registered hook injects into the session and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-kibi-plugin-v1
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-kibi-plugin-v1 governs the plugin's behaviours as an umbrella that defers to its granular requirements and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-posture-detection
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-posture-detection governs how the plugin classifies the workspace posture and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-risk-classification
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-risk-classification governs how the plugin classifies the risk of an edit and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-smart-enforcement-v1
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-smart-enforcement-v1 governs how strongly the plugin enforces by posture and risk and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
+- with: REQ-opencode-sync-feedback
+  verdict: no_conflict
+  separated_by: REQ-opencode-v2-plugin-api governs only how the plugin package loads on OpenCode v1 and v2, the shape of its default and TUI exports, and that one failed hook registration leaves the other hooks registered and is reported; REQ-opencode-sync-feedback governs how the plugin reports sync progress and errors and states no rule about loading, exports or hook registration.
+  claims:
+  - claim_key: CLAIM-33C1F7387361CE6D
+  - claim_key: CLAIM-6CD5134734E3E790
+  - claim_key: CLAIM-E1E745FF5CE6976C
+  - claim_key: CLAIM-F6D85429B12F8B60
+  origin:
+    kind: agent
+    approved_by: maintainer
+    ref: 'Maintainer approval of the pair verdicts, 2026-11-13: "Approve all"'
 ---
 
 ## Context

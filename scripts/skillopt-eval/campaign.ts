@@ -24,6 +24,7 @@ import {
   resolveSkillOptHost,
 } from "./runtime/skillopt-host";
 import { skillOptHostImplementation } from "./runtime/skillopt-host-registry";
+import { type NoiseFloor, NoiseFloorSchema } from "./scoring/family-gate";
 
 const COMMANDS = new Set([
   "revise",
@@ -48,6 +49,7 @@ const VALUE_FLAGS = new Set([
   "--repeats",
   "--max-target-episodes",
   "--host",
+  "--noise-floor",
 ]);
 
 const InsertionFileSchema = z
@@ -71,8 +73,8 @@ function usage(): string {
     `Common: --source-root PATH --host ${SKILLOPT_HOSTS.join("|")} (default: KIBI_SKILLOPT_HOST, else codex)`,
     "revise: --skill SKILL --objective-file FILE --heading HEADING --allow-paid [--feedback FILE]",
     "compose: --skill SKILL (--body-file FILE [--description-file FILE] | --insertion-file FILE [--insertion-file FILE ...])",
-    "evaluate: --skill SKILL --candidate-manifest FILE [1..3] --max-target-episodes N --repeats 1..3 --allow-paid",
-    "confirm: --previous-evaluation FILE --max-target-episodes N --repeats 1..3 --allow-paid",
+    "evaluate: --skill SKILL --candidate-manifest FILE [1..3] --max-target-episodes N --repeats 1..3 --allow-paid [--noise-floor FILE]",
+    "confirm: --previous-evaluation FILE --max-target-episodes N --repeats 1..3 --allow-paid [--noise-floor FILE]",
     "package: --candidate-manifest FILE [1..4] [--evaluation FILE]",
   ].join("\n");
 }
@@ -116,6 +118,14 @@ function value(args: ParsedArgs, flag: string): string {
   if (result === undefined || result.length === 0)
     throw new CampaignCliError(`${flag} is required`);
   return result;
+}
+
+async function noiseFloor(args: ParsedArgs): Promise<NoiseFloor | undefined> {
+  const path = optionalValue(args, "--noise-floor");
+  if (path === undefined) return undefined;
+  return NoiseFloorSchema.parse(
+    JSON.parse(await readFile(resolve(path), "utf8")),
+  );
 }
 
 function optionalValue(args: ParsedArgs, flag: string): string | undefined {
@@ -298,6 +308,7 @@ export async function campaignMain(
           256,
         ),
         allowPaid: args.allowPaid,
+        noiseFloor: await noiseFloor(args),
         env,
         host,
         dependencies,
@@ -323,6 +334,7 @@ export async function campaignMain(
           256,
         ),
         allowPaid: args.allowPaid,
+        noiseFloor: await noiseFloor(args),
         env,
         host,
         dependencies,

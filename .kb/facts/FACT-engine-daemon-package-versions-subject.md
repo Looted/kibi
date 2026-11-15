@@ -17,3 +17,5 @@ origin:
 id: FACT-engine-daemon-package-versions-subject
 type: fact
 ---
+
+The package versions an engine daemon was built from and the rule that it serves only clients with the same versions: a client replaces a daemon of other versions, and the daemon refuses their requests except handshake and stop.

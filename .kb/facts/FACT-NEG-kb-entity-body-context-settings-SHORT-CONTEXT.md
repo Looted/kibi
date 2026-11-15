@@ -2,7 +2,7 @@
 title: An eleven-word context section counts as body context
 status: active
 fact_kind: property_value
-subject_key: kibi.entity_body.context
+subject_key: kibi.entity_body_context
 property_key: min_context_words
 operator: eq
 value_type: int

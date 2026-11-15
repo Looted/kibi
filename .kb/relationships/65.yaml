@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cfaf15c0dbe8
+  - type: assumes
+    from: SCEN-NEG-kb-unmodeled-pair-UNREPORTED
+    to: FACT-NEG-kb-unmodeled-pair-UNREPORTED
+    created_at: 2026-11-13T07:12:16.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2692dba22d78
+  - type: verified_by
+    from: SCEN-NEG-kb-unmodeled-pair-UNREPORTED
+    to: TEST-check-related-requirement-unmodeled
+    created_at: 2026-11-13T07:12:16.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-985be390ff1e

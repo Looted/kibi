@@ -76,6 +76,7 @@ function aggregatedChecksQuery(
   checksPlPath: string,
   rulesAllowlist: Set<string> | null,
   resultPath: string | undefined,
+  schemaVersion: number | undefined,
 ): string {
   const target = resultPath === undefined ? "none" : toPrologAtom(resultPath);
   const rules = rulesAllowlist
@@ -107,7 +108,24 @@ function aggregatedChecksQuery(
   const goal = `(   ${transport}
     ;   ${fileOnly}${answer}
     )`;
-  return `(use_module('${escapeAtom(checksPlPath)}'), ${ontologyQualityOverridesGoal()}, ${goal})`;
+  return `(use_module('${escapeAtom(checksPlPath)}'), ${ontologyQualityOverridesGoal()}, ${schemaScopedGoal(goal, schemaVersion)})`;
+}
+
+/**
+ * Run the checks at the KB's manifest schemaVersion, so a rule a schema
+ * upgrade introduced judges only a store that took the upgrade. A core that
+ * predates the scope, or a caller without a version, runs every rule at the
+ * latest schema.
+ */
+export function schemaScopedGoal(
+  goal: string,
+  schemaVersion: number | undefined,
+): string {
+  if (schemaVersion === undefined) return goal;
+  return `(   predicate_property(checks:with_kb_schema_version(_, _), defined)
+    ->  call(checks:with_kb_schema_version(${schemaVersion}, ${goal}))
+    ;   ${goal}
+    )`;
 }
 
 /**
@@ -116,10 +134,12 @@ function aggregatedChecksQuery(
  * faster than running individual checks with multiple round-trips.
  * @param prolog - The Prolog process
  * @param rulesAllowlist - Set of rule names to run (null = all)
+ * @param schemaVersion - The KB manifest's schemaVersion (undefined = latest)
  */
 export async function runAggregatedChecks(
   prolog: Pick<PrologProcess, "query">,
   rulesAllowlist: Set<string> | null,
+  schemaVersion?: number,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
 
@@ -130,7 +150,12 @@ export async function runAggregatedChecks(
   let jsonString: string | undefined;
   try {
     result = await prolog.query(
-      aggregatedChecksQuery(checksPlPath, rulesAllowlist, resultFile.path),
+      aggregatedChecksQuery(
+        checksPlPath,
+        rulesAllowlist,
+        resultFile.path,
+        schemaVersion,
+      ),
     );
     // rationale: the engine answers Transport "file" only after a successful
     // query that was given a path, so neither guard changes which answers
@@ -144,7 +169,12 @@ export async function runAggregatedChecks(
         // The engine wrote a file this process cannot read (an engine with
         // another view of the temp folder): ask for the JSON as an answer.
         result = await prolog.query(
-          aggregatedChecksQuery(checksPlPath, rulesAllowlist, undefined),
+          aggregatedChecksQuery(
+            checksPlPath,
+            rulesAllowlist,
+            undefined,
+            schemaVersion,
+          ),
         );
       }
     }

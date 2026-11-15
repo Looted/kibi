@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-origin-vocabulary-component
 type: fact
 ---
-The kibi.origin.vocabulary component, as the structural requirements that name it constrain it.
+
+The words an entity origin uses: kinds human, agent, migration and import, and fixed references such as kibi migrate v5->v6 for schema 6 migrations, with the review rules keyed to them. It is vocabulary, not the origin record.

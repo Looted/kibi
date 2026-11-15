@@ -166,8 +166,10 @@ if (RUN_NODE_TEST_SUITE) {
             id: "REQ-HOOK-001",
             title: "Hook test requirement",
             status: "open",
+            // No evidence floor: the commit exercises the hooks, not proof.
+            firmness: "default",
           },
-          "Testing hook execution.",
+          "Testing hook execution.\n\n## Context\n\nFixture requirement that the Git hook tests commit, then check out on a new branch to see the hooks sync it.",
         );
 
         const refresh = await kibi(sandbox, [

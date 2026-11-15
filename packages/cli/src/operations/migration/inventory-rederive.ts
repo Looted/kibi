@@ -81,6 +81,7 @@ type InventoryEntry = {
   span: { start: number; end: number };
   semantic_key?: string;
   reason?: string;
+  subjects?: string[];
 };
 
 /** What re-derivation changed for one claim. */
@@ -189,6 +190,13 @@ function storedInventory(entity: ExtractedEntity): InventoryEntry[] {
         ? { semantic_key: entry.semantic_key }
         : {}),
       ...(typeof entry.reason === "string" ? { reason: entry.reason } : {}),
+      ...(Array.isArray(entry.subjects)
+        ? {
+            subjects: entry.subjects.filter(
+              (subject): subject is string => typeof subject === "string",
+            ),
+          }
+        : {}),
     };
   });
 }
@@ -318,6 +326,13 @@ function rederive(
       span: { start: proposition.span.start, end: proposition.span.end },
       ...(semanticKey !== undefined ? { semantic_key: semanticKey } : {}),
       ...(status !== "modeled" && reason !== undefined ? { reason } : {}),
+      // A claim keeps the subjects it was anchored to while it stays
+      // unmodeled; a modeled claim takes them from its grounding fact.
+      ...(status !== "modeled" &&
+      previous?.subjects !== undefined &&
+      previous.subjects.length > 0
+        ? { subjects: previous.subjects }
+        : {}),
     });
     changes.push({
       claim_key: proposition.claim_key,

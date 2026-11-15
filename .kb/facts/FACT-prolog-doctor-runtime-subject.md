@@ -16,3 +16,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The part of kibi doctor that reports which SWI-Prolog Kibi uses (source, path, version) and whether it can load the libraries Kibi needs, naming the platform package to install when the runtime is missing.

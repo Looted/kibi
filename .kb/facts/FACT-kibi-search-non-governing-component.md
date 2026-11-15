@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-search-non-governing-component
 type: fact
 ---
-The kibi.search.non_governing component, as the structural requirements that name it constrain it.
+
+The requirement statuses search treats as not governing: superseded, deprecated, rejected, retired, obsolete and archived. It is the status list, not how answers are ranked.

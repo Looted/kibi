@@ -11,3 +11,5 @@ origin:
 id: FACT-SUBJ-kibi-proof-gate-failure-side
 type: fact
 ---
+
+The proof gate rule that a requirement whose specified scenarios all expect success does not reach tested; the failure side must be exercised too. It is about scenario polarity, not test count.

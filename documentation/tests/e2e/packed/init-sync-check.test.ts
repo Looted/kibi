@@ -158,7 +158,11 @@ if (RUN_NODE_TEST_SUITE) {
         createMarkdownFile(
           sandbox,
           ".kb/adr/ADR-PROPOSED.md",
-          { id: "ADR-PROPOSED", title: "Proposed decision", status: "proposed" },
+          {
+            id: "ADR-PROPOSED",
+            title: "Proposed decision",
+            status: "proposed",
+          },
           "We may adopt a thing.\n\n## Context\n\nFixture decision left proposed so an advisory rule reports it and nothing blocks.",
         );
         const firstSync = await kibi(sandbox, ["sync"]);
@@ -188,7 +192,10 @@ if (RUN_NODE_TEST_SUITE) {
           evaluated.includes("adr-proposed"),
           "a plain check runs advisory rules",
         );
-        for (const migrationRule of ["strict-readiness", "semantic-completeness"]) {
+        for (const migrationRule of [
+          "strict-readiness",
+          "semantic-completeness",
+        ]) {
           assert.ok(
             !evaluated.includes(migrationRule),
             `a plain check skips the migration rule ${migrationRule}`,
@@ -250,7 +257,11 @@ if (RUN_NODE_TEST_SUITE) {
         createMarkdownFile(
           sandbox,
           ".kb/adr/ADR-NO-CONTEXT.md",
-          { id: "ADR-NO-CONTEXT", title: "Decision without context", status: "accepted" },
+          {
+            id: "ADR-NO-CONTEXT",
+            title: "Decision without context",
+            status: "accepted",
+          },
           "Use the thing.",
         );
         const secondSync = await kibi(sandbox, ["sync"]);
@@ -368,7 +379,8 @@ if (RUN_NODE_TEST_SUITE) {
           return {
             result,
             diagnostics: result.qualityDiagnostics.filter(
-              (diagnostic) => diagnostic.id === "component_mixed_purpose_review",
+              (diagnostic) =>
+                diagnostic.id === "component_mixed_purpose_review",
             ),
           };
         };
@@ -397,7 +409,9 @@ if (RUN_NODE_TEST_SUITE) {
         assert.strictEqual(diagnostic?.entityId, "SYM-WIDGET-SERVICE");
         assert.strictEqual(diagnostic?.blocking, false);
         assert.ok(
-          diagnostic?.evidence?.narrowerSymbolIds?.includes("SYM-WIDGET-RENDER"),
+          diagnostic?.evidence?.narrowerSymbolIds?.includes(
+            "SYM-WIDGET-RENDER",
+          ),
           "the diagnostic names the narrower same-file symbol",
         );
         assert.ok(

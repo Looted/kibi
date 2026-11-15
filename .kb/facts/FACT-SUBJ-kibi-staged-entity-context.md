@@ -11,3 +11,5 @@ origin:
 id: FACT-SUBJ-kibi-staged-entity-context
 type: fact
 ---
+
+The pre-commit staged check's rule that an entity document the commit adds or edits must have the body context kibi check requires, while entities that already lacked it at the base commit or that a migration acknowledged are not blocked. It is the staged form, not the full check rule.

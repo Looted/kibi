@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-tree-sitter-languages-component
 type: fact
 ---
-The kibi.tree_sitter.languages component, as the structural requirements that name it constrain it.
+
+The languages the tree-sitter plugin supports (python, go, rust, java, csharp, php, c, cpp, bash, ruby, prolog, terraform, hcl) and the file extensions mapped to each. It is coverage, not grammar distribution.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-vocabulary-alignment-settings-component
 type: fact
 ---
-The kibi.vocabulary_alignment.settings component, as the structural requirements that name it constrain it.
+
+The scope and similarity threshold of vocabulary alignment: a built-in claim similarity threshold of 0.75, and external providers running only for kb_model_requirement. It is scope and threshold, not provider ranking limits.

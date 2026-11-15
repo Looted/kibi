@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-signoff-views-output
 type: fact
 ---
-The subject kibi.signoff_views.output.
+
+Where and how kibi signoff writes its views: JSON, Markdown and HTML files under .kb/briefs/signoff, with the chat view limited to fifteen rows. It is output placement, not the content selection.

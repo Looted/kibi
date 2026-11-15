@@ -154,6 +154,12 @@ describe("SkillOpt documentation contract", () => {
         Notes:
           "Portable revision, composition, evaluation, confirmation, and packaging with explicit budgets and immutable evidence.",
       },
+      {
+        Script: "`skillopt:references`",
+        Command: "`bun run scripts/skillopt-eval/reference/verify.ts`",
+        Notes:
+          "Unpaid harness check for one skill: runs every case's scripted or recorded reference answer against the staged Kibi server, scores it like a paid cell, and fails when a case has no reference or scores below 100. Pass `--skill S`, and `--case ID` to run single cases.",
+      },
     ]);
 
     expect(skilloptScripts).toEqual([
@@ -161,6 +167,7 @@ describe("SkillOpt documentation contract", () => {
       "skillopt:cursor",
       "skillopt:history",
       "skillopt:optimize",
+      "skillopt:references",
       "skillopt:screen",
       "skillopt:smoke",
     ]);

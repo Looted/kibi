@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-skills-files-component
 type: fact
 ---
-The kibi.skills.files component, as the structural requirements that name it constrain it.
+
+File rules for bundled skills: each skill lives in a file named SKILL.md and each skill resource is at most 131072 bytes. They are packaging rules, not skill content.

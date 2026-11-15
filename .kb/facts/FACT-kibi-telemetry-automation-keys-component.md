@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-telemetry-automation-keys-component
 type: fact
 ---
-The kibi.telemetry.automation_keys component, as the structural requirements that name it constrain it.
+
+Fixed values of anonymous telemetry: the default endpoint and the list of CI environment variables whose presence silences telemetry. They are constants, not the opt-out logic.

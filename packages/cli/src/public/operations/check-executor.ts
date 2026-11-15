@@ -5,6 +5,7 @@ import {
   inspectBranchStore,
   uncompiledBranchStoreReason,
 } from "../../utils/branch-store.js";
+import { readKbManifest } from "../../utils/kb-manifest.js";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -56,6 +57,7 @@ import {
   mergeMigrationPlans,
 } from "./migration-plan.js";
 import { collectOriginReviewViolations } from "./origin-review.js";
+import { collectPositiveScenarioViolations } from "./positive-scenario.js";
 import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-conformance.js";
 import { collectProofContractClaimViolations } from "./proof-contract-claims.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
@@ -64,6 +66,7 @@ import {
   collectSourcePathDanglingViolations,
 } from "./source-path-dangling.js";
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
+import { collectSubjectLayerViolations } from "./subject-layer.js";
 import { collectSymbolCoordinatesMissingViolations } from "./symbol-coordinates-check.js";
 import { collectSymbolGranularityViolations } from "./symbol-granularity-check.js";
 import type { OperationResult } from "./types.js";
@@ -391,9 +394,11 @@ export async function executeCheck(
 
     invalidatePrologCache(prolog);
 
+    // A store without a manifest predates every schema-gated rule.
     const aggregatedFindings = await runAggregatedChecks(
       prolog,
       rulesAllowlist,
+      readKbManifest(workspaceRoot)?.schemaVersion ?? 0,
     );
     const queryPlanViolations = rulesAllowlist.has("query-plan-safety")
       ? collectQueryPlanSafetyViolations()
@@ -432,6 +437,10 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const subjectLayerFindings = collectSubjectLayerViolations(
+      rulesAllowlist,
+      workspaceRoot,
+    );
     const decisionFirmnessFindings = collectDecisionFirmnessViolations(
       rulesAllowlist,
       workspaceRoot,
@@ -452,6 +461,10 @@ export async function executeCheck(
     );
     const proofContractClaimFindings =
       await collectProofContractClaimViolations(context, rulesAllowlist);
+    const positiveScenarioFindings = await collectPositiveScenarioViolations(
+      context,
+      rulesAllowlist,
+    );
     const partitioned = partitionCheckFindings([
       ...aggregatedFindings,
       ...queryPlanViolations,
@@ -462,10 +475,12 @@ export async function executeCheck(
       ...predicateConformanceFindings,
       ...originReviewFindings,
       ...entityContextFindings,
+      ...subjectLayerFindings,
       ...decisionFirmnessFindings,
       ...checkPolicyFindings,
       ...evidenceFloorFindings,
       ...proofContractClaimFindings,
+      ...positiveScenarioFindings,
     ]);
     const violations: Violation[] = partitioned.violations;
     const evaluated = await describeEvaluation(prolog, rulesAllowlist);

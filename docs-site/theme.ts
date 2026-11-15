@@ -15,10 +15,12 @@
 
 import {
   AGENT_SETUP_PROMPT,
+  OG_IMAGE,
   SITE_TAGLINE,
   UMAMI_DOMAINS,
   UMAMI_SCRIPT_SRC,
   publishedLlmsIndexHref,
+  publishedOgImageHref,
 } from "./catalog.js";
 import { terminalDemoHtml } from "./terminal-demo.js";
 
@@ -29,6 +31,8 @@ export type PageShell = {
   root: string;
   title: string;
   description: string;
+  /** Absolute published URL of this page, for canonical and og:url. */
+  publishedUrl: string;
   /** Active sidebar section; null on the landing page. */
   section: Section | null;
   navHtml: string;
@@ -1827,11 +1831,43 @@ ${reportStrip}
 </div>`;
 }
 
+/**
+ * Canonical URL plus the Open Graph and Twitter card tags that make a shared
+ * link render as a large preview. Every URL is absolute and derived from the
+ * published site origin, because link-preview crawlers do not resolve relative
+ * URLs. Title and description arrive already HTML-safe, as for <title>.
+ */
+export function linkPreviewMeta(
+  title: string,
+  description: string,
+  publishedUrl: string,
+): string {
+  const image = publishedOgImageHref();
+  const alt = escapeHtml(OG_IMAGE.alt);
+  return `<link rel="canonical" href="${publishedUrl}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kibi">
+<meta property="og:url" content="${publishedUrl}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:image" content="${image}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="${OG_IMAGE.width}">
+<meta property="og:image:height" content="${OG_IMAGE.height}">
+<meta property="og:image:alt" content="${alt}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${description}">
+<meta name="twitter:image" content="${image}">
+<meta name="twitter:image:alt" content="${alt}">`;
+}
+
 export function layout(page: PageShell): string {
   const {
     root,
     title,
     description,
+    publishedUrl,
     section,
     navHtml,
     tocHtml,
@@ -1883,9 +1919,7 @@ export function layout(page: PageShell): string {
 <meta name="theme-color" content="#111318">
 <link rel="alternate" type="text/plain" href="${root}llms.txt" title="Documentation index for language models">
 <meta name="llms-txt" content="${publishedLlmsIndexHref()}">
-<meta property="og:type" content="website">
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${description}">
+${linkPreviewMeta(title, description, publishedUrl)}
 <link rel="icon" href="${favicon}">
 ${analyticsId ? `<script defer src="${UMAMI_SCRIPT_SRC}" data-website-id="${analyticsId}" data-domains="${UMAMI_DOMAINS}" data-do-not-track="true" data-performance="true"></script>\n` : ""}<style>${styles}</style>
 </head>

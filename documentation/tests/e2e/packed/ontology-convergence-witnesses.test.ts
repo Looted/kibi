@@ -166,6 +166,7 @@ status: active
 fact_kind: subject
 subject_key: packed.quota
 ---
+Test fixture subject packed.quota: what the requirements in this test constrain, defined here for this test only.
 
 Fixture subject.
 `,

@@ -24,7 +24,6 @@ import {
 } from "../../../src/operations/migration/schema6.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../../../src/utils/schema-version.js";
 
-
 function write(root: string, relative: string, content: string): string {
   const file = path.join(root, relative);
   mkdirSync(path.dirname(file), { recursive: true });
@@ -54,9 +53,11 @@ describe("retired status suggestions", () => {
   });
   afterEach(() => rmSync(root, { recursive: true, force: true }));
 
-  test("schema 14 is the latest schema and adds the retired status", () => {
+  test("schema 14 adds the retired status", () => {
     expect(RETIRED_STATUS_SCHEMA_VERSION).toBe(14);
-    expect(LATEST_KB_SCHEMA_VERSION).toBe(RETIRED_STATUS_SCHEMA_VERSION);
+    expect(LATEST_KB_SCHEMA_VERSION).toBeGreaterThan(
+      RETIRED_STATUS_SCHEMA_VERSION,
+    );
     expect(RETIRED_REQUIREMENT_STATUS).toBe("retired");
   });
 

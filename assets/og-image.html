@@ -1,0 +1,116 @@
+<!doctype html>
+<!--
+  Source of assets/og-image.png, the 1200x630 link-preview image the docs site
+  publishes as og:image. It uses the Inter and JetBrains Mono fonts. After
+  editing, regenerate the PNG at exactly 1200x630 with a headless Chromium:
+    npx playwright screenshot --viewport-size=1200,630 \
+      "file://$PWD/assets/og-image.html" assets/og-image.png
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --deep: #111318;
+    --ice: #a2d3f4;
+    --signal: #3e8ed6;
+    --snow: #f4f8fb;
+    --mist: #aab8c2;
+    --rail: #34434f;
+    --proven: #63c99a;
+    --warning: #f2b84b;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; background: var(--deep); }
+  body {
+    position: relative;
+    font-family: "Inter", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--snow);
+    -webkit-font-smoothing: antialiased;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(52, 67, 79, 0.28) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 67, 79, 0.18) 1px, transparent 1px);
+    background-size: 100% 30px, 120px 100%;
+  }
+  .glow {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(600px 420px at 88% 30%, rgba(62, 142, 214, 0.16), transparent 70%),
+      linear-gradient(90deg, rgba(17, 19, 24, 0.97) 0%, rgba(17, 19, 24, 0.9) 52%, rgba(17, 19, 24, 0.35) 75%, rgba(17, 19, 24, 0.2) 100%);
+  }
+  .spine { position: absolute; top: 0; bottom: 0; left: 968px; width: 2px; background: var(--signal); opacity: 0.85; }
+  .spine.second { left: 977px; opacity: 0.35; width: 1px; }
+  .trace { position: absolute; height: 2px; background: linear-gradient(90deg, rgba(62, 142, 214, 0), rgba(62, 142, 214, 0.55)); }
+  .trace::after {
+    content: ""; position: absolute; right: -5px; top: -4px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--ice);
+  }
+  .req {
+    position: absolute; left: 994px;
+    font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 15px;
+    letter-spacing: 0.01em; white-space: nowrap;
+  }
+  .req .state { display: block; margin-top: 4px; font-size: 13px; opacity: 0.85; }
+  .req.tested { color: var(--proven); }
+  .req.pending { color: var(--warning); }
+  .req.dim { color: rgba(170, 184, 194, 0.5); }
+  .link { position: absolute; left: 994px; height: 2px; }
+  .link::after {
+    content: ""; position: absolute; right: -5px; top: -4px;
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .link.tested { background: linear-gradient(90deg, rgba(99, 201, 154, 0.15), rgba(99, 201, 154, 0.8)); }
+  .link.tested::after { background: var(--proven); }
+
+  .content { position: absolute; left: 80px; top: 72px; width: 860px; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand img.logo { width: 54px; height: 54px; }
+  .brand img.wordmark { height: 42px; }
+  .eyebrow {
+    margin-top: 46px; display: flex; align-items: center; gap: 12px;
+    font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    font-size: 17px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ice);
+  }
+  .eyebrow::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--ice); }
+  .eyebrow::after { content: ""; width: 54px; height: 2px; background: var(--signal); }
+  h1 {
+    margin-top: 22px;
+    font-size: 64px; line-height: 1.04; letter-spacing: -0.045em; font-weight: 700;
+  }
+  h1 span { display: block; color: var(--ice); }
+  .sub { margin-top: 30px; font-size: 25px; max-width: 800px; line-height: 1.4; color: var(--mist); }
+  .sub strong { color: var(--snow); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="trace" style="top: 96px; left: 640px; width: 314px"></div>
+<div class="trace" style="top: 186px; left: 720px; width: 234px"></div>
+<div class="trace" style="top: 336px; left: 800px; width: 154px"></div>
+<div class="trace" style="top: 456px; left: 700px; width: 254px"></div>
+<div class="trace" style="top: 546px; left: 760px; width: 194px"></div>
+<div class="glow"></div>
+<div class="spine"></div>
+<div class="spine second"></div>
+
+<div class="req dim" style="top: 128px">FRESH EVIDENCE ONLY</div>
+<div class="req tested" style="top: 218px">REQ-audit-retention<span class="state">tested</span></div>
+<div class="link tested" style="top: 270px; width: 150px"></div>
+<div class="req tested" style="top: 338px">REQ-checkout-total<span class="state">tested</span></div>
+<div class="link tested" style="top: 390px; width: 120px"></div>
+<div class="req pending" style="top: 458px">REQ-idle-timeout<span class="state">unverified</span></div>
+
+<div class="content">
+  <div class="brand">
+    <img class="logo" src="logo.svg" alt="">
+    <img class="wordmark" src="wordmark.svg" alt="Kibi">
+  </div>
+  <div class="eyebrow">Open source · Runs in your repository</div>
+  <h1>Say what the software<br>should do.<span>Your agent won’t forget why.</span></h1>
+  <p class="sub"><strong>A requirements framework for AI coding agents.</strong> It keeps the reasoning behind your code and proves what is tested.</p>
+</div>
+</body>
+</html>

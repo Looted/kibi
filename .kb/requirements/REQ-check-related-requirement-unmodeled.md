@@ -1,6 +1,6 @@
 ---
 title: Unmodeled requirements linked to modeled ones are blocked
-status: open
+status: closed
 required_evidence: tested
 priority: must
 tags:

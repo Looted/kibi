@@ -311,7 +311,7 @@ describe("migrate from an older schema", () => {
       "dry run: would acknowledge 1 supersede(s) of decisions that read as firm from schema 10 (manifest only; no firmness is written).",
     );
     expect(text).toContain(
-      "dry run: 2 firm requirement(s) keep the tested floor (REQ-k1, REQ-k2); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.",
+      "dry run: 2 firm or approved requirement(s) keep the tested floor (REQ-k1, REQ-k2); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.",
     );
     expect(text).toContain("Cannot edit .kb/requirements/REQ-f.md: bad yaml.");
     expect(text).toContain(
@@ -330,7 +330,7 @@ describe("migrate from an older schema", () => {
     await migrateCommand({ dryRun: true, workspaceRoot: cwd });
 
     expect(output()).toContain(
-      "dry run: 2 firm requirement(s) keep the tested floor (REQ-k1, REQ-k2) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.",
+      "dry run: 2 firm or approved requirement(s) keep the tested floor (REQ-k1, REQ-k2) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.",
     );
   });
 
@@ -361,7 +361,7 @@ describe("migrate from an older schema", () => {
       "Acknowledged 1 supersede(s) of decisions without firmness that read as firm from schema 10; a new replacement of such a decision must be firm.",
     );
     expect(text).toContain(
-      "2 firm requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).",
+      "2 firm or approved requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).",
     );
     expect(text).toContain(
       "Cannot record required_evidence on .kb/requirements/REQ-f.md: bad yaml.",
@@ -395,7 +395,7 @@ describe("migrate from an older schema", () => {
 
     const text = output();
     expect(text).toContain(
-      "2 firm requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).",
+      "2 firm or approved requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).",
     );
     expect(text).toContain(
       "Could not remove .kb/symbol-coordinates.yaml from the Git index (index locked); run git rm --cached .kb/symbol-coordinates.yaml before the next commit.",

@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-MIGRATION-SCHEMA6
 type: fact
 ---
+
+The migration to the proposition-complete requirement schema (schema 6 onward): origins and grounding are preserved, matching modeled claims survive inventory drift, and sync names every failing requirement in one error pointing to kibi migrate. Later schema steps are separate.

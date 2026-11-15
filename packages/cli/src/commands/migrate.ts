@@ -114,6 +114,11 @@ interface MigrateOptions {
   workspaceRoot?: string;
   /** Internal migration-plan executor: create only the canonical baseline manifest. */
   initializeMissingConfig?: boolean;
+  /**
+   * Compile the branch store after `--yes` rewrote sources (default true).
+   * The plan executor passes false: its plan runs the sync as its own action.
+   */
+  syncStore?: boolean;
 }
 
 export interface MigrationAuditRecord {
@@ -269,6 +274,42 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     id: "retired-status-v14",
     from: 13,
     to: 14,
+  },
+  // Give a requirement a person approved (origin.approved_by) the tested
+  // floor unless it sets required_evidence or states its firmness, and record
+  // required_evidence: asserted on current approved requirements without a
+  // passing proof path; front matter only.
+  {
+    id: "approval-floor-v15",
+    from: 14,
+    to: 15,
+  },
+  // Require a definition on every subject fact, no duplicate subjects, and
+  // subjects on every unmodeled claim. No source is rewritten on its own: a
+  // claim's suggested subject is written only once a person approves it
+  // (claim_subject_anchor_suggest); the rest is listed for review.
+  {
+    id: "domain-subjects-v16",
+    from: 15,
+    to: 16,
+  },
+  // Require a success scenario that assumes facts on its subjects for every
+  // must requirement written from now on. The current must requirements are
+  // acknowledged in the manifest; no source is rewritten.
+  {
+    id: "positive-scenarios-v17",
+    from: 16,
+    to: 17,
+  },
+  // related-requirement-unmodeled blocks every stored pair (a relates_to edge
+  // or a shared subject) with an unmodeled rule claim until the claims are
+  // modeled or a pair_reviews verdict settles the pair. A verdict is a
+  // judgement Kibi never makes, so nothing is written; kibi check lists the
+  // pairs.
+  {
+    id: "pair-reviews-v18",
+    from: 17,
+    to: 18,
   },
 ];
 
@@ -698,6 +739,25 @@ async function printRetiredStatusSuggestions(cwd: string): Promise<void> {
 }
 
 /**
+ * Whether kibi sync would reject the migrated sources: a requirement status
+ * it cannot compile, or an inventory that needs a manual fix.
+ */
+function syncBlocked(
+  statuses: readonly RequirementStatusFinding[],
+  manualInventories: number,
+): boolean {
+  return (
+    manualInventories > 0 ||
+    statuses.some((finding) => finding.extractionError !== null)
+  );
+}
+
+/** The note for subject facts that get "Definition not stated" bodies. */
+function notStatedNote(ids: readonly string[], dryRun: boolean): string {
+  return `${dryRun ? "dry run: would record" : "Recorded"} 'Definition not stated:' as the body of ${ids.length} subject fact(s) without one (${ids.join(", ")}); no definition is invented, and a person replaces the note with one.`;
+}
+
+/**
  * Print what a `kibi migrate --yes` run left for a person, naming the
  * requirements kibi sync cannot compile first. Returns false when nothing
  * remains, so the caller may call the migration complete.
@@ -744,6 +804,38 @@ function printRemainingMigrationWork(remaining: {
   return true;
 }
 
+/**
+ * Compile the branch store from the sources `kibi migrate --yes` rewrote, as
+ * `--apply-safe` does with its sync action, so the next kibi check and kibi
+ * status read the migrated KB. Returns whether the store is now fresh.
+ */
+async function syncMigratedSources(
+  cwd: string,
+  options: MigrateOptions,
+  blocked: boolean,
+): Promise<boolean> {
+  if (options.syncStore === false) return false;
+  if (blocked) {
+    console.log(
+      "Run 'kibi sync' to recompile the rewritten sources once the items below are fixed.",
+    );
+    return false;
+  }
+  const { syncMigratedStore } = await import(
+    "../operations/migration/upgrade-review.js"
+  );
+  const result = await syncMigratedStore(cwd);
+  if (result.ok)
+    console.log(
+      "Recompiled the branch store from the migrated sources (kibi sync).",
+    );
+  else
+    printWarning(
+      `kibi sync did not complete after the migration (${result.reason}); run 'kibi sync' to recompile the rewritten sources.`,
+    );
+  return result.ok;
+}
+
 export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
   printWarning("Migration required for this repository.");
   console.log("No changes applied.");
@@ -754,6 +846,19 @@ export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
 export async function migrateCommand(
   options: MigrateOptions = {},
 ): Promise<{ exitCode: number; summary?: MigrationRunSummary }> {
+  // An approval only means something to --apply-safe; anywhere else it
+  // would be ignored while the command reports success.
+  if (
+    !applySafeRequested(options) &&
+    (approvedActionIdsOf(options).length > 0 ||
+      options.approvedPlanHash !== undefined)
+  ) {
+    noteCliErrorCategory("migrate:approval_without_apply_safe");
+    console.error(
+      `${approvedActionIdsOf(options).length > 0 ? "--approved-action" : "--approved-plan-hash"} only applies with --apply-safe, so nothing was applied. Review the plan with 'kibi migrate', then run: kibi migrate --apply-safe <plan hash>${approvedActionIdsOf(options).length > 0 ? ` --approved-action ${approvedActionIdsOf(options).join(",")}` : ""}`,
+    );
+    return { exitCode: 2 };
+  }
   if (
     applySafeRequested(options) ||
     options.format === "json" ||
@@ -824,9 +929,13 @@ export async function migrateCommand(
     manifestStatus.state === "invalid" || manifestStatus.state === "future"
       ? manifestStatus.warning
       : configStatus.warning;
+  // An older schema is what this command upgrades; saying "run kibi
+  // migrate" here only repeats the command the user just ran.
   const warnings = [
     ...branchWarnings,
-    ...(migrationWarning ? [migrationWarning] : []),
+    ...(migrationWarning && configStatus.status !== "older"
+      ? [migrationWarning]
+      : []),
   ];
   const auditPath = path.join(cwd, ".kb", "migrations", `${branch}.json`);
 
@@ -884,7 +993,14 @@ export async function migrateCommand(
     ) {
       if (options.dryRun !== true && rewroteSources) {
         await refreshMigratedSymbolCoordinates(cwd, generatedManifestsBefore);
-        console.log("Run 'kibi sync' to recompile the rewritten sources.");
+        if (options.syncStore === false)
+          console.log("Run 'kibi sync' to recompile the rewritten sources.");
+        else
+          await syncMigratedSources(
+            cwd,
+            options,
+            syncBlocked(statuses.review, drift.manual),
+          );
       }
       if (options.dryRun !== true)
         printRemainingMigrationWork({
@@ -937,14 +1053,44 @@ export async function migrateCommand(
   const firmnessFromOriginStep = migrationSteps.some(
     (step) => step.id === "firmness-from-origin-v10",
   );
-  const evidenceFloorStep = migrationSteps.some(
-    (step) => step.id === "evidence-floor-v11",
+  const positiveScenarioStep = migrationSteps.some(
+    (step) => step.id === "positive-scenarios-v17",
   );
+  const pairReviewStep = migrationSteps.some(
+    // rationale: pair-reviews-v18 is the last step, so every non-empty step list holds it and matching any step is the same until a later step exists.
+    // Stryker disable next-line ConditionalExpression
+    (step) => step.id === "pair-reviews-v18",
+  );
+  const domainSubjectsStep = migrationSteps.some(
+    (step) => step.id === "domain-subjects-v16",
+  );
+  const {
+    applySubjectDefinitionPlaceholders,
+    planSubjectDefinitionPlaceholders,
+  } = await import("../operations/migration/domain-subjects.js");
+  const {
+    domainSubjectReviewNote,
+    planDomainSubjectReview,
+    readUpgradeReviewFindings,
+    upgradeReviewSummary,
+  } = await import("../operations/migration/upgrade-review.js");
+  const floorScope = {
+    firm: migrationSteps.some((step) => step.id === "evidence-floor-v11"),
+    approved: migrationSteps.some((step) => step.id === "approval-floor-v15"),
+  };
+  const evidenceFloorStep = floorScope.firm || floorScope.approved;
   const {
     applyEvidenceFloorPins,
     planEvidenceFloorPins,
+    planUnapprovedAgentMusts,
     readLadderFloorVerdicts,
+    unapprovedAgentMustNote,
   } = await import("../operations/migration/evidence-floor.js");
+  // The agent must requirements the schema 15 rule fails once code
+  // implements them: the upgrade lists them so the new findings are expected.
+  const unapprovedAgentMusts = floorScope.approved
+    ? planUnapprovedAgentMusts(cwd, new Date().toISOString())
+    : [];
   // Read before any source rewrite: the store still holds the KB as it was,
   // and the floors are judged by the same ladder kibi check applies.
   const ladderFloors = evidenceFloorStep
@@ -969,6 +1115,13 @@ export async function migrateCommand(
     mergeFirmSupersedeAcknowledgements,
     planFirmSupersedeAcknowledgement,
   } = await import("../operations/migration/firm-supersede.js");
+  const {
+    mergePositiveScenarioAcknowledgements,
+    planPositiveScenarioAcknowledgements,
+  } = await import("../operations/migration/positive-scenario.js");
+  const { pairReviewNote, planPairReviewCandidates } = await import(
+    "../operations/migration/pair-review.js"
+  );
   const {
     acknowledgedContextIds,
     applyContextMissingTags,
@@ -1015,21 +1168,50 @@ export async function migrateCommand(
           `dry run: would acknowledge ${firmEdges.length} supersede(s) of decisions that read as firm from schema 10 (manifest only; no firmness is written).`,
         );
     }
+    if (positiveScenarioStep) {
+      const musts = planPositiveScenarioAcknowledgements(cwd);
+      if (musts.length > 0)
+        console.log(
+          `dry run: would acknowledge ${musts.length} current must requirement(s) recorded before schema 17, which need no positive scenario (manifest only; no scenario is written).`,
+        );
+    }
+    const notStated = domainSubjectsStep
+      ? planSubjectDefinitionPlaceholders(cwd)
+      : [];
+    if (notStated.length > 0)
+      console.log(
+        notStatedNote(
+          notStated.map((row) => row.id),
+          true,
+        ),
+      );
+    const subjectReview = domainSubjectReviewNote(
+      planDomainSubjectReview(cwd, new Set(notStated.map((row) => row.id))),
+      true,
+    );
+    if (subjectReview !== null) console.log(subjectReview);
+    if (pairReviewStep) {
+      const candidates = planPairReviewCandidates(cwd);
+      if (candidates.length > 0)
+        console.log(pairReviewNote(candidates.length, true));
+    }
     if (evidenceFloorStep) {
-      const floors = planEvidenceFloorPins(cwd, ladderFloors);
+      const floors = planEvidenceFloorPins(cwd, ladderFloors, floorScope);
       if (floors.targets.length > 0)
         console.log(
-          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm requirement(s) whose evidence is below tested (front matter only).`,
+          `dry run: would record required_evidence: asserted on ${floors.targets.length} current firm or approved requirement(s) whose evidence is below tested (front matter only).`,
         );
       if (floors.kept.length > 0)
         console.log(
           floors.decidedBy === "ladder"
-            ? `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.`
-            : `dry run: ${floors.kept.length} firm requirement(s) keep the tested floor (${floors.kept.join(", ")}) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.`,
+            ? `dry run: ${floors.kept.length} firm or approved requirement(s) keep the tested floor (${floors.kept.join(", ")}); the evidence ladder on the synced store accepts each, or needs only kibi prove re-run.`
+            : `dry run: ${floors.kept.length} firm or approved requirement(s) keep the tested floor (${floors.kept.join(", ")}) because their latest end-to-end receipt passed; no synced store could be read, so other proof gaps were not judged. Run kibi sync and rerun the dry run for the ladder's verdict.`,
         );
       for (const skip of floors.skipped)
         printWarning(`Cannot edit ${skip.path}: ${skip.reason}.`);
     }
+    if (unapprovedAgentMusts.length > 0)
+      console.log(unapprovedAgentMustNote(unapprovedAgentMusts, true));
     if (claimBindingStep) {
       const claims = planProofContractClaimPins(cwd, claimCandidates);
       if (claims.targets.length > 0)
@@ -1177,15 +1359,21 @@ export async function migrateCommand(
   const firmSupersedes = firmnessFromOriginStep
     ? planFirmSupersedeAcknowledgement(cwd)
     : [];
+  const positiveScenarioMusts = positiveScenarioStep
+    ? planPositiveScenarioAcknowledgements(cwd)
+    : [];
   const evidenceFloorPlan = evidenceFloorStep
-    ? planEvidenceFloorPins(cwd, ladderFloors)
+    ? planEvidenceFloorPins(cwd, ladderFloors, floorScope)
     : null;
   const evidenceFloorsPinned = evidenceFloorStep
-    ? applyEvidenceFloorPins(cwd, ladderFloors)
+    ? applyEvidenceFloorPins(cwd, ladderFloors, floorScope)
     : 0;
   const claimPins = claimBindingStep
     ? applyProofContractClaimPins(cwd, claimCandidates)
     : null;
+  const notStated = domainSubjectsStep
+    ? applySubjectDefinitionPlaceholders(cwd)
+    : { written: [], skipped: [] };
 
   const existingManifest = readKbManifest(cwd) ?? defaultKbManifest();
   writeKbManifest(cwd, {
@@ -1218,6 +1406,14 @@ export async function migrateCommand(
           ),
         }
       : {}),
+    ...(positiveScenarioMusts.length > 0
+      ? {
+          positiveScenarioAcknowledged: mergePositiveScenarioAcknowledgements(
+            existingManifest.positiveScenarioAcknowledged,
+            positiveScenarioMusts,
+          ),
+        }
+      : {}),
   });
   if (supersedesUnexplained.length > 0)
     console.log(
@@ -1227,23 +1423,48 @@ export async function migrateCommand(
     console.log(
       `Acknowledged ${firmSupersedes.length} supersede(s) of decisions without firmness that read as firm from schema 10; a new replacement of such a decision must be firm.`,
     );
+  if (positiveScenarioMusts.length > 0)
+    console.log(
+      `Acknowledged ${positiveScenarioMusts.length} current must requirement(s) recorded before schema 17; a new must requirement needs a success scenario that assumes facts on its subjects.`,
+    );
+  const pairReviewCandidates = pairReviewStep
+    ? planPairReviewCandidates(cwd)
+    : [];
+  if (notStated.written.length > 0)
+    console.log(
+      notStatedNote(
+        notStated.written.map((row) => row.id),
+        false,
+      ),
+    );
+  for (const skip of notStated.skipped)
+    printWarning(
+      `Cannot record 'Definition not stated' on ${skip.path}: ${skip.reason}.`,
+    );
+  const subjectReview = planDomainSubjectReview(cwd);
+  const subjectReviewNote = domainSubjectReviewNote(subjectReview, false);
+  if (subjectReviewNote !== null) console.log(subjectReviewNote);
+  if (pairReviewCandidates.length > 0)
+    console.log(pairReviewNote(pairReviewCandidates.length, false));
   if (evidenceFloorsPinned > 0)
     console.log(
-      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,
+      `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm or approved requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,
     );
   if (evidenceFloorPlan !== null) {
     const kept = evidenceFloorPlan.kept.length;
     if (kept > 0)
       console.log(
         evidenceFloorPlan.decidedBy === "ladder"
-          ? `${kept} firm requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).`
-          : `${kept} firm requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).`,
+          ? `${kept} firm or approved requirement(s) keep the tested floor; the evidence ladder accepts each, or needs only kibi prove re-run (kibi check --fresh-evidence lists those).`
+          : `${kept} firm or approved requirement(s) keep the tested floor because their latest end-to-end receipt passed; no synced store could be read, so run kibi sync and kibi check --rules evidence-floor to list any whose proof has other gaps (kibi proof explain <id> names them).`,
       );
     for (const skip of evidenceFloorPlan.skipped)
       printWarning(
         `Cannot record required_evidence on ${skip.path}: ${skip.reason}.`,
       );
   }
+  if (unapprovedAgentMusts.length > 0)
+    console.log(unapprovedAgentMustNote(unapprovedAgentMusts, false));
   if (claimPins !== null) {
     if (claimPins.targets.length > 0)
       console.log(
@@ -1292,15 +1513,6 @@ export async function migrateCommand(
     `Wrote migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
   );
   await printRetiredStatusSuggestions(cwd);
-  const incomplete = printRemainingMigrationWork({
-    statuses: statuses.review,
-    manualInventories: drift.manual,
-    manualLifecycle: lifecycle.manual,
-  });
-  if (!incomplete)
-    console.log(
-      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
-    );
   const mergeDriverGaps = manifestMergeDriverGaps(cwd);
   if (mergeDriverGaps !== null && mergeDriverGaps.length > 0) {
     console.log(
@@ -1323,6 +1535,26 @@ export async function migrateCommand(
         `Could not remove ${KB_PATHS.symbolCoordinates} from the Git index (${untrack.reason}); run git rm --cached ${KB_PATHS.symbolCoordinates} before the next commit.`,
       );
   }
+  const synced = await syncMigratedSources(
+    cwd,
+    options,
+    syncBlocked(statuses.review, drift.manual),
+  );
+  const incomplete = printRemainingMigrationWork({
+    statuses: statuses.review,
+    manualInventories: drift.manual,
+    manualLifecycle: lifecycle.manual,
+  });
+  const reviewLeft = upgradeReviewSummary(
+    synced ? await readUpgradeReviewFindings(cwd) : null,
+    subjectReview,
+    pairReviewCandidates.length,
+  );
+  if (reviewLeft !== null) console.log(reviewLeft);
+  else if (!incomplete)
+    console.log(
+      "Migration complete. Future 'kibi migrate' runs will be a no-op.",
+    );
 
   return {
     exitCode: 0,
@@ -1391,7 +1623,7 @@ async function buildWorkspaceMigrationPlan(
     status?.schemaStatus?.currentVersion ??
     readKbManifest(workspaceRoot)?.schemaVersion ??
     null;
-  const { EVIDENCE_FLOOR_SCHEMA_VERSION } = await import(
+  const { APPROVAL_FLOOR_SCHEMA_VERSION } = await import(
     "../public/operations/evidence-floor.js"
   );
   const { readLadderFloorVerdicts } = await import(
@@ -1408,7 +1640,7 @@ async function buildWorkspaceMigrationPlan(
     currentSchemaVersion,
     // Number(null) is 0: a KB without a version is below every schema.
     ladderFloors:
-      Number(currentSchemaVersion) < EVIDENCE_FLOOR_SCHEMA_VERSION
+      Number(currentSchemaVersion) < APPROVAL_FLOOR_SCHEMA_VERSION
         ? await readLadderFloorVerdicts(workspaceRoot)
         : null,
     claimCandidates:
@@ -1625,8 +1857,15 @@ function approvedActionIdsOf(options: MigrateOptions): string[] {
   return [...new Set(ids)];
 }
 
-/** The table rendering of an apply result; --format json prints it whole. */
-function printApplySummary(content: unknown): void {
+/**
+ * The table rendering of an apply result; --format json prints it whole.
+ * The remaining plan is printed as `kibi migrate` would print it (and
+ * recorded the same way), so its hash is one --apply-safe accepts.
+ */
+async function printApplySummary(
+  content: unknown,
+  workspaceRoot: string,
+): Promise<void> {
   if (content === null || typeof content !== "object") return;
   const result = content as {
     outcome?: string;
@@ -1641,12 +1880,22 @@ function printApplySummary(content: unknown): void {
   for (const action of result.actionResults ?? []) {
     console.log(`- ${action.outcome} ${action.actionId}: ${action.detail}`);
   }
-  const remaining = result.remainingPlan;
-  if (remaining !== undefined) {
-    const ready = remaining.automaticSummary.ready;
+  if (result.remainingPlan !== undefined) {
+    // The apply result's digest hashes the plan the operation rebuilt, which
+    // is not the plan kibi migrate builds; print and record the latter.
+    const plan = await buildWorkspaceMigrationPlan(workspaceRoot);
+    const ready = plan.actions.filter(
+      (action) => action.state === "ready" && action.autoApplicable,
+    ).length;
+    const backlog = plan.actions.filter(isBacklogAction).length;
     console.log(
-      `Remaining plan ${remaining.planHash}: ${remaining.status}; actions: ${remaining.summary.actionCount}; automatic-ready: ${ready}`,
+      `Remaining plan ${plan.planHash}: ${plan.status}; actions: ${plan.actions.length} (${plan.actions.length - backlog} migration, ${backlog} quality backlog); automatic-ready: ${ready}`,
     );
+    recordPrintedPlan(workspaceRoot, plan);
+    if (ready > 0)
+      console.log(
+        `Apply its ${ready} ready automatic action(s): ${applyPlanCommand(plan.planHash)}`,
+      );
   }
   console.log(
     "Run 'kibi migrate' for the remaining actions, or add --format json for the full result.",
@@ -1775,7 +2024,7 @@ async function migratePlanCommand(
       console.log(JSON.stringify(result, null, 2));
     } else {
       console.log(result.content[0]?.text ?? "Migration applied.");
-      printApplySummary(result.structuredContent);
+      await printApplySummary(result.structuredContent, workspaceRoot);
     }
     const outcome = result.structuredContent?.outcome;
     if (outcome !== "applied") noteCliErrorCategory(`migrate:${outcome}`);
@@ -1871,7 +2120,7 @@ function printPlanText(plan: MigrationPlan, listBacklog: boolean): void {
     }
   }
   console.log(
-    `Plan status: ${plan.status} (covers both sections). Use --format json for structured actions.`,
+    `Plan status: ${plan.status} (covers both sections: ${plan.actions.length} action(s) in all, the actionCount of --format json). Use --format json for structured actions.`,
   );
   if (automaticReady > 0)
     console.log(

@@ -325,7 +325,7 @@ export function caseSignalObserved(
       return (
         ordering.firstEditIndex !== null &&
         ordering.kibiCallsBeforeFirstEdit >= 1 &&
-        ordering.kibiCallsBeforeFirstEdit <= 2
+        ordering.kibiCallsBeforeFirstEdit <= MAX_CONSULTATION_CALLS
       );
     case "source edit landed":
       return ordering.firstEditIndex !== null;
@@ -441,6 +441,13 @@ export function caseSignalObserved(
 }
 
 /** Case-owned forbidden actions; `undefined` for names this lane does not own. */
+/**
+ * Kibi calls a bounded consultation may make before the first edit: a search,
+ * a source-linked query, and one read of the governing statement that the
+ * search names but does not quote.
+ */
+const MAX_CONSULTATION_CALLS = 3;
+
 export function caseForbiddenObserved(
   action: string,
   context: CaseSignalContext,

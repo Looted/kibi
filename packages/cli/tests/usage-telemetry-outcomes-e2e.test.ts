@@ -69,8 +69,10 @@ async function runKibi(
   return { exitCode, stdout, stderr };
 }
 
-function gitWorkspace(): string {
-  const workspace = temporaryDirectory("kibi-outcome-private-repo-");
+function gitWorkspace(
+  workspace: string = temporaryDirectory("kibi-outcome-private-repo-"),
+): string {
+  fs.mkdirSync(workspace, { recursive: true });
   const git = (...args: string[]) =>
     spawnSync("git", args, { cwd: workspace, stdio: "ignore" });
   git("init", "-q", "-b", "main");
@@ -113,7 +115,12 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
         }),
       );
       expect(invalid.exitCode).toBe(1);
-      expect(invalid.stderr).toContain("Entity validation failed");
+      // The JSON route prints the error once, in the result on stdout, and
+      // points stderr at it.
+      expect(invalid.stdout).toContain("Entity validation failed");
+      expect(invalid.stderr).toContain(
+        "see error.message in the JSON result on stdout",
+      );
       const malformed = await runKibi(
         ["upsert", "--input", "-"],
         workspace,
@@ -259,4 +266,76 @@ describe("kibi CLI telemetry outcomes (end to end)", () => {
       collector.stop();
     }
   }, 240_000);
+});
+
+describe("kibi CLI skill load telemetry (end to end)", () => {
+  test("a skill loaded through the CLI marks later operations in that workspace", async () => {
+    // The workspace sits below a plain parent directory, the way repositories
+    // sit below a home directory.
+    const parent = temporaryDirectory("kibi-skill-load-parent-");
+    const workspace = gitWorkspace(path.join(parent, "repo"));
+    const subdirectory = path.join(workspace, "packages", "app");
+    fs.mkdirSync(subdirectory, { recursive: true });
+    const other = gitWorkspace();
+    const state = temporaryDirectory("kibi-skill-load-state-");
+    const collector = startCollector();
+    try {
+      const env = {
+        KIBI_TELEMETRY: "1",
+        KIBI_TELEMETRY_DIR: state,
+        KIBI_TELEMETRY_HOST: collector.url,
+      };
+      for (const root of [workspace, other]) {
+        expect(
+          (await runKibi(["init", "--no-hooks"], root, env)).exitCode,
+        ).toBe(0);
+      }
+      const loadSkill = ["skills", "load", "kibi-usage", "--format", "json"];
+      const before = await runKibi(["status"], workspace, env);
+      // A load in the parent directory marks that directory only.
+      const parentLoad = await runKibi(loadSkill, parent, env);
+      const afterParentLoad = await runKibi(["status"], workspace, env);
+      // A load run from a subdirectory marks the workspace it resolves to.
+      const load = await runKibi(loadSkill, subdirectory, {
+        ...env,
+        KIBI_WORKSPACE: workspace,
+      });
+      expect(load.exitCode).toBe(0);
+      expect(load.stdout).toContain('"sourceType": "bundled"');
+      const after = await runKibi(["status"], workspace, env);
+      const elsewhere = await runKibi(["status"], other, env);
+      expect(
+        [before, parentLoad, afterParentLoad, after, elsewhere].map(
+          (run) => run.exitCode,
+        ),
+      ).toEqual([0, 0, 0, 0, 0]);
+      // Twenty queued events make the next command's flush due.
+      for (let index = 0; index < 16; index += 1) {
+        await runKibi(["status"], other, env);
+      }
+      const events = collector.batches
+        .flatMap((body) => body.batch)
+        .map((event) => event.properties)
+        .filter((properties) => properties.operation !== "init")
+        .slice(0, 6);
+      expect(
+        events.map((properties) => [
+          properties.operation,
+          properties.skill_loaded_before,
+        ]),
+      ).toEqual([
+        ["status", false],
+        ["skills load", false],
+        ["status", false],
+        ["skills load", false],
+        ["status", true],
+        ["status", false],
+      ]);
+      const sent = JSON.stringify(collector.batches);
+      expect(sent).not.toContain(parent);
+      expect(sent).not.toContain(other);
+    } finally {
+      collector.stop();
+    }
+  }, 120_000);
 });

@@ -31,7 +31,16 @@
 // Schema 14 adds the retired requirement status (with retired_reason) and
 // blocks current facts, scenarios and tests owned only by retired
 // requirements.
-export const LATEST_KB_SCHEMA_VERSION = 14;
+// Schema 15 gives a requirement a person approved (origin.approved_by) the
+// tested evidence floor unless it sets required_evidence or states its
+// firmness.
+// Schema 16 restores subject facts as domain definitions: a subject needs a
+// definition and no duplicate, and every unmodeled claim names its subjects.
+// Schema 17 requires a must requirement written after the upgrade to have a
+// success scenario that assumes facts on its subjects.
+// Schema 18 blocks every stored pair with an unmodeled rule claim until it is
+// modeled or a checkable pair_reviews verdict settles it.
+export const LATEST_KB_SCHEMA_VERSION = 18;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

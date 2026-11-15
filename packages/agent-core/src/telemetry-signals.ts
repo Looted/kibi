@@ -48,6 +48,11 @@ export type OperationSignals = {
   readonly retryKey?: string | undefined;
   /** The error a failure threw, for its Kibi stack frames. Never sent. */
   readonly error?: unknown;
+  /**
+   * The call loaded a Kibi skill, so later calls in the workspace carry
+   * `skill_loaded_before`. Stored as the workspace hash only; never sent.
+   */
+  readonly skillLoad?: boolean | undefined;
 };
 
 /** How long a repeated call on the same entity counts as a retry. */
@@ -366,7 +371,8 @@ export type OperationRecall = {
 /**
  * Compare this call with the recent ones and remember it. `retryHash` and
  * `searchHash` are one-way hashes of what the call worked on;
- * `workspaceHashes` are the hashes of the workspace and its parents.
+ * `workspaceHashes` are the hashes a skill marker must match: the
+ * workspace root's own.
  */
 export function recallOperation(
   directory: string,

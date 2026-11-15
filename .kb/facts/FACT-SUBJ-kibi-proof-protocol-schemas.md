@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-proof-protocol-schemas
 type: fact
 ---
+
+The published JSON schemas for proof contracts, proof bindings and proof run artifacts, against which Kibi rejects a malformed document and names each schema error. They define document shape, not proof semantics.

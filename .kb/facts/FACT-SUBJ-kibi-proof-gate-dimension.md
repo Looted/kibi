@@ -11,3 +11,5 @@ origin:
 id: FACT-SUBJ-kibi-proof-gate-dimension
 type: fact
 ---
+
+The proof gate rule for claims with a measured quantity: a requirement does not reach tested while its quantified claim is grounded only on a boolean verdict or ground predicate. It does not judge non-quantified claims.

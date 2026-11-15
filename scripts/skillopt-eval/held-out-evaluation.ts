@@ -23,6 +23,7 @@ import {
   type RealOptimizationDependencies,
   requireRuntime,
 } from "./real-workflow-types";
+import { DEFAULT_CELL_TIMEOUT_MS } from "./runtime/cell-timeout";
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { resolveTaskFixture } from "./runtime/task-fixture";
@@ -54,7 +55,7 @@ function terminalTasks(skill: CanonicalSkill): readonly TerminalTask[] {
           replicates: [1, 2, 3] as const,
         }))
       : [];
-  // The 16-task held-out gate matrix is contracted to the core families.
+  // The held-out gate matrix is contracted to the core families.
   const skills = buildCoreSkillCatalog(skill)
     .filter(
       (task) =>
@@ -196,7 +197,7 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
               hiddenMarkers: runtime.hiddenMarkers ?? [],
               pricingHash: runtime.pricingHash ?? "0".repeat(64),
               priceAmount: runtime.priceAmount ?? 0,
-              timeoutMs: runtime.timeoutMs ?? 180_000,
+              timeoutMs: runtime.timeoutMs ?? DEFAULT_CELL_TIMEOUT_MS,
             });
             assertCellInfrastructureHealthy(completed, {
               stage: "held-out",

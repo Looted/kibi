@@ -1,10 +1,10 @@
 ---
 name: kibi-decisions
-description: "Use when the person states a rule or decision (must, never, always, from now on, we decided), when a Kibi hook asks to confirm or warns about an edit to code that implements a firm requirement, when the Stop hook says source files changed but nothing was recorded, when kb_check quotes requirement_statement_unverified, or when a request conflicts with a recorded requirement or ADR. Covers reading firmness and origin, recording a person's rule as firm with origin.ref, superseding with a Why this changed section, the kb_compile_intent unresolved/reviewCandidates/conflictReviews loop, asking before overriding a firm rule, and putting decisions to the person as one numbered kibi signoff --questions view."
+description: "Use when the person states a rule or decision (must, never, always, from now on, we decided), when a Kibi hook asks to confirm or warns about an edit to code that implements a firm requirement, when the Stop hook says source files changed but nothing was recorded, when kb_check quotes requirement_statement_unverified, or when a request conflicts with a recorded requirement or ADR. Covers reading firmness and origin, recording a person's rule as firm with origin.ref, superseding with a Why this changed section, the kb_compile_intent unresolved/reviewCandidates/conflictReviews loop, asking before overriding a firm rule, putting decisions to the person as one numbered kibi signoff --questions view, and getting a batch of statement changes, splits, reasons or retirements approved during a knowledge base cleanup."
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-decisions
-  version: 1.5.0
+  version: 1.10.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -57,6 +57,22 @@ name the missing capability. Never read or edit `.kb/` files directly.
    - `exploratory`: a flagged guess; revisit it when you touch the area.
 3. Compare the request with the statement. A request is not evidence against
    a rule.
+4. For each subject the request is about, `kb_query
+   {"factKind":"subject","subjectKey":"<key>"}` lists every current
+   requirement on it, prose ones included. Read them all: one that forbids or
+   restricts what the request describes is a conflict even when no check
+   reports it.
+5. When the request adds a `must` requirement, write its success scenario
+   on the same subjects (`must-positive-scenario`). A `scenario-feasibility`
+   refusal of that scenario names the recorded rule it conflicts with: ask
+   the person which one holds.
+6. When `related-requirement-unmodeled` reports a pair you cannot model,
+   compare the two statements and record a `pair_reviews` verdict. An
+   `interacts` verdict's `resolved_by` must name something other than the
+   two requirements. On a `must` or firm requirement, or on a requirement an
+   agent wrote, show the verdict to the person; set `origin.approved_by`
+   only after they confirm it, and treat a conflict as a rule change to ask
+   about.
 
 ## Decide
 
@@ -94,6 +110,13 @@ name the missing capability. Never read or edit `.kb/` files directly.
   new `origin.ref` to those words instead.
 - **You only prefer another approach:** a preference is not evidence. Propose
   it; do not supersede.
+- **A cleanup needs many decisions** (statements reworded by a split,
+  requirements to retire, reasons to add, agent-written requirements to
+  approve): a general request such as "clean up the knowledge base" approves
+  none of them. Put the specific items to the person in batches they can
+  read, new wording marked as new and each reason with its source, and
+  record their reply only on the items that batch listed. See Batch
+  approvals in `resources/decision-records.md`.
 
 ## Put decisions to the person in one view
 

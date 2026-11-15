@@ -706,3 +706,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2dbea936f6a6
+  - type: implements
+    from: SYM-cli-protocol-envelopeErrorLine
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-11-13T20:50:18.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd69c77545d4
+  - type: covered_by
+    from: SYM-cli-protocol-envelopeErrorLine
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-11-13T20:50:18.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f02d18996d21

@@ -4,10 +4,13 @@ import os from "node:os";
 import path from "node:path";
 import {
   KIBI_BUILT_PACKAGE_VERSIONS,
+  builtPackageVersions,
   cliVersion,
+  coreSourcesDirectory,
   coreVersion,
   kibiPackageVersions,
   manifestVersion,
+  prologSourcesDigest,
 } from "../src/package-versions.js";
 
 const packageRoot = path.join(import.meta.dir, "..");
@@ -137,10 +140,16 @@ describe("coreVersion", () => {
 });
 
 describe("package version strings", () => {
-  test("the built versions name both packages", () => {
+  test("the built versions name both packages and the core sources", () => {
     expect(KIBI_BUILT_PACKAGE_VERSIONS).toBe(
-      `kibi-cli@${CLI},kibi-core@${CORE}`,
+      `kibi-cli@${CLI},kibi-core@${CORE},core-sources@${prologSourcesDigest(
+        path.join(packageRoot, "..", "core", "src"),
+      )}`,
     );
+    expect(builtPackageVersions("1", "2", "abc")).toBe(
+      "kibi-cli@1,kibi-core@2,core-sources@abc",
+    );
+    expect(builtPackageVersions("1", "2", null)).toBe("kibi-cli@1,kibi-core@2");
   });
 
   test("a non-empty KIBI_PACKAGE_VERSIONS overrides them", () => {
@@ -150,5 +159,84 @@ describe("package version strings", () => {
     expect(kibiPackageVersions()).toBe(KIBI_BUILT_PACKAGE_VERSIONS);
     process.env.KIBI_PACKAGE_VERSIONS = "kibi-cli@0,kibi-core@0";
     expect(kibiPackageVersions()).toBe("kibi-cli@0,kibi-core@0");
+  });
+});
+
+describe("prologSourcesDigest", () => {
+  function sources(files: Record<string, string>): string {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-sources-"));
+    roots.push(root);
+    for (const [file, content] of Object.entries(files))
+      fs.writeFileSync(path.join(root, file), content);
+    return root;
+  }
+
+  test("changes with any Prolog source's name or content, not other files", () => {
+    const base = prologSourcesDigest(sources({ "a.pl": "a.", "b.pl": "b." }));
+    expect(base).toMatch(/^[0-9a-f]{12}$/);
+    expect(
+      prologSourcesDigest(
+        sources({ "b.pl": "b.", "a.pl": "a.", "notes.md": "x" }),
+      ),
+    ).toBe(base);
+    expect(
+      prologSourcesDigest(sources({ "a.pl": "a.", "b.pl": "b2." })),
+    ).not.toBe(base);
+    expect(
+      prologSourcesDigest(sources({ "a.pl": "a.", "c.pl": "b." })),
+    ).not.toBe(base);
+    // File boundaries count: moving text between files changes the digest.
+    expect(
+      prologSourcesDigest(sources({ "a.pl": "a.b", "b.pl": "." })),
+    ).not.toBe(prologSourcesDigest(sources({ "a.pl": "a.", "b.pl": "b." })));
+  });
+
+  test("file boundaries count, not only the joined text", () => {
+    expect(prologSourcesDigest(sources({ "a.pl": "x", "b.pl": "y" }))).not.toBe(
+      prologSourcesDigest(sources({ "a.pl": "xb.ply" })),
+    );
+  });
+
+  test("does not depend on the order the directory lists its files", () => {
+    const directory = sources({ "a.pl": "a.", "b.pl": "b." });
+    const sorted = prologSourcesDigest(directory);
+    expect(prologSourcesDigest(directory, () => ["b.pl", "a.pl"])).toBe(sorted);
+  });
+
+  test("an unreadable source has no digest", () => {
+    const directory = sources({ "a.pl": "a." });
+    fs.mkdirSync(path.join(directory, "b.pl"));
+    expect(prologSourcesDigest(directory)).toBeUndefined();
+  });
+
+  test("a directory without Prolog sources, or none at all, has no digest", () => {
+    expect(prologSourcesDigest(sources({ "a.txt": "a" }))).toBeUndefined();
+    expect(
+      prologSourcesDigest(path.join(os.tmpdir(), "kibi-no-such-dir-x")),
+    ).toBeUndefined();
+  });
+});
+
+describe("coreSourcesDirectory", () => {
+  test("prefers KIBI_KB_PL_PATH, then the installed kibi-core, then the sibling", () => {
+    const fail = (): string => {
+      throw new Error("not installed");
+    };
+    expect(
+      coreSourcesDirectory(fail, "/x/pkg/src", "/opt/core/src/kb.pl"),
+    ).toBe("/opt/core/src");
+    expect(
+      coreSourcesDirectory(
+        () => "/inst/kibi-core/package.json",
+        "/x/pkg/src",
+        "",
+      ),
+    ).toBe("/inst/kibi-core/src");
+    expect(coreSourcesDirectory(fail, "/x/pkg/src", undefined)).toBe(
+      "/x/core/src",
+    );
+    expect(coreSourcesDirectory()).toBe(
+      path.join(path.dirname(require.resolve("kibi-core/package.json")), "src"),
+    );
   });
 });

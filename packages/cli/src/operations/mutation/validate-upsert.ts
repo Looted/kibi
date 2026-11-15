@@ -6,7 +6,11 @@ import type {
 } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
 import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
-import { entityContextWarnings } from "./context-warning.js";
+import {
+  entityContextWarnings,
+  upsertDocumentBody,
+} from "./context-warning.js";
+import { subjectLayerWarnings } from "./subject-warnings.js";
 import {
   buildUpsertContradictionPreviewGoal,
   buildWhatIfAnalysisGoal,
@@ -380,6 +384,13 @@ export async function executeValidateUpsert(
       context.prolog !== undefined
         ? await validateWithStore(input, context, context.prolog)
         : await validateWithoutStore(input, context);
+    const subjectWarnings = await subjectLayerWarnings(
+      input,
+      entity,
+      upsertDocumentBody(input, entity, context.workspaceRoot, { targetPath }),
+      context.prolog,
+      context.workspaceRoot,
+    );
     const payload: ValidateUpsertPayload = {
       valid: true,
       errors: [],
@@ -389,6 +400,7 @@ export async function executeValidateUpsert(
         ...entityContextWarnings(input, entity, context.workspaceRoot, {
           targetPath,
         }),
+        ...subjectWarnings,
       ],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: entity,

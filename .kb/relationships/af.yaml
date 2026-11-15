@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-00eaf893151a
+  - type: assumes
+    from: SCEN-NEG-docs-site-link-preview-WRONG-IMAGE-SIZE
+    to: FACT-NEG-docs-site-link-preview-WRONG-IMAGE-SIZE
+    created_at: 2026-11-12T18:33:29.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e375cdf86ca
+  - type: verified_by
+    from: SCEN-NEG-docs-site-link-preview-WRONG-IMAGE-SIZE
+    to: TEST-docs-site-pages
+    created_at: 2026-11-12T18:33:29.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f04763ea8e2

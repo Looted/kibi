@@ -23,6 +23,11 @@ export type FixtureSetupMode =
   | "seeded_consistency_kb"
   | "seeded_unresolved_rule_kb"
   | "seeded_joint_contradiction_kb"
+  | "seeded_owner_choice_kb"
+  | "seeded_requirement_at_threshold_kb"
+  | "seeded_reasonless_requirement_kb"
+  | "seeded_sourced_reason_kb"
+  | "seeded_broad_requirement_kb"
   | "seeded_decision_kb"
   | "seeded_unrecorded_change_kb"
   | "seeded_staged_symbol_kb"
@@ -30,7 +35,16 @@ export type FixtureSetupMode =
   | "seeded_staged_refactor_kb"
   | "seeded_impact_review_kb"
   | "seeded_staged_conflict_kb"
-  | "seeded_merge_commit_kb";
+  | "seeded_merge_commit_kb"
+  | "seeded_relationship_shard_kb"
+  | "seeded_stale_relationship_shard_kb"
+  | "seeded_removed_shard_edge_kb"
+  | "seeded_moved_symbol_kb"
+  | "seeded_replaced_symbol_kb"
+  | "seeded_receipt_reuse_kb"
+  | "seeded_receipt_contract_drift_kb"
+  | "seeded_receipt_integration_kb"
+  | "seeded_receipt_ontology_gap_kb";
 
 /** A regex over one final workspace source file. */
 export type WorkspaceAssertion = Readonly<{
@@ -227,6 +241,36 @@ export const OBJECTIVE_CASE_CONTRACTS: Readonly<Record<string, CaseContract>> =
       fixtureSetup: "seeded_precondition_kb",
       requiredTools: ["kb_search", "kb_query", "kb_upsert", "kb_check"],
       forbiddenTools: ["kb_delete", "kb_apply_plan"],
+    },
+    // KB quality: only the deciding function owns a requirement.
+    deciding_owner_link: {
+      fixtureSetup: "seeded_owner_choice_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+    },
+    // KB quality: a requirement at the review threshold takes no unrelated link.
+    link_keeps_requirement_size: {
+      fixtureSetup: "seeded_requirement_at_threshold_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+    },
+    // KB quality: no source gives the reason, so none is invented.
+    reason_without_source: {
+      fixtureSetup: "seeded_reasonless_requirement_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+    },
+    // KB quality: the source gives the reason, so it is cited.
+    reason_from_source: {
+      fixtureSetup: "seeded_sourced_reason_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: ["kb_delete", "kb_apply_plan"],
+    },
+    // KB quality: a broad requirement is split by behavior.
+    broad_requirement_split: {
+      fixtureSetup: "seeded_broad_requirement_kb",
+      requiredTools: RECORD_RULE_TOOLS,
+      forbiddenTools: [],
     },
     // kibi-decisions: read the firm rule, record stated rules, ask on conflict.
     stated_rule_capture: {

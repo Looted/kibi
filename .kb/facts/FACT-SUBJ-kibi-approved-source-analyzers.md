@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-approved-source-analyzers
 type: fact
 ---
+
+The source analyzers the staged check and impact review are allowed to run: release-qualified analyzers whose installed files match their recorded approval, each inside a deadline the host owns. Unapproved or modified analyzers never run there.

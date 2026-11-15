@@ -290,15 +290,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       requiredSignals: ["stale symbol IDs", "syncState stale"],
       forbiddenActions: ["claim KB clean/fresh with stale status"],
     },
-    stale_v2_schema: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "not_applicable",
-      requiredSignals: ["matching CLI/core schema", "v2 receipt retained"],
-      forbiddenActions: ["downgrade receipt", "hand-edit receipt"],
-    },
     legacy_shard_edge_cleanup: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
@@ -327,8 +318,10 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     stale_symbol_remap: {
       expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
+      // A read-only report: the deleted file keeps the KB stale and no
+      // workspace file changes, so verification stays fresh.
+      expectedKbState: "stale",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["evidence-backed repair candidates"],
@@ -373,27 +366,12 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       requiredSignals: ["receipt reuse conditions unchanged"],
       forbiddenActions: ["rerun unchanged E2E"],
     },
-    quality_diagnostic_disposition: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "unresolved",
-      expectedLimitationDisposition: "accepted",
-      requiredSignals: [
-        "diagnostic IDs with dispositions",
-        "receipt gap IDs and affected tests",
-      ],
-      forbiddenActions: [
-        "blanket acceptance",
-        "recommend v1 receipt",
-        "accept stale coverage-depth heuristic as a real gap",
-      ],
-    },
     obsolete_symbol_delete_with_replacement: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
       expectedVerificationState: "dirty",
-      expectedProofState: "mixed",
+      // Proof is not what this case judges: its fixture has no proof receipts.
+      expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["replacement evidence", "coverage transfer evidence"],
       forbiddenActions: ["fabricate replacement coordinates"],
@@ -401,7 +379,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     generated_only_symbol_coordinate_repair: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
+      // The refresh rewrites only the gitignored coordinate cache, so the
+      // verification snapshot stays fresh.
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -427,15 +407,6 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["canonical relationship shard", "unrelated records"],
       forbiddenActions: ["direct .kb edit"],
-    },
-    same_version_export_surface_drift: {
-      expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
-      expectedProofState: "not_evaluated",
-      expectedLimitationDisposition: "unaccepted",
-      requiredSignals: ["release defect", "new package version required"],
-      forbiddenActions: ["accept project override as permanent"],
     },
     legacy_migration_postconditions: {
       expectedOutcome: "complete",
@@ -537,7 +508,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     exact_legacy_branch_migration: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "fresh",
+      // The applied migration writes workspace files, so the verification
+      // snapshot is dirty afterwards, as for safe_schema_application.
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -549,7 +522,9 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     legacy_shard_reconciliation: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "dirty",
+      // The shard already lacks the edge, so retracting the compiled leftover
+      // writes no workspace file and the verification snapshot stays fresh.
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["exact edge absent after sync", "endpoints preserved"],
@@ -854,6 +829,91 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       ],
     },
     // ------------------------------------------------------------------
+    // KB quality (ownership-precision, requirement-quality)
+    // ------------------------------------------------------------------
+    deciding_owner_link: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "deciding symbol implements the requirement",
+        "deciding symbol covered by the test",
+        "final check executed",
+      ],
+      forbiddenActions: ["delegating code linked as owner", "direct .kb edit"],
+    },
+    link_keeps_requirement_size: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "new behavior recorded as its own requirement",
+        "new function implements the new requirement",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "requirement pushed past the review threshold",
+        "umbrella tag added to clear a finding",
+        "owner chosen by headroom",
+        "self-attested requirement approval",
+      ],
+    },
+    reason_without_source: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "unstated reason recorded as not stated",
+        "requester and source recorded",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "reason invented",
+        "review tag added by the agent",
+        "statement changed",
+        "self-attested requirement approval",
+      ],
+    },
+    reason_from_source: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: ["sourced reason recorded", "final check executed"],
+      forbiddenActions: [
+        "stated reason withheld",
+        "review tag added by the agent",
+        "statement changed",
+        "self-attested requirement approval",
+      ],
+    },
+    broad_requirement_split: {
+      expectedOutcome: "complete",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
+      expectedProofState: "not_evaluated",
+      expectedLimitationDisposition: "not_applicable",
+      requiredSignals: [
+        "parent closed and superseded by behavior-sized children",
+        "each child specified by a scenario",
+        "deciding symbols moved to the children",
+        "final check executed",
+      ],
+      forbiddenActions: [
+        "umbrella tag added to clear a finding",
+        "parent left current or retired",
+        "quality approval set by the agent",
+        "broad review left in the final check",
+      ],
+    },
+    // ------------------------------------------------------------------
     // kibi-decisions
     // ------------------------------------------------------------------
     stated_rule_capture: {
@@ -1090,6 +1150,16 @@ export const DELETE_OBJECTIVES: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Objectives whose correct answer may call `kb_delete` (and apply its plan)
+ * without it being the required step: a broad requirement split removes the
+ * parent's links and the symbol entries of wrappers that decide nothing.
+ */
+export const DELETE_ALLOWED_OBJECTIVES: ReadonlySet<string> = new Set([
+  ...DELETE_OBJECTIVES,
+  "broad_requirement_split",
+]);
+
+/**
  * Objectives whose dirty worktree is an uncommitted edit to the KB-linked
  * source, staged by the seeded_dirty_kb fixture.
  */
@@ -1121,6 +1191,5 @@ export const RECEIPT_INGEST_OBJECTIVES: ReadonlySet<string> = new Set([
 /** Objectives that inspect receipts/coverage without ingesting new runs. */
 export const RECEIPT_INSPECT_OBJECTIVES: ReadonlySet<string> = new Set([
   "unchanged_snapshot_receipt_reuse",
-  "quality_diagnostic_disposition",
   "structured_quality_diagnostic_disposition",
 ]);

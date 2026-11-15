@@ -155,6 +155,24 @@ describe("collectQueryPlanSafetyViolations", () => {
     ).toStrictEqual([`${file}:1`]);
   });
 
+  test("a generator name only counts when spaces at most separate it from its arguments", () => {
+    const dir = tempDir();
+    const file = join(dir, "checks.pl");
+    writeFileSync(
+      file,
+      [
+        "spaced(X) :- \\+ a(X),",
+        "  findall (Z, b(Z), _).",
+        "longer(X) :- \\+ a(X),",
+        "  members(X, [a]).",
+        "",
+      ].join("\n"),
+    );
+    expect(
+      collectQueryPlanSafetyViolations(file).map((v) => v.entityId),
+    ).toStrictEqual(["spaced"]);
+  });
+
   test("a clause with no negation or no later generator is fine", () => {
     const dir = tempDir();
     const file = join(dir, "checks.pl");

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-migration-plan-codes-component
 type: fact
 ---
-The kibi.migration.plan_codes component, as the structural requirements that name it constrain it.
+
+The guided migration plan version kibi.migration-plan.v2 and the codes of its steps, such as predicate_schema_alignment. They identify plan parts, not the orchestration.

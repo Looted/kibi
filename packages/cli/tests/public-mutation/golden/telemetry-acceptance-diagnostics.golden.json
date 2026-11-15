@@ -68,7 +68,7 @@
     "category": "telemetry",
     "source": ".kb/usage.log",
     "message": "advisor_before_requirement_write message",
-    "suggestion": "Run kb_model with mode analyze (CLI: semantic-advisor) on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
+    "suggestion": "Run kb_model with mode analyze (CLI: kibi model) on the complete current requirement prose before its next upsert, preserve the returned source hash, and recheck telemetry.",
     "evidence": {
       "version": "kibi.telemetry-acceptance.v1",
       "rank": 30,

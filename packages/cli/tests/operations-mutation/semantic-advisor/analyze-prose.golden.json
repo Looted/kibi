@@ -291,7 +291,10 @@
               "claim_span_start": 0,
               "claim_span_end": 35
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-X (\"Users must keep at least 3 sessions. Admins must keep at most 2 sessions. Guests must keep exactly 1 session. Bots must keep no more than 4 sessions. Testers must keep up to 5 sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -504,7 +507,10 @@
               "claim_span_start": 37,
               "claim_span_end": 72
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-X (\"Users must keep at least 3 sessions. Admins must keep at most 2 sessions. Guests must keep exactly 1 session. Bots must keep no more than 4 sessions. Testers must keep up to 5 sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -704,7 +710,10 @@
               "claim_span_start": 74,
               "claim_span_end": 108
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-X (\"Users must keep at least 3 sessions. Admins must keep at most 2 sessions. Guests must keep exactly 1 session. Bots must keep no more than 4 sessions. Testers must keep up to 5 sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -917,7 +926,10 @@
               "claim_span_start": 110,
               "claim_span_end": 148
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-X (\"Users must keep at least 3 sessions. Admins must keep at most 2 sessions. Guests must keep exactly 1 session. Bots must keep no more than 4 sessions. Testers must keep up to 5 sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -1130,7 +1142,10 @@
               "claim_span_start": 150,
               "claim_span_end": 184
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-X (\"Users must keep at least 3 sessions. Admins must keep at most 2 sessions. Guests must keep exactly 1 session. Bots must keep no more than 4 sessions. Testers must keep up to 5 sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -3074,7 +3089,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-X (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -3299,7 +3317,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-X (\"Users must keep at most 3 active sessions. Because operators need auditability, exports are logged. For example, a demo tenant may skip review. Reviewers feel comfortable when the page looks complete.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -3734,7 +3755,10 @@
               "claim_span_start": 0,
               "claim_span_end": 0
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-X. The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -4302,7 +4326,10 @@
               "claim_span_start": 0,
               "claim_span_end": 30
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject sessions.are.allowed is named by requirement REQ-X (\"At most 3 sessions are allowed.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",

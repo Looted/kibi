@@ -38,6 +38,8 @@ export const tasks: PublicTaskDescriptor[] = [
   ["rule-lane-modeling", 1],
   ["rule-lane-modeling", 2],
   ["rule-lane-modeling", 3],
+  ["requirement-quality", 1],
+  ["requirement-quality", 2],
 ].map(([family, slot]) => ({
   id: `kibi-usage-${family}-development-${slot}`,
   family: String(family),

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-legacy-kb-migration-component
 type: fact
 ---
-The kibi.legacy_kb.migration component, as the structural requirements that name it constrain it.
+
+The first command a legacy KB must run, kibi migrate --yes, which every legacy error points to. It is the entry command, not the migration steps.

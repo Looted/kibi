@@ -13,3 +13,5 @@ subject_key: requirement_proof.component_scope
 id: FACT-requirement-proof-component-scope-subject
 type: fact
 ---
+
+Which kinds of test may prove a scenario: a scenario whose requirements are grounded only in UI pattern predicates accepts unit and integration tests with fresh passing receipts, and every other scenario accepts only end-to-end tests.

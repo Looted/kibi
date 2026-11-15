@@ -13,3 +13,5 @@ origin:
 id: FACT-subject-skillopt-harness-selection
 type: fact
 ---
+
+Which agent harness a SkillOpt run uses: the operator's selection, defaulting to Codex, with unknown or unsupported selections refused, and every supported harness feeding the same scorers, evidence replay and leak scans. It is selection, not the optimization loop.

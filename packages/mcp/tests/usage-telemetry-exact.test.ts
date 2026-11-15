@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import * as core from "kibi-agent-core/usage-telemetry";
 
 import * as diagnostics from "../src/diagnostics.js";
@@ -7,6 +10,7 @@ import {
   recordMcpToolTelemetry,
   startMcpTelemetry,
 } from "../src/usage-telemetry.js";
+import { resolveWorkspaceRoot } from "../src/workspace.js";
 import { restoreProcessEnv } from "./helpers/process-env.js";
 
 const spies: { mockRestore: () => void }[] = [];
@@ -31,37 +35,70 @@ describe("recordMcpToolTelemetry, exact", () => {
     const read = spyOn(diagnostics, "readMcpPackageVersion");
     spies.push(read);
     spies.push(spyOn(core, "detectTelemetryHost").mockReturnValue(undefined));
+    for (const key of ["KIBI_PROJECT_ROOT", "KIBI_ROOT"]) {
+      Reflect.deleteProperty(process.env, key);
+    }
+    // A routed child inherits the launcher's attach root; its pin wins.
     process.env.KIBI_MCP_ATTACH_ROOT = "/attach";
     process.env.KIBI_WORKSPACE = "/workspace";
     const call = { operation: "kb_query", startedAt: new Date() } as const;
     recordMcpToolTelemetry({ ...call, status: "success", clientName: "c" });
     expect(read.mock.calls.length).toBeLessThanOrEqual(1);
     const reads = read.mock.calls.length;
-    Reflect.deleteProperty(process.env, "KIBI_MCP_ATTACH_ROOT");
-    recordMcpToolTelemetry({ ...call, status: "success" });
+    // Unpinned, the served root is resolved from the directory, never the
+    // attach variable or the raw start directory.
     Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
     recordMcpToolTelemetry({ ...call, status: "success" });
+    Reflect.deleteProperty(process.env, "KIBI_MCP_ATTACH_ROOT");
+    recordMcpToolTelemetry({ ...call, status: "success" });
     expect(read).toHaveBeenCalledTimes(reads);
+    const served = resolveWorkspaceRoot(process.cwd());
     expect(record.mock.calls.map((args) => args[0])).toStrictEqual([
       {
         packageName: "kibi-mcp",
         packageVersion: version,
         host: "c",
-        workspaceRoot: "/attach",
-      },
-      {
-        packageName: "kibi-mcp",
-        packageVersion: version,
-        host: undefined,
         workspaceRoot: "/workspace",
       },
       {
         packageName: "kibi-mcp",
         packageVersion: version,
         host: undefined,
-        workspaceRoot: process.cwd(),
+        workspaceRoot: served,
+      },
+      {
+        packageName: "kibi-mcp",
+        packageVersion: version,
+        host: undefined,
+        workspaceRoot: served,
       },
     ]);
+  });
+
+  test("a server started in a subdirectory records its workspace root", () => {
+    const record = captureRecords();
+    for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"]) {
+      Reflect.deleteProperty(process.env, key);
+    }
+    const root = fs.realpathSync(
+      fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-telem-root-")),
+    );
+    const sub = path.join(root, "packages", "app");
+    fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
+    fs.mkdirSync(sub, { recursive: true });
+    const cwd = process.cwd();
+    try {
+      process.chdir(sub);
+      recordMcpToolTelemetry({
+        operation: "kb_query",
+        startedAt: new Date(),
+        status: "success",
+      });
+    } finally {
+      process.chdir(cwd);
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+    expect(record.mock.calls[0]?.[0].workspaceRoot).toBe(root);
   });
 
   test("the detected host wins over the client name", () => {

@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-proof-receipts
 type: fact
 ---
-The subject kibi.proof.receipts.
+
+The records of test runs that prove requirements: each receipt binds execution provenance to a KB snapshot, stays fresh for 604800 seconds, must be passing and current to count, and is compacted per test on ingest. It is the evidence record, not the producer or the gate.

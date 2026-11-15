@@ -185,7 +185,10 @@ describe("deriveDiagnosticUsageFields", () => {
                 staleReceiptTests: ["T2", "T1"],
                 receiptEvidence: [
                   { testId: "T2", fingerprintDrift: ["command"] },
-                  { testId: "T1", fingerprintDrift: ["integration", 4, "command"] },
+                  {
+                    testId: "T1",
+                    fingerprintDrift: ["integration", 4, "command"],
+                  },
                   { testId: "T3", fingerprintDrift: [] },
                   { fingerprintDrift: ["command"] },
                   "not a row",
@@ -510,7 +513,7 @@ describe("environment", () => {
     expect(diagnosticEnvOptIn({ KIBI_DIAGNOSTIC_MODE: "0" })).toBe(false);
   });
 
-  test("names the host", () => {
+  test("names the host as usage telemetry detects it", () => {
     expect(diagnosticCliHost({ KIBI_HOST: " h ", KIBI_MCP_HOST: "m" })).toBe(
       "h",
     );
@@ -518,6 +521,11 @@ describe("environment", () => {
       "m",
     );
     expect(diagnosticCliHost({ CLAUDECODE: "1" })).toBe("claude-code");
+    expect(diagnosticCliHost({ CURSOR_AGENT: "1" })).toBe("cursor");
+    expect(diagnosticCliHost({ CODEX_THREAD_ID: "t" })).toBe("codex");
+    expect(diagnosticCliHost({ GEMINI_CLI: "1" })).toBe("gemini-cli");
+    expect(diagnosticCliHost({ OPENCODE: "1" })).toBe("opencode");
+    expect(diagnosticCliHost({ AI_AGENT: "zcode_1-0_agent" })).toBe("zcode");
     expect(diagnosticCliHost({ CLAUDECODE: "0" })).toBe("unknown");
     expect(diagnosticCliHost({})).toBe("unknown");
   });
@@ -528,7 +536,14 @@ const ENV_KEYS = [
   "KIBI_BRANCH",
   "KIBI_HOST",
   "KIBI_MCP_HOST",
+  // Every variable host detection reads, so the test's own host stays out.
   "CLAUDECODE",
+  "CURSOR_AGENT",
+  "CODEX_SANDBOX",
+  "CODEX_THREAD_ID",
+  "GEMINI_CLI",
+  "OPENCODE",
+  "AI_AGENT",
 ] as const;
 
 function withEnv(

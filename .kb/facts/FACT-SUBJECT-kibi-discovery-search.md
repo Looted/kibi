@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-discovery-search
 type: fact
 ---
-The subject kibi.discovery.search.
+
+The kb_search operation and kibi search command: free-text answers with the current governing requirements, what checks report about them and the snapshot used, paged at ten rows by default and gated in CI on a versioned gold question set. It is ranked search, not exact query.

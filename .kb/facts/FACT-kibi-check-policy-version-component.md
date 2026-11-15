@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-check-policy-version-component
 type: fact
 ---
-The kibi.check_policy.version component, as the structural requirements that name it constrain it.
+
+The contract identifier kibi.check-policy.v1 that a check policy plugin must declare to be loaded. It is the version string, not the policies plugins ship.

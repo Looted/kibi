@@ -8,6 +8,10 @@ import type {
   TaskSplit,
   WorktreeState,
 } from "../catalog";
+import {
+  RELATIONSHIP_DELETE_FILE,
+  RELATIONSHIP_DELETE_OBJECTIVES,
+} from "../runtime/traceability-seeds";
 import { bootstrapDialogueInstruction } from "./bootstrap-user";
 import {
   KIBI_ANSWER_FORMAT_INSTRUCTION,
@@ -141,16 +145,6 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     worktree: "dirty",
     adversarialCases: ["stale-state", "dirty-state", "misleading-success"],
   },
-  "kibi-usage/validation-recovery/held-out/0": {
-    prompt:
-      "A valid v2 receipt is rejected by a stale installed schema. Diagnose the mixed package set through the versioned envelope, repair distribution selection, and never downgrade, hand-edit, or retry a committed mutation.",
-    objectiveCode: "stale_v2_schema",
-    kb: "fresh",
-    worktree: "clean",
-    adversarialCases: ["malformed-input", "misleading-success"],
-    mutation: "write",
-    approvalPhase: "post-approval",
-  },
   "kibi-traceability/relationship-chain/held-out/0": {
     prompt:
       "Remove one exact legacy-shard relationship through the sanctioned delete operation, preserve both endpoints, sync, and verify that the edge stays absent.",
@@ -163,7 +157,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/executable-coverage/held-out/0": {
     prompt:
-      "Use the exact proof contract through kibi prove to append a passing kibi.proof-receipt.v1. Mark the task complete while keeping overall proof unresolved when ontology gaps remain, and do not accept a contradictory coverage-depth warning when current passingE2e evidence is present.",
+      "The evaluator ran the test's exact proof contract through kibi prove on the live snapshot and left the kibi.proof-run.v1 artifact in proof-runs/. Ingest it to append a passing proof receipt. Mark the task complete while keeping overall proof unresolved when ontology gaps remain, and do not accept a contradictory coverage-depth warning when current passingE2e evidence is present.",
     objectiveCode: "contracted_e2e_with_ontology_gap",
     kb: "fresh",
     worktree: "clean",
@@ -189,7 +183,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/executable-coverage/held-out/1": {
     prompt:
-      "A test has append-only passing receipts for an earlier verification contract, and the contract has now changed. Preserve the historical receipts, keep proof unresolved for the mismatch, run the exact current contract, append its receipt, and verify that only current-contract evidence proves the test.",
+      "A test has append-only passing receipts for an earlier verification contract, and the contract has now changed. The evaluator ran the exact current contract and left its kibi.proof-run.v1 artifact in proof-runs/. Preserve the historical receipts, keep proof unresolved for the mismatch until current evidence exists, append the receipt of that run, and verify that only current-contract evidence proves the test.",
     objectiveCode: "append_only_contract_drift",
     kb: "fresh",
     worktree: "clean",
@@ -201,16 +195,6 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     prompt:
       "The live snapshot, contract hash, freshness window, and required cases are unchanged since the passing receipt. Reuse the receipt, do not rerun the E2E command, and explain the evidence.",
     objectiveCode: "unchanged_snapshot_receipt_reuse",
-    kb: "fresh",
-    worktree: "clean",
-    adversarialCases: ["misleading-success"],
-    mutation: "write",
-    approvalPhase: "post-approval",
-  },
-  "kibi-usage/validation-recovery/held-out/1": {
-    prompt:
-      "Review every quality diagnostic by ID and record fixed, accepted, or deferred with rationale. Preserve accepted ontology and telemetry limitations without claiming proof. For receipt freshness, identify affected requirement/test IDs and direct the agent to kibi prove with current proof receipts; distinguish a stale coverage-depth heuristic from an independent proof gap.",
-    objectiveCode: "quality_diagnostic_disposition",
     kb: "fresh",
     worktree: "clean",
     adversarialCases: ["misleading-success"],
@@ -234,16 +218,6 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
     kb: "fresh",
     worktree: "clean",
     adversarialCases: ["approval-boundary", "misleading-success"],
-    mutation: "write",
-    approvalPhase: "post-approval",
-  },
-  "kibi-usage/validation-recovery/held-out/2": {
-    prompt:
-      "Local and registry artifacts share a version but expose different exports. Diagnose this as a release defect, require a new package version, and label the project override temporary; do not downgrade receipts.",
-    objectiveCode: "same_version_export_surface_drift",
-    kb: "fresh",
-    worktree: "clean",
-    adversarialCases: ["malformed-input", "misleading-success"],
     mutation: "write",
     approvalPhase: "post-approval",
   },
@@ -297,7 +271,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/executable-coverage/held-out/3": {
     prompt:
-      "A standardization branch has passing receipts, but final integration also merges dependency pins. Merge and establish the final snapshot first, then run only the exact current contracts and append receipts; never reuse pre-integration evidence as proof.",
+      "A standardization branch has passing receipts, and final integration has since merged dependency pins into the final snapshot. The evaluator ran the exact current contract on that final snapshot and left its kibi.proof-run.v1 artifact in proof-runs/. Establish the final snapshot first, then append only that run's receipt; never reuse pre-integration evidence as proof.",
     objectiveCode: "final_integration_invalidates_receipts",
     kb: "fresh",
     worktree: "clean",
@@ -515,6 +489,9 @@ function payload(
     ...(effectiveObjectiveCode === "generated_only_symbol_coordinate_repair"
       ? COORDINATE_REPAIR_FILES
       : []),
+    ...(RELATIONSHIP_DELETE_OBJECTIVES.has(effectiveObjectiveCode)
+      ? [RELATIONSHIP_DELETE_FILE]
+      : []),
   ];
   const searchThenQuery =
     (special?.mutation ?? definition.mutation) === "write"
@@ -524,7 +501,7 @@ function payload(
     ? KIBI_ANSWER_FORMAT_INSTRUCTION
     : "";
   return {
-    prompt: `${special?.prompt ?? `${dialogue ?? definition.instruction} This is ${split} case ${index + 1}; ${dialogue !== undefined || effectiveObjectiveCode === "onboarding_evidence_review" ? "use ordinary file-reading tools for the supplied source files and the public Kibi MCP surface for knowledge-base operations." : "use only the public Kibi MCP surface."}`}${searchThenQuery}${answerFormat}`,
+    prompt: `${special?.prompt ?? `${dialogue ?? definition.instruction} This is ${split} case ${index + 1}; ${dialogue !== undefined || effectiveObjectiveCode === "onboarding_evidence_review" || FILE_READING_OBJECTIVES.has(effectiveObjectiveCode) ? "use ordinary file-reading tools for the supplied source files and the public Kibi MCP surface for knowledge-base operations." : "use only the public Kibi MCP surface."}`}${searchThenQuery}${answerFormat}`,
     activationMode: definition.activationMode,
     initialState: {
       repository: definition.repository,
@@ -548,6 +525,15 @@ function payload(
 }
 
 const COORDINATE_REPAIR_FILES = ["symbol-coordinate-repair.json"] as const;
+
+/** KB-quality objectives: the agent reads the source and notes it is judged on. */
+const FILE_READING_OBJECTIVES: ReadonlySet<string> = new Set([
+  "deciding_owner_link",
+  "link_keeps_requirement_size",
+  "reason_without_source",
+  "reason_from_source",
+  "broad_requirement_split",
+]);
 
 class TaskDefinitionError extends Error {
   readonly name = "TaskDefinitionError";

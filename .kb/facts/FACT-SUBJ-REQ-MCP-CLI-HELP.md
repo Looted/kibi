@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The --help and -h behavior of the kibi-mcp binary: it prints deterministic top-level help and exits without starting the stdio server, even when other flags are present. It is not the help of the kibi CLI.

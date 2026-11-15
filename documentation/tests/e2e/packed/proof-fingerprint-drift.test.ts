@@ -308,7 +308,11 @@ if (RUN_NODE_TEST_SUITE) {
         assert.deepStrictEqual(driftOf(stale), ["integration", "command"]);
 
         const explain = await kibi(sandbox, ["proof", "explain", REQ_ID]);
-        assert.strictEqual(explain.exitCode, 0, explain.stdout + explain.stderr);
+        assert.strictEqual(
+          explain.exitCode,
+          0,
+          explain.stdout + explain.stderr,
+        );
         assert.match(
           explain.stdout,
           new RegExp(`fingerprint drift for ${TEST_ID}: integration, command`),
@@ -316,7 +320,11 @@ if (RUN_NODE_TEST_SUITE) {
 
         // kibi prove --stale selects the drifted test and names the drift.
         const reprove = await kibi(sandbox, ["prove", "--stale"]);
-        assert.strictEqual(reprove.exitCode, 0, reprove.stdout + reprove.stderr);
+        assert.strictEqual(
+          reprove.exitCode,
+          0,
+          reprove.stdout + reprove.stderr,
+        );
         assert.match(
           reprove.stderr,
           new RegExp(

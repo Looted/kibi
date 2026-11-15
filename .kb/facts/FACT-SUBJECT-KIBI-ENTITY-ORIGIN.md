@@ -15,3 +15,5 @@ origin:
 id: FACT-SUBJECT-KIBI-ENTITY-ORIGIN
 type: fact
 ---
+
+The optional origin record any entity can carry: who authored it and who approved it, with missing approvals kept visible. It is provenance, not firmness or status.

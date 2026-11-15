@@ -348,6 +348,8 @@ test(negative_path_facts_are_assumed_by_rejecting_scenarios_and_ground_nothing,
     % A fact a requirement grounds a claim on states what must hold.
     kb_assert_relationship(assumes, 'SCEN-NEGP-REJECT', 'FACT-NEGP-CLAIM', []),
     kb_assert_relationship(requires_property, 'REQ-NEGP', 'FACT-NEGP-CLAIM', []),
+    % Only a fact is a negative-path fact, whatever a rejecting scenario assumes.
+    assert_raw_relationship(assumes, 'SCEN-NEGP-ERROR', 'REQ-NEGP'),
     kb_negative_path_facts(['FACT-NEGP-ALONE', 'FACT-NEGP-ERRORS', 'FACT-NEGP-OK',
                             'FACT-NEGP-CLAIM', 'FACT-NEGP-WRITES', 'REQ-NEGP',
                             'FACT-NEGP-WRITES', 'FACT-NEGP-MISSING'], Rows),
@@ -765,6 +767,19 @@ test(search_matches_the_words_of_an_entity_id, [setup(setup_kb), cleanup(cleanup
     kb_search_entities(req, "zephyr", 10, 0, Rows, Count),
     assertion(Count == 1),
     assertion(Rows = [['REQ-ZEPHYR-QUOTA', req, _]]).
+
+% The index also holds the words of an entity's type and of its owner,
+% priority, severity, text reference and semantic text.
+test(search_matches_the_type_and_search_fields, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(symbol, 'SYM-BILLING-TOTAL', "Billing total", active, []),
+    assert_fixture_entity(req, 'REQ-BILLING-TOTAL', "Billing total", active, [owner=quillon]),
+    assert_fixture_entity(req, 'REQ-BILLING-OTHER', "Billing total", active, []),
+    kb_search_entities(none, "symbol", 10, 0, TypeRows, TypeCount),
+    assertion(TypeCount == 1),
+    assertion(TypeRows = [['SYM-BILLING-TOTAL', symbol, _]]),
+    kb_search_entities(req, "quillon", 10, 0, OwnerRows, OwnerCount),
+    assertion(OwnerCount == 1),
+    assertion(OwnerRows = [['REQ-BILLING-TOTAL', req, _]]).
 
 test(proof_contract_projection_pages_without_receipt_histories, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Contract = _{
@@ -6564,65 +6579,49 @@ test(related_requirement_unmodeled_reports_unresolved_ledger_linked_to_modeled_r
     related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
     kb_assert_relationship(relates_to, 'REQ-CONVERSATIONS', 'REQ-NOTIFY-GROUPED', []),
     check_related_requirement_unmodeled(Violations),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Violations), Ids),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Violations), Ids),
     assertion(Ids == ['REQ-CONVERSATIONS']),
-    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, Suggestion, _), Violations),
-    assertion(sub_string(Description, _, _, _, "2 proposition(s)")),
+    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, Suggestion, _, _), Violations),
+    assertion(sub_string(Description, _, _, _, "2 unmodeled claim(s)")),
     assertion(sub_string(Description, _, _, _, "REQ-NOTIFY-GROUPED")),
-    assertion(sub_string(Description, _, _, _, "notification.system.message_grouping_policy")),
-    assertion(sub_string(Suggestion, _, _, _, "supersedes REQ-NOTIFY-GROUPED")).
+    assertion(sub_string(Suggestion, _, _, _, "pair_reviews")).
 
 test(related_requirement_unmodeled_follows_relates_to_in_either_direction, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     related_unmodeled_fixture_modeled_req('REQ-NOTIFY-GROUPED'),
     related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
     kb_assert_relationship(relates_to, 'REQ-NOTIFY-GROUPED', 'REQ-CONVERSATIONS', []),
     check_related_requirement_unmodeled(Violations),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Violations), Ids),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Violations), Ids),
     assertion(Ids == ['REQ-CONVERSATIONS']).
 
-test(related_requirement_unmodeled_names_ground_predicate_keys, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    assert_fixture_entity(req, 'REQ-READ-STATE', "Read state per participant", open, []),
-    assert_fixture_entity(fact, 'FACT-READ-STATE-RULE', "Cursor model invariant", active, [
-        fact_kind=predicate,
-        predicate_name="schema_invariant_rule",
-        predicate_args=["data", "cursor_model_per_participant"],
-        polarity=assert,
-        canonical_key="schema_invariant_rule(data,cursor_model_per_participant)"
-    ]),
-    kb_assert_relationship(requires_predicate, 'REQ-READ-STATE', 'FACT-READ-STATE-RULE', []),
-    related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
-    kb_assert_relationship(relates_to, 'REQ-CONVERSATIONS', 'REQ-READ-STATE', []),
-    check_related_requirement_unmodeled(Violations),
-    member(violation('related-requirement-unmodeled', 'REQ-CONVERSATIONS', Description, _, _), Violations),
-    assertion(sub_string(Description, _, _, _, "schema_invariant_rule(data,cursor_model_per_participant)")).
-
-test(related_requirement_unmodeled_skips_prose_only_modeled_and_superseded_neighbours, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(related_requirement_unmodeled_skips_ledgerless_and_superseded_neighbours, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     related_unmodeled_fixture_modeled_req('REQ-NOTIFY-GROUPED'),
     % No ledger at all: strict-readiness owns that lane.
     assert_fixture_entity(req, 'REQ-PROSE-ONLY', "Prose only", open, []),
     kb_assert_relationship(relates_to, 'REQ-PROSE-ONLY', 'REQ-NOTIFY-GROUPED', []),
-    % Every assertive proposition modeled or explicitly classified.
+    % Every proposition modeled or classified as carrying no rule.
     assert_fixture_entity(req, 'REQ-CLASSIFIED', "Classified ledger", open, [
         semantic_inventory=[
             _{claim_key: 'CLAIM-DDDDDDDD44444444', claim_text: "Grouping stays per item", role: normative, status: modeled, span: _{start: 0, end: 23}},
-            _{claim_key: 'CLAIM-EEEEEEEE55555555', claim_text: "Nobody knows yet", role: normative, status: ontology_gap, span: _{start: 25, end: 41}}
+            _{claim_key: 'CLAIM-EEEEEEEE55555555', claim_text: "This keeps it short", role: rationale, status: nonlogical, span: _{start: 25, end: 44}}
         ]
     ]),
     kb_assert_relationship(relates_to, 'REQ-CLASSIFIED', 'REQ-NOTIFY-GROUPED', []),
-    % The neighbour is itself unmodeled, so there is nothing to compare with.
-    assert_fixture_entity(req, 'REQ-UNMODELED-NEIGHBOUR', "Unmodeled neighbour", open, []),
-    related_unmodeled_fixture_unresolved_req('REQ-NEXT-TO-UNMODELED'),
-    kb_assert_relationship(relates_to, 'REQ-NEXT-TO-UNMODELED', 'REQ-UNMODELED-NEIGHBOUR', []),
     check_related_requirement_unmodeled(Before),
     assertion(Before == []),
-    % Once the unresolved requirement supersedes the modeled one, the decision
-    % is recorded and the older requirement is no longer current.
-    related_unmodeled_fixture_unresolved_req('REQ-CONVERSATIONS'),
-    kb_assert_relationship(relates_to, 'REQ-CONVERSATIONS', 'REQ-NOTIFY-GROUPED', []),
+    % An ontology_gap claim counts like a missing one.
+    assert_fixture_entity(req, 'REQ-GAP', "Ontology gap", open, [
+        semantic_inventory=[
+            _{claim_key: 'CLAIM-FFFFFFFF66666666', claim_text: "Nobody knows yet", role: normative, status: ontology_gap, span: _{start: 0, end: 16}}
+        ]
+    ]),
+    kb_assert_relationship(relates_to, 'REQ-GAP', 'REQ-NOTIFY-GROUPED', []),
     check_related_requirement_unmodeled(Linked),
-    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _), Linked), LinkedIds),
-    assertion(LinkedIds == ['REQ-CONVERSATIONS']),
-    kb_assert_relationship(supersedes, 'REQ-CONVERSATIONS', 'REQ-NOTIFY-GROUPED', []),
+    findall(Id, member(violation('related-requirement-unmodeled', Id, _, _, _, _), Linked), LinkedIds),
+    assertion(LinkedIds == ['REQ-GAP']),
+    % Once it supersedes the modeled requirement, the older one is no longer
+    % current and the pair is gone.
+    kb_assert_relationship(supersedes, 'REQ-GAP', 'REQ-NOTIFY-GROUPED', []),
     check_related_requirement_unmodeled(After),
     assertion(After == []).
 
@@ -7231,13 +7230,20 @@ test(evidence_floor_counts_by_status, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-FLOOR-FIRM', "Person stated", open, [priority=must]),
     assert_fixture_entity(req, 'REQ-FLOOR-LOWERED', "Lowered floor", open, [priority=must, required_evidence=asserted]),
     assert_fixture_entity(req, 'REQ-FLOOR-NONE', "Agent only", open, [priority=must, origin="{\"kind\":\"agent\"}"]),
+    assert_fixture_entity(req, 'REQ-FLOOR-APPROVED', "Agent approved", open, [priority=must, origin="{\"kind\":\"agent\",\"approved_by\":\"Owner\"}"]),
+    assert_fixture_entity(req, 'REQ-FLOOR-APPROVED-DEFAULT', "Approved, stated default", open, [priority=must, firmness=default, origin="{\"kind\":\"agent\",\"approved_by\":\"Owner\"}"]),
     coverage_report_json(req, [], true, true, 100, 0, JsonString),
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-FLOOR-FIRM', Firm),
     assertion(Firm.evidenceFloor = _{required: tested, source: firmness, status: below}),
     coverage_row(Report.rows, 'REQ-FLOOR-LOWERED', Lowered),
     assertion(Lowered.evidenceFloor = _{required: asserted, source: explicit, status: met}),
-    assertion(Report.summary.evidenceFloors = _{met: 1, below: 1, pendingReproof: 0}).
+    % A person's approval gives the tested floor unless firmness is stated.
+    coverage_row(Report.rows, 'REQ-FLOOR-APPROVED', Approved),
+    assertion(Approved.evidenceFloor = _{required: tested, source: approval, status: below}),
+    coverage_row(Report.rows, 'REQ-FLOOR-APPROVED-DEFAULT', Stated),
+    assertion(Stated.evidenceFloor = _{required: unverified, source: firmness, status: met}),
+    assertion(Report.summary.evidenceFloors = _{met: 1, below: 2, pendingReproof: 0}).
 
 :- end_tests(requirement_evidence_levels).
 
@@ -11090,6 +11096,10 @@ test(coverage_gaps_name_only_the_missing_side, [setup(setup_kb), cleanup(cleanup
     select(status=_, RetiredBase0, RetiredBase),
     append(RetiredBase, [status=deprecated, priority=must], RetiredProps),
     kb_assert_entity(req, RetiredProps),
+    ks_entity_props('REQ-GAP-RETIRED-STATUS', "Retired-status requirement", RetiredStatusBase0),
+    select(status=_, RetiredStatusBase0, RetiredStatusBase),
+    append(RetiredStatusBase, [status=retired, retired_reason="The behavior was removed.", priority=must], RetiredStatusProps),
+    kb_assert_entity(req, RetiredStatusProps),
     ks_must_req('REQ-GAP-REPLACED'),
     ks_assert(req, 'REQ-GAP-REPLACEMENT'),
     kb_assert_relationship(supersedes, 'REQ-GAP-REPLACEMENT', 'REQ-GAP-REPLACED', []),
@@ -11107,6 +11117,7 @@ test(coverage_gaps_name_only_the_missing_side, [setup(setup_kb), cleanup(cleanup
     ks_assert(scenario, 'SCN-GAP'),
     ks_assert(test, 'TEST-GAP'),
     kb_assert_relationship(specified_by, 'REQ-GAP-SCN', 'SCN-GAP', []),
+    kb_assert_relationship(specified_by, 'REQ-GAP-RETIRED-STATUS', 'SCN-GAP', []),
     kb_assert_relationship(validates, 'TEST-GAP', 'REQ-GAP-TEST', []),
     kb_assert_relationship(specified_by, 'REQ-GAP-NONE', 'SCN-GAP', []),
     kb_assert_relationship(validates, 'TEST-GAP', 'REQ-GAP-NONE', []),
@@ -11121,6 +11132,7 @@ test(coverage_gaps_name_only_the_missing_side, [setup(setup_kb), cleanup(cleanup
                     'REQ-GAP-UNRANKED-TESTED'-[],
                     'REQ-GAP-UNRANKED-SPECIFIED'-[],
                     'REQ-GAP-RETIRED'-[],
+                    'REQ-GAP-RETIRED-STATUS'-[],
                     'REQ-GAP-REPLACED'-[],
                     'REQ-GAP-CLOSED'-[],
                     'REQ-GAP-SHIPPED'-[missing_scenario_and_test],

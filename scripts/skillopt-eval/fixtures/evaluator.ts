@@ -1,9 +1,14 @@
 import { createHash } from "node:crypto";
 import type { CanonicalSkill } from "../catalog";
-import { OBJECTIVE_CASE_CONTRACTS, type RequiredCall } from "./case-contracts";
+import {
+  type FixtureSetupMode,
+  OBJECTIVE_CASE_CONTRACTS,
+  type RequiredCall,
+} from "./case-contracts";
 import type { parseTaskSpec } from "./contracts";
 import type { parsePrivateEvaluatorManifest } from "./evaluator-contracts";
 import {
+  DELETE_ALLOWED_OBJECTIVES,
   DELETE_OBJECTIVES,
   DIRTY_SOURCE_OBJECTIVES,
   MIGRATION_APPLY_OBJECTIVES,
@@ -240,6 +245,11 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
       ...READ_TOOLS[task.skill],
       ...(needsStatus(task) ? ["kb_status"] : []),
       "kb_delete",
+      // Moving coverage to the replacement is a typed write; the forbidden
+      // "before discovery" upsert rule needs it in the sequence to allow it.
+      ...(objective === "obsolete_symbol_delete_with_replacement"
+        ? ["kb_upsert"]
+        : []),
       "kb_check",
     ]);
   }
@@ -268,19 +278,34 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
   return dedupe(tools);
 }
 
+/**
+ * Held-out traceability objectives whose premise is a seeded KB state; their
+ * protocol stays the family default.
+ */
+const TRACEABILITY_STATE_FIXTURES: Readonly<
+  Record<string, FixtureSetupMode | undefined>
+> = {
+  relationship_shard_delete: "seeded_relationship_shard_kb",
+  legacy_shard_edge_cleanup: "seeded_stale_relationship_shard_kb",
+  legacy_shard_reconciliation: "seeded_removed_shard_edge_kb",
+  stale_symbol_remap: "seeded_moved_symbol_kb",
+  obsolete_symbol_delete_with_replacement: "seeded_replaced_symbol_kb",
+  unchanged_snapshot_receipt_reuse: "seeded_receipt_reuse_kb",
+  append_only_contract_drift: "seeded_receipt_contract_drift_kb",
+  final_integration_invalidates_receipts: "seeded_receipt_integration_kb",
+  contracted_e2e_with_ontology_gap: "seeded_receipt_ontology_gap_kb",
+};
+
 function needsStatus(task: FixtureTaskSpec): boolean {
   return [
     "exact_branch_identity",
     "legacy_branch_storage",
     "zero_blocking_but_stale",
-    "stale_v2_schema",
     "stale_symbol_remap",
     "dirty_editor_config",
     "unchanged_snapshot_receipt_reuse",
-    "quality_diagnostic_disposition",
     "obsolete_symbol_delete_with_replacement",
     "relationship_shard_delete",
-    "same_version_export_surface_drift",
     "missing_branch_store_status",
     "safe_schema_application",
     "stale_plan_hash_rejection",
@@ -480,28 +505,31 @@ export function buildPrivateManifest(input: {
     fixtureSetup:
       caseContract !== undefined
         ? caseContract.fixtureSetup
-        : input.task.taskData.objectiveCode ===
-            "generated_only_symbol_coordinate_repair"
-          ? ("generated_coordinate_divergence" as const)
-          : input.task.taskData.objectiveCode === "repair_escalation"
-            ? ("seeded_partial_kb" as const)
-            : input.task.taskData.objectiveCode === "executable_coverage"
-              ? ("seeded_uncovered_kb" as const)
-              : input.task.taskData.objectiveCode === "safe_typed_mutation"
-                ? ("seeded_safe_mutation_kb" as const)
-                : input.task.initialState.kb === "fresh" &&
-                    input.task.initialState.worktree === "dirty" &&
-                    DIRTY_SOURCE_OBJECTIVES.has(
-                      input.task.taskData.objectiveCode,
-                    )
-                  ? ("seeded_dirty_kb" as const)
-                  : input.task.initialState.kb === "fresh"
-                    ? ("seeded_fresh_kb" as const)
-                    : input.task.initialState.kb === "stale"
-                      ? ("seeded_stale_kb" as const)
-                      : input.task.initialState.kb === "absent"
-                        ? ("thin_root_kb" as const)
-                        : undefined,
+        : TRACEABILITY_STATE_FIXTURES[input.task.taskData.objectiveCode] !==
+            undefined
+          ? TRACEABILITY_STATE_FIXTURES[input.task.taskData.objectiveCode]
+          : input.task.taskData.objectiveCode ===
+              "generated_only_symbol_coordinate_repair"
+            ? ("generated_coordinate_divergence" as const)
+            : input.task.taskData.objectiveCode === "repair_escalation"
+              ? ("seeded_partial_kb" as const)
+              : input.task.taskData.objectiveCode === "executable_coverage"
+                ? ("seeded_uncovered_kb" as const)
+                : input.task.taskData.objectiveCode === "safe_typed_mutation"
+                  ? ("seeded_safe_mutation_kb" as const)
+                  : input.task.initialState.kb === "fresh" &&
+                      input.task.initialState.worktree === "dirty" &&
+                      DIRTY_SOURCE_OBJECTIVES.has(
+                        input.task.taskData.objectiveCode,
+                      )
+                    ? ("seeded_dirty_kb" as const)
+                    : input.task.initialState.kb === "fresh"
+                      ? ("seeded_fresh_kb" as const)
+                      : input.task.initialState.kb === "stale"
+                        ? ("seeded_stale_kb" as const)
+                        : input.task.initialState.kb === "absent"
+                          ? ("thin_root_kb" as const)
+                          : undefined,
     workspaceAssertions:
       workspaceAssertions.length === 0
         ? undefined
@@ -547,7 +575,7 @@ export function buildPrivateManifest(input: {
       forbidden: [
         // Deletion-sanctioned objectives require kb_delete; forbidding it
         // there would make the protocol rubric unsatisfiable.
-        ...(DELETE_OBJECTIVES.has(input.task.taskData.objectiveCode)
+        ...(DELETE_ALLOWED_OBJECTIVES.has(input.task.taskData.objectiveCode)
           ? []
           : [
               {

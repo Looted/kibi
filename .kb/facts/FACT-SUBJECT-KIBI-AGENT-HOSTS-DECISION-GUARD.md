@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
 type: fact
 ---
+
+The decision guard in the Codex, Cursor and ZCode host hooks: ask before an edit of firm-requirement code, note that a stated rule must be recorded, and ask once at stop when source changed and no decision was recorded. Deleting dead implements comments is not a firm edit. The Claude Code equivalents are separate subjects.

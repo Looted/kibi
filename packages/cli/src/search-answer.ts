@@ -1292,11 +1292,7 @@ export async function buildSearchAnswer(
     rowsOf(plan.facts).map((fact) => ({ fact, requirement: plan.req.id })),
   );
   const negativePathOf = new Map(
-    seeds.flatMap((match) =>
-      match.negativePath !== undefined
-        ? [[text(match.entity.id), match.negativePath] as const]
-        : [],
-    ),
+    seeds.map((match) => [text(match.entity.id), match.negativePath] as const),
   );
   const markNegativePath = (
     entry: SearchAnswerUngoverned,

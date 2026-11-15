@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e0699072183
+  - type: implements
+    from: SYM-package-versions-coreSourcesDirectory
+    to: REQ-prolog-daemon-runtime-identity
+    created_at: 2026-11-13T20:51:53.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8746c65115f6
+  - type: covered_by
+    from: SYM-package-versions-coreSourcesDirectory
+    to: TEST-prolog-daemon-runtime-identity
+    created_at: 2026-11-13T20:51:53.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1306351bdc42

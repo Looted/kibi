@@ -142,6 +142,15 @@ function issuesOf(value: unknown): RejectionIssue[] {
 
 const UPSERT_OPERATIONS = new Set(["kb_upsert", "kb_validate_upsert"]);
 
+/** Operations (MCP names and CLI command paths) that load a skill. */
+const SKILL_LOAD_OPERATIONS = new Set([
+  "kb_skills_load",
+  "skills load",
+  "skills-load",
+]);
+/** Composite skill operations that load a skill when `action` is `load`. */
+const SKILL_COMPOSITE_OPERATIONS = new Set(["kb_skills", "skill"]);
+
 /**
  * The fixed category an engine client attached to an ENGINE_START_FAILED
  * error (engineStartFailureKind), found through wrapping causes.
@@ -182,6 +191,12 @@ export function operationTelemetrySignals(input: {
     -readonly [Key in keyof OperationSignals]: OperationSignals[Key];
   } = { error: input.error };
   if (issues.length > 0) signals.issues = issues;
+  if (
+    SKILL_LOAD_OPERATIONS.has(input.operation) ||
+    (SKILL_COMPOSITE_OPERATIONS.has(input.operation) && args.action === "load")
+  ) {
+    signals.skillLoad = true;
+  }
   if (UPSERT_OPERATIONS.has(input.operation)) {
     signals.dryRun =
       input.operation === "kb_validate_upsert" || args.dryRun === true;

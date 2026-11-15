@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-signoff-views-labels-component
 type: fact
 ---
-The kibi.signoff_views.labels component, as the structural requirements that name it constrain it.
+
+The labels a signoff view uses: gates semantic, scenario, implementation, e2e, evidence and tested, and change kinds new, changed, affected and retired. They are display vocabulary, not the checks.

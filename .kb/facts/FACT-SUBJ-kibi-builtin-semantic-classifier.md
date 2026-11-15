@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-builtin-semantic-classifier
 type: fact
 ---
+
+The semantic classifier in kibi-plugin-builtin that labels requirement sentences (normative, condition, context and so on) deterministically, with no network call. Other classifiers may replace it through the plugin capability.

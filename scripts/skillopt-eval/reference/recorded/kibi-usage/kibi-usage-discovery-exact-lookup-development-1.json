@@ -1,0 +1,29 @@
+{
+  "taskId": "kibi-usage-discovery-exact-lookup-development-1",
+  "source": "stored 100-score cell",
+  "steps": [
+    {
+      "call": "kb_search",
+      "args": {
+        "query": "What requirements govern the behavior of this project?",
+        "type": "req",
+        "limit": 10
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "type": "req",
+        "limit": 50
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "sourceFile": ".kb/requirements/REQ-SETUP-BASE.md"
+      }
+    }
+  ],
+  "files": {},
+  "answer": "Discovery is complete, with no writes made. kb_search for \"What requirements govern the behavior of this project?\" abstained with zero results. An exact kb_query with type req returned one entity, REQ-SETUP-BASE (\"seeded fixture requirement\", status open, firmness firm, required_evidence asserted, source .kb/requirements/REQ-SETUP-BASE.md). A source-linked kb_query with sourceFile .kb/requirements/REQ-SETUP-BASE.md returned the same entity. Its statement body was not read, so I cannot say what behavior it governs. Closeout: taskOutcome=complete (discovery only); kbState=clean_fresh (kb_status not run); verificationState=not_evaluated; proofState=not_evaluated; limitationDisposition=not_applicable. Next step: give a specific behavior topic to search for."
+}

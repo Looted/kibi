@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-github-report-settings-component
 type: fact
 ---
-The kibi.github_report.settings component, as the structural requirements that name it constrain it.
+
+Fixed settings of the GitHub health report and badge: the workflow .github/workflows/kibi-badge.yml and the GitHub Pages folder kibi-report. They are paths, not report content.

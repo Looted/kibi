@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJECT-kibi-usage-telemetry
 type: fact
 ---
+
+Kibi's anonymous, opt-out usage telemetry sent to a remote endpoint with summary fields only, turned off by any opt-out switch such as DO_NOT_TRACK=1. It is not the local diagnostic usage log.

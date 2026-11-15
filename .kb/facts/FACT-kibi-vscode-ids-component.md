@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-vscode-ids-component
 type: fact
 ---
-The kibi.vscode.ids component, as the structural requirements that name it constrain it.
+
+The ids the Kibi VS Code extension registers, such as the kibi-sidebar container and the kibi-knowledge-base tree view, and its command ids. They are identifiers, not extension behavior.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-ingestion-inventory-component
 type: fact
 ---
-The kibi.ingestion.inventory component, as the structural requirements that name it constrain it.
+
+The semantic inventory a requirement write must carry: a complete ledger of its propositions, each bound to the exact source field, SHA-256 hash and UTF-8 span, with no assertive proposition omitted, plus the sync cache settings around it. It is ingestion completeness, not modeling.

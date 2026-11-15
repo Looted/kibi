@@ -96,6 +96,9 @@ const FACT_STRING_ARRAY_FIELDS = [
   "examples",
   "predicate_args",
   "value_set",
+  "part_of",
+  "kind_of",
+  "distinct_from",
 ] as const;
 const FACT_ONLY_FIELDS = [
   ...FACT_STRING_FIELDS,
@@ -217,6 +220,9 @@ export interface ExtractedEntity {
   aliases?: string[];
   examples?: string[];
   predicate_args?: string[];
+  part_of?: string[];
+  kind_of?: string[];
+  distinct_from?: string[];
   rule_ir?: Record<string, unknown>;
   argument_constants?: Record<string, string[]>;
   argument_aliases?: Record<string, Record<string, string>>;
@@ -227,6 +233,7 @@ export interface ExtractedEntity {
   claim_span_start?: number;
   claim_span_end?: number;
   semantic_inventory?: readonly Record<string, unknown>[];
+  pair_reviews?: readonly Record<string, unknown>[];
 }
 
 export interface ExtractedRelationship {
@@ -239,6 +246,11 @@ export interface ExtractionResult {
   entity: ExtractedEntity;
   relationships: ExtractedRelationship[];
   sourceFile?: string;
+  /**
+   * Set when the front matter states created_at. Without it the entity's
+   * created_at is the extraction time, which sync must not read as an edit.
+   */
+  createdAtAuthored?: true;
 }
 
 type FrontmatterData = Record<string, unknown> &
@@ -695,13 +707,13 @@ function extractFromMarkdownContent(
     }
 
     // Build base entity with explicit field list
+    const authoredCreatedAt = normalizeDateLike(data.created_at);
     const entity: ExtractedEntity = {
       id,
       type,
       title: data.title,
       status: data.status || DEFAULT_STATUS_BY_TYPE[String(type)] || "active",
-      created_at:
-        normalizeDateLike(data.created_at) || new Date().toISOString(),
+      created_at: authoredCreatedAt || new Date().toISOString(),
       updated_at:
         normalizeDateLike(data.updated_at) || new Date().toISOString(),
       source: filePath,
@@ -1120,6 +1132,11 @@ function extractFromMarkdownContent(
         (value): value is Record<string, unknown> => isObjectRecord(value),
       );
     }
+    if (type === "req" && Array.isArray(data.pair_reviews)) {
+      entity.pair_reviews = data.pair_reviews.filter(
+        (value): value is Record<string, unknown> => isObjectRecord(value),
+      );
+    }
 
     const validateEntity = validateExtractedEntity();
     if (!validateEntity(entity)) {
@@ -1157,6 +1174,7 @@ function extractFromMarkdownContent(
     return {
       entity,
       relationships,
+      ...(authoredCreatedAt ? { createdAtAuthored: true as const } : {}),
     };
   } catch (error) {
     if (error instanceof FrontmatterError) {

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-contradiction-review-limits-component
 type: fact
 ---
-The kibi.contradiction_review.limits component, as the structural requirements that name it constrain it.
+
+The limits on candidates the contradiction review lists for new intent: a minimum score of 0.1 and at most five candidates. They bound the list, not the review verdicts.

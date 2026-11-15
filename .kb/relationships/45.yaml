@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-693c93b93b44
+  - type: implements
+    from: SYM-skillopt-normalize-codex-jsonl
+    to: REQ-skillopt-refused-kb-read-not-critical
+    created_at: 2026-11-13T19:16:04.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81ef499ea702
+  - type: covered_by
+    from: SYM-skillopt-normalize-codex-jsonl
+    to: TEST-skillopt-refused-kb-read-not-critical
+    created_at: 2026-11-13T19:16:04.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e9dbdeee401

@@ -34,9 +34,13 @@ import {
   assertSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
-import { entityContextWarnings } from "./context-warning.js";
+import {
+  entityContextWarnings,
+  upsertDocumentBody,
+} from "./context-warning.js";
 import { buildUpsertCommitGoal, upsertFailure } from "./contradictions.js";
 import { assertFirmDecisionUnchanged } from "./firm-decision-guard.js";
+import { inventoryCommitWarnings } from "./inventory-commit-warning.js";
 import { withStoredOmittedProperties } from "./omitted-properties.js";
 import { resolveUpsertOrigin } from "./origin.js";
 import {
@@ -67,6 +71,7 @@ import {
   type StoredEntityLookup,
   storedEntityLookup,
 } from "./stored-entity.js";
+import { subjectLayerWarnings } from "./subject-warnings.js";
 import {
   type SymbolCompilerLockHandle,
   acquireSymbolCompilerLock,
@@ -1031,6 +1036,16 @@ export async function executeUpsert(
         created: before === null,
       });
     }
+    const writtenEntity = commitEntity ?? validated.entity;
+    const subjectWarnings = await subjectLayerWarnings(
+      input,
+      writtenEntity,
+      upsertDocumentBody(input, writtenEntity, context.workspaceRoot, {
+        writtenPath: sourceWrite?.receipt.path,
+      }),
+      context.prolog,
+      context.workspaceRoot,
+    );
     const payload: UpsertPayload = {
       created,
       updated: changeKind === "updated" ? 1 : 0,
@@ -1051,6 +1066,12 @@ export async function executeUpsert(
           context.workspaceRoot,
           { writtenPath: sourceWrite?.receipt.path },
         ),
+        ...inventoryCommitWarnings(
+          input.type,
+          context.workspaceRoot,
+          sourceWrite?.receipt.path,
+        ),
+        ...subjectWarnings,
         ...shardWarnings,
         ...coordinateWarnings,
       ],

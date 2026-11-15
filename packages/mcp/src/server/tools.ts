@@ -806,6 +806,7 @@ type ToolInputValidator = (
 ) => Promise<unknown>;
 
 const kibiValidatedTools = new WeakMap<McpServer, Set<string>>();
+const NO_TOOLS: ReadonlySet<string> = new Set();
 
 /**
  * Let a Kibi operation's own handler validate its input. The SDK would refuse
@@ -816,16 +817,21 @@ const kibiValidatedTools = new WeakMap<McpServer, Set<string>>();
 function deferInputValidationToKibi(server: McpServer, name: string): void {
   let names = kibiValidatedTools.get(server);
   if (names === undefined) {
-    const registered = new Set<string>();
-    names = registered;
-    kibiValidatedTools.set(server, registered);
+    names = new Set<string>();
+    kibiValidatedTools.set(server, names);
     const host = server as unknown as {
       validateToolInput?: ToolInputValidator;
     };
     const sdkValidate = host.validateToolInput?.bind(server);
+    // rationale: the pinned SDK always has the validateToolInput hook; the
+    // guard only keeps an SDK without it from getting a wrapper that calls
+    // nothing, which no installable SDK version can show.
+    // Stryker disable next-line ConditionalExpression
     if (sdkValidate !== undefined) {
+      // The wrapper reads the server's names at call time, so the hook is
+      // installed once and every later tool joins the same set.
       host.validateToolInput = async (tool, args, toolName) =>
-        registered.has(toolName)
+        (kibiValidatedTools.get(server) ?? NO_TOOLS).has(toolName)
           ? (args ?? {})
           : sdkValidate(tool, args, toolName);
     }

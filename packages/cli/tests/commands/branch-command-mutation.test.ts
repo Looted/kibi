@@ -149,6 +149,28 @@ describe("legacy store hashing", () => {
     );
   });
 
+  test("the hash does not depend on the order the directory lists", () => {
+    const root = createTempDir("kibi-branch-hash-order-");
+    roots.push(root);
+    const source = path.join(root, "source");
+    mkdirSync(source, { recursive: true });
+    for (const name of ["a.txt", "b.txt", "c.txt"])
+      writeFileSync(path.join(source, name), name);
+    const listed = branchMigrationApprovalHash("f", "t", source, "/target");
+    const readdir = fs.readdirSync;
+    const reversed = spyOn(fs, "readdirSync").mockImplementation(((
+      ...args: Parameters<typeof readdir>
+    ) => [...(readdir(...args) as unknown[])].reverse()) as never);
+    try {
+      expect(branchMigrationApprovalHash("f", "t", source, "/target")).toBe(
+        listed,
+      );
+      expect(reversed).toHaveBeenCalled();
+    } finally {
+      reversed.mockRestore();
+    }
+  });
+
   test("only same-identity migrations are supported", () => {
     expect(isSupportedLegacyBranchMigration("main", "main")).toBe(true);
     expect(isSupportedLegacyBranchMigration("main", "dev")).toBe(false);

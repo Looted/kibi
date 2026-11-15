@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The capability scope of the first version of the OpenCode Kibi plugin: Kibi context and synchronization, with bootstrap guidance routed to the kibi-bootstrap skill and kb_plan_bootstrap. It excludes later enforcement features described under the plugin's broader behavior.

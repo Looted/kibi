@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-ci-proof-reuse
 type: fact
 ---
+
+CI's reuse of proof results from an earlier run, allowed only when the code snapshot matches; a matching commit SHA alone is never enough to count as proof.

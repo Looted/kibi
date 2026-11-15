@@ -161,8 +161,10 @@ describe("legacy requirement statuses and uncompiled sources", () => {
       expect(migrated.stdout).toContain(
         "Mapped legacy status implemented -> closed (tag implemented) on 1 requirement(s): REQ-EDITOR-004; legacy status done -> closed (tag implemented) on 1 requirement(s): REQ-EDITOR-005.",
       );
+      // The closing line counts what a plain kibi check reports: here the
+      // must requirements no test covers, which no upgrade fixes.
       expect(migrated.stdout).toContain(
-        "Migration complete. Future 'kibi migrate' runs will be a no-op.",
+        "Schema upgrade applied, but review work remains: kibi check reports 2 blocking finding(s) the upgrade does not fix (2 must-priority-coverage). Run kibi check to list them.",
       );
       expect(frontmatter(file)).toMatchObject({
         status: "closed",

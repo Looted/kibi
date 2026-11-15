@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-MCP-INPUT-VALIDATION
 type: fact
 ---
+
+Validation of tool input on the MCP server, which must evaluate the same schema rules as the CLI, including oneOf guard branches and conditional rules such as which fact kinds may quote claim text without a claim key. It is input shape, not semantic checks.

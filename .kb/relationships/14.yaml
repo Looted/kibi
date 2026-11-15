@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5923f1a0397c
+  - type: assumes
+    from: SCEN-NEG-kb-domain-subject-layer-ANCHOR-AUTO-APPLIED
+    to: FACT-NEG-kb-domain-subject-layer-ANCHOR-AUTO-APPLIED
+    created_at: 2026-11-12T18:44:43.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56e63d4636b7
+  - type: verified_by
+    from: SCEN-NEG-kb-domain-subject-layer-ANCHOR-AUTO-APPLIED
+    to: TEST-kb-domain-subject-layer
+    created_at: 2026-11-12T18:44:43.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f191898b404

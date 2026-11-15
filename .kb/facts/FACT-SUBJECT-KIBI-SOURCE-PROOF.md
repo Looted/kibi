@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-SOURCE-PROOF
 type: fact
 ---
+
+Proof kinds that check route, schema, configuration, reference and temporal claims against what Kibi reads statically from project files through a fixed reader vocabulary (json, yaml, glob, openapi, references and others), refusing members it cannot read. Certificate kinds are separate.

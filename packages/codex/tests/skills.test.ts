@@ -183,6 +183,6 @@ describe("kibi-codex skills", () => {
     expect(raw).toContain("typed `nextActions`");
     expect(raw).toContain("status: implemented");
     expect(raw).toContain("source-first");
-    expect(raw).toContain("do not keep");
+    expect(raw).toContain("Never resend a payload");
   });
 });

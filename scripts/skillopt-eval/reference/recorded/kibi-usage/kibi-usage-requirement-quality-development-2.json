@@ -1,0 +1,654 @@
+{
+  "taskId": "kibi-usage-requirement-quality-development-2",
+  "source": "stored 100-score cell; pair_reviews added for schema 18 related-requirement-unmodeled",
+  "steps": [
+    {
+      "call": "kb_search",
+      "args": {
+        "query": "fixture family handling requirement"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "id": "REQ-fixture-family-handling",
+        "includeBody": true
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {
+        "rules": ["broad_requirement_review"]
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {}
+    },
+    {
+      "call": "kb_graph",
+      "args": {
+        "seedIds": ["REQ-fixture-family-handling"],
+        "depth": 1,
+        "direction": "both"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "type": "symbol",
+        "tags": []
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-name-trimming",
+        "dryRun": true,
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-name-trimming.md",
+          "body": "A fixture family name must be trimmed. An empty name must be rejected.\n\n## Context\n\nSplit from REQ-fixture-family-handling. Reason not stated. The person approved the split with the words: \"Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are.\" (approved 2026-11-12).\n\n## Why this changed\n\nThe parent mixed trimming, length limiting and label formatting in one requirement, and the broad_requirement_review finding reported 9 implementing symbols against a threshold of 8.\n\n## Source\n\n> A fixture family name must be trimmed. An empty name must be rejected.\n\nREQ-fixture-family-handling (kibi approval-state.json)"
+        },
+        "properties": {
+          "title": "Fixture family names are trimmed and a blank name is rejected",
+          "status": "open",
+          "priority": "should",
+          "firmness": "default",
+          "origin": {
+            "kind": "agent",
+            "ref": "Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are."
+          },
+          "semantic_text": "A fixture family name must be trimmed. An empty name must be rejected."
+        },
+        "relationships": [
+          {
+            "type": "supersedes",
+            "from": "REQ-fixture-family-name-trimming",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-name-trimming",
+            "to": "SCEN-fixture-family-handling-trim"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-name-trimming",
+        "dryRun": true,
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-name-trimming.md",
+          "body": "A fixture family name must be trimmed. An empty name must be rejected.\n\n## Context\n\nSplit from REQ-fixture-family-handling. Reason not stated. The person approved the split with the words: \"Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are.\" (approved 2026-11-12).\n\n## Why this changed\n\nThe parent mixed trimming, length limiting and label formatting in one requirement, and the broad_requirement_review finding reported 9 implementing symbols against a threshold of 8.\n\n## Source\n\n> A fixture family name must be trimmed. An empty name must be rejected.\n\nREQ-fixture-family-handling (kibi approval-state.json)"
+        },
+        "properties": {
+          "title": "Fixture family names are trimmed and a blank name is rejected",
+          "status": "open",
+          "priority": "should",
+          "firmness": "default",
+          "origin": {
+            "kind": "agent",
+            "ref": "Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are."
+          },
+          "semantic_text": "A fixture family name must be trimmed. An empty name must be rejected.",
+          "semantic_source_field": "semantic_text",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_source_hash": "b8dc1f0cb4d38854ea2c4c5159bd03494db70ecda58c734bcabc50c65089c6f4",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-D9996159D153A209",
+              "claim_text": "A fixture family name must be trimmed",
+              "role": "normative",
+              "status": "ontology_gap",
+              "span": {
+                "start": 0,
+                "end": 37
+              },
+              "subjects": ["fixture.family_name"]
+            },
+            {
+              "claim_key": "CLAIM-13DA073631EB6F75",
+              "claim_text": "An empty name must be rejected",
+              "role": "normative",
+              "status": "ontology_gap",
+              "span": {
+                "start": 39,
+                "end": 69
+              },
+              "subjects": ["fixture.family_name"]
+            }
+          ],
+          "logic_claims": ["CLAIM-D9996159D153A209", "CLAIM-13DA073631EB6F75"]
+        },
+        "relationships": [
+          {
+            "type": "supersedes",
+            "from": "REQ-fixture-family-name-trimming",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-name-trimming",
+            "to": "SCEN-fixture-family-handling-trim"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-name-trimming",
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-name-trimming.md",
+          "body": "A fixture family name must be trimmed. An empty name must be rejected.\n\n## Context\n\nSplit from REQ-fixture-family-handling. Reason not stated. The person approved the split with the words: \"Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are.\" (approved 2026-11-12).\n\n## Why this changed\n\nThe parent mixed trimming, length limiting and label formatting in one requirement, and the broad_requirement_review finding reported 9 implementing symbols against a threshold of 8.\n\n## Source\n\n> A fixture family name must be trimmed. An empty name must be rejected.\n\nREQ-fixture-family-handling (kibi approval-state.json)"
+        },
+        "properties": {
+          "title": "Fixture family names are trimmed and a blank name is rejected",
+          "status": "open",
+          "priority": "should",
+          "firmness": "default",
+          "origin": {
+            "kind": "agent",
+            "ref": "Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are."
+          },
+          "semantic_text": "A fixture family name must be trimmed. An empty name must be rejected.",
+          "semantic_source_field": "semantic_text",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_source_hash": "b8dc1f0cb4d38854ea2c4c5159bd03494db70ecda58c734bcabc50c65089c6f4",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-D9996159D153A209",
+              "claim_text": "A fixture family name must be trimmed",
+              "role": "normative",
+              "status": "ontology_gap",
+              "span": {
+                "start": 0,
+                "end": 37
+              },
+              "subjects": ["fixture.family_name"]
+            },
+            {
+              "claim_key": "CLAIM-13DA073631EB6F75",
+              "claim_text": "An empty name must be rejected",
+              "role": "normative",
+              "status": "ontology_gap",
+              "span": {
+                "start": 39,
+                "end": 69
+              },
+              "subjects": ["fixture.family_name"]
+            }
+          ],
+          "logic_claims": ["CLAIM-D9996159D153A209", "CLAIM-13DA073631EB6F75"]
+        },
+        "relationships": [
+          {
+            "type": "supersedes",
+            "from": "REQ-fixture-family-name-trimming",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-name-trimming",
+            "to": "SCEN-fixture-family-handling-trim"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-name-length-limit",
+        "dryRun": true,
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-name-length-limit.md",
+          "body": "A name must be at most 32 characters. A longer name must be rejected with an error that states the limit.\n\n## Context\n\nSplit from REQ-fixture-family-handling. The 32-character limit exists because the export column is 32 characters wide. The person approved the split with the words: \"Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are.\" (approved 2026-11-12).\n\n## Why this changed\n\nThe parent mixed trimming, length limiting and label formatting in one requirement, and the broad_requirement_review finding reported 9 implementing symbols against a threshold of 8.\n\n## Source\n\n> A name must be at most 32 characters. A longer name must be rejected with an error that states the limit.\n\nREQ-fixture-family-handling (kibi approval-state.json)"
+        },
+        "properties": {
+          "title": "Fixture family names are limited to 32 characters",
+          "status": "open",
+          "priority": "should",
+          "firmness": "default",
+          "origin": {
+            "kind": "agent",
+            "ref": "Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are."
+          },
+          "semantic_text": "A name must be at most 32 characters. A longer name must be rejected with an error that states the limit."
+        },
+        "relationships": [
+          {
+            "type": "supersedes",
+            "from": "REQ-fixture-family-name-length-limit",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-name-length-limit",
+            "to": "SCEN-fixture-family-handling-limit"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-name-length-limit",
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-name-length-limit.md",
+          "body": "A name must be at most 32 characters. A longer name must be rejected with an error that states the limit.\n\n## Context\n\nSplit from REQ-fixture-family-handling. The 32-character limit exists because the export column is 32 characters wide. The person approved the split with the words: \"Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are.\" (approved 2026-11-12).\n\n## Why this changed\n\nThe parent mixed trimming, length limiting and label formatting in one requirement, and the broad_requirement_review finding reported 9 implementing symbols against a threshold of 8.\n\n## Source\n\n> A name must be at most 32 characters. A longer name must be rejected with an error that states the limit.\n\nREQ-fixture-family-handling (kibi approval-state.json)"
+        },
+        "properties": {
+          "title": "Fixture family names are limited to 32 characters",
+          "status": "open",
+          "priority": "should",
+          "firmness": "default",
+          "origin": {
+            "kind": "agent",
+            "ref": "Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are."
+          },
+          "semantic_text": "A name must be at most 32 characters. A longer name must be rejected with an error that states the limit.",
+          "semantic_source_field": "semantic_text",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_source_hash": "cae76b1f8b025a56652f80bf61f2f923facb3ee03e3d2789e35a3b1b29fffdc0",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-D8B5F697028F6680",
+              "claim_text": "A name must be at most 32 characters",
+              "role": "normative",
+              "status": "missing",
+              "span": {
+                "start": 0,
+                "end": 36
+              },
+              "subjects": ["fixture.family_name"]
+            },
+            {
+              "claim_key": "CLAIM-F8C377EA4B6AADF9",
+              "claim_text": "A longer name must be rejected with an error that states the limit",
+              "role": "normative",
+              "status": "ontology_gap",
+              "span": {
+                "start": 38,
+                "end": 104
+              },
+              "subjects": ["fixture.family_name"]
+            }
+          ],
+          "logic_claims": ["CLAIM-D8B5F697028F6680", "CLAIM-F8C377EA4B6AADF9"]
+        },
+        "relationships": [
+          {
+            "type": "supersedes",
+            "from": "REQ-fixture-family-name-length-limit",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-name-length-limit",
+            "to": "SCEN-fixture-family-handling-limit"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-label-format",
+        "dryRun": true,
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-label-format.md",
+          "body": "A fixture family label must be family: followed by the name.\n\n## Context\n\nSplit from REQ-fixture-family-handling. Reason not stated. The person approved the split with the words: \"Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are.\" (approved 2026-11-12).\n\n## Why this changed\n\nThe parent mixed trimming, length limiting and label formatting in one requirement, and the broad_requirement_review finding reported 9 implementing symbols against a threshold of 8.\n\n## Source\n\n> A fixture family label must be family: followed by the name.\n\nREQ-fixture-family-handling (kibi approval-state.json)"
+        },
+        "properties": {
+          "title": "Fixture family labels are family: followed by the name",
+          "status": "open",
+          "priority": "should",
+          "firmness": "default",
+          "origin": {
+            "kind": "agent",
+            "ref": "Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are."
+          },
+          "semantic_text": "A fixture family label must be family: followed by the name."
+        },
+        "relationships": [
+          {
+            "type": "supersedes",
+            "from": "REQ-fixture-family-label-format",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-label-format",
+            "to": "SCEN-fixture-family-handling-label"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-label-format",
+        "document": {
+          "path": ".kb/requirements/REQ-fixture-family-label-format.md",
+          "body": "A fixture family label must be family: followed by the name.\n\n## Context\n\nSplit from REQ-fixture-family-handling. Reason not stated. The person approved the split with the words: \"Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are.\" (approved 2026-11-12).\n\n## Why this changed\n\nThe parent mixed trimming, length limiting and label formatting in one requirement, and the broad_requirement_review finding reported 9 implementing symbols against a threshold of 8.\n\n## Source\n\n> A fixture family label must be family: followed by the name.\n\nREQ-fixture-family-handling (kibi approval-state.json)"
+        },
+        "properties": {
+          "title": "Fixture family labels are family: followed by the name",
+          "status": "open",
+          "priority": "should",
+          "firmness": "default",
+          "origin": {
+            "kind": "agent",
+            "ref": "Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are."
+          },
+          "semantic_text": "A fixture family label must be family: followed by the name.",
+          "semantic_source_field": "semantic_text",
+          "semantic_inventory_version": "kibi.semantic-inventory.v1",
+          "semantic_source_hash": "115fdc947cbd77f98f9a718de2432b4cf0c53bbe765e9d84cd698e74af536e99",
+          "semantic_inventory": [
+            {
+              "claim_key": "CLAIM-091EC860A62FCCEC",
+              "claim_text": "A fixture family label must be family: followed by the name",
+              "role": "normative",
+              "status": "ontology_gap",
+              "span": {
+                "start": 0,
+                "end": 59
+              },
+              "subjects": ["fixture.family_name"]
+            }
+          ],
+          "logic_claims": ["CLAIM-091EC860A62FCCEC"]
+        },
+        "relationships": [
+          {
+            "type": "supersedes",
+            "from": "REQ-fixture-family-label-format",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-label-format",
+            "to": "SCEN-fixture-family-handling-label"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_delete",
+      "args": {
+        "relationships": [
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-handling",
+            "to": "SCEN-fixture-family-handling-label"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-handling",
+            "to": "SCEN-fixture-family-handling-limit"
+          },
+          {
+            "type": "specified_by",
+            "from": "REQ-fixture-family-handling",
+            "to": "SCEN-fixture-family-handling-trim"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-fixture-family",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-fixture-family-from-args",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-fixture-family-from-env",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-fixture-family-label",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-fixture-family-label-from-env",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-fixture-family-or-default",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-format-family-label",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-limit-family-name",
+            "to": "REQ-fixture-family-handling"
+          },
+          {
+            "type": "implements",
+            "from": "SYM-validate-family-name",
+            "to": "REQ-fixture-family-handling"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "symbol",
+        "id": "SYM-validate-family-name",
+        "properties": {
+          "title": "validateFamilyName",
+          "status": "active"
+        },
+        "relationships": [
+          {
+            "type": "implements",
+            "from": "SYM-validate-family-name",
+            "to": "REQ-fixture-family-name-trimming"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "symbol",
+        "id": "SYM-limit-family-name",
+        "properties": {
+          "title": "limitFamilyName",
+          "status": "active"
+        },
+        "relationships": [
+          {
+            "type": "implements",
+            "from": "SYM-limit-family-name",
+            "to": "REQ-fixture-family-name-length-limit"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "symbol",
+        "id": "SYM-format-family-label",
+        "properties": {
+          "title": "formatFamilyLabel",
+          "status": "active"
+        },
+        "relationships": [
+          {
+            "type": "implements",
+            "from": "SYM-format-family-label",
+            "to": "REQ-fixture-family-label-format"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_delete",
+      "args": {
+        "ids": [
+          "SYM-fixture-family",
+          "SYM-fixture-family-from-args",
+          "SYM-fixture-family-from-env",
+          "SYM-fixture-family-label",
+          "SYM-fixture-family-label-from-env",
+          "SYM-fixture-family-or-default"
+        ]
+      }
+    },
+    {
+      "call": "kb_apply_plan",
+      "args": {
+        "plan": {
+          "version": "kibi.entity-deletion-plan.v1",
+          "entityIds": [
+            "SYM-fixture-family",
+            "SYM-fixture-family-from-args",
+            "SYM-fixture-family-from-env",
+            "SYM-fixture-family-label",
+            "SYM-fixture-family-label-from-env",
+            "SYM-fixture-family-or-default"
+          ],
+          "sourceHashes": {
+            ".kb/symbols.yaml": "d78aa58e289fb64cc311ba834647bd19ad48893c69a75ad0dcc89e86df3db1f0"
+          },
+          "sourceWrites": [
+            {
+              "path": ".kb/symbols.yaml",
+              "mode": "write",
+              "beforeHash": "d78aa58e289fb64cc311ba834647bd19ad48893c69a75ad0dcc89e86df3db1f0",
+              "afterHash": "6184d6ef844ec8d7fb5da246796b17d0a97bbccf0b07346f15394626cff37933",
+              "body": "# symbols.yaml\n# AUTHORED fields (edit freely):\n#   id, title, sourceFile, links, status, tags, owner, priority\n# Coordinates are derived from source by every `kibi sync` into the\n# gitignored symbol-coordinates.yaml; they are never authored or committed.\n#\n# Coordinate refresh granularity gate:\n#   The AST extractor locates per-declaration spans for code files. When it\n#   cannot find a declaration, a title-match or whole-file coarse span is\n#   published ONLY for symbols that declare a coarse granularity_reason\n#   (config-artifact, module-level-behavior, extractor-miss, test-suite).\n#   A symbol without granularity_reason whose extraction misses gets no\n#   coordinate entry at all and is reported as failed; add symbol_role and\n#   granularity_reason to opt it into the coarse fallback.\nsymbols:\n  - id: SYM-validate-family-name\n    title: validateFamilyName\n    status: active\n    sourceFile: src/fixture.ts\n    relationships:\n      - type: covered_by\n        target: TEST-fixture-family-handling\n      - type: implements\n        target: REQ-fixture-family-name-trimming\n  - id: SYM-limit-family-name\n    title: limitFamilyName\n    status: active\n    sourceFile: src/fixture.ts\n    relationships:\n      - type: covered_by\n        target: TEST-fixture-family-handling\n      - type: implements\n        target: REQ-fixture-family-name-length-limit\n  - id: SYM-format-family-label\n    title: formatFamilyLabel\n    status: active\n    sourceFile: src/fixture.ts\n    relationships:\n      - type: covered_by\n        target: TEST-fixture-family-handling\n      - type: implements\n        target: REQ-fixture-family-label-format\n"
+            }
+          ],
+          "supersessionRequired": false,
+          "planHash": "886807e0b9fc2e20e2e752fec3cd0c3ddfb245cc9a6bd0c579074f58d77012ba"
+        },
+        "approvedPlanHash": "886807e0b9fc2e20e2e752fec3cd0c3ddfb245cc9a6bd0c579074f58d77012ba"
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-handling",
+        "properties": {
+          "title": "Fixture family names and labels are handled consistently",
+          "status": "closed"
+        }
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-label-format",
+        "properties": {
+          "title": "Fixture family labels are family: followed by the name",
+          "status": "open",
+          "pair_reviews": [
+            {
+              "with": "REQ-fixture-family-name-length-limit",
+              "verdict": "no_conflict",
+              "separated_by": "The label format applies to the display label built from a name, while the length limit applies to the name itself before any label is built.",
+              "claims": [
+                "CLAIM-091EC860A62FCCEC",
+                "CLAIM-D8B5F697028F6680",
+                "CLAIM-F8C377EA4B6AADF9"
+              ],
+              "origin": {
+                "kind": "agent"
+              }
+            },
+            {
+              "with": "REQ-fixture-family-name-trimming",
+              "verdict": "no_conflict",
+              "separated_by": "Trimming applies to the incoming name; the label format applies to the label built afterwards from the trimmed name.",
+              "claims": [
+                "CLAIM-091EC860A62FCCEC",
+                "CLAIM-13DA073631EB6F75",
+                "CLAIM-D9996159D153A209"
+              ],
+              "origin": {
+                "kind": "agent"
+              }
+            }
+          ]
+        },
+        "relationships": [
+          {
+            "type": "relates_to",
+            "from": "REQ-fixture-family-label-format",
+            "to": "REQ-fixture-family-name-length-limit"
+          },
+          {
+            "type": "relates_to",
+            "from": "REQ-fixture-family-label-format",
+            "to": "REQ-fixture-family-name-trimming"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-fixture-family-name-length-limit",
+        "properties": {
+          "title": "Fixture family names are limited to 32 characters",
+          "status": "open",
+          "pair_reviews": [
+            {
+              "with": "REQ-fixture-family-name-trimming",
+              "verdict": "no_conflict",
+              "separated_by": "Trimming runs first and the 32-character limit is measured on the trimmed name, so the two rules apply in sequence and never disagree.",
+              "claims": [
+                "CLAIM-D8B5F697028F6680",
+                "CLAIM-F8C377EA4B6AADF9",
+                "CLAIM-13DA073631EB6F75",
+                "CLAIM-D9996159D153A209"
+              ],
+              "origin": {
+                "kind": "agent"
+              }
+            }
+          ]
+        },
+        "relationships": [
+          {
+            "type": "relates_to",
+            "from": "REQ-fixture-family-name-length-limit",
+            "to": "REQ-fixture-family-name-trimming"
+          }
+        ]
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {}
+    }
+  ],
+  "files": {},
+  "answer": "REQ-fixture-family-handling is split into one requirement per behavior, as approved in approval-state.json (\"Split REQ-fixture-family-handling into one requirement per behavior. Keep my sentences as they are.\", 2026-11-12). The unfiltered `kb_check` now reports zero violations, and `broad_requirement_review` is gone.\n\n**What changed**\n- `REQ-fixture-family-name-trimming`: \"A fixture family name must be trimmed. An empty name must be rejected.\" Owns `validateFamilyName`, with scenario `SCEN-fixture-family-handling-trim`.\n- `REQ-fixture-family-name-length-limit`: \"A name must be at most 32 characters. A longer name must be rejected with an error that states the limit.\" Owns `limitFamilyName`, with scenario `SCEN-fixture-family-handling-limit`.\n- `REQ-fixture-family-label-format`: \"A fixture family label must be family: followed by the name.\" Owns `formatFamilyLabel`, with scenario `SCEN-fixture-family-handling-label`.\n- Each child supersedes the parent. The sentences are verbatim, and each child has a sectioned body with Context, Why this changed and Source.\n- `REQ-fixture-family-handling` is set to `closed`, and its `specified_by` and `implements` links are removed.\n- The six delegating symbols (`fixtureFamily`, `fixtureFamilyFromArgs`, `fixtureFamilyFromEnv`, `fixtureFamilyLabel`, `fixtureFamilyLabelFromEnv`, `fixtureFamilyOrDefault`) are deleted through the hash-bound plan. They decided no behavior of their own.\n\n**Not done, and why**\n- The three children are agent-authored with `origin.ref` quoting the person's approval. I did not set `origin.approved_by`, because that is the reviewer's field. `kb_check` now lists them as needing human approval.\n- The semantic advisor flags every clause as an ontology gap, and the new requirements have no `logic_claims` grounding. I did not model them, so `logical_coverage_review` remains a non-blocking review item. The advisor also suggested a `characters` subject that I did not apply, because its definition is not stated anywhere.\n- The three children have only unit-level test coverage, and there is no proof receipt.\n- Some writes skipped the dryRun preflight: the symbol relationship updates, the parent close and the wrapper deletion. The first child was dry-run first. The other two were rejected on the first attempt for missing inventory fields, and I fixed those and wrote them without a second dry run.\n- Telemetry reports low diagnostic completeness. It is non-blocking.\n\n**Closeout**\n- taskOutcome: complete\n- kbState: clean_fresh (the post-write check ran against the current snapshot)\n- verificationState: not_evaluated (no proof run)\n- proofState: unresolved\n- limitationDisposition: accepted (the approval gap and the ontology gaps are listed above for review)"
+}

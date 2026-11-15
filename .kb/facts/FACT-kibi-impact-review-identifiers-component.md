@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-impact-review-identifiers-component
 type: fact
 ---
-The kibi.impact_review.identifiers component, as the structural requirements that name it constrain it.
+
+Identifiers of impact review: the policy file .kibi/impact-policy.json and version strings such as kibi.impact-policy.v1. They identify documents, not impact rules.

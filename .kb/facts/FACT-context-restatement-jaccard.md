@@ -2,7 +2,7 @@
 title: The context restatement threshold shall be a Jaccard similarity of 0.8
 status: active
 fact_kind: property_value
-subject_key: kibi.entity_body.context
+subject_key: kibi.entity_body_context
 claim_key: CLAIM-1D3F76DD5F69F22E
 claim_text: The context restatement threshold shall be a Jaccard similarity of 0.8
 text_ref: REQ-kb-entity-body-context-settings

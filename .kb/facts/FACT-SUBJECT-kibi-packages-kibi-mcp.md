@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-packages-kibi-mcp
 type: fact
 ---
-The subject kibi.packages.kibi_mcp.
+
+The kibi-mcp npm package, which provides the MCP server over Kibi's public operations; its dependencies exclude optional plugins such as kibi-plugin-jev. It is the package boundary, not the tool catalog.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-plugin-protocol-component
 type: fact
 ---
-The kibi.plugin.protocol component, as the structural requirements that name it constrain it.
+
+Identifiers of the capability plugin protocol: the plugin API version kibi.plugin.v1 and capability ids such as kibi.ontology-pack.v1. They name contracts, not plugin behavior.

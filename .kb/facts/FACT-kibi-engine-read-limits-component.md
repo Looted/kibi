@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-engine-read-limits-component
 type: fact
 ---
-Kibi engine read limits, named kibi.engine.read_limits in the structural requirements that constrain it.
+
+The opt-in limits on engine reads, set through KIBI_ENGINE_READ_TIME_LIMIT_MS and KIBI_ENGINE_READ_INFERENCE_LIMIT, that stop a runaway read with an error instead of a partial answer. They are off unless set.

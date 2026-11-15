@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The SkillOpt lane that qualifies the Cursor host before any paid evaluation cells are spent, failing closed with a usage error on invalid arguments or gates. It is a pre-spend gate, not the evaluation itself.

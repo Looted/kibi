@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-opencode-guidance-block-component
 type: fact
 ---
-The kibi.opencode.guidance_block component, as the structural requirements that name it constrain it.
+
+The size limit on the Kibi guidance block the OpenCode plugin injects: at most five bullets. It bounds the block, not what it says.

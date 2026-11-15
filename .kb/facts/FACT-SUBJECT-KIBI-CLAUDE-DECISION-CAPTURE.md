@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-CLAUDE-DECISION-CAPTURE
 type: fact
 ---
+
+How the Claude Code plugin captures decisions the person states during a session: a rule-like prompt gets a recording note, and a session that changed source and recorded nothing is asked once at stop. It is capture prompting, not the recording operation.

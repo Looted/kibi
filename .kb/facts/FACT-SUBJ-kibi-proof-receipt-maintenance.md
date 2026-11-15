@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-proof-receipt-maintenance
 type: fact
 ---
+
+Housekeeping of stored proof receipts: kibi proof prune keeps only each test's newest receipts within the keep window, and migrate-legacy drops legacy receipts only for tests that have a proof contract. It does not create or validate receipts.

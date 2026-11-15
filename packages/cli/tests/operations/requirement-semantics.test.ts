@@ -68,14 +68,25 @@ describe("relationship-only requirement updates", () => {
     for (const properties of [
       { title: STORED.title, status: "open", logic_claims: [] },
       { title: STORED.title, status: "open", semantic_text: "Other prose." },
-      { title: "Users must be able to export reports.", status: "open" },
     ]) {
       const input = link(properties);
       expect(
         await withStoredRequirementSemantics(input, emptyStore, staged()),
       ).toBe(input);
     }
-    // text_ref is the prose only when the ledger reads it.
+    // title and text_ref are the prose only when the ledger reads them.
+    const fromTitle = { ...STORED, semantic_source_field: "title" };
+    const renamed = link({
+      title: "Users must be able to export reports.",
+      status: "open",
+    });
+    expect(
+      await withStoredRequirementSemantics(
+        renamed,
+        emptyStore,
+        staged(fromTitle),
+      ),
+    ).toBe(renamed);
     const fromTextRef = {
       ...STORED,
       semantic_source_field: "text_ref",
@@ -93,6 +104,26 @@ describe("relationship-only requirement updates", () => {
         staged(fromTextRef),
       ),
     ).toBe(input);
+  });
+
+  test("keep the ledger when the title changes and the prose is semantic_text", async () => {
+    // Renaming a requirement changes no proposition its semantic_text states:
+    // the authored file keeps its claims and subjects, so the store does too.
+    const merged = await withStoredRequirementSemantics(
+      {
+        type: "req",
+        id: STORED.id,
+        properties: { title: "CSV export", status: "open" },
+      },
+      emptyStore,
+      staged(),
+    );
+    expect(merged.properties).toMatchObject({
+      title: "CSV export",
+      semantic_text: STORED.semantic_text,
+      semantic_inventory: STORED.semantic_inventory,
+      logic_claims: STORED.logic_claims,
+    });
   });
 
   test("keep the ledger when only text_ref changes and the prose is semantic_text", async () => {

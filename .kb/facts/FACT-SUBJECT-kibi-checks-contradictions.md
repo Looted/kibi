@@ -13,4 +13,5 @@ origin:
 id: FACT-SUBJECT-kibi-checks-contradictions
 type: fact
 ---
-The subject kibi.checks.contradictions.
+
+The contradiction checks over modeled requirements: numeric bounds decided exactly, rule pairs classified as contradiction, disjoint or unresolved, and unmodeled clauses reported as incomplete rather than as no conflict. They compare modeled claims, not prose.

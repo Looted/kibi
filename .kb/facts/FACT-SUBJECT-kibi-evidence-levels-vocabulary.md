@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-evidence-levels-vocabulary
 type: fact
 ---
-The subject kibi.evidence_levels.vocabulary.
+
+The fixed set of words Kibi uses for evidence strength: proved, tested, asserted and unverified, from strongest to weakest. It is the vocabulary only, not how a requirement's level is computed.

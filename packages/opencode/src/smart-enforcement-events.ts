@@ -22,6 +22,7 @@
 
 import type { CommentAnalysisResult } from "./comment-analysis.js";
 import { analyzeCodeFile } from "./comment-analysis.js";
+import { getFileLinkedTargetsByType } from "./file-entity-links.js";
 import * as fileFilter from "./file-filter.js";
 import type {
   FileLifecycle,
@@ -35,7 +36,6 @@ import { analyzePath } from "./path-kind.js";
 import type { RuntimeDegradedOverlay } from "./plugin-startup.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import type { RiskClass } from "./risk-classifier.js";
-import { getFileLinkedTargetsByType } from "./file-entity-links.js";
 import { classifyRisk } from "./risk-classifier.js";
 import type { SyncScheduler } from "./scheduler.js";
 import type { SessionEditState } from "./session-edit-state.js";
@@ -243,11 +243,12 @@ export function classifyEditedFile(
       : false;
 
   let precomputedSuggestion: CommentAnalysisResult | null = null;
-  // rationale: only code reaches a class that uses the suggestion, so reading
-  // other files too would change nothing but the work done.
+  // rationale: only code reaches a class that uses the suggestion or the
+  // manifest links, so reading them for other files too would change nothing
+  // but the work done.
   // Stryker disable next-line ConditionalExpression
-  const readsComments = pathAnalysis.kind === "code";
-  if (readsComments && env.cfg.guidance.commentDetection.enabled) {
+  const isCode = pathAnalysis.kind === "code";
+  if (isCode && env.cfg.guidance.commentDetection.enabled) {
     precomputedSuggestion = analyzeCodeFile(
       env.resolveWorktreePath(normalizedFilePath, worktreeRoot),
       { minLines: env.cfg.guidance.commentDetection.minLines },
@@ -261,7 +262,7 @@ export function classifyEditedFile(
     hasDurableComment: !!precomputedSuggestion,
     fileContent,
     hasManifestLinks:
-      pathAnalysis.kind === "code" &&
+      isCode &&
       getFileLinkedTargetsByType(worktreeRoot, normalizedFilePath, [
         "implements",
       ]).length > 0,

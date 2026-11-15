@@ -202,7 +202,8 @@ describe("case-owned required signals", () => {
       [0, false],
       [1, true],
       [2, true],
-      [3, false],
+      [3, true],
+      [4, false],
     ] as const) {
       expect(
         signal(

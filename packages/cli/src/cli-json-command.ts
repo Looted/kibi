@@ -96,6 +96,23 @@ function structuredResult(stdout: string | undefined): unknown {
   return undefined;
 }
 
+/**
+ * The failure a usage record keeps: the JSON result's error code and message
+ * (stderr only points to it), else the stderr line.
+ */
+export function resultErrorText(
+  stdout: string | undefined,
+  stderr: string,
+): string {
+  const envelope = structuredResult(stdout) as
+    | { error?: { code?: unknown; message?: unknown } }
+    | undefined;
+  const error = envelope?.error;
+  if (typeof error?.code === "string" && typeof error.message === "string")
+    return `Error [${error.code}]: ${error.message}`;
+  return stderr.trim();
+}
+
 async function writeAndWaitForDrain(
   stream: NodeJS.WriteStream,
   value: string,
@@ -221,7 +238,7 @@ export async function runJsonInvocation(
       result: structuredResult(result.stdout),
       ...(result.exitCode === 0 || result.stderr === undefined
         ? {}
-        : { error: result.stderr.trim() }),
+        : { error: resultErrorText(result.stdout, result.stderr) }),
     });
   }
   if (result.stdout !== undefined) {

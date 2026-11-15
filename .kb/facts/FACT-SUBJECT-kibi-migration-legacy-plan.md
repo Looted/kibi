@@ -13,4 +13,5 @@ origin:
 id: FACT-SUBJECT-kibi-migration-legacy-plan
 type: fact
 ---
-The subject kibi.migration.legacy_plan.
+
+The review-only preview kibi migrate builds for legacy requirements, separating semantic prose from evidence and binding each proposed proposition to the exact current authored source. It proposes; it does not rewrite files.

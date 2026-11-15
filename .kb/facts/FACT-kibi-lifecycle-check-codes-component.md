@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-lifecycle-check-codes-component
 type: fact
 ---
-The kibi.lifecycle.check_codes component, as the structural requirements that name it constrain it.
+
+The action ids and codes kibi check and migrate use for KB lifecycle work, such as migration-sync and source path check and repair codes. They are identifiers, not the actions.

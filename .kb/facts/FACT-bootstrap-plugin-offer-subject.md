@@ -13,3 +13,5 @@ subject_key: bootstrap.plugin_offer
 id: FACT-bootstrap-plugin-offer-subject
 type: fact
 ---
+
+The bootstrap plan's offer to install an optional Kibi plugin, such as kibi-plugin-ui when production UI component files exist, and how a project declines one through kibi.declinedPlugins. It is an offer in the plan, never an install Kibi performs on its own.

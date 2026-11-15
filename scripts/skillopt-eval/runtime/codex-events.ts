@@ -29,6 +29,12 @@ export type CodexNormalization = Readonly<{
   events: readonly NormalizedCodexEvent[];
   malformedLines: readonly number[];
   violations: readonly CodexViolation[];
+  /**
+   * File-tool reads of `.kb/` paths that the host refused. They accessed
+   * nothing, so they are not a critical violation; the cell loses only its
+   * isolation points.
+   */
+  deniedKbReads: number;
   usage: Readonly<{
     inputTokens: number;
     cachedInputTokens: number;
@@ -220,9 +226,39 @@ function isMcpToolCallItem(event: Readonly<Record<string, unknown>>): boolean {
   });
 }
 
+type FileReadItem = Readonly<{ id: string; status: string; kbPath: boolean }>;
+
+/**
+ * A host file-tool read (`file_read` item) whose outcome arrives on its own
+ * `item.completed` event. Its `.kb/` access is decided from that outcome, so a
+ * read the host refused is told apart from one that returned content.
+ */
+function fileReadItem(
+  event: Readonly<Record<string, unknown>>,
+): FileReadItem | null {
+  if (typeof event.type !== "string" || !event.type.startsWith("item.")) {
+    return null;
+  }
+  const item = nestedCodexItem(event);
+  if (typeof item !== "object" || item === null) return null;
+  const record = item as Record<string, unknown>;
+  if (record.type !== "file_read" || typeof record.id !== "string") {
+    return null;
+  }
+  return {
+    id: record.id,
+    status: typeof record.status === "string" ? record.status : "",
+    kbPath: stringsWithKeys(record).some(
+      ({ key, value }) =>
+        /^(?:path|file_path)$/i.test(key) && KB_PATH_PATTERN.test(value),
+    ),
+  };
+}
+
 function eventViolations(
   event: Readonly<Record<string, unknown>>,
   options: CodexNormalizationOptions,
+  deferKbRead = false,
 ): readonly CodexViolation[] {
   const strings = stringsWithKeys(event);
   const violations: CodexViolation[] = [];
@@ -235,6 +271,7 @@ function eventViolations(
   }
   if (!isMcpToolCallItem(event)) {
     if (
+      !deferKbRead &&
       strings.some(
         ({ key, value }) =>
           /^(?:command|path|file_path)$/i.test(key) &&
@@ -278,6 +315,8 @@ export function normalizeCodexJsonl(
   const events: NormalizedCodexEvent[] = [];
   const malformedLines: number[] = [];
   const violations = new Set<CodexViolation>();
+  const pendingKbReads = new Set<string>();
+  let deniedKbReads = 0;
   let usage = { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0 };
   for (const [index, line] of stdout.split("\n").entries()) {
     if (line.trim() === "") continue;
@@ -296,7 +335,21 @@ export function normalizeCodexJsonl(
       });
       continue;
     }
-    for (const violation of eventViolations(event, options)) {
+    const read = fileReadItem(event);
+    if (read?.kbPath === true) {
+      if (event.type === "item.completed") {
+        pendingKbReads.delete(read.id);
+        if (read.status === "failed") deniedKbReads += 1;
+        else violations.add("direct_kb_access");
+      } else {
+        pendingKbReads.add(read.id);
+      }
+    }
+    for (const violation of eventViolations(
+      event,
+      options,
+      read?.kbPath === true,
+    )) {
       violations.add(violation);
     }
     const parsedUsage = UsageSchema.safeParse(event.usage);
@@ -314,10 +367,13 @@ export function normalizeCodexJsonl(
       payload: JsonObjectSchema.parse(redactValue(event, options)),
     });
   }
+  // A read with no recorded outcome may have returned content.
+  if (pendingKbReads.size > 0) violations.add("direct_kb_access");
   return {
     events,
     malformedLines,
     violations: [...violations],
+    deniedKbReads,
     usage,
     empty: events.length === 0,
   };

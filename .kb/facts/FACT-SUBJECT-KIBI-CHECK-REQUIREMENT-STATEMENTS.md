@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-CHECK-REQUIREMENT-STATEMENTS
 type: fact
 ---
+
+The part of a kb_check result that quotes the statements of requirements the changed code implements, as unverified-statement warnings, instead of a bare no-violations summary. It reminds the agent what must stay true; it does not verify it.

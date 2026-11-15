@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-NON-NUMERIC-PROOF
 type: fact
 ---
+
+Certificate proof kinds for claims that are not numeric bounds: rule claims against predicate tables, state machine claims against transition relations and pattern claims, each proved against the model Kibi reads from the code. Numeric proofs and source proofs are separate.

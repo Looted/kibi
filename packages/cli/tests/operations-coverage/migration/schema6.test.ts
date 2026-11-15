@@ -21,6 +21,10 @@ import {
 } from "../../helpers/schema6-fixture.js";
 import { scratch } from "../helpers.js";
 
+/** Anchoring a claim to its subject is a person's review, never automatic. */
+const isSubjectAnchor = (code: string): boolean =>
+  code.startsWith("claim_subject_anchor_");
+
 const cleanups: Array<() => void> = [];
 afterEach(() => {
   for (const cleanup of cleanups.splice(0)) cleanup();
@@ -293,11 +297,13 @@ describe("buildSchema6MigrationFragment", () => {
       ),
       context(ws.root),
     );
+    // The re-derived claims still name no subject; that anchor is a person's
+    // review, not part of this step.
     expect(
       buildSchema6MigrationFragment({
         workspaceRoot: ws.root,
         currentSchemaVersion: 99,
-      }).actions,
+      }).actions.filter((action) => !isSubjectAnchor(action.code)),
     ).toStrictEqual([]);
   });
 });
@@ -418,7 +424,11 @@ describe("applySchema6MigrationAction", () => {
       workspaceRoot: ws.root,
       currentSchemaVersion: 99,
     });
-    expect(after.actions.map((action) => action.code)).toStrictEqual([]);
+    expect(
+      after.actions
+        .map((action) => action.code)
+        .filter((code) => !isSubjectAnchor(code)),
+    ).toStrictEqual([]);
   });
 
   test("reports what an automatic step could not change", async () => {

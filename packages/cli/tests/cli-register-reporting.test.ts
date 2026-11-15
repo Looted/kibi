@@ -10,6 +10,7 @@ import * as gaps from "../src/commands/gaps.js";
 import * as graph from "../src/commands/graph.js";
 import * as report from "../src/commands/report.js";
 import * as signoff from "../src/commands/signoff.js";
+import * as kbDependency from "../src/dependencies/kb-dependency-cli.js";
 import {
   goldenSurface,
   plainCalls,
@@ -113,6 +114,25 @@ describe("registerReportingCommands", () => {
         },
       ],
     ]);
+  });
+
+  test("find-gaps, coverage and graph stop when the --kb scope is refused", async () => {
+    const scope = spyOn(kbDependency, "applyKbOption").mockImplementation(
+      () => false,
+    );
+    restores.push(() => scope.mockRestore());
+    const gapsSpy = stub(gaps, "gapsCommand");
+    const coverageSpy = stub(coverage, "coverageCommand");
+    const graphSpy = stub(graph, "graphCommand");
+    const json = stub(jsonCommand, "runJsonInvocation");
+    await run("gaps", "req", "--kb", "dep");
+    await run("coverage", "--kb", "dep", "--input", "-");
+    await run("graph", "--kb", "dep");
+    expect(scope.mock.calls.length).toBe(3);
+    expect(gapsSpy.mock.calls.length).toBe(0);
+    expect(coverageSpy.mock.calls.length).toBe(0);
+    expect(graphSpy.mock.calls.length).toBe(0);
+    expect(json.mock.calls.length).toBe(0);
   });
 });
 

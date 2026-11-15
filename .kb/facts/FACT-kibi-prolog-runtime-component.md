@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-prolog-runtime-component
 type: fact
 ---
-The kibi.prolog.runtime component, as the structural requirements that name it constrain it.
+
+What Kibi needs from the SWI-Prolog runtime: the libraries it loads (semweb, pcre, crypto, sha, http/json and others) and the __KIBI_ERROR__: prefix that marks an error line. It is runtime requirements, not the version policy.

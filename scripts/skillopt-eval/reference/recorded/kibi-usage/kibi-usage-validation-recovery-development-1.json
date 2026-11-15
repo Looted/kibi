@@ -1,0 +1,72 @@
+{
+  "taskId": "kibi-usage-validation-recovery-development-1",
+  "source": "stored 100-score cell",
+  "steps": [
+    {
+      "call": "kb_search",
+      "args": {
+        "query": "malformed mutation repair inputs malformed.json"
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "id": "REQ-FIXTURE-E8B995FB2945"
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-FIXTURE-E8B995FB2945",
+        "properties": {
+          "title": "validation-recovery fixture requirement",
+          "status": "opened"
+        },
+        "dryRun": true
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-FIXTURE-E8B995FB2945",
+        "properties": {
+          "title": "validation-recovery fixture requirement",
+          "status": "open"
+        },
+        "document": {
+          "body": "validation-recovery fixture requirement\n\n## Context\n\nReason not stated. Created by repairing the malformed mutation in inputs/malformed.json (development case 1).\n\n## Source\n\nSource: inputs/malformed.json, repaired from a validation diagnostic."
+        },
+        "dryRun": true
+      }
+    },
+    {
+      "call": "kb_upsert",
+      "args": {
+        "type": "req",
+        "id": "REQ-FIXTURE-E8B995FB2945",
+        "properties": {
+          "title": "validation-recovery fixture requirement",
+          "status": "open"
+        },
+        "document": {
+          "body": "validation-recovery fixture requirement\n\n## Context\n\nReason not stated. Created by repairing the malformed mutation in inputs/malformed.json (development case 1).\n\n## Source\n\nSource: inputs/malformed.json, repaired from a validation diagnostic."
+        }
+      }
+    },
+    {
+      "call": "kb_query",
+      "args": {
+        "id": "REQ-FIXTURE-E8B995FB2945",
+        "includeBody": true
+      }
+    },
+    {
+      "call": "kb_check",
+      "args": {}
+    }
+  ],
+  "files": {},
+  "answer": "The malformed mutation in inputs/malformed.json is repaired and applied to its named target, REQ-FIXTURE-E8B995FB2945, which did not exist before, so this was a create.\n\nValidator diagnostics and fixes:\n1. type \"requirement\" is invalid; corrected to \"req\".\n2. status \"opened\" is invalid for req entities; corrected to \"open\" (allowed: open, in_progress, closed, retired).\n3. A new requirement needs a sectioned document.body; added a statement plus \"## Context\" (stating \"Reason not stated\") and \"## Source\" sections.\n\nSteps: kb_search, then kb_query by id (target absent), then dryRun failed on status, then dryRun passed with the corrected payload, then the real kb_upsert committed .kb/requirements/REQ-FIXTURE-E8B995FB2945.md, then kb_query with includeBody confirmed the entity and body, then unfiltered kb_check returned zero violations (status partial).\n\nOpen non-blocking items: the requirement is agent-authored with no human approval (origin.approved_by needed from a reviewer); it has no tests or scenarios (no_test_evidence, proof missing); it has no logic_claims manifest; telemetry is incomplete and the advisor pass was skipped. The migration plan reported by kb_check was not applied. inputs/malformed.json was not modified and nothing was committed; the new .kb file is uncommitted.\n\nCloseout: taskOutcome=complete; kbState=not_evaluated (kb_status not called); verificationState=not_evaluated; proofState=unresolved; limitationDisposition=unaccepted."
+}

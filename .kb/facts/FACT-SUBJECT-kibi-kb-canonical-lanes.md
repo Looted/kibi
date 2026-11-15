@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-kb-canonical-lanes
 type: fact
 ---
-The subject kibi.kb.canonical_lanes.
+
+The authored knowledge lanes under .kb: requirements, scenarios, tests, facts, adr, flags and events, one directory per entity kind. It names the lanes, not the layout of derived runtime trees.

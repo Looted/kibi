@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-operations-paging-component
 type: fact
 ---
-The kibi.operations.paging component, as the structural requirements that name it constrain it.
+
+Page and chunk sizes public operations use, such as at most 25 entities loaded per query chunk and 100 contracts per proof contract page, and the entity types a query accepts. They bound reads, not results.

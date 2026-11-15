@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-EVIDENCE-FLOOR
 type: fact
 ---
+
+The minimum evidence each requirement is held to by kibi check, such as a proof path or required_evidence for firm requirements, where requirements below their floor fail and stale-only receipts pass as pending re-proof. It is the gate, not the reported evidence level.

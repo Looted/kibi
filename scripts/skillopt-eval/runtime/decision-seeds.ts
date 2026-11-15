@@ -13,6 +13,8 @@ export const DECISION_IDS = {
   scenario: "SCEN-fixture-family-name-length",
   test: "TEST-fixture-family-name-length",
   symbol: "SYM-fixture-family",
+  /** Defined subject the decision requirements' unmodeled claims name. */
+  subject: "FACT-SUBJECT-fixture-family-name",
   /** Recorded before its code exists (commit-review label variants). */
   labelRequirement: "REQ-fixture-family-label",
   labelScenario: "SCEN-fixture-family-label",
@@ -92,8 +94,22 @@ export const LABEL_FIXTURE_TEST = [
   "",
 ].join("\n");
 
-/** The firm rule, its scenario, test and the enforcing symbol. */
+/** Subject key of the fixture family name, which new rules' claims name. */
+export const DECISION_SUBJECT_KEY = "fixture.family_name";
+
+/** The firm rule, its scenario, test, subject and the enforcing symbol. */
 export const DECISION_DOCUMENTS: Readonly<Record<string, string>> = {
+  [`.kb/facts/${DECISION_IDS.subject}.md`]: doc(
+    [
+      `id: ${DECISION_IDS.subject}`,
+      "title: Fixture family name",
+      "type: fact",
+      "status: active",
+      "fact_kind: subject",
+      `subject_key: ${DECISION_SUBJECT_KEY}`,
+    ],
+    "The name a caller passes to fixtureFamily to group fixtures, as it reads after trimming; it is not the label fixtureFamilyLabel derives from it.",
+  ),
   [`.kb/requirements/${DECISION_IDS.rule}.md`]: doc(
     [
       `id: ${DECISION_IDS.rule}`,

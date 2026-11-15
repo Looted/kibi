@@ -21,3 +21,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The kibi-claude package for Claude Code: an optional plugin shipping manifest, skills, MCP launcher and lifecycle hooks that give progressive-disclosure knowledge snippets, remind once at stop about unchecked edits and may ask before a firm-code edit. Its hooks never call the CLI or deny a tool call.

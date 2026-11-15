@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3547bb493bf0
+  - type: assumes
+    from: SCEN-NEG-skillopt-reference-CASE-UNREACHABLE
+    to: FACT-NEG-skillopt-reference-CASE-UNREACHABLE
+    created_at: 2026-11-14T04:50:22.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01f3e3a3f139

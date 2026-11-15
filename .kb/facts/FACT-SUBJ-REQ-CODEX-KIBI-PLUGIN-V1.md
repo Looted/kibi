@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The kibi-codex package: an optional adapter that registers the project-local kibi-mcp with Codex and ships its manifest, skills and hooks. Its hooks never deny a tool call or write to .kb, and it does not change core Kibi.

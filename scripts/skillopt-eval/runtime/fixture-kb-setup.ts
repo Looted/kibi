@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { mkdir, readFile, rmdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -35,6 +35,7 @@ import {
   isSeededUnresolvedRuleViolation,
   ledgerRequirement,
 } from "./fixture-seeds";
+import { harnessChildEnv } from "./telemetry-env";
 
 const execFileAsync = promisify(execFile);
 
@@ -100,7 +101,7 @@ const FIXTURE_TEST_TIMEOUT_MS = 10_000;
 // covered_by TEST-skillopt-codex-optimization
 export function fixtureCliEnv(workspaceTarget: string): NodeJS.ProcessEnv {
   return {
-    ...process.env,
+    ...harnessChildEnv(),
     KIBI_BRANCH: FIXTURE_BRANCH,
     KIBI_WORKSPACE: workspaceTarget,
     KIBI_PROJECT_ROOT: workspaceTarget,
@@ -215,6 +216,11 @@ export async function setupGeneratedCoordinateDivergence(
     join(workspaceTarget, "src", "fixture.ts"),
     "export function fixtureFamily() {\n  return true;\n}\n",
   );
+  mkdirSync(join(workspaceTarget, "tests"), { recursive: true });
+  writeFileSync(
+    join(workspaceTarget, "tests", "fixture.test.ts"),
+    'import { expect, test } from "bun:test";\nimport { fixtureFamily } from "../src/fixture";\n\ntest("fixtureFamily returns true", () => {\n  expect(fixtureFamily()).toBe(true);\n});\n',
+  );
   writeFileSync(
     join(workspaceTarget, ".kb", "symbols.yaml"),
     `symbols:
@@ -241,9 +247,31 @@ export async function setupGeneratedCoordinateDivergence(
       type: "req",
       id: "REQ-SETUP-COORD",
       properties: { title: "Coordinate fixture requirement", status: "open" },
-      document: { path: ".kb/requirements/REQ-SETUP-COORD.md" },
+      document: {
+        path: ".kb/requirements/REQ-SETUP-COORD.md",
+        body: "fixtureFamily returns true.\n\n## Context\n\nEvaluator-owned requirement: it exists so the coordinate fixture symbol has a requirement to implement and a test that covers it.",
+      },
     },
     "requirement upsert",
+  );
+  await upsert(
+    {
+      type: "test",
+      id: "TEST-SETUP-COORD",
+      properties: {
+        title: "fixtureFamily returns true",
+        status: "passing",
+        text_ref: "tests/fixture.test.ts",
+        verification_scope: "unit",
+      },
+      document: {
+        body: "This evaluator-owned unit test keeps the coordinate fixture symbol covered, so its requirement has a passing test.",
+      },
+      relationships: [
+        { type: "validates", from: "TEST-SETUP-COORD", to: "REQ-SETUP-COORD" },
+      ],
+    },
+    "test upsert",
   );
   await upsert(
     {
@@ -256,6 +284,7 @@ export async function setupGeneratedCoordinateDivergence(
       },
       relationships: [
         { type: "implements", from: symbolId, to: "REQ-SETUP-COORD" },
+        { type: "covered_by", from: symbolId, to: "TEST-SETUP-COORD" },
       ],
     },
     "symbol upsert",
@@ -268,6 +297,8 @@ export async function setupGeneratedCoordinateDivergence(
     ]),
     "refresh sync",
   );
+  // Sync compiles tracked bytes only: stage the authored setup files first.
+  await execFileAsync("git", ["add", "-A"], { cwd: workspaceTarget });
   await expectOk(
     await runStagedCli(cliRoot, workspaceTarget, ["sync"]),
     "import sync",
@@ -341,6 +372,18 @@ export async function stripSymbolCoordinates(
   const stripped: Record<string, unknown> = { ...fullEntity };
   for (const key of COORDINATE_KEYS) {
     delete stripped[key];
+  }
+  // Readback lists relationships as entity fields; they are not properties,
+  // and the upsert keeps the stored relationship triples.
+  for (const [key, value] of Object.entries(stripped)) {
+    const values = Array.isArray(value) ? value : [value];
+    if (
+      values.length > 0 &&
+      values.every(
+        (entry) => typeof entry === "string" && entry.startsWith("kb:entity/"),
+      )
+    )
+      delete stripped[key];
   }
   const daemon = new EngineClient({
     workspaceRoot: workspaceTarget,
@@ -875,6 +918,19 @@ export async function setupSeededStaleKb(
     `${original}\nUnabsorbed evaluator drift: stale-state classification seed.\n`,
     "utf8",
   );
+  // The legacy requirement the migration moves into .kb/ states its context,
+  // so a safe application leaves a clean check without semantic writes.
+  const legacyPath = join(
+    workspaceTarget,
+    "documentation/requirements/fixture.md",
+  );
+  const legacy = await readFile(legacyPath, "utf8").catch(() => null);
+  if (legacy?.startsWith("---\n") === true && !legacy.includes("## Context"))
+    await writeFile(
+      legacyPath,
+      `${legacy}\n## Context\n\nSeeded by the evaluator as the project's legacy requirement; it carries no product rationale.\n`,
+      "utf8",
+    );
   await stageCommitAll(workspaceTarget);
 }
 
@@ -1352,10 +1408,28 @@ export async function setupSeededConsistencyKb(
       title: "Calls need remaining quota and quota resets need review",
       prose: CONSISTENCY_PROSE.incomplete,
       contract: incomplete.contract,
-      propositions: [{ ...numeric, status: "modeled" }, review],
+      propositions: [
+        { ...numeric, status: "modeled" },
+        { ...review, subjects: ["client.call_quota"] },
+      ],
+      // The evaluator states how the unmodeled reset-review clause meets
+      // the two modeled bounds on the same subject, so the seed passes
+      // related-requirement-unmodeled while the clause itself stays unmodeled.
+      extra: [
+        "pair_reviews:",
+        ...[CONSISTENCY_IDS.nonNegative, CONSISTENCY_IDS.cap].flatMap((id) => [
+          `  - with: ${id}`,
+          "    verdict: no_conflict",
+          "    separated_by: the review applies to quota resets, the bound to the remaining quota between resets",
+          `    claims: [${review.claim_key}]`,
+          "    origin: {kind: human, ref: evaluator fixture}",
+        ]),
+      ],
       links: [
         { type: "constrains", target: CONSISTENCY_IDS.subject },
         { type: "requires_property", target: CONSISTENCY_IDS.positiveFact },
+        { type: "relates_to", target: CONSISTENCY_IDS.nonNegative },
+        { type: "relates_to", target: CONSISTENCY_IDS.cap },
       ],
     }),
     [CONSISTENCY_E2E_TEST_PATH]: CONSISTENCY_E2E_TEST_SOURCE,

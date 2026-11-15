@@ -11,3 +11,5 @@ origin:
 id: FACT-search-hints-cap-subject
 type: fact
 ---
+
+The kibi.search-hints.v1 plugin capability contract: a provider receives entities the host supplies and returns at most 20 ordered hints that name only those entities. It is the contract any provider must meet, not a particular provider.

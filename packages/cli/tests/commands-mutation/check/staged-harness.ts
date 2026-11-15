@@ -17,10 +17,12 @@ import * as consistency from "../../../src/traceability/staged-consistency.js";
 import * as stagedDiagnostics from "../../../src/traceability/staged-diagnostics.js";
 import * as entityContext from "../../../src/traceability/staged-entity-context.js";
 import * as entityIdStyle from "../../../src/traceability/staged-entity-id-style.js";
+import * as evidenceFloor from "../../../src/traceability/staged-evidence-floor.js";
 import * as fileCoverage from "../../../src/traceability/staged-file-coverage.js";
 import * as impactContract from "../../../src/traceability/staged-impact-contract.js";
 import * as inventoryDrift from "../../../src/traceability/staged-inventory-drift.js";
 import * as migration from "../../../src/traceability/staged-migration.js";
+import * as requirementRules from "../../../src/traceability/staged-requirement-rules.js";
 import * as symbolsManifest from "../../../src/traceability/staged-symbols-manifest.js";
 import * as symbolExtract from "../../../src/traceability/symbol-extract.js";
 import * as tempKb from "../../../src/traceability/temp-kb.js";
@@ -128,6 +130,10 @@ export function stagedHarness() {
     formatConsistencyViolations: (violations: unknown[], label?: string) => [
       `consistency ${label ?? "-"} ${violations.length}`,
     ],
+    stagedRequirementRules: () => null,
+    readTreeManifest: () => null,
+    floorChangedRequirementIds: () => [],
+    collectStagedEvidenceFloorViolations: async () => [],
     collectIntroducedEntityContextViolations: () => [],
     amendsRootCommit: () => false,
     stagedInventoryDriftViolations: () => [],
@@ -198,6 +204,10 @@ export function stagedHarness() {
     [consistency, "stagesKnowledge"],
     [consistency, "collectIntroducedConsistencyViolations"],
     [consistency, "formatConsistencyViolations"],
+    [requirementRules, "stagedRequirementRules"],
+    [requirementRules, "readTreeManifest"],
+    [evidenceFloor, "floorChangedRequirementIds"],
+    [evidenceFloor, "collectStagedEvidenceFloorViolations"],
     [entityContext, "collectIntroducedEntityContextViolations"],
     [commitAmend, "amendsRootCommit"],
     [inventoryDrift, "stagedInventoryDriftViolations"],

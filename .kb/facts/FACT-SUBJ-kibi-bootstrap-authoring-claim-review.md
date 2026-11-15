@@ -11,3 +11,5 @@ origin:
 id: FACT-SUBJ-kibi-bootstrap-authoring-claim-review
 type: fact
 ---
+
+The conflict review bootstrap asks for when it leaves an intent claim for later authoring: it names each current requirement without a logical representation that the claim was not compared with, so the comparison happens when the claim is written.

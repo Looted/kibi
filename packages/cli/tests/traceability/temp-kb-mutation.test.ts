@@ -170,6 +170,7 @@ describe("entity assertion goals", () => {
       semantic_source_field: "title",
       semantic_source_hash: "h",
       semantic_inventory: { a: 1 },
+      pair_reviews: [{ b: 2 }],
       approved_by: "ab",
       approval_ref: "ar",
       failure_side_waiver: "fw",
@@ -178,7 +179,7 @@ describe("entity assertion goals", () => {
       exempts_claims: ["e1", "e2"],
     } as unknown as Partial<ExtractedEntity>;
     expect(await assertionGoal(entity(req))).toBe(
-      `kb_assert_entity_no_audit(req, [${BASE}, semantic_text="st", logic_claims=[c1,c2], semantic_clauses=["cl","c2"], semantic_inventory_version="kibi.semantic-inventory.v1", semantic_source_field="title", semantic_source_hash="h", semantic_inventory="{\\"a\\":1}", approved_by="ab", approval_ref="ar", failure_side_waiver="fw", failure_side_waiver_approved_by="fa", rationale="r", exempts_claims=[e1,e2]])`,
+      `kb_assert_entity_no_audit(req, [${BASE}, semantic_text="st", logic_claims=[c1,c2], semantic_clauses=["cl","c2"], semantic_inventory_version="kibi.semantic-inventory.v1", semantic_source_field="title", semantic_source_hash="h", semantic_inventory="{\\"a\\":1}", pair_reviews="[{\\"b\\":2}]", approved_by="ab", approval_ref="ar", failure_side_waiver="fw", failure_side_waiver_approved_by="fa", rationale="r", exempts_claims=[e1,e2]])`,
     );
     expect(
       await assertionGoal(
@@ -202,6 +203,30 @@ describe("entity assertion goals", () => {
         }),
       ),
     ).toBe(`kb_assert_entity_no_audit(req, [${BASE}, approved_by=""])`);
+  });
+
+  test("carry the floor fields as sync stores them", async () => {
+    const floor = {
+      proof_exempt: true,
+      firmness: "firm",
+      required_evidence: "asserted",
+      proof_exempt_reason: "pr",
+      retired_reason: "rr",
+    } as unknown as Partial<ExtractedEntity>;
+    expect(await assertionGoal(entity(floor))).toBe(
+      `kb_assert_entity_no_audit(req, [${BASE}, proof_exempt=true, firmness=firm, required_evidence=asserted, proof_exempt_reason="pr", retired_reason="rr"])`,
+    );
+    expect(
+      await assertionGoal(
+        entity({ type: "adr", firmness: "default" } as never),
+      ),
+    ).toBe(`kb_assert_entity_no_audit(adr, [${BASE}, firmness=default])`);
+    expect(await assertionGoal(entity({ ...floor, type: "scenario" }))).toBe(
+      `kb_assert_entity_no_audit(scenario, [${BASE}])`,
+    );
+    expect(await assertionGoal(entity({ proof_exempt: false } as never))).toBe(
+      `kb_assert_entity_no_audit(req, [${BASE}, proof_exempt=false])`,
+    );
   });
 
   test("carry symbol coordinates and roles", async () => {
@@ -301,9 +326,12 @@ describe("entity assertion goals", () => {
       examples: ["ex"],
       predicate_args: ["pa"],
       value_set: ["a", 1],
+      part_of: ["po"],
+      kind_of: ["ko"],
+      distinct_from: ["df"],
     } as unknown as Partial<ExtractedEntity>;
     expect(await assertionGoal(entity(fact))).toBe(
-      `kb_assert_entity_no_audit(fact, [${BASE}, subject_key="s", property_key="p", value_string="v", unit="u", scope="sc", valid_from="f", valid_to="t", canonical_key="ck", claim_key="clk", claim_text="ct", dimension_waiver="dw", dimension_waiver_approved_by="dwa", case_waiver="cw", case_waiver_approved_by="cwa", predicate_name="pn", predicate_namespace="pns", rule_hash="rh", rule_schema_id="rs", rule_name="rn", semantic_key="sk", rule_ir="{\\"op\\":\\"and\\"}", argument_constants="{\\"a\\":[\\"x\\"]}", argument_aliases="{\\"a\\":{\\"b\\":\\"c\\"}}", fact_kind=property_value, operator=eq, value_type=int, polarity=require, value_int=3, value_number=1.5, predicate_arity=2, claim_span_start=0, claim_span_end=4, value_bool=false, closed_world=true, argument_names=["n"], argument_types=["t"], argument_descriptions=["d"], key_arguments=["k"], aliases=["al"], examples=["ex"], predicate_args=["pa"], value_set=["a","1"]])`,
+      `kb_assert_entity_no_audit(fact, [${BASE}, subject_key="s", property_key="p", value_string="v", unit="u", scope="sc", valid_from="f", valid_to="t", canonical_key="ck", claim_key="clk", claim_text="ct", dimension_waiver="dw", dimension_waiver_approved_by="dwa", case_waiver="cw", case_waiver_approved_by="cwa", predicate_name="pn", predicate_namespace="pns", rule_hash="rh", rule_schema_id="rs", rule_name="rn", semantic_key="sk", rule_ir="{\\"op\\":\\"and\\"}", argument_constants="{\\"a\\":[\\"x\\"]}", argument_aliases="{\\"a\\":{\\"b\\":\\"c\\"}}", fact_kind=property_value, operator=eq, value_type=int, polarity=require, value_int=3, value_number=1.5, predicate_arity=2, claim_span_start=0, claim_span_end=4, value_bool=false, closed_world=true, argument_names=["n"], argument_types=["t"], argument_descriptions=["d"], key_arguments=["k"], aliases=["al"], examples=["ex"], predicate_args=["pa"], value_set=["a","1"], part_of=["po"], kind_of=["ko"], distinct_from=["df"]])`,
     );
     expect(
       await assertionGoal(

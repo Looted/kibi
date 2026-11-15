@@ -302,9 +302,12 @@ describe("relationship clearing", () => {
     h.set("queryStatusJson", async () => {
       throw new Error("down");
     });
-    await expect(h.run()).rejects.toThrow(
-      "Failed to clear changed relationship shards: locked; mismatch",
-    );
+    await expect(h.run()).rejects.toMatchObject({
+      message: expect.stringContaining(
+        "Failed to clear changed relationship shards: locked; mismatch",
+      ),
+      code: "RELATIONSHIP_SHARD_CLEAR_FAILED",
+    });
     expect(h.calls.formatEngineAttachmentMismatch?.[0]).toEqual([
       "kb_retract_all_relationships",
       { id: "live" },
@@ -318,9 +321,12 @@ describe("saving", () => {
     sources([A]);
     h.world.engine.save = () => ({ success: false, bindings: {}, error: "io" });
     extracted({ results: [result("SC-A", A)] });
-    await expect(h.run()).rejects.toThrow(
-      "Failed to save journaled KB: io; mismatch after kb_save",
-    );
+    await expect(h.run()).rejects.toMatchObject({
+      message: expect.stringContaining(
+        "Failed to save journaled KB: io; mismatch after kb_save",
+      ),
+      code: "KB_SAVE_FAILED",
+    });
     expect(h.calls.writeSyncCache).toBeUndefined();
     expect(h.events).toContain("engine.terminate");
   });

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-signoff-views-version-component
 type: fact
 ---
-The kibi.signoff_views.version component, as the structural requirements that name it constrain it.
+
+The document version kibi.signoff.v1 of signoff views. It versions the format, not the content selection.

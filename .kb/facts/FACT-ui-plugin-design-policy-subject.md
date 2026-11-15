@@ -13,3 +13,5 @@ subject_key: ui_plugin.design_policy
 id: FACT-ui-plugin-design-policy-subject
 type: fact
 ---
+
+The design check policy kibi-plugin-ui ships: React and Angular components must implement a requirement grounded in UI design predicates, and the package declares no permissions. It applies to UI component files only.

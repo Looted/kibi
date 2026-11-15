@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-broad-requirement-review
 type: fact
 ---
+
+The review kibi check raises on a requirement that too many symbols, scenarios, tests or current dependents hang off, a sign it bundles several behaviors. Closed, superseded and deprecated dependents do not count.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-agent-hooks-limits-component
 type: fact
 ---
-The kibi.agent_hooks.limits component, as the structural requirements that name it constrain it.
+
+The size limits on what agent host hooks show: an edit snippet holds at most 1200 characters and a hook offers at most three requirement candidates. They bound hook output; they do not choose its content.

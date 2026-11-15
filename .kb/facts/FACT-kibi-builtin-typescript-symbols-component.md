@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-builtin-typescript-symbols-component
 type: fact
 ---
-The kibi.builtin.typescript_symbols component, as the structural requirements that name it constrain it.
+
+The file extensions the built-in TypeScript symbol extractor reads: .ts, .tsx, .js, .jsx, .mts, .cts, .mjs and .cjs. Other languages are handled by the tree-sitter plugin, not this extractor.

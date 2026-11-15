@@ -189,7 +189,11 @@ describe("detached HEAD checkouts through the kibi CLI", () => {
     );
     expect(message).toContain("'git switch -c <branch>'");
     expect(message).toContain("KIBI_BRANCH");
-    expect(upsert.stderr).toContain(message);
+    // stderr names the code and points to that message, printed once.
+    expect(upsert.stderr).toContain(
+      "Error [OPERATION_FAILED]: see error.message in the JSON result on stdout",
+    );
+    expect(upsert.stderr).not.toContain(message);
     expect(
       existsSync(path.join(ws.root, ".kb/scenarios/SCEN-login-refused.md")),
     ).toBe(false);

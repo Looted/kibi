@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-CLAIM-BOUND-PROOF
 type: fact
 ---
+
+Binding a proof certificate to the requirement claims it proves: each binding is derived, attested or rejected, and a certificate proves only the claims Kibi derives its obligation from. It is the claim mapping, not the certificate checking.

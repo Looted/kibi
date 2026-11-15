@@ -17,6 +17,7 @@ import {
   planEvidenceFloorPins,
 } from "../../src/operations/migration/evidence-floor.js";
 import {
+  AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
   EVIDENCE_FLOOR_RULE,
   type EvidenceFloorRow,
   collectEvidenceFloorViolations,
@@ -227,6 +228,140 @@ describe("evidence-floor findings", () => {
   });
 });
 
+describe("approval floor and requirement review rules", () => {
+  const manifest = (schemaVersion: number) =>
+    JSON.stringify({
+      manifestVersion: 1,
+      schemaVersion,
+      semanticAdvisorBackfill: "not_applicable",
+    });
+  const payload = JSON.stringify({
+    rows: [
+      {
+        id: "REQ-APPROVED",
+        evidenceLevel: "asserted",
+        requiredEvidence: "tested",
+        requiredEvidenceSource: "approval",
+        status: "below",
+        proofStatus: "missing",
+        proofGaps: ["missing_scenario"],
+      },
+      {
+        id: "REQ-FIRM",
+        evidenceLevel: "asserted",
+        requiredEvidence: "tested",
+        requiredEvidenceSource: "firmness",
+        status: "below",
+        proofStatus: "missing",
+        proofGaps: ["missing_scenario"],
+      },
+    ],
+    unapprovedImplemented: [
+      {
+        id: "REQ-OLD",
+        recordedAt: "2026-01-01T00:00:00Z",
+        source: ".kb/requirements/REQ-OLD.md",
+        symbols: ["SYM-A"],
+      },
+      {
+        id: "REQ-NEW",
+        recordedAt: "2026-02-10T00:00:00Z",
+        source: ".kb/requirements/REQ-NEW.md",
+        symbols: ["SYM-B"],
+      },
+      // No origin.recorded_at: the document's created_at decides.
+      {
+        id: "REQ-DOC-NEW",
+        recordedAt: "",
+        source: ".kb/requirements/REQ-DOC-NEW.md",
+        symbols: ["SYM-C"],
+      },
+      // Neither: it counts as older.
+      {
+        id: "REQ-UNDATED",
+        recordedAt: "",
+        source: ".kb/requirements/REQ-UNDATED.md",
+        symbols: ["SYM-D"],
+      },
+    ],
+  });
+  const context = (root: string) => ({
+    workspaceRoot: root,
+    signal: new AbortController().signal,
+    clock: () => new Date("2026-02-15T00:00:00.000Z"),
+    prolog: {
+      oneShotMode: true,
+      query: async () => ({
+        success: true,
+        bindings: { JsonString: payload },
+      }),
+    } as never,
+    git: {
+      workspaceSnapshot: async () => ({
+        hash: "snapshot",
+        dirty: false,
+        fileCount: 0,
+      }),
+    } as never,
+  });
+  const allRules = new Set([
+    EVIDENCE_FLOOR_RULE,
+    AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
+  ]);
+  const byRule = (violations: { rule: string; entityId: string }[]) =>
+    violations.map((v) => `${v.rule}:${v.entityId}`).sort();
+  const documents = {
+    ".kb/requirements/REQ-DOC-NEW.md": requirement(
+      "REQ-DOC-NEW",
+      "created_at: 2026-02-10T00:00:00Z\n",
+    ),
+    ".kb/requirements/REQ-UNDATED.md": requirement("REQ-UNDATED"),
+  };
+
+  test("from schema 15 an approval floor and an old unapproved implemented must requirement fail", async () => {
+    const root = workspace({ ".kb/manifest.json": manifest(15), ...documents });
+    expect(
+      byRule(await collectEvidenceFloorViolations(context(root), allRules)),
+    ).toEqual([
+      "agent-requirement-unapproved-implemented:REQ-OLD",
+      "agent-requirement-unapproved-implemented:REQ-UNDATED",
+      "evidence-floor:REQ-APPROVED",
+      "evidence-floor:REQ-FIRM",
+    ]);
+  });
+
+  test("before schema 15 an approval sets no floor and unapproved implementation is not judged", async () => {
+    const root = workspace({ ".kb/manifest.json": manifest(14) });
+    expect(
+      byRule(await collectEvidenceFloorViolations(context(root), allRules)),
+    ).toEqual(["evidence-floor:REQ-FIRM"]);
+  });
+
+  test("each rule runs only when selected", async () => {
+    const root = workspace({ ".kb/manifest.json": manifest(15), ...documents });
+    expect(
+      byRule(
+        await collectEvidenceFloorViolations(
+          context(root),
+          new Set([AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE]),
+        ),
+      ),
+    ).toEqual([
+      "agent-requirement-unapproved-implemented:REQ-OLD",
+      "agent-requirement-unapproved-implemented:REQ-UNDATED",
+    ]);
+  });
+
+  test("an approval floor finding says it comes from the approval", () => {
+    const [finding] = evidenceFloorViolations([
+      row({ requiredEvidenceSource: "approval" }),
+    ]);
+    expect(finding?.description).toContain(
+      "the floor of an approved requirement",
+    );
+  });
+});
+
 describe("required_evidence front matter", () => {
   test("a requirement keeps a valid floor", () => {
     const { entity } = extractFromMarkdownString(
@@ -386,6 +521,38 @@ describe("schema 11 migration", () => {
     expect(
       planEvidenceFloorPins(root, new Map()).targets.map((t) => t.id),
     ).toContain("REQ-NO-PATH");
+  });
+
+  test("schema 15 pins approved requirements without a stated firmness, and only them", () => {
+    const root = fixture();
+    writeFileSync(
+      path.join(root, ".kb/requirements/REQ-APPROVED.md"),
+      requirement(
+        "REQ-APPROVED",
+        "origin:\n  kind: agent\n  approved_by: maintainer\n",
+      ),
+    );
+    writeFileSync(
+      path.join(root, ".kb/requirements/REQ-APPROVED-DEFAULT.md"),
+      requirement(
+        "REQ-APPROVED-DEFAULT",
+        "firmness: default\norigin:\n  kind: agent\n  approved_by: maintainer\n",
+      ),
+    );
+    const approvedOnly = planEvidenceFloorPins(root, null, {
+      firm: false,
+      approved: true,
+    });
+    expect(approvedOnly.targets.map((target) => target.id)).toEqual([
+      "REQ-APPROVED",
+    ]);
+    // The default scope stays the schema 11 one: firm requirements only.
+    expect(
+      planEvidenceFloorPins(root).targets.map((target) => target.id),
+    ).not.toContain("REQ-APPROVED");
+    expect(
+      applyEvidenceFloorPins(root, null, { firm: true, approved: true }),
+    ).toBe(6);
   });
 
   test("writes the floor into front matter only, and a second run is a no-op", () => {

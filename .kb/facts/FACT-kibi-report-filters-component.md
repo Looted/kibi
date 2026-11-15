@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-report-filters-component
 type: fact
 ---
-The kibi.report.filters component, as the structural requirements that name it constrain it.
+
+The filters and proof gates the health report offers, such as all, proved, attention and below_floor filters and the semantic, scenario, implementation, e2e, evidence and proved gates. It is report navigation, not proof logic.

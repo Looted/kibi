@@ -13,3 +13,5 @@ origin:
 id: FACT-subject-skillopt-claude-code-host
 type: fact
 ---
+
+Claude Code CLI as an opt-in SkillOpt target host: each cell exposes only the evaluator broker as MCP server, runs preflight and a target-model canary first, and writes a refreshed login back only when valid. Other hosts are separate.

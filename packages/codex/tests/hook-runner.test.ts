@@ -831,6 +831,31 @@ describe("Codex decision guard", () => {
         ),
       ),
     ).toContain(FIRM_NOTICE);
+    // A patch path relative to an event cwd below the workspace root
+    // resolves against that cwd.
+    const nested = contextOf(
+      await runHook(
+        {
+          session_id: "comments-3",
+          cwd: path.join(cwd, "src"),
+          hook_event_name: "PreToolUse",
+          tool_name: "apply_patch",
+          tool_input: {
+            command: [
+              "*** Begin Patch",
+              "*** Update File: checkout.ts",
+              "@@",
+              "-// implements REQ-checkout-rounding",
+              " export const computeTotal = 1;",
+              "*** End Patch",
+            ].join("\n"),
+          },
+        },
+        { pluginData },
+      ),
+    );
+    expect(nested).toContain("Kibi knowledge for src/checkout.ts");
+    expect(nested).not.toContain(FIRM_NOTICE);
   });
 
   test("KIBI_CONFIRM_FIRM_EDITS=0 turns the firm-edit notice off", async () => {

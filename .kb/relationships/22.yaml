@@ -370,3 +370,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5bb1d24b226
+  - type: executable_for
+    from: SYM-test-skillopt-family-gate-suite
+    to: TEST-skillopt-pooled-family-gate
+    created_at: 2026-11-13T19:55:27.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36d7dbc1a258

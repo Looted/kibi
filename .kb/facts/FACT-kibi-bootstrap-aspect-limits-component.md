@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-bootstrap-aspect-limits-component
 type: fact
 ---
-The kibi.bootstrap.aspect_limits component, as the structural requirements that name it constrain it.
+
+The length limits on the short aspect label bootstrap gives each intent claim: at most four words and forty characters. They bound the label, not the claim text.

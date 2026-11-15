@@ -100,6 +100,29 @@ A preference ("this would be cleaner") is not evidence: propose it in the
 report instead of superseding. An authored requirement is never deleted:
 `kb_delete` returns `outcome: supersession_required`.
 
+## Batch approvals
+
+For a cleanup or a split, the person approves a list, and the list is the
+record.
+
+- One batch holds items of one kind (splits, sourced reasons, inferred
+  reasons, retirements, bulk approval of agent-written requirements), about
+  ten splits or thirty reasons, so it can be read.
+- Each item shows exactly what will be written: the statement (verbatim
+  parent sentences, new sentences marked new), or the reason and the source
+  it came from. Before proposing a statement, read the code and confirm it
+  does what the sentence says.
+- A reason with no source goes in a separate batch headed as inferred, each
+  item saying what it was inferred from. After approval the entity still
+  says "inferred", and `origin.ref` says inferred, then approved.
+- Their reply ("ok", or "ok except 3 and 7") is quoted with its date in
+  `origin.ref` (appended, not replacing what is there) of the listed
+  entities only. Set `approved_by` only on items the batch asked them to
+  approve. An item they did not answer stays unapproved.
+- Splitting a firm rule supersedes it: each child is `firm` with `origin.ref`
+  to the approval of that split, and has a `## Why this changed` section that
+  says why the behavior exists.
+
 ## Correct a firm rule in place
 
 When the person asks for a correction that keeps the rule's meaning (a typo, a

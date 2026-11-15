@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-search-answer-limits-component
 type: fact
 ---
-The kibi.search.answer_limits component, as the structural requirements that name it constrain it.
+
+Size limits on a kb_search answer: at most 16384 bytes and 70 loaded entity rows. They bound answers, not ranking.

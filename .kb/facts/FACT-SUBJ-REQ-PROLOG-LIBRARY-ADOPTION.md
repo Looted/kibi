@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The maintained SWI-Prolog libraries Kibi's engine adopts for bounded graph capabilities, such as RDF storage and SPARQL access limited to SELECT queries, instead of hand-written replacements. It is the engine's library choice, not the KB schema.

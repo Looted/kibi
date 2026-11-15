@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The kibi doctor command, which diagnoses a workspace, including where each installed Kibi package was resolved from, without requiring the packages to export their manifests. It reports; it does not repair.

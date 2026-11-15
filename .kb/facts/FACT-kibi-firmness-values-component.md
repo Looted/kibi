@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-firmness-values-component
 type: fact
 ---
-The kibi.firmness.values component, as the structural requirements that name it constrain it.
+
+The three firmness values a decision can carry: firm, default and exploratory. It is the vocabulary, not how firmness is assigned.

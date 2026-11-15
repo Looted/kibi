@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-search-hints-operations-component
 type: fact
 ---
-The kibi.search_hints.operations component, as the structural requirements that name it constrain it.
+
+The operations allowed to call an external search hints provider: only kb_search. It is an allowlist, not the provider.

@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ed7635bb4fd6
+  - type: implements
+    from: SYM-skillopt-run-reference
+    to: REQ-skillopt-reference-answers-score-100
+    created_at: 2026-11-14T04:50:45.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-601da8399e1a
+  - type: covered_by
+    from: SYM-skillopt-run-reference
+    to: TEST-skillopt-reference-answers-score-100
+    created_at: 2026-11-14T04:50:45.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a63e6adade96

@@ -172,7 +172,11 @@ describe("KB dependency routing", () => {
       kb: "billing",
       [WORKSPACE_ROOT_ARGUMENT]: attached,
     });
-    expect(bases).toEqual([worktree, attached, attached]);
+    await router.routeKbDependency("kb_status", "billing", {
+      kb: "billing",
+      [WORKSPACE_ROOT_ARGUMENT]: `  ${worktree}\n`,
+    });
+    expect(bases).toEqual([worktree, attached, attached, worktree]);
   });
 
   test("refuses the dependencies of a workspace routing would not reach", async () => {
@@ -273,6 +277,65 @@ describe("KB dependency routing", () => {
     const own = resolve(checkout, { ownEntryOnly: true });
     expect(own?.command).toBe(process.execPath);
     expect(own?.args).toHaveLength(1);
+  });
+
+  test("an ordinary routed child keeps the project branch and its own install", async () => {
+    const attached = kibiWorkspace("kibi-dep-project-");
+    const worktree = kibiWorkspace("kibi-dep-worktree-");
+    const commands: Array<[string, unknown]> = [];
+    const child = fakeChild();
+    const router = new WorkspaceRouter({
+      server: fakeServer,
+      workspaceRoot: attached,
+      env: { PATH: process.env.PATH ?? "", KIBI_BRANCH: "feature/routed" },
+      isRoutable: () => true,
+      resolveChildCommand: (root, options) => {
+        commands.push([root, options]);
+        return child;
+      },
+      log: () => undefined,
+      connectTimeoutMs: 20000,
+    });
+    routers.push(router);
+    const decision = await router.route("kb_search", {
+      query: "refund",
+      [WORKSPACE_ROOT_ARGUMENT]: worktree,
+    });
+    if (decision.kind !== "remote") throw new Error("expected a routed call");
+    const answer = data(decision.result);
+    expect(answer).toMatchObject({
+      workspace: worktree,
+      branch: "feature/routed",
+      routed: "1",
+      args: { query: "refund" },
+    });
+    expect(answer.dependency).toBeUndefined();
+    expect(commands).toEqual([[worktree, undefined]]);
+  });
+
+  test("a dependency child skips a local install the checkout carries", () => {
+    const checkout = tempDir("kibi-dep-installed-");
+    const pkg = path.join(checkout, "node_modules", "kibi-mcp");
+    fs.mkdirSync(path.join(pkg, "bin"), { recursive: true });
+    fs.writeFileSync(path.join(pkg, "bin", "kibi-mcp"), "");
+    fs.writeFileSync(path.join(pkg, "index.js"), "");
+    fs.writeFileSync(
+      path.join(pkg, "package.json"),
+      JSON.stringify({
+        name: "kibi-mcp",
+        main: "index.js",
+        bin: "bin/kibi-mcp",
+      }),
+    );
+    fs.writeFileSync(path.join(checkout, "package.json"), "{}");
+    const entry = path.join(tempDir("kibi-dep-own-"), "own-entry.js");
+    fs.writeFileSync(entry, "");
+    expect(defaultResolveChildCommand(checkout, [entry])?.args).toEqual([
+      path.join(pkg, "bin", "kibi-mcp"),
+    ]);
+    expect(
+      defaultResolveChildCommand(checkout, [entry], { ownEntryOnly: true }),
+    ).toEqual({ command: process.execPath, args: [entry] });
   });
 
   test("a dependency child always runs this server's own kibi-mcp", () => {

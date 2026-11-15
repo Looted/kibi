@@ -449,6 +449,10 @@ describe("swipl on PATH", () => {
     expect(notFound({ PATH: dir }).message).toContain(
       "System SWI-Prolog: swipl was not found on PATH.",
     );
+    // Only Windows matches the variable name without regard to case.
+    expect(notFound({ Path: path.dirname(swipl(temp())) }).message).toContain(
+      "System SWI-Prolog: swipl was not found on PATH.",
+    );
   });
 
   test("reports the first swipl when it is too old or unusable", () => {

@@ -15,3 +15,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+The published install guidance and README quick start for the bundled SWI-Prolog, which must need no separate SWI-Prolog on supported platforms and document the override and lookup order. It is documentation, proven by running the quick start.

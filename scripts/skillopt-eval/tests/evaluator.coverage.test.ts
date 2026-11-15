@@ -182,7 +182,9 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
       expect.arrayContaining(["kb_search", "kb_query", "kb_graph"]),
     );
 
-    const inspect = manifestFor("quality_diagnostic_disposition").manifest;
+    const inspect = manifestFor(
+      "structured_quality_diagnostic_disposition",
+    ).manifest;
     expect(
       inspect.orderedMcpPredicates.required.some(
         ({ tool }) => tool === "kb_ingest_proof",

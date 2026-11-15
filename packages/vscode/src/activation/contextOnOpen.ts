@@ -7,9 +7,9 @@ import * as vscode from "vscode";
 
 let contextOnOpenExistsSync: typeof fs.existsSync = fs.existsSync;
 
-export function _setContextOnOpenFsDepsForTests(
-  overrides: { existsSync?: typeof fs.existsSync },
-): void {
+export function _setContextOnOpenFsDepsForTests(overrides: {
+  existsSync?: typeof fs.existsSync;
+}): void {
   contextOnOpenExistsSync = overrides.existsSync ?? fs.existsSync;
 }
 

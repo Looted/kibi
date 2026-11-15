@@ -1,5 +1,21 @@
 # kibi-opencode
 
+## 3.3.1
+
+### Patch Changes
+
+- 00bcda4: The OpenCode plugin decides once per edit whether the edited file is source code, so the smart-enforcement events for one edit can no longer disagree about it. Behaviour is otherwise unchanged.
+- Updated dependencies [2b978c6]
+- Updated dependencies [69652cc]
+- Updated dependencies [d03f778]
+- Updated dependencies [f180c7e]
+- Updated dependencies [6aa2db2]
+- Updated dependencies [37de7f9]
+- Updated dependencies [9d5aac1]
+- Updated dependencies [a32763c]
+  - kibi-runtime@2.32.0
+  - kibi-agent-core@0.14.0
+
 ## 3.3.0
 
 ### Minor Changes

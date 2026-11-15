@@ -16,3 +16,5 @@ origin:
 id: FACT-SUBJECT-KIBI-TREE-SITTER-REFERENCES
 type: fact
 ---
+
+Static reference reads in Go, Java, C# and Rust source through the tree-sitter plugin for source proofs, refusing reads that reach reflection or dynamic dispatch or lack a released grammar. Script languages are a separate subject.

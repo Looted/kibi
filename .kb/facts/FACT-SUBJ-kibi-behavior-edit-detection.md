@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-behavior-edit-detection
 type: fact
 ---
+
+How the staged check decides that a staged source edit changes behavior: only a diff that changes meaningful source counts, so comment-only or whitespace-only edits do not.

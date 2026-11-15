@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-builtin-ontology-pack
 type: fact
 ---
+
+The ontology pack in kibi-plugin-builtin that matches requirement prose to core, policy and product predicate rules deterministically, proposing nothing for prose no rule matches.

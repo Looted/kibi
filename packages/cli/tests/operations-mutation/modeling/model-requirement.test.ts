@@ -123,10 +123,13 @@ describe("reusing an existing subject", () => {
     if (!writeSet.isStrict) throw new Error("expected a strict write set");
     const reused = reuseExistingSubject(writeSet, "FACT-SUBJ-OLD");
     expect(reused.replacedSubjectId).toBe(writeSet.subjectFact.id);
+    // The existing fact keeps its own definition, so the generated gap is dropped.
+    expect(writeSet.subjectFact.body).toStartWith("Definition not stated:");
+    const { body: _generated, ...subjectFact } = writeSet.subjectFact;
     expect(reused.writeSet).toStrictEqual({
       ...writeSet,
       subjectFact: {
-        ...writeSet.subjectFact,
+        ...subjectFact,
         id: "FACT-SUBJ-OLD",
         properties: {
           ...writeSet.subjectFact.properties,

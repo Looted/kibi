@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-source-analysis-timing-limits-component
 type: fact
 ---
-The kibi.source_analysis.timing_limits component, as the structural requirements that name it constrain it.
+
+Limits on the timing trace a source analysis keeps: at most 5000 events and 524288 bytes. They bound diagnostics, not analysis.

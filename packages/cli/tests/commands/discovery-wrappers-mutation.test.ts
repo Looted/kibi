@@ -21,6 +21,7 @@ import {
   graphSpec,
 } from "../../src/public/operations/specs/reporting.js";
 import * as usageTelemetry from "../../src/usage-telemetry.js";
+import * as migrateHint from "../../src/utils/migrate-hint.js";
 
 type Result = {
   content: { type: "text"; text: string }[];
@@ -108,8 +109,19 @@ describe("statusCommand", () => {
       result(undefined, { branch: "dev" }),
     );
     const prints = stubPrint();
+    const hints: string[] = [];
+    const hint = spyOn(
+      migrateHint,
+      "printSchemaMigrationHint",
+    ).mockImplementation((root) => {
+      hints.push(root);
+    });
+    restores.push(() => hint.mockRestore());
     await statusCommand({ format: "json" });
+    expect(hints).toStrictEqual([]);
     await statusCommand({});
+    // Text output names a pending migration first; JSON carries schemaStatus.
+    expect(hints).toStrictEqual([process.cwd()]);
     expect(ops[0]?.[1]).toBe(statusSpec);
     expect(ops[0]?.[2]).toStrictEqual({});
     expect(ops[0]?.[3]).toStrictEqual({ workspaceRoot: process.cwd() });

@@ -9,3 +9,5 @@ origin:
 id: FACT-SUBJ-kibi-advisor-strict-suggestions
 type: fact
 ---
+
+The semantic advisor's suggestions of a strict property or count fact for a requirement sentence that states one measurable value. It covers value suggestions only, not predicate suggestions.

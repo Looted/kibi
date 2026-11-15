@@ -519,6 +519,13 @@ const entitySchema: Record<string, unknown> = {
           semantic_key: { type: "string" },
           payload_hash: { type: "string" },
           reason: { type: "string" },
+          // The subject facts an unmodeled claim is about (its anchors), so
+          // Kibi can pair it with the other requirements on those subjects.
+          subjects: {
+            type: "array",
+            uniqueItems: true,
+            items: { type: "string", minLength: 1 },
+          },
           // The advisor's hint for a quantified clause, kept so its receipt
           // propositions can be copied into the inventory unchanged.
           dimension: {
@@ -533,6 +540,58 @@ const entitySchema: Record<string, unknown> = {
                   enum: ["bound", "rule", "count", "set"],
                 },
               },
+            },
+            additionalProperties: false,
+          },
+        },
+        additionalProperties: false,
+      },
+    },
+    // Verdicts on stored pairs (a relates_to edge or a shared subject) whose
+    // unmodeled claims cannot be modeled; related-requirement-unmodeled reads
+    // them only while a relates_to edge links the pair.
+    pair_reviews: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["with", "verdict"],
+        properties: {
+          with: { type: "string", minLength: 1 },
+          verdict: {
+            type: "string",
+            enum: ["no_conflict", "interacts", "conflict"],
+          },
+          separated_by: { type: "string" },
+          resolved_by: {
+            type: "array",
+            items: { type: "string", minLength: 1 },
+          },
+          claims: {
+            type: "array",
+            items: {
+              anyOf: [
+                { type: "string", minLength: 1 },
+                {
+                  type: "object",
+                  required: ["claim_key"],
+                  properties: {
+                    claim_key: { type: "string", minLength: 1 },
+                    // Accepted and ignored: the claim_key already names
+                    // the claim the verdict covers.
+                    payload_hash: { type: "string" },
+                  },
+                  additionalProperties: false,
+                },
+              ],
+            },
+          },
+          note: { type: "string" },
+          origin: {
+            type: "object",
+            properties: {
+              kind: { type: "string", enum: ["human", "agent"] },
+              ref: { type: "string" },
+              approved_by: { type: "string" },
             },
             additionalProperties: false,
           },
@@ -690,6 +749,23 @@ const entitySchema: Record<string, unknown> = {
     },
     aliases: { type: "array", items: { type: "string" } },
     examples: { type: "array", items: { type: "string" } },
+    // subject only: defined subjects this subject is a part of or a kind of
+    // (broader subjects), and defined subjects it was checked to differ from.
+    part_of: {
+      type: "array",
+      uniqueItems: true,
+      items: { type: "string", minLength: 1 },
+    },
+    kind_of: {
+      type: "array",
+      uniqueItems: true,
+      items: { type: "string", minLength: 1 },
+    },
+    distinct_from: {
+      type: "array",
+      uniqueItems: true,
+      items: { type: "string", minLength: 1 },
+    },
     predicate_args: { type: "array", items: { type: "string" } },
     // predicate_schema only: allowed constants per argument name. Arguments
     // without an entry stay open; predicate facts must use a listed constant.
@@ -779,6 +855,9 @@ const entitySchema: Record<string, unknown> = {
             { required: ["key_arguments"] },
             { required: ["aliases"] },
             { required: ["examples"] },
+            { required: ["part_of"] },
+            { required: ["kind_of"] },
+            { required: ["distinct_from"] },
             { required: ["predicate_args"] },
             { required: ["argument_constants"] },
             { required: ["argument_aliases"] },
@@ -822,6 +901,7 @@ const entitySchema: Record<string, unknown> = {
         not: {
           anyOf: [
             { required: ["semantic_inventory"] },
+            { required: ["pair_reviews"] },
             { required: ["semantic_clauses"] },
             { required: ["semantic_text"] },
             { required: ["semantic_inventory_version"] },

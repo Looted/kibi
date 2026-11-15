@@ -564,6 +564,11 @@ export async function persistEntities(
           `semantic_inventory=${toPrologString(JSON.stringify(entity.semantic_inventory))}`,
         );
       }
+      if (entity.type === "req" && entity.pair_reviews) {
+        props.push(
+          `pair_reviews=${toPrologString(JSON.stringify(entity.pair_reviews))}`,
+        );
+      }
       if (entity.type === "req" && entity.proof_exempt !== undefined) {
         props.push(`proof_exempt=${entity.proof_exempt}`);
       }

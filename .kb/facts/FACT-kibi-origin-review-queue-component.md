@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-origin-review-queue-component
 type: fact
 ---
-Kibi agent requirement review queue, named kibi.origin.review_queue in the structural requirements that constrain it.
+
+The queue of agent-authored requirements awaiting human approval, which lists at most 25 requirements at a time. It bounds the queue display, not approval itself.

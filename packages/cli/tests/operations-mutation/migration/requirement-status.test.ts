@@ -74,6 +74,7 @@ describe("planRequirementStatusMappings", () => {
       ".kb/requirements/f.md": req("closed"),
       ".kb/requirements/g.md": req("active"),
       ".kb/requirements/h.md": req("approved"),
+      ".kb/requirements/h-retired.md": req("retired"),
       ".kb/requirements/i.md": req("5"),
       ".kb/requirements/j.md": doc("title: T\ntype: req\n"),
       ".kb/requirements/k.md": "status: done\n",

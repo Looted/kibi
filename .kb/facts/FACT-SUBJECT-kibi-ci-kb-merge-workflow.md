@@ -10,4 +10,5 @@ origin:
 id: FACT-SUBJECT-kibi-ci-kb-merge-workflow
 type: fact
 ---
-The subject kibi.ci.kb_merge_workflow.
+
+The GitHub workflow that merges KB changes across branches in Kibi's repository and runs the proof gate before it pushes the merge. It is CI automation for this repository, not a feature shipped to consumers.

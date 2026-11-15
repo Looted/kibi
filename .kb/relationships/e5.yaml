@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30ed9b5382be
+  - type: implements
+    from: SYM-cli-approval-clock
+    to: REQ-kibi-unapproved-implemented-requirement
+    created_at: 2026-11-13T19:57:18.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2b882706ada
+  - type: covered_by
+    from: SYM-cli-approval-clock
+    to: TEST-kibi-approval-evidence-floor
+    created_at: 2026-11-13T19:57:18.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67fdcc8956bd

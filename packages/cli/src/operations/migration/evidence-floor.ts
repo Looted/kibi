@@ -17,7 +17,9 @@
 */
 
 import path from "node:path";
-import { effectiveFirmness } from "../../decision-firmness.js";
+import { effectiveFirmness, isFirmness } from "../../decision-firmness.js";
+import { normalizeDateLike } from "../../extractors/markdown.js";
+import { readEntityOrigin } from "../../public/entity-origin.js";
 import type { StatusPayload } from "../../public/operations/discovery-executors.js";
 import {
   type AuthoredEntity,
@@ -25,6 +27,12 @@ import {
   isCurrentAuthoredEntity,
   readAuthoredEntity,
 } from "../../public/operations/entity-context.js";
+import {
+  UNAPPROVED_IMPLEMENTED_GRACE_DAYS,
+  approvalClock,
+  pastApprovalGrace,
+} from "../../public/operations/evidence-floor.js";
+import { isMustPriority } from "../../public/operations/positive-scenario.js";
 import { readAllShards } from "../../relationships/shards.js";
 import type {
   BodyContextPlan,
@@ -39,7 +47,22 @@ import {
 /** Schema 11: record the floor of firm requirements that had no proof path. */
 export const EVIDENCE_FLOOR_PIN_CODE = "evidence_floor_pin";
 
-/** Pins to write, plus the firm requirements that keep the tested floor. */
+/**
+ * Schema 15: record the floor of approved requirements (origin.approved_by,
+ * no explicit firmness) that had no proof path.
+ */
+export const APPROVAL_FLOOR_PIN_CODE = "approval_floor_pin";
+
+/**
+ * Which default tested floors a migration records pins for: `firm` (schema
+ * 11) and `approved` (schema 15). An upgrade across both pins both.
+ */
+export type EvidenceFloorPinScope = Readonly<{
+  firm: boolean;
+  approved: boolean;
+}>;
+
+/** Pins to write, plus the requirements that keep the tested floor. */
 export type EvidenceFloorPlan = BodyContextPlan &
   Readonly<{
     kept: readonly string[];
@@ -170,17 +193,39 @@ function requirementsWithProofPath(
 }
 
 /**
- * Current firm requirements without required_evidence and without a proof
- * path that has passed. From schema 11 a firm requirement needs tested
- * evidence, which these have not reached, so the migration records their
- * floor as asserted in the requirement itself, where a reviewer sees it and
- * can raise it later. Requirements with a passing proof path keep the tested
- * floor; `kept` lists them, since remaining gaps (a stale receipt, a missing
- * covered_by) still show in kibi check. Read-only.
+ * Which default tested floor applies to a requirement without
+ * required_evidence: `firm` (firmness firm, stated or implied by a non-agent
+ * origin), `approved` (no stated firmness and origin.approved_by set, from
+ * schema 15), or undefined when it has no floor.
+ */
+export function defaultTestedFloor(
+  entity: AuthoredEntity,
+): "firm" | "approved" | undefined {
+  if (
+    effectiveFirmness(entity.type, entity.data.firmness, entity.data.origin) ===
+    "firm"
+  )
+    return "firm";
+  if (isFirmness(entity.data.firmness)) return undefined;
+  return readEntityOrigin(entity.data.origin)?.approved_by === undefined
+    ? undefined
+    : "approved";
+}
+
+/**
+ * Current requirements without required_evidence whose default floor is
+ * tested (firm from schema 11, approved from schema 15, as `scope` selects)
+ * and without a proof path that has passed. These have not reached tested,
+ * so the migration records their floor as asserted in the requirement
+ * itself, where a reviewer sees it and can raise it later. Requirements with
+ * a passing proof path keep the tested floor; `kept` lists them, since
+ * remaining gaps (a stale receipt, a missing covered_by) still show in kibi
+ * check. Read-only.
  */
 export function planEvidenceFloorPins(
   workspaceRoot: string,
   ladder?: LadderFloorVerdicts | null,
+  scope: EvidenceFloorPinScope = { firm: true, approved: false },
 ): EvidenceFloorPlan {
   const files = authoredEntities(workspaceRoot, "requirements").filter(
     ({ entity }) => entity.type === "req",
@@ -195,13 +240,11 @@ export function planEvidenceFloorPins(
     if (
       entity.data.required_evidence !== undefined ||
       entity.data.proof_exempt === true ||
-      !isCurrentAuthoredEntity(entity, superseded) ||
-      effectiveFirmness(
-        entity.type,
-        entity.data.firmness,
-        entity.data.origin,
-      ) !== "firm"
+      !isCurrentAuthoredEntity(entity, superseded)
     )
+      continue;
+    const floor = defaultTestedFloor(entity);
+    if (floor === undefined || !scope[floor === "firm" ? "firm" : "approved"])
       continue;
     // The ladder on the compiled store judges every gap (failed latest
     // receipts, missing coverage or coordinates), so a requirement it puts
@@ -241,8 +284,9 @@ export function planEvidenceFloorPins(
 export function applyEvidenceFloorPins(
   workspaceRoot: string,
   ladder?: LadderFloorVerdicts | null,
+  scope?: EvidenceFloorPinScope,
 ): number {
-  const plan = planEvidenceFloorPins(workspaceRoot, ladder);
+  const plan = planEvidenceFloorPins(workspaceRoot, ladder, scope);
   for (const target of plan.targets)
     writeFileAtomically(path.join(workspaceRoot, target.path), target.after);
   return plan.targets.length;
@@ -298,4 +342,67 @@ export async function readLadderFloorVerdicts(
   } catch {
     return null;
   }
+}
+
+/** An agent's must requirement no person approved, as the upgrade lists it. */
+export type UnapprovedAgentMust = Readonly<{
+  id: string;
+  /** When its wait for approval started, or empty when nothing records it. */
+  since: string;
+}>;
+
+/**
+ * Schema 15: the current must requirements an agent wrote (origin.kind
+ * agent) that no person approved (origin.approved_by) and whose approval
+ * clock (origin.recorded_at, else the created_at the document states) is
+ * missing or older than the grace period at `checkedAt`. From the upgrade on,
+ * agent-requirement-unapproved-implemented fails kibi check on each one
+ * production code implements, so the migration lists them up front. Read
+ * from authored sources; sorted by id.
+ */
+export function planUnapprovedAgentMusts(
+  workspaceRoot: string,
+  checkedAt: string,
+): UnapprovedAgentMust[] {
+  const files = authoredEntities(workspaceRoot, "requirements").filter(
+    ({ entity }) => entity.type === "req",
+  );
+  const superseded = authoredSupersededIds(
+    workspaceRoot,
+    files.map(({ entity }) => entity),
+  );
+  const found: UnapprovedAgentMust[] = [];
+  for (const { entity, relativePath } of files) {
+    const origin = readEntityOrigin(entity.data.origin);
+    if (
+      origin?.kind !== "agent" ||
+      origin.approved_by !== undefined ||
+      !isMustPriority(entity.data.priority) ||
+      !isCurrentAuthoredEntity(entity, superseded)
+    )
+      continue;
+    const clock = approvalClock(
+      { recordedAt: origin.recorded_at ?? "", source: relativePath },
+      () => normalizeDateLike(entity.data.created_at),
+    );
+    if (pastApprovalGrace(clock.since, checkedAt))
+      found.push({ id: entity.id, since: clock.since });
+  }
+  return found.sort((left, right) => left.id.localeCompare(right.id));
+}
+
+/** The upgrade's note on {@link planUnapprovedAgentMusts}' requirements. */
+export function unapprovedAgentMustNote(
+  requirements: readonly UnapprovedAgentMust[],
+  dryRun: boolean,
+): string {
+  const shown = requirements
+    .slice(0, 10)
+    .map(({ id, since }) =>
+      since === "" ? `${id} (no origin.recorded_at or created_at)` : id,
+    )
+    .join(", ");
+  const more =
+    requirements.length > 10 ? ` (+${requirements.length - 10} more)` : "";
+  return `${dryRun ? "dry run: " : ""}${requirements.length} must requirement(s) an agent wrote have no person's approval (origin.approved_by) and waited longer than ${UNAPPROVED_IMPLEMENTED_GRACE_DAYS} days or record no date: ${shown}${more}. From schema 15 kibi check fails on each one production code implements (agent-requirement-unapproved-implemented): have a person review them and record origin.approved_by, or lower their priority.`;
 }

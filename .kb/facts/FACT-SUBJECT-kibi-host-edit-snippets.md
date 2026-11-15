@@ -13,4 +13,5 @@ origin:
 id: FACT-SUBJECT-kibi-host-edit-snippets
 type: fact
 ---
-The subject kibi.host.edit_snippets.
+
+The knowledge snippets host plugins show when an agent edits a linked file, built by one shared agent-core builder, saying what each current requirement must keep true and why, within each host's size budget and once per file per session. Host-specific prompting is separate.

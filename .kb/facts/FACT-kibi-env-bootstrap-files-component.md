@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-env-bootstrap-files-component
 type: fact
 ---
-The kibi.env_bootstrap.files component, as the structural requirements that name it constrain it.
+
+The environment file names Kibi reads: .env.kibi for the project and .env as the legacy file. It names the files, not the load order.

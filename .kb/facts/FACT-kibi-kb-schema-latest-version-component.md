@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-kb-schema-latest-version-component
 type: fact
 ---
-The kibi.kb_schema.latest_version component, as the structural requirements that name it constrain it.
+
+The newest KB schema version this Kibi release writes and migrates to. It is one number that changes with each schema step, not the migration steps.

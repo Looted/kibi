@@ -401,9 +401,10 @@ describe("nothing changed", () => {
       bindings: {},
       error: "disk full",
     });
-    await expect(h.run()).rejects.toThrow(
-      "Failed to publish the no-op sync checkpoint: disk full",
-    );
+    await expect(h.run()).rejects.toMatchObject({
+      message: "Failed to publish the no-op sync checkpoint: disk full",
+      code: "SYNC_CHECKPOINT_FAILED",
+    });
     expect(h.calls.writeSyncCache).toBeUndefined();
   });
 });

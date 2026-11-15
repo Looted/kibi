@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-search-hints-model-component
 type: fact
 ---
-The kibi.search_hints.model component, as the structural requirements that name it constrain it.
+
+The pinned embedding model behind search hints, minishlab/potion-base-8M at a fixed revision, so hints are reproducible. It is the model pin, not the search ranking.

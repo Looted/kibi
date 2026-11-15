@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-telemetry-docs-component
 type: fact
 ---
-The kibi.telemetry.docs component, as the structural requirements that name it constrain it.
+
+The documentation page that explains Kibi's telemetry and how to opt out, linked from the telemetry notice. It is a link, not the telemetry itself.

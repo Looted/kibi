@@ -4,7 +4,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 4091ec705355 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 654f50e97125 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -92,6 +92,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -144,7 +145,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "4091ec70535537de956fc551796663e18acdc486bee2b6cd4467d3ef96dd057c"
+        "planHash": "654f50e9712511e9963f484252fa6be2b4c68df6c6810230bd3a63a298ebd141"
       }
     },
     "searches": [
@@ -1026,7 +1027,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 372e1c7a50f8 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan b7870c33100f with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -1116,6 +1117,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -1168,7 +1170,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "372e1c7a50f8044cc2776b90618901e9fa5fd29a8c048c48136e2b28747ae9ba"
+        "planHash": "b7870c33100f1ea92ee14d89622479b568134d1516ea0b59be29a0b3078f5503"
       }
     },
     "searches": [
@@ -1229,7 +1231,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan df30fab99b96 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 403f92c205d9 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -1319,6 +1321,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -1371,7 +1374,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "df30fab99b96e031635fb0dc3c14fb6ded43afdce810cd2b0e20708dfe8a745b"
+        "planHash": "403f92c205d909f734c2fefef89b18475fdf1382c5621bb0a34a4e3fc92deb20"
       }
     },
     "searches": [
@@ -1432,7 +1435,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan fd7935a20ab2 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan db84237cca0f with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -1522,6 +1525,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -1574,7 +1578,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "fd7935a20ab2850fbd78564b2c1d979a9a3e4e8cdb5db636207acdbc7c028adc"
+        "planHash": "db84237cca0fffbbdb47dbb2ce5062962ec255d580c957c2e2a47a32afedaa30"
       }
     },
     "searches": [
@@ -1631,7 +1635,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan b2ec65ba4d9b with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan b920e7b49aa7 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -1716,7 +1720,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -1763,7 +1770,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "b2ec65ba4d9b5ad12d9e59b2ccfa9149781d8b06dc30dcf48bda5d7c087f01e8"
+        "planHash": "b920e7b49aa79ec54a5d144983553aecb5c63445d3b631f91ca9e2c65e9e0fa7"
       }
     },
     "searches": [
@@ -1812,7 +1819,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan ddeb48e8a1a7 with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 7a265f3ac8a1 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -1895,7 +1902,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-taken (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -1944,7 +1954,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Change mode to update and supply requirementId to revise an existing requirement."
         ],
-        "planHash": "ddeb48e8a1a77c175492634faf1c0ee256e3e25a84bcddfd28728739e9446ff6"
+        "planHash": "7a265f3ac8a1fae070f43a8047a896894adbbe2578e430cb8918262b03201982"
       }
     },
     "searches": [
@@ -1988,7 +1998,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 4044d52ed4e7 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan d7f06f2aba0e with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -2076,6 +2086,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-same (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -2128,7 +2139,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "4044d52ed4e755ec8d7d99ab253c52c41d5343ffa95cd526a8d3eb5b39c51ddd"
+        "planHash": "d7f06f2aba0ec0348663ea758f32a2ab913f368c79ac67b9343a4f27fbade836"
       }
     },
     "searches": [
@@ -2184,7 +2195,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan dbc54180c536 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 0cb131898587 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -2272,6 +2283,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-titled (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -2324,7 +2336,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "dbc54180c536853ac8ca30dcb00460a18f555e41e420b02481c0a21551377828"
+        "planHash": "0cb13189858748de9980a8d59d212e44028abc2c6de2d405344734cc19e806a2"
       }
     },
     "searches": [
@@ -2380,7 +2392,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 787a7511a5c4 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 6a4f6063843d with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -2493,6 +2505,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-top (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -2545,7 +2558,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "787a7511a5c431d3089bd24903bd440b2dc8a7ea2adcca824befa1c9f7c3cfcd"
+        "planHash": "6a4f6063843daceeeadad2a984fafd903a0682d6cbbcc21557a22847669e1d7c"
       }
     },
     "searches": [
@@ -2602,7 +2615,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 886de6b64029 with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan aedd2a210d48 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -2698,7 +2711,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-low (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -2747,7 +2763,7 @@
           "No mutation steps are emitted until the update target is explicitly resolved.",
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "886de6b6402973c42d5d36bb6e548cdddeb5b49506789436e53775bbeffd1833"
+        "planHash": "aedd2a210d4832b9c96403880875fa7413ce4565323258addc6f0babcc94b3ce"
       }
     },
     "searches": [
@@ -2791,7 +2807,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 3cbb5354d6ee with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 671b7ab0cdee with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -2887,7 +2903,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-close (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -2936,7 +2955,7 @@
           "No mutation steps are emitted until the update target is explicitly resolved.",
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "3cbb5354d6eeea6f10f09cfb4aa8cf0d7e6bf4ea254a867d48b26dca00f250fd"
+        "planHash": "671b7ab0cdee53768e3f22a6a233bf2d37bc78f479436a0d94c8e76ce9bf4c43"
       }
     },
     "searches": [
@@ -2980,7 +2999,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 9f59985c68fb with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 641dc007422a with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -3081,6 +3100,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-only (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -3132,7 +3152,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "9f59985c68fb3500a4d0fc66309a6b6345d29be35826c055070ff9533d8c5ec9"
+        "planHash": "641dc007422a00557f1b3830d458e6452e23d00f8cc71f336d2d2b521ab03360"
       }
     },
     "searches": [
@@ -3188,7 +3208,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 226e7ab6a72e with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 633ef85eda60 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -3271,7 +3291,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-PENDING-RESOLUTION (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -3320,7 +3343,7 @@
           "No mutation steps are emitted until the update target is explicitly resolved.",
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "226e7ab6a72ec0ea463160732a6134ac74295ef6c46c6b9230ed0d462077b139"
+        "planHash": "633ef85eda6051497463474a4101d516627ebf714d8361ce4d5c27a2685c3938"
       }
     },
     "searches": [
@@ -3364,7 +3387,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan a6d4a244a06b with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan bf0bdedaf910 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -3447,7 +3470,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-gone (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -3495,7 +3521,7 @@
           "Requirement REQ-gone was not found in the current KB snapshot.",
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "a6d4a244a06b960535a509fe6a492dba9f8a221f4072e269a53a912ae9a81831"
+        "planHash": "bf0bdedaf91031afdb0aec6e3e7e55c23ea1aad5c9e29de25872ad7f164e7e43"
       }
     },
     "searches": [
@@ -3539,7 +3565,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 52c3240ee377 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 4e49d515c601 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -3629,6 +3655,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-doc (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -3681,7 +3708,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "52c3240ee3777508902da61ff6da83ffc9461ea88675cd27e90859ea58c780aa"
+        "planHash": "4e49d515c601e08b29be80532c6692537ad6de0a5498a140dd4b0be6d09c7c8a"
       }
     },
     "searches": [
@@ -3738,7 +3765,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 80aa3e808558 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 7248374d3d04 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -3826,6 +3853,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-yaml (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -3877,7 +3905,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "80aa3e80855865a66d4cd1aeb78cd506af777358c9dd9b683df66b50598ab891"
+        "planHash": "7248374d3d048ae9e234ded0ae7ad2eaa847ace9311aa4190b703875ed9add33"
       }
     },
     "searches": [
@@ -3933,7 +3961,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan ea511f72fe37 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan edaffa9153ee with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -4021,6 +4049,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-lost (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -4072,7 +4101,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "ea511f72fe376966d70c0d6ff9621546ed2a3e3817a0902bafbbfb6fa217d980"
+        "planHash": "edaffa9153ee30d543616ec2138564312db42346a6a849e240409b47100e3480"
       }
     },
     "searches": [
@@ -4128,7 +4157,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan f8df188bcd24 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan f94c14759117 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -4216,6 +4245,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-bare (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -4268,7 +4298,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "f8df188bcd24eb4df263d2d4b63af6781a89bf320957e97738450b8f94e45600"
+        "planHash": "f94c147591173a6bb9155115c047893a71eb30e875da9fa8e90e95ab9af22c04"
       }
     },
     "searches": [
@@ -4324,7 +4354,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 5abcca11b673 with 6 step(s)."
+          "text": "Compiled 42 characters into ready plan af49f084dc97 with 6 step(s)."
         }
       ],
       "structuredContent": {
@@ -4412,6 +4442,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-drafts (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -4526,7 +4557,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "5abcca11b673fc8a728991bcb9368a93157c630b963b51cb58808209d4f8755b"
+        "planHash": "af49f084dc97362fc68db8445f2e009f87934360b53608c7e54ba9a54ddd19de"
       }
     },
     "searches": [
@@ -4594,7 +4625,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 866c986866ae with 10 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 2fe24a475071 with 10 step(s)."
         }
       ],
       "structuredContent": {
@@ -4677,7 +4708,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-many (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "test",
@@ -4863,7 +4897,7 @@
           "unresolved scenario draft SCEN-a has no test draft; add a test with scenarioIds to establish executable coverage.",
           "unresolved scenario draft SCEN-c has no test draft; add a test with scenarioIds to establish executable coverage."
         ],
-        "planHash": "866c986866ae1d7fd271ae79b245738a8ec39e922c5b0d46fb95883c5de02d5f"
+        "planHash": "2fe24a475071df80d604e3232724914ee2f7b7c307311e28de2b9ec34e6601ac"
       }
     },
     "searches": [
@@ -4907,7 +4941,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 5a4191817522 with 4 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 280777c2f231 with 4 step(s)."
         }
       ],
       "structuredContent": {
@@ -4990,7 +5024,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-lonely (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "test",
@@ -5053,7 +5090,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "unresolved test draft TEST-alone-42ABCD5F has no scenario draft; proof-bearing tests require a scenario relationship."
         ],
-        "planHash": "5a4191817522464f54eb206ff3ec702d0b6c4a6c5f45dddd8d3be8d97f0d328e"
+        "planHash": "280777c2f2316a693e1516ce90d1a5663f330ecd430832d23945970a230be06f"
       }
     },
     "searches": [
@@ -5097,7 +5134,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan e3e3ca7c7364 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 8f8280630001 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -5323,6 +5360,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-traced (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -5380,7 +5418,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "e3e3ca7c736412e9283393c890cb5005bd33244320330cc6a558dc72d60e9dae"
+        "planHash": "8f828063000165fb684a7d37277f63ce486726bcecbe45a0849747584529c8a1"
       }
     },
     "searches": [
@@ -5436,7 +5474,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 4091ec705355 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 654f50e97125 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -5524,6 +5562,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -5576,7 +5615,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "4091ec70535537de956fc551796663e18acdc486bee2b6cd4467d3ef96dd057c"
+        "planHash": "654f50e9712511e9963f484252fa6be2b4c68df6c6810230bd3a63a298ebd141"
       }
     },
     "searches": [
@@ -5632,7 +5671,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 6b92a7483a5c with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan ca722d87bc02 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -5715,7 +5754,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -5764,7 +5806,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Change mode to update and supply requirementId to revise an existing requirement."
         ],
-        "planHash": "6b92a7483a5ca4d49f8eaaf53551d0b5c7abd8c2ff713c9e97a802a0707b6c63"
+        "planHash": "ca722d87bc0290474a77ebf08e2b8d300cef67c0969c9969f9f9fa554c7e3698"
       }
     },
     "searches": [
@@ -5808,7 +5850,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 4091ec705355 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 654f50e97125 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -5896,6 +5938,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -5948,7 +5991,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "4091ec70535537de956fc551796663e18acdc486bee2b6cd4467d3ef96dd057c"
+        "planHash": "654f50e9712511e9963f484252fa6be2b4c68df6c6810230bd3a63a298ebd141"
       }
     },
     "searches": [
@@ -6005,7 +6048,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan f8489c7be300 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 73a398a11ec9 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -6095,6 +6138,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -6147,7 +6191,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "f8489c7be300a070e01fafeae70e1f4888dc690ba368269b3c2c8ad6d8dbfc91"
+        "planHash": "73a398a11ec96430150711799c81778d9d05fb67c52a643652e34da436ac9da7"
       }
     },
     "searches": [
@@ -6204,7 +6248,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan ba6d79afcb5f with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan ccd4c88948b3 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -6294,6 +6338,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -6346,7 +6391,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "ba6d79afcb5f108a1d0356cf64e466406bedc13acc3a9dd3e8acf727245b4f03"
+        "planHash": "ccd4c88948b377cc071a4ad2e8b67273f2d239615cf1ebd118bd52ec73f4e0bb"
       }
     },
     "searches": [
@@ -6407,7 +6452,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan f6ec76474bcf with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 8d88d7e90ddf with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -6497,6 +6542,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -6549,7 +6595,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "f6ec76474bcf037079ddb2f1c21149f171a121530479002e75926b4bfd1f8913"
+        "planHash": "8d88d7e90ddf67abef84fe6e5562faf199ed958ec9aa2884c12d032b59a72953"
       }
     },
     "searches": [
@@ -6606,7 +6652,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 6f9fb80c90ad with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 137605bb5880 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -6694,6 +6740,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-txt (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -6745,7 +6792,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "6f9fb80c90ade425790d85457c785f8e7fd15e37a088957768dbac8019aaabf1"
+        "planHash": "137605bb5880f94334f9e8f146145c437df7300d253e7f01c3c458af7f594a87"
       }
     },
     "searches": [
@@ -6801,7 +6848,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 4f5daf453373 with 5 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 12fcea7e31ad with 5 step(s)."
         }
       ],
       "structuredContent": {
@@ -6909,7 +6956,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-merge (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "fact",
@@ -6965,7 +7015,7 @@
           "Contradiction analysis could not run against the attached KB snapshot with this plan staged.",
           "A plan step cannot be applied as written: Entity validation failed: root: must have required property 'status'"
         ],
-        "planHash": "4f5daf453373dbd7deb64be82b9355d089f10900824fdfe9b7feebc1aedbf3b2"
+        "planHash": "12fcea7e31adfa82260f012532a0f857df8c242deb974a709f6c899f2e5844ff"
       }
     },
     "searches": [
@@ -7021,7 +7071,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan cef9b92be87c with 9 step(s)."
+          "text": "Compiled 42 characters into ready plan 9dde2777df13 with 9 step(s)."
         }
       ],
       "structuredContent": {
@@ -7130,6 +7180,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-merge (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -7232,7 +7283,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Contradiction analysis could not run against the attached KB snapshot with this plan staged."
         ],
-        "planHash": "cef9b92be87c184f62c05e08ec529a98e919e240ca4bab574196ce9742d88f38"
+        "planHash": "9dde2777df1301fcbdeabe2ace3bab6422138b745ffc8def989f0c5cddcc3a13"
       }
     },
     "searches": [
@@ -7405,7 +7456,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 368680511185 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 94017fcddb79 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -7493,6 +7544,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -7545,7 +7597,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "368680511185c605efea1e813323bdb5ee953a04e8719ca63cbca93a37659436"
+        "planHash": "94017fcddb799f3a0613cb8e9b0d0ae8ae1e701d52e10fd749f0d91c5557a429"
       }
     },
     "searches": [
@@ -7756,7 +7808,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan e78fab2450fe with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 395afe99af8f with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -8120,6 +8172,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-many-tests (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -8172,7 +8225,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "e78fab2450fe094452ef4626edb19d5c59f14b33d81b2fd3eccae451d528455f"
+        "planHash": "395afe99af8f26ce13c7a234b125355be20ef856b49109225babeeba6300997d"
       }
     },
     "searches": [
@@ -8228,7 +8281,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into blocked plan c0d68a5168e7 with 3 step(s)."
+          "text": "Compiled 42 characters into blocked plan b95f2d11f6ae with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -8335,7 +8388,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -8383,7 +8439,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "The plan leaves a success scenario infeasible or conflicts with a current requirement: set expects: rejection, correct the assumption, record an approved exception, or supersede the conflicting requirement before applying this plan."
         ],
-        "planHash": "c0d68a5168e703670bf46b84cb5581cd1de64681dff2885735dd3d613ae85f49"
+        "planHash": "b95f2d11f6ae64871562db1457d62d7aeaf90a1a48fe5994d0dc6635a2594d90"
       }
     },
     "searches": [
@@ -8427,7 +8483,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 77 characters into needs_resolution plan b430fd57ba95 with 3 step(s)."
+          "text": "Compiled 77 characters into needs_resolution plan a686aa3fff55 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -8527,7 +8583,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions--3D204CBC (\"Users must keep at most 3 active sessions. The system must retain audit logs.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -8590,7 +8649,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "b430fd57ba95075f5af4937336e630939863f83c2ee9355ea00f2960f5ec4817"
+        "planHash": "a686aa3fff55f925ec9c05ed5b33be3fded0e16cc26a532a05113b8c410d2aac"
       }
     },
     "searches": [
@@ -8652,7 +8711,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 7d282f7885fc with 7 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 32b9d1caa623 with 7 step(s)."
         }
       ],
       "structuredContent": {
@@ -8735,7 +8794,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-links (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "test",
@@ -8862,7 +8924,7 @@
           "unresolved test draft TEST-intent-67DD311D repeats or omits scenario IDs; associations must be unique and non-empty.",
           "unresolved scenario draft SCEN-intent-67DD311D has no test draft; add a test with scenarioIds to establish executable coverage."
         ],
-        "planHash": "7d282f7885fcf1b683bd4d90ea64256ff37428e0be9a7e08e87f2c404a324d61"
+        "planHash": "32b9d1caa623a9464ebcd8983b8cb1cb6fb7b826c192e792ac939221df3ecb31"
       }
     },
     "searches": [
@@ -8906,7 +8968,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 92a52c6b0639 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 64afe59aa7e4 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -8999,6 +9061,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -9052,7 +9115,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Contradiction analysis could not run against the attached KB snapshot with this plan staged."
         ],
-        "planHash": "92a52c6b0639de9234cfc8d6a9d0feb4d0fc834907c2cbb66aef4932cc1cee1a"
+        "planHash": "64afe59aa7e4216c4fcb38d86e81c7399eb86901d26745110cc4b20bcda4339f"
       }
     },
     "searches": [
@@ -9108,7 +9171,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 92a52c6b0639 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 64afe59aa7e4 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -9201,6 +9264,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -9254,7 +9318,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Contradiction analysis could not run against the attached KB snapshot with this plan staged."
         ],
-        "planHash": "92a52c6b0639de9234cfc8d6a9d0feb4d0fc834907c2cbb66aef4932cc1cee1a"
+        "planHash": "64afe59aa7e4216c4fcb38d86e81c7399eb86901d26745110cc4b20bcda4339f"
       }
     },
     "searches": [
@@ -9310,7 +9374,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 92a52c6b0639 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 64afe59aa7e4 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -9403,6 +9467,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -9456,7 +9521,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Contradiction analysis could not run against the attached KB snapshot with this plan staged."
         ],
-        "planHash": "92a52c6b0639de9234cfc8d6a9d0feb4d0fc834907c2cbb66aef4932cc1cee1a"
+        "planHash": "64afe59aa7e4216c4fcb38d86e81c7399eb86901d26745110cc4b20bcda4339f"
       }
     },
     "searches": [
@@ -9512,7 +9577,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into blocked plan c25a817ab205 with 3 step(s)."
+          "text": "Compiled 42 characters into blocked plan ec6088e29599 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -9629,7 +9694,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-conflict (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -9677,7 +9745,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Current requirement conflicts must be resolved with an explicit supersedes relationship before applying this plan."
         ],
-        "planHash": "c25a817ab20520c639c5c764d1c7f90a5d89e132e421c8629a2ced03b12ce4a2"
+        "planHash": "ec6088e29599dd5d5b7cfb514d843667922bfefc14e248b03762c9368732e3cb"
       }
     },
     "searches": [
@@ -9721,7 +9789,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into blocked plan 57a3841928d6 with 3 step(s)."
+          "text": "Compiled 42 characters into blocked plan 45e02930390c with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -9818,7 +9886,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -9866,7 +9937,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "The plan leaves a success scenario infeasible or conflicts with a current requirement: set expects: rejection, correct the assumption, record an approved exception, or supersede the conflicting requirement before applying this plan."
         ],
-        "planHash": "57a3841928d6adba8f38e4917a1539e8e3d7514c88b5aeb8029174a2ceb99400"
+        "planHash": "45e02930390cd75641de40c51c75fc7a531ed1b00f7d8552ceabd654e09a60af"
       }
     },
     "searches": [
@@ -9910,7 +9981,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 4389f70b7aaf with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan ce5978ff4372 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -10005,7 +10076,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -10053,7 +10127,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Contradiction analysis is unresolved: the planned rules may overlap with current requirements and the checker can neither prove nor exclude a conflict."
         ],
-        "planHash": "4389f70b7aaff293b0f46681f3466502908938d6a20fa44c23cb2bb831b4295c"
+        "planHash": "ce5978ff4372082d1cf09bf0e470c651bbc81bea0c5d503f281c5de3cfade959"
       }
     },
     "searches": [
@@ -10097,7 +10171,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into blocked plan a8bf8198cadf with 3 step(s)."
+          "text": "Compiled 42 characters into blocked plan 627cb4ab477e with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -10387,7 +10461,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-target (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -10438,7 +10515,7 @@
           "By your review the intent contradicts current requirement REQ-r2, REQ-r3: ask the human which rule holds, then supersede or change the conflicting requirement, or change the intent, before applying this plan.",
           "Contradiction check incomplete: Kibi could not compare this intent logically with current requirement REQ-p1, REQ-edge. Compare them (contradictionAnalysis.reviewCandidates) and send your verdicts in conflictReviews."
         ],
-        "planHash": "a8bf8198cadf819e79b23740a7d287a18e7c4c893882949c57c9cfdf918371ba"
+        "planHash": "627cb4ab477ec8464ea7da66c7bb3af97b19c0bbeae0987a6d036459c9a208bb"
       }
     },
     "searches": [
@@ -10759,7 +10836,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 0f09f95c57b2 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan dcd698121082 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -10860,6 +10937,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-calm (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -10912,7 +10990,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "0f09f95c57b2b2306617e7eed2d9e9a259af2d290ce84a0587eb845184e68f79"
+        "planHash": "dcd698121082d55830b0b9254645e76f9e32ee79f1e4d5dd13674dd6e60e204e"
       }
     },
     "searches": [
@@ -10968,7 +11046,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan ff720d02b8f1 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 1f580b186be0 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -11085,6 +11163,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-calm (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -11138,7 +11217,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "Contradiction check incomplete: Kibi could not compare this intent logically with current requirement REQ-u. Compare them (contradictionAnalysis.reviewCandidates) and send your verdicts in conflictReviews."
         ],
-        "planHash": "ff720d02b8f1e3ad38021260d57f2a54b4b644ebcd9385ca5bcec36f43f846fe"
+        "planHash": "1f580b186be0a0bcf5c571cf70cd9275e33d3be9ce691f9a1a66c8fd69993ad6"
       }
     },
     "searches": [
@@ -11194,7 +11273,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 25e4e1a36c79 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan e175882eed1f with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -11282,6 +11361,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -11334,7 +11414,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "25e4e1a36c791c6fc3e805355be89d050dc272fdda4788ef78424ab905bc419d"
+        "planHash": "e175882eed1f5355a6c7e522d30d1af157b7acccc971c7e4b1477ab64bbd989d"
       }
     },
     "searches": [
@@ -11400,7 +11480,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 4bfbe9b5b4b7 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 424a1e5b64c9 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -11488,6 +11568,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -11608,7 +11689,7 @@
             ]
           }
         },
-        "planHash": "4bfbe9b5b4b7d16d6d53f2eb981d6b3dc820b2b11ef88cff7c8e9eb3e8cc5eb1"
+        "planHash": "424a1e5b64c98db95629f029955ccdfdf6764c018ef9aa1948be8b4722b655c6"
       }
     },
     "searches": [
@@ -11664,7 +11745,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan b0c743fd5a71 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 710ddf664fc8 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -11752,6 +11833,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -11830,7 +11912,7 @@
             "shadowMatches": []
           }
         },
-        "planHash": "b0c743fd5a7110d8632bb55de3a9ebd33433e7a8774395a18f17a9b9d3cbcd1a"
+        "planHash": "710ddf664fc8b5c1cff550f356c49aea30e0ba5c446c506be660e337a899f6d4"
       }
     },
     "searches": [
@@ -11886,7 +11968,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 87865e8bad9c with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan e263e6560867 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -11974,6 +12056,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -12044,7 +12127,7 @@
             ]
           }
         },
-        "planHash": "87865e8bad9c68766b016ae9990e06e8ece79926d2d1bc707c6ee37a50b3b115"
+        "planHash": "e263e6560867602669113ecbcacfdf34da96d16861b5d3eae7d9d5466fb0ac56"
       }
     },
     "searches": [
@@ -12100,7 +12183,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 6b785b471eac with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 22adf0f0c4e8 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -12188,6 +12271,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -12261,7 +12345,7 @@
             "shadowMatches": []
           }
         },
-        "planHash": "6b785b471eac8197dac163a95f27cde4ab924c7d559ba8fe46e3c6a7c6ee30ce"
+        "planHash": "22adf0f0c4e818228f63486d52565c5e1db83691c223899a9570ab643035e19d"
       }
     },
     "searches": [
@@ -12317,7 +12401,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan f4f62b09f8ec with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 31fa018a52a9 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -12405,6 +12489,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -12455,7 +12540,7 @@
         ],
         "sourceWrites": [],
         "diagnostics": ["advisor warning"],
-        "planHash": "f4f62b09f8ec86d56d1bbc747d1f4f20f46fd82449fc1d74beea0dc4abec6b89"
+        "planHash": "31fa018a52a9acfc445f178f424c9d3aaf37ca8d958c9d868268facb0345a333"
       }
     },
     "searches": [
@@ -13004,7 +13089,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 148 characters into ready plan 36caecd959fa with 6 step(s)."
+          "text": "Compiled 148 characters into ready plan 0dd4963b9c1c with 6 step(s)."
         }
       ],
       "structuredContent": {
@@ -13249,6 +13334,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions--8059CAFA (\"Users must keep at most 3 active sessions. Checkout may happen only when the cart total is positive. Users cannot delete posts unless they own them.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -13339,7 +13425,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "36caecd959faf3884e05c8c5a0515397db480a030dfbf960bfab1c06b60b5c99"
+        "planHash": "0dd4963b9c1caa387223f0b8643f339b3c549586be0157a8807e820d149fe923"
       }
     },
     "searches": [
@@ -13711,7 +13797,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan bd420058644b with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 10cd19b15c74 with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -13794,7 +13880,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-outside (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -13842,7 +13931,7 @@
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable.",
           "A plan step cannot be applied as written: document.path resolves outside the workspace: /elsewhere/req.md"
         ],
-        "planHash": "bd420058644b21d062b4c782d4780828c9b6c82d01f14ae2e061c402c961feaa"
+        "planHash": "10cd19b15c7484839b20533b6dbed04302da8e846c84df15f6b2d64984bf3473"
       }
     },
     "searches": [
@@ -13898,7 +13987,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan 066ee7b7666e with 3 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 94fc1fe1ba9b with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -13986,7 +14075,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -14035,7 +14127,7 @@
           "Contradiction analysis could not run against the attached KB snapshot with this plan staged.",
           "A plan step cannot be applied as written: plain failure"
         ],
-        "planHash": "066ee7b7666ee9e5889c5acced2b53d943b8dacb6fad135eeb8a4ec792af9870"
+        "planHash": "94fc1fe1ba9b21ea7f55fb23dfea5f3d1bf50e465791f58a648b2070234ce450"
       }
     },
     "searches": [
@@ -14079,7 +14171,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into needs_resolution plan c3259cbae8d8 with 4 step(s)."
+          "text": "Compiled 42 characters into needs_resolution plan 680692491903 with 4 step(s)."
         }
       ],
       "structuredContent": {
@@ -14174,7 +14266,10 @@
               "claim_span_start": 0,
               "claim_span_end": 41
             },
-            "relationships": []
+            "relationships": [],
+            "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n"
+            }
           },
           {
             "type": "req",
@@ -14223,7 +14318,7 @@
           "Contradiction analysis could not run against the attached KB snapshot with this plan staged.",
           "A plan step cannot be applied as written: Entity validation failed: root: must have required property 'status'"
         ],
-        "planHash": "c3259cbae8d8b34812a6002ccc78e4b0d8ce82ccb59c0c42fce6474a5da644f4"
+        "planHash": "68069249190311f27b9b17e9b8cd92616a85094cc63ca48f147eb51049259f16"
       }
     },
     "searches": [
@@ -14267,7 +14362,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Compiled 42 characters into ready plan 0f03b5aa3092 with 3 step(s)."
+          "text": "Compiled 42 characters into ready plan 124f6eba249b with 3 step(s)."
         }
       ],
       "structuredContent": {
@@ -14355,6 +14450,7 @@
             },
             "relationships": [],
             "document": {
+              "body": "Definition not stated: the subject user.session is named by requirement REQ-users-must-keep-at-most-3-active-sessions-11D76D0B (\"Users must keep at most 3 active sessions.\"). The people who own that source can say what it is in the product and what it is not.\n",
               "path": ".kb/facts/FACT-SUBJECT-c36e9003855e.md"
             }
           },
@@ -14407,7 +14503,7 @@
         "diagnostics": [
           "Semantic advisor: Requirement prose appears to contain scalar, threshold, or cardinality logic that should be modeled with strict facts. Next action: call kb_model (mode requirement) before treating this requirement as Prolog-checkable."
         ],
-        "planHash": "0f03b5aa3092ff8c18ead2a38eb5eb48422982b827f5800b33d507bb401ca338"
+        "planHash": "124f6eba249b9884facfd2ada072859140f3ea5bce13bb84bf851ca9414b70c7"
       }
     },
     "searches": [

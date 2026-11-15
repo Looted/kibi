@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-entity-context-rules-component
 type: fact
 ---
-The kibi.entity_context.rules component, as the structural requirements that name it constrain it.
+
+The names under which kibi check reports an entity without a context body (entity-context-missing) and one whose missing context was acknowledged (entity-context-acknowledged). It is report naming, not the context check.

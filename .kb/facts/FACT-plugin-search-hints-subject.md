@@ -11,3 +11,5 @@ origin:
 id: FACT-plugin-search-hints-subject
 type: fact
 ---
+
+The kibi-plugin-search-hints package: an optional plugin that ranks KB entities by meaning offline with a bundled static embedding model and a cache of entity vectors. It is one provider of the search hints capability, not the capability's contract.

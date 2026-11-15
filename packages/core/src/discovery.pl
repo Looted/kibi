@@ -33,7 +33,7 @@
 :- use_module(library(pairs)).
 :- use_module('kb.pl').
 :- use_module(library(semweb/rdf_db), [rdf_generation/1]).
-:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4, test_receipt_evidence/4]).
+:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4, requirement_review_row/4, test_receipt_evidence/4]).
 :- use_module('checks.pl', [scenario_feasibility_outcome/2, infeasible_scenario/5]).
 :- use_module('logic_ir.pl', [logic_rule_conflict/4]).
 :- use_module('status.pl', [status_meta_dict/1, status_scope_dict/1]).
@@ -417,7 +417,21 @@ evidence_floor_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, 
         Rows0),
     sort(id, @<, Rows0, Rows),
     length(Evaluated, Count),
-    dict_json_string(_{evaluated: Count, rows: Rows}, JsonString).
+    review_rows(unapproved_implemented, Evaluated, Unapproved),
+    dict_json_string(_{evaluated: Count, rows: Rows,
+                       unapprovedImplemented: Unapproved}, JsonString).
+
+% The rows of one requirement review kind (see requirement_review_row/4),
+% each tagged with its requirement id and sorted by it.
+review_rows(Kind, Evaluated, Rows) :-
+    findall(Row,
+        (   member(Id-Proof, Evaluated),
+            kb_entity(Id, req, Props),
+            requirement_review_row(Kind, Props, Proof, Row0),
+            Row = Row0.put(id, Id)
+        ),
+        Rows0),
+    sort(id, @<, Rows0, Rows).
 
 % The entities behind an evidence-floor row's gaps, so a person sees what to
 % fix without one kibi proof explain per requirement: the tests whose

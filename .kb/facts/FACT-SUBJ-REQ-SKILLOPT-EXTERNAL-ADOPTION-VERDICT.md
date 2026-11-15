@@ -13,3 +13,5 @@ origin:
   ref: kibi migrate v5->v6
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+How a SkillOpt result becomes the canonical skill: local evidence stays review-only, infrastructure failures are a structured no-go, only complete matrices go to review, and production mutation needs an independently verified external verdict. It does not assume a repository-hosted signer.

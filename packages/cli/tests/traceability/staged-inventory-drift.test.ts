@@ -116,6 +116,11 @@ describe("staged semantic inventory drift", () => {
     expect(violations[0]?.rule).toBe(STAGED_INVENTORY_DRIFT_RULE);
     expect(violations[0]?.message).toContain("a new requirement needs");
     expect(violations[0]?.message).toContain("kb_model mode analyze");
+    // The document states no semantic_text; its body statement is the prose.
+    expect(violations[0]?.message).toContain(
+      "the prose comes from semantic_text (its front matter value, or the body statement a document without one states)",
+    );
+    expect(violations[0]?.message).not.toContain("because it is set");
     expect(drift(inventoried(original), null)).toEqual([]);
   });
 

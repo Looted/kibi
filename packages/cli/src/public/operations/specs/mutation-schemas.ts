@@ -92,7 +92,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       uniqueItems: true,
       items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
       description:
-        "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: semantic-advisor). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+        "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: kibi model). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
     },
     semantic_clauses: {
       type: "array",
@@ -105,7 +105,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       const: "kibi.semantic-inventory.v1",
       description:
-        "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: semantic-advisor).",
+        "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: kibi model).",
     },
     semantic_source_field: {
       type: "string",
@@ -428,10 +428,34 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string" },
       description: "Optional ground-term examples for a predicate schema.",
     },
+    part_of: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        "subject only: defined subject keys this subject is a part of. A dotted key prefix that is itself a defined subject is broader already.",
+    },
+    kind_of: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        "subject only: defined subject keys this subject is a kind of (a read-only review is a kind of review view).",
+    },
+    distinct_from: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        "subject only: similar defined subject keys this subject was checked to differ from; the body says how. Silences subject-duplicate for those pairs.",
+    },
     semantic_inventory: {
       type: "array",
       description:
-        "Requirement proposition ledger returned by kb_model mode analyze (CLI: semantic-advisor); preserve entries while modeling each assertive span.",
+        "Requirement proposition ledger returned by kb_model mode analyze (CLI: kibi model); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
+      items: { type: "object" },
+    },
+    pair_reviews: {
+      type: "array",
+      description:
+        "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming what resolves it: a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim_key of either, never the two requirements themselves; conflict, which stays blocking until a person decides), claims (the claim_key of each unmodeled claim; a payload_hash is accepted and ignored) and origin (kind human or agent; on a must or firm pair, a verdict whose origin is missing or agent, or that sits on a requirement an agent wrote, counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
       items: { type: "object" },
     },
     rule_ir: {

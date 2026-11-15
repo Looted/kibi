@@ -14,3 +14,5 @@ origin:
 id: FACT-SUBJECT-KIBI-RELATED-REQUIREMENT-UNMODELED
 type: fact
 ---
+
+The blocking check that a current requirement with missing propositions must not relate to a modeled one, naming the related requirement's modeled subject and property or predicate keys. It is about relates_to pairs, not unmodeled requirements in general.

@@ -10,4 +10,5 @@ origin:
 id: FACT-kibi-proofs-vocabulary-component
 type: fact
 ---
-The kibi.proofs.vocabulary component, as the structural requirements that name it constrain it.
+
+The words for proof kinds (e2e, example, property, exhaustive, typecheck, arithmetic, smt, rule, state_machine, regex, source), source readers and claim binding verdicts. It is vocabulary, not how each kind is checked.
