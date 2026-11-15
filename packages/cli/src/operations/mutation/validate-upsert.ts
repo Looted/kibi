@@ -10,7 +10,6 @@ import {
   entityContextWarnings,
   upsertDocumentBody,
 } from "./context-warning.js";
-import { subjectLayerWarnings } from "./subject-warnings.js";
 import {
   buildUpsertContradictionPreviewGoal,
   buildWhatIfAnalysisGoal,
@@ -18,6 +17,7 @@ import {
 } from "./contradictions.js";
 import { validateRelationshipSources } from "./relationships.js";
 import { canonicalSourcePath, renderSourceWrite } from "./source-authoring.js";
+import { subjectLayerWarnings } from "./subject-warnings.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import type {
   PlannedFactInput,
@@ -254,6 +254,8 @@ type DryRunValidation = Readonly<{
   semantic: UpsertSemanticAnalysis;
   targetPath: string | undefined;
   storeWarnings: readonly string[];
+  /** The inventory contract the server filled in, as the write reports it. */
+  inventoryApplied?: ValidateUpsertPayload["inventoryApplied"];
   /** The planned facts staged ahead of the payload, and the batch's what-if. */
   staged:
     | Readonly<{
@@ -359,6 +361,9 @@ async function validateWithStore(
     semantic: result.semantic,
     targetPath,
     storeWarnings: [...coverageWarnings, ...idStyleWarnings],
+    ...(result.inventoryApplied !== undefined
+      ? { inventoryApplied: result.inventoryApplied }
+      : {}),
     staged,
   };
 }
@@ -380,7 +385,14 @@ export async function executeValidateUpsert(
   context: OperationContext,
 ): Promise<OperationResult<ValidateUpsertPayload>> {
   try {
-    const { entity, semantic, targetPath, storeWarnings, staged } =
+    const {
+      entity,
+      semantic,
+      targetPath,
+      storeWarnings,
+      staged,
+      inventoryApplied,
+    } =
       context.prolog !== undefined
         ? await validateWithStore(input, context, context.prolog)
         : await validateWithoutStore(input, context);
@@ -404,6 +416,7 @@ export async function executeValidateUpsert(
       ],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: entity,
+      ...(inventoryApplied !== undefined ? { inventoryApplied } : {}),
       ...staged,
     };
     const stagedNote =

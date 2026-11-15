@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36d7dbc1a258
+  - type: assumes
+    from: SCEN-NEG-kibi-pending-receipt-OTHER-BRANCH-FAILS-SYNC
+    to: FACT-NEG-kibi-pending-receipt-OTHER-BRANCH-FAILS-SYNC
+    created_at: 2026-11-15T11:02:53.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5f555d8a614

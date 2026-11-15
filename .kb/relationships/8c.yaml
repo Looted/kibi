@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbab8af84810
+  - type: executable_for
+    from: SYM-test-kb-upsert-derives-proposition-ledger
+    to: TEST-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:24.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-564731fc42ae

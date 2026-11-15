@@ -726,6 +726,13 @@
       "whatIf": {
         "type": "object",
         "additionalProperties": true
+      },
+      "inventoryApplied": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
       }
     }
   },
@@ -784,6 +791,14 @@
           "contradictionCheck": {
             "type": "object",
             "additionalProperties": true
+          },
+          "inventoryApplied": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text."
           }
         }
       },
@@ -827,6 +842,13 @@
           "whatIf": {
             "type": "object",
             "additionalProperties": true
+          },
+          "inventoryApplied": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
           },
           "dryRun": {
             "const": true

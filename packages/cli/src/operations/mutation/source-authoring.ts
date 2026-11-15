@@ -25,6 +25,7 @@ import {
   CANONICAL_ENTITY_PATHS,
   isDerivedKbPath,
 } from "../../utils/kb-paths.js";
+import { pendingReceiptBranch } from "../../utils/pending-source-branch.js";
 import { isNotStatedDefinition } from "../../utils/subject-definition.js";
 import { blockifySymbolManifest } from "../../utils/symbol-manifest-layout.js";
 import type { RelationshipInput, UpsertInput } from "./types.js";
@@ -60,6 +61,9 @@ export function writePendingSourceReceipt(
   afterHash: string,
 ): void {
   const receiptPath = pendingReceiptPath(workspaceRoot, relativePath);
+  // The branch scopes the receipt: a checkout keeps this folder, and another
+  // branch may not have the file.
+  const branch = pendingReceiptBranch(workspaceRoot);
   fs.mkdirSync(path.dirname(receiptPath), { recursive: true, mode: 0o700 });
   fs.writeFileSync(
     receiptPath,
@@ -68,6 +72,7 @@ export function writePendingSourceReceipt(
         version: 1,
         path: relativePath,
         afterHash,
+        ...(branch === undefined ? {} : { branch }),
         createdAt: new Date().toISOString(),
       },
       null,
