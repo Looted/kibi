@@ -405,3 +405,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75d8d3d744e7
+  - type: requires_property
+    from: REQ-kibi-cli-legacy-apply-safe
+    to: FACT-kibi-cli-legacy-apply-safe-migrates-previewed-store
+    created_at: 2026-11-15T17:19:12.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7da9aa4fe3d8
+  - type: constrains
+    from: REQ-kibi-cli-legacy-apply-safe
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-15T17:19:12.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69adf71c7623
+  - type: specified_by
+    from: REQ-kibi-cli-legacy-apply-safe
+    to: SCEN-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-15T17:19:12.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc1730a34af1
+  - type: specified_by
+    from: REQ-kibi-cli-legacy-apply-safe
+    to: SCEN-NEG-kibi-cli-legacy-apply-safe-EMPTY-HASHED-STORE
+    created_at: 2026-11-15T17:19:12.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24a485849e40
+  - type: verified_by
+    from: REQ-kibi-cli-legacy-apply-safe
+    to: TEST-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-15T17:19:12.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f50bba046735
+  - type: relates_to
+    from: REQ-kibi-cli-legacy-apply-safe
+    to: REQ-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T17:19:12.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd904f1677da
