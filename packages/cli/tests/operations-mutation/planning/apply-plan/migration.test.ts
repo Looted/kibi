@@ -454,85 +454,147 @@ describe("migration action execution", () => {
     });
   });
 
-  test("legacy branch storage migrates the named branches", async () => {
-    statuses(live());
-    const migrate = track(
+  const legacy = (argv: string[], extra: Partial<MigrationAction> = {}) => ({
+    id: "m1",
+    ...cli("legacy_branch_storage", argv),
+    ...extra,
+  });
+  const previewHash = (value: string | undefined) =>
+    track(
+      spyOn(branchModule, "legacyBranchMigrationApprovalHash").mockReturnValue(
+        value,
+      ),
+    );
+  const stubMigrate = () =>
+    track(
       spyOn(branchModule, "branchMigrateCommand").mockImplementation(
         async () => undefined as never,
       ),
     );
+
+  test("legacy branch storage migrates the active branch's own store as previewed", async () => {
+    const status = statuses(live());
+    previewHash("h1");
+    const migrate = stubMigrate();
     const s = setup([
-      {
-        id: "m1",
-        ...cli("legacy_branch_storage", [
-          "branch",
-          "--from",
-          "old",
-          "--to",
-          "new",
-          "--approval-hash",
-          "h1",
-        ]),
-      },
+      legacy([
+        "branch",
+        "--approval-hash",
+        "h1",
+        "--to",
+        "develop",
+        "--from",
+        "develop",
+      ]),
     ]);
-    await s.run();
-    const t = setup([
-      {
-        id: "m1",
-        ...cli("legacy_branch_storage", [
-          "--from",
-          "a",
-          "--to",
-          "b",
-          "--approval-hash",
-          "h2",
-        ]),
-      },
-    ]);
-    await t.run();
-    const u = setup([
-      {
-        id: "m1",
-        ...cli("legacy_branch_storage", [
-          "--approval-hash",
-          "h3",
-          "--to",
-          "d",
-          "--from",
-          "c",
-        ]),
-      },
-    ]);
-    await u.run();
+    expect((await s.run()).structuredContent).toMatchObject({
+      outcome: "applied",
+    });
     expect(migrate.mock.calls).toEqual([
       [
         {
-          from: "old",
-          to: "new",
+          from: "develop",
+          to: "develop",
           apply: true,
           approvalHash: "h1",
           workspaceRoot: s.root,
         },
       ],
-      [
-        {
-          from: "a",
-          to: "b",
-          apply: true,
-          approvalHash: "h2",
-          workspaceRoot: t.root,
-        },
-      ],
-      [
-        {
-          from: "c",
-          to: "d",
-          apply: true,
-          approvalHash: "h3",
-          workspaceRoot: u.root,
-        },
-      ],
     ]);
+    // The closeout re-resolves the attachment the migration left.
+    const contexts = status.mock.calls.map(
+      ([, context]) => (context as OperationContext).branchAttachment,
+    );
+    expect(contexts[0]).toMatchObject({ gitBranch: "develop" });
+    expect(contexts.at(-1)).toBeUndefined();
+  });
+
+  test("a legacy migration that is not as previewed is refused before anything moves", async () => {
+    statuses(live());
+    const hash = previewHash("h2");
+    const migrate = stubMigrate();
+    const argv = (from: string, to: string) => [
+      "--from",
+      from,
+      "--to",
+      to,
+      "--approval-hash",
+      "h1",
+    ];
+    const cases: Array<[string[], RegExp]> = [
+      [argv("old", "new"), /not the active branch's own legacy store/],
+      [argv("other", "other"), /not the active branch's own legacy store/],
+      [argv("develop", "develop"), /changed after its migration preview/],
+    ];
+    for (const [command, detail] of cases) {
+      const result = await setup([legacy(command)]).run();
+      expect(result.structuredContent).toMatchObject({
+        outcome: "refused",
+        actionResults: [{ actionId: "m1", outcome: "failed" }],
+      });
+      expect(
+        (result.structuredContent as { actionResults: { detail: string }[] })
+          .actionResults[0]?.detail,
+      ).toMatch(detail);
+    }
+    hash.mockReturnValue(undefined);
+    expect(
+      (await setup([legacy(argv("develop", "develop"))]).run())
+        .structuredContent,
+    ).toMatchObject({ outcome: "refused" });
+    expect(migrate.mock.calls).toEqual([]);
+  });
+
+  test("without an attachment the active branch comes from Git", async () => {
+    statuses(live());
+    previewHash("h1");
+    const migrate = stubMigrate();
+    const argv = [
+      "--from",
+      "develop",
+      "--to",
+      "develop",
+      "--approval-hash",
+      "h1",
+    ];
+    const detached = setup([legacy(argv)], UNBOUND, {
+      extra: { branchAttachment: undefined },
+    });
+    const previous = process.env.KIBI_BRANCH;
+    try {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      expect((await detached.run()).structuredContent).toMatchObject({
+        outcome: "refused",
+      });
+      process.env.KIBI_BRANCH = "develop";
+      const named = setup([legacy(argv)], UNBOUND, {
+        extra: { branchAttachment: undefined },
+      });
+      expect((await named.run()).structuredContent).toMatchObject({
+        outcome: "applied",
+      });
+    } finally {
+      if (previous === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      else process.env.KIBI_BRANCH = previous;
+    }
+    expect(migrate.mock.calls).toHaveLength(1);
+  });
+
+  test("a legacy migration that depends on another action is refused", async () => {
+    statuses(live());
+    const migrate = stubMigrate();
+    const s = setup([
+      { id: "s1", code: "freshness_resync" },
+      legacy(
+        ["--from", "develop", "--to", "develop", "--approval-hash", "h1"],
+        { dependsOn: ["s1"] },
+      ),
+    ]);
+    await expect(s.run()).rejects.toThrow(
+      /legacy branch migration 'm1' must not depend on other actions/,
+    );
+    expect(migrate.mock.calls).toEqual([]);
   });
 
   test.each([
@@ -681,7 +743,8 @@ describe("migration action execution", () => {
     expect(sync.mock.calls).toEqual([[{ workspaceRoot: s.root }]]);
     sync.mockRestore();
     const synced = stubSync(true);
-    const clean = (await setup([reviewAction]).run()).structuredContent as unknown as {
+    const clean = (await setup([reviewAction]).run())
+      .structuredContent as unknown as {
       outcome: string;
       actionResults: Array<{ actionId: string }>;
     };
@@ -1224,6 +1287,11 @@ describe("plan apply with a legacy branch attachment", () => {
 
   test("the legacy migration runs before every other approved action", async () => {
     statuses(live());
+    track(
+      spyOn(branchModule, "legacyBranchMigrationApprovalHash").mockReturnValue(
+        "h",
+      ),
+    );
     const order: string[] = [];
     track(
       spyOn(branchModule, "branchMigrateCommand").mockImplementation(

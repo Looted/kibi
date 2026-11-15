@@ -188,11 +188,7 @@ if (RUN_NODE_TEST_SUITE) {
               detail?: string;
             }[];
           };
-          assert.notStrictEqual(
-            result.outcome,
-            "applied",
-            JSON.stringify(result),
-          );
+          assert.strictEqual(result.outcome, "refused", JSON.stringify(result));
           const migration = result.actionResults?.find(
             (entry) => entry.actionId === action.id,
           );
@@ -201,7 +197,10 @@ if (RUN_NODE_TEST_SUITE) {
             "failed",
             JSON.stringify(result),
           );
-          assert.match(String(migration?.detail), /approval hash mismatch/);
+          assert.match(
+            String(migration?.detail),
+            /changed after its migration preview/,
+          );
           assert.ok(existsSync(marker), "the changed store must stay put");
           assert.ok(
             !existsSync(exactBranchStorePath(sandbox.repoDir, "develop")),
@@ -245,6 +244,20 @@ if (RUN_NODE_TEST_SUITE) {
           assert.ok(
             !existsSync(legacyStore),
             `the legacy store is migrated: ${resultText(applied)} ${JSON.stringify(applied.structuredContent)}`,
+          );
+          const appliedResult = mcpToolPayload(applied) as {
+            outcome?: string;
+            closeout?: { kbState?: string; taskOutcome?: string };
+          };
+          assert.strictEqual(
+            appliedResult.outcome,
+            "applied",
+            JSON.stringify(appliedResult),
+          );
+          assert.strictEqual(
+            appliedResult.closeout?.kbState,
+            "clean_fresh",
+            "the closeout reads the attachment the migration left",
           );
           assert.ok(
             existsSync(exactBranchStorePath(sandbox.repoDir, "develop")),
