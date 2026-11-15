@@ -113,9 +113,18 @@ describe("trackedRelationshipFiles leftover pending-source branches", () => {
       path.join(cwd, ".kb", "recovery", "pending-sources", "gone.json"),
     );
 
+    // Git owns a tracked shard's bytes, so its receipt is not hash-checked.
     const liveRelative = ".kb/relationships/REQ-A__implements__SYM-A.yaml";
-    const driftReceipt = writeReceipt(cwd, "drift.json", {
+    const trackedReceipt = writeReceipt(cwd, "tracked.json", {
       path: liveRelative,
+      afterHash: "d".repeat(64),
+    });
+    expect(() => trackedRelationshipFiles(cwd, relDir)).not.toThrow();
+    unlinkSync(trackedReceipt);
+    const untrackedRelative = ".kb/relationships/REQ-U__implements__SYM-U.yaml";
+    writeFileSync(path.join(cwd, untrackedRelative), "relationships: []\n");
+    const driftReceipt = writeReceipt(cwd, "drift.json", {
+      path: untrackedRelative,
       afterHash: "d".repeat(64),
     });
     expect(() => trackedRelationshipFiles(cwd, relDir)).toThrow(/hash drift/);

@@ -132,7 +132,7 @@ describe("subjectLayerWarnings", () => {
       workspace(),
     );
     expect(warning).toStartWith(
-      'claim-subject-missing: inventory claim C1 of REQ-A ("The shopping cart keeps its lines after sign-out")',
+      'claim-subject-missing: REQ-A is recorded; its inventory claim C1 ("The shopping cart keeps its lines after sign-out")',
     );
     expect(warning).toContain(
       'existing subjects its words suggest: shop.cart ("Shopping cart")',
