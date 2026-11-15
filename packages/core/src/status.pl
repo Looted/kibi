@@ -4,7 +4,8 @@
 :- module(status, [
     kb_status_json/1,
     status_meta_dict/1,
-    status_scope_dict/1
+    status_scope_dict/1,
+    entity_source_file_missing/2
 ]).
 
 :- use_module(library(http/json)).
@@ -158,6 +159,19 @@ stale_indexed_source_reason(Index, Reason) :-
     ),
     entity_ids_for_source(Index, RelativeSource, EntityIds),
     Reason = stale_reason{code: Code, path: RelativeSource, entityIds: EntityIds}.
+
+%% entity_source_file_missing(+Props, -RelativeSource) is semidet.
+% The entity's sourceFile names a workspace path that is neither a file nor a
+% directory, as indexed_source_missing judges it. It fails when the attached
+% store has no workspace root, since nothing can then be judged missing.
+entity_source_file_missing(Props, RelativeSource) :-
+    memberchk(sourceFile=RawSource, Props),
+    source_value_atom(RawSource, SourceAtom),
+    repo_relative_source(SourceAtom, RelativeSource),
+    attached_workspace_root(WorkspaceRoot),
+    directory_file_path(WorkspaceRoot, RelativeSource, SourcePath),
+    \+ exists_file(SourcePath),
+    \+ exists_directory(SourcePath).
 
 stale_knowledge_lane_reason(Index, Reason) :-
     attached_workspace_root(WorkspaceRoot),
