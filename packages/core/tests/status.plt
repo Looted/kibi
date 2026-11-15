@@ -396,6 +396,24 @@ test(two_hundred_reasons_are_not_truncated, [setup(workspace(Root, Kb)), cleanup
     Dict.staleReasonsTruncated == false,
     length(Dict.staleReasons, 200).
 
+test(a_symbol_source_file_that_is_gone_is_missing, [setup(workspace(Root, _Kb)), cleanup(drop_workspace(Root))]) :-
+    file_at(Root, 'src/kept.ts', "x", 0),
+    dir_at(Root, 'src/dir'),
+    entity_source_file_missing([sourceFile="src/gone.ts"], Gone),
+    Gone == 'src/gone.ts',
+    atom_concat(Root, '/src/abs-gone.ts', Absolute),
+    entity_source_file_missing([sourceFile=Absolute], AbsoluteGone),
+    AbsoluteGone == 'src/abs-gone.ts',
+    \+ entity_source_file_missing([sourceFile="src/kept.ts"], _),
+    \+ entity_source_file_missing([sourceFile="src/dir"], _),
+    \+ entity_source_file_missing([source="src/gone.ts"], _),
+    \+ entity_source_file_missing([sourceFile="https://example.com/x.ts"], _).
+
+test(a_store_without_a_workspace_root_judges_no_source_missing,
+     [setup((tmp_file(kibi_status_plain, Dir), make_directory_path(Dir), detach_leftover_kb, kb_attach(Dir))),
+      cleanup((kb_detach, delete_directory_and_contents(Dir)))]) :-
+    \+ entity_source_file_missing([sourceFile="src/gone.ts"], _).
+
 :- end_tests(status_sources).
 
 :- begin_tests(status_trees).

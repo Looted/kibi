@@ -40559,3 +40559,129 @@ symbols:
         target: TEST-kibi-legacy-attachment-apply-migration
       - type: implements
         target: REQ-kibi-legacy-attachment-apply-migration
+  - id: SYM-e2e-test-kibi-cli-legacy-apply-safe
+    title: legacy-attachment-cli-apply.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T17:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-cli-legacy-apply-safe
+  - id: SYM-kibi-cli-legacy-migrating-context
+    title: legacyMigratingContext
+    status: active
+    sourceFile: packages/cli/src/runtime/cli-runtime.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-cli-legacy-apply-safe
+  - id: SYM-e2e-test-kibi-symbol-coverage-source-missing
+    title: symbol-coverage-missing-source.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/symbol-coverage-missing-source.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-symbol-coverage-source-missing
+  - id: SYM-core-status-entitySourceFileMissing
+    title: entity_source_file_missing
+    status: active
+    sourceFile: packages/core/src/status.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-symbol-coverage-source-missing
+      - type: implements
+        target: REQ-kibi-symbol-coverage-source-missing
+  - id: SYM-core-discovery-productionSymbolGaps
+    title: production_symbol_gaps
+    status: active
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-symbol-coverage-source-missing
+      - type: implements
+        target: REQ-kibi-symbol-coverage-source-missing
+  - id: SYM-e2e-test-kibi-pending-receipt-branch-scope
+    title: pending-receipt-branch-scope.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/pending-receipt-branch-scope.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-pending-receipt-branch-scope
+  - id: SYM-kibi-pending-receipt-scope
+    title: pendingReceiptScope
+    status: active
+    sourceFile: packages/cli/src/utils/pending-source-branch.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-branch-scope
+      - type: implements
+        target: REQ-kibi-pending-receipt-branch-scope
+  - id: SYM-kibi-pending-receipt-branch
+    title: pendingReceiptBranch
+    status: active
+    sourceFile: packages/cli/src/utils/pending-source-branch.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-branch-scope
+      - type: implements
+        target: REQ-kibi-pending-receipt-branch-scope
+  - id: SYM-e2e-test-kibi-pending-receipt-committed-elsewhere
+    title: pending-receipt-committed-elsewhere.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/pending-receipt-committed-elsewhere.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T17:30:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-pending-receipt-committed-elsewhere
+  - id: SYM-kibi-committed-on-local-branch
+    title: committedOnLocalBranch
+    status: active
+    sourceFile: packages/cli/src/utils/pending-source-branch.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T17:30:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-committed-elsewhere
+      - type: implements
+        target: REQ-kibi-pending-receipt-committed-elsewhere

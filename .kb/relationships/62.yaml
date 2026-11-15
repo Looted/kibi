@@ -482,3 +482,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a362727d436f
+  - type: requires_property
+    from: REQ-kibi-pending-receipt-branch-scope
+    to: FACT-kibi-pending-receipt-scoped-to-branch
+    created_at: 2026-11-15T11:02:59.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c75f1a0bb53b
+  - type: requires_property
+    from: REQ-kibi-pending-receipt-branch-scope
+    to: FACT-kibi-present-or-unscoped-receipt-checked-everywhere
+    created_at: 2026-11-15T11:02:59.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b6cac45a868
+  - type: constrains
+    from: REQ-kibi-pending-receipt-branch-scope
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-15T11:02:59.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33778fabe9c
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-branch-scope
+    to: SCEN-kibi-pending-receipt-branch-scope
+    created_at: 2026-11-15T11:02:59.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-341fe0dae501
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-branch-scope
+    to: SCEN-NEG-kibi-pending-receipt-OTHER-BRANCH-FAILS-SYNC
+    created_at: 2026-11-15T11:02:59.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91a8c47887ac
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-branch-scope
+    to: SCEN-NEG-kibi-pending-receipt-PRESENT-FILE-SKIPPED
+    created_at: 2026-11-15T11:02:59.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7a60e81c3bf
+  - type: verified_by
+    from: REQ-kibi-pending-receipt-branch-scope
+    to: TEST-kibi-pending-receipt-branch-scope
+    created_at: 2026-11-15T11:02:59.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b26e93ec59f8

@@ -7727,5 +7727,45 @@
         "documentation/tests/e2e/packed/legacy-attachment-apply.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-cli-legacy-apply-safe",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-symbol-coverage-source-missing",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/symbol-coverage-missing-source.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-pending-receipt-branch-scope",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/pending-receipt-branch-scope.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-pending-receipt-committed-elsewhere",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/pending-receipt-committed-elsewhere.test.ts"
+      ]
+    ]
   }
 ]

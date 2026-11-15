@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-450fadc27eea
+  - type: assumes
+    from: SCEN-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
+    to: FACT-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
+    created_at: 2026-11-15T17:27:24.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-039227e017cd
