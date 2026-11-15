@@ -1,4 +1,5 @@
 import { ENTITY_ORIGIN_SCHEMA } from "../../entity-origin.js";
+import { ADVERTISED_SUMMARY } from "../advertised-schema.js";
 import { EVIDENCE_LEVELS } from "../../evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
@@ -215,11 +216,15 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       ...PROOF_CONTRACT_SCHEMA,
       description:
         "Semantic proof contract binding this test to explicit proof obligations executed by one configured integration.",
+      [ADVERTISED_SUMMARY]:
+        "test only: kibi.proof-contract.v1 binding this test to proof obligations run by one integration. Load the kibi-usage skill resource `proof` (kb_skills) before writing one; a rejection returns the full schema.",
     },
     proof_bindings: {
       ...PROOF_BINDINGS_SCHEMA,
       description:
         "Optional native-runner bindings (native ids, aliases, source coordinates) for proof obligations. Bindings are provenance metadata and never replace the semantic contract.",
+      [ADVERTISED_SUMMARY]:
+        "test only: native-runner bindings (symbol_id, target) for proof obligations; provenance, never a replacement for proof_contract. A rejection returns the full schema.",
     },
     proof_receipts: {
       type: "array",
@@ -227,6 +232,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: PROOF_RECEIPT_SCHEMA,
       description:
         "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
+      [ADVERTISED_SUMMARY]:
+        "test only: append-only proof receipts. Never hand-written: kb_ingest_proof derives them from proof-run artifacts. Send the stored list unchanged or omit it.",
     },
     fact_kind: {
       type: "string",

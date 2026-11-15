@@ -1,6 +1,7 @@
 import Ajv, { type ErrorObject } from "ajv";
 import type { RejectionIssue } from "kibi-agent-core/usage-telemetry";
 
+import { advertisedFieldSchemaHints } from "./public/operations/advertised-schema.js";
 import { schemaIssues } from "./telemetry-details.js";
 
 export type DiagnosticTelemetry = Readonly<Record<string, unknown>>;
@@ -78,10 +79,17 @@ export function prepareOperationInput(
   );
   const validator = compileInputSchema(schema);
   if (!validator(businessInput)) {
+    // A failed Ajv validation always sets `errors`.
+    const failures = validator.errors as ErrorObject[];
     return {
       valid: false,
-      // A failed Ajv validation always sets `errors`.
-      errors: formatValidationErrors(validator.errors as ErrorObject[]),
+      errors: [
+        ...formatValidationErrors(failures),
+        ...advertisedFieldSchemaHints(
+          schema,
+          failures.map((error) => error.instancePath),
+        ),
+      ],
       issues: schemaIssues(validator.errors),
     };
   }

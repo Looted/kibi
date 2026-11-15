@@ -17,7 +17,7 @@
  */
 
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { getSpec } from "kibi-runtime";
+import { advertisedInputSchema, getSpec } from "kibi-runtime";
 import type { OperationName } from "kibi-runtime";
 
 import {
@@ -132,7 +132,9 @@ function toolConfig(name: keyof typeof TOOL_TITLES): ToolConfig {
   return {
     name: spec.name,
     description: spec.description,
-    inputSchema: spec.businessInputSchema,
+    // The full contract validates every call; hosts are shown the compact
+    // form, whose stubbed fields a rejection spells out in full.
+    inputSchema: advertisedInputSchema(spec.businessInputSchema),
     ...(spec.outputSchema ? { outputSchema: spec.outputSchema } : {}),
     annotations: {
       // Mutability and world-model hints are generated from the authoritative

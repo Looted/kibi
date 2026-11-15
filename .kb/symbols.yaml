@@ -40816,3 +40816,54 @@ symbols:
         target: TEST-kibi-scoped-check-output
       - type: implements
         target: REQ-kibi-scoped-check-output
+  - id: SYM-test-mcp-upsert-proof-field-stubs
+    title: kb_upsert proof field stub suite
+    status: active
+    sourceFile: packages/cli/tests/operations/advertised-schema.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:30:52.721Z
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-upsert-proof-field-stubs
+  - id: SYM-cli-advertised-input-schema
+    title: advertisedInputSchema
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:31:05.700Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-proof-field-stubs
+      - type: implements
+        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
+  - id: SYM-cli-advertised-field-schema-hints
+    title: advertisedFieldSchemaHints
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:31:10.097Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-proof-field-stubs
+      - type: implements
+        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
+  - id: SYM-cli-prepare-operation-input
+    title: prepareOperationInput
+    status: active
+    sourceFile: packages/cli/src/cli-validate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:31:14.538Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-proof-field-stubs
+      - type: implements
+        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs

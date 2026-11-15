@@ -223,3 +223,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2db720ba9908
+  - type: assumes
+    from: SCEN-mcp-upsert-proof-fields-stubbed
+    to: FACT-mcp-upsert-proof-fields-stubbed
+    created_at: 2026-11-15T18:30:58.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfa92b53723b
+  - type: assumes
+    from: SCEN-mcp-upsert-proof-fields-stubbed
+    to: FACT-mcp-upsert-stub-rejection-full-schema
+    created_at: 2026-11-15T18:30:58.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98067a5acf58
+  - type: verified_by
+    from: SCEN-mcp-upsert-proof-fields-stubbed
+    to: TEST-mcp-upsert-proof-field-stubs
+    created_at: 2026-11-15T18:30:58.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c223dc41b97
