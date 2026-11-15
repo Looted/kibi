@@ -1015,6 +1015,7 @@ treat unreadable counts as insufficient evidence instead of a pass.
 - MCP clients discover available tools through `tools/list`.
 - MCP clients discover available prompts through `prompts/list` and `prompts/get`.
 - Allowed static values are encoded directly in each tool's `inputSchema` enums.
+- `kb_upsert` advertises `proof_contract`, `proof_bindings` and `proof_receipts` as one-line stubs, because every session loads the tool list and their full schemas are about 17k characters. Input is still validated against the full contract, and a rejection under one of these fields includes that field's full schema. The `proof` resource of the `kibi-usage` skill (`kb_skills`) explains how to write a proof contract; `kibi upsert --schema` prints the full input schema.
 - There are no separate runtime listing tools for entity or relationship types.
 
 ## Public Prompts

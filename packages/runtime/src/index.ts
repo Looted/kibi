@@ -52,6 +52,7 @@ export {
   executeApplyPlan,
   preflightApplyPlan,
   executePlanBootstrap,
+  advertisedInputSchema,
   executeCompileIntent,
   executeCoverage,
   executeIngestProof,

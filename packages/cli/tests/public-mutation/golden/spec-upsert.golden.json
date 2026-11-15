@@ -551,7 +551,8 @@
                 "additionalProperties": false
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "x-kibi-advertised-summary": "test only: kibi.proof-contract.v1 binding this test to proof obligations run by one integration. Load the kibi-usage skill resource `proof` (kb_skills) before writing one; a rejection returns the full schema."
           },
           "proof_bindings": {
             "type": "array",
@@ -589,7 +590,8 @@
                 }
               },
               "additionalProperties": false
-            }
+            },
+            "x-kibi-advertised-summary": "test only: native-runner bindings (symbol_id, target) for proof obligations; provenance, never a replacement for proof_contract. A rejection returns the full schema."
           },
           "proof_receipts": {
             "type": "array",
@@ -941,7 +943,8 @@
               },
               "additionalProperties": false
             },
-            "description": "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap."
+            "description": "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
+            "x-kibi-advertised-summary": "test only: append-only proof receipts. Never hand-written: kb_ingest_proof derives them from proof-run artifacts. Send the stored list unchanged or omit it."
           },
           "fact_kind": {
             "type": "string",

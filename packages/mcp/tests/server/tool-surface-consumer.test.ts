@@ -11,6 +11,7 @@ import os from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { isolatedMcpSandboxEnv } from "../helpers/isolated-env.js";
 
 /**
@@ -230,6 +231,79 @@ describe("kibi-mcp consolidated tool surface", () => {
     const cli = JSON.parse(cliStdout) as Json;
     expect(cli.status).toBe("error");
     expect(cli.error).toEqual(error);
+  }, 180_000);
+
+  test("advertises each tool within its size budget and spells out a stubbed field when it rejects one", async () => {
+    const workspace = initWorkspace();
+    const client = await connect(workspace);
+
+    // Every session loads these definitions, so their size is a cost every
+    // host pays. kb_upsert advertises its proof sub-objects as stubs.
+    const { tools } = await client.listTools();
+    const budget = (name: string) => (name === "kb_upsert" ? 32_000 : 17_000);
+    for (const tool of tools) {
+      expect({
+        name: tool.name,
+        size: JSON.stringify(tool).length <= budget(tool.name),
+      }).toEqual({ name: tool.name, size: true });
+    }
+    const upsert = tools.find((tool) => tool.name === "kb_upsert");
+    const fields = (
+      (upsert?.inputSchema.properties as Json).properties as {
+        properties: Record<string, Json>;
+      }
+    ).properties;
+    expect(JSON.stringify(upsert?.inputSchema).length).toBeLessThanOrEqual(
+      26_000,
+    );
+    expect(fields.proof_contract?.type).toBe("object");
+    expect(JSON.stringify(fields.proof_contract).length).toBeLessThan(400);
+    expect(fields.proof_receipts?.type).toBe("array");
+    expect(JSON.stringify(fields.proof_receipts).length).toBeLessThan(400);
+    // The fields that carry the person's intent stay advertised in full.
+    expect(fields.origin?.properties).toBeDefined();
+    expect(String(fields.firmness?.description)).toContain("origin.ref");
+
+    // The full contract still validates: a malformed proof contract is
+    // refused, and the refusal carries the field's full schema.
+    const input = {
+      type: "test",
+      id: "TEST-consumer-bad-contract",
+      dryRun: true,
+      properties: {
+        title: "Bad contract",
+        status: "open",
+        proof_contract: { version: "kibi.proof-contract.v1" },
+      },
+    };
+    // A raw request: the SDK's callTool checks an error envelope against
+    // the tool's success output schema.
+    const result = (await client.request(
+      { method: "tools/call", params: { name: "kb_upsert", arguments: input } },
+      CallToolResultSchema,
+    )) as { isError?: boolean; structuredContent?: Json };
+    expect(result.isError).toBe(true);
+    const error = (result.structuredContent as Json).error as Json;
+    expect(error.code).toBe("VALIDATION_FAILED");
+    expect(String(error.message)).toContain(
+      "/properties/proof_contract must have required property 'integration'",
+    );
+    expect(String(error.message)).toContain(
+      '/properties/proof_contract full schema: {"type":"object"',
+    );
+
+    let cliStdout = "";
+    try {
+      kibi(workspace, ["upsert"], input);
+    } catch (failure) {
+      cliStdout = String((failure as { stdout?: string }).stdout ?? "");
+    }
+    // The CLI route adds its own `--schema` pointer after the same message.
+    const cliError = (JSON.parse(cliStdout) as Json).error as Json;
+    expect(cliError.code).toBe(error.code);
+    expect(String(cliError.message).startsWith(String(error.message))).toBe(
+      true,
+    );
   }, 180_000);
 
   test("registers optional tools only when KIBI_MCP_OPTIONAL_TOOLS names them", async () => {

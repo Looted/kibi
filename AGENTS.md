@@ -15,7 +15,7 @@ Public shorthand: **Prompt the intent. Kibi makes the agent remember it—and pr
 
 ## Source of Truth
 
-1. MCP `inputSchema` and CLI JSON contracts define the executable contract.
+1. The operation specs' `businessInputSchema` (which the CLI JSON route and MCP both validate against) and the CLI JSON result contracts define the executable contract. MCP `inputSchema` advertises the same contract, with large proof fields shown as one-line stubs.
 2. Bundled Kibi skills (start with `kibi-usage`) define agent workflows.
 3. Reference docs (`docs/mcp-reference.md`, `docs/entity-schema.md`) explain them to humans.
 4. This file holds repo-specific policy. If it disagrees with a schema, follow the schema and fix this file.
