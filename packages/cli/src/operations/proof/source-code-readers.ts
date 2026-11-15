@@ -395,13 +395,34 @@ export function extractScriptReferences(
     // A declaration's own name is never read here (declares), so only its initializer gets here.
     return ts.isVariableDeclaration(parent);
   };
-  // `typeof window` only asks for the kind of the value, and `"Notification" in
-  // window` only asks whether a global other than process exists: neither
-  // hands the object on, so neither can read a variable.
+  // The operators whose result is a boolean whatever their operands are.
+  const COMPARISONS = new Set([
+    ts.SyntaxKind.EqualsEqualsEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsEqualsToken,
+    ts.SyntaxKind.EqualsEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsToken,
+  ]);
+  // Whether the value is only tested: the condition of an if, a loop or a
+  // ternary, the operand of `!`, a side of a comparison, or the left of `&&`
+  // (which yields the value only when it is falsy, and the global object
+  // never is). `a || b` and `a ?? b` yield the value itself, so they hand it on.
+  const tested = (top: Node, parent: Node): boolean =>
+    // The only expression an if, while or do holds is its condition.
+    ts.isIfStatement(parent) || ts.isWhileStatement(parent) || ts.isDoStatement(parent) ||
+    (ts.isForStatement(parent) && parent.condition === top) ||
+    (ts.isConditionalExpression(parent) && parent.condition === top) ||
+    (ts.isPrefixUnaryExpression(parent) && parent.operator === ts.SyntaxKind.ExclamationToken) ||
+    (ts.isBinaryExpression(parent) &&
+      (COMPARISONS.has(parent.operatorToken.kind) ||
+        (parent.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken && parent.left === top)));
+  // `typeof window` only asks for the kind of the value, `"Notification" in
+  // window` only asks whether a global other than process exists, and
+  // `if (view)` only asks whether it is there: none hands the object on, so
+  // none can read a variable.
   const queried = (node: Node, name: string): boolean => {
     const top = outer(node);
     const parent = top.parent;
-    if (ts.isTypeOfExpression(parent)) return true;
+    if (ts.isTypeOfExpression(parent) || tested(top, parent)) return true;
     // The object on the left of `in` is no literal key, so it is not a query.
     if (GLOBAL_OBJECTS.has(name) && ts.isBinaryExpression(parent) && parent.operatorToken.kind === ts.SyntaxKind.InKeyword) {
       const key = literal(parent.left);

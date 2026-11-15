@@ -363,3 +363,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76708b1436f8
+  - type: assumes
+    from: SCEN-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-lists-change-violations
+    created_at: 2026-11-15T18:42:12.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99a8698233d1
+  - type: assumes
+    from: SCEN-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-counts-omitted
+    created_at: 2026-11-15T18:42:12.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc91555c4b81
+  - type: assumes
+    from: SCEN-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-summarizes-migration-plan
+    created_at: 2026-11-15T18:42:12.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97a4a740a21f
+  - type: assumes
+    from: SCEN-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-fits-budget
+    created_at: 2026-11-15T18:42:13.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fec31f95cdb
+  - type: verified_by
+    from: SCEN-kibi-scoped-check-output
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:13.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31575a0f656f

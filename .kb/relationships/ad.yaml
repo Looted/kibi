@@ -248,3 +248,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0df52f8bc536
+  - type: assumes
+    from: SCEN-NEG-kibi-scoped-check-output-RULE-DROPPED
+    to: FACT-NEG-kibi-scoped-check-output-RULE-DROPPED
+    created_at: 2026-11-15T18:44:59.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ad3011c76ac
+  - type: verified_by
+    from: SCEN-NEG-kibi-scoped-check-output-RULE-DROPPED
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-15T18:44:59.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-badac203664e
