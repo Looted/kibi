@@ -1,6 +1,6 @@
 ---
 title: Kibi check reviews a requirement implemented only by whole-file anchors on source that has smaller units
-status: open
+status: closed
 semantic_text: Kibi check must report a current requirement as a non-blocking coarse_anchor_only_review when every symbol that implements it is a whole-file anchor on a file a source extractor covers. A whole-file anchor on a file no source extractor covers, such as JSON, YAML or a workflow file, must not count toward the review.
 semantic_clauses:
   - Kibi check must report a current requirement as a non-blocking coarse_anchor_only_review when every symbol that implements it is a whole-file anchor on a file a source extractor covers

@@ -31,7 +31,7 @@ type CheckResult = {
  * a requirement, run through the packed CLI on a fixture KB.
  *
  * SCEN-kibi-broad-requirement-review, SCEN-NEG-kibi-broad-requirement-review,
- * SCEN-kibi-coarse-anchor-review, SCEN-NEG-kibi-coarse-anchor-review,
+ * SCEN-kibi-coarse-anchor-review-v2, SCEN-NEG-kibi-coarse-anchor-review-v2,
  * SCEN-kibi-coverage-depth-proof-exempt, SCEN-NEG-kibi-coverage-depth-proof-exempt,
  * SCEN-NEG-kibi-playwright-native-id.
  */
@@ -140,8 +140,13 @@ if (RUN_NODE_TEST_SUITE) {
           join(sandbox.repoDir, "src", "settings.json"),
           '{ "feature": true }\n',
         );
+        writeFileSync(
+          join(sandbox.repoDir, "eslint.config.js"),
+          'const { defineConfig } = require("eslint/config");\nmodule.exports = defineConfig([{ rules: { semi: "error" } }]);\n',
+        );
         stageSourceFile(sandbox, "src/feature.ts");
         stageSourceFile(sandbox, "src/settings.json");
+        stageSourceFile(sandbox, "eslint.config.js");
       },
       { timeout: 300000 },
     );
@@ -197,7 +202,7 @@ if (RUN_NODE_TEST_SUITE) {
     );
 
     it(
-      "reports a requirement implemented only by whole-file anchors on source a declaration extractor covers, and not on files with no smaller unit",
+      "reports a requirement implemented only by whole-file anchors on source that declares a behavioral symbol, and not on files with no smaller unit",
       { timeout: 240000 },
       async (testContext) => {
         if (!hasProlog) {
@@ -207,6 +212,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         requirement("REQ-COARSE-SOURCE");
         requirement("REQ-COARSE-CONFIG");
+        requirement("REQ-COARSE-LINT");
         symbols([
           {
             id: "SYM-FEATURE-FILE",
@@ -220,6 +226,12 @@ if (RUN_NODE_TEST_SUITE) {
             implements: "REQ-COARSE-CONFIG",
             granularity: "config-artifact",
           },
+          {
+            id: "SYM-ESLINT-FILE",
+            sourceFile: "eslint.config.js",
+            implements: "REQ-COARSE-LINT",
+            granularity: "config-artifact",
+          },
         ]);
 
         const result = await check();
@@ -231,6 +243,10 @@ if (RUN_NODE_TEST_SUITE) {
         assert.ok(
           !coarse.includes("REQ-COARSE-CONFIG"),
           "a whole-file anchor on JSON has no smaller unit, so it is not reviewed",
+        );
+        assert.ok(
+          !coarse.includes("REQ-COARSE-LINT"),
+          "a flat ESLint config declares no behavioral symbol, so its whole-file anchor is not reviewed",
         );
       },
     );

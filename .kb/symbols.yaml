@@ -1746,10 +1746,10 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-coarse-anchor-review
       - type: covered_by
         target: TEST-e2e-check-review-rules
+      - type: implements
+        target: REQ-kibi-coarse-anchor-review-v2
   - id: SYM-ingest-proof-enforceNativeCaseBindings
     title: enforceNativeCaseBindings
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
@@ -40723,3 +40723,16 @@ symbols:
         target: TEST-kb-upsert-derives-proposition-ledger
       - type: implements
         target: REQ-kb-upsert-derives-proposition-ledger
+  - id: SYM-cli-impact-createBehavioralUnitProbe
+    title: createBehavioralUnitProbe
+    status: active
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T22:02:01.063Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
+      - type: implements
+        target: REQ-kibi-coarse-anchor-review-v2
