@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2b9e7cb3ab5
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-apply-STORE-CHANGED
+    to: FACT-NEG-kibi-legacy-apply-CHANGED-STORE-MIGRATED
+    created_at: 2026-11-15T07:46:03.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a117a0d75df

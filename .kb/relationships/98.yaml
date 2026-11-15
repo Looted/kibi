@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ebc3691c036
+  - type: validates
+    from: TEST-kibi-legacy-attachment-apply-migration
+    to: SCEN-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-14T17:22:16.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af442534a2da
+  - type: validates
+    from: TEST-kibi-legacy-attachment-apply-migration
+    to: SCEN-NEG-kibi-legacy-apply-UNAPPROVED-MIGRATION
+    created_at: 2026-11-14T17:22:16.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-207eb66697c4
+  - type: validates
+    from: TEST-kibi-legacy-attachment-apply-migration
+    to: SCEN-NEG-kibi-legacy-apply-STORE-CHANGED
+    created_at: 2026-11-14T17:22:16.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bed6f95d0c6f

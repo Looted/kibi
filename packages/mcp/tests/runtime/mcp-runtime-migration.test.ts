@@ -79,6 +79,21 @@ describe("legacy branch attachments", () => {
     );
   });
 
+  test("the plan apply that migrates it opens without the engine", async () => {
+    const { runtime, prolog } = runtimeWith(legacy);
+    const context = await runtime.open({
+      name: "kb_apply_plan",
+      effects: ["kb-read", "kb-write"],
+      requiresProlog: true,
+    } as never);
+    expect(context.branchAttachment).toStrictEqual(legacy as never);
+    expect(context.prolog).toBeUndefined();
+    expect(runtime.sessionProlog(context)).toBeUndefined();
+    // Once the store is migrated, the apply reads it back through the engine.
+    expect(await context.ensureProlog?.()).toBe(port);
+    expect(runtime.sessionProlog(context)).toBe(prolog);
+  });
+
   test("an attachment error is never treated as a legacy attachment", async () => {
     const failure = {
       error: "no branch",

@@ -2,22 +2,13 @@
   [
     {
       "id": "branch-legacy-attachment",
-      "code": "legacy_branch_storage",
+      "code": "ambiguous_branch_attachment",
       "category": "branch",
-      "state": "ready",
-      "safety": "automatic",
+      "state": "blocked",
+      "safety": "operator",
       "invocation": {
-        "kind": "cli",
-        "command_argv": [
-          "kibi",
-          "branch",
-          "migrate",
-          "--from",
-          "master",
-          "--to",
-          "main",
-          "--apply"
-        ]
+        "kind": "review",
+        "instruction": "Resolve branch and KB provenance explicitly; Kibi will not guess or rename Git branches."
       },
       "affectedEntityIds": [],
       "affectedFiles": [".kb/branches/master"],
@@ -33,8 +24,8 @@
           "storePath": ".kb/branches/master"
         }
       },
-      "autoApplicable": true,
-      "dispositionRequired": false,
+      "autoApplicable": false,
+      "dispositionRequired": true,
       "allowedDispositions": ["fixed", "accepted", "deferred"]
     }
   ],

@@ -119,6 +119,24 @@ export function branchMigrationApprovalHash(
     .digest("hex");
 }
 
+/**
+ * The approval hash `kibi branch migrate` previews for moving the literal
+ * store of `from` into the hashed store of `to`, or undefined when that
+ * migration cannot run as previewed (no legacy source, or a target exists).
+ */
+export function legacyBranchMigrationApprovalHash(
+  workspaceRoot: string,
+  from: string,
+  to: string,
+): string | undefined {
+  if (!isValidBranchName(from) || !isValidBranchName(to)) return undefined;
+  if (!isSupportedLegacyBranchMigration(from, to)) return undefined;
+  const sourcePath = legacyBranchStorePath(workspaceRoot, from);
+  const targetPath = branchStorePath(workspaceRoot, to);
+  if (!fs.existsSync(sourcePath) || fs.existsSync(targetPath)) return undefined;
+  return branchMigrationApprovalHash(from, to, sourcePath, targetPath);
+}
+
 function migrationJournalPath(workspaceRoot: string, id: string): string {
   if (!/^[A-Za-z0-9._-]+$/.test(id)) {
     throw new Error("branch migration journal ID is invalid");

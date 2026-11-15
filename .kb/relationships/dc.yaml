@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c03969aca4e1
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-apply-UNAPPROVED-MIGRATION
+    to: FACT-NEG-kibi-legacy-apply-UNAPPROVED-MIGRATION-APPLIED
+    created_at: 2026-11-15T07:46:02.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab9d7873f051
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-apply-UNAPPROVED-MIGRATION
+    to: FACT-NEG-kibi-legacy-apply-OTHER-ACTIONS-FIRST
+    created_at: 2026-11-15T07:46:02.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d85090deb48
