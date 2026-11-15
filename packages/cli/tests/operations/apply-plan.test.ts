@@ -2309,6 +2309,8 @@ describe("apply plan source recovery and migration", () => {
                 "legacy",
                 "--to",
                 "develop",
+                "--approval-hash",
+                "b".repeat(64),
               ],
             },
           }),

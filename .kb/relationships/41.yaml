@@ -454,3 +454,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8ea4d7d2598
+  - type: implements
+    from: SYM-kibi-apply-plan-migration-plan
+    to: REQ-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:35:46.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b185c523dcd0
+  - type: covered_by
+    from: SYM-kibi-apply-plan-migration-plan
+    to: TEST-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:35:46.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0f88978803b

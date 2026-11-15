@@ -429,6 +429,20 @@ describe("migration action execution", () => {
       cli("legacy_branch_storage", ["--from", "a", "--to", ""]),
       "Legacy branch migration action requires explicit --from and --to.",
     ],
+    [
+      cli("legacy_branch_storage", ["--from", "a", "--to", "b"]),
+      "Legacy branch migration action carries no preview approval hash; rerun kibi status for a current plan.",
+    ],
+    [
+      cli("legacy_branch_storage", [
+        "--from",
+        "a",
+        "--to",
+        "b",
+        "--approval-hash",
+      ]),
+      "Legacy branch migration action carries no preview approval hash; rerun kibi status for a current plan.",
+    ],
   ])("legacy branch storage %p fails", async (edit, detail) => {
     statuses(live());
     const s = setup([
@@ -456,6 +470,8 @@ describe("migration action execution", () => {
           "old",
           "--to",
           "new",
+          "--approval-hash",
+          "h1",
         ]),
       },
     ]);
@@ -463,21 +479,59 @@ describe("migration action execution", () => {
     const t = setup([
       {
         id: "m1",
-        ...cli("legacy_branch_storage", ["--from", "a", "--to", "b"]),
+        ...cli("legacy_branch_storage", [
+          "--from",
+          "a",
+          "--to",
+          "b",
+          "--approval-hash",
+          "h2",
+        ]),
       },
     ]);
     await t.run();
     const u = setup([
       {
         id: "m1",
-        ...cli("legacy_branch_storage", ["--to", "d", "--from", "c"]),
+        ...cli("legacy_branch_storage", [
+          "--approval-hash",
+          "h3",
+          "--to",
+          "d",
+          "--from",
+          "c",
+        ]),
       },
     ]);
     await u.run();
     expect(migrate.mock.calls).toEqual([
-      [{ from: "old", to: "new", apply: true, workspaceRoot: s.root }],
-      [{ from: "a", to: "b", apply: true, workspaceRoot: t.root }],
-      [{ from: "c", to: "d", apply: true, workspaceRoot: u.root }],
+      [
+        {
+          from: "old",
+          to: "new",
+          apply: true,
+          approvalHash: "h1",
+          workspaceRoot: s.root,
+        },
+      ],
+      [
+        {
+          from: "a",
+          to: "b",
+          apply: true,
+          approvalHash: "h2",
+          workspaceRoot: t.root,
+        },
+      ],
+      [
+        {
+          from: "c",
+          to: "d",
+          apply: true,
+          approvalHash: "h3",
+          workspaceRoot: u.root,
+        },
+      ],
     ]);
   });
 
@@ -1129,5 +1183,73 @@ describe("migration closeout states", () => {
 
   test("migration actions default their fields", () => {
     expect(migrationAction({ id: "x", code: "y" }).dependsOn).toEqual([]);
+  });
+});
+
+describe("plan apply with a legacy branch attachment", () => {
+  const legacyAttachment = {
+    gitBranch: "develop",
+    kbBranch: "develop",
+    storePath: ".kb/branches/develop",
+    kind: "legacy_compat",
+    migrationRequired: true,
+  };
+  const legacyAction = {
+    id: "branch-legacy-attachment",
+    ...cli("legacy_branch_storage", [
+      "--from",
+      "develop",
+      "--to",
+      "develop",
+      "--approval-hash",
+      "h",
+    ]),
+  };
+  const refusal =
+    "Legacy branch attachment requires explicit migration before 'kb_apply_plan'; approve the plan's legacy_branch_storage action from kb_status, or run kibi branch migrate --from develop --to develop --apply";
+
+  test("only a plan approving the legacy migration may apply", async () => {
+    statuses(live());
+    const other = setup([{ id: "m1", ...cli("freshness_resync") }], UNBOUND, {
+      extra: { branchAttachment: legacyAttachment },
+    });
+    await expect(other.run()).rejects.toThrow(new Error(refusal));
+    const unapproved = setup(
+      [{ id: "m1", ...cli("freshness_resync") }, legacyAction],
+      UNBOUND,
+      { extra: { branchAttachment: legacyAttachment } },
+    );
+    await expect(unapproved.run(["m1"])).rejects.toThrow(new Error(refusal));
+  });
+
+  test("the legacy migration runs before every other approved action", async () => {
+    statuses(live());
+    const order: string[] = [];
+    track(
+      spyOn(branchModule, "branchMigrateCommand").mockImplementation(
+        async () => {
+          order.push("migrate");
+        },
+      ),
+    );
+    track(
+      spyOn(syncModule, "syncCommand").mockImplementation(async () => {
+        order.push("sync");
+        return { success: true } as never;
+      }),
+    );
+    const s = setup(
+      [{ id: "m1", ...cli("freshness_resync") }, legacyAction],
+      UNBOUND,
+      { extra: { branchAttachment: legacyAttachment } },
+    );
+    const result = await s.run();
+    expect(order).toEqual(["migrate", "sync"]);
+    expect(result.structuredContent).toMatchObject({
+      actionResults: [
+        { actionId: "branch-legacy-attachment", outcome: "applied" },
+        { actionId: "m1", outcome: "applied" },
+      ],
+    });
   });
 });

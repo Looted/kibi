@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-197611fb3b85
+  - type: implements
+    from: SYM-kibi-apply-plan-legacy-attachment-gate
+    to: REQ-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:35:41.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa9f4d043ef5
+  - type: covered_by
+    from: SYM-kibi-apply-plan-legacy-attachment-gate
+    to: TEST-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:35:41.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1eb7377955c3

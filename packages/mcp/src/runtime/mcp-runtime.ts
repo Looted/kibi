@@ -139,7 +139,14 @@ export function createMcpRuntime<TProlog = PrologPort>(
         "error" in attachment
           ? context
           : { ...context, branchAttachment: attachment };
-      if (!spec.requiresProlog) {
+      // A legacy attachment blocks every Prolog-backed tool except the plan
+      // apply that migrates it: that apply needs no engine until the store
+      // is migrated, and refuses any other plan itself.
+      const legacyMigrationApply =
+        !("error" in attachment) &&
+        attachment.migrationRequired === true &&
+        spec.name === "kb_apply_plan";
+      if (!spec.requiresProlog || legacyMigrationApply) {
         // Preserve explicit host/test injection without asking the shared MCP
         // session to initialise a store merely to report its condition.
         const providedProlog = options.prolog;

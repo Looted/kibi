@@ -405,3 +405,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a1b34b2d96d
+  - type: specified_by
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: SCEN-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:34:33.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45413bc033c8
+  - type: specified_by
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: SCEN-NEG-kibi-legacy-apply-UNAPPROVED-MIGRATION
+    created_at: 2026-11-15T07:34:34.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04c8b1c77b6f
+  - type: specified_by
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: SCEN-NEG-kibi-legacy-apply-STORE-CHANGED
+    created_at: 2026-11-15T07:34:34.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ec03bd772f5
+  - type: verified_by
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: TEST-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:34:34.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dace2e18b07
+  - type: relates_to
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: REQ-kibi-branch-store-same-identity-migration
+    created_at: 2026-11-15T07:34:34.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db8b321095c1
+  - type: relates_to
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: REQ-kibi-migration-apply-gate
+    created_at: 2026-11-15T07:34:34.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6cac9c31185
+  - type: constrains
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-15T07:42:54.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8efddcde50aa
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: FACT-kibi-legacy-apply-requires-approved-migration
+    created_at: 2026-11-15T07:46:04.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0391bdafcea5
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: FACT-kibi-legacy-migration-runs-first
+    created_at: 2026-11-15T07:46:04.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60846a81b347
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: FACT-kibi-legacy-changed-store-migration-refused
+    created_at: 2026-11-15T07:46:04.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d422661f74b0
