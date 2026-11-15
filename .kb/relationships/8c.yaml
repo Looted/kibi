@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1de8b225aa6b
+  - type: executable_for
+    from: SYM-e2e-test-kibi-cli-legacy-apply-safe
+    to: TEST-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-15T17:19:09.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbab8af84810
