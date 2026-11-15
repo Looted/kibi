@@ -475,3 +475,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d422661f74b0
+  - type: assumes
+    from: SCEN-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-deontic
+    created_at: 2026-11-15T18:53:06.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-711c9ab7bdad
+  - type: assumes
+    from: SCEN-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-descriptive-ignored
+    created_at: 2026-11-15T18:53:06.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a5ae56b07da
+  - type: assumes
+    from: SCEN-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-questions-code-ignored
+    created_at: 2026-11-15T18:53:06.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fa262b126b2
+  - type: verified_by
+    from: SCEN-agent-hosts-rule-phrase-detection
+    to: TEST-agent-hosts-rule-phrase-detection
+    created_at: 2026-11-15T18:53:06.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b28b560727e7

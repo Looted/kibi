@@ -684,6 +684,32 @@ describe("statedRule and notes", () => {
     expect(statedRule("Please rename the helper")).toBeUndefined();
   });
 
+  test("reads never and always as a rule only when they instruct", () => {
+    expect(statedRule("Never log keys.")).toBe("never");
+    expect(statedRule("Always require 2FA")).toBe("always");
+    expect(statedRule("Add an expiry, and never log keys")).toBe("never");
+    expect(statedRule("Make sure we never log keys")).toBe("never");
+    expect(statedRule("Ensure the job always retries")).toBe("always");
+    expect(statedRule("Please always ask first")).toBe("always");
+    expect(statedRule("Can you make sure we never log tokens?")).toBe("never");
+    // A description of today's behavior states a fact, not a rule.
+    expect(
+      statedRule("API keys currently never expire. Add a 90-day expiry."),
+    ).toBeUndefined();
+    expect(statedRule("The job always retries twice.")).toBeUndefined();
+    expect(statedRule("Users never see drafts")).toBeUndefined();
+  });
+
+  test("ignores questions and code", () => {
+    expect(statedRule("Should we always lint?")).toBeUndefined();
+    expect(statedRule("Does it always fail?")).toBeUndefined();
+    expect(statedRule("Why must it retry?")).toBeUndefined();
+    expect(statedRule("Run `must-gather` and fix it")).toBeUndefined();
+    expect(statedRule("Fix this:\n```\nnever();\n```")).toBeUndefined();
+    // The rule in a later sentence still counts.
+    expect(statedRule("Does it retry? It must not retry.")).toBe("must not");
+  });
+
   test("prompt note quotes the phrase and capture reminder mentions the rule", () => {
     expect(rulePromptNote("never")).toStartWith(
       'Kibi: this request reads as a rule or decision (it says "never").',

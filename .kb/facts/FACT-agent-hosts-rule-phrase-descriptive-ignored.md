@@ -1,0 +1,23 @@
+---
+title: Never or always in a sentence that describes current behavior must not make a prompt read as a rule
+status: active
+fact_kind: property_value
+subject_key: kibi.claude_decision_capture
+property_key: descriptive_never_always_ignored
+operator: eq
+value_type: bool
+value_bool: true
+claim_text: Never or always in a sentence that describes current behavior must not make a prompt read as a rule
+text_ref: REQ-agent-hosts-rule-phrase-detection
+tags:
+  - strict-modeling
+  - lane:strict
+  - fact:property_value
+  - provenance:req-agent-hosts-rule-phrase-detection
+origin:
+  kind: agent
+  recorded_at: '2026-11-15T18:52:57.737Z'
+claim_key: CLAIM-D1C3C4EEE3AA479C
+id: FACT-agent-hosts-rule-phrase-descriptive-ignored
+type: fact
+---

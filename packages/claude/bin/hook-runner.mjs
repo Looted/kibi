@@ -1800,10 +1800,25 @@ function firmEditContext(ids) {
   ].join(`
 `);
 }
-var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please)\s+|\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+)(never|always)\b/i;
+var REQUEST_QUESTION = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i;
+var CODE_SPANS = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
+function requestSentences(prompt) {
+  return prompt.replace(CODE_SPANS, " ").split(/(?<=[.!?])\s+|\n+/).map((sentence) => sentence.trim()).filter((sentence) => sentence.length > 0);
+}
 function statedRule(prompt) {
-  const match = RULE_PHRASES.exec(prompt);
-  return match ? match[0].toLowerCase() : undefined;
+  for (const sentence of requestSentences(prompt)) {
+    if (sentence.endsWith("?") && !REQUEST_QUESTION.test(sentence))
+      continue;
+    const match = RULE_PHRASES.exec(sentence);
+    if (match)
+      return match[0].toLowerCase();
+    const adverb = IMPERATIVE_ADVERB.exec(sentence);
+    if (adverb)
+      return adverb[1].toLowerCase();
+  }
+  return;
 }
 function rulePromptNote(phrase) {
   return [
@@ -2862,12 +2877,12 @@ var DIRECT_KB_ACCESS_NOTE = "Kibi: .kb/ holds Kibi-managed knowledge. kb_query/k
 function sessionStartContext(linkedFileCount) {
   return [
     `Kibi knowledge base is active in this workspace (${linkedFileCount} source files have requirement-linked symbols).`,
-    "Kibi hooks add short requirement/test snippets (from the symbol manifest) before reads and edits of linked files; kb_query returns the authoritative detail.",
-    "A request that conflicts with a recorded requirement or ADR is a question, not a task: name the rule and ask before changing the code or the rule, and change it only when the person says so.",
-    "A file with no linked symbols gets a short note; no link is not no rule, so kb_search what it does (permissions, roles, limits, data).",
+    "Kibi hooks add short requirement/test snippets before reads and edits of linked files; kb_query returns the full detail.",
+    "A request that would make a recorded requirement or ADR false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask, change the code or the rule only when the person says so, and ask when unsure.",
+    "A file with no linked symbols gets a short note; no link is not no rule, so kb_search what it does (permissions, limits, data).",
     "Recording new behavior (requirement, scenario, implements link) is part of the change and needs no permission.",
-    "Operations: kb_search (ask it a question; the answer layer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
-    "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills with action load)."
+    "Operations: kb_search (ask it a question; the answer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (mcp__plugin_kibi-claude_kibi__kb_*); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
+    "Workflow guidance: the kibi-claude:kibi-usage skill (also kb_skills with action load)."
   ].join(`
 `);
 }
