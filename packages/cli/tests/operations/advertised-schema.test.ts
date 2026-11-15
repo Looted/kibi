@@ -40,7 +40,9 @@ const schema = {
 describe("advertised input schemas", () => {
   test("replace each marked field with a one-line stub and keep every other field", () => {
     const advertised = advertisedInputSchema(schema);
-    expect(advertised.properties.properties.properties).toEqual({
+    // The stub's shape differs from the full field's, which the generic
+    // return type does not describe.
+    expect(advertised.properties.properties.properties as unknown).toEqual({
       title: { type: "string", description: "Kept as it is." },
       proof_contract: { type: "object", description: "One-line contract." },
       proof_receipts: {
