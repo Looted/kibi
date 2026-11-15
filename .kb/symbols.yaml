@@ -40491,6 +40491,74 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-engine-isolation-and-cleanup
+  - id: SYM-e2e-test-kibi-legacy-attachment-apply-migration
+    title: legacy-attachment-apply.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/legacy-attachment-apply.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-14T12:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-legacy-attachment-apply-migration
+  - id: SYM-kibi-legacy-branch-migration-approval-hash
+    title: legacyBranchMigrationApprovalHash
+    status: active
+    sourceFile: packages/cli/src/commands/branch.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-14T12:00:00.000Z
+      ref: 'Maintainer, in review on 2026-11-15: approved this requirement statement as written.'
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-legacy-attachment-apply-migration
+      - type: implements
+        target: REQ-kibi-legacy-attachment-apply-migration
+  - id: SYM-kibi-apply-plan-legacy-attachment-gate
+    title: assertLegacyAttachmentMigrates
+    status: active
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-14T12:00:00.000Z
+      ref: 'Maintainer, in review on 2026-11-15: approved this requirement statement as written.'
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-legacy-attachment-apply-migration
+      - type: implements
+        target: REQ-kibi-legacy-attachment-apply-migration
+  - id: SYM-kibi-apply-plan-migration-plan
+    title: applyMigrationPlan
+    status: active
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-14T12:00:00.000Z
+      ref: 'Maintainer, in review on 2026-11-15: approved this requirement statement as written.'
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-legacy-attachment-apply-migration
+      - type: implements
+        target: REQ-kibi-legacy-attachment-apply-migration
+  - id: SYM-kibi-apply-plan-migration-action
+    title: applyMigrationAction
+    status: active
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-14T12:00:00.000Z
+      ref: 'Maintainer, in review on 2026-11-15: approved this requirement statement as written.'
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-legacy-attachment-apply-migration
+      - type: implements
+        target: REQ-kibi-legacy-attachment-apply-migration
   - id: SYM-e2e-test-kibi-pending-receipt-branch-scope
     title: pending-receipt-branch-scope.test
     status: active

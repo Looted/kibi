@@ -1,4 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { branchMigrationApprovalHash } from "../../src/commands/branch.js";
 import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
 import {
   buildActionsFromCheck,
@@ -9,6 +13,10 @@ import {
   migrationAction,
   migrationPlanHash,
 } from "../../src/public/operations/migration-plan.js";
+import {
+  branchStorePath,
+  legacyBranchStorePath,
+} from "../../src/utils/branch-store-locator.js";
 
 describe("kibi.migration-plan.v2", () => {
   test("hashes equivalent action graphs deterministically", () => {
@@ -47,58 +55,86 @@ describe("kibi.migration-plan.v2", () => {
     );
   });
 
-  test("emits a safe exact legacy branch action and does not normalize other branches", () => {
-    const legacy = buildActionsFromStatus({
-      workspaceRoot: "/tmp/project",
-      branchAttachment: {
-        gitBranch: "master",
+  test("emits a hash-bound legacy branch action only for a same-identity move", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-legacy-plan-"));
+    try {
+      const store = legacyBranchStorePath(root, "main");
+      mkdirSync(store, { recursive: true });
+      writeFileSync(join(store, "kb.rdf"), "facts\n");
+      const legacyAttachment = {
+        gitBranch: "main",
         kbBranch: "main",
         kind: "legacy_compat",
         migrationRequired: true,
-      },
-      branchStore: { state: "healthy", path: ".kb/branches/main" },
-      configStatus: {
-        status: "current",
-        currentVersion: 4,
-        latestVersion: 4,
-        needsMigration: false,
-        warning: null,
-        configHash: "a",
-      },
-    });
-    expect(legacy.actions[0]).toMatchObject({
-      code: "legacy_branch_storage",
-      safety: "automatic",
-      autoApplicable: true,
-    });
+      };
+      const legacy = buildActionsFromStatus({
+        workspaceRoot: root,
+        branchAttachment: legacyAttachment,
+        branchStore: { state: "healthy", path: ".kb/branches/main" },
+      });
+      const approvalHash = branchMigrationApprovalHash(
+        "main",
+        "main",
+        store,
+        branchStorePath(root, "main"),
+      );
+      expect(legacy.actions[0]).toMatchObject({
+        id: "branch-legacy-attachment",
+        code: "legacy_branch_storage",
+        state: "ready",
+        safety: "automatic",
+        autoApplicable: true,
+        invocation: {
+          kind: "cli",
+          command_argv: [
+            "kibi",
+            "branch",
+            "migrate",
+            "--from",
+            "main",
+            "--to",
+            "main",
+            "--apply",
+            "--approval-hash",
+            approvalHash,
+          ],
+        },
+        evidence: { attachment: legacyAttachment, approvalHash },
+      });
 
-    const explicitLegacy = buildActionsFromStatus({
-      workspaceRoot: "/tmp/project",
-      branchAttachment: {
-        gitBranch: "develop",
-        kbBranch: "main",
-        kind: "legacy_compat",
-        migrationRequired: true,
-      },
-      branchStore: { state: "healthy", path: ".kb/branches/main" },
-    });
-    expect(explicitLegacy.actions[0]).toMatchObject({
-      code: "legacy_branch_storage",
-      safety: "automatic",
-      autoApplicable: true,
-      invocation: {
-        command_argv: [
-          "kibi",
-          "branch",
-          "migrate",
-          "--from",
-          "main",
-          "--to",
-          "develop",
-          "--apply",
-        ],
-      },
-    });
+      // A different store body is a different approval.
+      writeFileSync(join(store, "kb.rdf"), "changed\n");
+      const changed = buildActionsFromStatus({
+        workspaceRoot: root,
+        branchAttachment: legacyAttachment,
+        branchStore: { state: "healthy", path: ".kb/branches/main" },
+      });
+      expect(changed.planHash).not.toBe(legacy.planHash);
+
+      // Kibi never moves one branch's store to another branch.
+      const crossBranch = buildActionsFromStatus({
+        workspaceRoot: root,
+        branchAttachment: { ...legacyAttachment, gitBranch: "develop" },
+        branchStore: { state: "healthy", path: ".kb/branches/main" },
+      });
+      expect(crossBranch.actions[0]).toMatchObject({
+        code: "ambiguous_branch_attachment",
+        state: "blocked",
+        safety: "operator",
+        invocation: { kind: "review" },
+      });
+
+      // Nor onto a hashed store that already exists.
+      mkdirSync(branchStorePath(root, "main"), { recursive: true });
+      const occupied = buildActionsFromStatus({
+        workspaceRoot: root,
+        branchAttachment: legacyAttachment,
+        branchStore: { state: "healthy", path: ".kb/branches/main" },
+      });
+      expect(occupied.actions[0]).toMatchObject({ state: "blocked" });
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   test("a store compiled by another CLI contract is resynced automatically", () => {

@@ -2245,6 +2245,12 @@ describe("apply plan source recovery and migration", () => {
     test("applies automatic executors and records closeout from mocked status", async () => {
       const root = makeTempDir();
       track(
+        spyOn(
+          branchModule,
+          "legacyBranchMigrationApprovalHash",
+        ).mockReturnValue("b".repeat(64)),
+      );
+      track(
         spyOn(branchModule, "branchMigrateCommand").mockResolvedValue(
           undefined,
         ),
@@ -2306,9 +2312,11 @@ describe("apply plan source recovery and migration", () => {
                 "branch",
                 "migrate",
                 "--from",
-                "legacy",
+                "develop",
                 "--to",
                 "develop",
+                "--approval-hash",
+                "b".repeat(64),
               ],
             },
           }),

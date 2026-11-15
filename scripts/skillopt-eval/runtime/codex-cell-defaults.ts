@@ -503,9 +503,15 @@ function workflowSignalObserved(
     case "cross-branch migration refused":
       return prose.includes("branch migrate") && prose.includes("refus");
     case "missing branch-store status":
-      return (
-        text.includes("branch_store_missing") ||
-        text.includes("sync_metadata_missing")
+      // The agent's own status read saw the missing store; the reads that
+      // follow compile it from the authored sources, so the verifier's
+      // final status no longer can.
+      return (context.calls ?? []).some(
+        (call) =>
+          call.tool === "kb_status" &&
+          /"(?:branch_store_missing|sync_metadata_missing)"/.test(
+            JSON.stringify(call.result ?? null),
+          ),
       );
     case "explicit apply boundary":
       return prose.includes("--apply") || prose.includes("apply boundary");
@@ -722,12 +728,16 @@ function forbiddenActionObserved(
     case "recommend v1 receipt":
       return text.includes("recommend v1") || text.includes("use a v1 receipt");
     case "silently ignore editor config":
+      // A snapshot-relevant dirty path the answer never names.
       return (
         Array.isArray(status?.proofSnapshotChanges) &&
         status.proofSnapshotChanges.some(
-          (change) => isRecord(change) && change.snapshotRelevant === true,
-        ) &&
-        !text.includes("editor")
+          (change) =>
+            isRecord(change) &&
+            change.snapshotRelevant === true &&
+            typeof change.path === "string" &&
+            !context.answer.text.includes(change.path),
+        )
       );
     case "reuse pre-integration receipt":
       return (
@@ -762,10 +772,14 @@ function forbiddenActionObserved(
           !approvesEveryAutomaticAction(plan, args.approvedActionIds),
       );
     case "apply review action":
-      return (
-        text.includes("apply") &&
-        (text.includes("review action") || text.includes('"safety":"review"'))
-      );
+      // An applied plan approved an action that is not ready and automatic.
+      return appliedMigrationPlans(context).some(({ plan, args }) => {
+        const automatic = automaticActionIds(plan);
+        return (
+          Array.isArray(args.approvedActionIds) &&
+          args.approvedActionIds.some((id) => !automatic.has(id))
+        );
+      });
     case "start Prolog for status":
       return text.includes("start prolog") && text.includes("status");
     case "delete authored symbol":

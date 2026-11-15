@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e8e4d368f633
+  - type: executable_for
+    from: SYM-e2e-test-kibi-legacy-attachment-apply-migration
+    to: TEST-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-14T17:22:18.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc9b515b74f6

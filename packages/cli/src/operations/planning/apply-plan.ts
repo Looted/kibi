@@ -6,6 +6,8 @@ import {
   branchEnsureCommand,
   branchMigrateCommand,
   branchRecoverCommand,
+  isSupportedLegacyBranchMigration,
+  legacyBranchMigrationApprovalHash,
 } from "../../commands/branch.js";
 import {
   describeMigrationRun,
@@ -38,6 +40,7 @@ import {
   computeShardPath,
   renderShardWithRelationship,
 } from "../../relationships/shards.js";
+import { resolveActiveBranch } from "../../utils/branch-resolver.js";
 import { BRANCH_STORE_NOT_COMPILED } from "../../utils/branch-store.js";
 import { canonicalFilesystemPath } from "../../utils/canonical-path.js";
 import { isDerivedKbPath } from "../../utils/kb-paths.js";
@@ -1583,6 +1586,38 @@ async function executeBootstrapPlan(
   };
 }
 
+/** The migration code that moves a legacy literal-path branch store. */
+const LEGACY_BRANCH_STORAGE = "legacy_branch_storage";
+
+/**
+ * While a legacy branch store is attached, writes are blocked until it is
+ * migrated, so the only plan that may apply is a migration plan that
+ * approves the legacy migration itself.
+ */
+export function assertLegacyAttachmentMigrates(
+  args: ApplyPlanArgs,
+  context: OperationContext,
+): void {
+  const attachment = context.branchAttachment;
+  if (attachment?.migrationRequired !== true) return;
+  const approved = new Set(
+    isMigrationApplyArgs(args) && Array.isArray(args.approvedActionIds)
+      ? args.approvedActionIds
+      : [],
+  );
+  if (
+    isMigrationApplyArgs(args) &&
+    args.plan.actions.some(
+      (action) =>
+        action.code === LEGACY_BRANCH_STORAGE && approved.has(action.id),
+    )
+  )
+    return;
+  throw new Error(
+    `Legacy branch attachment requires explicit migration before 'kb_apply_plan'; approve the plan's ${LEGACY_BRANCH_STORAGE} action from kb_status, or run kibi branch migrate --from ${attachment.kbBranch} --to ${attachment.gitBranch} --apply`,
+  );
+}
+
 async function executeApplyPlanUnlocked(
   args: ApplyPlanArgs,
   context: OperationContext,
@@ -1591,6 +1626,7 @@ async function executeApplyPlanUnlocked(
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
 }> {
+  assertLegacyAttachmentMigrates(args, context);
   // Finish any interrupted plan application before this call reads or writes
   // anything, and report what was done alongside this call's own result.
   const recovered = await recoverInterruptedPlans(
@@ -2922,7 +2958,7 @@ export async function executeApplyPlan(
   }
 }
 
-async function applyMigrationPlan(
+export async function applyMigrationPlan(
   args: Extract<ApplyPlanArgs, { plan: MigrationPlan }>,
   context: OperationContext,
   onCommitted: () => void = () => undefined,
@@ -2930,7 +2966,23 @@ async function applyMigrationPlan(
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
 }> {
-  const actions = topologicalActions(validateMigrationPlanShape(args));
+  // A legacy store moves first: every later action reads the migrated store,
+  // so a legacy action that waits on another action is refused outright.
+  const dependentLegacy = args.plan.actions.find(
+    (action) =>
+      action.code === LEGACY_BRANCH_STORAGE && action.dependsOn.length > 0,
+  );
+  if (dependentLegacy !== undefined)
+    throw new Error(
+      `Migration apply failed: legacy branch migration '${dependentLegacy.id}' must not depend on other actions; it runs before all of them`,
+    );
+  const actions = topologicalActions(
+    validateMigrationPlanShape(args).sort(
+      (left, right) =>
+        Number(right.code === LEGACY_BRANCH_STORAGE) -
+        Number(left.code === LEGACY_BRANCH_STORAGE),
+    ),
+  );
   const initialStatus = (await executeStatus({}, context)).structuredContent;
   if (!initialStatus)
     throw new Error("Migration apply failed: status query returned no payload");
@@ -2981,6 +3033,7 @@ async function applyMigrationPlan(
   // own; unless a later action compiled the store, it is recompiled once at
   // the end so status, check and coverage read the applied sources.
   let sourcesAwaitSync = false;
+  let legacyMigrated = false;
   for (const action of actions) {
     if (failed) {
       results.push({
@@ -2993,6 +3046,7 @@ async function applyMigrationPlan(
     try {
       const detail = await applyMigrationAction(action, context);
       onCommitted();
+      if (action.code === LEGACY_BRANCH_STORAGE) legacyMigrated = true;
       results.push({
         actionId: action.id,
         outcome: "applied",
@@ -3033,7 +3087,12 @@ async function applyMigrationPlan(
       });
     }
   }
-  const finalStatus = (await executeStatus({}, context)).structuredContent;
+  // The attachment resolved before a legacy migration names the old store;
+  // the closeout reads the attachment the migration left.
+  const finalContext: OperationContext = legacyMigrated
+    ? withoutAttachment(context)
+    : context;
+  const finalStatus = (await executeStatus({}, finalContext)).structuredContent;
   if (!finalStatus)
     throw new Error(
       "Migration apply failed: final status query returned no payload",
@@ -3047,9 +3106,7 @@ async function applyMigrationPlan(
     try {
       const prolog = context.prolog ?? (await context.ensureProlog?.());
       if (prolog !== undefined) {
-        const operationContext = context.prolog
-          ? context
-          : { ...context, prolog };
+        const operationContext = { ...finalContext, prolog };
         const [
           { executeCheck },
           { executeCoverage },
@@ -3179,7 +3236,20 @@ const STORE_COMPILING_MIGRATION_CODES: ReadonlySet<string> = new Set([
   BRANCH_STORE_NOT_COMPILED,
 ]);
 
-async function applyMigrationAction(
+/** The context without its pre-resolved branch attachment. */
+function withoutAttachment(context: OperationContext): OperationContext {
+  const { branchAttachment: _resolvedBefore, ...rest } = context;
+  return rest;
+}
+
+/** The active Git branch, from the attachment or else from Git itself. */
+function activeGitBranch(context: OperationContext): string | undefined {
+  if (context.branchAttachment) return context.branchAttachment.gitBranch;
+  const active = resolveActiveBranch(context.workspaceRoot);
+  return "branch" in active ? active.branch : undefined;
+}
+
+export async function applyMigrationAction(
   action: MigrationAction,
   context: OperationContext,
 ): Promise<string | undefined> {
@@ -3193,16 +3263,41 @@ async function applyMigrationAction(
         const argv = action.invocation.command_argv;
         const fromIndex = argv.indexOf("--from");
         const toIndex = argv.indexOf("--to");
+        const hashIndex = argv.indexOf("--approval-hash");
         const from = fromIndex >= 0 ? argv[fromIndex + 1] : undefined;
         const to = toIndex >= 0 ? argv[toIndex + 1] : undefined;
+        const approvalHash = hashIndex >= 0 ? argv[hashIndex + 1] : undefined;
         if (!from || !to)
           throw new Error(
             "Legacy branch migration action requires explicit --from and --to.",
           );
+        if (!approvalHash)
+          throw new MigrationActionRefusedError(
+            "Legacy branch migration action carries no preview approval hash; rerun kibi status for a current plan.",
+          );
+        // Refused before anything moves: only the active branch's own
+        // legacy store migrates, and only as previewed.
+        if (
+          !isSupportedLegacyBranchMigration(from, to) ||
+          activeGitBranch(context) !== to
+        )
+          throw new MigrationActionRefusedError(
+            `Legacy branch migration ${from} -> ${to} is not the active branch's own legacy store; only a same-identity migration of the attached branch is applied.`,
+          );
+        if (
+          legacyBranchMigrationApprovalHash(context.workspaceRoot, from, to) !==
+          approvalHash
+        )
+          throw new MigrationActionRefusedError(
+            "Legacy branch store changed after its migration preview; rerun kb_status for a current plan.",
+          );
+        // The command re-hashes the legacy store, so a store that changed
+        // since planning is refused rather than moved.
         await branchMigrateCommand({
           from,
           to,
           apply: true,
+          approvalHash,
           workspaceRoot: context.workspaceRoot,
         });
       }
