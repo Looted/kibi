@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5bf0aaa651d3
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNLISTED-CLAIM
+    to: FACT-NEG-kb-upsert-derives-proposition-ledger-UNLISTED-CLAIM
+    created_at: 2026-11-15T20:20:30.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-861510be0013
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNLISTED-CLAIM
+    to: TEST-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:30.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa93bab95702

@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d85090deb48
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNGROUNDED-MODELED
+    to: FACT-NEG-kb-upsert-derives-proposition-ledger-UNGROUNDED-MODELED
+    created_at: 2026-11-15T20:20:31.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b0c40e6b8d1
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNGROUNDED-MODELED
+    to: TEST-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:31.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2469b521300f
