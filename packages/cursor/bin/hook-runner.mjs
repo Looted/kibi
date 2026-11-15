@@ -1499,10 +1499,25 @@ function removesOnlyDeadImplementsComments(absolutePath, toolInput, base) {
   }
   return pairs.every(([before, after]) => removesOnlyDeadComments(before, after));
 }
-var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please)\s+|\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+)(never|always)\b/i;
+var REQUEST_QUESTION = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i;
+var CODE_SPANS = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
+function requestSentences(prompt) {
+  return prompt.replace(CODE_SPANS, " ").split(/(?<=[.!?])\s+|\n+/).map((sentence) => sentence.trim()).filter((sentence) => sentence.length > 0);
+}
 function statedRule(prompt) {
-  const match = RULE_PHRASES.exec(prompt);
-  return match ? match[0].toLowerCase() : undefined;
+  for (const sentence of requestSentences(prompt)) {
+    if (sentence.endsWith("?") && !REQUEST_QUESTION.test(sentence))
+      continue;
+    const match = RULE_PHRASES.exec(sentence);
+    if (match)
+      return match[0].toLowerCase();
+    const adverb = IMPERATIVE_ADVERB.exec(sentence);
+    if (adverb)
+      return adverb[1].toLowerCase();
+  }
+  return;
 }
 function rulePromptNote(phrase) {
   return [

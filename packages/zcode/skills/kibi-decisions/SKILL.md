@@ -4,7 +4,7 @@ description: "Use when the person states a rule or decision (must, never, always
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-decisions
-  version: 1.10.0
+  version: 1.11.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -76,8 +76,10 @@ name the missing capability. Never read or edit `.kb/` files directly.
 
 ## Decide
 
-- **Request conflicts with a recorded rule (any firmness):** name the rule (id
-  and what it requires) and ask whether to change it. Do not implement the
+- **Request conflicts with a recorded rule (any firmness):** the request would
+  make the rule's statement false, including narrowing it or adding an
+  exception (touching the same code is not a conflict; when you cannot tell,
+  ask). Name the rule (id and what it requires) and ask whether to change it. Do not implement the
   request and do not supersede the rule until the person says to change that
   rule.
 - **Edit confirmation declined, or nobody could answer:** the requirement
