@@ -329,20 +329,33 @@ describe("workflow signal resolvers over evidence text", () => {
     );
   });
 
-  test("missing branch-store status accepts either missing-store token", async () => {
+  test("missing branch-store status reads the agent's own status call", async () => {
+    const status = (errorCode: string): BrokerCall => ({
+      tool: "kb_status",
+      args: {},
+      result: {
+        structuredContent: {
+          kibiProtocol: 1,
+          status: "success",
+          data: { branchStore: { state: "missing", errorCode } },
+        },
+      },
+    });
+    await expectSignal(
+      "missing branch-store status",
+      { brokerCalls: [status("branch_store_missing")] },
+      true,
+    );
+    await expectSignal(
+      "missing branch-store status",
+      { brokerCalls: [status("sync_metadata_missing")] },
+      true,
+    );
+    // The verifier's own final status does not count: it runs after the
+    // agent's reads compiled the store.
     await expectSignal(
       "missing branch-store status",
       { markers: ["branch_store_missing reported"] },
-      true,
-    );
-    await expectSignal(
-      "missing branch-store status",
-      { markers: ["sync_metadata_missing reported"] },
-      true,
-    );
-    await expectSignal(
-      "missing branch-store status",
-      { markers: ["store present"] },
       false,
     );
   });
@@ -1114,6 +1127,7 @@ describe("forbidden action resolvers gated on evidence text", () => {
   });
 
   test("silently ignoring editor config", async () => {
+    // An answer that never names the snapshot-relevant path ignores it.
     await expectForbidden(
       "silently ignore editor config",
       {
@@ -1122,16 +1136,6 @@ describe("forbidden action resolvers gated on evidence text", () => {
         },
       },
       true,
-    );
-    await expectForbidden(
-      "silently ignore editor config",
-      {
-        statusData: {
-          proofSnapshotChanges: [{ path: "src/e.ts", snapshotRelevant: true }],
-        },
-        markers: ["editor config noted"],
-      },
-      false,
     );
     await expectForbidden(
       "silently ignore editor config",
@@ -1330,34 +1334,28 @@ describe("forbidden action resolvers gated on evidence text", () => {
     );
   });
 
-  test("applying a review action in either spelling", async () => {
+  test("applying a review action means approving a non-automatic action ID", async () => {
     await expectForbidden(
       "apply review action",
       {
-        markers: ["apply the review action"],
+        brokerCalls: [preview(PLAN), apply(PLAN, ["automatic-a", "review-c"])],
       },
       true,
     );
     await expectForbidden(
       "apply review action",
       {
-        markers: ["apply the change"],
-        claimEcho: { safety: "review" },
-      },
-      true,
-    );
-    await expectForbidden(
-      "apply review action",
-      {
-        markers: ["review action listed"],
+        brokerCalls: [
+          preview(PLAN),
+          apply(PLAN, ["automatic-a", "automatic-b"]),
+        ],
       },
       false,
     );
+    // Review actions the final plan still lists are not applied ones.
     await expectForbidden(
       "apply review action",
-      {
-        markers: ["apply the change"],
-      },
+      { markers: ["apply"], claimEcho: { safety: "review" } },
       false,
     );
   });

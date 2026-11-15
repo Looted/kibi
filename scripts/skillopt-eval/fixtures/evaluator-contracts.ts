@@ -315,6 +315,12 @@ const PrivateEvaluatorManifestSchema = z
         "seeded_receipt_contract_drift_kb",
         "seeded_receipt_integration_kb",
         "seeded_receipt_ontology_gap_kb",
+        "seeded_legacy_branch_store_kb",
+        "seeded_unreadable_legacy_store_kb",
+        "seeded_unreadable_branch_store_kb",
+        "seeded_missing_branch_store_kb",
+        "seeded_dirty_editor_config_kb",
+        "seeded_destructive_plan_kb",
       ])
       .optional(),
     workspaceAssertions: z.array(WorkspaceAssertionSchema).optional(),
