@@ -345,14 +345,14 @@ export async function discoverSourceFiles(
       options.consumeTrackedPendingReceipts !== false &&
       existsSync(pendingRoot)
     ) {
-      const inScope = pendingReceiptScope(cwd);
       for (const name of readdirSync(pendingRoot)) {
         if (!name.endsWith(".json")) continue;
         const receiptPath = path.join(pendingRoot, name);
         const file = readReceiptFile(receiptPath);
-        // Leave malformed receipts for explicit recovery diagnostics, and
-        // another branch's receipts for that branch.
-        if (file === null || !inScope(file.receipt)) continue;
+        // Leave malformed receipts for explicit recovery diagnostics. A
+        // receipt whose file Git tracks on this branch is retired whichever
+        // branch wrote it: Git owns those bytes here.
+        if (file === null) continue;
         const recorded = file.receipt?.path;
         if (
           typeof recorded === "string" &&

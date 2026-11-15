@@ -140,7 +140,7 @@ describe("sync leaves another branch's receipts alone", () => {
     ).toBe(true);
   });
 
-  test("a tracked file consumes only this branch's receipt", async () => {
+  test("a tracked file retires its receipt whichever branch wrote it", async () => {
     const cwd = track(createGitWorkspace("main"));
     const relative = ".kb/requirements/REQ-TRACKED.md";
     mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
@@ -157,8 +157,46 @@ describe("sync leaves another branch's receipts alone", () => {
       branch: "main",
     });
     await discoverSourceFiles(cwd, { trackedOnly: true });
-    expect(existsSync(foreign)).toBe(true);
+    expect(existsSync(foreign)).toBe(false);
     expect(existsSync(own)).toBe(false);
+  });
+
+  test("a file written on main and committed on a feature branch leaves main syncing", async () => {
+    const cwd = track(createGitWorkspace("main"));
+    const relative = ".kb/requirements/REQ-BRANCHED.md";
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(path.join(cwd, relative), "branched\n");
+    writePendingSourceReceipt(cwd, relative, sha("branched\n"));
+    expect(receipts(cwd)).toMatchObject([{ branch: "main" }]);
+
+    git(cwd, "checkout -q -b feature");
+    git(cwd, `add ${relative}`);
+    git(cwd, "commit -q --no-verify -m branched");
+    await discoverSourceFiles(cwd, { trackedOnly: true });
+    expect(receipts(cwd)).toStrictEqual([]);
+
+    git(cwd, "checkout -q main");
+    expect(existsSync(path.join(cwd, relative))).toBe(false);
+    const result = await discoverSourceFiles(cwd, { trackedOnly: true });
+    expect(result.markdownFiles).toStrictEqual([]);
+  });
+
+  test("a tracked shard is not hash-checked against another branch's receipt", () => {
+    const cwd = track(createGitWorkspace("feature/a"));
+    const relationshipsDir = path.join(cwd, ".kb", "relationships");
+    mkdirSync(relationshipsDir, { recursive: true });
+    const shard = path.join(relationshipsDir, "ab.yaml");
+    writeFileSync(shard, "first\n");
+    writePendingSourceReceipt(cwd, ".kb/relationships/ab.yaml", sha("first\n"));
+    git(cwd, "add .kb/relationships/ab.yaml");
+    git(cwd, "commit -q --no-verify -m shard");
+
+    git(cwd, "checkout -q -b feature/b");
+    writeFileSync(shard, "first\nsecond\n");
+    git(cwd, "commit -q --no-verify -am more");
+    expect(trackedRelationshipFiles(cwd, relationshipsDir)).toStrictEqual([
+      shard,
+    ]);
   });
 
   test("a relationship shard bound on another branch does not fail the relationship read", () => {

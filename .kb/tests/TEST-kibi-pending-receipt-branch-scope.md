@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Packed end-to-end test documentation/tests/e2e/packed/pending-receipt-branch-scope.test.ts: in an installed project it upserts a scenario on a feature branch, checks that the receipt records that branch, commits the file and checks out the base branch, then checks that kibi sync succeeds there and that back on the feature branch sync consumes the receipt.
+Packed end-to-end test documentation/tests/e2e/packed/pending-receipt-branch-scope.test.ts: in an installed project it upserts a scenario on a feature branch, checks that the receipt records that branch, commits the file and checks out the base branch, then checks that kibi sync succeeds there and that back on the feature branch sync consumes the receipt. It also upserts a scenario on the base branch, commits it on a new branch, and checks that sync there retires the base branch's receipt so the base branch still syncs without the file.

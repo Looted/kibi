@@ -293,6 +293,9 @@ export function trackedRelationshipFiles(
       }
       const relative = receipt.path.replaceAll("\\", "/");
       if (!relative.startsWith(".kb/relationships/")) continue;
+      // Git owns a tracked shard's bytes, whichever branch wrote the
+      // receipt; discovery retires that receipt.
+      if (tracked.has(relative)) continue;
       const absolute = path.resolve(workspaceRoot, relative);
       if (!absolute.startsWith(`${path.resolve(workspaceRoot)}${path.sep}`)) {
         throw pendingSourceEscapesError(relative);

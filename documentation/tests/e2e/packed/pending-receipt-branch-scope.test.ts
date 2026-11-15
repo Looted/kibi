@@ -151,6 +151,56 @@ if (RUN_NODE_TEST_SUITE) {
           );
         },
       );
+
+      it(
+        "retires a receipt written on develop once another branch commits its file",
+        { timeout: 180000 },
+        async (t) => {
+          if (!hasProlog) {
+            t.skip("SWI-Prolog is not available");
+            return;
+          }
+          await git("checkout", "-q", "develop");
+          const path = ".kb/scenarios/SCEN-BRANCHED-OFF.md";
+          const request = join(sandbox.repoDir, "..", "branched-off.json");
+          writeFileSync(
+            request,
+            JSON.stringify({
+              type: "scenario",
+              id: "SCEN-BRANCHED-OFF",
+              properties: { title: "Branched off", status: "active" },
+              document: {
+                path,
+                body: "Given a scenario authored on develop, when it is committed on a new branch, then develop still syncs.",
+              },
+            }),
+          );
+          const upsert = await kibi(sandbox, ["upsert", "--input", request]);
+          assert.strictEqual(
+            upsert.exitCode,
+            0,
+            `${upsert.stdout}${upsert.stderr}`,
+          );
+          assert.deepStrictEqual(
+            receipts().map(({ branch }) => branch),
+            ["develop"],
+          );
+
+          await git("checkout", "-q", "-b", "branched-off");
+          await git("add", path);
+          await git("commit", "-q", "--no-verify", "-m", "branched off");
+          await sync();
+          assert.deepStrictEqual(
+            receipts(),
+            [],
+            "the branch that tracks the file retires develop's receipt",
+          );
+
+          await git("checkout", "-q", "develop");
+          assert.ok(!existsSync(join(sandbox.repoDir, path)));
+          await sync();
+        },
+      );
     },
   );
 }
