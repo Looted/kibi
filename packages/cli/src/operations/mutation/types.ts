@@ -26,8 +26,29 @@ export type UpsertInput = {
    * preview sees the KB as it would be after the whole batch.
    */
   readonly plannedFacts?: readonly PlannedFactInput[];
+  /**
+   * Requirement upserts only: the code that implements the requirement, as
+   * source file and declaration name. Each entry is resolved to one granular
+   * declaration and recorded as an `implements` link from its symbol entity
+   * (created when the KB has none for that declaration).
+   */
+  readonly implementedBy?: readonly ImplementedByInput[];
   readonly _skipContradictionCheck?: boolean;
   readonly _requestId?: string;
+};
+
+/** One implementedBy entry: a declaration in a workspace source file. */
+export type ImplementedByInput = {
+  readonly sourceFile: string;
+  readonly symbol: string;
+};
+
+/** How kb_upsert recorded one implementedBy entry. */
+export type ImplementedByLink = {
+  readonly sourceFile: string;
+  readonly symbol: string;
+  readonly symbolId: string;
+  readonly created: boolean;
 };
 
 /** One planned fact write staged ahead of a dry run. */
@@ -84,6 +105,8 @@ export type UpsertPayload = {
     readonly claim_text: string;
     readonly advisor_status?: string;
   }[];
+  /** For a requirement sent with implementedBy: the symbol each entry linked. */
+  readonly implementedBy?: readonly ImplementedByLink[];
   readonly status?: "committed_with_repairs";
   readonly effectFailures?: readonly {
     readonly kind: string;

@@ -799,6 +799,14 @@
               "additionalProperties": true
             },
             "description": "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text."
+          },
+          "implementedBy": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Each implementedBy entry with the symbolId that implements the requirement and whether it was created."
           }
         }
       },
@@ -844,6 +852,13 @@
             "additionalProperties": true
           },
           "inventoryApplied": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "implementedBy": {
             "type": "array",
             "items": {
               "type": "object",

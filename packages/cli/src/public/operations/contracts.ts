@@ -683,6 +683,11 @@ const BASE_DATA_SCHEMAS: Readonly<
           description:
             "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text.",
         },
+        implementedBy: {
+          ...recordArray,
+          description:
+            "Each implementedBy entry with the symbolId that implements the requirement and whether it was created.",
+        },
       }),
       objectData(
         {
@@ -696,6 +701,7 @@ const BASE_DATA_SCHEMAS: Readonly<
           stagedFacts: stringArray,
           whatIf: recordValue,
           inventoryApplied: recordArray,
+          implementedBy: recordArray,
           dryRun: { const: true },
           skippedEffects: stringArray,
         },
