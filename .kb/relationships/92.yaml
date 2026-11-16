@@ -360,3 +360,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42490fc3b7a9
+  - type: implements
+    from: SYM-agent-core-firm-edit-reviewed
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-11-16T07:02:54.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e300f5007214
+  - type: covered_by
+    from: SYM-agent-core-firm-edit-reviewed
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T07:02:54.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcff34dff14b
+  - type: covered_by
+    from: SYM-agent-core-firm-edit-reviewed
+    to: TEST-agent-hosts-firm-edit-receipt-notice
+    created_at: 2026-11-16T07:02:54.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a4afa3aefb5

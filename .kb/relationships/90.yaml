@@ -601,3 +601,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-262b9530d6b6
+  - type: executable_for
+    from: SYM-test-agent-hosts-firm-edit-receipt-notice
+    to: TEST-agent-hosts-firm-edit-receipt-notice
+    created_at: 2026-11-16T07:01:55.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2650f0140e82

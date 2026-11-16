@@ -7824,5 +7824,62 @@
         "./packages/cli/tests/operations/advertised-schema.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-firm-edit-receipts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/agent-core/tests/firm-edit-review.test.ts",
+        "./packages/cli/tests/public-mutation/operations/firm-edit-review.mutation.test.ts",
+        "./packages/cli/tests/consumer/firm-edit-review.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-staged-firm-edit-gate",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts",
+        "./packages/cli/tests/public-mutation/impact/analyzer.mutation.test.ts",
+        "./packages/cli/tests/commands-mutation/check/staged-results.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-signoff-firm-edit-receipts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/cli/tests/signoff/collect-mutation.test.ts",
+        "./packages/cli/tests/signoff/markdown-render.test.ts",
+        "./packages/cli/tests/signoff/html-render.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-agent-hosts-firm-edit-receipt-notice",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/codex/tests/hook-runner.test.ts",
+        "./packages/cursor/tests/hook-runner.test.ts",
+        "./packages/zcode/tests/hook-runner.test.ts",
+        "./packages/agent-core/tests/decision-guard.test.ts"
+      ]
+    ]
   }
 ]
