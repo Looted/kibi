@@ -26,15 +26,15 @@ id: TEST-proof-run-failure-phases
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b30c7ea400270b45c2d82ee7
+    receipt_id: PR-c1629c3054e63e03334181d2
     test_id: TEST-proof-run-failure-phases
     scope: unit
     outcome: passed
-    code_snapshot: 0e92ecb6e2415cb6b44cd4648abe5bf8c9c235c18d9f56844e07e29be087804d
+    code_snapshot: d699a078fe8d2323d221f435a979d519f5acca43cfee14f7307e23c39a35f0fa
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T11:21:23.092Z'
-    finished_at: '2026-11-16T11:22:49.884Z'
-    artifact_digest: 4c5ff880d8b0e5e45dca5d0803c0c793347804c85ecfaa631ec1e84c2fe84bfa
+    started_at: '2026-11-16T21:01:15.332Z'
+    finished_at: '2026-11-16T21:01:34.441Z'
+    artifact_digest: 3ef1b1564e3821c2d1f507334af153c4831866821439fdb98ef86c918ef3be6e
     contract_hash: c1528562d4605765a54dd48090c493310aee53b48c0018bc147e976e5cc42b19
     binding_hash: c31c8c25f31dc25b155191de8c09a8df97d92f618d1dd610c249401d61bf1f46
     fingerprint: 43cf62375af4d9a8dc67d61167187d2ba6e707496b5efce09ca6ecaaa64d0cc9
