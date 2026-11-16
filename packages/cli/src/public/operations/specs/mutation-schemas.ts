@@ -510,9 +510,9 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "array",
       items: { type: "string" },
       description:
-        "subject only: similar defined subject keys this subject was checked to differ from; the body says how. Silences subject-duplicate for those pairs.",
+        "subject facts: similar defined subject keys this subject was checked to differ from; property_value facts: subject_key.property_key of value facts that state a different quantity. The body says how. Silences subject-duplicate or quantity-duplicate for those pairs.",
       [ADVERTISED_DESCRIPTION]:
-        "subject only: similar subject keys this subject was checked to differ from; silences subject-duplicate.",
+        "Keys this subject or value fact was checked to differ from; silences subject-duplicate and quantity-duplicate.",
     },
     semantic_inventory: {
       type: "array",

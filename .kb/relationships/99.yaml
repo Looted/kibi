@@ -150,3 +150,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c0c991331c8
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-layer-applies
+    to: REQ-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:46.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b605adb6948a
+  - type: covered_by
+    from: SYM-cli-quantity-layer-quantity-layer-applies
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:46.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec5fc3563293

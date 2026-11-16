@@ -622,3 +622,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1de344d45dce
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-duplicate-rule
+    to: REQ-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:45.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7255e0eb35e7
+  - type: covered_by
+    from: SYM-cli-quantity-layer-quantity-duplicate-rule
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:45.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b7fc545fac4
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-duplicate-violations
+    to: REQ-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:32.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1697eb9f0f9f
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-duplicate-violations
+    to: REQ-check-quantity-duplicate-dangling-distinct
+    created_at: 2026-11-16T16:11:32.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b2666ae24a2
+  - type: covered_by
+    from: SYM-cli-quantity-layer-quantity-duplicate-violations
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:32.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e20fd8a0632

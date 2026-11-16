@@ -489,3 +489,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bcf75bfeaa8e
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-signal
+    to: REQ-check-quantity-duplicate-pairing
+    created_at: 2026-11-16T16:11:06.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4b05944cb45
+  - type: covered_by
+    from: SYM-cli-quantity-layer-quantity-signal
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:06.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d86cb326a40

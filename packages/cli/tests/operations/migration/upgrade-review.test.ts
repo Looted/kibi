@@ -148,7 +148,15 @@ describe("the review note and summary", () => {
       "Schema upgrade applied, but review work remains: the domain subject review above. Run kibi sync, then kibi check to list the findings.",
     );
     expect(upgradeReviewSummary(null, NONE, 4)).toStartWith(
-      "Schema upgrade applied, but review work remains: the domain subject review above and the related-requirement-unmodeled pairs of 4 requirement(s). Run kibi sync",
+      "Schema upgrade applied, but review work remains: the related-requirement-unmodeled pairs of 4 requirement(s). Run kibi sync",
+    );
+    expect(
+      upgradeReviewSummary(null, { ...NONE, duplicates: 1 }, 4, 2),
+    ).toStartWith(
+      "Schema upgrade applied, but review work remains: the domain subject review above and the related-requirement-unmodeled pairs of 4 requirement(s) and 2 quantity-duplicate pair(s) of value facts. Run kibi sync",
+    );
+    expect(upgradeReviewSummary(null, NONE, 0, 3)).toStartWith(
+      "Schema upgrade applied, but review work remains: 3 quantity-duplicate pair(s) of value facts. Run kibi sync",
     );
   });
 });
