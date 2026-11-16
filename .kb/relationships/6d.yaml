@@ -356,3 +356,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-33f1e5e233d6
+  - type: assumes
+    from: SCEN-NEG-kb-merge-action-verify-before-push-VIOLATED
+    to: FACT-NEG-kb-merge-action-verify-before-push-VIOLATED
+    created_at: 2026-11-16T18:11:49.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07475a554232
+  - type: verified_by
+    from: SCEN-NEG-kb-merge-action-verify-before-push-VIOLATED
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:11:49.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-747fed6e47e6
+  - type: constrains
+    from: REQ-ci-kb-merge-branch-push
+    to: FACT-SUBJECT-kibi-ci-kb-merge-workflow
+    created_at: 2026-11-16T18:13:04.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acc087d6322c
+  - type: requires_property
+    from: REQ-ci-kb-merge-branch-push
+    to: FACT-ci-kb-merge-branch-push
+    created_at: 2026-11-16T18:13:04.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4727f387af19
+  - type: specified_by
+    from: REQ-ci-kb-merge-branch-push
+    to: SCEN-ci-kb-merge-branch-push
+    created_at: 2026-11-16T18:13:04.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae46442ca894
+  - type: specified_by
+    from: REQ-ci-kb-merge-branch-push
+    to: SCEN-NEG-ci-kb-merge-branch-push-VIOLATED
+    created_at: 2026-11-16T18:13:04.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9069e0c88f0
