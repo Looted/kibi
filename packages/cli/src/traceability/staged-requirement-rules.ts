@@ -27,6 +27,10 @@ import {
   positiveScenarioViolations,
   readPositiveScenarioGaps,
 } from "../public/operations/positive-scenario.js";
+import {
+  QUANTITY_DUPLICATE_RULE,
+  stagedQuantityViolations,
+} from "../public/operations/quantity-layer.js";
 import type { PrologPort } from "../public/operations/runtime-types.js";
 import {
   SUBJECT_DEFINITION_MISSING_RULE,
@@ -43,7 +47,7 @@ const RELATED_REQUIREMENT_UNMODELED_RULE = "related-requirement-unmodeled";
  * it (see schema-version.ts): an unanchored or undefined claim subject and a
  * subject without a definition from 16, a must requirement without a
  * success scenario from 17, an unmodeled claim paired with another
- * requirement from 18.
+ * requirement from 18, one quantity stated under two keys from 19.
  */
 export const STAGED_REQUIREMENT_RULE_SCHEMAS: Readonly<Record<string, number>> =
   {
@@ -52,6 +56,7 @@ export const STAGED_REQUIREMENT_RULE_SCHEMAS: Readonly<Record<string, number>> =
     [SUBJECT_DEFINITION_MISSING_RULE]: 16,
     [POSITIVE_SCENARIO_RULE]: 17,
     [RELATED_REQUIREMENT_UNMODELED_RULE]: 18,
+    [QUANTITY_DUPLICATE_RULE]: 19,
   };
 
 /** Inventory statuses that leave a claim unmodeled. */
@@ -236,6 +241,8 @@ export function stagedRequirementRules(
       }
       if (selected.includes(SUBJECT_DEFINITION_MISSING_RULE))
         findings.push(...subjectDefinitionFindings(snapshot, tree, knowledge));
+      if (selected.includes(QUANTITY_DUPLICATE_RULE))
+        findings.push(...stagedQuantityViolations(knowledge, entityIds));
       return findings;
     },
   };

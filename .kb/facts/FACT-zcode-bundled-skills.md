@@ -20,7 +20,11 @@ origin:
   kind: agent
   recorded_at: '2026-10-27T07:26:43.561Z'
 claim_key: CLAIM-5982BDE99889016F
+distinct_from:
+  - claude.kibi_plugin.bundled_skills
 id: FACT-zcode-bundled-skills
 type: fact
 ---
 The ZCode plugin bundles the canonical Kibi agent skills as skill directories with a SKILL.md each.
+
+Each plugin package bundles its own copy of the skills, so the ZCode list is checked against the ZCode package and the Claude list against the Claude package. They are equal because both packages ship every skill, not because one list is the other.

@@ -108,7 +108,13 @@ describe("selectStagedRequirementRules", () => {
     expect(selectStagedRequirementRules(17)).not.toContain(
       "related-requirement-unmodeled",
     );
-    expect(selectStagedRequirementRules(18)).toStrictEqual(
+    expect(selectStagedRequirementRules(18)).toContain(
+      "related-requirement-unmodeled",
+    );
+    expect(selectStagedRequirementRules(18)).not.toContain(
+      "quantity-duplicate",
+    );
+    expect(selectStagedRequirementRules(19)).toStrictEqual(
       Object.keys(STAGED_REQUIREMENT_RULE_SCHEMAS),
     );
   });
@@ -259,6 +265,103 @@ describe("stagedRequirementRules", () => {
     expect(port.goals).toStrictEqual([]);
     // Without subject facts there is nothing to read.
     expect(await rules?.evaluate(port, tree, [])).toStrictEqual([]);
+  });
+});
+
+describe("staged quantity-duplicate", () => {
+  /** Two requirements implemented in one file ground 5 under two keys. */
+  function quantityKnowledge(distinctFrom?: string[]): ExtractionResult[] {
+    const value = (id: string, key: string, req: string) =>
+      entity(id, "fact", `.kb/facts/${id}.md`, {
+        fact_kind: "property_value",
+        subject_key: "plugin",
+        property_key: key,
+        operator: "eq",
+        value_type: "int",
+        value_int: 5,
+        ...(id === "FACT-b" && distinctFrom
+          ? { distinct_from: distinctFrom }
+          : {}),
+      });
+    const req = (id: string, fact: string) =>
+      entity(id, "req", `.kb/requirements/${id}.md`, { status: "open" }, [
+        { type: "requires_property", from: id, to: fact },
+      ]);
+    return [
+      value("FACT-a", "bullet_limit", "REQ-a"),
+      value("FACT-b", "bullets_per_block", "REQ-b"),
+      req("REQ-a", "FACT-a"),
+      req("REQ-b", "FACT-b"),
+      {
+        ...entity("SYM-inject", "symbol", ".kb/symbols.yaml"),
+        sourceFile: "src/guidance.ts",
+        relationships: [
+          { type: "implements", from: "SYM-inject", to: "REQ-a" },
+          { type: "implements", from: "SYM-inject", to: "REQ-b" },
+        ],
+      },
+      // A symbol without a source file places nothing.
+      entity("SYM-loose", "symbol", ".kb/symbols.yaml"),
+      entity("ADR-x", "adr", ".kb/adr/ADR-x.md"),
+    ];
+  }
+
+  test("judges a pair only when the commit stages one of its facts or requirements, under that entity", async () => {
+    const { tree, snapshot } = repo({ ".kb/manifest.json": manifest(19) });
+    const knowledge = quantityKnowledge();
+    const judged = async (stagedPaths: string[]) =>
+      (
+        await stagedRequirementRules(snapshot, {
+          stagedPaths,
+          knowledge,
+        })?.evaluate(prolog([]), tree, knowledge)
+      )
+        ?.filter((v) => v.rule === "quantity-duplicate")
+        .map((v) => v.entityId);
+    expect(await judged([])).toStrictEqual([]);
+    expect(await judged([".kb/facts/FACT-a.md"])).toStrictEqual(["FACT-a"]);
+    expect(await judged([".kb/requirements/REQ-b.md"])).toStrictEqual([
+      "REQ-b",
+    ]);
+    expect(await judged([".kb/facts/FACT-b.md"])).toStrictEqual(["FACT-b"]);
+  });
+
+  test("distinct_from ends the pair, and an entry naming nothing is judged on its fact", async () => {
+    const { tree, snapshot } = repo({ ".kb/manifest.json": manifest(19) });
+    const run = async (knowledge: ExtractionResult[]) =>
+      (
+        await stagedRequirementRules(snapshot, {
+          stagedPaths: [".kb/facts/FACT-b.md"],
+          knowledge,
+        })?.evaluate(prolog([]), tree, knowledge)
+      )?.map((v) => [v.rule, v.entityId, v.description.slice(0, 40)]);
+    expect(await run(quantityKnowledge(["plugin.bullet_limit"]))).toStrictEqual(
+      [],
+    );
+    expect(await run(quantityKnowledge(["plugin.gone"]))).toStrictEqual([
+      [
+        "quantity-duplicate",
+        "FACT-b",
+        "Value facts FACT-a (plugin.bullet_limit ",
+      ],
+      [
+        "quantity-duplicate",
+        "FACT-b",
+        "Value fact FACT-b lists plugin.gone unde",
+      ],
+    ]);
+  });
+
+  test("waits for schema 19", async () => {
+    const { tree, snapshot } = repo({ ".kb/manifest.json": manifest(18) });
+    const knowledge = quantityKnowledge();
+    const found = await stagedRequirementRules(snapshot, {
+      stagedPaths: [".kb/facts/FACT-a.md"],
+      knowledge,
+    })?.evaluate(prolog([]), tree, knowledge);
+    expect(found?.filter((v) => v.rule === "quantity-duplicate")).toStrictEqual(
+      [],
+    );
   });
 });
 

@@ -356,3 +356,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3413a41aaddd
+  - type: implements
+    from: SYM-cli-quantity-warnings-quantity-warning-input
+    to: REQ-upsert-names-quantity-twin
+    created_at: 2026-11-16T16:12:02.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b23ac33bd414
+  - type: implements
+    from: SYM-cli-quantity-warnings-quantity-warning-input
+    to: REQ-upsert-quantity-previous-value
+    created_at: 2026-11-16T16:12:02.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a826987b629f
+  - type: covered_by
+    from: SYM-cli-quantity-warnings-quantity-warning-input
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:12:02.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52fed91ca069
