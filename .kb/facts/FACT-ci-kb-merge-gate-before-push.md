@@ -7,7 +7,7 @@ property_key: precedes
 operator: includes
 value_type: set
 value_set:
-  - sh scripts/proof-gate.sh -> git push origin "HEAD:refs/heads/$KIBI_BRANCH"
+  - check (sh scripts/proof-gate.sh) -> push of the merge
 claim_key: CLAIM-8948B0F74FEC41BA
 claim_text: The Kibi KB merge workflow must run the proof gate before pushing a merge
 text_ref: REQ-ci-kb-merge-gate-order
@@ -17,4 +17,4 @@ origin:
 id: FACT-ci-kb-merge-gate-before-push
 type: fact
 ---
-The resolve job of .github/workflows/kb-merge.yml runs its steps in order and stops at the first failure, so the proof gate step must come before the step that pushes the merge.
+The resolve job of .github/workflows/kb-merge.yml passes `sh scripts/proof-gate.sh` to the Kibi KB merge action as its check, and the action pushes a merge only after the check passed on the merged tree.

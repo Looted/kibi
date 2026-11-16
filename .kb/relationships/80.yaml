@@ -307,3 +307,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-58873171948a
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-seed
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:29:57.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f01f1cf8162
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-seed
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:29:57.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfac4faa9339

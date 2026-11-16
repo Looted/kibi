@@ -19,17 +19,17 @@ id: TEST-ci-kb-merge-resolution
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-9f260d27077f17373c275d3b
+    receipt_id: PR-08b9300d406174eedc24069c
     test_id: TEST-ci-kb-merge-resolution
     scope: end_to_end
     outcome: passed
-    code_snapshot: 97d0e95d2803eef139e4731599fac316348fd8eb1a484ebf032f2c4e0f78317d
+    code_snapshot: 4ee849a815c82b28939bd7d0bf855b174e7c20e7294776e56f75bd615877d86f
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-04T15:10:03.268Z'
-    finished_at: '2026-11-04T15:10:04.095Z'
-    artifact_digest: 99c1c8833ff111d0b9b9ff459afef22ec1f4fefc4ae4b1c153e56ed9799a0bb4
+    started_at: '2026-11-16T18:44:25.911Z'
+    finished_at: '2026-11-16T18:44:27.102Z'
+    artifact_digest: 3a8334623c7ee31d2fce54394fca379dbaa15ae36b7c42f03ac999c960a893eb
     contract_hash: 6addbec708ffb861003356ad86179609bf99ef386d16bdc17920fd4a15539d9d
-    binding_hash: bccb6779532797093e8e9e87c942ed1d2590d5854bd0781d5eb97e269e346442
+    binding_hash: 41bc7f293758d9837862125978f0bad3be39d85c602459eb94304796c1f4426e
     fingerprint: e04550c4ea47e4a3e0bc640a0575996e466e5eb6f3c9bd39d7d7de23e7b7144f
     fingerprint_components:
       contract: 6addbec708ffb861003356ad86179609bf99ef386d16bdc17920fd4a15539d9d
@@ -58,6 +58,8 @@ origin:
   ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-11, approving the entity context recovered from history in the KB gold-standard review (context batch 6): "Ok"'
   recorded_at: '2026-10-04T01:17:15.284Z'
 ---
+
+Reads .github/workflows/kb-merge.yml and runs the Kibi KB merge action the way its resolve job configures it (scripts/tests/kb-merge-resolution.test.ts). It checks that Kibi is built from develop and handed to the action, that the PR branches are never checked out or installed on their own, that the proof gate is the action's check and nothing else pushes, that a push to develop checks every pull request and a push to another branch only its own, and that a merge failing Kibi's real scripts/proof-gate.sh is not pushed while the same merge with a passing gate is.
 
 ## Context
 The merge workflow failed on PR 320 because it built the driver from a stale PR branch. When both sides add a requirement, Git also keeps one baseline count bump for two new entries. The workflow now builds from develop and checks the baseline before pushing. Source: PR 323.
