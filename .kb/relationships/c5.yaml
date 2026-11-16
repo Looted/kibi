@@ -251,3 +251,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ade0b779778f
+  - type: constrains
+    from: REQ-search-answer-marks-missing-reason
+    to: FACT-search-answer-reasons-subject
+    created_at: 2026-11-16T10:21:05.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34b0aed7efd3
+  - type: requires_property
+    from: REQ-search-answer-marks-missing-reason
+    to: FACT-search-answer-marks-missing-reason
+    created_at: 2026-11-16T10:21:05.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b80b0bcf9bfc
+  - type: specified_by
+    from: REQ-search-answer-marks-missing-reason
+    to: SCEN-search-answer-marks-missing-reason
+    created_at: 2026-11-16T10:21:05.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38d038512e04
+  - type: specified_by
+    from: REQ-search-answer-marks-missing-reason
+    to: SCEN-NEG-search-answer-marks-missing-reason-UNMARKED
+    created_at: 2026-11-16T10:21:05.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da033a933aa3

@@ -363,3 +363,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff5b3aa247a1
+  - type: constrains
+    from: REQ-search-answer-reason-length
+    to: FACT-search-answer-reasons-subject
+    created_at: 2026-11-16T10:21:09.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e6efa5d7307
+  - type: requires_property
+    from: REQ-search-answer-reason-length
+    to: FACT-search-answer-reason-length
+    created_at: 2026-11-16T10:21:09.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2530d6ab4e3
+  - type: specified_by
+    from: REQ-search-answer-reason-length
+    to: SCEN-search-answer-reason-length
+    created_at: 2026-11-16T10:21:09.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9c7cc690860
+  - type: specified_by
+    from: REQ-search-answer-reason-length
+    to: SCEN-NEG-search-answer-reason-length-TOO-LONG
+    created_at: 2026-11-16T10:21:09.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0acfead64e30

@@ -1,6 +1,6 @@
 ---
 title: Closed requirements in kibi search tests
-status: active
+status: passing
 priority: must
 tags:
   - search
@@ -20,17 +20,17 @@ id: TEST-search-closed-requirements
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-932b323eb1c92e2d781dc718
+    receipt_id: PR-96732ca3657287ccb113ed99
     test_id: TEST-search-closed-requirements
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1fe9b62c46c9ebd432b59aaf15536f63e60aca1b1d434794b9e4c4c5cf91f898
+    code_snapshot: d18374d1a42ea80b9a358ea1dd1eb60af52b68b189371978efaa73878f693a32
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-14T14:03:28.752Z'
-    finished_at: '2026-11-14T14:03:34.748Z'
-    artifact_digest: f1ac3a9e85983e6f88ff7a0f9a38db31a954b3a7dc48a20e2ea5297efa834f6b
+    started_at: '2026-11-16T10:37:14.831Z'
+    finished_at: '2026-11-16T10:37:18.722Z'
+    artifact_digest: 821b40c20af99d35873278fd6874174b5766afd116250f4fd0d2deada2bc9ba4
     contract_hash: 040ae43f7b0e4cf07cdadef5bbf19c6837d0739c32defa6c00cea6f564e57e13
-    binding_hash: 94c83169443cd32a4abc160474934dc37507525d32d6941dd1792c34da80922e
+    binding_hash: 2e7eda93c7d40626460504151feaf4d3d63e072f30b4d825d222dcc5c5652734
     fingerprint: 403d5b9de030cae837f455d3f2af06a7b4226c0de2883a9ee7ff5b1c18543c33
     fingerprint_components:
       contract: 040ae43f7b0e4cf07cdadef5bbf19c6837d0739c32defa6c00cea6f564e57e13

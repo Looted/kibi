@@ -160,7 +160,10 @@ For an edit that keeps the governing rule, limit the consultation before the edi
    requirement also carries a `verdict` (`contradiction`, `infeasible`,
    `unknown`, or `none`, which is not proof), the `exceptions` that exempt it,
    and the `unknowns` the checks could not decide. Those links and verdicts are
-   discovery, not proof. Pass `sourceLocations` before changing a source file,
+   discovery, not proof. Answer a question about why a rule is what it is from
+   that requirement's `why`: quote its recorded text; a neighbouring
+   requirement's reason is not this one's; when `why.recorded` is false, say no
+   reason is recorded, do not supply one, and offer to record the person's. Pass `sourceLocations` before changing a source file,
    and `rankingMode: "legacy"` for literal identifier lookups. A weak answer
    may add `queryAnalysis.hints` (requirements the question may mean): re-ask
    in their words, never cite a hint as the rule. See

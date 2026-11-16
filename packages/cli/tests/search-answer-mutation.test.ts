@@ -39,7 +39,7 @@ import {
 const EDGE_RELS =
   "specified_by,verified_by,validates,assumes,implements,constrains,requires_property,requires_predicate,requires_rule,supersedes,relates_to,exempts";
 const ROW_KEY_LIST =
-  "'id','title','status','fact_kind','approved_by','firmness','origin','source','sourceFile','predicate_namespace','predicate_name','predicate_args','polarity','subject_key','property_key','operator','value_type','value_string','value_int','value_number','value_bool','value_set','unit'";
+  "'id','title','status','fact_kind','approved_by','firmness','rationale','origin','source','sourceFile','predicate_namespace','predicate_name','predicate_args','polarity','subject_key','property_key','operator','value_type','value_string','value_int','value_number','value_bool','value_set','unit'";
 
 function edgesQuery(ids: readonly string[]): string {
   return `kb_relationship_edges([${EDGE_RELS}], [${ids.map((id) => `'${id}'`).join(",")}], Edges)`;
@@ -969,7 +969,7 @@ describe("answer note", () => {
     ...over,
   });
   const GOVERNING =
-    "Governing requirements are current requirements matched by the query or linked to a matched entity. Links are discovery, not proof. A verdict lists the contradiction and scenario-feasibility witnesses that name the requirement; none means no check named it, not that it is proven. Use kb_check and kb_coverage for consistency and proof status.";
+    "Governing requirements are current requirements matched by the query or linked to a matched entity. Answer a question about why a requirement is what it is from its why: quote the recorded reason; where why.recorded is false, say that no reason is recorded and do not supply one. Links are discovery, not proof. A verdict lists the contradiction and scenario-feasibility witnesses that name the requirement; none means no check named it, not that it is proven. Use kb_check and kb_coverage for consistency and proof status.";
   const NONE =
     "No current requirement matched or owns a matched entity. Absence here is not evidence that nothing governs the change; refine the query or pass sourceLocations.";
   const FACT =
@@ -1435,6 +1435,7 @@ function governed(
     firmness: "firm",
     score,
     via,
+    why: { recorded: false },
     facts: [],
     scenarios: [],
     tests: [],
