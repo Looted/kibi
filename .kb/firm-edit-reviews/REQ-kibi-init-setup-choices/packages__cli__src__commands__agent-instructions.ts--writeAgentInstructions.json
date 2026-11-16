@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-init-setup-choices",
+  "sourceFile": "packages/cli/src/commands/agent-instructions.ts",
+  "symbol": "writeAgentInstructions",
+  "verdict": "keeps",
+  "note": "Still writes the marker-delimited Kibi section into AGENTS.md, unchanged; the CLAUDE.md and new GEMINI.md imports share one helper and only run when agentInstructions is on.",
+  "statementHash": "sha256:59e190fbf0a06d92b5d12c2d066d4701ad11a1b803457bdbc764dc58155569b9",
+  "codeHash": "sha256:09a7eb34ba9beeeb5439e2829221400501d976faf9356983ab3922593581d23e",
+  "startLine": 190,
+  "endLine": 216,
+  "recordedAt": "2026-11-16T17:03:27.982Z"
+}

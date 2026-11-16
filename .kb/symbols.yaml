@@ -3236,8 +3236,12 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-stop-job-vs-plan
+      - type: covered_by
+        target: TEST-session-brief
       - type: implements
         target: REQ-cursor-stop-job-vs-plan
+      - type: implements
+        target: REQ-session-brief-on-every-surface
   - id: SYM-cursor-stopFollowupMessage
     title: stopFollowupMessage
     sourceFile: packages/cursor/src/messages.ts
@@ -3520,6 +3524,8 @@ symbols:
         target: TEST-kibi-uncompiled-source-visibility
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-session-brief
       - type: implements
         target: REQ-cli-status-pre-first-sync
       - type: implements
@@ -4757,9 +4763,13 @@ symbols:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
+        target: TEST-session-brief
+      - type: covered_by
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-session-brief-on-every-surface
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -37270,10 +37280,14 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:50:51.437Z
     relationships:
-      - type: implements
-        target: REQ-kibi-init-setup-choices
+      - type: covered_by
+        target: TEST-init-gemini-instructions
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-init-gemini-instructions
+      - type: implements
+        target: REQ-kibi-init-setup-choices
   - id: SYM-agent-instructions-write-agent-instructions
     title: writeAgentInstructions
     status: active
@@ -37283,10 +37297,14 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:51:01.621Z
     relationships:
-      - type: implements
-        target: REQ-kibi-init-setup-choices
+      - type: covered_by
+        target: TEST-init-gemini-instructions
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-init-gemini-instructions
+      - type: implements
+        target: REQ-kibi-init-setup-choices
   - id: SYM-auto-compile-ensure-branch-store-compiled
     title: ensureBranchStoreCompiled
     status: active
@@ -41597,132 +41615,6 @@ symbols:
         target: TEST-kibi-proof-steps-directory
       - type: implements
         target: REQ-kibi-proof-step-settings
-  - id: SYM-test-kb-upsert-missing-endpoint-rejection
-    title: Upsert store-refusal classification suite
-    status: active
-    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T13:35:43.768Z
-    relationships:
-      - type: executable_for
-        target: TEST-kb-upsert-missing-endpoint-rejection
-  - id: SYM-test-cli-prove-empty-selection
-    title: kibi prove command suite
-    status: active
-    sourceFile: packages/cli/tests/proof/prove-command.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T13:35:47.344Z
-    relationships:
-      - type: executable_for
-        target: TEST-cli-prove-empty-selection
-  - id: SYM-cli-use-core-module-goal
-    title: useCoreModuleGoal
-    status: active
-    sourceFile: packages/cli/src/prolog/codec.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:20.225Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-cli-is-core-module-goal
-    title: isCoreModuleGoal
-    status: active
-    sourceFile: packages/cli/src/prolog/codec.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:23.142Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-test-engine-client-core-modules-from-engine
-    title: Engine client core-module loading suite
-    status: active
-    sourceFile: packages/cli/tests/prolog/core-module-goal.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:28.228Z
-    relationships:
-      - type: executable_for
-        target: TEST-engine-client-core-modules-from-engine
-  - id: SYM-test-prolog-permission-error-names-refusal
-    title: Prolog permission error message suite
-    status: active
-    sourceFile: packages/cli/tests/prolog/error-terms-parse.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:30.861Z
-    relationships:
-      - type: executable_for
-        target: TEST-prolog-permission-error-names-refusal
-  - id: SYM-cli-parse-prolog-error-term
-    title: parsePrologErrorTerm
-    status: active
-    sourceFile: packages/cli/src/prolog/error-terms.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:44.213Z
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-permission-error-names-refusal
-      - type: implements
-        target: REQ-prolog-permission-error-names-refusal
-  - id: SYM-engine-session-record-module-load
-    title: EngineSession.recordModuleLoad
-    status: active
-    sourceFile: packages/cli/src/engine.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:24.362Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-subject-domain-read-subject-domain
-    title: readSubjectDomain
-    status: active
-    sourceFile: packages/cli/src/public/operations/subject-domain.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:27.485Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-traceability-validate-staged-symbol-coverage
-    title: validateStagedSymbolCoverage
-    status: active
-    sourceFile: packages/cli/src/traceability/validate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:30.738Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
   - id: SYM-cli-search-answer-requirement-reason
     title: requirementReason
     status: active
@@ -41830,6 +41722,302 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-search-answer-reason-chars
+  - id: SYM-cli-use-core-module-goal
+    title: useCoreModuleGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:20.225Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-cli-is-core-module-goal
+    title: isCoreModuleGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:23.142Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-test-engine-client-core-modules-from-engine
+    title: Engine client core-module loading suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/core-module-goal.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:28.228Z
+    relationships:
+      - type: executable_for
+        target: TEST-engine-client-core-modules-from-engine
+  - id: SYM-test-prolog-permission-error-names-refusal
+    title: Prolog permission error message suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/error-terms-parse.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:30.861Z
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-permission-error-names-refusal
+  - id: SYM-cli-parse-prolog-error-term
+    title: parsePrologErrorTerm
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:44.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-permission-error-names-refusal
+      - type: implements
+        target: REQ-prolog-permission-error-names-refusal
+  - id: SYM-engine-session-record-module-load
+    title: EngineSession.recordModuleLoad
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:24.362Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-subject-domain-read-subject-domain
+    title: readSubjectDomain
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-domain.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:27.485Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-traceability-validate-staged-symbol-coverage
+    title: validateStagedSymbolCoverage
+    status: active
+    sourceFile: packages/cli/src/traceability/validate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:30.738Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-test-session-brief
+    title: session-brief.test
+    status: active
+    sourceFile: packages/agent-core/tests/session-brief.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-session-brief
+  - id: SYM-test-agent-instructions-mutation
+    title: agent-instructions-mutation.test
+    status: active
+    sourceFile: packages/cli/tests/commands/agent-instructions-mutation.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-init-gemini-instructions
+  - id: SYM-agent-core-SESSION_BRIEF_LINES
+    title: SESSION_BRIEF_LINES
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-agent-core-SESSION_BRIEF
+    title: SESSION_BRIEF
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-agent-core-sessionBriefWith
+    title: sessionBriefWith
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-claude-sessionStartContext
+    title: sessionStartContext
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-codex-runHook
+    title: runHook
+    status: active
+    sourceFile: packages/codex/src/hook-runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-codex-CODEX_SESSION_NOTE
+    title: CODEX_SESSION_NOTE
+    status: active
+    sourceFile: packages/codex/src/messages.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-zcode-SESSION_START_CONTEXT
+    title: SESSION_START_CONTEXT
+    status: active
+    sourceFile: packages/zcode/src/messages.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-mcp-SERVER_INSTRUCTIONS
+    title: SERVER_INSTRUCTIONS
+    status: active
+    sourceFile: packages/mcp/src/server.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-discovery-StatusPayload
+    title: StatusPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-agent-instructions-GEMINI_FILE
+    title: GEMINI_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-agent-instructions-GEMINI_IMPORT_SECTION
+    title: GEMINI_IMPORT_SECTION
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-init-gemini-instructions
+      - type: implements
+        target: REQ-init-gemini-instructions
+  - id: SYM-agent-instructions-AgentInstructionsResult
+    title: AgentInstructionsResult
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-stryker-MUTATION_SHARDS
+    title: MUTATION_SHARDS
+    status: active
+    sourceFile: stryker.conf.mjs
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-check-policy-rules-PolicyRuleHead
+    title: PolicyRuleHead
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-source-authoring-writePendingSourceReceipt
+    title: writePendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-branch-scope
+      - type: implements
+        target: REQ-kibi-pending-receipt-branch-scope
   - id: SYM-test-check-restated-twin-facts
     title: Restated twin facts consumer suite
     status: active
@@ -41925,393 +42113,30 @@ symbols:
         target: REQ-search-answer-reason-source-order
       - type: implements
         target: REQ-upsert-notes-missing-reason
-  - id: SYM-stryker-MUTATION_SHARDS
-    title: MUTATION_SHARDS
+  - id: SYM-test-kb-upsert-missing-endpoint-rejection
+    title: Upsert store-refusal classification suite
     status: active
-    sourceFile: stryker.conf.mjs
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-  - id: SYM-check-policy-rules-PolicyRuleHead
-    title: PolicyRuleHead
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-  - id: SYM-source-authoring-writePendingSourceReceipt
-    title: writePendingSourceReceipt
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-pending-receipt-branch-scope
-      - type: implements
-        target: REQ-kibi-pending-receipt-branch-scope
-  - id: SYM-test-check-quantity-duplicate
-    title: quantity-duplicate consumer suite
-    status: active
-    sourceFile: packages/cli/tests/consumer/quantity-duplicate.test.ts
+    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T16:10:07.778Z
+      recorded_at: 2026-11-16T13:35:43.768Z
     relationships:
       - type: executable_for
-        target: TEST-check-quantity-duplicate
-  - id: SYM-cli-quantity-layer-quantity-duplicate-rule
-    title: QUANTITY_DUPLICATE_RULE
+        target: TEST-kb-upsert-missing-endpoint-rejection
+  - id: SYM-test-cli-prove-empty-selection
+    title: kibi prove command suite
     status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:10:44.401Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate
-  - id: SYM-cli-quantity-layer-quantity-layer-schema-version
-    title: QUANTITY_LAYER_SCHEMA_VERSION
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:10:48.940Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate
-  - id: SYM-cli-quantity-layer-quantity-word-share
-    title: QUANTITY_WORD_SHARE
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:10:52.364Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-pairing
-  - id: SYM-cli-quantity-layer-quantity-value
-    title: quantityValue
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    sourceFile: packages/cli/tests/proof/prove-command.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T16:11:15.583Z
+      recorded_at: 2026-11-16T13:35:47.344Z
     relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-trivial-values
-  - id: SYM-cli-quantity-layer-value-fact-entry
-    title: valueFactEntry
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:42.035Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-pairing
-  - id: SYM-cli-quantity-layer-quantity-code
-    title: QuantityCode
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:02.536Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-pairing
-  - id: SYM-cli-quantity-layer-quantity-signal
-    title: QuantitySignal
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:05.905Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-pairing
-  - id: SYM-cli-quantity-layer-quantity-pair
-    title: quantityPair
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:25.381Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-distinct-from
-      - type: implements
-        target: REQ-check-quantity-duplicate-pairing
-  - id: SYM-cli-quantity-layer-quantity-inputs
-    title: QuantityInputs
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:12.473Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-migrate-quantity-duplicate-review
-  - id: SYM-cli-quantity-layer-quantity-words
-    title: quantityWords
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:18.744Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-pairing
-  - id: SYM-cli-quantity-layer-declared-distinct
-    title: declaredDistinct
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:22.004Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-distinct-from
-  - id: SYM-cli-quantity-layer-quantity-duplicate-pairs
-    title: quantityDuplicatePairs
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:28.694Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-pairing
-  - id: SYM-cli-quantity-layer-quantity-duplicate-violations
-    title: quantityDuplicateViolations
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:32.113Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-dangling-distinct
-  - id: SYM-cli-quantity-layer-read-quantity-inputs
-    title: readQuantityInputs
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:35.341Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate
-  - id: SYM-cli-quantity-layer-value-fact-key
-    title: valueFactKey
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:38.624Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate-pairing
-  - id: SYM-cli-quantity-layer-quantity-layer-applies
-    title: quantityLayerApplies
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:45.441Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate
-  - id: SYM-cli-quantity-layer-collect-quantity-duplicate-violations
-    title: collectQuantityDuplicateViolations
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:48.722Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate
-  - id: SYM-cli-quantity-duplicate-quantity-duplicate-review-code
-    title: QUANTITY_DUPLICATE_REVIEW_CODE
-    status: active
-    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:51.546Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-migrate-quantity-duplicate-review
-  - id: SYM-cli-quantity-duplicate-quantity-duplicate-action-prefix
-    title: QUANTITY_DUPLICATE_ACTION_PREFIX
-    status: active
-    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:54.020Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-migrate-quantity-duplicate-review
-  - id: SYM-cli-quantity-duplicate-plan-quantity-duplicate-reviews
-    title: planQuantityDuplicateReviews
-    status: active
-    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:56.052Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-migrate-quantity-duplicate-review
-  - id: SYM-cli-quantity-duplicate-quantity-duplicate-actions
-    title: quantityDuplicateActions
-    status: active
-    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:58.004Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-migrate-quantity-duplicate-review
-  - id: SYM-cli-quantity-duplicate-quantity-duplicate-note
-    title: quantityDuplicateNote
-    status: active
-    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:59.881Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-migrate-quantity-duplicate-review
-  - id: SYM-cli-quantity-warnings-quantity-warning-input
-    title: QuantityWarningInput
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/quantity-warnings.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:12:02.357Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-upsert-names-quantity-twin
-      - type: implements
-        target: REQ-upsert-quantity-previous-value
-  - id: SYM-cli-quantity-warnings-quantity-warnings
-    title: quantityWarnings
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/quantity-warnings.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:12:05.670Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-upsert-names-quantity-twin
-      - type: implements
-        target: REQ-upsert-quantity-previous-value
-  - id: SYM-cli-quantity-layer-quantity-inputs-from-knowledge
-    title: quantityInputsFromKnowledge
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:44:23.917Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate
-  - id: SYM-cli-quantity-layer-staged-quantity-violations
-    title: stagedQuantityViolations
-    status: active
-    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:44:27.306Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-quantity-duplicate
-      - type: implements
-        target: REQ-check-quantity-duplicate
+      - type: executable_for
+        target: TEST-cli-prove-empty-selection
   - id: SYM-test-cli-rejection-not-retryable
     title: CLI protocol error envelope suite
     status: active
@@ -42937,6 +42762,364 @@ symbols:
         target: TEST-ci-kb-merge-resolution
       - type: executable_for
         target: TEST-kb-merge-action
+  - id: SYM-test-check-quantity-duplicate
+    title: quantity-duplicate consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/quantity-duplicate.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:07.778Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-duplicate-rule
+    title: QUANTITY_DUPLICATE_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:44.401Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-layer-schema-version
+    title: QUANTITY_LAYER_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:48.940Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-word-share
+    title: QUANTITY_WORD_SHARE
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:52.364Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-value
+    title: quantityValue
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:15.583Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-trivial-values
+  - id: SYM-cli-quantity-layer-value-fact-entry
+    title: valueFactEntry
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:42.035Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-code
+    title: QuantityCode
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:02.536Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-signal
+    title: QuantitySignal
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:05.905Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-pair
+    title: quantityPair
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:25.381Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-distinct-from
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-inputs
+    title: QuantityInputs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:12.473Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-layer-quantity-words
+    title: quantityWords
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:18.744Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-declared-distinct
+    title: declaredDistinct
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:22.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-distinct-from
+  - id: SYM-cli-quantity-layer-quantity-duplicate-pairs
+    title: quantityDuplicatePairs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:28.694Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-duplicate-violations
+    title: quantityDuplicateViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:32.113Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-dangling-distinct
+  - id: SYM-cli-quantity-layer-read-quantity-inputs
+    title: readQuantityInputs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:35.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-value-fact-key
+    title: valueFactKey
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:38.624Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-layer-applies
+    title: quantityLayerApplies
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:45.441Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-collect-quantity-duplicate-violations
+    title: collectQuantityDuplicateViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:48.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-review-code
+    title: QUANTITY_DUPLICATE_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:51.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-action-prefix
+    title: QUANTITY_DUPLICATE_ACTION_PREFIX
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:54.020Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-plan-quantity-duplicate-reviews
+    title: planQuantityDuplicateReviews
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:56.052Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-actions
+    title: quantityDuplicateActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:58.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-note
+    title: quantityDuplicateNote
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:59.881Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-warnings-quantity-warning-input
+    title: QuantityWarningInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/quantity-warnings.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:02.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-upsert-names-quantity-twin
+      - type: implements
+        target: REQ-upsert-quantity-previous-value
+  - id: SYM-cli-quantity-warnings-quantity-warnings
+    title: quantityWarnings
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/quantity-warnings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:05.670Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-upsert-names-quantity-twin
+      - type: implements
+        target: REQ-upsert-quantity-previous-value
+  - id: SYM-cli-quantity-layer-quantity-inputs-from-knowledge
+    title: quantityInputsFromKnowledge
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:44:23.917Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-staged-quantity-violations
+    title: stagedQuantityViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:44:27.306Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
   - id: SYM-test-upsert-stale-siblings
     title: stale siblings consumer suite
     status: active

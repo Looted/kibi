@@ -3,6 +3,7 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import {
@@ -27,7 +28,7 @@ import {
   resolvePluginDataDir,
   resolveWorkspaceStateDir,
 } from "../src/hook-state";
-import { impactCheckReminder } from "../src/messages";
+import { CODEX_SESSION_NOTE, impactCheckReminder } from "../src/messages";
 
 function createTempRoot(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -120,7 +121,7 @@ describe("Codex hook runner workspace opt-in", () => {
     expect(result.systemMessage).toBeUndefined();
   });
 
-  test("SessionStart stays quiet in an opted-in workspace", async () => {
+  test("SessionStart opens an opted-in workspace with the shared session brief", async () => {
     const cwd = createTempRoot("kibi-codex-cwd-");
     optInWorkspace(cwd);
     const pluginData = createTempRoot("kibi-codex-data-");
@@ -128,7 +129,13 @@ describe("Codex hook runner workspace opt-in", () => {
 
     expect(
       await runHook({ event: "SessionStart", cwd }, { pluginData }),
-    ).toEqual({ continue: true });
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+      },
+    });
   });
 
   test("SessionStart tells the agent when the checkout has no Kibi hooks", async () => {
@@ -144,7 +151,10 @@ describe("Codex hook runner workspace opt-in", () => {
       continue: true,
       hookSpecificOutput: {
         hookEventName: "SessionStart",
-        additionalContext: MISSING_HOOKS_NOTE,
+        additionalContext: sessionBriefWith([
+          CODEX_SESSION_NOTE,
+          MISSING_HOOKS_NOTE,
+        ]),
       },
     });
   });
@@ -683,7 +693,13 @@ describe("Codex evaluation trace replay", () => {
 
     expect(
       await event({ hook_event_name: "SessionStart", source: "startup" }),
-    ).toEqual({ continue: true });
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+      },
+    });
     const linkedEdit = await event({
       hook_event_name: "PreToolUse",
       tool_name: "apply_patch",

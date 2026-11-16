@@ -384,6 +384,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29eebbb45c59
+  - type: validates
+    from: TEST-session-brief
+    to: SCEN-agent-core-session-brief
+    created_at: 2026-11-16T16:34:59.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71a87a251d96
+  - type: validates
+    from: TEST-session-brief
+    to: SCEN-NEG-agent-core-session-brief-MISSING-RULE
+    created_at: 2026-11-16T16:34:59.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e89baebcfc4
+  - type: validates
+    from: TEST-session-brief
+    to: SCEN-session-brief-on-every-surface
+    created_at: 2026-11-16T16:34:59.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e02bb8cce77
+  - type: validates
+    from: TEST-session-brief
+    to: SCEN-NEG-session-brief-on-every-surface-OWN-TEXT
+    created_at: 2026-11-16T16:34:59.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-449ae32ba6d9
+  - type: covered_by
+    from: SYM-const-ledger-contract-fields
+    to: TEST-proof-checked-as-sent-ledger-fields
+    created_at: 2026-11-16T11:03:17.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-361edaa494f9
   - type: implements
     from: SYM-cli-quantity-duplicate-plan-quantity-duplicate-reviews
     to: REQ-migrate-quantity-duplicate-review
@@ -398,10 +433,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebe8778c623e
-  - type: covered_by
-    from: SYM-const-ledger-contract-fields
-    to: TEST-proof-checked-as-sent-ledger-fields
-    created_at: 2026-11-16T11:03:17.559Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-361edaa494f9

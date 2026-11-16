@@ -8,6 +8,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 
 import { readGuidance, writeGuidance } from "../src/guidance";
 import {
@@ -1057,7 +1058,7 @@ describe("Cursor hook runner decisions", () => {
     ).toBe(true);
   });
 
-  test("sessionStart stays quiet in configured workspaces once mcp is observed", async () => {
+  test("sessionStart opens configured workspaces with only the session brief once mcp is observed", async () => {
     const cwd = tempDir("kibi-cursor-cwd-");
     const pluginData = tempDir("kibi-cursor-data-");
     optIn(cwd);
@@ -1070,7 +1071,7 @@ describe("Cursor hook runner decisions", () => {
         workspaceTrusted: false,
       },
     );
-    expect(result).toStrictEqual({});
+    expect(result).toStrictEqual({ additional_context: SESSION_BRIEF });
   });
 
   test("preToolUse warns only for editable tools touching the kb", async () => {

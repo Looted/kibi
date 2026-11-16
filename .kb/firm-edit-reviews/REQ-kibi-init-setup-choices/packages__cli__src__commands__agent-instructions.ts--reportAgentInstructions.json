@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-init-setup-choices",
+  "sourceFile": "packages/cli/src/commands/agent-instructions.ts",
+  "symbol": "reportAgentInstructions",
+  "verdict": "keeps",
+  "note": "Still reports the AGENTS.md section and CLAUDE.md import as before; it adds one line for the GEMINI.md import, which the same agentInstructions choice gates.",
+  "statementHash": "sha256:59e190fbf0a06d92b5d12c2d066d4701ad11a1b803457bdbc764dc58155569b9",
+  "codeHash": "sha256:b7c4f70db77ad9974a445a55aff5ef2fb2fb937fd36122bb1da2cd971a25918a",
+  "startLine": 218,
+  "endLine": 247,
+  "recordedAt": "2026-11-16T17:03:27.982Z"
+}

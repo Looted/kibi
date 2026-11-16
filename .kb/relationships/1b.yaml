@@ -279,6 +279,34 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7165dc45d8f5
+  - type: implements
+    from: SYM-zcode-SESSION_START_CONTEXT
+    to: REQ-session-brief-on-every-surface
+    created_at: 2026-11-16T16:36:28.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efb2ed54b3c1
+  - type: covered_by
+    from: SYM-zcode-SESSION_START_CONTEXT
+    to: TEST-session-brief
+    created_at: 2026-11-16T16:36:28.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9692661e14d6
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-pulls
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:30:11.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e8527c9b792
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-pulls
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:30:12.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86c0b8d961a2
   - type: constrains
     from: REQ-migrate-quantity-duplicate-review
     to: FACT-check-quantity-duplicate-subject
@@ -307,17 +335,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43cb67a2805e
-  - type: executable_for
-    from: SYM-kb-merge-fixture-fixture-pulls
-    to: TEST-kb-merge-action
-    created_at: 2026-11-16T18:30:11.991Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e8527c9b792
-  - type: executable_for
-    from: SYM-kb-merge-fixture-fixture-pulls
-    to: TEST-ci-kb-merge-resolution
-    created_at: 2026-11-16T18:30:12.008Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-86c0b8d961a2

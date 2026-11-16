@@ -28,12 +28,15 @@ import * as path from "node:path";
 
 /**
  * Agent instructions travel with the repository: AGENTS.md is read by Codex,
- * Cursor, OpenCode, ZCode and most other coding agents, and Claude Code reads
- * it through an `@AGENTS.md` import in CLAUDE.md. A plugin or MCP server is
- * per-user and per-machine; this is the one channel every fresh clone has.
+ * Cursor, OpenCode, ZCode and most other coding agents, Claude Code reads it
+ * through an `@AGENTS.md` import in CLAUDE.md, and Gemini CLI, which reads
+ * GEMINI.md by default, through an `@./AGENTS.md` import there. A plugin or
+ * MCP server is per-user and per-machine; this is the one channel every
+ * fresh clone has.
  */
 export const AGENTS_FILE = "AGENTS.md";
 export const CLAUDE_FILE = "CLAUDE.md";
+export const GEMINI_FILE = "GEMINI.md";
 
 export const KIBI_INSTRUCTIONS_BEGIN =
   "<!-- BEGIN kibi-managed: written by `kibi init`; edit outside these markers -->";
@@ -55,6 +58,11 @@ export const CLAUDE_IMPORT_SECTION = `## Kibi
 
 @AGENTS.md`;
 
+// Gemini CLI's memory import takes a path relative to the importing file.
+export const GEMINI_IMPORT_SECTION = `## Kibi
+
+@./AGENTS.md`;
+
 export type InstructionFileResult =
   | "created"
   | "updated"
@@ -65,6 +73,7 @@ export type InstructionFileResult =
 export type AgentInstructionsResult = Readonly<{
   agents: InstructionFileResult;
   claude: InstructionFileResult | "same-file";
+  gemini: InstructionFileResult | "same-file";
 }>;
 
 function managedSection(body: string): string {
@@ -160,6 +169,24 @@ function importsAgents(file: string): boolean {
   );
 }
 
+/**
+ * The import section for a host file that reads AGENTS.md through it: none
+ * when the file is AGENTS.md itself (linked) or already imports it.
+ */
+function writeImport(
+  worktreeRoot: string,
+  file: string,
+  agentsTarget: string | null,
+  section: string,
+): InstructionFileResult | "same-file" {
+  const target = writeTarget(path.join(worktreeRoot, file), worktreeRoot);
+  // One file linked to the other already serves both hosts.
+  if (agentsTarget !== null && agentsTarget === target) return "same-file";
+  if (target === null) return "skipped-symlink";
+  if (importsAgents(target)) return "unchanged";
+  return upsertManagedSection(target, section);
+}
+
 export function writeAgentInstructions(
   worktreeRoot: string,
 ): AgentInstructionsResult {
@@ -167,21 +194,25 @@ export function writeAgentInstructions(
     path.join(worktreeRoot, AGENTS_FILE),
     worktreeRoot,
   );
-  const claudeTarget = writeTarget(
-    path.join(worktreeRoot, CLAUDE_FILE),
-    worktreeRoot,
-  );
   const agents =
     agentsTarget === null
       ? "skipped-symlink"
       : upsertManagedSection(agentsTarget, KIBI_AGENT_INSTRUCTIONS);
-  // One file linked to the other already serves both hosts.
-  if (agentsTarget !== null && agentsTarget === claudeTarget)
-    return { agents, claude: "same-file" };
-  if (claudeTarget === null) return { agents, claude: "skipped-symlink" };
-  if (importsAgents(claudeTarget)) return { agents, claude: "unchanged" };
-  const claude = upsertManagedSection(claudeTarget, CLAUDE_IMPORT_SECTION);
-  return { agents, claude };
+  return {
+    agents,
+    claude: writeImport(
+      worktreeRoot,
+      CLAUDE_FILE,
+      agentsTarget,
+      CLAUDE_IMPORT_SECTION,
+    ),
+    gemini: writeImport(
+      worktreeRoot,
+      GEMINI_FILE,
+      agentsTarget,
+      GEMINI_IMPORT_SECTION,
+    ),
+  };
 }
 
 export function reportAgentInstructions(result: AgentInstructionsResult): void {
@@ -189,7 +220,9 @@ export function reportAgentInstructions(result: AgentInstructionsResult): void {
     const what =
       file === CLAUDE_FILE
         ? "an @AGENTS.md import for Claude Code"
-        : "Kibi agent instructions";
+        : file === GEMINI_FILE
+          ? "an @./AGENTS.md import for Gemini CLI"
+          : "Kibi agent instructions";
     switch (outcome) {
       case "created":
         return `✓ Created ${file} with ${what}`;
@@ -207,6 +240,7 @@ export function reportAgentInstructions(result: AgentInstructionsResult): void {
   for (const message of [
     line(AGENTS_FILE, result.agents),
     line(CLAUDE_FILE, result.claude),
+    line(GEMINI_FILE, result.gemini),
   ]) {
     if (message !== null) console.log(message);
   }
