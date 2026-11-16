@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-045f41525f46
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-missing-endpoint-rejection-NO-HINT
+    to: FACT-NEG-kb-upsert-missing-endpoint-rejection-NO-HINT
+    created_at: 2026-11-16T13:40:37.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecd4d45cf90d
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-missing-endpoint-rejection-NO-HINT
+    to: TEST-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:40:37.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-262f5525e1d3

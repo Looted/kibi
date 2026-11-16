@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ed30329ceec0
+  - type: verified_by
+    from: SCEN-cli-prove-empty-selection
+    to: TEST-cli-prove-empty-selection
+    created_at: 2026-11-16T13:35:31.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-879833d4a94c
+  - type: assumes
+    from: SCEN-cli-prove-empty-selection
+    to: FACT-cli-prove-empty-selection-reported
+    created_at: 2026-11-16T13:38:46.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b952be14ab1
