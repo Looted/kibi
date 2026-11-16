@@ -1731,10 +1731,41 @@ function rulePromptNote(phrase) {
   ].join(`
 `);
 }
-function captureReminder(rulePrompt) {
-  return [
-    rulePrompt ? "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base." : "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+function captureReminder(rulePhrase) {
+  return rulePhrase === undefined ? [
+    "Kibi: this session changed source files and recorded nothing in the knowledge base.",
     "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line."
+  ].join(`
+`) : [
+    `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
+    `Record the rule behind "${rulePhrase}" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`
+  ].join(`
+`);
+}
+function ruleCaptureTemplate(rulePhrase) {
+  const template = {
+    type: "req",
+    id: "REQ-<short-name>",
+    properties: {
+      title: "<the rule in a few words>",
+      status: "open",
+      firmness: "firm",
+      origin: {
+        kind: "agent",
+        ref: "<the person's words and where they said them>"
+      }
+    },
+    document: { body: "<the rule as one shall or must sentence>" },
+    implementedBy: [
+      {
+        sourceFile: "<file you changed>",
+        symbol: "<function that enforces it>"
+      }
+    ]
+  };
+  return [
+    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
+    JSON.stringify(template)
   ].join(`
 `);
 }
@@ -1793,9 +1824,26 @@ function recordRequest(session, prompt) {
   try {
     writeMarker(sessionPath(session, "request-words.json"), JSON.stringify(requestTopicWords(prompt)));
   } catch {}
-  if (rule !== undefined)
+  if (rule !== undefined) {
     markDecisionFlag(session, "rule-prompt");
+    try {
+      writeMarker(sessionPath(session, "rule-phrase"), rule);
+    } catch {}
+  }
   return rule;
+}
+function sessionRulePhrase(session) {
+  let phrase = "";
+  try {
+    phrase = String(fs5.readFileSync(sessionPath(session, "rule-phrase")));
+  } catch {}
+  return phrase || undefined;
+}
+function claimRuleCaptureTemplate(session) {
+  const phrase = sessionRulePhrase(session);
+  if (phrase === undefined || !hasDecisionFlag(session, "source-edited") || hasDecisionFlag(session, "kb-recorded") || !claimDecisionFlag(session, "capture-template"))
+    return;
+  return ruleCaptureTemplate(phrase);
 }
 function requestWords(session) {
   try {
@@ -3277,15 +3325,21 @@ function recordToolTelemetry(workspaceRoot, stateDir, input, startedAt, env) {
 function stopReminder(reason, stopHookActive) {
   return stopHookActive ? { continue: true, systemMessage: reason } : { continue: true, decision: "block", reason };
 }
-function postEditContext(stateDir, sessionId, sourcePaths) {
+function postEditContext(stateDir, sessionId, sourcePaths, captureTemplate) {
   const fresh = sourcePaths.filter((sourcePath) => claimSnippetSlot(stateDir, `${sessionId ?? ""}\x00post-edit\x00${sourcePath}`));
-  if (fresh.length === 0)
+  const notes = [
+    ...fresh.length > 0 ? [postEditImpactNote(fresh)] : [],
+    ...captureTemplate === undefined ? [] : [captureTemplate]
+  ];
+  if (notes.length === 0)
     return;
   return {
     continue: true,
     hookSpecificOutput: {
       hookEventName: "PostToolUse",
-      additionalContext: postEditImpactNote(fresh)
+      additionalContext: notes.join(`
+
+`)
     }
   };
 }
@@ -3391,7 +3445,7 @@ async function runHook(rawInput, environment = {}) {
           }
         }
         if (isKnownEditTool(input.toolName)) {
-          const note = postEditContext(stateDir, input.sessionId, dirtyPaths.filter(isSourceImpactRelevantPath2));
+          const note = postEditContext(stateDir, input.sessionId, dirtyPaths.filter(isSourceImpactRelevantPath2), dirtyPaths.some(isSourceImpactRelevantPath2) ? claimRuleCaptureTemplate(session) : undefined);
           if (note)
             return note;
         }
@@ -3403,7 +3457,7 @@ async function runHook(rawInput, environment = {}) {
         const session = { stateDir, sessionId: input.sessionId };
         if (!input.stopHookActive && claimCaptureReminder(session)) {
           const reason = [
-            captureReminder(hasDecisionFlag(session, "rule-prompt")),
+            captureReminder(sessionRulePhrase(session)),
             ...uncheckedSourcePaths.length > 0 ? [impactCheckReminder(uncheckedSourcePaths)] : []
           ].join(`
 `);

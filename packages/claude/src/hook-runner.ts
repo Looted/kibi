@@ -69,6 +69,7 @@ import {
   focusedSymbols,
   isRequirementUpsert,
   markDecisionFlag,
+  ruleCaptureTemplate,
   rulePromptNote,
   searchTip,
   sessionStartContext,
@@ -714,6 +715,33 @@ function bashChanges(
   return note;
 }
 
+/**
+ * The rule capture template, once per session, when these events change
+ * source in a session whose prompt read as a rule and nothing is recorded yet.
+ */
+function captureTemplateNote(
+  workspace: Workspace,
+  events: SessionEvent[],
+): string | undefined {
+  // Only edited events carry a pathKind and only kb events an operation.
+  const field = (event: SessionEvent, name: "pathKind" | "operation") =>
+    (event as Partial<Record<typeof name, string>>)[name];
+  if (
+    !events.some((event) => field(event, "pathKind") === "source") ||
+    events.some((event) => field(event, "operation") === "kb_upsert")
+  )
+    return undefined;
+  const state = loadSessionState(workspace.stateDir);
+  if (
+    state.rulePhrase === undefined ||
+    state.kbRecorded ||
+    state.notices.has("capture-template")
+  )
+    return undefined;
+  events.push({ kind: "notice", name: "capture-template" });
+  return ruleCaptureTemplate(state.rulePhrase);
+}
+
 function recordKbUsage(
   usage: KbUsage,
   workspace: Workspace,
@@ -782,7 +810,10 @@ function postToolUse(
     const command = bashCommand(input.toolInput);
     const usage = extractCliKbUsage(command);
     if (usage) recordUsage(usage);
-    const note = bashChanges(workspace, events, trace);
+    const changed = bashChanges(workspace, events, trace);
+    // A shell edit that already has a note keeps the context within budget:
+    // the template waits for the next source edit.
+    const note = changed ?? captureTemplateNote(workspace, events);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
       events.push({ kind: "checked", paths: [], all: true });
     }
@@ -802,8 +833,9 @@ function postToolUse(
     }
   }
 
+  const template = captureTemplateNote(workspace, events);
   appendSessionEvents(workspace.stateDir, events);
-  return {};
+  return template ? context("PostToolUse", template) : {};
 }
 
 function stop(
@@ -836,7 +868,7 @@ function stop(
   const parts: string[] = [];
   if (capture) {
     events.push({ kind: "notice", name: "capture-stop" });
-    parts.push(captureReminder(state.rulePrompt));
+    parts.push(captureReminder(state.rulePhrase));
   }
   if (signoff) parts.push(signoffReminder());
   if (unreminded.length > 0) {
@@ -870,6 +902,7 @@ function userPromptSubmit(
       kind: "prompt",
       words: requestTopicWords(prompt),
       rule: rule !== undefined,
+      phrase: rule ?? "",
     },
   ]);
   if (rule === undefined) {

@@ -34,10 +34,11 @@ export type SessionEvent =
    */
   | { kind: "context_reset" }
   /**
-   * The person submitted a prompt: its topic words, and whether it reads as
-   * a rule or decision ("must", "never", "from now on").
+   * The person submitted a prompt: its topic words, whether it reads as a
+   * rule or decision ("must", "never", "from now on"), and the phrase that
+   * makes it read so (empty when it does not; absent in older journals).
    */
-  | { kind: "prompt"; words: string[]; rule: boolean }
+  | { kind: "prompt"; words: string[]; rule: boolean; phrase?: string }
   /**
    * An edit of `path` was put to the person because it changes code that
    * implements these firm requirements.
@@ -58,8 +59,8 @@ export type SessionState = {
   commandStartedAt: number | undefined;
   /** Topic words of the latest prompt. */
   requestWords: string[];
-  /** True once any prompt this session read as a rule or decision. */
-  rulePrompt: boolean;
+  /** The phrase of the latest prompt this session that read as a rule. */
+  rulePhrase: string | undefined;
   /** Firm requirements whose edit was put to the person, by edited path. */
   firmAsked: Map<string, string[]>;
   /** Firm requirements the person let an edit change this session. */
@@ -109,7 +110,7 @@ export function emptySessionState(): SessionState {
     reminded: new Set(),
     commandStartedAt: undefined,
     requestWords: [],
-    rulePrompt: false,
+    rulePhrase: undefined,
     firmAsked: new Map(),
     firmConfirmed: new Set(),
     sourceEdited: false,
@@ -165,7 +166,7 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     case "prompt":
       state.requestWords = event.words;
-      if (event.rule) state.rulePrompt = true;
+      if (event.phrase) state.rulePhrase = event.phrase;
       return;
     case "firm_asked":
       state.firmAsked.set(event.path, [
