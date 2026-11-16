@@ -716,6 +716,30 @@ describe("statedRule and notes", () => {
     expect(statedRule("Fix this:\n```\nnever();\n```")).toBeUndefined();
     // The rule in a later sentence still counts.
     expect(statedRule("Does it retry? It must not retry.")).toBe("must not");
+    // Clause starts and request phrasing, spacing included.
+    expect(statedRule("Add expiry;never log keys")).toBe("never");
+    expect(statedRule("Add an expiry, never log keys")).toBe("never");
+    expect(statedRule("Ensure  that the old keys never leak")).toBe("never");
+    expect(statedRule("Ensure  the keys never leak")).toBe("never");
+    expect(statedRule("Ensure the keys  never leak")).toBe("never");
+    expect(statedRule("Add expiry and  never log keys")).toBe("never");
+    expect(
+      statedRule("Ensure that the old stale keys never leak"),
+    ).toBeUndefined();
+    expect(
+      statedRule("Honestly, could we make sure keys never leak?"),
+    ).toBeUndefined();
+    expect(statedRule("Please  can you make sure we never log tokens?")).toBe(
+      "never",
+    );
+    expect(statedRule("Can  you make sure we never log tokens?")).toBe("never");
+    // Sentences split at a stop with a space after it and at a line break.
+    expect(statedRule("Do it. Never log keys.")).toBe("never");
+    expect(statedRule("Do it.Never log keys")).toBeUndefined();
+    expect(statedRule("Rename it\n never log keys")).toBe("never");
+    // Code is replaced by a space and an unclosed fence runs to the end.
+    expect(statedRule("Do it.`x`Never log keys")).toBe("never");
+    expect(statedRule("Fix this:\n```\nnever();")).toBeUndefined();
   });
 
   test("prompt note quotes the phrase and capture reminder mentions the rule", () => {

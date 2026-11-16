@@ -509,6 +509,32 @@ describe("migration action execution", () => {
     expect(contexts.at(-1)).toBeUndefined();
   });
 
+  for (const argv of [
+    ["--to", "develop", "--from", "develop", "--approval-hash", "h1"],
+    ["--approval-hash", "h1", "--from", "develop", "--to", "develop"],
+  ]) {
+    test(`legacy branch storage reads ${argv[0]} first`, async () => {
+      statuses(live());
+      previewHash("h1");
+      const migrate = stubMigrate();
+      const s = setup([legacy(argv)]);
+      expect((await s.run()).structuredContent).toMatchObject({
+        outcome: "applied",
+      });
+      expect(migrate.mock.calls).toEqual([
+        [
+          {
+            from: "develop",
+            to: "develop",
+            apply: true,
+            approvalHash: "h1",
+            workspaceRoot: s.root,
+          },
+        ],
+      ]);
+    });
+  }
+
   test("a legacy migration that is not as previewed is refused before anything moves", async () => {
     statuses(live());
     const hash = previewHash("h2");
@@ -1286,6 +1312,27 @@ describe("plan apply with a legacy branch attachment", () => {
       { extra: { branchAttachment: legacyAttachment } },
     );
     await expect(unapproved.run(["m1"])).rejects.toThrow(new Error(refusal));
+    // An id list that is not an array approves nothing, even as a string
+    // that contains the legacy action's id.
+    await expect(
+      unapproved.run(`x${legacyAction.id}` as never),
+    ).rejects.toThrow(new Error(refusal));
+  });
+
+  test("a plan without a legacy migration closes out on the same attachment", async () => {
+    const status = statuses(live());
+    stubSync();
+    const attachment = { ...legacyAttachment, migrationRequired: false };
+    const s = setup([{ id: "m1", ...cli("freshness_resync") }], UNBOUND, {
+      extra: { branchAttachment: attachment },
+    });
+    expect((await s.run()).structuredContent).toMatchObject({
+      outcome: "applied",
+    });
+    const contexts = status.mock.calls.map(
+      ([, context]) => (context as OperationContext).branchAttachment,
+    );
+    expect(contexts.at(-1)).toStrictEqual(attachment as never);
   });
 
   test("the legacy migration runs before every other approved action", async () => {

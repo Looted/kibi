@@ -195,3 +195,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f9c3f7bb48
+  - type: implements
+    from: SYM-check-inheritedSymbolGapsOf
+    to: REQ-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dce13c69813
+  - type: covered_by
+    from: SYM-check-inheritedSymbolGapsOf
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b0b81d588a0
+  - type: constrains
+    from: REQ-check-restated-twin-facts
+    to: FACT-check-duplicate-value-facts-subject
+    created_at: 2026-11-16T10:52:45.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30dbc17d4535
+  - type: requires_property
+    from: REQ-check-restated-twin-facts
+    to: FACT-check-restated-twin-facts
+    created_at: 2026-11-16T10:52:45.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-205afafa4336
+  - type: specified_by
+    from: REQ-check-restated-twin-facts
+    to: SCEN-check-restated-twin-facts
+    created_at: 2026-11-16T10:52:45.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae38b58c6eb5
+  - type: specified_by
+    from: REQ-check-restated-twin-facts
+    to: SCEN-NEG-check-restated-twin-facts-REPORTED
+    created_at: 2026-11-16T10:52:45.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-466cc175812d

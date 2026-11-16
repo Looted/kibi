@@ -482,3 +482,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-54c5cad274ee
+  - type: constrains
+    from: REQ-upsert-quotes-older-reason
+    to: FACT-upsert-reason-notes-subject
+    created_at: 2026-11-16T14:58:19.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33a58aa631b
+  - type: requires_property
+    from: REQ-upsert-quotes-older-reason
+    to: FACT-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:19.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fcb48f33ea2
+  - type: specified_by
+    from: REQ-upsert-quotes-older-reason
+    to: SCEN-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:19.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc48ac245171
+  - type: specified_by
+    from: REQ-upsert-quotes-older-reason
+    to: SCEN-NEG-upsert-quotes-older-reason-UNQUOTED
+    created_at: 2026-11-16T14:58:19.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d1b89031ab6

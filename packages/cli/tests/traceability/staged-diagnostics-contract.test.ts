@@ -207,6 +207,16 @@ describe("stale manifest diagnostic", () => {
     );
   });
 
+  test("a detail with a change count names the declarations it is judged on", () => {
+    const [diagnostic] = stale([
+      { ...detail("src/a.ts", ["n"], []), changedCount: 1 },
+    ]);
+    expect(diagnostic?.details).toEqual([
+      "src/a.ts — this commit adds or changes 1 of 3 declaration(s); the gaps below are the ones it is judged on.",
+      "    Not in m.yaml: n (line 10)",
+    ]);
+  });
+
   test("details with nothing missing or extra keep the plain suggestion", () => {
     const [diagnostic] = stale([detail("src/a.ts", [], [])]);
     expect(diagnostic?.suggestion).toBe(

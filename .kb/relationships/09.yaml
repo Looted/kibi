@@ -503,3 +503,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7bf3a480ab76
+  - type: constrains
+    from: REQ-upsert-notes-missing-reason
+    to: FACT-upsert-reason-notes-subject
+    created_at: 2026-11-16T14:58:17.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7795023f2b15
+  - type: requires_property
+    from: REQ-upsert-notes-missing-reason
+    to: FACT-upsert-notes-missing-reason
+    created_at: 2026-11-16T14:58:17.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d9c5c852c11
+  - type: specified_by
+    from: REQ-upsert-notes-missing-reason
+    to: SCEN-upsert-notes-missing-reason
+    created_at: 2026-11-16T14:58:17.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64b897fe6c2c
+  - type: specified_by
+    from: REQ-upsert-notes-missing-reason
+    to: SCEN-NEG-upsert-notes-missing-reason-UNNOTED
+    created_at: 2026-11-16T14:58:17.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db54a90508a4

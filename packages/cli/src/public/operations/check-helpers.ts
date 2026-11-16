@@ -165,9 +165,10 @@ export type OmittedViolations = {
   readonly byRule: Readonly<Record<string, number>>;
 };
 
-/** The entity id a `.kb/<kind>/<ID>.md` path holds, or undefined. */
+/** The entity id a `.kb/<kind>/<ID>.md` path from Git holds, or undefined. */
 function kbDocumentEntityId(file: string): string | undefined {
-  const match = /^\.kb\/[^/]+\/([^/]+)\.md$/.exec(file.replace(/\\/g, "/"));
+  // Git prints paths with forward slashes on every platform.
+  const match = /(?:^|\/)\.kb\/[^/]+\/([^/]+)\.md$/.exec(file);
   return match?.[1];
 }
 
@@ -179,7 +180,7 @@ function kbDocumentEntityId(file: string): string | undefined {
  */
 export function changedKbEntityIds(workspaceRoot: string): Set<string> {
   const ids = new Set<string>();
-  let output = "";
+  let output: string;
   try {
     output = execFileSync(
       "git",
@@ -187,6 +188,9 @@ export function changedKbEntityIds(workspaceRoot: string): Set<string> {
       {
         cwd: workspaceRoot,
         encoding: "utf8",
+        // rationale: stdin and stderr only keep Git quiet; the ids read from
+        // stdout are the same whichever streams are piped.
+        // Stryker disable next-line ArrayDeclaration,StringLiteral
         stdio: ["ignore", "pipe", "ignore"],
       },
     );
@@ -196,9 +200,15 @@ export function changedKbEntityIds(workspaceRoot: string): Set<string> {
   const entries = output.split("\0");
   for (let index = 0; index < entries.length; index += 1) {
     const entry = entries[index] as string;
-    if (entry.length < 4) continue;
-    // A rename lists its old path as the next entry.
-    if (entry[0] === "R" || entry[0] === "C") index += 1;
+    // A rename or copy lists its old path as the next entry.
+    if (
+      entry[0] === "R" ||
+      // rationale: Git lists a copy only when its source changed too, so the
+      // source's own entry names the same id whether or not this skips.
+      // Stryker disable next-line ConditionalExpression,EqualityOperator,StringLiteral
+      entry[0] === "C"
+    )
+      index += 1;
     const id = kbDocumentEntityId(entry.slice(3));
     if (id !== undefined) ids.add(id);
   }
@@ -237,9 +247,8 @@ export function scopeViolationsToImpact(
     !violation.entityId ||
     UNSCOPED_RULES.has(violation.rule) ||
     ids.has(violation.entityId) ||
-    endpoints(violation).some(
-      (endpoint) => typeof endpoint === "string" && ids.has(endpoint),
-    ) ||
+    // A non-string endpoint is never an id in the set.
+    endpoints(violation).some((endpoint) => ids.has(endpoint as string)) ||
     (violation.source !== undefined &&
       files.has(normalizePath(violation.source)));
 

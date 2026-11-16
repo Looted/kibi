@@ -5,7 +5,9 @@
 % Requirements: GAP owes coverage and has none; SCEN has a scenario with a
 % test; SCENONLY has an untested scenario; TEST has a test only; SHOULD is
 % not must-priority. Symbols: BARE has no
-% coverage; COVERED is covered through a scenario of SCEN.
+% coverage; COVERED is covered through a scenario of SCEN; CONFIG is a
+% config record without implements, which owes no coverage; LINKED is a
+% config record with implements, which does.
 derived_fixture :-
     fixture_entity(req, 'REQ-GAP', [priority=must]),
     fixture_entity(req, 'REQ-SCEN', [priority=must]),
@@ -18,6 +20,9 @@ derived_fixture :-
     fixture_entity(test, 'TEST-2', []),
     fixture_entity(symbol, 'SYM-BARE', []),
     fixture_entity(symbol, 'SYM-COVERED', []),
+    fixture_entity(symbol, 'SYM-CONFIG', [symbol_role=config]),
+    fixture_entity(symbol, 'SYM-LINKED', [symbol_role=config]),
+    fixture_rel(implements, 'SYM-LINKED', 'REQ-SHOULD'),
     fixture_rel(specified_by, 'REQ-SCEN', 'SCEN-1'),
     fixture_rel(validates, 'TEST-2', 'SCEN-1'),
     fixture_rel(specified_by, 'REQ-SCENONLY', 'SCEN-2'),
@@ -66,11 +71,12 @@ test(derives_gaps_and_snapshots_from_the_kb, [cleanup(clear_chr_facts)]) :-
     sorted_state(State0, State),
     State == state(
         ['REQ-GAP'-missing_scenario_and_test],
-        ['SYM-BARE'-no_qualifying_production_coverage],
+        ['SYM-BARE'-no_qualifying_production_coverage,
+         'SYM-LINKED'-no_qualifying_production_coverage],
         ['REQ-GAP', 'REQ-SCEN', 'REQ-SCENONLY', 'REQ-TEST'],
         ['REQ-SCEN', 'REQ-SCENONLY'],
         ['REQ-SCEN', 'REQ-TEST'],
-        ['SYM-BARE', 'SYM-COVERED'],
+        ['SYM-BARE', 'SYM-CONFIG', 'SYM-COVERED', 'SYM-LINKED'],
         ['SYM-COVERED']
     ).
 
