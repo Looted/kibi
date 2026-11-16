@@ -1531,13 +1531,20 @@
                 "type": "object",
                 "additionalProperties": true
               },
+              "siblings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
               "inventoryApplied": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "additionalProperties": true
                 },
-                "description": "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text."
+                "description": "Each claim recorded for a requirement sent without its inventory contract."
               },
               "implementedBy": {
                 "type": "array",
@@ -1545,7 +1552,7 @@
                   "type": "object",
                   "additionalProperties": true
                 },
-                "description": "Each implementedBy entry with the symbolId that implements the requirement and whether it was created."
+                "description": "Each implementedBy entry's symbolId and whether it was created."
               }
             }
           },
@@ -1598,6 +1605,20 @@
                 }
               },
               "implementedBy": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "siblings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "nextActions": {
                 "type": "array",
                 "items": {
                   "type": "object",

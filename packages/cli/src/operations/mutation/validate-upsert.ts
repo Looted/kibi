@@ -17,6 +17,7 @@ import {
 } from "./contradictions.js";
 import { quantityWarnings } from "./quantity-warnings.js";
 import { validateRelationshipSources } from "./relationships.js";
+import { siblingRequirements } from "./sibling-requirements.js";
 import { canonicalSourcePath, renderSourceWrite } from "./source-authoring.js";
 import { subjectLayerWarnings } from "./subject-warnings.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
@@ -403,10 +404,17 @@ export async function executeValidateUpsert(
       context.prolog,
       context.workspaceRoot,
     );
+    const siblings = siblingRequirements({
+      type: input.type,
+      id: input.id,
+      entity,
+      workspaceRoot: context.workspaceRoot,
+    });
     const payload: ValidateUpsertPayload = {
       valid: true,
       errors: [],
       warnings: [
+        ...siblings.warnings,
         ...semantic.warnings,
         ...storeWarnings,
         ...entityContextWarnings(input, entity, context.workspaceRoot, {
@@ -425,6 +433,9 @@ export async function executeValidateUpsert(
       normalizedPreview: entity,
       ...(inventoryApplied !== undefined ? { inventoryApplied } : {}),
       ...staged,
+      ...(siblings.siblings.length > 0
+        ? { siblings: siblings.siblings, nextActions: siblings.nextActions }
+        : {}),
     };
     const stagedNote =
       staged === undefined

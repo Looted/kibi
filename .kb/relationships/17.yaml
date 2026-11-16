@@ -332,3 +332,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-424fc813f7cb
+  - type: assumes
+    from: SCEN-NEG-upsert-dry-run-lists-siblings-DIFFERS
+    to: FACT-NEG-upsert-dry-run-lists-siblings-DIFFERS
+    created_at: 2026-11-16T19:17:17.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c83bf085a430
+  - type: verified_by
+    from: SCEN-NEG-upsert-dry-run-lists-siblings-DIFFERS
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:17.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d8e8c149f17

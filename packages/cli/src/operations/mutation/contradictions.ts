@@ -173,6 +173,19 @@ function formatStructuredUpsertError(
   record: PrologErrorRecord,
   stageSuffix: string,
 ): string {
+  if (
+    record.code === "contradiction" &&
+    record.conflicts?.some((conflict) => conflict.requirementId !== undefined)
+  ) {
+    return formatFactContradiction(
+      entityId,
+      (record.conflicts ?? []).map(
+        (conflict) =>
+          `  - ${conflict.requirementId ?? entityId} conflicts with ${conflict.otherId}: ${conflict.reason}`,
+      ),
+      stageSuffix,
+    );
+  }
   if (record.code === "contradiction") {
     const conflicts = [
       ...new Set(
@@ -200,6 +213,21 @@ function formatStructuredUpsertError(
   return `Failed to upsert entity ${entityId}: ${record.message}${stageSuffix}`;
 }
 
+const FACT_CONTRADICTION_REMEDY =
+  "To resolve:\n  1. Change the conflicting requirement in the same kb_apply_plan as this fact, OR\n  2. Supersede one requirement, or scope the two so they no longer constrain one quantity.";
+
+/**
+ * A fact write refused because it makes two current requirements grounded
+ * on the fact contradict: each pair, and how to send the change instead.
+ */
+function formatFactContradiction(
+  factId: string,
+  lines: readonly string[],
+  stageSuffix: string,
+): string {
+  return `Contradiction detected for fact ${factId}: the write makes current requirements conflict:\n${[...new Set(lines)].join("\n")}\n\n${FACT_CONTRADICTION_REMEDY}${stageSuffix}`;
+}
+
 function formatTextUpsertError(
   entityId: string,
   raw: string | undefined,
@@ -224,6 +252,14 @@ function formatTextUpsertError(
   const invalidRelationship = formatInvalidRelationshipError(diagnosticFree);
   if (invalidRelationship !== null) {
     return `Failed to upsert entity ${entityId}: ${invalidRelationship}${stageSuffix}`;
+  }
+  const factContradiction = diagnosticFree.match(
+    /Contradiction detected for fact [^:\n]+: the write makes current requirements conflict:((?:\n {2}- [^\n]+)+)/,
+  );
+  if (factContradiction) {
+    // The group is required by the pattern.
+    const lines = (factContradiction[1] as string).split("\n").slice(1);
+    return formatFactContradiction(entityId, lines, stageSuffix);
   }
   const contradiction = diagnosticFree.match(
     /kb_contradiction\(\s*\[([^\]]+)\]\s*\)/,
