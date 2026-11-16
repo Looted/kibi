@@ -10,8 +10,9 @@ tags:
   - session-brief
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-11-16: one short session brief in kibi-agent-core that every host adapter uses and that the MCP initialize instructions and kb_status serve, with three imperative lines (search for prior intent, record the person''s decisions with the reason, run the commit check) plus the conflict rule; and, since Gemini CLI reads GEMINI.md, have kibi init write the managed section there too.'
+  ref: 'Maintainer decision, 2026-11-16, approving the W4 statements as worded in the statement file (decision card, 17:53Z). Requested as: Maintainer request, 2026-11-16: one short session brief in kibi-agent-core that every host adapter uses and that the MCP initialize instructions and kb_status serve, with three imperative lines (search for prior intent, record the person''s decisions with the reason, run the commit check) plus the conflict rule; and, since Gemini CLI reads GEMINI.md, have kibi init write the managed section there too.'
   recorded_at: '2026-11-16T17:00:00.000Z'
+  approved_by: maintainer
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: b0a24d0a6d2b5361b4af1c61808377640d9256786f940a847147a2cd49e96888
