@@ -40869,6 +40869,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-scoped-check-output
       - type: implements
+        target: REQ-check-unscoped-budget
+      - type: implements
         target: REQ-kibi-scoped-check-output
   - id: SYM-test-mcp-upsert-proof-field-stubs
     title: kb_upsert proof field stub suite
@@ -41120,7 +41122,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-check-printStructuredCheckResult
     title: printStructuredCheckResult
     status: active
@@ -41133,7 +41135,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-check-executor-withSymbolDebtSummary
     title: withSymbolDebtSummary
     status: active
@@ -41146,7 +41148,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-symbol-debt-collectSymbolDebt
     title: collectSymbolDebt
     status: active
@@ -41159,7 +41161,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-symbol-debt-SymbolDebt
     title: SymbolDebt
     status: active
@@ -41180,7 +41182,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-staged-symbols-manifest-unrecordedDeclarations
     title: unrecordedDeclarations
     status: active
@@ -41193,7 +41195,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-staged-symbols-manifest-StagedSymbolsBaseSource
     title: StagedSymbolsBaseSource
     status: active
@@ -41824,171 +41826,82 @@ symbols:
         target: TEST-engine-client-core-modules-from-engine
       - type: implements
         target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-test-session-brief
-    title: session-brief.test
+  - id: SYM-symbol-debt-symbol-debt-listing
+    title: symbolDebtListing
+    sourceFile: packages/cli/src/public/operations/symbol-debt.ts
     status: active
-    sourceFile: packages/agent-core/tests/session-brief.test.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    granularity_reason: test-suite
+      recorded_at: 2026-11-16T15:52:22.178Z
     relationships:
-      - type: executable_for
-        target: TEST-session-brief
-  - id: SYM-test-agent-instructions-mutation
-    title: agent-instructions-mutation.test
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-symbol-debt-count
+  - id: SYM-check-format-symbol-debt-count
+    title: formatSymbolDebtCount
+    sourceFile: packages/cli/src/commands/check.ts
     status: active
-    sourceFile: packages/cli/tests/commands/agent-instructions-mutation.test.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-init-gemini-instructions
-  - id: SYM-agent-core-SESSION_BRIEF_LINES
-    title: SESSION_BRIEF_LINES
-    status: active
-    sourceFile: packages/agent-core/src/session-brief.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
+      recorded_at: 2026-11-16T15:52:27.900Z
     relationships:
       - type: covered_by
-        target: TEST-session-brief
+        target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-agent-core-session-brief
-  - id: SYM-agent-core-SESSION_BRIEF
-    title: SESSION_BRIEF
+        target: REQ-check-symbol-debt-count
+  - id: SYM-check-format-check-pass-line
+    title: formatCheckPassLine
+    sourceFile: packages/cli/src/commands/check.ts
     status: active
-    sourceFile: packages/agent-core/src/session-brief.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-session-brief
-      - type: implements
-        target: REQ-agent-core-session-brief
-  - id: SYM-agent-core-sessionBriefWith
-    title: sessionBriefWith
-    status: active
-    sourceFile: packages/agent-core/src/session-brief.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
+      recorded_at: 2026-11-16T15:52:47.470Z
     relationships:
       - type: covered_by
-        target: TEST-session-brief
+        target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-agent-core-session-brief
-  - id: SYM-claude-sessionStartContext
-    title: sessionStartContext
+        target: REQ-check-pass-one-line
+  - id: SYM-check-format-shared-describe-evaluated-rules
+    title: describeEvaluatedRules
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
     status: active
-    sourceFile: packages/claude/src/snippets.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
+      recorded_at: 2026-11-16T15:52:56.817Z
     relationships:
       - type: covered_by
-        target: TEST-session-brief
+        target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-session-brief-on-every-surface
-  - id: SYM-codex-runHook
-    title: runHook
+        target: REQ-check-pass-one-line
+  - id: SYM-check-CheckOptions
+    title: CheckOptions
     status: active
-    sourceFile: packages/codex/src/hook-runner.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-session-brief
-      - type: implements
-        target: REQ-session-brief-on-every-surface
-  - id: SYM-codex-CODEX_SESSION_NOTE
-    title: CODEX_SESSION_NOTE
-    status: active
-    sourceFile: packages/codex/src/messages.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-  - id: SYM-zcode-SESSION_START_CONTEXT
-    title: SESSION_START_CONTEXT
-    status: active
-    sourceFile: packages/zcode/src/messages.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-session-brief
-      - type: implements
-        target: REQ-session-brief-on-every-surface
-  - id: SYM-mcp-SERVER_INSTRUCTIONS
-    title: SERVER_INSTRUCTIONS
-    status: active
-    sourceFile: packages/mcp/src/server.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-session-brief
-      - type: implements
-        target: REQ-session-brief-on-every-surface
-  - id: SYM-discovery-StatusPayload
-    title: StatusPayload
-    status: active
-    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    sourceFile: packages/cli/src/commands/check.ts
     symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-session-brief
-      - type: implements
-        target: REQ-session-brief-on-every-surface
-  - id: SYM-agent-instructions-GEMINI_FILE
-    title: GEMINI_FILE
+      recorded_at: 2026-11-16T16:30:00.000Z
+  - id: SYM-check-executor-CheckInput
+    title: CheckInput
     status: active
-    sourceFile: packages/cli/src/commands/agent-instructions.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-  - id: SYM-agent-instructions-GEMINI_IMPORT_SECTION
-    title: GEMINI_IMPORT_SECTION
-    status: active
-    sourceFile: packages/cli/src/commands/agent-instructions.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-init-gemini-instructions
-      - type: implements
-        target: REQ-init-gemini-instructions
-  - id: SYM-agent-instructions-AgentInstructionsResult
-    title: AgentInstructionsResult
-    status: active
-    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
     symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
+      recorded_at: 2026-11-16T16:30:00.000Z
+  - id: SYM-check-executor-CheckExecutionOptions
+    title: CheckExecutionOptions
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:30:00.000Z
   - id: SYM-stryker-MUTATION_SHARDS
     title: MUTATION_SHARDS
     status: active
@@ -43254,3 +43167,168 @@ symbols:
         target: TEST-upsert-stale-siblings
       - type: implements
         target: REQ-apply-plan-checks-contradictions-once
+  - id: SYM-test-session-brief
+    title: session-brief.test
+    status: active
+    sourceFile: packages/agent-core/tests/session-brief.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-session-brief
+  - id: SYM-test-agent-instructions-mutation
+    title: agent-instructions-mutation.test
+    status: active
+    sourceFile: packages/cli/tests/commands/agent-instructions-mutation.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-init-gemini-instructions
+  - id: SYM-agent-core-SESSION_BRIEF_LINES
+    title: SESSION_BRIEF_LINES
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-agent-core-SESSION_BRIEF
+    title: SESSION_BRIEF
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-agent-core-sessionBriefWith
+    title: sessionBriefWith
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-claude-sessionStartContext
+    title: sessionStartContext
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-codex-runHook
+    title: runHook
+    status: active
+    sourceFile: packages/codex/src/hook-runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-codex-CODEX_SESSION_NOTE
+    title: CODEX_SESSION_NOTE
+    status: active
+    sourceFile: packages/codex/src/messages.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-zcode-SESSION_START_CONTEXT
+    title: SESSION_START_CONTEXT
+    status: active
+    sourceFile: packages/zcode/src/messages.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-mcp-SERVER_INSTRUCTIONS
+    title: SERVER_INSTRUCTIONS
+    status: active
+    sourceFile: packages/mcp/src/server.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-discovery-StatusPayload
+    title: StatusPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-agent-instructions-GEMINI_FILE
+    title: GEMINI_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-agent-instructions-GEMINI_IMPORT_SECTION
+    title: GEMINI_IMPORT_SECTION
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-init-gemini-instructions
+      - type: implements
+        target: REQ-init-gemini-instructions
+  - id: SYM-agent-instructions-AgentInstructionsResult
+    title: AgentInstructionsResult
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
