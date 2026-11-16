@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b65a90e37544
+  - type: assumes
+    from: SCEN-check-restated-twin-facts
+    to: FACT-check-restated-twin-facts
+    created_at: 2026-11-16T10:52:48.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e4031c6650f
+  - type: verified_by
+    from: SCEN-check-restated-twin-facts
+    to: TEST-check-restated-twin-facts
+    created_at: 2026-11-16T10:52:48.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d2ba36fc27e

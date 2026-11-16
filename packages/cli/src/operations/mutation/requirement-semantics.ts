@@ -232,6 +232,18 @@ const GROUNDING_RELATIONSHIPS = new Set([
   "requires_rule",
 ]);
 
+/** The record entries of an inventory, by claim key. */
+function entriesByClaimKey(
+  inventory: unknown,
+): Map<string, Record<string, unknown>> {
+  const entries = new Map<string, Record<string, unknown>>();
+  if (!Array.isArray(inventory)) return entries;
+  for (const entry of inventory) {
+    if (isRecord(entry)) entries.set(stringValue(entry.claim_key), entry);
+  }
+  return entries;
+}
+
 /** The claim keys the requirement's grounding links name, as far as known. */
 async function groundedClaimKeys(
   id: string,
@@ -248,18 +260,17 @@ async function groundedClaimKeys(
       continue;
     const target = stringValue(relationship.to);
     const planned = staged?.entities.get(target);
-    let key = "";
+    // An empty key names no claim, so it is kept like any other.
     if (planned !== undefined) {
-      key = planned.type === "fact" ? stringValue(planned.claim_key) : "";
-    } else {
-      try {
-        key = await storedClaimKey(prolog as PrologPort, target);
-      } catch {
-        // A target that does not exist yet is reported by the grounding
-        // check; it grounds no claim here.
-      }
+      if (planned.type === "fact") keys.add(stringValue(planned.claim_key));
+      continue;
     }
-    if (key) keys.add(key);
+    try {
+      keys.add(await storedClaimKey(prolog as PrologPort, target));
+    } catch {
+      // A target that does not exist yet is reported by the grounding
+      // check; it grounds no claim here.
+    }
   }
   return keys;
 }
@@ -294,12 +305,7 @@ export async function withServerSemanticInventory(
     return { input };
   // The payload's own entries carry the writer's judgment about a claim (its
   // status and subjects), keyed by claim_key.
-  const sentEntries = new Map<string, Record<string, unknown>>();
-  for (const entry of Array.isArray(sentProperties.semantic_inventory)
-    ? sentProperties.semantic_inventory
-    : []) {
-    if (isRecord(entry)) sentEntries.set(stringValue(entry.claim_key), entry);
-  }
+  const sentEntries = entriesByClaimKey(sentProperties.semantic_inventory);
   const own = input.properties ?? {};
   const alone = boundaryOf(input, own, relationships);
   if (alone.applicable && alone.errors.length === 0) return { input };
@@ -325,10 +331,9 @@ export async function withServerSemanticInventory(
     prose.semantic_text === stored.semantic_text
   )
     prose.semantic_clauses = stored.semantic_clauses;
-  const ledger = new Set<string>([...CONTRACT_FIELDS, "semantic_inventory"]);
-  const properties = Object.fromEntries(
-    Object.entries(prose).filter(([field]) => !ledger.has(field)),
-  );
+  // The payload can send no other ledger field here (it would be judged as
+  // sent), and its own inventory entries are read through sentEntries.
+  const { semantic_inventory: _ownEntries, ...properties } = prose;
   const payload = { type: input.type, id: input.id, properties };
   const { receipt } = analyzeSemanticAdvisorInput({
     payload: { ...payload, relationships },
@@ -340,12 +345,7 @@ export async function withServerSemanticInventory(
     prolog,
     staged,
   );
-  const storedEntries = new Map<string, Record<string, unknown>>();
-  for (const entry of Array.isArray(stored?.semantic_inventory)
-    ? stored.semantic_inventory
-    : []) {
-    if (isRecord(entry)) storedEntries.set(stringValue(entry.claim_key), entry);
-  }
+  const storedEntries = entriesByClaimKey(stored?.semantic_inventory);
   const stated = new Set(receipt.propositions.map((p) => p.claim_key));
   const unstated = [...sentEntries.keys()].filter((key) => !stated.has(key));
   if (unstated.length > 0)
@@ -383,11 +383,8 @@ export async function withServerSemanticInventory(
       : Array.isArray(previous?.subjects)
         ? previous.subjects
         : undefined;
-    return {
-      claim_key: proposition.claim_key,
-      status,
-      ...(subjects !== undefined ? { subjects } : {}),
-    };
+    // The contract keeps subjects only when there are some.
+    return { claim_key: proposition.claim_key, status, subjects };
   });
   const contract = semanticInventoryContract(
     { ...payload, properties: { ...properties, semantic_inventory: seed } },

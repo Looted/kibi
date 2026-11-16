@@ -1,0 +1,21 @@
+{
+  "test_id": "TEST-check-restated-twin-facts",
+  "steps": [
+    [
+      "swipl",
+      "-q",
+      "-g",
+      "load_test_files([]),run_tests(semantic_quality_identity),halt",
+      "-t",
+      "halt(1)",
+      "packages/core/tests/semantic_quality.plt"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./packages/cli/tests/consumer/restated-twin-facts.test.ts"
+    ]
+  ]
+}

@@ -174,7 +174,11 @@ export function fitScopedCheckToBudget(
   for (; index < content.violations.length; index += 1) {
     const violation = content.violations[index] as Violation;
     const diagnostic = content.diagnostics[index];
-    const cost = sizeOf(violation) + sizeOf(diagnostic) + 2;
+    // A finding without a diagnostic costs only its own text.
+    const cost =
+      sizeOf(violation) +
+      (diagnostic === undefined ? 0 : sizeOf(diagnostic)) +
+      2;
     // Leave a fifth of the budget for the grouped rest.
     if (used + cost > budget * 0.8) break;
     detailed.push(violation);
