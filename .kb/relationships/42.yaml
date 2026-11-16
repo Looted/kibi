@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e140521cc05
+  - type: implements
+    from: SYM-traceability-validate-staged-symbol-coverage
+    to: REQ-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:10:31.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-101017aa0797
+  - type: covered_by
+    from: SYM-traceability-validate-staged-symbol-coverage
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:10:31.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef510233cdd5

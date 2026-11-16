@@ -2,10 +2,10 @@ import path from "node:path";
 import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
 import {
   type ParsedViolation,
-  escapeAtom,
   parseViolationRows,
   splitTopLevelGeneral,
   toPrologAtom,
+  useCoreModuleGoal,
 } from "../prolog/codec.js";
 
 export interface ValidationOptions {
@@ -115,10 +115,10 @@ export async function validateStagedSymbolCoverage(options: {
     .sort()
     .map(toPrologAtom)
     .join(",")}]`;
-  const checksPl = escapeAtom(
+  const loadChecks = useCoreModuleGoal(
     path.join(path.dirname(resolveKbPlPath()), "checks.pl"),
   );
-  const goal = `(use_module('${checksPl}'), call(checks:check_changed_symbol_coverage(${extra}, Violations)))`;
+  const goal = `(${loadChecks}, call(checks:check_changed_symbol_coverage(${extra}, Violations)))`;
   const res = await options.prolog.query(goal);
   if (!res.success) {
     throw new Error(

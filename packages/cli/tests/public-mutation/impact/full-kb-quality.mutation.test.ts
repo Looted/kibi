@@ -719,7 +719,9 @@ describe("collectFullKbQualityDiagnostics", () => {
     const coverageGoal = withProof.goals.find((goal) =>
       goal.includes("coverage_evidence_json"),
     ) as string;
-    expect(coverageGoal).toMatch(/^\(use_module\('[^']*\/discovery\.pl'\), /);
+    expect(coverageGoal).toMatch(
+      /^\(\\\+ \\\+ \(module_property\(kb, file\(KibiKbFile\)\) -> .*? ; use_module\('[^']*\/discovery\.pl'\)\), /,
+    );
     expect(coverageGoal).toContain(
       "discovery:coverage_evidence_json([], strict_snapshot, _{}, 'snap-1', '2026-02-01T00:00:00Z', ",
     );

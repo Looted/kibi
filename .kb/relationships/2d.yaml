@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2339edc0d05
+  - type: verified_by
+    from: SCEN-engine-client-core-modules-from-engine
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T09:59:45.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-616f138acfad
+  - type: assumes
+    from: SCEN-engine-client-core-modules-from-engine
+    to: FACT-engine-client-loads-engine-core-modules
+    created_at: 2026-11-16T10:03:26.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8b8e15053b4

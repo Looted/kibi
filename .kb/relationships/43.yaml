@@ -265,3 +265,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-257344ddd483
+  - type: constrains
+    from: REQ-prolog-permission-error-names-refusal
+    to: FACT-prolog-permission-errors-subject
+    created_at: 2026-11-16T09:59:43.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54aa88eb1902
+  - type: requires_property
+    from: REQ-prolog-permission-error-names-refusal
+    to: FACT-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T09:59:44.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8046a87c519a
+  - type: specified_by
+    from: REQ-prolog-permission-error-names-refusal
+    to: SCEN-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T09:59:44.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab78229f287d
+  - type: specified_by
+    from: REQ-prolog-permission-error-names-refusal
+    to: SCEN-NEG-prolog-permission-error-names-refusal-SHOWN-AS-LOCK
+    created_at: 2026-11-16T09:59:44.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a24fed3b928

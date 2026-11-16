@@ -377,3 +377,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75b8203a11ad
+  - type: constrains
+    from: REQ-engine-client-core-modules-from-engine
+    to: FACT-engine-core-modules-subject
+    created_at: 2026-11-16T09:59:42.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ee4da66eab4
+  - type: requires_property
+    from: REQ-engine-client-core-modules-from-engine
+    to: FACT-engine-client-loads-engine-core-modules
+    created_at: 2026-11-16T09:59:42.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7e447c949d2
+  - type: specified_by
+    from: REQ-engine-client-core-modules-from-engine
+    to: SCEN-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T09:59:42.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12e105977e07
+  - type: specified_by
+    from: REQ-engine-client-core-modules-from-engine
+    to: SCEN-NEG-engine-client-core-modules-from-engine-OTHER-INSTALL-COPY
+    created_at: 2026-11-16T09:59:42.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a920661e5d0c
