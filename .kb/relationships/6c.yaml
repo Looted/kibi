@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9c4ea984714
+  - type: assumes
+    from: SCEN-kibi-env-reader-presence-tests
+    to: FACT-PROP-kibi-env-reader-presence-tests
+    created_at: 2026-11-16T11:06:29.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d355119c8801
+  - type: verified_by
+    from: SCEN-kibi-env-reader-presence-tests
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-16T11:06:29.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-045f41525f46

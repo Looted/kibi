@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8df5c2961fd3
+  - type: requires_property
+    from: REQ-behavioral-kinds-keep-implements
+    to: FACT-behavioral-symbol-kinds
+    created_at: 2026-11-16T11:04:04.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f21719b8396
