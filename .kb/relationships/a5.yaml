@@ -230,3 +230,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab20f7affdd7
+  - type: constrains
+    from: REQ-search-answer-gives-recorded-reason
+    to: FACT-search-answer-reasons-subject
+    created_at: 2026-11-16T10:21:04.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcc52782b514
+  - type: requires_property
+    from: REQ-search-answer-gives-recorded-reason
+    to: FACT-search-answer-gives-recorded-reason
+    created_at: 2026-11-16T10:21:04.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97a4d48464c3
+  - type: specified_by
+    from: REQ-search-answer-gives-recorded-reason
+    to: SCEN-search-answer-gives-recorded-reason
+    created_at: 2026-11-16T10:21:04.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f35ccb87fe0
+  - type: specified_by
+    from: REQ-search-answer-gives-recorded-reason
+    to: SCEN-NEG-search-answer-gives-recorded-reason-OMITTED
+    created_at: 2026-11-16T10:21:04.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7679e1cf731

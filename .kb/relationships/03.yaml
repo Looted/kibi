@@ -447,3 +447,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b45bcd6f6e8
+  - type: executable_for
+    from: SYM-proof-search-answer-reason-chars
+    to: TEST-proof-search-answer-reason-chars
+    created_at: 2026-11-16T13:12:54.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3ca9aa9a2eb
