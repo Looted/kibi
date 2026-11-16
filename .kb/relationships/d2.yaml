@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c847ef44b90
+  - type: executable_for
+    from: SYM-proof-advertised-description-limit
+    to: TEST-proof-advertised-description-limit
+    created_at: 2026-11-16T11:02:35.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5514596b1665
