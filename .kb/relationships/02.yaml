@@ -307,6 +307,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-adf90998a4a2
+  - type: executable_for
+    from: SYM-test-kibi-staged-firm-edit-gate
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:44.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b8a02ca5780
   - type: implements
     from: SYM-cli-search-answer-note
     to: REQ-search-answer-marks-missing-reason

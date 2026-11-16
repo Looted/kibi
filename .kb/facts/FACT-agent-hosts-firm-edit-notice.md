@@ -1,5 +1,5 @@
 ---
-title: 'Host decision guard: a firm-requirement edit tells the agent to ask first'
+title: 'Host decision guard: a firm-requirement edit tells the agent to ask first and record its verdict'
 status: active
 fact_kind: property_value
 subject_key: kibi.agent_hosts_decision_guard
@@ -7,8 +7,8 @@ property_key: firm_edit_notice
 operator: eq
 value_type: bool
 value_bool: true
-claim_key: CLAIM-24C16C22D1A2FAC8
-claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent to ask the person before an edit that breaks that rule, once per requirement per session
+claim_key: CLAIM-DD875FBC8AF85498
+claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit
 text_ref: REQ-agent-hosts-firm-edit-ask
 tags:
   - strict-modeling

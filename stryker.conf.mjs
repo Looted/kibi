@@ -1330,6 +1330,12 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/public/impact/analyzer.ts": [
     "packages/cli/tests/public-mutation/impact/analyzer.mutation.test.ts",
   ],
+  "packages/cli/src/public/impact/firm-edit-gate.ts": [
+    "packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/firm-edit-review.ts": [
+    "packages/cli/tests/public-mutation/operations/firm-edit-review.mutation.test.ts",
+  ],
   "packages/cli/src/public/operations/advertised-schema.ts": [
     "packages/cli/tests/operations/advertised-schema.test.ts",
   ],

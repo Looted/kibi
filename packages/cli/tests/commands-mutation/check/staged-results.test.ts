@@ -196,6 +196,35 @@ describe("snapshot symbols for granularity", () => {
     expect("activeEntityIds" in quality).toBe(false);
   });
 
+  test("the firm-edit gate judges changed symbols against the staged tree", async () => {
+    h.world.inventory = [src(), entry(REQ)];
+    const changed = { name: "a", reqLinks: [] };
+    h.set("extractSymbolsFromStagedFileAsync", async (file) =>
+      file.path === "src/a.ts" ? [changed] : [],
+    );
+    const requirement = { id: "REQ-1", type: "req", source: REQ };
+    h.world.entities = [{ entity: requirement, relationships: [] }];
+    let gate: Record<string, (value: unknown) => unknown> = {};
+    h.set("createFirmEditGateDiagnostics", (options) => {
+      gate = options;
+      return [];
+    });
+    await h.run();
+    expect([
+      ...(gate.symbolsByFile as unknown as Map<string, unknown>),
+    ]).toEqual([["src/a.ts", [changed]]]);
+    expect(gate.readContent?.("src/a.ts")).toBe("content of src/a.ts");
+    expect(gate.readRequirement?.("REQ-1")).toBe(requirement);
+    expect(gate.readRequirement?.("REQ-2")).toBeUndefined();
+    expect(gate.requirementChanged?.({ source: REQ })).toBe(true);
+    expect(gate.requirementChanged?.({ source: "other.md" })).toBe(false);
+    expect(gate.readReceipt?.("r.json")).toBe("blob HEAD:r.json");
+    h.world.git = () => {
+      throw new Error("not in the tree");
+    };
+    expect(gate.readReceipt?.("r.json")).toBeUndefined();
+  });
+
   test("a snapshot source that is not a regular file is an error", async () => {
     h.world.inventory = [src()];
     h.world.entities = [symbolEntity("SYM-L", "src/link.ts")];
@@ -422,8 +451,9 @@ describe("staged verdicts", () => {
     h.set("createSymbolQualityDiagnostics", () => [diagnostic(false)]);
     h.set("createSemanticReviewDiagnostics", () => [diagnostic(false)]);
     h.set("createStagedEntityIdStyleDiagnostics", () => [diagnostic(false)]);
+    h.set("createFirmEditGateDiagnostics", () => [diagnostic(false)]);
     expect(await h.run()).toBe(0);
-    expect(h.output().qualityDiagnostics).toHaveLength(4);
+    expect(h.output().qualityDiagnostics).toHaveLength(5);
     expect(h.output().messages).toContain(
       "✓ No violations found in staged symbols.",
     );
