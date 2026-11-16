@@ -166,7 +166,8 @@ describe("session start", () => {
       }),
       "SessionStart",
     );
-    expect(text).toContain("1 source files have requirement-linked symbols");
+    expect(text).toContain("the 1 linked source files");
+    expect(text).toContain("is a question, not a task");
     expect(text).toContain("kb_search");
     expect(text).toContain("kibi-usage");
   });
@@ -590,7 +591,7 @@ describe("evaluation trace replays", () => {
       await call({ hook_event_name: "SessionStart", source: "compact" }),
       "SessionStart",
     );
-    expect(compact).toContain("1 source files have requirement-linked symbols");
+    expect(compact).toContain("the 1 linked source files");
     const again = await pre("Read", { file_path: linked(fixture) });
     expect(again).toContain("Kibi knowledge for src/checkout.ts");
     expect(again).toContain("Covered by: TEST-checkout-rounding.");

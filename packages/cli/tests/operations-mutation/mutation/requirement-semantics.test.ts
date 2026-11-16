@@ -9,6 +9,7 @@ import type {
   StagedUpsertState,
   UpsertInput,
 } from "../../../src/operations/mutation/types.js";
+import { isPartialSemanticInventory } from "../../../src/operations/mutation/validation.js";
 import { analyzeSemanticAdvisorInput } from "../../../src/operations/semantic-advisor/analyze-prose.js";
 import { semanticInventoryContract } from "../../../src/operations/semantic-advisor/ingestion-boundary.js";
 
@@ -769,5 +770,32 @@ describe("withServerSemanticInventory decisions", () => {
       message:
         "Proposition-complete ingestion failed: semantic_inventory names claim key(s) CLAIM-0000000000000000, CLAIM-1111111111111111 that the prose of REQ-1 does not state, so the entries were written for other prose. Send semantic_inventory entries only for the claim keys kb_model mode analyze returns for the current prose, or omit semantic_inventory to have Kibi derive it.",
     });
+  });
+});
+
+describe("isPartialSemanticInventory", () => {
+  const KEY = "CLAIM-0123456789ABCDEF";
+  test("accepts entries that give a claim key, a status and subjects", () => {
+    expect(
+      isPartialSemanticInventory([
+        { claim_key: KEY, status: "ontology_gap", subjects: ["report"] },
+        { claim_key: KEY, status: "ambiguous" },
+      ]),
+    ).toBe(true);
+  });
+
+  test("refuses anything else, which is validated as a full entry", () => {
+    for (const value of [
+      undefined,
+      [],
+      {},
+      [{ claim_key: KEY }],
+      [{ claim_key: "CLAIM-1", status: "missing" }],
+      [{ claim_key: KEY, status: "bogus" }],
+      [{ claim_key: KEY, status: "missing", subjects: [""] }],
+      [{ claim_key: KEY, status: "missing", claim_text: "Users export." }],
+      [{ claim_key: KEY, status: "missing" }, null],
+    ])
+      expect(isPartialSemanticInventory(value)).toBe(false);
   });
 });

@@ -55,6 +55,43 @@ const upsertEntitySchema = {
   },
 };
 
+/**
+ * The shape of a semantic_inventory entry a writer sends for Kibi to
+ * complete: the claim it classifies, by key, with its status and subjects.
+ */
+const PARTIAL_INVENTORY_ENTRY_SCHEMA = (() => {
+  const entry = (
+    properties.semantic_inventory as {
+      items: { properties: Record<string, unknown> };
+    }
+  ).items.properties;
+  return {
+    type: "object",
+    required: ["claim_key", "status"],
+    properties: {
+      claim_key: entry.claim_key,
+      status: entry.status,
+      subjects: entry.subjects,
+    },
+    additionalProperties: false,
+  };
+})();
+let partialInventoryEntryValidator: ValidateFunction | undefined;
+
+/**
+ * Whether a semantic_inventory value holds only entries in the partial shape
+ * ({claim_key, status, subjects}) a requirement write sends for Kibi to
+ * derive the rest of the inventory from the prose.
+ */
+export function isPartialSemanticInventory(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  partialInventoryEntryValidator ??= ajv.compile(
+    PARTIAL_INVENTORY_ENTRY_SCHEMA,
+  );
+  const validate = partialInventoryEntryValidator;
+  return value.every((entry) => validate(entry));
+}
+
 const ALIASES = new Map([
   ["subjectKey", "subject_key"],
   ["propertyKey", "property_key"],

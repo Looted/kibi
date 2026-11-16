@@ -1028,6 +1028,9 @@
                 "properties": {},
                 "type": "object"
               },
+              "sessionBrief": {
+                "type": "string"
+              },
               "snapshotId": {
                 "type": "string"
               },

@@ -206,3 +206,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4046fdffb9cf
+  - type: implements
+    from: SYM-kibiOpencodePlugin
+    to: REQ-session-brief-on-every-surface
+    created_at: 2026-11-16T16:37:52.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89e53df953fe
+  - type: covered_by
+    from: SYM-kibiOpencodePlugin
+    to: TEST-session-brief
+    created_at: 2026-11-16T16:37:52.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c45a76dde64f

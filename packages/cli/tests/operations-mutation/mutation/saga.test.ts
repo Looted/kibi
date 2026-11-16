@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { KbRejection, isKbRejection } from "../../../src/cli-errors.js";
 import {
   MutationRollbackFailureError,
   MutationSaga,
@@ -100,5 +101,21 @@ describe("MutationRollbackFailureError", () => {
     expect(error.message).toBe("mutation failed");
     expect(error.errors).toStrictEqual([original]);
     expect(error.rollbackFailures).toBe(failures);
+    expect(error.cause).toBe(original);
+  });
+
+  test("a refusal under a failed rollback stays a refusal", () => {
+    const refusal = new KbRejection("SEMANTIC_CONTRADICTION", "conflict");
+    const rejected = new MutationRollbackFailureError(
+      [refusal, new Error("rb")],
+      "mutation failed",
+      [],
+    );
+    expect(isKbRejection(rejected)).toBe(true);
+    expect(
+      isKbRejection(
+        new MutationRollbackFailureError([new Error("x")], "failed", []),
+      ),
+    ).toBe(false);
   });
 });

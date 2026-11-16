@@ -349,3 +349,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55ef4c72ce70
+  - type: constrains
+    from: REQ-init-gemini-instructions
+    to: FACT-SUBJECT-kibi-init-agent-instructions
+    created_at: 2026-11-16T16:35:14.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa06c6ebfa90
+  - type: requires_property
+    from: REQ-init-gemini-instructions
+    to: FACT-init-gemini-imports-agents
+    created_at: 2026-11-16T16:35:15.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ddfb055c94d
+  - type: specified_by
+    from: REQ-init-gemini-instructions
+    to: SCEN-init-gemini-instructions
+    created_at: 2026-11-16T16:35:15.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44eaa105f102
+  - type: specified_by
+    from: REQ-init-gemini-instructions
+    to: SCEN-NEG-init-gemini-instructions-NOT-WRITTEN
+    created_at: 2026-11-16T16:35:15.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-344409054570

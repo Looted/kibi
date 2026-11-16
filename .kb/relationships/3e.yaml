@@ -405,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-20a225cc1749
+  - type: covered_by
+    from: SYM-discovery-execute-status
+    to: TEST-session-brief
+    created_at: 2026-11-16T16:36:48.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2084a91fc200

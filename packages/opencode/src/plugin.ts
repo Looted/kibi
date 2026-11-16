@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import {
   type AutoUpdateInput,
   type AutoUpdateResult,
@@ -46,6 +47,7 @@ import {
   runPluginStartup,
 } from "./plugin-startup.js";
 import { SENTINEL, buildPrompt } from "./prompt.js";
+import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import { type SyncScheduler, createSyncScheduler } from "./scheduler.js";
 import {
@@ -122,6 +124,11 @@ const checkoutHooksCache = new Map<
   string,
   { note: string | null; at: number }
 >();
+/** Whether the workspace uses Kibi, so its sessions open with the brief. */
+function sessionBriefApplies(posture: RepoPosture): boolean {
+  return posture === "root_active" || posture === "hybrid_root_plus_vendored";
+}
+
 function checkoutHooksNote(worktreeRoot: string): string | null {
   const cached = checkoutHooksCache.get(worktreeRoot);
   const now = Date.now();
@@ -968,6 +975,12 @@ const kibiOpencodePlugin: Plugin = async (
 
         // No entry carries the sentinel, so the guidance is never a repeat.
         output.system.push(guidance);
+        // The system prompt is rebuilt for every request, so a workspace that
+        // uses Kibi gets the shared session brief, the same text every other
+        // host starts with, on each one.
+        if (sessionBriefApplies(promptWorkContext.posture)) {
+          output.system.push(SESSION_BRIEF);
+        }
         const hooksNote = checkoutHooksNote(promptWorkContext.worktreeRoot);
         if (hooksNote !== null) output.system.push(hooksNote);
       };
