@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6c3727f6b26
+  - type: assumes
+    from: SCEN-NEG-upsert-notes-missing-reason-UNNOTED
+    to: FACT-NEG-upsert-notes-missing-reason-UNNOTED
+    created_at: 2026-11-16T14:58:21.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f33036c346d4
+  - type: verified_by
+    from: SCEN-NEG-upsert-notes-missing-reason-UNNOTED
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:21.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a81b06901977

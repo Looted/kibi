@@ -680,6 +680,9 @@ export function greet() {
         if (goal === "kb_save") {
           return { success: true };
         }
+        if (goal.startsWith("findall(A, (kb_entity(A, adr, _)")) {
+          return { success: true, bindings: { As: "[]" } };
+        }
 
         throw new Error(`Unexpected goal: ${goal}`);
       },
@@ -708,8 +711,9 @@ export function greet() {
     });
 
     // One existence read, shared by the stored relationships and the new
-    // entity's origin.
-    expect(query).toHaveBeenCalledTimes(11);
+    // entity's origin, and one read of the ADRs that could give the new
+    // requirement its reason.
+    expect(query).toHaveBeenCalledTimes(12);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toMatchObject({
       created: 1,

@@ -53,6 +53,7 @@ import {
   withPlanRecoveryNotes,
 } from "./plan-apply-journal.js";
 import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
+import { reasonNotes } from "./reason-note.js";
 import {
   existingRelationships,
   validateLiveRelationshipTargets,
@@ -771,6 +772,9 @@ export async function executeUpsert(
   const saga = new MutationSaga();
   let sourceWrite: Awaited<ReturnType<typeof writeSourceForUpsert>> = null;
   let commitEntity: Readonly<Record<string, unknown>> | undefined;
+  // The entity before this write, when the source-first scope read it.
+  let priorEntity: Readonly<Record<string, unknown>> | undefined;
+  let priorEntityRead = false;
   let relationshipCount = 0;
   let changeKind: "created" | "updated" | null = null;
   let semanticAdvisor: SemanticAdvisorReceipt | null = null;
@@ -826,6 +830,8 @@ export async function executeUpsert(
     semanticAdvisor = semantic.receipt;
     const sourceScope = await sourceWriteScope(input, context);
     if (sourceScope !== null) {
+      priorEntity = sourceScope.existing;
+      priorEntityRead = true;
       sourceWrite = await writeSourceForUpsert(
         input,
         validated.entity,
@@ -1109,6 +1115,17 @@ export async function executeUpsert(
       context.prolog,
       context.workspaceRoot,
     );
+    const requirementReasonNotes =
+      priorEntityRead || created === 1
+        ? await reasonNotes({
+            type: input.type,
+            id: input.id,
+            before: created === 1 ? undefined : priorEntity,
+            after: writtenEntity,
+            prolog: requireProlog(context),
+            workspaceRoot: context.workspaceRoot,
+          })
+        : [];
     const payload: UpsertPayload = {
       created,
       updated: changeKind === "updated" ? 1 : 0,
@@ -1135,6 +1152,7 @@ export async function executeUpsert(
           sourceWrite?.receipt.path,
         ),
         ...subjectWarnings,
+        ...requirementReasonNotes,
         ...shardWarnings,
         ...coordinateWarnings,
       ],
