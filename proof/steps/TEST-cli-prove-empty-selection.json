@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-cli-prove-empty-selection",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/proof/prove-command.test.ts",
+      "./packages/cli/tests/commands/prove-mutation.test.ts"
+    ]
+  ]
+}

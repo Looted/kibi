@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02c160d4a138
+  - type: implements
+    from: SYM-cli-contradictions-upsertfailure
+    to: REQ-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:35:53.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-371496a92f57
+  - type: covered_by
+    from: SYM-cli-contradictions-upsertfailure
+    to: TEST-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:35:53.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4372ac3c3d6b

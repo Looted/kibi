@@ -286,6 +286,37 @@ describe("store failures", () => {
     }
   });
 
+  test("code a missing relationship endpoint as a rejection naming it", () => {
+    for (const role of ["source", "target"] as const) {
+      const verb = role === "source" ? "Source" : "Target";
+      const failure = upsertFailure("SCEN-x", "(stage=rdf_mutation)", {
+        code: "entity_not_found",
+        entityId: "TEST-missing",
+        role,
+        message: `${verb} entity does not exist: TEST-missing`,
+      } as PrologErrorRecord);
+      expect(failure).toBeInstanceOf(KbRejection);
+      expect((failure as KbRejection).code).toBe(
+        "RELATIONSHIP_ENDPOINT_MISSING",
+      );
+      expect(failure.message).toBe(
+        `Failed to upsert entity SCEN-x: ${verb} entity does not exist: TEST-missing. Create TEST-missing first, or write both entities in the same kb_apply_plan, then retry (stage=rdf_mutation)`,
+      );
+    }
+  });
+
+  test("leave a missing entity outside a relationship an ordinary error", () => {
+    const failure = upsertFailure("SCEN-x", undefined, {
+      code: "entity_not_found",
+      entityId: "SCEN-x",
+      message: "Entity does not exist: SCEN-x",
+    } as PrologErrorRecord);
+    expect(failure).not.toBeInstanceOf(KbRejection);
+    expect(failure.message).toBe(
+      "Failed to upsert entity SCEN-x: Entity does not exist: SCEN-x",
+    );
+  });
+
   test("leave any other failure an ordinary error", () => {
     for (const failure of [
       upsertFailure("REQ-1"),
