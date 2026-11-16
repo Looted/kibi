@@ -10,6 +10,7 @@ semantic_text: Without fields set to full, kb_search must leave out each result'
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-11-16: give the statement and the recorded reason in the first search and edit layer'
+  approved_by: maintainer
   recorded_at: '2026-11-16T15:56:06.710Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

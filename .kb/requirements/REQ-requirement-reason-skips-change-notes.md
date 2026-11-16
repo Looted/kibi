@@ -11,6 +11,7 @@ semantic_text: A requirement's recorded reason in a kb_search answer or in an ed
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-11-16: take a requirement''s reason from its rationale and its Why, Rationale or Context sections before Why this changed, and skip split and supersede notes'
+  approved_by: maintainer
   recorded_at: '2026-11-16T17:36:51.473Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

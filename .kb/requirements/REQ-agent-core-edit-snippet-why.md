@@ -10,6 +10,7 @@ semantic_text: The first edit snippet shown for a file whose lead requirement is
 origin:
   kind: agent
   ref: 'Maintainer request, 2026-11-16: give the statement and the recorded reason in the first search and edit layer'
+  approved_by: maintainer
   recorded_at: '2026-11-16T15:55:02.452Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
