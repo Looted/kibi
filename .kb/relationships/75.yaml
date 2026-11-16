@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fd9d01bf0a68
+  - type: implements
+    from: SYM-owner-findings-cli-upsert-command
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T18:14:23.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c237e322adbd
+  - type: covered_by
+    from: SYM-owner-findings-cli-upsert-command
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T18:14:23.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad79fd14edaf

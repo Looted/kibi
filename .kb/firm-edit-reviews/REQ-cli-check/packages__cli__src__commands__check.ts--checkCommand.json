@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-cli-check",
+  "sourceFile": "packages/cli/src/commands/check.ts",
+  "symbol": "checkCommand",
+  "verdict": "keeps",
+  "note": "kibi check --staged still runs the same validation and exit codes; only its refusal text groups the findings of one unowned declaration into one block, and the JSON still carries every finding.",
+  "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
+  "codeHash": "sha256:cc2384ee3f1aca3059e92d8d91449ffd085bee9046b71c5dd9d344aa862273d6",
+  "startLine": 760,
+  "endLine": 1668,
+  "recordedAt": "2026-11-16T18:13:49.236Z"
+}

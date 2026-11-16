@@ -41,6 +41,8 @@ export type UpsertInput = {
 export type ImplementedByInput = {
   readonly sourceFile: string;
   readonly symbol: string;
+  /** Tests that cover the declaration: each becomes a covered_by link. */
+  readonly coveredBy?: readonly string[];
 };
 
 /** How kb_upsert recorded one implementedBy entry. */

@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2dea1c135815
+  - type: validates
+    from: TEST-check-staged-owner-block
+    to: SCEN-check-staged-owner-block
+    created_at: 2026-11-16T16:48:24.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea4793a891de
+  - type: validates
+    from: TEST-check-staged-owner-block
+    to: SCEN-NEG-check-staged-owner-block-SPLIT
+    created_at: 2026-11-16T16:48:24.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a57c23f3473
+  - type: validates
+    from: TEST-check-staged-owner-block
+    to: SCEN-NEG-check-staged-owner-block-SILENT
+    created_at: 2026-11-16T16:48:24.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60760136e516

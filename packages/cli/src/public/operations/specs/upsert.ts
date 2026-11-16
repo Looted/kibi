@@ -3,13 +3,13 @@ import type {
   UpsertInput,
   UpsertPayload,
 } from "../../../operations/mutation/types.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 import type { OperationSpec } from "../types.js";
 import {
   ENTITY_PROPERTIES_SCHEMA,
   ENTITY_TYPES,
   RELATIONSHIPS_SCHEMA,
 } from "./mutation-schemas.js";
-import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 /** kb_upsert's plannedFacts (dryRun only); kb_validate_upsert takes it too. */
 export const PLANNED_FACTS_SCHEMA = {
@@ -49,9 +49,9 @@ export const IMPLEMENTED_BY_SCHEMA = {
   type: "array",
   minItems: 1,
   description:
-    "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant). Kibi creates or reuses each symbol and links it with implements; an entry that resolves to no single granular declaration is refused with candidates.",
+    "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant), with optional coveredBy test ids. Kibi creates or reuses each symbol, links it with implements and to each coveredBy test with covered_by; an entry that resolves to no single granular declaration is refused with candidates.",
   [ADVERTISED_DESCRIPTION]:
-    "req only: the declarations that implement it, each {sourceFile, symbol}; Kibi links each with implements.",
+    "req only: the declarations that implement it, each {sourceFile, symbol, coveredBy?}; Kibi links each with implements (and covered_by).",
   items: {
     type: "object",
     additionalProperties: false,
@@ -59,6 +59,10 @@ export const IMPLEMENTED_BY_SCHEMA = {
     properties: {
       sourceFile: { type: "string", minLength: 1 },
       symbol: { type: "string", minLength: 1 },
+      coveredBy: {
+        type: "array",
+        items: { type: "string", minLength: 1 },
+      },
     },
   },
 } as const;

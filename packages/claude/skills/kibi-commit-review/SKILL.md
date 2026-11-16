@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-commit-review
   id: kibi-commit-review
-  version: 1.6.0
+  version: 1.6.1
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi

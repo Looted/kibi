@@ -71,7 +71,26 @@ function entries(input: UpsertInput): readonly ImplementedByInput[] {
       refuse(
         `Upsert of ${input.id} rejected: implementedBy[${index}] must name a sourceFile and the symbol declared in it; a whole file is never an implements link.`,
       );
-    return { sourceFile: sourceFile.trim(), symbol: symbol.trim() };
+    const coveredBy = record.coveredBy;
+    if (
+      coveredBy !== undefined &&
+      (!Array.isArray(coveredBy) ||
+        coveredBy.some((id) => typeof id !== "string" || id.trim() === ""))
+    )
+      refuse(
+        `Upsert of ${input.id} rejected: implementedBy[${index}].coveredBy must be an array of test ids.`,
+      );
+    return {
+      sourceFile: sourceFile.trim(),
+      symbol: symbol.trim(),
+      ...(coveredBy !== undefined
+        ? {
+            coveredBy: [
+              ...new Set((coveredBy as string[]).map((id) => id.trim())),
+            ],
+          }
+        : {}),
+    };
   });
 }
 
@@ -91,6 +110,7 @@ type Resolved = Readonly<{
   sourceFile: string;
   symbol: string;
   candidate: GranularSymbolCandidate;
+  coveredBy: readonly string[];
 }>;
 
 /**
@@ -151,6 +171,7 @@ async function resolveEntry(
     sourceFile: relative,
     symbol: entry.symbol,
     candidate: named,
+    coveredBy: entry.coveredBy ?? [],
   };
 }
 
@@ -189,9 +210,11 @@ async function symbolSteps(
       refuse(
         `Upsert of ${requirementId} rejected: implementedBy symbol ${entry.symbol} in ${entry.sourceFile} has several symbol entities (${matches.map((entity) => String(entity.id)).join(", ")}); link the one that implements the requirement with a relationship.`,
       );
-    const relationships = [
-      { type: "implements", from: "", to: requirementId },
-    ] as const;
+    // Every link starts at the symbol, whose id is known below.
+    const links = [
+      { type: "implements", to: requirementId },
+      ...entry.coveredBy.map((test) => ({ type: "covered_by", to: test })),
+    ];
     const existing = matches[0];
     if (existing !== undefined) {
       const id = String(existing.id);
@@ -211,7 +234,11 @@ async function symbolSteps(
               ? { status: existing.status }
               : {}),
           },
-          relationships: relationships.map((rel) => ({ ...rel, from: id })),
+          relationships: links.map((link) => ({
+            type: link.type,
+            from: id,
+            to: link.to,
+          })),
         },
       });
       continue;
@@ -246,7 +273,11 @@ async function symbolSteps(
           status: "active",
           ...(role !== "unknown" ? { symbol_role: role } : {}),
         },
-        relationships: relationships.map((rel) => ({ ...rel, from: id })),
+        relationships: links.map((link) => ({
+          type: link.type,
+          from: id,
+          to: link.to,
+        })),
       },
     });
   }

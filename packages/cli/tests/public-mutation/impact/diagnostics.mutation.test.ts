@@ -329,6 +329,7 @@ describe("createSemanticReviewDiagnostics", () => {
           "Changed behavioral symbol run needs semantic review against linked Kibi coverage: REQ-b, TEST-a",
         suggestion:
           "Use kb_search and kb_query for src/a.ts, then verify that REQ-b, TEST-a actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.",
+        evidence: { symbol: "run" },
       },
     ]);
   });

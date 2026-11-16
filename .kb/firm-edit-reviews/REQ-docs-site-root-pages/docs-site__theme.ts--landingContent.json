@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-docs-site-root-pages",
+  "sourceFile": "docs-site/theme.ts",
+  "symbol": "landingContent",
+  "verdict": "keeps",
+  "note": "The landing page still publishes the same root pages; one paragraph now describes the staged check's one-block-per-declaration output.",
+  "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
+  "codeHash": "sha256:8d62a041ed2b7dab841697bcf76a69df2fedef2d9ecfd26db9275bfafda76eb8",
+  "startLine": 1447,
+  "endLine": 1833,
+  "recordedAt": "2026-11-16T18:13:49.236Z"
+}

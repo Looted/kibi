@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d97f17fdc944
+  - type: implements
+    from: SYM-diagnostics-create-semantic-review-diagnostics
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T18:14:26.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a990b192ade4
+  - type: covered_by
+    from: SYM-diagnostics-create-semantic-review-diagnostics
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T18:14:26.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-205f737fd4d8
