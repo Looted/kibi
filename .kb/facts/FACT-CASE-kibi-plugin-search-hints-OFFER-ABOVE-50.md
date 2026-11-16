@@ -2,7 +2,7 @@
 title: The bootstrap plan would hold the search-hints offer back until 51 requirement documents
 status: active
 fact_kind: property_value
-subject_key: kibi.plugins.search_hints_potion
+subject_key: kibi.search.hint_limits
 property_key: offer_min_requirements
 operator: eq
 value_type: int
