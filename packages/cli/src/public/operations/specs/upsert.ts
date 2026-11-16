@@ -51,7 +51,7 @@ export const IMPLEMENTED_BY_SCHEMA = {
   description:
     "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant), with optional coveredBy test ids. Kibi creates or reuses each symbol, links it with implements and to each coveredBy test with covered_by; an entry that resolves to no single granular declaration is refused with candidates.",
   [ADVERTISED_DESCRIPTION]:
-    "req only: the declarations that implement it, each {sourceFile, symbol, coveredBy?}; Kibi links each with implements (and covered_by).",
+    "req only: declarations that implement it, each {sourceFile, symbol, coveredBy?}; linked by implements (and covered_by).",
   items: {
     type: "object",
     additionalProperties: false,

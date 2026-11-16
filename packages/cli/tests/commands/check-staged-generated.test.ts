@@ -80,7 +80,7 @@ describe("kibi check --staged on generated source", () => {
       execSync("git add -A", { cwd: tmpDir, stdio: "pipe" });
       const unmarked = stagedCheck(tmpDir);
       expect(unmarked.status).toBe(1);
-      expect(unmarked.output).toContain("Traceability failed");
+      expect(unmarked.output).toContain("[BLOCKS COMMIT] fetchPets");
     },
     TEST_TIMEOUT_MS,
   );
@@ -97,6 +97,7 @@ describe("kibi check --staged on generated source", () => {
       execSync("git add -A", { cwd: tmpDir, stdio: "pipe" });
       const result = stagedCheck(tmpDir);
       expect(result.output).not.toContain("Traceability failed");
+      expect(result.output).not.toContain("[BLOCKS COMMIT]");
       expect(result.output).toContain(
         "Generated files: symbols without a requirement link in src/gen/client.ts are not checked for one",
       );
@@ -124,7 +125,7 @@ describe("kibi check --staged on generated source", () => {
       execSync("git add -A", { cwd: tmpDir, stdio: "pipe" });
       const hand = stagedCheck(tmpDir);
       expect(hand.status).toBe(1);
-      expect(hand.output).toContain("Traceability failed");
+      expect(hand.output).toContain("[BLOCKS COMMIT] fetchPets");
     },
     TEST_TIMEOUT_MS,
   );
@@ -167,7 +168,7 @@ describe("kibi check --staged on generated source", () => {
       execSync("git add -A", { cwd: tmpDir, stdio: "pipe" });
       const result = stagedCheck(tmpDir);
       expect(result.status).toBe(1);
-      expect(result.output).toContain("Traceability failed");
+      expect(result.output).toContain("[BLOCKS COMMIT] fetchPets");
       expect(result.output).not.toContain("Generated files:");
     },
     TEST_TIMEOUT_MS,

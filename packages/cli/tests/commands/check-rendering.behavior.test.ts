@@ -702,7 +702,9 @@ Body.
       }),
     ]);
     const messages = output.messages.join("\n");
-    expect(messages).toContain("src/decorated.py:1  handler  (0 of 1 link(s))");
+    expect(messages).toContain(
+      "[BLOCKS COMMIT] handler (src/decorated.py:1) has a symbol record but no requirement owns it.",
+    );
     expect(messages).not.toContain("Partial source analysis");
   });
 

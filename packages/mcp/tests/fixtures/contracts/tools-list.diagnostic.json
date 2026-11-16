@@ -3438,10 +3438,17 @@
             "type": "string"
           },
           "implementedBy": {
-            "description": "req only: the declarations that implement it, each {sourceFile, symbol}; Kibi links each with implements.",
+            "description": "req only: declarations that implement it, each {sourceFile, symbol, coveredBy?}; linked by implements (and covered_by).",
             "items": {
               "additionalProperties": false,
               "properties": {
+                "coveredBy": {
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
                 "sourceFile": {
                   "minLength": 1,
                   "type": "string"
