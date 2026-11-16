@@ -1,11 +1,14 @@
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
+
 // The plugin stays silent in workspaces that never opted into Kibi, so there
 // is deliberately no bootstrap reminder: initialization happens only when the
 // user explicitly runs the kibi-bootstrap skill or `kibi init`.
 export const DIRECT_KB_EDIT_WARNING =
   "Avoid direct edits to .kb/. Use Kibi MCP tools for KB discovery and mutations so project memory stays valid.";
 
-export const SESSION_START_CONTEXT =
-  "Kibi is active for this workspace. Discover project memory with kb_search/kb_query, keep .kb/ out of direct file edits, and load the kibi-usage skill (kb_skills action load) for workflow guidance. Check kb_status whenever freshness matters. A request that would make a recorded requirement or ADR false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask, change the code or the rule only when the person says so, and ask when unsure. Recording new behavior (a requirement with a scenario, and an implements link from the symbol) is part of finishing the change, not a separate request, so it needs no permission. A file with no linked symbols may still be governed by a recorded rule: kb_search the behavior before changing it.";
+export const SESSION_START_CONTEXT = sessionBriefWith([
+  "Kibi is active for this workspace. Keep .kb/ out of direct file edits, check kb_status whenever freshness matters, and load the kibi-usage skill (kb_skills action load) for workflow guidance.",
+]);
 
 export function freshnessReminder(dirtyPaths: readonly string[]): string {
   const preview = dirtyPaths.slice(0, 10).map((dirtyPath) => `- ${dirtyPath}`);

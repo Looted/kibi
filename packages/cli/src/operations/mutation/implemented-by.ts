@@ -1,6 +1,12 @@
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { collectGranularityCandidates } from "kibi-plugin-builtin";
-import { KbRejection } from "../../cli-errors.js";
+import {
+  InputError,
+  KbRejection,
+  OperationError,
+  codedErrorOf,
+} from "../../cli-errors.js";
 import { loadEntitiesPaged } from "../../public/operations/discovery-entities.js";
 import type {
   FilesystemPort,
@@ -12,6 +18,7 @@ import {
   type GranularSymbolCandidate,
   coarseLinkBehavioralNames,
   getBehavioralSymbolNames,
+  getNonBehavioralSymbolNames,
   getSymbolRole,
 } from "../../public/symbol-granularity.js";
 import {
@@ -41,11 +48,18 @@ function listed(names: readonly string[]): string {
 }
 
 function slug(value: string): string {
-  return value
+  const ascii = value
     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
     .replace(/[^A-Za-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .toLowerCase();
+  // A name with letters the ASCII slug drops (non-ASCII ones), or with no
+  // letter or digit at all (as `$`), keeps a short hash of itself, so it
+  // never mints an empty id part or one another name shares.
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: the ASCII range.
+  if (ascii !== "" && /^[\x00-\x7F]*$/.test(value)) return ascii;
+  const hash = createHash("sha256").update(value).digest("hex").slice(0, 8);
+  return ascii === "" ? hash : `${ascii}-${hash}`;
 }
 
 function entries(input: UpsertInput): readonly ImplementedByInput[] {
@@ -75,21 +89,70 @@ function entries(input: UpsertInput): readonly ImplementedByInput[] {
   });
 }
 
-/** The declarations of a file an implements link may name: behavioral and not coarse. */
-function granularNames(
+/**
+ * The declarations of a file an implements link may name, by every name an
+ * entry may use: the declarations kb_upsert accepts as a granular symbol
+ * link (none of whose behavioral members would make the link coarse). A
+ * method is named canonically as Class.method; the bare name of a method
+ * that only one class declares names the same declaration.
+ */
+type LinkableDeclarations = Readonly<{
+  byName: ReadonlyMap<string, GranularSymbolCandidate>;
+  /** Canonical names to offer as candidates, behavioral ones first. */
+  names: readonly string[];
+}>;
+
+function isBareMethod(candidate: GranularSymbolCandidate): boolean {
+  return candidate.kind === "method" && !candidate.name.includes(".");
+}
+
+function linkableDeclarations(
   candidates: readonly GranularSymbolCandidate[],
-): string[] {
-  return getBehavioralSymbolNames(
-    candidates.filter(
-      (candidate) =>
-        coarseLinkBehavioralNames(candidate.name, candidates).length === 0,
-    ),
+): LinkableDeclarations {
+  const accepted = candidates.filter(
+    (candidate) =>
+      !isBareMethod(candidate) &&
+      coarseLinkBehavioralNames(candidate.name, candidates).length === 0,
   );
+  const byName = new Map(
+    accepted.map((candidate) => [candidate.name, candidate] as const),
+  );
+  for (const candidate of candidates) {
+    if (!isBareMethod(candidate)) continue;
+    // The extractor lists a bare method name only when exactly one class
+    // declares it, beside the qualified name.
+    const qualified = accepted.find(
+      (other) =>
+        other.kind === "method" && other.name.endsWith(`.${candidate.name}`),
+    );
+    if (qualified !== undefined) byName.set(candidate.name, qualified);
+  }
+  return {
+    byName,
+    names: [
+      ...getBehavioralSymbolNames(accepted),
+      ...getNonBehavioralSymbolNames(accepted),
+    ],
+  };
+}
+
+/** Every name a declaration goes by: its canonical name, and a bare method name. */
+function namesOf(
+  declaration: GranularSymbolCandidate,
+  linkable: LinkableDeclarations,
+): Set<string> {
+  const names = new Set([declaration.name]);
+  for (const [name, target] of linkable.byName)
+    if (target === declaration) names.add(name);
+  return names;
 }
 
 type Resolved = Readonly<{
   sourceFile: string;
+  /** The declaration's canonical name. */
   symbol: string;
+  /** Every name the declaration goes by, to match stored symbols. */
+  names: ReadonlySet<string>;
   candidate: GranularSymbolCandidate;
 }>;
 
@@ -129,29 +192,29 @@ async function resolveEntry(
     relative,
     content,
   ) as GranularSymbolCandidate[];
-  const named = candidates.find((candidate) => candidate.name === entry.symbol);
-  if (named === undefined) {
-    // Declaration names are unique in a file; a bare method name that
-    // several classes declare is listed only qualified, as Class.method.
-    const qualified = candidates
-      .filter((candidate) => candidate.name.endsWith(`.${entry.symbol}`))
-      .map((candidate) => candidate.name);
+  const linkable = linkableDeclarations(candidates);
+  const declaration = linkable.byName.get(entry.symbol);
+  if (declaration !== undefined)
+    return {
+      sourceFile: relative,
+      symbol: declaration.name,
+      names: namesOf(declaration, linkable),
+      candidate: declaration,
+    };
+  if (candidates.some((candidate) => candidate.name === entry.symbol))
     refuse(
-      qualified.length > 0
-        ? `Upsert of ${requirementId} rejected: implementedBy symbol ${entry.symbol} names ${qualified.length} declarations in ${relative}; name one as Class.method. Candidates: ${listed(qualified)}.`
-        : `Upsert of ${requirementId} rejected: implementedBy symbol ${entry.symbol} resolves to no declaration in ${relative}. Candidates: ${listed(granularNames(candidates))}.`,
+      `Upsert of ${requirementId} rejected: implementedBy symbol ${entry.symbol} in ${relative} is a coarse link; link the declarations that implement the requirement instead. Candidates: ${listed(coarseLinkBehavioralNames(entry.symbol, candidates))}.`,
     );
-  }
-  const coarse = coarseLinkBehavioralNames(entry.symbol, candidates);
-  if (coarse.length > 0)
-    refuse(
-      `Upsert of ${requirementId} rejected: implementedBy symbol ${entry.symbol} in ${relative} is a coarse link; link the declarations that implement the requirement instead. Candidates: ${listed(coarse)}.`,
-    );
-  return {
-    sourceFile: relative,
-    symbol: entry.symbol,
-    candidate: named,
-  };
+  // Declaration names are unique in a file; a bare method name that
+  // several classes declare is listed only qualified, as Class.method.
+  const qualified = candidates
+    .filter((candidate) => candidate.name.endsWith(`.${entry.symbol}`))
+    .map((candidate) => candidate.name);
+  refuse(
+    qualified.length > 0
+      ? `Upsert of ${requirementId} rejected: implementedBy symbol ${entry.symbol} names ${qualified.length} declarations in ${relative}; name one as Class.method. Candidates: ${listed(qualified)}.`
+      : `Upsert of ${requirementId} rejected: implementedBy symbol ${entry.symbol} resolves to no declaration in ${relative}. Candidates: ${listed(linkable.names)}.`,
+  );
 }
 
 /** kb_upsert always returns its payload; a result without one is a fault. */
@@ -180,7 +243,8 @@ async function symbolSteps(
   for (const entry of resolved) {
     const matches = stored.filter(
       (entity) =>
-        entity.title === entry.symbol &&
+        typeof entity.title === "string" &&
+        entry.names.has(entity.title) &&
         typeof entity.sourceFile === "string" &&
         normalizeRepoRelativePath(context.workspaceRoot, entity.sourceFile) ===
           entry.sourceFile,
@@ -206,7 +270,7 @@ async function symbolSteps(
           type: "symbol",
           id,
           properties: {
-            title: entry.symbol,
+            title: String(existing.title),
             ...(typeof existing.status === "string"
               ? { status: existing.status }
               : {}),
@@ -218,16 +282,16 @@ async function symbolSteps(
     }
     const parsed = path.posix.parse(entry.sourceFile);
     const directory = path.posix.basename(parsed.dir);
+    const symbol = slug(entry.symbol);
     const options = [
-      `SYM-${slug(parsed.name)}-${slug(entry.symbol)}`,
-      `SYM-${slug(directory)}-${slug(parsed.name)}-${slug(entry.symbol)}`,
-      `SYM-${slug(path.posix.join(parsed.dir, parsed.name))}-${slug(entry.symbol)}`,
+      `SYM-${slug(parsed.name)}-${symbol}`,
+      `SYM-${slug(directory)}-${slug(parsed.name)}-${symbol}`,
+      `SYM-${slug(path.posix.join(parsed.dir, parsed.name))}-${symbol}`,
     ];
-    const id = options.find((option) => !taken.has(option));
-    if (id === undefined)
-      refuse(
-        `Upsert of ${requirementId} rejected: no free symbol id for ${entry.symbol} in ${entry.sourceFile} (${options.join(", ")} are taken); upsert its symbol with an id of your choosing.`,
-      );
+    let id = options.find((option) => !taken.has(option));
+    // The path-qualified id is taken too: number the file-qualified one.
+    for (let suffix = 2; id === undefined; suffix += 1)
+      if (!taken.has(`${options[0]}-${suffix}`)) id = `${options[0]}-${suffix}`;
     taken.add(id);
     const role = getSymbolRole(entry.candidate);
     steps.push({
@@ -251,6 +315,63 @@ async function symbolSteps(
     });
   }
   return steps;
+}
+
+type SourceWrite = NonNullable<UpsertPayload["sourceWrites"]>[number];
+
+/**
+ * The result of the requirement write with a symbol write folded in: the
+ * counts add up, and each written file is reported once, from its state
+ * before the first write to its state after the last.
+ */
+function mergedPayload(
+  into: UpsertPayload,
+  symbol: UpsertPayload,
+): UpsertPayload {
+  const writes = new Map<string, SourceWrite>();
+  for (const write of [
+    ...(into.sourceWrites ?? []),
+    ...(symbol.sourceWrites ?? []),
+  ]) {
+    const earlier = writes.get(write.path);
+    writes.set(
+      write.path,
+      earlier === undefined
+        ? write
+        : {
+            ...write,
+            beforeHash: earlier.beforeHash,
+            created: earlier.created,
+          },
+    );
+  }
+  return {
+    ...into,
+    created: into.created + symbol.created,
+    updated: into.updated + symbol.updated,
+    relationships_created:
+      into.relationships_created + symbol.relationships_created,
+    warnings: [...into.warnings, ...symbol.warnings],
+    ...(writes.size > 0 ? { sourceWrites: [...writes.values()] } : {}),
+  };
+}
+
+/**
+ * A symbol write that failed after the requirement was written, reported
+ * with what is left to do. A coded failure keeps its code and whether a
+ * retry may succeed, and a refusal stays a refusal.
+ */
+function partialFailure(message: string, error: unknown): Error {
+  if (error instanceof KbRejection)
+    return new KbRejection(error.code, message, error.issues);
+  const coded = codedErrorOf(error);
+  if (coded === null) return new Error(message, { cause: error });
+  const failure =
+    (error as Error).name === "InputError"
+      ? new InputError(coded.code, message)
+      : new OperationError(coded.code, message, coded.retryable);
+  failure.cause = error;
+  return failure;
 }
 
 /** The writes and reads executeUpsertRequest composes, replaceable in tests. */
@@ -285,8 +406,16 @@ export async function executeUpsertRequest(
   const wanted = entries(input);
   const { implementedBy: _implementedBy, ...requirement } = input;
   const resolved: Resolved[] = [];
-  for (const entry of wanted)
-    resolved.push(await resolveEntry(entry, input.id, context));
+  const seen = new Set<string>();
+  for (const entry of wanted) {
+    const declaration = await resolveEntry(entry, input.id, context);
+    // Two entries naming one declaration (another spelling of the path or
+    // of a method name) record one link.
+    const key = `${declaration.sourceFile}\0${declaration.symbol}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    resolved.push(declaration);
+  }
   const steps = await symbolSteps(input.id, resolved, context, deps);
 
   const { dryRun: _dryRun, ...commitRequirement } = requirement;
@@ -317,19 +446,19 @@ export async function executeUpsertRequest(
   const result = await deps.execute(requirement, context);
   const payload = payloadOf(result);
   const written: ImplementedByLink[] = [];
-  let relationshipsCreated = payload.relationships_created;
-  const warnings = [...payload.warnings];
+  let merged = payload;
   for (const step of steps) {
     try {
-      const symbol = payloadOf(await deps.execute(step.input, context));
-      relationshipsCreated += symbol.relationships_created;
-      warnings.push(...symbol.warnings);
+      merged = mergedPayload(
+        merged,
+        payloadOf(await deps.execute(step.input, context)),
+      );
       written.push(step.link);
     } catch (error) {
       const remaining = steps.slice(written.length).map((left) => left.input);
-      throw new Error(
+      throw partialFailure(
         `${input.id} was written, and ${written.length} of ${steps.length} implementedBy link(s) with it; linking ${step.link.symbol} in ${step.link.sourceFile} failed: ${error instanceof Error ? error.message : String(error)}. Upsert the remaining symbol payloads to finish: ${JSON.stringify(remaining)}`,
-        { cause: error },
+        error,
       );
     }
   }
@@ -342,11 +471,6 @@ export async function executeUpsertRequest(
         text: `Linked ${written.length} implementing symbol(s): ${written.map((link) => `${link.symbolId}${link.created ? " (new)" : ""}`).join(", ")}.`,
       },
     ],
-    structuredContent: {
-      ...payload,
-      relationships_created: relationshipsCreated,
-      warnings,
-      implementedBy: written,
-    },
+    structuredContent: { ...merged, implementedBy: written },
   };
 }

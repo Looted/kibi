@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-032f54d6c5af
+  - type: assumes
+    from: SCEN-agent-core-session-brief
+    to: FACT-session-brief-names-change-steps
+    created_at: 2026-11-16T16:34:46.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-445bd6db9b3c
+  - type: assumes
+    from: SCEN-agent-core-session-brief
+    to: FACT-session-brief-conflict-is-question
+    created_at: 2026-11-16T16:34:46.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac646f206a49

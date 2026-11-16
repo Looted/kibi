@@ -49,14 +49,18 @@ export type SagaRollbackFailure = Readonly<{
   error: unknown;
 }>;
 
-/** A mutation failed before commit and at least one compensation also failed. */
+/**
+ * A mutation failed before commit and at least one compensation also failed.
+ * The mutation's own failure, the first of `errors`, is the cause, so a
+ * refusal under a failed rollback is still reported as one (not retryable).
+ */
 export class MutationRollbackFailureError extends AggregateError {
   constructor(
     errors: readonly unknown[],
     message: string,
     readonly rollbackFailures: readonly SagaRollbackFailure[],
   ) {
-    super(errors, message);
+    super(errors, message, { cause: errors[0] });
     this.name = "MutationRollbackFailureError";
   }
 }

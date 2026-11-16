@@ -11,6 +11,7 @@ import {
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 
 import { execSync } from "node:child_process";
 import type { AutoUpdateInput, AutoUpdateResult } from "../src/auto-update.js";
@@ -568,11 +569,26 @@ describe("plugin system transform", () => {
     }
   });
 
-  test("an idle session gets only the sentinel and a skip log", async () => {
+  test("a workspace that also vendors Kibi gets the session brief", async () => {
+    const dir = workspace();
+    fs.mkdirSync(path.join(dir, "node_modules/kibi-cli"), { recursive: true });
+    const run = await start(dir);
+    expect(await run.transform()).toContain(SESSION_BRIEF);
+  });
+
+  test("a workspace without a knowledge base gets no session brief", async () => {
+    const dir = workspace();
+    fs.rmSync(path.join(dir, ".kb"), { recursive: true, force: true });
+    const run = await start(dir);
+    expect(await run.transform()).not.toContain(SESSION_BRIEF);
+  });
+
+  test("an idle session gets the sentinel, the session brief and a skip log", async () => {
     const run = await start(workspace());
     expect(await run.transform(null, ["host"])).toEqual([
       "host",
       "<!-- kibi-opencode -->",
+      SESSION_BRIEF,
     ]);
     expect(guidanceLog(run)).toStrictEqual({
       service: "kibi-opencode",
@@ -716,7 +732,10 @@ describe("plugin file-operation reminders", () => {
         risk_class: "traceability_candidate",
       },
     ]);
-    expect(await run.transform()).toEqual(["<!-- kibi-opencode -->"]);
+    expect(await run.transform()).toEqual([
+      "<!-- kibi-opencode -->",
+      SESSION_BRIEF,
+    ]);
     expect(reminderLogs(run)).toHaveLength(2);
   });
 

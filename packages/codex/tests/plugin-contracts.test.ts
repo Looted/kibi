@@ -8,6 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import { parseHookInput, parseStdinJson, readStdin } from "../src/hook-input";
 import { isInvokedAsCli, main, runHook, runHookCli } from "../src/hook-runner";
 import {
@@ -20,6 +21,7 @@ import {
 } from "../src/hook-state";
 import { extractKbMcpToolCall } from "../src/kb-mcp-tools";
 import {
+  CODEX_SESSION_NOTE,
   DIRECT_KB_EDIT_WARNING,
   freshnessReminder,
   impactCheckReminder,
@@ -987,6 +989,12 @@ describe("Codex reminder messages", () => {
       "Avoid direct edits to .kb/. Use Kibi MCP tools for KB discovery and mutations so project memory stays valid.",
     );
   });
+
+  test("the session note names the kibi-usage skill through both routes", () => {
+    expect(CODEX_SESSION_NOTE).toBe(
+      "Workflow guidance: the kibi-usage skill (kb_skills with action load, or `npx --no-install kibi skills load kibi-usage`).",
+    );
+  });
 });
 
 describe("Codex hook runner decisions", () => {
@@ -1046,7 +1054,13 @@ describe("Codex hook runner decisions", () => {
         pluginData,
       },
     );
-    expect(sessionStart).toEqual({ continue: true });
+    expect(sessionStart).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+      },
+    });
   });
 
   test("an unknown tool name still warns on direct kb edits", async () => {
@@ -1241,7 +1255,10 @@ describe("Codex hook CLI surface", () => {
     } finally {
       process.stdout.write = originalWrite;
     }
-    expect(writes).toEqual(['{"continue":true}\n']);
+    expect(writes).toHaveLength(1);
+    expect(writes[0]?.endsWith("}\n")).toBe(true);
+    expect(writes[0]?.slice(0, -1)).not.toContain("\n");
+    expect(JSON.parse(writes[0] as string)).toMatchObject({ continue: true });
   });
 
   test("runHookCli reports errors with continue true", async () => {
