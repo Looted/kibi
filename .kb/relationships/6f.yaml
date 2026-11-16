@@ -251,3 +251,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c72c2a65d163
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:13:08.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb51ff7e0251
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:13:08.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1be50edb4012
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-verify-before-push
+    created_at: 2026-11-16T18:13:08.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96e978273592
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-verify-before-push
+    created_at: 2026-11-16T18:13:08.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b5f0220357
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-branch-moved
+    created_at: 2026-11-16T18:13:08.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdb10f40e4b3
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-branch-moved
+    created_at: 2026-11-16T18:13:08.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfd25f37aeff
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-skip-forks
+    created_at: 2026-11-16T18:13:08.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43053e539777
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-skip-forks
+    created_at: 2026-11-16T18:13:08.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2a587b0f53e
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-no-hooks
+    created_at: 2026-11-16T18:13:08.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaf53ca73c87
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-no-hooks
+    created_at: 2026-11-16T18:13:08.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5eea312016f
