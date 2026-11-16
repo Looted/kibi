@@ -654,3 +654,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-242dee0e6085
+  - type: implements
+    from: SYM-kb-merge-action-candidates
+    to: REQ-kb-merge-action-skip-forks
+    created_at: 2026-11-16T18:22:42.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7bbb4650cc7
+  - type: covered_by
+    from: SYM-kb-merge-action-candidates
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:22:42.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a016d9a35050

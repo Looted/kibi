@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c04d528853a2
+  - type: executable_for
+    from: SYM-kb-merge-fixture-write
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:29:30.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac4857f764d9
+  - type: executable_for
+    from: SYM-kb-merge-fixture-write
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:29:30.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b8199ebfd41
