@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-cli-rejection-not-retryable",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/cli-protocol-mutation.test.ts",
+      "./packages/cli/tests/cli-errors.test.ts",
+      "./packages/cli/tests/operations-mutation/proof/explain.test.ts"
+    ]
+  ]
+}
