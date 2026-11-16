@@ -945,7 +945,7 @@ describe("Codex decision guard", () => {
       hook_event_name: "UserPromptSubmit",
       prompt: "Guests must not export, so that drafts stay private.",
     });
-    expect(reasoned.hookSpecificOutput?.additionalContext).toBe(
+    expect(contextOf(reasoned)).toBe(
       rulePromptNote("must not", "so that drafts stay private"),
     );
   });
