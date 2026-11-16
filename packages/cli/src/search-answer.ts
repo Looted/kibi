@@ -720,10 +720,11 @@ export function adrExcerpt(
 }
 
 /**
- * A section that says the person gave no reason ("Reason not stated", the
- * wording the capture instructions ask for) records none.
+ * Text that says the person gave no reason ("Reason not stated", the wording
+ * the capture instructions ask for, usually after who asked and the source)
+ * records none, wherever in the section or field it says so.
  */
-const NO_REASON_STATED = /^reason not stated\b/i;
+const NO_REASON_STATED = /\breason\s+not\s+stated\b/i;
 
 /**
  * A governing requirement's recorded reason, tried in order: its
@@ -738,8 +739,10 @@ export function requirementReason(
   body: string | null,
   adrExcerpts: readonly (string | undefined)[],
 ): SearchAnswerReason {
-  const field = proseExcerpt(text(row.rationale).split(/\r?\n/));
-  if (field) return { recorded: true, text: field, from: "rationale" };
+  const rationale = text(row.rationale);
+  const field = proseExcerpt(rationale.split(/\r?\n/));
+  if (field && !NO_REASON_STATED.test(rationale))
+    return { recorded: true, text: field, from: "rationale" };
   if (body !== null) {
     const parsed = markdownSections(body);
     for (const [pattern, from] of [
@@ -748,7 +751,11 @@ export function requirementReason(
     ] as const) {
       const lines = namedSection(parsed, pattern);
       const excerpt = lines ? proseExcerpt(lines) : undefined;
-      if (excerpt && !NO_REASON_STATED.test(excerpt))
+      // The whole section is read: the excerpt may cut the words off.
+      if (
+        excerpt &&
+        !NO_REASON_STATED.test((lines as readonly string[]).join(" "))
+      )
         return { recorded: true, text: excerpt, from };
     }
   }
