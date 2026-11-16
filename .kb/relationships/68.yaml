@@ -377,3 +377,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7f37ab3835c
+  - type: constrains
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-16T13:34:06.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11c06ff44957
+  - type: requires_property
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: FACT-kb-upsert-missing-endpoint-rejected
+    created_at: 2026-11-16T13:34:06.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-965fe4aeddb6
+  - type: requires_property
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: FACT-kb-upsert-missing-endpoint-fix-hint
+    created_at: 2026-11-16T13:34:06.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e8ecf89bf3a
+  - type: specified_by
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: SCEN-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:34:06.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55c77e909d71
+  - type: specified_by
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: SCEN-kb-upsert-missing-endpoint-created-first
+    created_at: 2026-11-16T13:38:45.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b48bb6bf143
+  - type: specified_by
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: SCEN-NEG-kb-upsert-missing-endpoint-rejection-FAILURE
+    created_at: 2026-11-16T13:40:34.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-faa1ea319cd9
+  - type: specified_by
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: SCEN-NEG-kb-upsert-missing-endpoint-rejection-NO-HINT
+    created_at: 2026-11-16T13:40:38.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d3114ae4b83
