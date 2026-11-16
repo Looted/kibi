@@ -461,3 +461,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e279ddece8ee
+  - type: constrains
+    from: REQ-kb-upsert-implemented-by
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-16T07:14:06.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a14ab4a297dd
+  - type: requires_property
+    from: REQ-kb-upsert-implemented-by
+    to: FACT-kb-upsert-implemented-by-links
+    created_at: 2026-11-16T07:14:06.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40c447db5f2a
+  - type: requires_property
+    from: REQ-kb-upsert-implemented-by
+    to: FACT-kb-upsert-implemented-by-one-declaration
+    created_at: 2026-11-16T07:14:06.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d01b8401b650
+  - type: requires_property
+    from: REQ-kb-upsert-implemented-by
+    to: FACT-kb-upsert-implemented-by-refuses-unresolved
+    created_at: 2026-11-16T07:14:06.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ed74ebb79a7
+  - type: requires_property
+    from: REQ-kb-upsert-implemented-by
+    to: FACT-kb-upsert-implemented-by-no-file-links
+    created_at: 2026-11-16T07:14:06.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f14db3d2384
+  - type: specified_by
+    from: REQ-kb-upsert-implemented-by
+    to: SCEN-kb-upsert-implemented-by
+    created_at: 2026-11-16T07:14:06.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3be36ae814ec
+  - type: specified_by
+    from: REQ-kb-upsert-implemented-by
+    to: SCEN-NEG-kb-upsert-implemented-by-AMBIGUOUS
+    created_at: 2026-11-16T07:14:06.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff315722c90f
+  - type: specified_by
+    from: REQ-kb-upsert-implemented-by
+    to: SCEN-NEG-kb-upsert-implemented-by-UNRESOLVED
+    created_at: 2026-11-16T07:14:06.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ac23289b020
+  - type: specified_by
+    from: REQ-kb-upsert-implemented-by
+    to: SCEN-NEG-kb-upsert-implemented-by-FILE-LINK
+    created_at: 2026-11-16T07:14:06.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc64029b62eb
+  - type: verified_by
+    from: REQ-kb-upsert-implemented-by
+    to: TEST-kb-upsert-implemented-by
+    created_at: 2026-11-16T07:14:06.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e38e077eb4c1
+  - type: specified_by
+    from: REQ-kb-upsert-implemented-by
+    to: SCEN-NEG-kb-upsert-implemented-by-UNLINKED
+    created_at: 2026-11-16T07:17:15.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0934785a3b9d
