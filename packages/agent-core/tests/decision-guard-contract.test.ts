@@ -54,7 +54,7 @@ describe("note texts", () => {
     const texts = [
       firmEditContext(["REQ-a"]),
       rulePromptNote("never"),
-      captureReminder(false),
+      captureReminder(undefined),
       signoffReminder(),
     ];
     for (const text of texts) expect(text.split("\n")).toHaveLength(2);
