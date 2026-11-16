@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d26346c9594a
+  - type: implements
+    from: SYM-prove-command
+    to: REQ-cli-prove-empty-selection
+    created_at: 2026-11-16T13:35:56.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dcdd5c54449
+  - type: covered_by
+    from: SYM-prove-command
+    to: TEST-cli-prove-empty-selection
+    created_at: 2026-11-16T13:35:56.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73973377b4fc
