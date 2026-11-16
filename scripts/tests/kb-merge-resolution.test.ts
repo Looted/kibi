@@ -5,6 +5,7 @@ import { Fixture, ROOT, manifestConflict } from "./kb-merge-fixture.ts";
 
 type Step = {
   name?: string;
+  if?: string;
   id?: string;
   uses?: string;
   run?: string;
@@ -86,6 +87,8 @@ describe("KB merge workflow", () => {
     expect(workflow.on.push.branches).toEqual(["**"]);
     const list = find[index(find, isAction)] as Step;
     expect(list.with?.["list-only"]).toBe("true");
+    // Until develop has the action, the list step is skipped and nothing runs.
+    expect(list.if).toBe("${{ steps.ready.outputs.present == 'true' }}");
     expect(list.with?.base).toBe("develop");
     expect(list.with?.branches).toBe(
       "${{ github.event_name == 'push' && github.ref_name != 'develop' && github.ref_name || '' }}",
@@ -97,7 +100,7 @@ describe("KB merge workflow", () => {
       "${{ github.ref_name != 'develop' }}",
     );
     expect(workflow.jobs.resolve.if).toBe(
-      "${{ needs.find-conflicts.outputs.branches != '[]' }}",
+      "${{ needs.find-conflicts.outputs.branches != '[]' && needs.find-conflicts.outputs.branches != '' }}",
     );
   });
 

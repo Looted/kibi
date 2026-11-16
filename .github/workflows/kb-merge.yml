@@ -58,8 +58,21 @@ jobs:
           ref: develop
           fetch-depth: 0
 
+      # The action is taken from develop. Until develop has it (the change
+      # that adds it is itself a branch carrying this workflow), there is
+      # nothing to run.
+      - name: Check that develop has the KB merge action
+        id: ready
+        run: |
+          if [ -f actions/kb-merge/action.yml ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::develop has no actions/kb-merge yet; nothing to merge."
+          fi
+
       - name: List PR branches whose only conflicts are KB manifests
         id: find
+        if: ${{ steps.ready.outputs.present == 'true' }}
         uses: ./actions/kb-merge
         with:
           base: develop
@@ -71,13 +84,13 @@ jobs:
   swipl-bundle:
     name: Bundled SWI-Prolog
     needs: [find-conflicts]
-    if: ${{ needs.find-conflicts.outputs.branches != '[]' }}
+    if: ${{ needs.find-conflicts.outputs.branches != '[]' && needs.find-conflicts.outputs.branches != '' }}
     uses: ./.github/workflows/swipl-ci-bundle.yml
 
   resolve:
     name: Merge develop into the listed PRs
     needs: [find-conflicts, swipl-bundle]
-    if: ${{ needs.find-conflicts.outputs.branches != '[]' }}
+    if: ${{ needs.find-conflicts.outputs.branches != '[]' && needs.find-conflicts.outputs.branches != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
