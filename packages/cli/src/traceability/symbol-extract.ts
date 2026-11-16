@@ -182,7 +182,7 @@ function buildSymbolResult(
   span: { startLine: number; endLine: number },
   manifestLookup: ManifestLookup | undefined,
   nestedSpans: readonly HunkLineRange[],
-  callable = false,
+  callable: boolean,
 ): ExtractedSymbol {
   const { id, relationships } = resolveSymbolTraceability(
     stagedFile.path,

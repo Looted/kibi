@@ -41324,126 +41324,19 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T09:00:00.000Z
-  - id: SYM-agent-core-rule-capture-template
-    title: ruleCaptureTemplate
+  - id: SYM-check-inheritedSymbolGapsOf
+    title: inheritedSymbolGapsOf
     status: active
-    sourceFile: packages/agent-core/src/decision-guard.ts
+    sourceFile: packages/cli/src/commands/check.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T08:46:03.177Z
+      recorded_at: 2026-11-16T10:00:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
+        target: TEST-staged-gate-inherited-symbol-gaps
       - type: implements
-        target: REQ-claude-decision-capture-nudges
-  - id: SYM-agent-core-claim-rule-capture-template
-    title: claimRuleCaptureTemplate
-    status: active
-    sourceFile: packages/agent-core/src/decision-guard.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T08:46:07.245Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-decision-capture-nudges
-  - id: SYM-agent-core-session-rule-phrase
-    title: sessionRulePhrase
-    status: active
-    sourceFile: packages/agent-core/src/decision-guard.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T08:46:10.990Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-decision-capture-nudges
-  - id: SYM-test-mcp-short-field-descriptions
-    title: Short MCP field description suite
-    status: active
-    sourceFile: packages/cli/tests/operations/field-reference.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:40:07.122Z
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-short-field-descriptions
-  - id: SYM-cli-operation-field-reference
-    title: operationFieldReference
-    status: active
-    sourceFile: packages/cli/src/public/operations/field-reference.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:40:24.542Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-short-field-descriptions
-      - type: implements
-        target: REQ-mcp-short-field-descriptions
-  - id: SYM-cli-shortened-fields
-    title: shortenedFields
-    status: active
-    sourceFile: packages/cli/src/public/operations/field-reference.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:40:28.425Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-short-field-descriptions
-      - type: implements
-        target: REQ-mcp-short-field-descriptions
-  - id: SYM-test-kb-upsert-implemented-by
-    title: kb_upsert implementedBy suite
-    status: active
-    sourceFile: packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:13:22.017Z
-    relationships:
-      - type: executable_for
-        target: TEST-kb-upsert-implemented-by
-  - id: SYM-cli-execute-upsert-request
-    title: executeUpsertRequest
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:14:10.709Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-implemented-by
-      - type: implements
-        target: REQ-kb-upsert-implemented-by
+        target: REQ-staged-gate-reports-inherited-symbol-gaps
   - id: SYM-test-kibi-firm-edit-receipts
     title: Firm-edit receipt suite
     status: active
@@ -41559,6 +41452,69 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-firm-edit-confirmation
+  - id: SYM-test-mcp-short-field-descriptions
+    title: Short MCP field description suite
+    status: active
+    sourceFile: packages/cli/tests/operations/field-reference.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:07.122Z
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-short-field-descriptions
+  - id: SYM-cli-operation-field-reference
+    title: operationFieldReference
+    status: active
+    sourceFile: packages/cli/src/public/operations/field-reference.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:24.542Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-short-field-descriptions
+  - id: SYM-cli-shortened-fields
+    title: shortenedFields
+    status: active
+    sourceFile: packages/cli/src/public/operations/field-reference.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:28.425Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-short-field-descriptions
+  - id: SYM-test-kb-upsert-implemented-by
+    title: kb_upsert implementedBy suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:13:22.017Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-implemented-by
+  - id: SYM-cli-execute-upsert-request
+    title: executeUpsertRequest
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:14:10.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-implemented-by
+      - type: implements
+        target: REQ-kb-upsert-implemented-by
   - id: SYM-const-default-proof-steps-dir
     title: DEFAULT_PROOF_STEPS_DIR
     status: active
@@ -41599,6 +41555,165 @@ symbols:
         target: TEST-kibi-proof-steps-directory
       - type: implements
         target: REQ-kibi-proof-step-settings
+  - id: SYM-agent-core-rule-capture-template
+    title: ruleCaptureTemplate
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T08:46:03.177Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-agent-core-claim-rule-capture-template
+    title: claimRuleCaptureTemplate
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T08:46:07.245Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-agent-core-session-rule-phrase
+    title: sessionRulePhrase
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T08:46:10.990Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-cli-use-core-module-goal
+    title: useCoreModuleGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:20.225Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-cli-is-core-module-goal
+    title: isCoreModuleGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:23.142Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-test-engine-client-core-modules-from-engine
+    title: Engine client core-module loading suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/core-module-goal.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:28.228Z
+    relationships:
+      - type: executable_for
+        target: TEST-engine-client-core-modules-from-engine
+  - id: SYM-test-prolog-permission-error-names-refusal
+    title: Prolog permission error message suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/error-terms-parse.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:30.861Z
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-permission-error-names-refusal
+  - id: SYM-cli-parse-prolog-error-term
+    title: parsePrologErrorTerm
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:44.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-permission-error-names-refusal
+      - type: implements
+        target: REQ-prolog-permission-error-names-refusal
+  - id: SYM-engine-session-record-module-load
+    title: EngineSession.recordModuleLoad
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:24.362Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-subject-domain-read-subject-domain
+    title: readSubjectDomain
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-domain.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:27.485Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-traceability-validate-staged-symbol-coverage
+    title: validateStagedSymbolCoverage
+    status: active
+    sourceFile: packages/cli/src/traceability/validate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:30.738Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
   - id: SYM-cli-search-answer-requirement-reason
     title: requirementReason
     status: active
@@ -41706,108 +41821,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-search-answer-reason-chars
-  - id: SYM-cli-use-core-module-goal
-    title: useCoreModuleGoal
-    status: active
-    sourceFile: packages/cli/src/prolog/codec.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:20.225Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-cli-is-core-module-goal
-    title: isCoreModuleGoal
-    status: active
-    sourceFile: packages/cli/src/prolog/codec.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:23.142Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-test-engine-client-core-modules-from-engine
-    title: Engine client core-module loading suite
-    status: active
-    sourceFile: packages/cli/tests/prolog/core-module-goal.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:28.228Z
-    relationships:
-      - type: executable_for
-        target: TEST-engine-client-core-modules-from-engine
-  - id: SYM-test-prolog-permission-error-names-refusal
-    title: Prolog permission error message suite
-    status: active
-    sourceFile: packages/cli/tests/prolog/error-terms-parse.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:30.861Z
-    relationships:
-      - type: executable_for
-        target: TEST-prolog-permission-error-names-refusal
-  - id: SYM-cli-parse-prolog-error-term
-    title: parsePrologErrorTerm
-    status: active
-    sourceFile: packages/cli/src/prolog/error-terms.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:44.213Z
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-permission-error-names-refusal
-      - type: implements
-        target: REQ-prolog-permission-error-names-refusal
-  - id: SYM-engine-session-record-module-load
-    title: EngineSession.recordModuleLoad
-    status: active
-    sourceFile: packages/cli/src/engine.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:24.362Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-subject-domain-read-subject-domain
-    title: readSubjectDomain
-    status: active
-    sourceFile: packages/cli/src/public/operations/subject-domain.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:27.485Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-traceability-validate-staged-symbol-coverage
-    title: validateStagedSymbolCoverage
-    status: active
-    sourceFile: packages/cli/src/traceability/validate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:30.738Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
   - id: SYM-test-check-restated-twin-facts
     title: Restated twin facts consumer suite
     status: active
