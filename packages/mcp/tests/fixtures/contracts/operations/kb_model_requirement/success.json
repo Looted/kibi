@@ -84,7 +84,8 @@
           "description": "Confidence score for the extracted claim. >= 0.70 yields strict-lane output; lower confidence yields observation-only review output.",
           "maximum": 1,
           "minimum": 0,
-          "type": "number"
+          "type": "number",
+          "x-kibi-advertised-description": "Confidence of the extracted claim: >= 0.70 yields strict-lane output, lower yields observation-only output."
         },
         "existingLogicClaims": {
           "description": "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
@@ -93,7 +94,8 @@
             "type": "string"
           },
           "type": "array",
-          "uniqueItems": true
+          "uniqueItems": true,
+          "x-kibi-advertised-description": "Existing requirement logic_claims values; the update merges the new claim key into them."
         },
         "logic": {
           "description": "Optional typed kibi.logic.v1 IR. Kibi validates and canonicalizes it into a rule fact; raw Prolog is rejected.",
@@ -115,7 +117,8 @@
             "subset_of",
             "excludes"
           ],
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Optional claim operator, e.g. eq, gt, lt; sets take eq, includes, subset_of or excludes; matches takes a regex."
         },
         "propertyKey": {
           "description": "Optional extracted semantic claim propertyKey. Example: 'Retention Years'.",
@@ -123,15 +126,18 @@
         },
         "provenance": {
           "description": "Optional extracted text reference. Falls back to source when omitted. Example: '.kb/requirements/customer-retention.md#L1'.",
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Optional extracted text reference; falls back to source. Example: '.kb/requirements/customer-retention.md#L1'."
         },
         "requirementId": {
           "description": "Optional requirement ID. The strict write set updates this requirement instead of minting a REQ-AUTO id, and a typed logic rule attaches its requires_rule relationship to it.",
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Optional requirement ID the strict write set updates instead of minting a REQ-AUTO id."
         },
         "source": {
           "description": "Optional primary source path or provenance root used for stable IDs and text refs. Example: '.kb/requirements/customer-retention.md'.",
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Optional primary source path used for stable IDs and text refs."
         },
         "sourceFiles": {
           "description": "Optional related source files. The first value is used as the source fallback when source is omitted.",
@@ -167,10 +173,11 @@
               "type": "array"
             }
           ],
-          "description": "Optional extracted semantic claim value: a string, number or boolean, or a list of strings for a set claim. Example: ['requireAuth'] with operator includes."
+          "description": "Optional extracted semantic claim value: a string, number or boolean, or a list of strings for a set claim. Example: ['requireAuth'] with operator includes.",
+          "x-kibi-advertised-description": "Optional claim value: string, number, boolean, or a list of strings for a set claim."
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

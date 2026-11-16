@@ -9,6 +9,7 @@
     "properties": {
       "scope": {
         "description": "What to review: {\"kind\":\"staged\"} for the staged snapshot, or {\"kind\":\"diff\",\"baseCommit\":\"<sha>\",\"headCommit\":\"<sha>\"} with full commit hashes.",
+        "x-kibi-advertised-description": "{\"kind\":\"staged\"} for the staged snapshot, or {\"kind\":\"diff\",\"baseCommit\",\"headCommit\"} with full hashes.",
         "oneOf": [
           {
             "type": "object",

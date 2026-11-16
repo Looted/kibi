@@ -1,4 +1,8 @@
 import { ENTITY_ORIGIN_SCHEMA } from "../../entity-origin.js";
+import {
+  ADVERTISED_DESCRIPTION,
+  ADVERTISED_SUMMARY,
+} from "../advertised-schema.js";
 import { EVIDENCE_LEVELS } from "../../evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
@@ -33,6 +37,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
   type: "object",
   description:
     "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
+  [ADVERTISED_DESCRIPTION]:
+    "Entity fields to persist; must include title and status.",
   properties: {
     title: {
       type: "string",
@@ -43,6 +49,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       description:
         "Required lifecycle state. Allowed values depend on entity type; backward-compatible legacy statuses are also accepted. Examples: 'open', 'passing', 'accepted', 'active'.",
+      [ADVERTISED_DESCRIPTION]:
+        "Required lifecycle state; allowed values depend on the entity type. Examples: 'open', 'passing', 'accepted'.",
     },
     source: {
       type: "string",
@@ -81,11 +89,15 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       ...ENTITY_ORIGIN_SCHEMA,
       description:
         "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional provenance: kind (human, agent, migration, import) and authority (ref, approved_by, recorded_at).",
     },
     semantic_text: {
       type: "string",
       description:
         "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans. Keep text_ref available for independent document or code evidence.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans.",
     },
     logic_claims: {
       type: "array",
@@ -94,6 +106,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
       description:
         "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: kibi model). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement-only: every atomic claim key kb_model mode analyze returned; each must be grounded by a linked fact.",
     },
     semantic_clauses: {
       type: "array",
@@ -101,6 +115,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string", minLength: 1 },
       description:
         "Optional complete atomic decomposition used by kb_model mode analyze and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional reviewed atomic decomposition of the prose, used when automatic sentence splitting needs an override.",
     },
     semantic_inventory_version: {
       type: "string",
@@ -119,6 +135,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       minLength: 1,
       description:
         "Requirement-only. The human who approved this exception requirement. An exception that exempts a requirement and is specified_by a success scenario makes that scenario feasible only when approved_by is set.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement-only: the human who approved this exception requirement.",
     },
     approval_ref: {
       type: "string",
@@ -131,6 +149,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       minLength: 1,
       description:
         "Requirement-only. Why the requirement has no failure side to test (its claims state a capability or output shape). Waives happy_path_only once failure_side_waiver_approved_by is set.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement-only: why the requirement has no failure side to test; counts once failure_side_waiver_approved_by is set.",
     },
     failure_side_waiver_approved_by: {
       type: "string",
@@ -143,18 +163,24 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       enum: ["firm", "default", "exploratory"],
       description:
         "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); its title, meaning or firmness changes only with new human words (a new origin.ref) or by supersede. default = delegated or agent choice; exploratory = flagged guess. Absent = default if an agent wrote it, else firm.",
+      [ADVERTISED_DESCRIPTION]:
+        "req/adr only: firm (a human's rule, needs origin.ref), default or exploratory. Absent = default if an agent wrote it.",
     },
     required_evidence: {
       type: "string",
       enum: [...EVIDENCE_LEVELS],
       description:
         "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement-only: weakest evidence level it accepts. Absent = tested if firm, else unverified.",
     },
     rationale: {
       type: "string",
       minLength: 1,
       description:
         "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent; not part of the checked meaning.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement-only: why the requirement exists, from whoever stated the intent; not part of the checked meaning.",
     },
     exempts_claims: {
       type: "array",
@@ -163,6 +189,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string", pattern: "^CLAIM-[A-F0-9]{16}$" },
       description:
         "Requirement-only. Claim keys of the exempted requirement whose constraints this exception waives; omit to waive the whole requirement.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement-only: claim keys of the exempted requirement this exception waives; omit to waive all of it.",
     },
     semantic_source_hash: {
       type: "string",
@@ -186,6 +214,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       ],
       description:
         "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional justification for a coarse file or module-level traceability link when narrower symbols exist.",
     },
     symbol_role: {
       type: "string",
@@ -217,14 +247,14 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Semantic proof contract binding this test to explicit proof obligations executed by one configured integration.",
       [ADVERTISED_SUMMARY]:
-        "test only: kibi.proof-contract.v1 binding this test to proof obligations run by one integration. Load the kibi-usage skill resource `proof` (kb_skills) before writing one; a rejection returns the full schema.",
+        "test only: kibi.proof-contract.v1 for this test; load the kibi-usage resource `proof` first. Rejections give the schema.",
     },
     proof_bindings: {
       ...PROOF_BINDINGS_SCHEMA,
       description:
         "Optional native-runner bindings (native ids, aliases, source coordinates) for proof obligations. Bindings are provenance metadata and never replace the semantic contract.",
       [ADVERTISED_SUMMARY]:
-        "test only: native-runner bindings (symbol_id, target) for proof obligations; provenance, never a replacement for proof_contract. A rejection returns the full schema.",
+        "test only: native-runner bindings (symbol_id, target) for proof obligations; a rejection returns the full schema.",
     },
     proof_receipts: {
       type: "array",
@@ -233,7 +263,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
       [ADVERTISED_SUMMARY]:
-        "test only: append-only proof receipts. Never hand-written: kb_ingest_proof derives them from proof-run artifacts. Send the stored list unchanged or omit it.",
+        "test only: proof receipts kb_ingest_proof derives; never hand-write them. Send the stored list unchanged or omit it.",
     },
     fact_kind: {
       type: "string",
@@ -249,16 +279,22 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       ],
       description:
         "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional fact lane: subject, property_value, observation, meta, predicate_schema or predicate.",
     },
     subject_key: {
       type: "string",
       description:
         "Snake_case only. Optional canonical subject key for strict fact entities. Example: 'user.session'. Do not use subjectKey in kb_upsert.properties.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional snake_case subject key for strict fact entities. Example: 'user.session'.",
     },
     property_key: {
       type: "string",
       description:
         "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional snake_case property key for property_value facts. Example: 'session.timeout_minutes'.",
     },
     operator: {
       type: "string",
@@ -276,12 +312,16 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       ],
       description:
         "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole. Set facts only: 'includes' means every member of value_set has the property and other members may have it too; 'subset_of' means every member that has the property is in value_set ('every env var the server reads is one of ...'); 'excludes' means no member of value_set has it ('never imports md5'); 'eq' on a set means exactly those members.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional comparison operator for property_value facts, e.g. eq, gt, matches (regex), includes, subset_of, excludes.",
     },
     value_type: {
       type: "string",
       enum: ["string", "int", "number", "bool", "set"],
       description:
         "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional value type for property_value facts; pair with exactly one value_string, _int, _number, _bool or _set.",
     },
     value_string: {
       type: "string",
@@ -335,17 +375,23 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       pattern: "^CLAIM-[A-F0-9]{16}$",
       description:
         "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional key of the clause this fact grounds; Kibi derives it from claim_text, and a sent key must match.",
     },
     claim_text: {
       type: "string",
       description:
         "Exact atomic requirement clause represented by this fact, retained for human audit. On a grounding fact Kibi derives claim_key from it; an observation or meta fact quotes the clause it is about without a key.",
+      [ADVERTISED_DESCRIPTION]:
+        "Exact atomic requirement clause this fact represents; Kibi derives claim_key from it on a grounding fact.",
     },
     dimension_waiver: {
       type: "string",
       minLength: 1,
       description:
         "Fact-only. Why the quantifier word in claim_text ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented once dimension_waiver_approved_by is set.",
+      [ADVERTISED_DESCRIPTION]:
+        "Fact-only: why the quantifier in claim_text ranges over nothing; counts once dimension_waiver_approved_by is set.",
     },
     dimension_waiver_approved_by: {
       type: "string",
@@ -357,6 +403,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       minLength: 1,
       description:
         "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set.",
+      [ADVERTISED_DESCRIPTION]:
+        "Fact-only: why the edge cases derived from this fact are covered elsewhere or cannot occur.",
     },
     case_waiver_approved_by: {
       type: "string",
@@ -367,12 +415,16 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       description:
         "Optional predicate name for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_name.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional predicate name for ontology predicate facts; prefer kb_model mode predicates.",
     },
     predicate_args: {
       type: "array",
       items: { type: "string" },
       description:
         "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_args.",
+      [ADVERTISED_DESCRIPTION]:
+        "Optional ordered predicate arguments for ontology predicate facts; prefer kb_model mode predicates.",
     },
     predicate_namespace: {
       type: "string",
@@ -405,6 +457,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       uniqueItems: true,
       description:
         'predicate_schema only: argument names that determine the remaining arguments (a functional dependency), e.g. ["sensor"] for reading(sensor, value). Rule contradiction analysis treats two atoms with identical keys as the same fact; without it the predicate is multivalued and opposing rules stay unresolved instead of disjoint.',
+      [ADVERTISED_DESCRIPTION]:
+        "predicate_schema only: argument names that determine the remaining arguments (a functional dependency).",
     },
     argument_constants: {
       type: "object",
@@ -415,6 +469,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       },
       description:
         'predicate_schema only: allowed constants keyed by argument name, e.g. {"severity": ["warning", "info"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open.',
+      [ADVERTISED_DESCRIPTION]:
+        "predicate_schema only: allowed constants keyed by argument name; unlisted arguments stay open.",
     },
     argument_aliases: {
       type: "object",
@@ -424,6 +480,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       },
       description:
         'predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {"severity": {"warn": "warning"}}. kibi migrate rewrites facts that still use an alias.',
+      [ADVERTISED_DESCRIPTION]:
+        "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant.",
     },
     aliases: {
       type: "array",
@@ -440,6 +498,8 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string" },
       description:
         "subject only: defined subject keys this subject is a part of. A dotted key prefix that is itself a defined subject is broader already.",
+      [ADVERTISED_DESCRIPTION]:
+        "subject only: defined subject keys this subject is a part of.",
     },
     kind_of: {
       type: "array",
@@ -452,17 +512,23 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       items: { type: "string" },
       description:
         "subject only: similar defined subject keys this subject was checked to differ from; the body says how. Silences subject-duplicate for those pairs.",
+      [ADVERTISED_DESCRIPTION]:
+        "subject only: similar subject keys this subject was checked to differ from; silences subject-duplicate.",
     },
     semantic_inventory: {
       type: "array",
       description:
         "Requirement proposition ledger returned by kb_model mode analyze (CLI: kibi model); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement proposition ledger from kb_model mode analyze; preserve entries while modeling each span.",
       items: { type: "object" },
     },
     pair_reviews: {
       type: "array",
       description:
         "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming what resolves it: a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim_key of either, never the two requirements themselves; conflict, which stays blocking until a person decides), claims (the claim_key of each unmodeled claim; a payload_hash is accepted and ignored) and origin (kind human or agent; on a must or firm pair, a verdict whose origin is missing or agent, or that sits on a requirement an agent wrote, counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
+      [ADVERTISED_DESCRIPTION]:
+        "Requirement only: verdicts on related pairs whose unmodeled claims cannot be modeled. Model the claims first.",
       items: { type: "object" },
     },
     rule_ir: {
@@ -502,6 +568,8 @@ export const RELATIONSHIPS_SCHEMA = {
   type: "array",
   description:
     "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+  [ADVERTISED_DESCRIPTION]:
+    "Optional relationship rows to create in the same call; asserts edges in the KB.",
   items: {
     type: "object",
     required: ["type", "from", "to"],
@@ -532,6 +600,8 @@ export const RELATIONSHIPS_SCHEMA = {
         ],
         description:
           "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
+        [ADVERTISED_DESCRIPTION]:
+          "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test).",
       },
       from: {
         type: "string",

@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68b4f718ce49
+  - type: assumes
+    from: SCEN-NEG-mcp-short-field-descriptions-LONG-DESCRIPTION
+    to: FACT-NEG-mcp-short-field-descriptions-LONG-DESCRIPTION
+    created_at: 2026-11-16T06:40:14.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-846e42e6b603
+  - type: verified_by
+    from: SCEN-NEG-mcp-short-field-descriptions-LONG-DESCRIPTION
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:15.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3b14af37257

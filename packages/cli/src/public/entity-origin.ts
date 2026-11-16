@@ -76,7 +76,7 @@ export const ENTITY_ORIGIN_SCHEMA = {
       minLength: 1,
       pattern: "\\S",
       description:
-        "The person who reviewed and approved this entity's content. Distinct from the requirement-level approved_by of an exception.",
+        "The person who reviewed and approved this entity's content, not the approved_by of an exception requirement.",
     },
     recorded_at: {
       type: "string",

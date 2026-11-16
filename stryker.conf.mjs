@@ -1336,6 +1336,12 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/public/operations/firm-edit-review.ts": [
     "packages/cli/tests/public-mutation/operations/firm-edit-review.mutation.test.ts",
   ],
+  "packages/cli/src/public/operations/advertised-schema.ts": [
+    "packages/cli/tests/operations/advertised-schema.test.ts",
+  ],
+  "packages/cli/src/public/operations/field-reference.ts": [
+    "packages/cli/tests/operations/field-reference.test.ts",
+  ],
   "packages/cli/src/public/impact/requirement-quality.ts": [
     "packages/cli/tests/public-mutation/impact/requirement-quality.mutation.test.ts",
   ],

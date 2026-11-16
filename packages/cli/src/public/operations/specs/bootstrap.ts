@@ -7,6 +7,7 @@ import {
   type PlanBootstrapResult,
 } from "../../../operations/bootstrap/types.js";
 import type { OperationSpec } from "../types.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 export type {
   BootstrapContext,
@@ -27,6 +28,8 @@ export const planBootstrapSpec = {
         type: "boolean",
         description:
           "Whether to include generic markdown file content as candidate facts. Default: true, or false when bootstrapContext declares intentClaims (the declared sources already carry the intent); set it explicitly to override.",
+        [ADVERTISED_DESCRIPTION]:
+          "Whether to include generic markdown content as candidate facts. Default: true, or false with declared intentClaims.",
       },
       minConfidence: {
         type: "number",
@@ -43,6 +46,8 @@ export const planBootstrapSpec = {
         maximum: 200,
         description:
           "Budget for candidates Kibi discovers itself (symbols, tests, repository documents). Declared intentClaims sit outside it: they are never capped and never use its slots. Clamped to [1, 200]. Default: 50.",
+        [ADVERTISED_DESCRIPTION]:
+          "Budget for candidates Kibi discovers itself; declared intentClaims are never capped. Clamped to [1, 200]. Default: 50.",
       },
       entityTypes: {
         type: "array",
@@ -92,6 +97,8 @@ export const planBootstrapSpec = {
             maxItems: 50,
             description:
               "Knowledge sources outside the code that the human confirmed during the bootstrap interview (issue trackers, wikis, specs, decision logs). Kibi never contacts them; the agent reads them through its own connectors and cites them from intentClaims. Bound into the plan hash.",
+            [ADVERTISED_DESCRIPTION]:
+              "Knowledge sources outside the code the human confirmed (trackers, wikis, specs); the agent cites them from intentClaims.",
             items: {
               type: "object",
               required: ["id", "kind", "title", "locator", "authority"],
@@ -116,6 +123,8 @@ export const planBootstrapSpec = {
                   enum: [...KNOWLEDGE_SOURCE_AUTHORITIES],
                   description:
                     "The human's call: authoritative claims become higher-confidence candidates, supporting claims lower ones, and stale sources are cited but never produce candidates.",
+                  [ADVERTISED_DESCRIPTION]:
+                    "The human's call: authoritative, supporting, or stale (cited, never a candidate).",
                 },
                 connector: {
                   type: "string",
@@ -128,6 +137,8 @@ export const planBootstrapSpec = {
                   minLength: 1,
                   description:
                     "Optional component this source's claims are about (for example recorder). It becomes the first segment of each generated subject_key (component.aspect); a claim's own component overrides it.",
+                  [ADVERTISED_DESCRIPTION]:
+                    "Optional component the source's claims are about; the first segment of each generated subject_key.",
                 },
               },
             },
@@ -137,6 +148,8 @@ export const planBootstrapSpec = {
             maxItems: 200,
             description:
               "Statements the agent harvested from knowledgeSources, each citing its source. Intent claims (the default kind) that the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Observation and open_question claims never become requirements: they become cited fact candidates with fact_kind observation, open questions tagged review:open-question. Every intent and observation claim needs an excerpt: the created entity's body keeps the statement, then a '## Source' section with the blockquoted excerpt, the source title and the reference. Bound into the plan hash.",
+            [ADVERTISED_DESCRIPTION]:
+              "Statements harvested from knowledgeSources, each citing its source and excerpt; intent claims may become requirements.",
             items: {
               type: "object",
               required: ["statement", "sourceId", "reference"],
@@ -168,18 +181,24 @@ export const planBootstrapSpec = {
                   minLength: 1,
                   description:
                     "Verbatim passage from the source the claim came from. Required for intent and observation claims (optional for open_question): Kibi persists it with the knowledge source title and reference in the created entity's '## Source' section, because the ticket or page may be gone by the next migration.",
+                  [ADVERTISED_DESCRIPTION]:
+                    "Verbatim passage the claim came from; required for intent and observation claims, kept in the entity's Source section.",
                 },
                 component: {
                   type: "string",
                   minLength: 1,
                   description:
                     "Optional component the claim is about (for example recorder). Generated subject keys take the shape component.aspect with the aspect from the claim's subject. Without a component on the claim or its knowledge source, a claim whose subject is not a single word or already dotted becomes an authoring follow-up with a diagnostic instead of a malformed subject key.",
+                  [ADVERTISED_DESCRIPTION]:
+                    "Optional component the claim is about; generated subject keys take the shape component.aspect.",
                 },
                 rationale: {
                   type: "string",
                   minLength: 1,
                   description:
                     "Optional reason the requirement exists, as the source states it or the human answered when asked. It becomes the requirement's rationale and its body's '## Context' section. Never invent one.",
+                  [ADVERTISED_DESCRIPTION]:
+                    "Optional reason the requirement exists, as the source or the human states it. Never invent one.",
                 },
                 kind: {
                   type: "string",
@@ -187,6 +206,8 @@ export const planBootstrapSpec = {
                   default: "intent",
                   description:
                     "intent: intended behavior (may become a req). observation: how things are today, without stating intent. open_question: something the sources leave undecided. Default: intent.",
+                  [ADVERTISED_DESCRIPTION]:
+                    "intent (may become a req), observation (how things are today) or open_question. Default: intent.",
                 },
               },
             },
@@ -196,6 +217,8 @@ export const planBootstrapSpec = {
             maxItems: 50,
             description:
               "Contradictions the agent found between declared intentClaims and leaves for the human to resolve. Each becomes a cited fact candidate with fact_kind observation tagged review:conflict. Every claimReference must match a declared claim's sourceId and reference. Bound into the plan hash.",
+            [ADVERTISED_DESCRIPTION]:
+              "Contradictions between declared intentClaims left for the human; each becomes a fact tagged review:conflict.",
             items: {
               type: "object",
               required: ["claimReferences", "note"],
