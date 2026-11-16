@@ -7860,5 +7860,18 @@
         "documentation/tests/e2e/packed/check-symbol-debt.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-search-answer-requirement-reasons",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "600000",
+        "./packages/cli/tests/search-answer.test.ts",
+        "./packages/cli/tests/consumer/search-answer-layer.test.ts"
+      ]
+    ]
   }
 ]

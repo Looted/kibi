@@ -118,10 +118,27 @@ export type SearchAnswerException = SearchAnswerEntity &
 export type SearchAnswerFact = SearchAnswerEntity &
   Readonly<{ factKind?: string; claim?: string; ask?: string }>;
 
+/**
+ * Why a governing requirement is what it is, as recorded in the KB. `from`
+ * names where the text came from: the `rationale` field, the "Why this
+ * changed" section, a Why, Rationale or Context section, or a linked ADR.
+ * `recorded: false` means none of them holds a reason; nothing else is
+ * evidence of one. `text` is absent only when the answer was cut to its byte
+ * budget; kb_query the requirement to read it.
+ */
+export type SearchAnswerReason =
+  | Readonly<{
+      recorded: true;
+      text?: string;
+      from: "rationale" | "why_this_changed" | "section" | "adr";
+    }>
+  | Readonly<{ recorded: false }>;
+
 export type SearchAnswerRequirement = SearchAnswerEntity &
   Readonly<{
     score: number;
     via: string;
+    why: SearchAnswerReason;
     facts: readonly SearchAnswerFact[];
     /**
      * Linked facts the answer left out (over the per-requirement limit or
@@ -235,6 +252,7 @@ const ROW_KEYS = [
   "fact_kind",
   "approved_by",
   "firmness",
+  "rationale",
   "origin",
   "source",
   "sourceFile",
@@ -607,15 +625,14 @@ export function clip(value: string, maxChars: number): string {
   return `${chars.slice(0, Math.max(0, maxChars - 1)).join("")}…`;
 }
 
-/**
- * The opening sentences of an ADR's Decision section (falling back to
- * Rationale, then to the first prose paragraph), as plain text of at most
- * `maxChars` characters.
- */
-export function adrExcerpt(
-  body: string,
-  maxChars: number = SEARCH_ANSWER_LIMITS.excerptChars,
-): string | undefined {
+type MarkdownSections = Readonly<{
+  preamble: readonly string[];
+  /** Each heading's lines, lowercased heading text first; first one wins. */
+  sections: ReadonlyMap<string, readonly string[]>;
+}>;
+
+/** Split a Markdown body into its preamble and headed sections. */
+export function markdownSections(body: string): MarkdownSections {
   const sections = new Map<string, string[]>();
   const preamble: string[] = [];
   let current: string[] = preamble;
@@ -635,17 +652,18 @@ export function adrExcerpt(
     }
     current.push(line);
   }
-  const named = (pattern: RegExp) =>
-    [...sections.entries()].find(
-      ([name, lines]) => pattern.test(name) && lines.join("").trim() !== "",
-    )?.[1];
-  const lines =
-    named(/^decision\b/) ??
-    named(/^rationale\b/) ??
-    (preamble.join("").trim() !== ""
-      ? preamble
-      : [...sections.values()].find((section) => section.join("").trim()));
-  if (!lines) return undefined;
+  return { preamble, sections };
+}
+
+/**
+ * Markdown lines as plain prose: the opening whole sentences that fit in
+ * `maxChars` characters, or the first sentence clipped. Undefined when the
+ * lines hold no prose.
+ */
+export function proseExcerpt(
+  lines: readonly string[],
+  maxChars: number = SEARCH_ANSWER_LIMITS.excerptChars,
+): string | undefined {
   const prose = lines
     .map((line) =>
       line
@@ -668,6 +686,76 @@ export function adrExcerpt(
     excerpt = next;
   }
   return clip(excerpt, maxChars);
+}
+
+/** The first non-empty section whose heading matches `pattern`. */
+function namedSection(
+  { sections }: MarkdownSections,
+  pattern: RegExp,
+): readonly string[] | undefined {
+  return [...sections.entries()].find(
+    ([name, lines]) => pattern.test(name) && lines.join("").trim() !== "",
+  )?.[1];
+}
+
+/**
+ * The opening sentences of an ADR's Decision section (falling back to
+ * Rationale, then to the first prose paragraph), as plain text of at most
+ * `maxChars` characters.
+ */
+export function adrExcerpt(
+  body: string,
+  maxChars: number = SEARCH_ANSWER_LIMITS.excerptChars,
+): string | undefined {
+  const parsed = markdownSections(body);
+  const { preamble, sections } = parsed;
+  const lines =
+    namedSection(parsed, /^decision\b/) ??
+    namedSection(parsed, /^rationale\b/) ??
+    (preamble.join("").trim() !== ""
+      ? preamble
+      : [...sections.values()].find((section) => section.join("").trim()));
+  if (!lines) return undefined;
+  return proseExcerpt(lines, maxChars);
+}
+
+/**
+ * A section that says the person gave no reason ("Reason not stated", the
+ * wording the capture instructions ask for) records none.
+ */
+const NO_REASON_STATED = /^reason not stated\b/i;
+
+/**
+ * A governing requirement's recorded reason, tried in order: its
+ * `rationale` field, its "Why this changed" section, its Why, Rationale or
+ * Context section (the headings requirement-rationale-missing reads), then
+ * the opening of a linked ADR. `body` is the requirement's own document
+ * without front matter, or null when it could not be read; `adrExcerpts`
+ * are the linked current ADRs' excerpts in link order.
+ */
+export function requirementReason(
+  row: Row,
+  body: string | null,
+  adrExcerpts: readonly (string | undefined)[],
+): SearchAnswerReason {
+  const field = proseExcerpt(text(row.rationale).split(/\r?\n/));
+  if (field) return { recorded: true, text: field, from: "rationale" };
+  if (body !== null) {
+    const parsed = markdownSections(body);
+    for (const [pattern, from] of [
+      [/^why this changed\b/, "why_this_changed"],
+      [/^(?:rationale|why|context)\b/, "section"],
+    ] as const) {
+      const lines = namedSection(parsed, pattern);
+      const excerpt = lines ? proseExcerpt(lines) : undefined;
+      if (excerpt && !NO_REASON_STATED.test(excerpt))
+        return { recorded: true, text: excerpt, from };
+    }
+  }
+  const adr = adrExcerpts.find((excerpt) => excerpt !== undefined);
+  return adr === undefined
+    ? { recorded: false }
+    : { recorded: true, text: adr, from: "adr" };
 }
 
 export async function rationaleOf(
@@ -1231,6 +1319,22 @@ export async function buildSearchAnswer(
   const bodies = new Map<string, Promise<string | null>>();
   const rowsOf = (ids: readonly string[]) =>
     ids.map((id) => graph.row(id)).filter((row): row is Row => row !== null);
+  const bodyOf = (source: string): Promise<string | null> => {
+    let body = bodies.get(source);
+    if (body === undefined) {
+      body =
+        options.workspaceRoot === undefined
+          ? Promise.resolve(null)
+          : loadMarkdownBody(source, options.workspaceRoot);
+      bodies.set(source, body);
+    }
+    return body;
+  };
+  const excerptOf = async (row: Row): Promise<string | undefined> => {
+    const source = text(row.sourceFile) || text(row.source);
+    const body = source ? await bodyOf(source) : null;
+    return body ? adrExcerpt(body) : undefined;
+  };
   const governing: SearchAnswerRequirement[] = [];
   for (const [index, plan] of plans.entries()) {
     const { req } = plan;
@@ -1243,10 +1347,17 @@ export async function buildSearchAnswer(
     const projected = projectVerdict(verdictById.get(req.id));
     if (projected.truncated) truncated = true;
     const testVia = testVias[index] as Map<string, string>;
+    const ownSource = text(req.entity.source);
+    const why = requirementReason(
+      req.entity,
+      ownSource ? await bodyOf(ownSource) : null,
+      await Promise.all(adrRows.map(excerptOf)),
+    );
     governing.push({
       ...brief(req.entity),
       score: req.score,
       via: req.via,
+      why,
       facts: rowsOf(plan.facts).map((fact) => ({
         ...brief(fact),
         ...factDetail(fact, schemas.get(text(fact.id))),
@@ -1383,7 +1494,7 @@ export function answerNote(
     overridden +
     (governingCount === 0
       ? "No current requirement matched or owns a matched entity. Absence here is not evidence that nothing governs the change; refine the query or pass sourceLocations."
-      : "Governing requirements are current requirements matched by the query or linked to a matched entity. Links are discovery, not proof. A verdict lists the contradiction and scenario-feasibility witnesses that name the requirement; none means no check named it, not that it is proven. Use kb_check and kb_coverage for consistency and proof status.")
+      : "Governing requirements are current requirements matched by the query or linked to a matched entity. Answer a question about why a requirement is what it is from its why: quote the recorded reason; where why.recorded is false, say that no reason is recorded and do not supply one. Links are discovery, not proof. A verdict lists the contradiction and scenario-feasibility witnesses that name the requirement; none means no check named it, not that it is proven. Use kb_check and kb_coverage for consistency and proof status.")
   );
 }
 
@@ -1449,8 +1560,9 @@ const REQUIREMENT_TRIM_ORDER = [
  * excerpts are dropped, last rationale entry first; each governing
  * requirement keeps only its first scenario and test, last requirement first;
  * the least relevant governing requirements are dropped;
- * list items are dropped (notes and side lists before the remaining
- * requirement's own lists, its verdict witnesses last); then the remaining
+ * list items are dropped (notes and side lists, then the remaining
+ * requirement's recorded reason text, then its own lists, its verdict
+ * witnesses last); then the remaining
  * requirement's title and `via` are clipped. A verdict keeps its status when
  * its witnesses are dropped. If even that cannot fit, the requirement itself
  * is dropped.
@@ -1537,6 +1649,13 @@ export function fitSearchAnswer(
     }
     const [req] = current.governing;
     if (!req) break;
+    // The recorded reason outlasts the side lists but not the
+    // requirement's own facts and links.
+    if (req.why.recorded && req.why.text !== undefined) {
+      const { text: _text, ...why } = req.why;
+      current = { ...current, governing: [{ ...req, why }] };
+      continue;
+    }
     const own = REQUIREMENT_TRIM_ORDER.find((key) => req[key].length > 0);
     if (own) {
       current = {
