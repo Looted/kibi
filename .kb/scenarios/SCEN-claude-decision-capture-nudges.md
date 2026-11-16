@@ -12,4 +12,4 @@ origin:
 id: SCEN-claude-decision-capture-nudges
 type: scenario
 ---
-Given a Kibi workspace, when the person submits "Totals must never be negative.", then the agent is told before it starts that the rule is recorded with kb_upsert as part of the change. When the agent then edits src/checkout.ts and stops without any kb_upsert, the Stop hook asks it once to record the decision or say there was none; a second stop is not asked again, and a session that recorded something with kb_upsert is not asked.
+Given a Kibi workspace, when the person submits "Totals must never be negative.", then the agent is told before it starts that the rule is recorded with kb_upsert as part of the change. When the agent then edits src/checkout.ts and stops without any kb_upsert, the Stop hook asks it once to record the rule behind "must" or to say why "must" is not a rule, with no option to report that there was no decision; a second stop is not asked again, and a session that recorded something with kb_upsert is not asked. A session whose prompt stated no rule is asked to record any decision or to say there was none.
