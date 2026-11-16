@@ -5,12 +5,14 @@ import type { QualityDiagnostic } from "../../../src/public/impact/types.js";
 import {
   buildStructuredContent,
   buildSummary,
+  describeEvaluatedRules,
   formatEvaluatedText,
   formatImpactText,
   formatQualityDiagnosticsText,
   formatViolationText,
   qualityDiagnosticsBesideImpact,
 } from "../../../src/public/operations/check-format-shared.js";
+import { getDefaultRules } from "../../../src/utils/rule-registry.js";
 
 function impact(
   impactDiagnostics: readonly Record<string, unknown>[],
@@ -136,7 +138,7 @@ describe("a diagnostic the impact analysis reported", () => {
     expect(qualityDiagnosticsBesideImpact(both, result)).toStrictEqual([other]);
     const content = buildStructuredContent({
       violations: [],
-      evaluated: { rules: [] },
+      evaluated: { ruleCount: 0, rules: [] },
       diagnostics: [],
       qualityDiagnostics: both,
       impactResult: result,
@@ -146,7 +148,7 @@ describe("a diagnostic the impact analysis reported", () => {
     expect(
       buildStructuredContent({
         violations: [],
-        evaluated: { rules: [] },
+        evaluated: { ruleCount: 0, rules: [] },
         diagnostics: [],
         qualityDiagnostics: [reported as unknown as QualityDiagnostic],
         impactResult: result,
@@ -225,13 +227,18 @@ describe("formatViolationText", () => {
 
 describe("formatEvaluatedText", () => {
   test("counts rules and compared fact pairs", () => {
-    expect(formatEvaluatedText({ rules: [] })).toBe("Evaluated no rules.");
-    expect(formatEvaluatedText({ rules: ["a"] })).toBe("Evaluated 1 rule.");
-    expect(formatEvaluatedText({ rules: ["a", "b"] })).toBe(
+    expect(formatEvaluatedText({ ruleCount: 0, rules: [] })).toBe(
+      "Evaluated no rules.",
+    );
+    expect(formatEvaluatedText({ ruleCount: 1, rules: ["a"] })).toBe(
+      "Evaluated 1 rule.",
+    );
+    expect(formatEvaluatedText({ ruleCount: 2, rules: ["a", "b"] })).toBe(
       "Evaluated 2 rules.",
     );
     expect(
       formatEvaluatedText({
+        ruleCount: 1,
         rules: ["a"],
         domainContradictions: { factPairsExamined: 0 },
       }),
@@ -240,12 +247,14 @@ describe("formatEvaluatedText", () => {
     );
     expect(
       formatEvaluatedText({
+        ruleCount: 0,
         rules: [],
         domainContradictions: { factPairsExamined: 1 },
       }),
     ).toBe("Evaluated no rules; domain-contradictions compared 1 fact pair.");
     expect(
       formatEvaluatedText({
+        ruleCount: 0,
         rules: [],
         domainContradictions: { factPairsExamined: 2 },
       }),
@@ -253,7 +262,43 @@ describe("formatEvaluatedText", () => {
   });
 });
 
+describe("describeEvaluatedRules", () => {
+  test("a run of every default rule is one count", () => {
+    const all = [...getDefaultRules()];
+    expect(describeEvaluatedRules(all)).toStrictEqual({
+      ruleCount: all.length,
+    });
+    // A migration rule on top of every default still skips none.
+    expect(describeEvaluatedRules([...all, "extra"])).toStrictEqual({
+      ruleCount: all.length + 1,
+    });
+  });
+
+  test("a narrowed run names the rules that ran", () => {
+    expect(describeEvaluatedRules(["b", "a"])).toStrictEqual({
+      ruleCount: 2,
+      rules: ["b", "a"],
+    });
+    expect(describeEvaluatedRules(new Set<string>())).toStrictEqual({
+      ruleCount: 0,
+      rules: [],
+    });
+    const allButOne = [...getDefaultRules()].slice(1);
+    expect(describeEvaluatedRules(allButOne).rules).toEqual(allButOne);
+  });
+});
+
 describe("buildStructuredContent", () => {
+  test("leaves out the rule names a full run does not list", () => {
+    const built = buildStructuredContent({
+      violations: [],
+      evaluated: { ruleCount: 66 },
+      diagnostics: [],
+      impactResult: undefined,
+    });
+    expect(built.evaluated).toStrictEqual({ ruleCount: 66 });
+  });
+
   test("keeps only the parts that are present", () => {
     const rules = ["a"];
     const violations: Violation[] = [
@@ -261,7 +306,7 @@ describe("buildStructuredContent", () => {
     ];
     const built = buildStructuredContent({
       violations,
-      evaluated: { rules },
+      evaluated: { ruleCount: 1, rules },
       diagnostics: [
         { category: "c", severity: "error", message: "m" },
         {
@@ -277,7 +322,7 @@ describe("buildStructuredContent", () => {
     expect(built).toStrictEqual({
       violations: [{ rule: "r", entityId: "E", description: "d" }],
       count: 1,
-      evaluated: { rules: ["a"] },
+      evaluated: { ruleCount: 1, rules: ["a"] },
       diagnostics: [
         { category: "c", severity: "error", message: "m" },
         {
@@ -294,7 +339,7 @@ describe("buildStructuredContent", () => {
     expect(
       buildStructuredContent({
         violations: [],
-        evaluated: { rules: [] },
+        evaluated: { ruleCount: 0, rules: [] },
         diagnostics: [],
         qualityDiagnostics: [],
         impactResult: undefined,
@@ -302,7 +347,7 @@ describe("buildStructuredContent", () => {
     ).toStrictEqual({
       violations: [],
       count: 0,
-      evaluated: { rules: [] },
+      evaluated: { ruleCount: 0, rules: [] },
       diagnostics: [],
     });
   });
@@ -313,6 +358,7 @@ describe("buildStructuredContent", () => {
       buildStructuredContent({
         violations: [],
         evaluated: {
+          ruleCount: 0,
           rules: [],
           domainContradictions: { factPairsExamined: 3 },
         },
@@ -324,7 +370,11 @@ describe("buildStructuredContent", () => {
     ).toStrictEqual({
       violations: [],
       count: 0,
-      evaluated: { rules: [], domainContradictions: { factPairsExamined: 3 } },
+      evaluated: {
+        ruleCount: 0,
+        rules: [],
+        domainContradictions: { factPairsExamined: 3 },
+      },
       diagnostics: [],
       qualityDiagnostics: [quality()],
       impactDiagnostics: [{ id: "I" }],
@@ -349,7 +399,7 @@ describe("buildSummary", () => {
     expect(
       buildSummary({
         violations: [],
-        evaluated: { rules: ["a"] },
+        evaluated: { ruleCount: 1, rules: ["a"] },
         impactResult: impact([
           {
             id: "requirement_statement_unverified",
