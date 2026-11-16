@@ -2,11 +2,11 @@
 title: The maximum bound participant name length shall be 3 words
 status: active
 fact_kind: property_value
-subject_key: kibi.predicate_suggestion.binding
+subject_key: kibi.predicate_suggestion.plan
 claim_key: CLAIM-0177F086CAF82496
 claim_text: The maximum bound participant name length shall be 3 words
 text_ref: REQ-model-predicates-binding-word-limit
-property_key: max_naming_binding_words
+property_key: bound_participant_max_words
 operator: eq
 value_type: int
 value_int: 3
