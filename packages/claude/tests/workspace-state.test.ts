@@ -194,7 +194,7 @@ describe("session journal replay", () => {
       reminded: new Set(),
       commandStartedAt: undefined,
       requestWords: [],
-      rulePrompt: false,
+      rulePhrase: undefined,
       firmAsked: new Map(),
       firmConfirmed: new Set(),
       sourceEdited: false,
@@ -283,15 +283,20 @@ describe("session journal replay", () => {
     );
   });
 
-  test("prompts keep the latest words and remember any rule", () => {
+  test("prompts keep the latest words and the latest rule phrase", () => {
     const state = replay(
-      { kind: "prompt", words: ["a"], rule: true },
-      { kind: "prompt", words: ["b"], rule: false },
+      { kind: "prompt", words: ["a"], rule: true, phrase: "must" },
+      { kind: "prompt", words: ["b"], rule: true, phrase: "never" },
+      { kind: "prompt", words: ["c"], rule: false },
     );
-    expect(state.requestWords).toStrictEqual(["b"]);
-    expect(state.rulePrompt).toBe(true);
-    expect(replay({ kind: "prompt", words: [], rule: false }).rulePrompt).toBe(
-      false,
+    expect(state.requestWords).toStrictEqual(["c"]);
+    expect(state.rulePhrase).toBe("never");
+    expect(replay({ kind: "prompt", words: [], rule: false }).rulePhrase).toBe(
+      undefined,
+    );
+    // A journal line written before phrases were kept names no phrase.
+    expect(replay({ kind: "prompt", words: [], rule: true }).rulePhrase).toBe(
+      undefined,
     );
   });
 

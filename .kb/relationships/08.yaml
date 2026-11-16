@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d4ebaab831c
+  - type: assumes
+    from: SCEN-claude-decision-capture-nudges
+    to: FACT-claude-capture-stop-once
+    created_at: 2026-11-16T08:45:55.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd731b7d0d15

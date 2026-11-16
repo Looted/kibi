@@ -7,6 +7,7 @@ import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
@@ -17,6 +18,7 @@ import {
   recordRequest,
   removesOnlyDeadImplementsComments,
   rulePromptNote,
+  sessionRulePhrase,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
@@ -337,13 +339,18 @@ function isEditLikeTool(toolName: string | undefined): boolean {
 function postEditContext(
   stateDir: string | undefined,
   sourcePaths: readonly string[],
+  captureTemplate?: string,
 ): HookResult | undefined {
   // The state directory is already per session, so the key names the file.
   const fresh = sourcePaths.filter((sourcePath) =>
     claimSnippetSlot(stateDir, `post-edit\u0000${sourcePath}`),
   );
-  return fresh.length > 0
-    ? contextResult("PostToolUse", postEditImpactNote(fresh))
+  const notes = [
+    ...(fresh.length > 0 ? [postEditImpactNote(fresh)] : []),
+    ...(captureTemplate === undefined ? [] : [captureTemplate]),
+  ];
+  return notes.length > 0
+    ? contextResult("PostToolUse", notes.join("\n\n"))
     : undefined;
 }
 
@@ -514,7 +521,15 @@ export async function runHook(
           }
         }
 
-        return postEditContext(stateDir, editedSource) ?? defaultResult();
+        return (
+          postEditContext(
+            stateDir,
+            editedSource,
+            editedSource.length > 0
+              ? claimRuleCaptureTemplate(session)
+              : undefined,
+          ) ?? defaultResult()
+        );
       }
 
       case "Stop": {
@@ -529,7 +544,7 @@ export async function runHook(
         // Source changed and nothing was recorded: ask once per session for
         // the decision behind the change, with any impact-check reminder.
         const capture = claimCaptureReminder(session)
-          ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
+          ? captureReminder(sessionRulePhrase(session))
           : undefined;
         // Requirements were written without a signoff view since: ask once.
         // A recorded requirement also marks the KB as recorded, so this never

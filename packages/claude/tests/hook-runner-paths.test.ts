@@ -369,6 +369,7 @@ describe("prompts", () => {
       kind: string;
       words: string[];
       rule: boolean;
+      phrase: string;
     }[];
     expect(journal[0]?.rule).toBe(false);
     expect(journal[0]?.words.length).toBeGreaterThan(0);
@@ -376,6 +377,7 @@ describe("prompts", () => {
       kind: "prompt",
       words: [],
       rule: false,
+      phrase: "",
     });
     expect(h.rows().map((r) => r.hook_action)).toStrictEqual([
       "prompt_silent",
@@ -386,7 +388,10 @@ describe("prompts", () => {
       prompt: "From now on totals must never be negative.",
     });
     expect(ruled.hookSpecificOutput?.hookEventName).toBe("UserPromptSubmit");
-    expect((h.journal()[2] as { rule: boolean }).rule).toBe(true);
+    expect(h.journal()[2]).toMatchObject({
+      rule: true,
+      phrase: "from now on",
+    });
     expect(h.lastRow()?.hook_action).toBe("prompt_rule_note");
   });
 });

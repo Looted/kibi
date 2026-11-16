@@ -7,8 +7,8 @@ property_key: stop_decision_asks_per_session
 operator: eq
 value_type: int
 value_int: 1
-claim_key: CLAIM-7B28D337C59D5BCE
-claim_text: When a session that changed source files reaches its stop without any kb_upsert write, the kibi-claude Stop hook must ask the agent once per session to record the decision the person stated or to say there was none
+claim_key: CLAIM-65BD1F78CFBC6AD0
+claim_text: When a session that changed source files reaches its stop without any kb_upsert write, the Stop hook must ask the agent once per session to record the decision the person stated, quoting the prompt's rule phrase when one was detected, or to say why that phrase is not a rule
 text_ref: REQ-claude-decision-capture-nudges
 tags:
   - strict-modeling

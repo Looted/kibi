@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca480ea2ef6a
+  - type: assumes
+    from: SCEN-CASE-claude-decision-capture-nudges-TEMPLATE-TWICE
+    to: FACT-CASE-claude-decision-capture-nudges-TEMPLATE-TWICE
+    created_at: 2026-11-16T08:45:54.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-865f2476842e
+  - type: verified_by
+    from: SCEN-CASE-claude-decision-capture-nudges-TEMPLATE-TWICE
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T08:45:54.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f57022304e4
