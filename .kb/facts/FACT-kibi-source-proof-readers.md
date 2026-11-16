@@ -2,8 +2,8 @@
 title: 'Source proof kinds: Source proof readers must be one of json, yaml, glob, openapi, references, schem'
 status: active
 fact_kind: property_value
-subject_key: kibi.source_proof
-property_key: source_reader
+subject_key: kibi.proofs.vocabulary
+property_key: source_readers
 operator: eq
 claim_key: CLAIM-D1436E2B6F2C67DE
 claim_text: Source proof readers must be one of json, yaml, glob, openapi, references, schema, routes, validator or prolog
