@@ -2,6 +2,7 @@
 title: The env references reader reads nothing from presence tests of the global object and refuses handing it on
 status: open
 priority: must
+required_evidence: tested
 tags:
   - proof
   - source
