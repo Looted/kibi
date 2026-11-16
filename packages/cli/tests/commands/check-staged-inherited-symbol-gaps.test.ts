@@ -32,6 +32,7 @@ function fixture(extraSymbols = ""): FileMap {
 id: REQ-TAGS-001
 title: Tag creation
 status: open
+firmness: default
 ---
 
 # Tag creation

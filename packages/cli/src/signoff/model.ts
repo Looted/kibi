@@ -81,9 +81,29 @@ export type SignoffRequirement = Readonly<{
   scenarios: readonly Readonly<{ id: string; title: string }>[];
   /** Changed code symbols that implement it (affected requirements). */
   symbols: readonly string[];
+  /**
+   * Firm-edit receipts the change records for it: the agent's verdict on
+   * its edit of this firm requirement's code, never the person's approval.
+   */
+  firmEditReviews?: readonly SignoffFirmEditReview[];
   proof?: SignoffProof;
   source: string;
 }>;
+
+export type SignoffFirmEditReview = Readonly<{
+  symbol: string;
+  sourceFile: string;
+  verdict: "keeps" | "changes";
+  note: string;
+  requestQuote?: string;
+}>;
+
+/** How a firm-edit receipt reads to the person signing off. */
+export function firmEditReviewLabel(review: SignoffFirmEditReview): string {
+  const verdict =
+    review.verdict === "keeps" ? "keeps the rule" : "changes the rule";
+  return `${review.symbol} in ${review.sourceFile}: the agent judged that the change ${verdict} (${review.note}); judged by the agent, not approved by you`;
+}
 
 export type SignoffSummary = Readonly<{
   version: typeof SIGNOFF_VERSION;

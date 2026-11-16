@@ -138,6 +138,14 @@ describe("requirement cards", () => {
               { id: "REQ-00", title: "O", statement: "Older." },
             ],
             symbols: ["a.ts#f", "b.ts#g"],
+            firmEditReviews: [
+              {
+                symbol: "f",
+                sourceFile: "a.ts",
+                verdict: "keeps",
+                note: "<same>",
+              },
+            ],
             scenarios: [
               { id: "SCEN-1", title: "SCEN-1" },
               { id: "SCEN-2", title: "Second" },
@@ -170,6 +178,10 @@ describe("requirement cards", () => {
             '<span class="id">REQ-00</span> <span class="badge badge--default">default</span> Older.',
           ),
           row("Changed code", "a.ts#f, b.ts#g"),
+          row(
+            "Agent review",
+            "f in a.ts: the agent judged that the change keeps the rule (&lt;same&gt;); judged by the agent, not approved by you",
+          ),
           row(
             "Scenarios",
             '<span class="id">SCEN-1</span><br><span class="id">SCEN-2</span> Second',

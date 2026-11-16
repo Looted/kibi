@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f7beb007b11
+  - type: validates
+    from: TEST-kibi-firm-edit-receipts
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T06:59:30.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74fa73e83686
+  - type: validates
+    from: TEST-kibi-firm-edit-receipts
+    to: SCEN-kibi-firm-edit-receipts
+    created_at: 2026-11-16T06:59:30.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-016e66b4d951

@@ -118,6 +118,7 @@ function createBehaviorLinkedFixture(): FileMap {
 id: REQ-BEHAVIOR-001
 title: Greeting behavior
 status: open
+firmness: default
 ---
 
 # Greeting behavior
@@ -184,6 +185,7 @@ function stageRequirementEvidence(root: string, note: string): void {
 id: REQ-BEHAVIOR-001
 title: Greeting behavior
 status: open
+firmness: default
 ${semanticInventoryFrontmatter(note)}
 ---
 
@@ -745,6 +747,7 @@ status: active
 id: REQ-BEHAVIOR-001
 title: Greeting behavior
 status: open
+firmness: default
 links:
   - type: specified_by
     target: SCEN-BEHAVIOR-001

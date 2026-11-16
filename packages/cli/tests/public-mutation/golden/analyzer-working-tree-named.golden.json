@@ -44,6 +44,39 @@
       }
     },
     {
+      "id": "firm_edit_unreviewed",
+      "severity": "error",
+      "blocking": true,
+      "category": "requirement",
+      "entityId": "REQ-upload",
+      "files": ["src/upload.ts"],
+      "docs": ["docs/entity-schema.md"],
+      "message": "The change edits code that implements REQ-upload, a firm rule the person set, without a current review of that code: upload in src/upload.ts (no review recorded). Statement: \"Uploads keep their name.\"",
+      "suggestion": "Read the changed code against REQ-upload. If it still does what REQ-upload says, write a one-line note on why into this input and pipe it to kibi review-firm-edit --input -, then stage the receipt it writes: {\"reviews\":[{\"requirementId\":\"REQ-upload\",\"sourceFile\":\"src/upload.ts\",\"symbol\":\"upload\",\"verdict\":\"keeps\",\"note\":\"\"}]}. The receipt is your judgment, not the person's approval. If the change no longer does what REQ-upload says, set verdict \"changes\" and ask the person before keeping the change.",
+      "evidence": {
+        "requirement": "REQ-upload",
+        "statement": "Uploads keep their name.",
+        "reviews": [
+          {
+            "sourceFile": "src/upload.ts",
+            "symbol": "upload",
+            "state": "missing"
+          }
+        ],
+        "reviewInput": {
+          "reviews": [
+            {
+              "requirementId": "REQ-upload",
+              "sourceFile": "src/upload.ts",
+              "symbol": "upload",
+              "verdict": "keeps",
+              "note": ""
+            }
+          ]
+        }
+      }
+    },
+    {
       "id": "symbol_semantic_review_needed",
       "severity": "warning",
       "blocking": false,

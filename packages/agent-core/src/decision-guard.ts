@@ -43,6 +43,12 @@ export function firmRequirementsTouched(input: {
   confirmed?: ReadonlySet<string>;
   /** The edit only removes dead `implements` comments, so it changes none. */
   commentOnly?: boolean;
+  /**
+   * Whether a current `keeps` receipt covers this requirement for this
+   * symbol (see `firmEditReviewed`); a requirement every touched symbol has
+   * one for is not counted.
+   */
+  reviewed?: (requirementId: string, symbol: IndexedSymbol) => boolean;
 }): { ids: string[]; symbol: IndexedSymbol | undefined } {
   if (input.commentOnly === true) return { ids: [], symbol: undefined };
   const touched = input.wholeFile
@@ -51,7 +57,13 @@ export function firmRequirementsTouched(input: {
   const ids = implementedRequirementIds(touched).filter((id) => {
     if (input.confirmed?.has(id)) return false;
     const summary = input.summarize(id);
-    return summary.firmness === "firm" && !isRetiredStatus(summary.status);
+    if (summary.firmness !== "firm" || isRetiredStatus(summary.status))
+      return false;
+    const reviewed = input.reviewed;
+    if (reviewed === undefined) return true;
+    return !touched
+      .filter((symbol) => symbol.implements.includes(id))
+      .every((symbol) => reviewed(id, symbol));
   });
   return { ids, symbol: input.wholeFile ? undefined : touched[0] };
 }
@@ -341,7 +353,8 @@ export function firmEditContext(ids: readonly string[]): string {
   const named = ids.slice(0, 2).join(", ");
   return [
     `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
-    "If the edit was declined or could not be confirmed, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change.",
+    "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " +
+      `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a current keeps receipt stops this question for that code. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`,
   ].join("\n");
 }
 
@@ -437,7 +450,7 @@ export function firmEditNotice(
   const one = requirements.length === 1;
   return [
     `Kibi: this edit changes ${where}, which implements ${one ? "a firm requirement" : "firm requirements"}, a rule the person set: ${shown.join("; ")}${more}.`,
-    `Unless the edit keeps ${one ? "that rule" : "those rules"}, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so.`,
+    `Unless the edit keeps ${one ? "that rule" : "those rules"}, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kibi review-firm-edit ("keeps" or "changes"). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person's approval.`,
   ].join("\n");
 }
 
