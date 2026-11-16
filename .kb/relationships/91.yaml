@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b5b590cfc715
+  - type: specified_by
+    from: REQ-kibi-staged-firm-edit-gate
+    to: SCEN-NEG-staged-firm-edit-gate-REMOVED-CODE
+    created_at: 2026-11-16T21:07:58.004Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-129fb5217fb2

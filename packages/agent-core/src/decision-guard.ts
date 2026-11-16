@@ -44,9 +44,9 @@ export function firmRequirementsTouched(input: {
   /** The edit only removes dead `implements` comments, so it changes none. */
   commentOnly?: boolean;
   /**
-   * Whether a current `keeps` receipt covers this requirement for this
-   * symbol (see `firmEditReviewed`); a requirement every touched symbol has
-   * one for is not counted.
+   * Whether a `keeps` receipt recorded for this edit covers this requirement
+   * for this symbol (see `firmEditReviewed`); a requirement every touched
+   * symbol has one for is not counted.
    */
   reviewed?: (requirementId: string, symbol: IndexedSymbol) => boolean;
 }): { ids: string[]; symbol: IndexedSymbol | undefined } {
@@ -354,7 +354,7 @@ export function firmEditContext(ids: readonly string[]): string {
   return [
     `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
     "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " +
-      `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a current keeps receipt stops this question for that code. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`,
+      `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`,
   ].join("\n");
 }
 

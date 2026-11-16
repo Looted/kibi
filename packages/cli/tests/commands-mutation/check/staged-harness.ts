@@ -9,6 +9,7 @@ import * as maintenance from "../../../src/plugins/maintenance-source-analysis.j
 import * as sourceChanges from "../../../src/plugins/source-change-analysis.js";
 import * as impactDiagnostics from "../../../src/public/impact-diagnostics.js";
 import * as firmEditGate from "../../../src/public/impact/firm-edit-gate.js";
+import * as firmEditStaged from "../../../src/public/impact/firm-edit-staged.js";
 import * as commitAmend from "../../../src/traceability/commit-amend.js";
 import * as snapshotModule from "../../../src/traceability/git-change-snapshot.js";
 import * as impactEvaluator from "../../../src/traceability/impact-evaluator.js";
@@ -161,6 +162,7 @@ export function stagedHarness() {
     createSemanticReviewDiagnostics: () => [],
     createStagedEntityIdStyleDiagnostics: () => [],
     createFirmEditGateDiagnostics: () => [],
+    stagedFirmEditGateOptions: async (input: Record<string, unknown>) => input,
     hasBlockingImpactDiagnostics: (
       diagnostics: Array<{ blocking?: boolean }>,
     ) => diagnostics.some((diagnostic) => diagnostic.blocking === true),
@@ -226,6 +228,7 @@ export function stagedHarness() {
     [impactDiagnostics, "hasBlockingImpactDiagnostics"],
     [entityIdStyle, "createStagedEntityIdStyleDiagnostics"],
     [firmEditGate, "createFirmEditGateDiagnostics"],
+    [firmEditStaged, "stagedFirmEditGateOptions"],
     [tempKb, "createTempKb"],
     [tempKb, "projectStagedEntities"],
     [tempKb, "createOverlayFacts"],

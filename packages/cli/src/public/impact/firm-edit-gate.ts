@@ -1,12 +1,16 @@
 import {
+  FIRM_EDIT_REMOVED_CODE_HASH,
   type FirmEditReceipt,
   firmEditCodeHash,
   firmEditReceiptMismatch,
-  firmEditReceiptPath,
-  parseFirmEditReceipt,
+  readFirmEditReceipt,
+  requirementStatementFromDocument,
 } from "kibi-agent-core/firm-edit-review";
 import { effectiveFirmness } from "../../decision-firmness.js";
-import type { ExtractedEntity } from "../../extractors/markdown.js";
+import type {
+  ExtractedEntity,
+  ExtractionResult,
+} from "../../extractors/markdown.js";
 import type { KibiImpactDiagnostic } from "../../traceability/staged-diagnostics.js";
 import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
 
@@ -32,9 +36,50 @@ export function implementedRequirementIds(symbol: ExtractedSymbol): string[] {
   return [...new Set(ids.filter((id) => id.startsWith("REQ-")))];
 }
 
-/** The prose a receipt is bound to: `semantic_text`, else the title. */
-export function requirementStatement(requirement: ExtractedEntity): string {
-  return requirement.semantic_text ?? requirement.title;
+/**
+ * The prose a receipt is bound to. From the requirement document's text it is
+ * what the hosts' hooks read too (`requirementStatementFromDocument`), so a
+ * receipt matches on both sides; without the text, `semantic_text`, else the
+ * title.
+ */
+export function requirementStatement(
+  requirement: ExtractedEntity,
+  documentText?: string,
+): string {
+  return (
+    (documentText === undefined
+      ? undefined
+      : requirementStatementFromDocument(documentText)) ??
+    requirement.semantic_text ??
+    requirement.title
+  );
+}
+
+/**
+ * Whether a change restates a requirement, so the firmness and supersede
+ * checks judge it instead of the firm-edit gate: the requirement is new, its
+ * statement or status changed, or a requirement the change adds or edits
+ * supersedes it. Any other edit of its document (a note, a tag, a link) does
+ * not.
+ */
+export function firmRequirementRestated(input: {
+  requirement: ExtractedEntity;
+  /** The requirement document's text in the change. */
+  documentText: string | undefined;
+  /** The document's text before the change; undefined when it is new. */
+  baseText: string | undefined;
+  /** The requirement's status before the change. */
+  baseStatus: string | undefined;
+  /** The requirements the change adds or edits that supersede this one. */
+  supersededInChange: boolean;
+}): boolean {
+  if (input.supersededInChange || input.baseText === undefined) return true;
+  if (String(input.requirement.status) !== String(input.baseStatus))
+    return true;
+  return (
+    requirementStatement(input.requirement, input.documentText) !==
+    requirementStatementFromDocument(input.baseText)
+  );
 }
 
 /** Whether a requirement is current and firm, so edits of its code are gated. */
@@ -64,36 +109,23 @@ export const STAGED_PASSING_REVIEW_STATES: readonly FirmEditReview["state"][] =
 export function reviewState(input: {
   requirementId: string;
   statement: string;
-  symbol: ExtractedSymbol;
-  content: string | undefined;
+  sourceFile: string;
+  symbol: string;
+  /** The symbol's code hash now; undefined when it cannot be read. */
+  codeHash: string | undefined;
   readReceipt: (relativePath: string) => string | undefined;
 }): FirmEditReview {
-  const file = input.symbol.location.file;
-  // A requirement id always yields a receipt path.
-  const receiptPath = firmEditReceiptPath(
+  const receipt = readFirmEditReceipt(
     input.requirementId,
-    file,
-    input.symbol.name,
-  ) as string;
-  const receipt = parseFirmEditReceipt(input.readReceipt(receiptPath));
-  if (
-    receipt === undefined ||
-    receipt.requirementId !== input.requirementId ||
-    receipt.sourceFile !== file ||
-    receipt.symbol !== input.symbol.name
-  )
-    return { state: "missing" };
-  const codeHash =
-    input.content === undefined
-      ? undefined
-      : firmEditCodeHash(
-          input.content,
-          input.symbol.location.startLine,
-          input.symbol.location.endLine,
-        );
+    input.sourceFile,
+    input.symbol,
+    input.readReceipt,
+  );
+  if (receipt === undefined) return { state: "missing" };
   const mismatch = firmEditReceiptMismatch(receipt, {
     statement: input.statement,
-    codeHash,
+    // A code hash that cannot be read matches no receipt.
+    codeHash: input.codeHash ?? "",
   });
   if (mismatch !== undefined) return { state: mismatch, receipt };
   return receipt.verdict === "keeps"
@@ -101,17 +133,129 @@ export function reviewState(input: {
     : { state: "changes", receipt };
 }
 
+/** The current code hash of an extracted symbol in `content`. */
+function symbolCodeHash(
+  symbol: ExtractedSymbol,
+  content: string | undefined,
+): string | undefined {
+  return content === undefined
+    ? undefined
+    : firmEditCodeHash(
+        content,
+        symbol.location.startLine,
+        symbol.location.endLine,
+      );
+}
+
+/**
+ * Whether a change edits a symbol: a changed line it owns, or lines removed
+ * between two of its own lines (not inside a declaration nested in it).
+ * `deletedAfter` lists the new-file lines after which lines were removed.
+ */
+export function firmSymbolEdited(
+  symbol: ExtractedSymbol,
+  fileSymbols: readonly ExtractedSymbol[],
+  deletedAfter: readonly number[],
+): boolean {
+  if (symbol.hunkRanges.length > 0) return true;
+  const inside = (span: ExtractedSymbol["location"], line: number) =>
+    span.startLine <= line && line < span.endLine;
+  return deletedAfter.some(
+    (line) =>
+      inside(symbol.location, line) &&
+      !fileSymbols.some(
+        (other) =>
+          other !== symbol &&
+          symbol.location.startLine <= other.location.startLine &&
+          other.location.endLine <= symbol.location.endLine &&
+          (other.location.startLine !== symbol.location.startLine ||
+            other.location.endLine !== symbol.location.endLine) &&
+          inside(other.location, line),
+      ),
+  );
+}
+
+/** A symbol record the change removes, with what it implemented before. */
+export type RemovedFirmSymbol = {
+  readonly sourceFile: string;
+  readonly symbol: string;
+  readonly requirementIds: readonly string[];
+};
+
+/**
+ * The symbol records of `base` that `current` no longer has (by id), with
+ * the requirements each implemented in `base`. Records that implemented
+ * nothing are left out.
+ */
+export function removedSymbolRecords(
+  base: readonly ExtractionResult[],
+  current: readonly ExtractionResult[],
+): RemovedFirmSymbol[] {
+  const kept = new Set(
+    current
+      .filter((result) => result.entity.type === "symbol")
+      .map((result) => result.entity.id),
+  );
+  return base.flatMap((result) => {
+    if (result.entity.type !== "symbol" || kept.has(result.entity.id))
+      return [];
+    const requirementIds = [
+      ...new Set(
+        result.relationships
+          .filter(
+            (relationship) =>
+              relationship.type === "implements" &&
+              relationship.to.startsWith("REQ-"),
+          )
+          .map((relationship) => relationship.to),
+      ),
+    ];
+    const sourceFile = result.sourceFile ?? result.entity.source;
+    return requirementIds.length === 0
+      ? []
+      : [{ sourceFile, symbol: result.entity.title, requirementIds }];
+  });
+}
+
 export type FirmEditGateOptions = {
-  /** Changed symbols per file; only symbols with changed hunks are judged. */
+  /**
+   * Symbols per changed file, with the hunks each owns. Only edited symbols
+   * are judged (see `firmSymbolEdited`); passing every symbol of a file lets
+   * removed lines count too.
+   */
   readonly symbolsByFile: ReadonlyMap<string, readonly ExtractedSymbol[]>;
+  /** Per file, the new-file lines after which the change removed lines. */
+  readonly deletedAfterByFile?: ReadonlyMap<string, readonly number[]>;
+  /** Symbol records the change removes. */
+  readonly removedSymbols?: readonly RemovedFirmSymbol[];
   /** The changed text of a source file. */
   readonly readContent: (file: string) => string | undefined;
   /** The requirement entity for an id, or undefined when it is unknown. */
   readonly readRequirement: (id: string) => ExtractedEntity | undefined;
-  /** Whether the requirement's document changed in this change. */
+  /** The requirement's document text in the change, when it can be read. */
+  readonly readRequirementText?: (
+    requirement: ExtractedEntity,
+  ) => string | undefined;
+  /**
+   * Whether the change restates the requirement (see
+   * `firmRequirementRestated`), which leaves it to the firmness and
+   * supersede checks.
+   */
   readonly requirementChanged: (requirement: ExtractedEntity) => boolean;
   /** A receipt file's text, by workspace-relative path; undefined when absent. */
   readonly readReceipt: (relativePath: string) => string | undefined;
+  /**
+   * Whether the working tree holds edits of the file that the change does
+   * not include, so a receipt must be recorded from the staged code.
+   */
+  readonly hasUnstagedChanges?: (file: string) => boolean;
+};
+
+type GatedSymbol = {
+  sourceFile: string;
+  name: string;
+  /** The symbol's code hash in the change; the removed hash when it is gone. */
+  codeHash: () => string | undefined;
 };
 
 const REASON: Record<Exclude<FirmEditReview["state"], "kept">, string> = {
@@ -123,40 +267,63 @@ const REASON: Record<Exclude<FirmEditReview["state"], "kept">, string> = {
 
 /**
  * One blocking diagnostic per current firm requirement whose implementing
- * code this change edits without a matching `keeps` receipt for every edited
- * symbol. A requirement whose own document changed in the same change is left
- * to the firmness and supersede checks.
+ * code this change edits or removes without a matching `keeps` receipt for
+ * every such symbol, whatever kind of declaration the symbol is. A
+ * requirement the same change restates is left to the firmness and supersede
+ * checks.
  */
 export function createFirmEditGateDiagnostics(
   options: FirmEditGateOptions,
 ): KibiImpactDiagnostic[] {
-  const symbolsByRequirement = new Map<string, ExtractedSymbol[]>();
-  for (const symbols of options.symbolsByFile.values()) {
+  const symbolsByRequirement = new Map<string, GatedSymbol[]>();
+  const gate = (id: string, symbol: GatedSymbol) => {
+    const list = symbolsByRequirement.get(id) ?? [];
+    list.push(symbol);
+    symbolsByRequirement.set(id, list);
+  };
+  for (const [file, symbols] of options.symbolsByFile) {
+    const deletedAfter = options.deletedAfterByFile?.get(file) ?? [];
     for (const symbol of symbols) {
-      if (symbol.role !== "behavioral" || symbol.hunkRanges.length === 0)
-        continue;
-      for (const id of implementedRequirementIds(symbol)) {
-        const list = symbolsByRequirement.get(id) ?? [];
-        list.push(symbol);
-        symbolsByRequirement.set(id, list);
-      }
+      if (!firmSymbolEdited(symbol, symbols, deletedAfter)) continue;
+      for (const id of implementedRequirementIds(symbol))
+        gate(id, {
+          sourceFile: symbol.location.file,
+          name: symbol.name,
+          codeHash: () =>
+            symbolCodeHash(symbol, options.readContent(symbol.location.file)),
+        });
     }
   }
+  for (const removed of options.removedSymbols ?? [])
+    for (const id of removed.requirementIds)
+      gate(id, {
+        sourceFile: removed.sourceFile,
+        name: removed.symbol,
+        codeHash: () => FIRM_EDIT_REMOVED_CODE_HASH,
+      });
   const diagnostics: KibiImpactDiagnostic[] = [];
   for (const id of [...symbolsByRequirement.keys()].sort()) {
     const requirement = options.readRequirement(id);
     if (requirement === undefined || !isCurrentFirmRequirement(requirement))
       continue;
     if (options.requirementChanged(requirement)) continue;
-    const statement = requirementStatement(requirement);
-    const open: { symbol: ExtractedSymbol; review: FirmEditReview }[] = [];
+    const statement = requirementStatement(
+      requirement,
+      options.readRequirementText?.(requirement),
+    );
+    const open: { symbol: GatedSymbol; review: FirmEditReview }[] = [];
+    const seen = new Set<string>();
     // id is one of the map's own keys.
-    for (const symbol of symbolsByRequirement.get(id) as ExtractedSymbol[]) {
+    for (const symbol of symbolsByRequirement.get(id) as GatedSymbol[]) {
+      const key = `${symbol.sourceFile}\0${symbol.name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
       const review = reviewState({
         requirementId: id,
         statement,
-        symbol,
-        content: options.readContent(symbol.location.file),
+        sourceFile: symbol.sourceFile,
+        symbol: symbol.name,
+        codeHash: symbol.codeHash(),
         readReceipt: options.readReceipt,
       });
       if (!STAGED_PASSING_REVIEW_STATES.includes(review.state))
@@ -164,25 +331,38 @@ export function createFirmEditGateDiagnostics(
     }
     if (open.length === 0) continue;
     open.sort((left, right) =>
-      `${left.symbol.location.file}\0${left.symbol.name}`.localeCompare(
-        `${right.symbol.location.file}\0${right.symbol.name}`,
+      `${left.symbol.sourceFile}\0${left.symbol.name}`.localeCompare(
+        `${right.symbol.sourceFile}\0${right.symbol.name}`,
       ),
     );
     const breaks = open.some(({ review }) => review.state === "changes");
+    const unstaged = [
+      ...new Set(
+        open
+          .map(({ symbol }) => symbol.sourceFile)
+          .filter((file) => options.hasUnstagedChanges?.(file) === true),
+      ),
+    ];
     const listed = open
       .map(
         ({ symbol, review }) =>
-          `${symbol.name} in ${symbol.location.file} (${REASON[review.state as Exclude<FirmEditReview["state"], "kept">]})`,
+          `${symbol.name} in ${symbol.sourceFile} (${symbol.codeHash() === FIRM_EDIT_REMOVED_CODE_HASH ? "removed, " : ""}${REASON[review.state as Exclude<FirmEditReview["state"], "kept">]})`,
       )
       .join("; ");
     const reviews = open.map(({ symbol }) => ({
       requirementId: id,
-      sourceFile: symbol.location.file,
+      sourceFile: symbol.sourceFile,
       symbol: symbol.name,
       verdict: "keeps",
       note: "",
     }));
-    const reviewInput = { reviews };
+    const reviewInput =
+      unstaged.length > 0 ? { reviews, staged: true } : { reviews };
+    const unstagedNote =
+      unstaged.length > 0
+        ? ` ${unstaged.join(", ")} also ${unstaged.length === 1 ? "has" : "have"} unstaged edits, so the input records the staged code ("staged": true).`
+        : "";
+    const flat = statement.replace(/\s+/g, " ").trim();
     diagnostics.push({
       id: breaks ? "firm_edit_breaks_rule" : "firm_edit_unreviewed",
       severity: "error",
@@ -190,19 +370,19 @@ export function createFirmEditGateDiagnostics(
       category: "requirement",
       entityId: id,
       // open is sorted by file, so the files come out sorted.
-      files: [...new Set(open.map(({ symbol }) => symbol.location.file))],
+      files: [...new Set(open.map(({ symbol }) => symbol.sourceFile))],
       docs: ["docs/entity-schema.md"],
       message: breaks
-        ? `The change edits code that implements ${id}, a firm rule the person set, and the recorded review says the change breaks it: ${listed}. Statement: "${statement.replace(/\s+/g, " ").trim()}"`
-        : `The change edits code that implements ${id}, a firm rule the person set, without a current review of that code: ${listed}. Statement: "${statement.replace(/\s+/g, " ").trim()}"`,
+        ? `The change edits code that implements ${id}, a firm rule the person set, and the recorded review says the change breaks it: ${listed}. Statement: "${flat}"`
+        : `The change edits code that implements ${id}, a firm rule the person set, without a current review of that code: ${listed}. Statement: "${flat}"`,
       suggestion: breaks
         ? `Ask the person whether ${id} should change. With their words, supersede ${id} with kb_upsert (a new requirement with a supersedes link and their words in origin.ref) in this change; otherwise undo the edit.`
-        : `Read the changed code against ${id}. If it still does what ${id} says, write a one-line note on why into this input and pipe it to kibi review-firm-edit --input -, then stage the receipt it writes: ${JSON.stringify(reviewInput)}. The receipt is your judgment, not the person's approval. If the change no longer does what ${id} says, set verdict "changes" and ask the person before keeping the change.`,
+        : `Read the changed code against ${id}. If it still does what ${id} says, write a one-line note on why into this input and pipe it to kibi review-firm-edit --input -, then stage the receipt it writes: ${JSON.stringify(reviewInput)}.${unstagedNote} The receipt is your judgment, not the person's approval. If the change no longer does what ${id} says, set verdict "changes" and ask the person before keeping the change.`,
       evidence: {
         requirement: id,
-        statement: statement.replace(/\s+/g, " ").trim(),
+        statement: flat,
         reviews: open.map(({ symbol, review }) => ({
-          sourceFile: symbol.location.file,
+          sourceFile: symbol.sourceFile,
           symbol: symbol.name,
           state: review.state,
         })),

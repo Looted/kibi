@@ -91,9 +91,12 @@ name the missing capability. Never read or edit `.kb/` files directly.
   `firm_edit_unreviewed`:** read the changed code against the rule. If it
   still does what the rule says, pipe the input the finding prints, with a
   one-line note on why, to `kibi review-firm-edit --input -`, then stage the
-  receipt under `.kb/firm-edit-reviews/`. A current `keeps` receipt also stops
-  the Claude Code question for that code; record it again after a later edit,
-  because a receipt stops matching once the code changes. If the change breaks
+  receipt under `.kb/firm-edit-reviews/`. A `keeps` receipt recorded after
+  the Claude Code question lets the retry of that edit through in the same
+  session; a later session is asked again. Record it again after a later
+  edit, because a receipt stops matching once the code changes. When the
+  file also has unstaged edits, add `"staged": true` to review the staged
+  code. If the change breaks
   the rule, record `changes` and ask the person: the commit stays blocked
   (`firm_edit_breaks_rule`) until they agree and the rule is superseded with
   their words. A receipt is your judgment, not their approval, and `kibi

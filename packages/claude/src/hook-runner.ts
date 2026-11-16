@@ -235,10 +235,10 @@ function firmEdit(
     wholeFile,
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
-    reviewed: firmEditReviewed(
-      workspace.root,
-      relativePath,
-      workspace.summarize,
+    // A receipt counts only for the retry of an edit this session asked
+    // about, never for a later session's edit.
+    reviewed: firmEditReviewed(workspace.root, relativePath, (id) =>
+      state.firmAskedAt.get(id),
     ),
   });
   if (ids.length === 0) return undefined;
@@ -262,7 +262,7 @@ function withFirmConfirmation(
   trace: HookTrace,
 ): HookOutput {
   appendSessionEvents(workspace.stateDir, [
-    { kind: "firm_asked", path: firm.path, ids: firm.ids },
+    { kind: "firm_asked", path: firm.path, ids: firm.ids, at: Date.now() },
   ]);
   trace.action = "edit_firm_ask";
   trace.requirementIds = firm.ids;

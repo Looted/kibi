@@ -7,7 +7,7 @@ import {
   declarationSpanKey,
   declarationsInChange,
   judgedByCommit,
-  stripCommentsAndWhitespace,
+  normalizeDeclarationText,
 } from "../../src/traceability/staged-declaration-change.js";
 
 type Sym = SourceAnalysisResult["symbols"][number];
@@ -31,7 +31,11 @@ function sym(
 
 function source(content: string, symbols: Sym[], extra: object = {}) {
   return {
-    analysis: { symbols, ...extra } as unknown as SourceAnalysisResult,
+    analysis: {
+      language: "typescript",
+      symbols,
+      ...extra,
+    } as unknown as SourceAnalysisResult,
     content,
   };
 }
@@ -70,26 +74,69 @@ describe("baseAnalysisUsable", () => {
   });
 });
 
-describe("stripCommentsAndWhitespace", () => {
-  test("drops comments and whitespace but keeps string literals", () => {
-    expect(stripCommentsAndWhitespace("a = 1; // note\nb = /* x */ 2;")).toBe(
-      "a=1;b=2;",
-    );
-    expect(stripCommentsAndWhitespace('u = "http://a" // c')).toBe(
-      'u="http://a"',
-    );
-    expect(stripCommentsAndWhitespace("q = '/* no */' + `//${x}`")).toBe(
-      "q='/*no*/'+`//${x}`",
-    );
-    expect(stripCommentsAndWhitespace('e = "a\\"b" // c')).toBe('e="a\\"b"');
+describe("normalizeDeclarationText", () => {
+  const ts = (text: string) => normalizeDeclarationText(text, "typescript");
+
+  test("drops comments and layout but keeps literals verbatim", () => {
+    expect(ts("a = 1; // note\nb = /* x */ 2;")).toBe("a=1;b=2;");
+    expect(ts('u = "http://a" // c')).toBe('u="http://a"');
+    expect(ts("q = '/* no */' + `//${x}`")).toBe("q='/* no */'+`//${x}`");
+    expect(ts('e = "a\\"b" // c')).toBe('e="a\\"b"');
+    // Whitespace inside a string is part of it.
+    expect(ts('j = xs.join(", ")')).not.toBe(ts('j = xs.join(",")'));
     // A slash or a star alone starts no comment.
-    expect(stripCommentsAndWhitespace("x = a*b / c")).toBe("x=a*b/c");
+    expect(ts("x = a*b / c")).toBe("x=a*b/c");
     // The block ends at the first */ after its opening /*.
-    expect(stripCommentsAndWhitespace("/*/ x */y")).toBe("y");
+    expect(ts("/*/ x */y")).toBe("y");
     // Unterminated comments and strings run to the end.
-    expect(stripCommentsAndWhitespace("a /* open")).toBe("a");
-    expect(stripCommentsAndWhitespace("a // end")).toBe("a");
-    expect(stripCommentsAndWhitespace('a "open')).toBe('a"open');
+    expect(ts("a /* open")).toBe("a");
+    expect(ts("a // end")).toBe("a");
+    expect(ts('a "open')).toBe('a"open');
+  });
+
+  test("keeps one space where two tokens would join", () => {
+    expect(ts("return  x ;")).toBe("return x;");
+    expect(ts("a + +b")).toBe("a+ +b");
+    expect(ts("a - -b")).toBe("a- -b");
+    expect(ts("a + -b")).toBe("a+-b");
+    expect(ts("a/* c */b")).toBe("a b");
+    expect(ts("  lead")).toBe("lead");
+  });
+
+  test("a regex literal is kept, so a // inside it is no comment", () => {
+    const before = 'return u.replace(/^https?:\\/\\//, "").slice(0, 10);';
+    expect(ts(before)).toBe(
+      'return u.replace(/^https?:\\/\\//,"").slice(0,10);',
+    );
+    expect(ts(before)).not.toBe(ts(before.replace("slice(0", "slice(1")));
+    expect(ts("x = /[/]/g.test(y)")).toBe("x=/[/]/g.test(y)");
+    expect(ts("return /a b/i")).toBe("return/a b/i");
+    expect(ts("typeof /a/")).toBe("typeof/a/");
+    expect(ts("/^a/.test(s)")).toBe("/^a/.test(s)");
+    // After a value, a slash divides.
+    expect(ts("a / b / c")).toBe("a/b/c");
+    expect(ts("f(x) / 2")).toBe("f(x)/2");
+    expect(ts("returned / 2 / 3")).toBe("returned/2/3");
+    // A "regex" the line ends before closing is a division.
+    expect(ts("x = (a\n/ b)")).toBe("x=(a/b)");
+    expect(ts("x = (/ b")).toBe("x=(/b");
+    expect(ts("x = [/ b\n]")).toBe("x=[/b]");
+    // JavaScript only: other C-style languages have no regex literal.
+    expect(normalizeDeclarationText("x = (/ a /)", "go")).toBe("x=(/a/)");
+    expect(normalizeDeclarationText("x = (/ a /)", "javascript")).toBe(
+      "x=(/ a /)",
+    );
+  });
+
+  test("other languages only lose blank lines and trailing whitespace", () => {
+    const python = "def f(a):  \n\n    return a // 2  # half\n";
+    expect(normalizeDeclarationText(python, "python")).toBe(
+      "def f(a):\n    return a // 2  # half",
+    );
+    expect(normalizeDeclarationText(python, undefined)).toBe(
+      normalizeDeclarationText(python, "python"),
+    );
+    expect(normalizeDeclarationText("x = 1 // a\r\n", "c")).toBe("x=1");
   });
 });
 
@@ -109,12 +156,12 @@ describe("declarationOwnText", () => {
     ].join("\n");
     const outer = sym("C", 1, 10);
     const inner = sym("m", 3, 5);
-    expect(declarationOwnText(content, outer, [outer, inner])).toBe(
-      "classC{x=2;}",
-    );
-    expect(declarationOwnText(content, inner, [outer, inner])).toBe(
-      "m(){return1;}",
-    );
+    expect(
+      declarationOwnText(content, outer, [outer, inner], "typescript"),
+    ).toBe("class C{x=2;}");
+    expect(
+      declarationOwnText(content, inner, [outer, inner], "typescript"),
+    ).toBe("m(){return 1;}");
     // A span past the end of the file reads as empty lines.
     expect(declarationOwnText("a", sym("a", 1, 3), [])).toBe("a");
     // Only a declaration wholly inside the span is nested in it.
@@ -137,13 +184,13 @@ describe("declarationOwnText", () => {
         sym("s", 3, 5),
         sym("x", 1, 4),
       ]),
-    ).toBe("cde");
+    ).toBe("c\nd\ne");
     expect(
       declarationOwnText(five, sym("s", 3, 5), [
         sym("s", 3, 5),
         sym("x", 4, 6),
       ]),
-    ).toBe("cde");
+    ).toBe("c\nd\ne");
     // A twin with the same span is not nested inside it.
     const twin = sym("t", 1, 1);
     expect(declarationOwnText("a=1", sym("a", 1, 1), [twin])).toBe("a=1");

@@ -356,3 +356,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae8db99b1321
+  - type: implements
+    from: SYM-agent-core-read-firm-edit-receipt
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:22:59.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54545b2294a3
+  - type: covered_by
+    from: SYM-agent-core-read-firm-edit-receipt
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:22:59.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb556cccafb5
+  - type: covered_by
+    from: SYM-agent-core-read-firm-edit-receipt
+    to: TEST-agent-hosts-firm-edit-receipt-notice
+    created_at: 2026-11-16T21:22:59.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4eb07d95dbd
+  - type: covered_by
+    from: SYM-claude-session-state-event
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T21:23:32.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c2b8d396f5a

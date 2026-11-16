@@ -196,33 +196,96 @@ describe("snapshot symbols for granularity", () => {
     expect("activeEntityIds" in quality).toBe(false);
   });
 
-  test("the firm-edit gate judges changed symbols against the staged tree", async () => {
-    h.world.inventory = [src(), entry(REQ)];
-    const changed = { name: "a", reqLinks: [] };
-    h.set("extractSymbolsFromStagedFileAsync", async (file) =>
-      file.path === "src/a.ts" ? [changed] : [],
-    );
+  test("the firm-edit gate reads the staged change: every symbol, both trees and unstaged edits", async () => {
+    h.world.inventory = [
+      src(),
+      entry(REQ),
+      entry("src/new.ts", { oldPath: "src/old.ts", status: "R" }),
+    ];
+    h.world.analysis = new Map([["src/a.ts", { after: side("ok") }]]);
     const requirement = { id: "REQ-1", type: "req", source: REQ };
     h.world.entities = [{ entity: requirement, relationships: [] }];
-    let gate: Record<string, (value: unknown) => unknown> = {};
+    let input: Record<string, (...args: never[]) => unknown> = {};
+    h.set("stagedFirmEditGateOptions", async (options) => {
+      input = options;
+      return { marker: true };
+    });
+    let gate: unknown;
     h.set("createFirmEditGateDiagnostics", (options) => {
       gate = options;
       return [];
     });
+    const extracted: Array<[string, string, unknown]> = [];
+    h.set("extractSymbolsFromStagedFileAsync", async (file, _lookup, deps) => {
+      extracted.push([file.path, file.status, await deps.analyzeText()]);
+      return [];
+    });
     await h.run();
-    expect([
-      ...(gate.symbolsByFile as unknown as Map<string, unknown>),
-    ]).toEqual([["src/a.ts", [changed]]]);
-    expect(gate.readContent?.("src/a.ts")).toBe("content of src/a.ts");
-    expect(gate.readRequirement?.("REQ-1")).toBe(requirement);
-    expect(gate.readRequirement?.("REQ-2")).toBeUndefined();
-    expect(gate.requirementChanged?.({ source: REQ })).toBe(true);
-    expect(gate.requirementChanged?.({ source: "other.md" })).toBe(false);
-    expect(gate.readReceipt?.("r.json")).toBe("blob HEAD:r.json");
+    expect(gate).toEqual({ marker: true });
+    expect(input.knowledge).toBe(h.world.entities as never);
+    expect([...(input.changedPaths as unknown as Set<string>)]).toEqual([
+      "src/a.ts",
+      REQ,
+      "src/new.ts",
+      "src/old.ts",
+    ]);
+    extracted.length = 0;
+    await (input.extractAll as (file: unknown) => Promise<unknown>)({
+      path: "src/a.ts",
+      status: "M",
+    });
+    await (input.extractAll as (file: unknown) => Promise<unknown>)({
+      path: "src/none.ts",
+      status: "M",
+    });
+    // Every declaration is kept, each with the hunks it owns.
+    expect(extracted).toEqual([
+      ["src/a.ts", "A", h.world.analysis.get("src/a.ts")?.after],
+      ["src/none.ts", "A", null],
+    ]);
+    expect((input.readContent as (file: string) => unknown)("src/a.ts")).toBe(
+      "content of src/a.ts",
+    );
+    const gitCalls: string[][] = [];
+    h.world.git = (args) => {
+      gitCalls.push([...args]);
+      if (args[0] === "show") return `blob ${args[1]}`;
+      if (args[0] === "diff") return args[3]?.endsWith("dirty.ts") ? "x\n" : "";
+      throw new Error("unexpected");
+    };
+    const call = (name: string, value: string) =>
+      (input[name] as (value: string) => unknown)(value);
+    expect(call("readChanged", REQ)).toBe(`blob HEAD:${REQ}`);
+    expect(call("readBase", REQ)).toBe(`blob BASE:${REQ}`);
+    expect(call("readReceipt", "r.json")).toBe("blob HEAD:r.json");
+    expect(call("hasUnstagedChanges", "src/dirty.ts")).toBe(true);
+    expect(call("hasUnstagedChanges", "src/a.ts")).toBe(false);
+    expect(gitCalls.at(-1)).toEqual([
+      "diff",
+      "--name-only",
+      "--",
+      ":(literal)src/a.ts",
+    ]);
+    let base: unknown[] = [];
+    h.set("readSnapshotKnowledge", (_git, tree) => {
+      base = [tree];
+      return [{ tree }];
+    });
+    expect((input.readBaseKnowledge as () => unknown)()).toEqual([
+      { tree: "BASE" },
+    ]);
+    expect(base).toEqual(["BASE"]);
+    h.set("readSnapshotKnowledge", () => {
+      throw new Error("base does not compile");
+    });
+    expect((input.readBaseKnowledge as () => unknown)()).toEqual([]);
     h.world.git = () => {
       throw new Error("not in the tree");
     };
-    expect(gate.readReceipt?.("r.json")).toBeUndefined();
+    expect(call("readChanged", REQ)).toBeUndefined();
+    expect(call("readBase", REQ)).toBeUndefined();
+    expect(call("readReceipt", "r.json")).toBeUndefined();
+    expect(call("hasUnstagedChanges", "src/a.ts")).toBe(false);
   });
 
   test("a snapshot source that is not a regular file is an error", async () => {

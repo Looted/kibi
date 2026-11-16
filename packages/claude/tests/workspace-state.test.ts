@@ -196,6 +196,7 @@ describe("session journal replay", () => {
       requestWords: [],
       rulePhrase: undefined,
       firmAsked: new Map(),
+      firmAskedAt: new Map(),
       firmConfirmed: new Set(),
       sourceEdited: false,
       kbRecorded: false,
@@ -234,8 +235,17 @@ describe("session journal replay", () => {
     const state = replay(
       { kind: "firm_asked", path: "src/a.ts", ids: ["R1", "R2"] },
       { kind: "firm_asked", path: "src/a.ts", ids: ["R2", "R3"] },
-      { kind: "firm_asked", path: "src/b.ts", ids: ["R9"] },
+      { kind: "firm_asked", path: "src/b.ts", ids: ["R9"], at: 5 },
+      { kind: "firm_asked", path: "src/c.ts", ids: ["R2"], at: 7 },
     );
+    // Older journals carry no time: only timed asks are remembered.
+    expect(state.firmAskedAt).toStrictEqual(
+      new Map([
+        ["R9", 5],
+        ["R2", 7],
+      ]),
+    );
+    state.firmAsked.delete("src/c.ts");
     expect(state.firmAsked).toStrictEqual(
       new Map([
         ["src/a.ts", ["R1", "R2", "R3"]],

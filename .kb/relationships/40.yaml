@@ -143,3 +143,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3b4e59e65fc
+  - type: covered_by
+    from: SYM-cli-staged-firm-edit-input
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:24:33.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58b3c93f66c7

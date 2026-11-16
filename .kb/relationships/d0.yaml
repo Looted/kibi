@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6b6ee11d10a
+  - type: implements
+    from: SYM-git-staged-parse-deletion-points
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:25:01.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2df9681b5cb
+  - type: covered_by
+    from: SYM-git-staged-parse-deletion-points
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:25:01.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4bc8158dfcf

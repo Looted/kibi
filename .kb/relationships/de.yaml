@@ -388,3 +388,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e8d343a3ac93
+  - type: covered_by
+    from: SYM-claude-session-state-type
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T21:23:38.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb5376c52725

@@ -661,7 +661,7 @@ describe("firm edit texts", () => {
       "Kibi asked the person to confirm this edit because it changes code that implements firm requirements REQ-a, REQ-b.",
     );
     expect(firmEditContext(["REQ-a"])).toEndWith(
-      'If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a current keeps receipt stops this question for that code. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person\'s approval, and kibi signoff lists it as such.',
+      'If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person\'s approval, and kibi signoff lists it as such.',
     );
   });
 
