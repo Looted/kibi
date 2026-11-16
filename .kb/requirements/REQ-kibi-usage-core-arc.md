@@ -10,8 +10,9 @@ tags:
   - agent-guidance
 origin:
   kind: agent
-  ref: 'Maintainer request, 2026-11-16: shrink kibi-usage to a core arc of about 4k characters with the topic sections as resources, replace "never open any file under .kb" in kibi-commit-review with "do not edit .kb files by hand; staging .kb is expected", and drop the dry-run, write and read-back ritual as the default.'
+  ref: 'Maintainer decision, 2026-11-16, approving the W4 statements as worded in the statement file (decision card, 17:53Z). Requested as: Maintainer request, 2026-11-16: shrink kibi-usage to a core arc of about 4k characters with the topic sections as resources, replace "never open any file under .kb" in kibi-commit-review with "do not edit .kb files by hand; staging .kb is expected", and drop the dry-run, write and read-back ritual as the default.'
   recorded_at: '2026-11-16T16:00:00.000Z'
+  approved_by: maintainer
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 0f6ce42256a2ee07b0002c3043d9b962a95aae043b0fb79b678b00f3ca2a4f5c
