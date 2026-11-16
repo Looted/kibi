@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { KbRejection } from "../../../src/cli-errors.js";
+import {
+  InputError,
+  KbRejection,
+  OperationError,
+} from "../../../src/cli-errors.js";
 import {
   IMPLEMENTED_BY_DEPS,
   type ImplementedByDeps,
@@ -190,7 +194,7 @@ describe("executeUpsertRequest", () => {
       req([{ sourceFile: "src/keys.ts", symbol: "expire" }]),
     );
     expect(missing.message).toContain(
-      "implementedBy symbol expire resolves to no declaration in src/keys.ts. Candidates: Audit.rotate, KeyStore.revoke, KeyStore.rotate, expireKey, revoke.",
+      "implementedBy symbol expire resolves to no declaration in src/keys.ts. Candidates: Audit.rotate, KeyStore.revoke, KeyStore.rotate, expireKey.",
     );
     const shared = await refusal(
       req([{ sourceFile: "src/keys.ts", symbol: "rotate" }]),
@@ -283,6 +287,7 @@ describe("executeUpsertRequest", () => {
     ] as UpsertInput[]);
     expect(result.structuredContent).toEqual({
       ...payload(),
+      created: 3,
       relationships_created: 3,
       warnings: [
         "warned REQ-key-expiry",
@@ -385,7 +390,7 @@ describe("executeUpsertRequest", () => {
     expect(twice.calls.executed).toEqual([]);
   });
 
-  test("takes the first free symbol id and refuses when none is free", async () => {
+  test("takes the first free symbol id, then numbers the file-qualified one", async () => {
     const taken = (ids: string[]) =>
       deps({ stored: ids.map((id) => ({ id, title: "x", sourceFile: "y" })) });
     const second = taken(["SYM-keys-expire-key"]);
@@ -411,13 +416,17 @@ describe("executeUpsertRequest", () => {
       "SYM-lib-keys-expire-key",
     ]);
     // For src/keys.ts the path-qualified id is the directory-qualified one.
-    const error = await refusal(
+    const numbered = taken([
+      "SYM-keys-expire-key",
+      "SYM-src-keys-expire-key",
+      "SYM-keys-expire-key-2",
+    ]);
+    await executeUpsertRequest(
       req([{ sourceFile: "src/keys.ts", symbol: "expireKey" }]),
-      taken(["SYM-keys-expire-key", "SYM-src-keys-expire-key"]),
+      CONTEXT,
+      numbered,
     );
-    expect(error.message).toContain(
-      "no free symbol id for expireKey in src/keys.ts (SYM-keys-expire-key, SYM-src-keys-expire-key, SYM-src-keys-expire-key are taken)",
-    );
+    expect(numbered.calls.executed[1]?.id).toBe("SYM-keys-expire-key-3");
     const nested = taken(["SYM-keys-expire-key", "SYM-b-keys-expire-key"]);
     await executeUpsertRequest(
       req([{ sourceFile: "a/b/keys.ts", symbol: "expireKey" }]),
@@ -569,5 +578,209 @@ describe("executeUpsertRequest", () => {
     expect(using.calls.executed[2]?.properties).toMatchObject({
       symbol_role: "behavioral",
     });
+  });
+  test("records one link for entries that name one declaration", async () => {
+    const using = deps();
+    const result = await executeUpsertRequest(
+      req([
+        { sourceFile: "src/keys.ts", symbol: "expireKey" },
+        { sourceFile: "./src/keys.ts", symbol: "expireKey" },
+        { sourceFile: "src/keys.ts", symbol: "KeyStore.revoke" },
+        { sourceFile: "src/keys.ts", symbol: "revoke" },
+      ]),
+      CONTEXT,
+      using,
+    );
+    expect(using.calls.executed.map((input) => input.id)).toEqual([
+      "REQ-key-expiry",
+      "SYM-keys-expire-key",
+      "SYM-keys-key-store-revoke",
+    ]);
+    expect(
+      result.structuredContent?.implementedBy?.map((link) => link.symbol),
+    ).toEqual(["expireKey", "KeyStore.revoke"]);
+    expect(using.calls.executed[2]?.properties?.title).toBe("KeyStore.revoke");
+  });
+
+  test("matches a stored symbol by any name its declaration goes by", async () => {
+    for (const [title, sent] of [
+      ["revoke", "KeyStore.revoke"],
+      ["KeyStore.revoke", "revoke"],
+    ]) {
+      const using = deps({
+        stored: [
+          { id: "SYM-revoke", title, sourceFile: "src/keys.ts" },
+          { id: "SYM-rotate", title: "rotate", sourceFile: "src/keys.ts" },
+        ],
+      });
+      const result = await executeUpsertRequest(
+        req([{ sourceFile: "src/keys.ts", symbol: sent as string }]),
+        CONTEXT,
+        using,
+      );
+      expect(using.calls.executed[1]).toEqual({
+        type: "symbol",
+        id: "SYM-revoke",
+        properties: { title },
+        relationships: [
+          { type: "implements", from: "SYM-revoke", to: "REQ-key-expiry" },
+        ],
+      });
+      expect(result.structuredContent?.implementedBy).toEqual([
+        {
+          sourceFile: "src/keys.ts",
+          symbol: "KeyStore.revoke",
+          symbolId: "SYM-revoke",
+          created: false,
+        },
+      ]);
+    }
+  });
+
+  test("mints a non-empty id for a name the ASCII slug cannot spell", async () => {
+    const using = deps();
+    const result = await executeUpsertRequest(
+      req([
+        { sourceFile: "src/b.ts", symbol: "日本" },
+        { sourceFile: "src/b.ts", symbol: "naïve" },
+        { sourceFile: "src/b.ts", symbol: "$" },
+      ]),
+      contextWith({
+        "src/b.ts":
+          "export const 日本 = 1;\nexport const naïve = 2;\nexport const $ = 3;\n",
+      }),
+      using,
+    );
+    const ids = (result.structuredContent?.implementedBy ?? []).map(
+      (link) => link.symbolId,
+    );
+    expect(ids).toHaveLength(3);
+    expect(ids[0]).toMatch(/^SYM-b-[0-9a-f]{8}$/);
+    expect(ids[1]).toMatch(/^SYM-b-na-ve-[0-9a-f]{8}$/);
+    expect(ids[2]).toMatch(/^SYM-b-[0-9a-f]{8}$/);
+    expect(new Set(ids).size).toBe(3);
+  });
+
+  test("accepts and lists the declarations kb_upsert links granularly", async () => {
+    const source = `export interface Shape { size: number }
+export type Id = string;
+export const LIMIT = 3;
+function internal(): void {}
+export function area(): number { return 1; }
+`;
+    const context = contextWith({ "src/c.ts": source });
+    const missing = await executeUpsertRequest(
+      req([{ sourceFile: "src/c.ts", symbol: "internal" }]),
+      context,
+      deps(),
+    ).catch((caught: Error) => caught);
+    expect((missing as Error).message).toContain(
+      "implementedBy symbol internal resolves to no declaration in src/c.ts. Candidates: area, Id, LIMIT, Shape.",
+    );
+    const using = deps();
+    const result = await executeUpsertRequest(
+      req([
+        { sourceFile: "src/c.ts", symbol: "Shape" },
+        { sourceFile: "src/c.ts", symbol: "LIMIT" },
+      ]),
+      context,
+      using,
+    );
+    expect(
+      result.structuredContent?.implementedBy?.map((link) => link.symbolId),
+    ).toEqual(["SYM-c-shape", "SYM-c-limit"]);
+  });
+
+  test("reports the symbol writes in the counts and the written files", async () => {
+    const using: {
+      -readonly [K in keyof ReturnType<typeof deps>]: ReturnType<
+        typeof deps
+      >[K];
+    } = deps();
+    const write = (path: string, before: string | null, after: string) => ({
+      path,
+      beforeHash: before,
+      afterHash: after,
+      created: before === null,
+    });
+    let symbols = 0;
+    using.execute = (async (input: UpsertInput) => {
+      if (input.type === "req")
+        return {
+          content: [],
+          structuredContent: payload({
+            sourceWrites: [write(".kb/requirements/R.md", null, "r1")],
+          }),
+        };
+      symbols += 1;
+      return {
+        content: [],
+        structuredContent: payload({
+          created: symbols === 1 ? 1 : 0,
+          updated: symbols === 1 ? 0 : 1,
+          sourceWrites: [
+            write(".kb/symbols.yaml", `s${symbols - 1}`, `s${symbols}`),
+            ...(symbols === 1 ? [] : [write(".kb/rel.yaml", null, "l1")]),
+          ],
+        }),
+      };
+    }) as ImplementedByDeps["execute"];
+    const result = await executeUpsertRequest(
+      req([
+        { sourceFile: "src/keys.ts", symbol: "expireKey" },
+        { sourceFile: "src/keys.ts", symbol: "KeyStore.rotate" },
+      ]),
+      CONTEXT,
+      using,
+    );
+    expect(result.structuredContent).toMatchObject({
+      created: 2,
+      updated: 1,
+      relationships_created: 3,
+      sourceWrites: [
+        write(".kb/requirements/R.md", null, "r1"),
+        write(".kb/symbols.yaml", "s0", "s2"),
+        write(".kb/rel.yaml", null, "l1"),
+      ],
+    });
+  });
+
+  test("a failed symbol write keeps a coded failure's code and retryability", async () => {
+    const failing = (error: unknown): ImplementedByDeps => ({
+      ...deps(),
+      execute: (async (input: UpsertInput) => {
+        if (input.type === "symbol") throw error;
+        return { content: [], structuredContent: payload() };
+      }) as ImplementedByDeps["execute"],
+    });
+    const run = (error: unknown) =>
+      executeUpsertRequest(
+        req([{ sourceFile: "src/keys.ts", symbol: "expireKey" }]),
+        CONTEXT,
+        failing(error),
+      ).catch((caught: unknown) => caught);
+    for (const retryable of [true, false]) {
+      const cause = new OperationError("SOURCE_X", "held", retryable);
+      const error = (await run(cause)) as OperationError;
+      expect(error).toBeInstanceOf(OperationError);
+      expect(error.code).toBe("SOURCE_X");
+      expect(error.retryable).toBe(retryable);
+      expect(error.detail).toContain("REQ-key-expiry was written");
+      expect(error.detail).toContain("failed: held.");
+      expect(error.cause).toBe(cause);
+    }
+    const input = (await run(
+      new InputError("BAD_SYMBOL", "bad"),
+    )) as InputError;
+    expect(input).toBeInstanceOf(InputError);
+    expect(input.code).toBe("BAD_SYMBOL");
+    expect(input.detail).toContain("failed: bad.");
+    const rejection = (await run(
+      new KbRejection("VALIDATION_FAILED", "no", [{ rule: "r", field: "f" }]),
+    )) as KbRejection;
+    expect(rejection).toBeInstanceOf(KbRejection);
+    expect(rejection.code).toBe("VALIDATION_FAILED");
+    expect(rejection.issues).toEqual([{ rule: "r", field: "f" }]);
+    expect(rejection.message).toContain("failed: no.");
   });
 });

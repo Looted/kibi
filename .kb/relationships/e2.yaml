@@ -475,3 +475,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dfd6c9c7acdf
+  - type: implements
+    from: SYM-agent-instructions-write-agent-instructions
+    to: REQ-init-gemini-instructions
+    created_at: 2026-11-16T16:37:29.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04dc20f10716
+  - type: covered_by
+    from: SYM-agent-instructions-write-agent-instructions
+    to: TEST-init-gemini-instructions
+    created_at: 2026-11-16T16:37:29.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-112578398143

@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6bc23ca5dc3
+  - type: implements
+    from: SYM-agent-instructions-GEMINI_IMPORT_SECTION
+    to: REQ-init-gemini-instructions
+    created_at: 2026-11-16T16:37:17.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87d14120f878
+  - type: covered_by
+    from: SYM-agent-instructions-GEMINI_IMPORT_SECTION
+    to: TEST-init-gemini-instructions
+    created_at: 2026-11-16T16:37:17.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16725e131939

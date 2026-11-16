@@ -2795,6 +2795,21 @@ function readPackageVersion(packageJsonPath) {
   return null;
 }
 
+// ../agent-core/dist/session-brief.js
+var SESSION_BRIEF_LINES = [
+  "Kibi records this repository's requirements and decisions with their reasons.",
+  "- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.",
+  "- When the person states a rule or makes a decision, record it with their reason (kb_upsert: who decided and why).",
+  "- Before finishing, stage the change with its .kb files and run the commit check, `kibi check --staged`.",
+  "A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask."
+];
+var SESSION_BRIEF = SESSION_BRIEF_LINES.join(`
+`);
+function sessionBriefWith(hostLines) {
+  return [SESSION_BRIEF, ...hostLines.filter((line) => line.length > 0)].join(`
+`);
+}
+
 // src/kb-mcp-tools.ts
 function resolveKibiInterface2(mcpState, workspaceTrusted) {
   return resolveKibiInterface(mcpState, workspaceTrusted);
@@ -3470,9 +3485,12 @@ ${advisory}` : BOOTSTRAP_REMINDER
         }
         {
           const advisory = interfaceAdvisory(initialState.mcpState, workspaceTrusted);
-          const context = [advisory, missingHooksNote(cwd)].filter((line) => Boolean(line)).join(`
-`);
-          return context ? { additional_context: context } : emptyResult();
+          return {
+            additional_context: sessionBriefWith([
+              advisory ?? "",
+              missingHooksNote(cwd) ?? ""
+            ])
+          };
         }
       case "preToolUse": {
         const stamped = stampKibiWorkspace(input.toolName, input.toolInput, kibiWorkspaceFor(input.cwd ?? input.workspaceRoots?.[0]));

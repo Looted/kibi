@@ -49,6 +49,10 @@
     "./firm-edit-review": {
       "types": "./dist/firm-edit-review.d.ts",
       "default": "./dist/firm-edit-review.js"
+    },
+    "./session-brief": {
+      "types": "./dist/session-brief.d.ts",
+      "default": "./dist/session-brief.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

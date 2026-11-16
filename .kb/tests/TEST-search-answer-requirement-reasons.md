@@ -21,17 +21,17 @@ id: TEST-search-answer-requirement-reasons
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-efa93fbe6e5f433cb01eac68
+    receipt_id: PR-a4032910ecfa1c7d862a2f25
     test_id: TEST-search-answer-requirement-reasons
     scope: end_to_end
     outcome: passed
-    code_snapshot: f5912dc3fe126b68be0d7f2a26b4ef3d9aa6714b20db0c96de55004948d8c1d8
+    code_snapshot: df0f74af81e64a9ccc5235e8267c8b776e9bce30c68a0dfc5bb669c392f06e71
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T17:52:39.528Z'
-    finished_at: '2026-11-16T17:53:16.398Z'
-    artifact_digest: 5fa2527d88277ca597a309de7ae3a8a371804b6da35f2cf9e4d461d17e482af5
+    started_at: '2026-11-16T20:44:39.167Z'
+    finished_at: '2026-11-16T20:45:05.710Z'
+    artifact_digest: aa506b6ec5ea3b82c5a7e81204bbc121ce5c383cbdbce3226b667b8f66b3199b
     contract_hash: 52dfb01c7e4dc38f26ff1b9e54d30afdc01c27a2bc244bf4c618063e49fbc02d
-    binding_hash: 984214fbe12ac059784814a5d041a1947d78c5951fa504a3d704f0fb360bf405
+    binding_hash: cfc45f53666491b6a4b6af0cafffa42d78c52cb5e32b664114a4adb621eb3d93
     fingerprint: 91f91298196d96e55a13d2c41a78833837832da7e4e53823ca35c05bcae96586
     fingerprint_components:
       contract: 52dfb01c7e4dc38f26ff1b9e54d30afdc01c27a2bc244bf4c618063e49fbc02d
@@ -56,6 +56,6 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Runs kibi search through the built CLI on a workspace with a requirement that has a rationale field, one with a Why section and one with neither, and checks each governing entry's why and the answer note (packages/cli/tests/consumer/search-answer-layer.test.ts). Unit tests in packages/cli/tests/search-answer.test.ts cover each source in order, a Reason not stated section, the 280-character limit and the byte-budget shrink order.
+Runs kibi search through the built CLI on a workspace with a requirement that has a rationale field, one with a Why section and one with neither, and checks each governing entry's why and the answer note (packages/cli/tests/consumer/search-answer-layer.test.ts). Unit tests in packages/cli/tests/search-answer.test.ts cover each source in order, a Reason not stated section, one that names who asked and the source before saying Reason not stated (also past the excerpt limit), a rationale field that says Reason not stated, the 280-character limit and the byte-budget shrink order.
 
 A false pass would be a fixture whose requirements all record a reason the same way, so the order between sources and the recorded false mark are never exercised.

@@ -1842,6 +1842,64 @@ describe("a governing requirement's recorded reason", () => {
     ).toEqual({ recorded: false });
   });
 
+  test("a section that names who asked before saying no reason was stated records none", () => {
+    for (const lines of [
+      ["Asked by the owner in the project chat on 2026-11-10. Reason not stated."],
+      ["Requested by the owner (chat); reason not stated."],
+      ["- Asked by the owner", "- Source: chat", "- Reason", "  not stated"],
+      [`Asked by the owner. ${"Background words. ".repeat(30)}Reason not stated.`],
+    ])
+      expect(
+        requirementReason(
+          { id: "REQ-A" },
+          body("Statement.", "## Context", ...lines),
+          [],
+        ),
+      ).toEqual({ recorded: false });
+  });
+
+  test("a rationale field that says no reason was stated records none", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Asked by the owner. Reason not stated." },
+        null,
+        [],
+      ),
+    ).toEqual({ recorded: false });
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Reason not stated" },
+        body("Statement.", "## Why", "Users churned at checkout."),
+        [],
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Users churned at checkout.",
+      from: "section",
+    });
+  });
+
+  test("no reason stated across a line break, or with extra spaces, records none", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Asked by the owner. Reason not\nstated." },
+        null,
+        [],
+      ),
+    ).toEqual({ recorded: false });
+    for (const lines of [
+      ["Asked by the owner. Reason not", "stated."],
+      ["Asked by the owner. Reason not  stated."],
+    ])
+      expect(
+        requirementReason(
+          { id: "REQ-A" },
+          body("Statement.", "## Context", ...lines),
+          [],
+        ),
+      ).toEqual({ recorded: false });
+  });
+
   test("nothing recorded, or no readable document, is marked", () => {
     expect(requirementReason({ id: "REQ-A" }, null, [])).toEqual({
       recorded: false,

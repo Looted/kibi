@@ -210,6 +210,10 @@
       "types": "./dist/operations/mutation/delete.d.ts",
       "default": "./dist/operations/mutation/delete.js"
     },
+    "./operations/mutation/implemented-by": {
+      "types": "./dist/operations/mutation/implemented-by.d.ts",
+      "default": "./dist/operations/mutation/implemented-by.js"
+    },
     "./operations/mutation/upsert": {
       "types": "./dist/operations/mutation/upsert.d.ts",
       "default": "./dist/operations/mutation/upsert.js"

@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import {
   compilerFingerprintReason,
   sourceExtractionFailureReasons,
@@ -293,6 +294,8 @@ export type StatusPayload = {
   };
   readonly schemaStatus?: MigrationConfigStatus;
   readonly migrationPlan?: MigrationPlan;
+  /** The Kibi session brief (kibi-agent-core), the same on every surface. */
+  readonly sessionBrief?: string;
   readonly bootstrap?: {
     readonly incompleteApplications?: readonly Readonly<
       Record<string, unknown>
@@ -1432,6 +1435,9 @@ export async function executeStatus(
       ...(storeUncompiled ? { syncState: "stale", dirty: true } : {}),
       branchAttachment: attachment,
       branchStore: store,
+      // The session brief every host opens with, for an agent whose host
+      // has no Kibi plugin and only calls kb_status.
+      sessionBrief: SESSION_BRIEF,
       ...(takeoverNotice ? { notices: [takeoverNotice] } : {}),
       ...(engineStatus ? { engineStatus } : {}),
       staleReasons,

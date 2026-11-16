@@ -745,10 +745,11 @@ export function adrExcerpt(
 }
 
 /**
- * A section that says the person gave no reason ("Reason not stated", the
- * wording the capture instructions ask for) records none.
+ * Text that says the person gave no reason ("Reason not stated", the wording
+ * the capture instructions ask for, usually after who asked and the source)
+ * records none, wherever in the section or field it says so.
  */
-const NO_REASON_STATED = /^reason not stated\b/i;
+const NO_REASON_STATED = /\breason\s+not\s+stated\b/i;
 
 /**
  * A line that only records how a requirement was split or superseded
@@ -785,16 +786,19 @@ export function requirementReason(
 ): SearchAnswerReason {
   const source = reasonSource(row.origin);
   const said = source ? { said: source } : {};
-  const field = proseExcerpt(
-    withoutChangeNotes(text(row.rationale).split(/\r?\n/)),
-  );
-  if (field) return { recorded: true, text: field, from: "rationale", ...said };
+  const rationale = withoutChangeNotes(text(row.rationale).split(/\r?\n/));
+  const field = proseExcerpt(rationale);
+  // The whole field and section are read: the excerpt may cut the words off.
+  if (field && !NO_REASON_STATED.test(rationale.join(" ")))
+    return { recorded: true, text: field, from: "rationale", ...said };
   const sections = body === null ? new Map() : markdownSections(body).sections;
   for (const [pattern, from] of REASON_SECTIONS) {
     const excerpt = [...sections]
       .filter(([name]) => pattern.test(name))
-      .map(([, lines]) => proseExcerpt(withoutChangeNotes(lines)))
-      .find((prose) => prose !== undefined && !NO_REASON_STATED.test(prose));
+      .map(([, lines]) => withoutChangeNotes(lines))
+      .filter((lines) => !NO_REASON_STATED.test(lines.join(" ")))
+      .map((lines) => proseExcerpt(lines))
+      .find((prose) => prose !== undefined);
     if (excerpt) return { recorded: true, text: excerpt, from, ...said };
   }
   const adr = adrExcerpts.find((excerpt) => excerpt !== undefined);
