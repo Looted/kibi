@@ -4,10 +4,10 @@
   "sourceFile": "docs-site/theme.ts",
   "symbol": "landingContent",
   "verdict": "keeps",
-  "note": "The landing page still publishes the same root pages; one paragraph now describes the staged check's one-block-per-declaration output.",
+  "note": "The landing page still publishes the same root pages with the same link checks; its copy names kibi check --symbol-debt and describes the staged check's one block per unowned declaration.",
   "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
-  "codeHash": "sha256:8d62a041ed2b7dab841697bcf76a69df2fedef2d9ecfd26db9275bfafda76eb8",
+  "codeHash": "sha256:2e77f321deeb773efe31c84ed8b99d1dfe3d23c745f6fbb2c00a93c2a99ba7a0",
   "startLine": 1447,
   "endLine": 1833,
-  "recordedAt": "2026-11-16T18:13:49.236Z"
+  "recordedAt": "2026-11-16T23:34:13.543Z"
 }

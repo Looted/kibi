@@ -180,27 +180,22 @@ if (RUN_NODE_TEST_SUITE) {
         ]);
         const evaluated = (
           JSON.parse(plain.stdout) as {
-            data?: { evaluated?: { rules?: string[] } };
+            data?: { evaluated?: { ruleCount?: number; rules?: string[] } };
           }
-        ).data?.evaluated?.rules;
-        assert.ok(Array.isArray(evaluated), plain.stdout);
+        ).data?.evaluated;
+        // A plain check runs every default rule (canonical and advisory), so
+        // it gives their number and lists none; which rules are default is
+        // the registry's (rule-registry-classes.test.ts).
         assert.ok(
-          evaluated.includes("entity-context-missing"),
-          "a plain check runs canonical rules",
+          Number.isInteger(evaluated?.ruleCount) &&
+            (evaluated?.ruleCount ?? 0) > 1,
+          plain.stdout,
         );
-        assert.ok(
-          evaluated.includes("adr-proposed"),
-          "a plain check runs advisory rules",
+        assert.strictEqual(
+          evaluated?.rules,
+          undefined,
+          "a plain check skips no default rule, so it names none",
         );
-        for (const migrationRule of [
-          "strict-readiness",
-          "semantic-completeness",
-        ]) {
-          assert.ok(
-            !evaluated.includes(migrationRule),
-            `a plain check skips the migration rule ${migrationRule}`,
-          );
-        }
         writeFileSync(
           join(sandbox.repoDir, "migration-rule.json"),
           JSON.stringify({ rules: ["strict-readiness"] }),

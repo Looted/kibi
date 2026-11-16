@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "kibi check --staged still runs the same validation and exit codes; only its refusal text groups the findings of one unowned declaration into one block, and the JSON still carries every finding.",
+  "note": "Still runs the rules with selection and staged focus and exits nonzero on violations. The passing text is one line, --symbol-debt lists the debt, and the staged refusal groups the findings of one unowned declaration into one block while the JSON keeps every finding.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:cc2384ee3f1aca3059e92d8d91449ffd085bee9046b71c5dd9d344aa862273d6",
-  "startLine": 760,
-  "endLine": 1668,
-  "recordedAt": "2026-11-16T18:13:49.236Z"
+  "codeHash": "sha256:2872e2f994f7c18b9b506559aee16ae1dbcc894f292ae6edb6e2395d5e84ed5d",
+  "startLine": 797,
+  "endLine": 1714,
+  "recordedAt": "2026-11-16T23:34:13.543Z"
 }

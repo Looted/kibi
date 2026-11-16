@@ -301,7 +301,7 @@ describe("scoped check results", () => {
   test("count the omitted findings, never reading as a pass", () => {
     const content = buildStructuredContent({
       violations: [],
-      evaluated: { rules: ["required-fields"] },
+      evaluated: { ruleCount: 1, rules: ["required-fields"] },
       diagnostics: [],
       impactResult: undefined,
       migrationPlan: plan([]),
@@ -350,7 +350,7 @@ describe("scoped check results", () => {
   test("keep a result within its budget unchanged", () => {
     const content = buildStructuredContent({
       violations: [finding("required-fields", "REQ-a")],
-      evaluated: { rules: [] },
+      evaluated: { ruleCount: 0 },
       diagnostics: [],
       impactResult: undefined,
     });
@@ -366,7 +366,7 @@ describe("scoped check results", () => {
     violations.push(finding("required-fields", "REQ-last"));
     const content = buildStructuredContent({
       violations,
-      evaluated: { rules: [] },
+      evaluated: { ruleCount: 0 },
       diagnostics: violations.map((violation) => ({
         category: "SYNC_ERROR",
         severity: "error" as const,
@@ -428,12 +428,70 @@ describe("scoped check results", () => {
       "- required-fields ×1 | REQ-last | required-fields on REQ-last\n",
     );
     expect(text.endsWith(fitted.truncation?.hint ?? "missing")).toBe(true);
+    expect(fitted.truncation).toEqual({
+      budgetChars: SCOPED_CHECK_BUDGET_CHARS,
+      hint: "The result was cut to its size budget. Narrow sourceFiles, or pass rules to list those rules' findings in full; kibi check --format json lists every finding.",
+    });
+    expect(fitted.qualityDiagnostics?.[0]?.suggestion).toBe(
+      "Run kibi check --format json to list every advisory finding.",
+    );
+    // A check without sourceFiles keeps to the same budget and points
+    // only at a rule selection or the CLI.
+    const unscoped = fitScopedCheckToBudget(content, undefined, false);
+    expect(JSON.stringify(unscoped).length).toBeLessThanOrEqual(
+      SCOPED_CHECK_BUDGET_CHARS,
+    );
+    expect(unscoped.count).toBe(301);
+    expect(unscoped.truncation?.hint).toBe(
+      "The result was cut to its size budget. Pass rules to list those rules' findings in full; kibi check --format json lists every finding.",
+    );
+  });
+
+  test("summarize a large migration plan before cutting blocking findings, unless it was asked for", () => {
+    const actions = Array.from({ length: 400 }, (_, index) => ({
+      id: `A-${index}`,
+      code: "repair",
+      state: index === 0 ? "blocked" : "ready",
+      detail: "x".repeat(60),
+    }));
+    const content = buildStructuredContent({
+      violations: [finding("required-fields", "REQ-a")],
+      evaluated: { ruleCount: 0 },
+      diagnostics: [
+        { category: "SYNC_ERROR", severity: "error", message: "missing" },
+      ],
+      impactResult: undefined,
+      migrationPlan: {
+        planHash: "hash",
+        status: "blocked",
+        summary: { total: 400 },
+        actions,
+      } as never,
+    });
+    const fitted = fitScopedCheckToBudget(content, undefined, false);
+    expect(fitted.violations).toEqual(content.violations);
+    expect(fitted.violationGroups).toBeUndefined();
+    expect(Object.hasOwn(fitted, "migrationPlan")).toBe(false);
+    expect(fitted.migrationPlanSummary).toEqual(
+      expect.objectContaining({
+        planHash: "hash",
+        actionsByCode: { repair: 400 },
+        blockedActionIds: ["A-0"],
+      }),
+    );
+    const kept = fitScopedCheckToBudget(content, undefined, false, true);
+    expect(kept.migrationPlan).toBe(content.migrationPlan);
+    expect(kept.truncated).toBe(true);
+    // The plan alone is over budget, so the finding is listed by rule.
+    expect(kept.violationGroups?.map((group) => group.rule)).toEqual([
+      "required-fields",
+    ]);
   });
 
   test("cut advisory findings alone when that is enough", () => {
     const content = buildStructuredContent({
       violations: [finding("required-fields", "REQ-a")],
-      evaluated: { rules: [] },
+      evaluated: { ruleCount: 0 },
       diagnostics: [],
       qualityDiagnostics: [
         {
