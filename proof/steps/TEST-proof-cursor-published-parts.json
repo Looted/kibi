@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-cursor-published-parts",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/cursor-plugin-package.proof.test.ts"
+    ]
+  ]
+}

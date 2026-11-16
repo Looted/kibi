@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-engine-protocol-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/engine-protocol-settings.proof.test.ts"
+    ]
+  ]
+}

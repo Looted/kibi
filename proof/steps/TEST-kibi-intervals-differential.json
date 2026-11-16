@@ -1,0 +1,26 @@
+{
+  "test_id": "TEST-kibi-intervals-differential",
+  "steps": [
+    [
+      "lake",
+      "--dir",
+      "proof/lean",
+      "build"
+    ],
+    [
+      "bun",
+      "scripts/intervals-differential.ts",
+      "--lean",
+      "proof/lean/.lake/build/bin/kibi-intervals",
+      "--cases",
+      "200000"
+    ],
+    [
+      "bun",
+      "run",
+      "documentation/tests/e2e/intervals-differential-planted.e2e.ts",
+      "--lean",
+      "proof/lean/.lake/build/bin/kibi-intervals"
+    ]
+  ]
+}

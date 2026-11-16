@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-integration-configure-step",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/proof-receipt-format.proof.test.ts"
+    ]
+  ]
+}

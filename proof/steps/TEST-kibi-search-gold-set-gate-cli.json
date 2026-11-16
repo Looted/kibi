@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-search-gold-set-gate-cli",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "200000",
+      "./scripts/tests/repo-search-gold-gate.test.ts"
+    ]
+  ]
+}

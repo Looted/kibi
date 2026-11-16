@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-cli-migrate-legacy-requirement-status",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/commands/migrate-legacy-status.test.ts",
+      "./packages/cli/tests/operations/migration/requirement-status.test.ts"
+    ]
+  ]
+}

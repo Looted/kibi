@@ -814,6 +814,7 @@ working-tree files for Git.
 - `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `symbol` entities this may include `sourceFile`, `symbol_role`, and `granularity_reason`; for `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
 - `dryRun` (optional, default `false`): Validate the payload and write nothing. See [Dry run](#dry-run-validation).
+- `implementedBy` (optional, `req` only): `[{ sourceFile, symbol }]`, the code that implements the requirement. See [Linking code while writing a requirement](#linking-code-while-writing-a-requirement).
 - `document` (optional): `{ path?, body? }` for an explicit tracked source
   target. Existing entities preserve their current body when `body` is omitted;
   new requirements default the body to `semantic_text`. New entities without a
@@ -832,6 +833,18 @@ For current requirement writes with assertive prose, mutation fails closed unles
 
 **Returns:**
 Confirmation of entity creation/update and relationship creation counts. Successful responses may also include `structuredContent.semanticAdvisor` (requirements only) and `structuredContent.warnings`. Modeling suggestions remain reviewable, while proposition accounting and source/grounding integrity are blocking for applicable requirement writes. A `symbol` payload with an `implements` edge but neither `covered_by` nor `executable_for` (and no `covered_by` edge already stored for that symbol) returns a warning, on `dryRun` and on the write, that `kb_check` will report `symbol-coverage` until the symbol gets `covered_by` to a test that covers the requirement.
+
+#### Linking code while writing a requirement
+
+`implementedBy` records the requirement and the `implements` links to it in one call, so a requirement written from finished work does not need a separate symbol upsert per function. Each entry names a workspace-relative `sourceFile` and one declaration in it: a function, a method as `Class.method` (or its bare name when only one class declares it), or an exported constant. Kibi parses the file and resolves the entry to exactly one declaration that the granularity check accepts:
+
+- a name the file does not declare is refused with up to ten candidate names;
+- a bare method name that several classes declare is refused, naming each `Class.method`;
+- a class whose behavior lives in its methods is refused as a coarse link, naming its methods;
+- an empty `symbol` is refused, because a whole file is never an `implements` link;
+- a file outside the workspace, or one that cannot be read, is refused.
+
+The resolved declaration's symbol entity gets an `implements` link to the requirement. When the KB already has a symbol with that title and `sourceFile`, Kibi adds the link to it and keeps its status; otherwise it creates one (`status: active`, the inferred `symbol_role`) under the first free id of `SYM-<file>-<symbol>`, `SYM-<dir>-<file>-<symbol>` and `SYM-<path>-<symbol>`. The requirement and every symbol write are validated before anything is written, and a refusal (`VALIDATION_FAILED`, rule `implemented_by_unresolved`) writes nothing. On `dryRun` the result previews the links without writing them. The result's `implementedBy` lists each entry's `sourceFile`, `symbol`, `symbolId` and `created`. If a symbol write fails after the requirement was written, the error names what was written and gives the remaining symbol payloads to upsert. A new symbol still needs `covered_by` to a test (see the `symbol-coverage` warning below).
 
 ### Dry run validation
 

@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-mcp-tool-consolidation",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./packages/mcp/tests/server/tool-surface-consumer.test.ts"
+    ]
+  ]
+}

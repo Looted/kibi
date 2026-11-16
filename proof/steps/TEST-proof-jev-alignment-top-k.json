@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-jev-alignment-top-k",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/vocabulary-alignment-limits.proof.test.ts"
+    ]
+  ]
+}

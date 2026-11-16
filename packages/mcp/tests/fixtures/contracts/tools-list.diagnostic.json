@@ -3437,6 +3437,26 @@
             "description": "Unique entity ID named by the behavior it governs (<TYPE>-<area>-<behavior>); an existing ID updates the entity.",
             "type": "string"
           },
+          "implementedBy": {
+            "description": "req only: the declarations that implement it, each {sourceFile, symbol}; Kibi links each with implements.",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "sourceFile": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "symbol": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": ["sourceFile", "symbol"],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
           "plannedFacts": {
             "description": "dryRun only: fact payloads (e.g. kb_model applyPlan entries) staged before this one, so their links resolve.",
             "items": {
@@ -4453,6 +4473,15 @@
                     },
                     "type": "array"
                   },
+                  "implementedBy": {
+                    "description": "Each implementedBy entry with the symbolId that implements the requirement and whether it was created.",
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "inventoryApplied": {
                     "description": "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text.",
                     "items": {
@@ -4515,6 +4544,14 @@
                   },
                   "errors": {
                     "items": {},
+                    "type": "array"
+                  },
+                  "implementedBy": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
                     "type": "array"
                   },
                   "inventoryApplied": {

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-semantic-advisor-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/semantic-advisor-version.proof.test.ts"
+    ]
+  ]
+}

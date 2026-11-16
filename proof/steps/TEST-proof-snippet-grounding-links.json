@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-snippet-grounding-links",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts"
+    ]
+  ]
+}

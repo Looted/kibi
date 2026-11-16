@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-detached-head-code",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/branch-store-settings.proof.test.ts"
+    ]
+  ]
+}

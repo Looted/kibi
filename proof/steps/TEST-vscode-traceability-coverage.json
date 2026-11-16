@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-vscode-traceability-coverage",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/vscode/tests/traceability.test.ts",
+      "./packages/vscode/tests/activation/treeView.test.ts",
+      "./packages/vscode/tests/activation/workspace.test.ts"
+    ],
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/traceability-gate.test.ts"
+    ]
+  ]
+}

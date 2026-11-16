@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-lookup-before-edit-operations",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/telemetry-versions.proof.test.ts"
+    ]
+  ]
+}

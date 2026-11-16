@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-evidence-level-vocabulary",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/evidence-levels.proof.test.ts"
+    ]
+  ]
+}

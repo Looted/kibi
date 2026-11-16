@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-docs-readme-published-links",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--retry=0",
+      "--timeout",
+      "120000",
+      "./scripts/tests/readme-published-docs.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-max-review-candidates",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/contradiction-review-limits.proof.test.ts"
+    ]
+  ]
+}

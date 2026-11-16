@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-agent-hosts-rule-phrase-detection",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "./packages/agent-core/tests/decision-guard.test.ts"
+    ]
+  ]
+}

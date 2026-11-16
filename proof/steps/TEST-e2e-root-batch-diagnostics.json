@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-e2e-root-batch-diagnostics",
+  "steps": [
+    [
+      "bun",
+      "run",
+      "documentation/tests/e2e/root-batch-diagnostics.e2e.ts"
+    ]
+  ]
+}

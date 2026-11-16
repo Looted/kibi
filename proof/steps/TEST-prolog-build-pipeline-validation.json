@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-prolog-build-pipeline-validation",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./scripts/tests/swipl-build-pipeline.test.ts",
+      "./scripts/tests/swipl-spike-config.test.ts"
+    ]
+  ]
+}

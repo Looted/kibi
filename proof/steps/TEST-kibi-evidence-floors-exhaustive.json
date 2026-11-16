@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-evidence-floors-exhaustive",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/evidence-floors.proof.test.ts"
+    ]
+  ]
+}

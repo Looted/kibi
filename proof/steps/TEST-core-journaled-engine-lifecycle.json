@@ -1,0 +1,35 @@
+{
+  "test_id": "TEST-core-journaled-engine-lifecycle",
+  "steps": [
+    [
+      "node",
+      "scripts/run-owned-engine-tests.mjs",
+      "--",
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/engine.test.ts"
+    ],
+    [
+      "swipl",
+      "-q",
+      "-s",
+      "packages/core/tests/kb.plt",
+      "-g",
+      "run_tests(kb_timestamp_formats)",
+      "-t",
+      "halt"
+    ],
+    [
+      "node",
+      "scripts/run-owned-engine-tests.mjs",
+      "--",
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/cli/tests/engine-runtime-paths.test.ts"
+    ]
+  ]
+}
