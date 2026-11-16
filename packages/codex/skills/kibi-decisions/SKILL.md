@@ -105,6 +105,10 @@ name the missing capability. Never read or edit `.kb/` files directly.
   quoting their words and where they said them, a sectioned `document.body`,
   a scenario, and an `implements` link from the code that enforces it. Use
   `kb_compile_intent` first when the rule may touch several requirements.
+  When the person said why, put their reason in `rationale`, in their words,
+  in that same write. When they gave none, leave `rationale` out and never
+  write a reason of your own; a `kb_upsert` note asking for the reason is
+  answered by asking the person, not by inventing one.
   A firm rule needs `tested` evidence by default, so `kb_check`'s
   `evidence-floor` rule fails on it until an end-to-end test proves its
   scenario. When the change includes that test, give it a proof contract and
@@ -120,7 +124,21 @@ name the missing capability. Never read or edit `.kb/` files directly.
   `## Why this changed` section of at least 12 words naming their instruction
   and answering the old reasoning, old one `status: closed` in the same
   change). For a wording correction they asked for in place, update it with a
-  new `origin.ref` to those words instead.
+  new `origin.ref` to those words instead. When the change moves a value the
+  rule is grounded on and the rule already records a reason, the note on the
+  write quotes it: ask whether it still holds, and record the person's new
+  reason in their words.
+- **A value change lists other requirements (`siblings`):** a `kb_upsert` of a
+  value fact returns every other current requirement on that quantity, each
+  as a warning and a required `nextActions` entry; `statesOldValue` marks a
+  claim that still says the old value. Update a `default` or `exploratory`
+  sibling in the same change, with the person's words as `origin.ref` and
+  their reason, and update the tests that pin the old value. Ask the person
+  before touching a `firm` sibling. When their change does not cover a
+  sibling, supersede or scope the requirements so they no longer constrain
+  one quantity. A fact write refused with `SEMANTIC_CONTRADICTION` names the
+  requirements it would make conflict: send the fact and the change to those
+  requirements together in one `kb_apply_plan`, or ask which one holds.
 - **You only prefer another approach:** a preference is not evidence. Propose
   it; do not supersede.
 - **A cleanup needs many decisions** (statements reworded by a split,
