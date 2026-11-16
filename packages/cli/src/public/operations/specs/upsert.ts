@@ -1,8 +1,8 @@
+import { executeUpsertRequest } from "../../../operations/mutation/implemented-by.js";
 import type {
   UpsertInput,
   UpsertPayload,
 } from "../../../operations/mutation/types.js";
-import { executeUpsert } from "../../../operations/mutation/upsert.js";
 import type { OperationSpec } from "../types.js";
 import {
   ENTITY_PROPERTIES_SCHEMA,
@@ -44,6 +44,25 @@ export const UPSERT_DOCUMENT_SCHEMA = {
   },
 } as const;
 
+/** kb_upsert's implementedBy: the code a requirement write links to it. */
+export const IMPLEMENTED_BY_SCHEMA = {
+  type: "array",
+  minItems: 1,
+  description:
+    "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant). Kibi creates or reuses each symbol and links it with implements; an entry that resolves to no single granular declaration is refused with candidates.",
+  [ADVERTISED_DESCRIPTION]:
+    "req only: the declarations that implement it, each {sourceFile, symbol}; Kibi links each with implements.",
+  items: {
+    type: "object",
+    additionalProperties: false,
+    required: ["sourceFile", "symbol"],
+    properties: {
+      sourceFile: { type: "string", minLength: 1 },
+      symbol: { type: "string", minLength: 1 },
+    },
+  },
+} as const;
+
 export const upsertSpec = {
   name: "kb_upsert",
   cliName: "upsert",
@@ -78,9 +97,10 @@ export const upsertSpec = {
       },
       plannedFacts: PLANNED_FACTS_SCHEMA,
       document: UPSERT_DOCUMENT_SCHEMA,
+      implementedBy: IMPLEMENTED_BY_SCHEMA,
     },
   },
   requiresProlog: true,
   effects: ["kb-write", "workspace-write"],
-  execute: executeUpsert,
+  execute: executeUpsertRequest,
 } as const satisfies OperationSpec<UpsertInput, UpsertPayload>;

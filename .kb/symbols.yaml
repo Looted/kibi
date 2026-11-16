@@ -41468,3 +41468,28 @@ symbols:
         target: TEST-mcp-short-field-descriptions
       - type: implements
         target: REQ-mcp-short-field-descriptions
+  - id: SYM-test-kb-upsert-implemented-by
+    title: kb_upsert implementedBy suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:13:22.017Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-implemented-by
+  - id: SYM-cli-execute-upsert-request
+    title: executeUpsertRequest
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:14:10.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-implemented-by
+      - type: implements
+        target: REQ-kb-upsert-implemented-by

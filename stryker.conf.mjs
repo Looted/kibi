@@ -805,6 +805,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/operations/mutation/origin.ts": [
     "packages/cli/tests/operations-mutation/mutation/origin.test.ts",
   ],
+  "packages/cli/src/operations/mutation/implemented-by.ts": [
+    "packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts",
+  ],
   "packages/cli/src/operations/mutation/predicate-vocabulary-guard.ts": [
     "packages/cli/tests/operations-mutation/mutation/predicate-vocabulary-guard.test.ts",
   ],
