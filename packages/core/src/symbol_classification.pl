@@ -9,7 +9,9 @@
     allowed_granularity_reason/1,
     coarse_granularity_reason/1,
     symbol_role/1,
+    non_behavioral_role/1,
     inferred_role/2,
+    behavioral_kind/1,
     traceability_relationship_type/1
 ]).
 
@@ -31,6 +33,11 @@ symbol_role('config').
 symbol_role('module').
 symbol_role('unknown').
 
+non_behavioral_role('structural').
+non_behavioral_role('type-shape').
+non_behavioral_role('config').
+non_behavioral_role('module').
+
 inferred_role('function', 'behavioral').
 inferred_role('class', 'behavioral').
 inferred_role('method', 'behavioral').
@@ -41,6 +48,12 @@ inferred_role('type', 'type-shape').
 inferred_role('enum', 'type-shape').
 inferred_role('variable', 'unknown').
 inferred_role('unknown', 'unknown').
+
+behavioral_kind('function').
+behavioral_kind('class').
+behavioral_kind('method').
+behavioral_kind('property').
+behavioral_kind('accessor').
 
 traceability_relationship_type('implements').
 traceability_relationship_type('covered_by').

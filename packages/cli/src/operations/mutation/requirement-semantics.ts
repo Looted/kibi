@@ -203,7 +203,7 @@ export async function assertStoredRequirementBoundary(
  * semantic_inventory also carry the writer's judgment, so sending them alone
  * still lets Kibi derive the rest.
  */
-const CONTRACT_FIELDS = [
+export const CONTRACT_FIELDS = [
   "semantic_inventory_version",
   "semantic_source_field",
   "semantic_source_hash",

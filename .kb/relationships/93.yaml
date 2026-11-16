@@ -146,3 +146,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40a0a0d8565d
+  - type: validates
+    from: TEST-proof-behavioral-symbol-kinds
+    to: SCEN-behavioral-kinds-keep-implements
+    created_at: 2026-11-16T11:04:06.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc423444a4a6
+  - type: constrains
+    from: REQ-kibi-env-reader-presence-tests
+    to: FACT-SUBJECT-KIBI-SOURCE-PROOF
+    created_at: 2026-11-16T11:06:27.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-830c10045eae
+  - type: requires_property
+    from: REQ-kibi-env-reader-presence-tests
+    to: FACT-PROP-kibi-env-reader-presence-tests
+    created_at: 2026-11-16T11:06:27.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97532cd4bab0
+  - type: specified_by
+    from: REQ-kibi-env-reader-presence-tests
+    to: SCEN-kibi-env-reader-presence-tests
+    created_at: 2026-11-16T11:06:27.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb35ef39a512
+  - type: specified_by
+    from: REQ-kibi-env-reader-presence-tests
+    to: SCEN-NEG-kibi-env-reader-presence-tests-HANDED-ON
+    created_at: 2026-11-16T11:06:27.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b65a90e37544

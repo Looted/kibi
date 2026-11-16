@@ -7917,5 +7917,65 @@
         "./packages/agent-core/tests/decision-guard.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-proof-scoped-check-budget",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-advertised-description-limit",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-checked-as-sent-ledger-fields",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-non-behavioral-symbol-roles",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-behavioral-symbol-kinds",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-proof-staged-passing-review-states",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+      ]
+    ]
   }
 ]
