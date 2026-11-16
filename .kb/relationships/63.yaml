@@ -220,3 +220,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37a73b00890a
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-bin
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:30:03.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1753c375746b
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-bin
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:30:03.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdbace1fbd6d

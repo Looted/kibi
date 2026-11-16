@@ -891,7 +891,12 @@ export function buildActionsFromStatus(input: {
     // store's contents: applying the plan approves exactly that move.
     const approvalHash =
       attachment.kind === "legacy_compat" &&
+      // rationale: the preview hash is undefined for a missing branch name
+      // anyway, so these checks only narrow the types.
+      // Stryker disable next-line ConditionalExpression
       typeof branch === "string" &&
+      // rationale: same type-only narrowing as the check above.
+      // Stryker disable next-line ConditionalExpression
       typeof kbBranch === "string"
         ? legacyBranchMigrationApprovalHash(
             input.workspaceRoot,

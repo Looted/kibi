@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { InputError, OperationError } from "../src/cli-errors.js";
+import { InputError, KbRejection, OperationError } from "../src/cli-errors.js";
 import * as loader from "../src/cli-operation-loader.js";
 import {
   type CliContext,
@@ -215,7 +215,7 @@ describe("executeOperation", () => {
             code: "PROTOCOL_VALIDATION_FAILED",
             message:
               "Operation produced a result that does not satisfy its generated output contract.",
-            retryable: true,
+            retryable: false,
           },
           "failed",
         ),
@@ -282,6 +282,35 @@ describe("executeOperation", () => {
         { code: "OPERATION_FAILED", message: "plain failure", retryable: true },
       ],
       [
+        new KbRejection("VALIDATION_FAILED", "refused input"),
+        1,
+        {
+          code: "OPERATION_FAILED",
+          message: "refused input",
+          retryable: false,
+        },
+      ],
+      [
+        new Error("Upsert execution failed: refused", {
+          cause: new KbRejection("SEMANTIC_CONTRADICTION", "refused"),
+        }),
+        1,
+        {
+          code: "OPERATION_FAILED",
+          message: "Upsert execution failed: refused",
+          retryable: false,
+        },
+      ],
+      [
+        new OperationError("SOURCE_PATH_INVALID", "path escapes"),
+        1,
+        {
+          code: "SOURCE_PATH_INVALID",
+          message: "path escapes",
+          retryable: false,
+        },
+      ],
+      [
         "a string",
         1,
         {
@@ -313,8 +342,9 @@ describe("executeOperation", () => {
         errorEnvelope("kb_status", error, "failed"),
       );
     }
-    // Only a plain Error is noted: coded errors and non-errors are not.
-    expect(noted).toStrictEqual([cases[2]?.[0]]);
+    // Only plain Errors (rejections included) are noted: coded errors and
+    // non-errors are not.
+    expect(noted).toStrictEqual([cases[2]?.[0], cases[3]?.[0], cases[4]?.[0]]);
   });
 
   test("a read stopped at its engine limit reports the limit", async () => {

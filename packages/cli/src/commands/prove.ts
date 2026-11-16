@@ -569,13 +569,6 @@ export async function proveCommand(
   });
   let completed = false;
   try {
-    const integrations = loadProofIntegrations(context.workspaceRoot);
-    if (!integrations.available)
-      throw new OperationError(
-        "PROOF_INTEGRATIONS_UNAVAILABLE",
-        `prove: ${integrations.error}`,
-        false,
-      );
     const selected = await selectTests(context, options);
     if (selected.length === 0) {
       process.stdout.write(
@@ -584,11 +577,21 @@ export async function proveCommand(
       completed = true;
       return { exitCode: 0 };
     }
+    // Integrations are needed only to run something: a selection with no
+    // proof-bearing test reports that without them.
+    const integrations = loadProofIntegrations(context.workspaceRoot);
+    if (!integrations.available)
+      throw new OperationError(
+        "PROOF_INTEGRATIONS_UNAVAILABLE",
+        `prove: ${integrations.error}`,
+        false,
+      );
     const before = await readWorkspaceSnapshot(context);
     if (!before.available)
       throw new OperationError(
         "WORKSPACE_SNAPSHOT_UNAVAILABLE",
         `prove: ${before.error}`,
+        true,
       );
     const snapshot = before.snapshot.hash;
     // Packed contracts run in separate processes; one shared packed-tarball

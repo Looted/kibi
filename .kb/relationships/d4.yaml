@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c6fb9d9d2c1
+  - type: covered_by
+    from: SYM-const-ledger-contract-fields
+    to: TEST-proof-checked-as-sent-ledger-fields
+    created_at: 2026-11-16T11:03:17.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-361edaa494f9

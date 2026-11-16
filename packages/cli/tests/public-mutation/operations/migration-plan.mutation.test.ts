@@ -850,6 +850,22 @@ describe("buildActionsFromStatus", () => {
     });
   });
 
+  test("binds only a legacy_compat attachment to a preview hash", () => {
+    const root = workspace();
+    const store = legacyBranchStorePath(root, "main");
+    write(root, join(store.slice(root.length + 1), "kb.rdf"), "facts\n");
+    const [action] = status(root, {
+      branchAttachment: {
+        migrationRequired: true,
+        kind: "other",
+        gitBranch: "main",
+        kbBranch: "main",
+      },
+    }).actions;
+    expect(action?.code).toBe("ambiguous_branch_attachment");
+    expect(action?.evidence).not.toHaveProperty("approvalHash");
+  });
+
   test("plans branch store repairs", () => {
     const root = workspace();
     expectGolden("migration-plan-status-store", [

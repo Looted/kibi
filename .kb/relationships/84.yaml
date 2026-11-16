@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f54a84b29ea2
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-checked-as-sent-fields
+    created_at: 2026-11-16T11:03:09.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0703f2343a19

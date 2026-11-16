@@ -1594,11 +1594,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-renderCoverageTable
@@ -1939,9 +1943,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-parity-case-type
@@ -15306,7 +15314,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-prove-empty-selection
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-cli-prove-empty-selection
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-execute-ingest-proof
@@ -26422,7 +26434,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: covered_by
         target: TEST-kibi-mcp-tool-consolidation
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
       - type: implements
         target: REQ-mcp-coded-error-envelope
   - id: SYM-cli-coded-error-fields-type
@@ -30075,20 +30091,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-jev-max-timeout
-  - id: SYM-proof-kb-merge-gate-order
-    title: kbMergeGateOrderCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/kb-merge-workflow.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - source
-    origin:
-      kind: agent
-      recorded_at: 2026-10-28T09:39:53.129Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-kb-merge-gate-order
   - id: SYM-proof-telemetry-event-limit
     title: telemetryEventLimitCertificate
     status: active
@@ -37540,7 +37542,11 @@ symbols:
       recorded_at: 2026-11-03T13:39:46.601Z
     relationships:
       - type: covered_by
+        target: TEST-kb-upsert-missing-endpoint-rejection
+      - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kb-upsert-missing-endpoint-rejection
       - type: implements
         target: REQ-kibi-telemetry-expected-outcomes
   - id: SYM-agent-core-telemetry-signals-countbucket
@@ -41235,14 +41241,6 @@ symbols:
         target: TEST-check-reports-symbol-debt
       - type: implements
         target: REQ-symbol-traceability-behavioral-only
-  - id: SYM-core-kb-nonBehavioralSymbolRole
-    title: non_behavioral_symbol_role
-    status: active
-    sourceFile: packages/core/src/kb.pl
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T09:00:00.000Z
   - id: SYM-core-checks-symbolTraceabilityViolation
     title: symbol_traceability_violation
     status: active
@@ -42283,3 +42281,681 @@ symbols:
         target: TEST-staged-gate-scratch-store
       - type: implements
         target: REQ-staged-gate-scratch-store
+  - id: SYM-test-kb-upsert-missing-endpoint-rejection
+    title: Upsert store-refusal classification suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:43.768Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-missing-endpoint-rejection
+  - id: SYM-test-cli-prove-empty-selection
+    title: kibi prove command suite
+    status: active
+    sourceFile: packages/cli/tests/proof/prove-command.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:47.344Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-prove-empty-selection
+  - id: SYM-stryker-MUTATION_SHARDS
+    title: MUTATION_SHARDS
+    status: active
+    sourceFile: stryker.conf.mjs
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-check-policy-rules-PolicyRuleHead
+    title: PolicyRuleHead
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-source-authoring-writePendingSourceReceipt
+    title: writePendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-branch-scope
+      - type: implements
+        target: REQ-kibi-pending-receipt-branch-scope
+  - id: SYM-test-kb-merge-action
+    title: Kibi KB merge action suite
+    status: active
+    sourceFile: scripts/tests/kb-merge-action.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:11:30.959Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-action-classify
+    title: classify
+    status: active
+    sourceFile: actions/kb-merge/kb-merge.sh
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:22:32.264Z
+    text_ref: actions/kb-merge/kb-merge.sh#classify
+    relationships:
+      - type: covered_by
+        target: TEST-kb-merge-action
+      - type: implements
+        target: REQ-kb-merge-action-manifest-only
+  - id: SYM-kb-merge-action-merge-one
+    title: merge_one
+    status: active
+    sourceFile: actions/kb-merge/kb-merge.sh
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:22:34.378Z
+    text_ref: actions/kb-merge/kb-merge.sh#merge_one
+    relationships:
+      - type: covered_by
+        target: TEST-kb-merge-action
+      - type: implements
+        target: REQ-kb-merge-action-manifest-only
+  - id: SYM-kb-merge-action-verify-one
+    title: verify_one
+    status: active
+    sourceFile: actions/kb-merge/kb-merge.sh
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:22:36.472Z
+    text_ref: actions/kb-merge/kb-merge.sh#verify_one
+    relationships:
+      - type: covered_by
+        target: TEST-kb-merge-action
+      - type: implements
+        target: REQ-kb-merge-action-verify-before-push
+  - id: SYM-kb-merge-action-resolve-branch
+    title: resolve_branch
+    status: active
+    sourceFile: actions/kb-merge/kb-merge.sh
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:22:38.330Z
+    text_ref: actions/kb-merge/kb-merge.sh#resolve_branch
+    relationships:
+      - type: covered_by
+        target: TEST-kb-merge-action
+      - type: implements
+        target: REQ-kb-merge-action-branch-moved
+      - type: implements
+        target: REQ-kb-merge-action-verify-before-push
+  - id: SYM-kb-merge-action-push-one
+    title: push_one
+    status: active
+    sourceFile: actions/kb-merge/kb-merge.sh
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:22:40.341Z
+    text_ref: actions/kb-merge/kb-merge.sh#push_one
+    relationships:
+      - type: covered_by
+        target: TEST-kb-merge-action
+      - type: implements
+        target: REQ-kb-merge-action-branch-moved
+  - id: SYM-kb-merge-action-candidates
+    title: candidates
+    status: active
+    sourceFile: actions/kb-merge/kb-merge.sh
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:22:42.247Z
+    text_ref: actions/kb-merge/kb-merge.sh#candidates
+    relationships:
+      - type: covered_by
+        target: TEST-kb-merge-action
+      - type: implements
+        target: REQ-kb-merge-action-skip-forks
+  - id: SYM-kb-merge-action-git-without-hooks
+    title: g
+    status: active
+    sourceFile: actions/kb-merge/kb-merge.sh
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:22:44.185Z
+    text_ref: actions/kb-merge/kb-merge.sh#g
+    relationships:
+      - type: covered_by
+        target: TEST-kb-merge-action
+      - type: implements
+        target: REQ-kb-merge-action-no-hooks
+  - id: SYM-ci-kb-merge-workflow
+    title: kb-merge.yml
+    status: active
+    sourceFile: .github/workflows/kb-merge.yml
+    symbol_role: config
+    tags:
+      - ci
+      - merge
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:22:51.327Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-ci-kb-merge-resolution
+      - type: implements
+        target: REQ-ci-kb-merge-branch-push
+      - type: implements
+        target: REQ-ci-kb-merge-uses-action
+  - id: SYM-kb-merge-fixture-git
+    title: git
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:21.138Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-write
+    title: write
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:24.194Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-manifest-conflict
+    title: manifestConflict
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:27.181Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-identity
+    title: Fixture.identity
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:31.832Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-commit
+    title: Fixture.commit
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:34.856Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-tip
+    title: Fixture.tip
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:37.981Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-run
+    title: Fixture.run
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:40.839Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-file
+    title: Fixture.file
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:43.586Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-root
+    title: Fixture.root
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:46.574Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-remote
+    title: Fixture.remote
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:49.344Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-seed
+    title: Fixture.seed
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:52.324Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-ws
+    title: Fixture.ws
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:55.132Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-bin
+    title: Fixture.bin
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:30:58.066Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-kibi
+    title: Fixture.kibi
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:31:00.647Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-log
+    title: Fixture.log
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:31:03.273Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture-pulls
+    title: Fixture.pulls
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:31:06.079Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-root
+    title: ROOT
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:31:08.890Z
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-kb-merge-fixture-fixture
+    title: Fixture
+    status: active
+    sourceFile: scripts/tests/kb-merge-fixture.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - merge
+      - test-fixture
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:31:17.834Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-kb-merge-resolution
+      - type: executable_for
+        target: TEST-kb-merge-action
+  - id: SYM-test-cli-rejection-not-retryable
+    title: CLI protocol error envelope suite
+    status: active
+    sourceFile: packages/cli/tests/cli-protocol-mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:40:50.875Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-rejection-not-retryable
+  - id: SYM-cli-errors-is-kb-rejection
+    title: isKbRejection
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:41:22.080Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
+  - id: SYM-proof-scoped-check-budget
+    title: scopedCheckBudgetCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:01:44.044Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-scoped-check-budget
+  - id: SYM-const-scoped-check-budget-chars
+    title: SCOPED_CHECK_BUDGET_CHARS
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:01:47.164Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-scoped-check-budget
+  - id: SYM-proof-advertised-description-limit
+    title: advertisedDescriptionLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:02:34.446Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-advertised-description-limit
+  - id: SYM-const-advertised-description-limit
+    title: ADVERTISED_DESCRIPTION_LIMIT
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:02:37.619Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-advertised-description-limit
+  - id: SYM-proof-checked-as-sent-ledger-fields
+    title: checkedAsSentFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:13.312Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-checked-as-sent-ledger-fields
+  - id: SYM-const-ledger-contract-fields
+    title: CONTRACT_FIELDS
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:16.641Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-checked-as-sent-ledger-fields
+  - id: SYM-proof-non-behavioral-symbol-roles
+    title: nonBehavioralRolesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:56.501Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-non-behavioral-symbol-roles
+  - id: SYM-proof-behavioral-symbol-kinds
+    title: behavioralKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:07.565Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-behavioral-symbol-kinds
+  - id: SYM-proof-staged-passing-review-states
+    title: stagedPassingReviewStatesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:44.289Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-staged-passing-review-states
+  - id: SYM-const-staged-passing-review-states
+    title: STAGED_PASSING_REVIEW_STATES
+    status: active
+    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:47.502Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-staged-passing-review-states
+  - id: SYM-source-code-readers-extract-script-references
+    title: extractScriptReferences
+    status: active
+    sourceFile: packages/cli/src/operations/proof/source-code-readers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:06:32.168Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-env-reader-presence-tests

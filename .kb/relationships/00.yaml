@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2019f6c4816
+  - type: requires_property
+    from: REQ-symbol-traceability-behavioral-only
+    to: FACT-non-behavioral-symbol-roles
+    created_at: 2026-11-16T11:03:53.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe96c1cb824a
