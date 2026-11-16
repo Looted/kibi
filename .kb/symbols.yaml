@@ -42122,24 +42122,6 @@ symbols:
         target: TEST-check-changed-commit-verdict
       - type: implements
         target: REQ-check-changed-commit-verdict
-  - id: SYM-check-executor-check-input
-    title: CheckInput
-    sourceFile: packages/cli/src/public/operations/check-executor.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T19:29:38.444Z
-    relationships: []
-  - id: SYM-check-executor-check-execution-options
-    title: CheckExecutionOptions
-    sourceFile: packages/cli/src/public/operations/check-executor.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T19:29:43.613Z
-    relationships: []
   - id: SYM-finding-blocks-finding-blocks
     title: FindingBlocks
     sourceFile: packages/cli/src/public/operations/finding-blocks.ts
