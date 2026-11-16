@@ -9,8 +9,8 @@ import {
   executeCompileIntent,
   executeDelete,
   executeIngestProof,
-  executeUpsert,
   preflightApplyPlan,
+  upsertSpec,
 } from "kibi-runtime";
 import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
 
@@ -233,8 +233,13 @@ export function registerConfiguredTools<TProlog>(
   });
   register({
     name: "kb_upsert",
+    // The operation as the CLI runs it: why, implementedBy and the follow-up
+    // steps are applied around the core write.
     execute: async (context, args) =>
-      executeUpsert(args as unknown as UpsertArgs, withSessionProlog(context)),
+      upsertSpec.execute(
+        args as unknown as UpsertArgs,
+        withSessionProlog(context),
+      ),
   });
   register({
     name: "kb_delete",

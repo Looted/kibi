@@ -298,8 +298,8 @@ describe("registerConfiguredTools, exact", () => {
     }
   });
 
-  test("upsert and delete run the shared executors with the session engine", async () => {
-    const upsert = stub(runtimeModule, "executeUpsert");
+  test("upsert runs the catalog operation and delete the shared executor, with the session engine", async () => {
+    const upsert = stub(getSpec("kb_upsert"), "execute");
     const del = stub(runtimeModule, "executeDelete");
     const { registered } = setup();
     const args = { id: "X" };

@@ -712,8 +712,10 @@ export function greet() {
 
     // One existence read, shared by the stored relationships and the new
     // entity's origin, and one read of the ADRs that could give the new
-    // requirement its reason.
-    expect(query).toHaveBeenCalledTimes(12);
+    // requirement its reason. After the write, one read of the written
+    // requirement for its remaining steps and one of the current
+    // requirements on the same terms.
+    expect(query).toHaveBeenCalledTimes(14);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toMatchObject({
       created: 1,
