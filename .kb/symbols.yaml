@@ -1594,11 +1594,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-renderCoverageTable
@@ -1939,9 +1943,13 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-parity-case-type
@@ -26400,7 +26408,11 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: covered_by
         target: TEST-kibi-mcp-tool-consolidation
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
       - type: implements
         target: REQ-mcp-coded-error-envelope
   - id: SYM-cli-coded-error-fields-type
@@ -42066,3 +42078,28 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-prove-empty-selection
+  - id: SYM-test-cli-rejection-not-retryable
+    title: CLI protocol error envelope suite
+    status: active
+    sourceFile: packages/cli/tests/cli-protocol-mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:40:50.875Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-rejection-not-retryable
+  - id: SYM-cli-errors-is-kb-rejection
+    title: isKbRejection
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:41:22.080Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
