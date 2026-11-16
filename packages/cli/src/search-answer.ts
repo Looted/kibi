@@ -241,7 +241,7 @@ const CURRENT_REQ_STATUSES = new Set([
  * replacement to be proposed.
  */
 export const SUCCESSOR_PULL_RATIO = 0.8;
-const SUPERSEDED_ADR_STATUSES = new Set([
+export const SUPERSEDED_ADR_STATUSES = new Set([
   "superseded",
   "deprecated",
   "rejected",

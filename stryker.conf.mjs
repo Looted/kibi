@@ -1424,6 +1424,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/commands-mutation/check/staged-setup.test.ts",
     "packages/cli/tests/commands-mutation/check/staged-rules.test.ts",
     "packages/cli/tests/commands-mutation/check/staged-results.test.ts",
+    "packages/cli/tests/commands-mutation/check/symbol-records.test.ts",
   ],
   "packages/cli/src/commands/sync.ts": [
     "packages/cli/tests/commands-mutation/sync/helpers.test.ts",

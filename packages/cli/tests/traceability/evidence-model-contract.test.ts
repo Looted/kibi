@@ -99,6 +99,21 @@ describe("evidence model selectors", () => {
     }
   });
 
+  test("covered paths, when given, are the sorted fresh paths whatever the state", () => {
+    expect(
+      getFreshSymbolsManifestSourcePaths(
+        evidence(
+          { kind: "missing" },
+          {
+            state: "stale",
+            sourcePaths: ["src/m.ts", "src/b.ts", "src/c.ts"],
+            coveredSourcePaths: ["src/m.ts", "src/b.ts"],
+          },
+        ),
+      ),
+    ).toStrictEqual(["src/b.ts", "src/m.ts"]);
+  });
+
   test("evidence paths list KB artifacts and a fresh manifest", () => {
     expect(
       getKbEvidencePaths(evidence(kbChanges, { state: "fresh" })),

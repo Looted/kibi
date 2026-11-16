@@ -566,25 +566,25 @@ export function assessStagedSymbolsManifest(options: {
       const before = options.baseSource(sourceFile);
       const basePath = sourceFile.oldPath ?? sourceFile.path;
       const baseRecords = recordsByTitleForPath(baseManifestRecords, basePath);
+      const baseCoarseTitles = coarseTitlesOf(baseRecords);
       const baseRecordTitles = new Set(
-        [...baseRecords.entries()]
-          .filter(([, records]) => !records.every(isDocumentedCoarseRecord))
-          .map(([title]) => title),
+        [...baseRecords.keys()].filter((title) => !baseCoarseTitles.has(title)),
       );
+      const baseDeclarationTitles = new Set<string>();
+      if (before && baseAnalysisUsable(before.analysis)) {
+        for (const symbol of expectedSymbolsForAnalysis(
+          basePath,
+          before.analysis,
+          new Set(baseRecords.keys()),
+        ))
+          baseDeclarationTitles.add(symbol.title);
+      }
       base = {
         changed: declarationsInChange(before, {
           analysis: afterAnalysis,
           content: sourceFile.content ?? "",
         }),
-        baseDeclarationTitles: new Set(
-          before && baseAnalysisUsable(before.analysis)
-            ? expectedSymbolsForAnalysis(
-                basePath,
-                before.analysis,
-                new Set(baseRecords.keys()),
-              ).map((symbol) => symbol.title)
-            : [],
-        ),
+        baseDeclarationTitles,
         baseRecordTitles,
       };
     }
