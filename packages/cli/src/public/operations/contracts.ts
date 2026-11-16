@@ -693,8 +693,7 @@ const BASE_DATA_SCHEMAS: Readonly<
         },
         relatedRequirements: {
           ...recordArray,
-          description:
-            "Current requirements on the same terms ({id, statement}).",
+          description: "Current requirements on the same terms.",
         },
       }),
       objectData(

@@ -835,7 +835,7 @@
               "type": "object",
               "additionalProperties": true
             },
-            "description": "Current requirements on the same terms ({id, statement})."
+            "description": "Current requirements on the same terms."
           }
         }
       },
