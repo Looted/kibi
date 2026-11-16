@@ -26,15 +26,15 @@ id: TEST-proof-checked-as-sent-ledger-fields
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-c8b5f25a113be6a57ece448c
+    receipt_id: PR-95795ecd19c603e299a111ad
     test_id: TEST-proof-checked-as-sent-ledger-fields
     scope: unit
     outcome: passed
-    code_snapshot: 380f4ade759859ff4f68ff2518ca4d8e29de3ec3f2906ec2640234970631436c
+    code_snapshot: 5434da306c269b06f3ab3332686aeca47fd3a0e8a998befaf06388d5c53900c8
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T11:12:23.078Z'
-    finished_at: '2026-11-16T11:12:25.353Z'
-    artifact_digest: c502db54625eb9ead7b9ef3ece3ec665721b53f9a799fb5f0a9c7b6bdd5c5bab
+    started_at: '2026-11-16T12:16:38.250Z'
+    finished_at: '2026-11-16T12:16:40.690Z'
+    artifact_digest: 84fc0fef7725805341df9bf9b9b8e095eee50623dc1fd233909358ed475a7629
     contract_hash: 0cd99172c8c37e163c793bd029a00e99bedc2f6dc17c61aefc8aec80b60daa57
     binding_hash: 8f42893022aa79ad388c271ff0d949fa6c5e6c1901bc977e40f4a0ddc32d9c95
     fingerprint: 8778e82f8ebad3205337fe884dad64db86f5bf28bbd0ba9de425e1bd7fd0c579

@@ -28,15 +28,15 @@ id: TEST-proof-behavioral-symbol-kinds
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-173d09e45355bb1b53cef19f
+    receipt_id: PR-892a73a250d6a413f8028585
     test_id: TEST-proof-behavioral-symbol-kinds
     scope: unit
     outcome: passed
-    code_snapshot: 380f4ade759859ff4f68ff2518ca4d8e29de3ec3f2906ec2640234970631436c
+    code_snapshot: 5434da306c269b06f3ab3332686aeca47fd3a0e8a998befaf06388d5c53900c8
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T11:10:06.956Z'
-    finished_at: '2026-11-16T11:10:21.338Z'
-    artifact_digest: a7a68917337d98ec12e053a4a0f68635b766f8c7c0a4026a63ccc15a606c2fbb
+    started_at: '2026-11-16T12:18:20.700Z'
+    finished_at: '2026-11-16T12:18:37.567Z'
+    artifact_digest: da962867df0788e1cd125354a3c527b16bacdea069bf1f6209e0c1e3d6617377
     contract_hash: 33c4c8db4dac46d7290312e3c32693b20657679774c9f0ebc6cb5871357fd620
     binding_hash: 7c2c22b1ab4edea9d9d7919b09ba58e4710f55a54ac37e3c93c14f0ab10cd617
     fingerprint: 1bb1c86369f905c4a2741664983f9b3eebe10364c9876719b9b032bed6a62edf

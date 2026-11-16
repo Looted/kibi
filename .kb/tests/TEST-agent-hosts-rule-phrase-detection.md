@@ -21,15 +21,15 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b2044834b742a1c935bdc47f
+    receipt_id: PR-bf0ddc84b72b27c1c0af7bf0
     test_id: TEST-agent-hosts-rule-phrase-detection
     scope: end_to_end
     outcome: passed
-    code_snapshot: 380f4ade759859ff4f68ff2518ca4d8e29de3ec3f2906ec2640234970631436c
+    code_snapshot: 5434da306c269b06f3ab3332686aeca47fd3a0e8a998befaf06388d5c53900c8
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T11:10:30.391Z'
-    finished_at: '2026-11-16T11:10:30.495Z'
-    artifact_digest: 7debfc5c579e79490c5da89627485ff37577cbdfd93701895fc420ad29088692
+    started_at: '2026-11-16T12:18:47.574Z'
+    finished_at: '2026-11-16T12:18:47.840Z'
+    artifact_digest: 19b661d484f93b2331e3fb60227e6d0234ceff0c0d39e518968db29d414c795c
     contract_hash: ece754f2da91092e32cfd2789f6009ad5c877be637defc9c36c873cb818dcf7c
     binding_hash: ec64213f1278ee4f8b4b6cdd565558fa227bbc921abb105af1c90348a4cb0f61
     fingerprint: 44073919036ec508fd8f1057e67f710a78e507a11a3d23bbf076f0ad4cae3ef4
