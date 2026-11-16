@@ -11,6 +11,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer review of the capture path, item ''Capture that passes, with one why'': the capture template, filled as given, wrote a requirement that kb_check still blocked, and the reason the person gave was not recorded.'
+  approved_by: maintainer
   recorded_at: '2026-11-16T16:13:47.693Z'
 rationale: People give the reason together with the rule, with because or so that; unless the hook asks for it, the agent drops it and the requirement records no reason for the rule at all.
 semantic_text: The kb_upsert template the hooks give after a rule prompt must carry a why field. When the sentence that states the rule, or the one after it, gives a reason with "because" or "so that", the prompt-time rule note and the capture template must ask the agent to record that reason in why.

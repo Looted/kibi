@@ -11,6 +11,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer review of the capture path, item ''Capture that passes, with one why'': the capture template, filled as given, wrote a requirement that kb_check still blocked, and the reason the person gave was not recorded.'
+  approved_by: maintainer
   recorded_at: '2026-11-16T16:12:27.836Z'
 rationale: Warnings after a write read as advice an agent can skip, while kb_check then blocked the same requirement; the work that is left has to come back as calls the agent can run as they are.
 semantic_text: A requirement kb_upsert must return each step that kb_check would still block the requirement on and that the call could not complete (subjects for an unmodeled claim, a missing Context section, a test for its evidence floor or for an implementing symbol without coverage) as a nextActions entry that names the operation and carries a ready input, instead of a warning.

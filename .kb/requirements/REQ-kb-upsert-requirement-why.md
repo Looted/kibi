@@ -11,6 +11,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer review of the capture path, item ''Capture that passes, with one why'': the capture template, filled as given, wrote a requirement that kb_check still blocked, and the reason the person gave was not recorded.'
+  approved_by: maintainer
   recorded_at: '2026-11-16T16:11:57.393Z'
 rationale: Filled exactly as the hooks gave it, the capture template wrote a requirement that kb_check then blocked for a missing Context section, and the reason the person gave for the rule was lost on the way.
 semantic_text: kb_upsert of a requirement must accept a why field and record it as the requirement's rationale and as the Context section of its body, with the origin.ref text as the Source section when the body has none. A requirement kb_upsert that sends a statement body without semantic_text must record the body's statement as its semantic_text.
