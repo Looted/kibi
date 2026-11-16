@@ -218,13 +218,12 @@ describe("executeUpsertRequest", () => {
       { length: 12 },
       (_, index) => `export function f${String(index).padStart(2, "0")}() {}`,
     ).join("\n");
-    const message = (
-      await executeUpsertRequest(
-        req([{ sourceFile: "src/many.ts", symbol: "g" }]),
-        contextWith({ "src/many.ts": many }),
-        deps(),
-      ).catch((error: Error) => error)
-    ).message;
+    const error = await executeUpsertRequest(
+      req([{ sourceFile: "src/many.ts", symbol: "g" }]),
+      contextWith({ "src/many.ts": many }),
+      deps(),
+    ).catch((caught: Error) => caught);
+    const message = (error as Error).message;
     expect(message).toContain("f09, and 2 more.");
   });
 
@@ -495,11 +494,13 @@ describe("executeUpsertRequest", () => {
       '"id":"SYM-keys-expire-key"',
     );
     expect((error as Error).cause).toBeInstanceOf(Error);
-    const thrown = deps({ failSymbol: "SYM-keys-expire-key" });
-    thrown.execute = (async (input: UpsertInput) => {
-      if (input.type === "symbol") throw "offline";
-      return { content: [], structuredContent: payload() };
-    }) as ImplementedByDeps["execute"];
+    const thrown: ImplementedByDeps = {
+      ...deps({ failSymbol: "SYM-keys-expire-key" }),
+      execute: (async (input: UpsertInput) => {
+        if (input.type === "symbol") throw "offline";
+        return { content: [], structuredContent: payload() };
+      }) as ImplementedByDeps["execute"],
+    };
     const nonError = await executeUpsertRequest(
       req([{ sourceFile: "src/keys.ts", symbol: "expireKey" }]),
       CONTEXT,
