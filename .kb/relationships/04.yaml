@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-555e031e8f78
+  - type: relates_to
+    from: REQ-claude-firm-edit-confirmation
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T07:01:13.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82e33aee404b
+  - type: specified_by
+    from: REQ-claude-firm-edit-confirmation
+    to: SCEN-claude-firm-edit-receipt
+    created_at: 2026-11-16T07:02:49.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4799cd2565a3

@@ -9,6 +9,7 @@ import {
   approvalNumbers,
   approvalSentence,
   awaitsApproval,
+  firmEditReviewLabel,
   proofLabel,
   questionKind,
   questionOpen,
@@ -110,6 +111,9 @@ function requirementBlock(
   }
   if (requirement.symbols.length > 0) {
     lines.push(`- Changed code: ${requirement.symbols.join(", ")}`);
+  }
+  for (const review of requirement.firmEditReviews ?? []) {
+    lines.push(`- Agent review: ${firmEditReviewLabel(review)}`);
   }
   if (requirement.change !== "retired") {
     lines.push(

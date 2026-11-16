@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97d34d67348a
+  - type: validates
+    from: TEST-agent-hosts-firm-edit-receipt-notice
+    to: REQ-agent-hosts-firm-edit-ask
+    created_at: 2026-11-16T07:02:51.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-851284b9cda1
+  - type: validates
+    from: TEST-agent-hosts-firm-edit-receipt-notice
+    to: SCEN-agent-hosts-firm-edit-receipt
+    created_at: 2026-11-16T07:02:51.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed30329ceec0

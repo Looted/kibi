@@ -657,13 +657,16 @@ describe("firm edit texts", () => {
     expect(firmEditContext(["REQ-a", "REQ-b", "REQ-c"])).toStartWith(
       "Kibi asked the person to confirm this edit because it changes code that implements firm requirements REQ-a, REQ-b.",
     );
+    expect(firmEditContext(["REQ-a"])).toEndWith(
+      'If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a current keeps receipt stops this question for that code. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person\'s approval, and kibi signoff lists it as such.',
+    );
   });
 
   test("notice for hosts that cannot ask tells the agent to ask first", () => {
     expect(firmEditNotice("src/a.ts", [firm])).toBe(
       [
         "Kibi: this edit changes src/a.ts, which implements a firm requirement, a rule the person set: REQ-a: Only admins delete.",
-        "Unless the edit keeps that rule, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so.",
+        'Unless the edit keeps that rule, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kibi review-firm-edit ("keeps" or "changes"). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person\'s approval.',
       ].join("\n"),
     );
     const many = firmEditNotice("src/a.ts", [firm, untitled, third]);
