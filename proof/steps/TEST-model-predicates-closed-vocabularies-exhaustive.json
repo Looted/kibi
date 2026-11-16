@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-model-predicates-closed-vocabularies-exhaustive",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/closed-vocabularies.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-search-non-governing-statuses",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/search-non-governing-statuses.proof.test.ts"
+    ]
+  ]
+}

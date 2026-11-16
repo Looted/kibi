@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-delivered-requirement-tag",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/migration-action-codes.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-mcp-excludes-jev",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/jev-optional-dependency.proof.test.ts"
+    ]
+  ]
+}

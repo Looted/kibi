@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-check-reports-symbol-debt",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/check-symbol-debt.test.ts"
+    ]
+  ]
+}

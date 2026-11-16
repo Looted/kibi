@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-model-predicates-replacement-diagnostics",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts",
+      "./packages/mcp/tests/predicate-plan-roundtrip.test.ts"
+    ]
+  ]
+}

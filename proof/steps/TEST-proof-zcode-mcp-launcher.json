@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-zcode-mcp-launcher",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/zcode-plugin-package.proof.test.ts"
+    ]
+  ]
+}

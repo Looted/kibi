@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-opencode-plugin-id",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/opencode-plugin-ids.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-confirm-firm-edits-env",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/agent-hook-limits.proof.test.ts"
+    ]
+  ]
+}

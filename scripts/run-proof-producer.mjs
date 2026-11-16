@@ -72,17 +72,44 @@ export function validateProofSteps(value) {
   });
 }
 
-export function loadProofSteps(workspaceRoot) {
-  const stepsPath = path.join(workspaceRoot, "proof", "steps.json");
-  let parsed;
+function readStepsJson(file) {
   try {
-    parsed = JSON.parse(readFileSync(stepsPath, "utf8"));
+    return JSON.parse(readFileSync(file, "utf8"));
   } catch (error) {
     throw new Error(
-      `run-proof-producer: unable to read ${stepsPath}: ${error instanceof Error ? error.message : String(error)}`,
+      `run-proof-producer: unable to read ${file}: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
-  return validateProofSteps(parsed);
+}
+
+/**
+ * Load the proof steps: one `<test_id>.json` file per test in proof/steps,
+ * or proof/steps.json when that directory does not exist. A steps file whose
+ * test_id differs from its file name is refused.
+ */
+export function loadProofSteps(workspaceRoot) {
+  const directory = path.join(workspaceRoot, "proof", "steps");
+  if (!existsSync(directory) || !statSync(directory).isDirectory())
+    return validateProofSteps(
+      readStepsJson(path.join(workspaceRoot, "proof", "steps.json")),
+    );
+  const entries = readdirSync(directory)
+    .filter((name) => name.endsWith(".json"))
+    .sort()
+    .map((name) => {
+      const file = path.join(directory, name);
+      const value = readStepsJson(file);
+      const expected = name.slice(0, -".json".length);
+      // null, an array or a scalar declares no test_id.
+      const declared = value?.test_id;
+      if (declared !== expected) {
+        throw new Error(
+          `run-proof-producer: ${file} declares test_id ${JSON.stringify(declared)}; a proof steps file must hold one {test_id, steps} object whose test_id is its file name`,
+        );
+      }
+      return value;
+    });
+  return validateProofSteps(entries);
 }
 
 /** Parse the exact requested contract IDs, rejecting empty and duplicate IDs. */

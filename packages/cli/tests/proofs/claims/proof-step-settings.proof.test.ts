@@ -10,19 +10,22 @@ import {
   PROOF_TEST_REPORT_OUTCOMES,
   PROOF_TEST_REPORT_VERSION,
 } from "../../../src/proof/command-test-report.js";
-import { DEFAULT_PROOF_STEPS_PATH } from "../../../src/proof/step-runner.js";
+import {
+  DEFAULT_PROOF_STEPS_DIR,
+  DEFAULT_PROOF_STEPS_PATH,
+} from "../../../src/proof/step-runner.js";
 
 /**
  * Where proof steps live and how a command integration reports per-test results.
  * Kibi reads each constant itself at ingest, so the certificate is checked against the code.
  */
 
-/** The default proof steps file shall be proof/steps.json. */
+/** The default proof steps source shall be the proof/steps directory. */
 export function defaultProofStepsPathCertificate(): CodeCertificate {
   return regexCertificate({
     testId: "TEST-proof-default-proof-steps-path",
-    symbolId: "SYM-const-default-proof-steps-path",
-    value: DEFAULT_PROOF_STEPS_PATH,
+    symbolId: "SYM-const-default-proof-steps-dir",
+    value: DEFAULT_PROOF_STEPS_DIR,
   });
 }
 
@@ -59,8 +62,9 @@ export async function proofTestReportOutcomesCertificate(): Promise<CodeCertific
 }
 
 describe("Proof step and per-test report settings", () => {
-  test("The default proof steps file shall be proof/steps.json", () => {
+  test("The default proof steps source shall be the proof/steps directory, and proof/steps.json when it does not exist", () => {
     writeCodeCertificate(defaultProofStepsPathCertificate());
+    expect(DEFAULT_PROOF_STEPS_DIR).toBe("proof/steps");
     expect(DEFAULT_PROOF_STEPS_PATH).toBe("proof/steps.json");
   });
 

@@ -303,10 +303,13 @@ report the run is evaluated as one unit (`attribution: "aggregate"`, with an
 [per-test attribution](proving-requirements.md#per-test-attribution-for-command-integrations).
 Ctrl-C (or SIGTERM/SIGHUP) stops the producer's whole process group.
 
-### `kibi proof run-steps [steps-file]`
+### `kibi proof run-steps [steps-source]`
 
 A ready-made `command` integration producer. Reads `{test_id, steps}` entries
-from the steps file (default `proof/steps.json`), runs the steps of the tests
+from the steps source: by default the `proof/steps` directory, with one
+`<test_id>.json` file per test, or `proof/steps.json` (one JSON array) when
+that directory does not exist. A path argument may name either form. A file in
+the directory whose `test_id` differs from its file name is refused. It runs the steps of the tests
 `kibi prove` selected (`KIBI_PROOF_TEST_IDS`, or `--test <id...>` when run by
 hand), each distinct argv once, and writes a `kibi.proof-test-report.v1` to
 `KIBI_PROOF_TEST_REPORT`. Exit code 0 when every step passed. Steps time out

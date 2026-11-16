@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-decision-firmness-schema-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/decision-firmness-rules.proof.test.ts"
+    ]
+  ]
+}

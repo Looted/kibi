@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-cli-doctor-packed-provenance",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/release-package-contract.test.ts"
+    ]
+  ]
+}

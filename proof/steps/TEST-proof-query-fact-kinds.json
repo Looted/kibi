@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-query-fact-kinds",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/query-fact-kinds.proof.test.ts"
+    ]
+  ]
+}
