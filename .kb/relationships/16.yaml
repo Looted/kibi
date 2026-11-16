@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85829e0786d6
+  - type: implements
+    from: SYM-cli-search-answer-markdown-sections
+    to: REQ-search-answer-reason-source-order
+    created_at: 2026-11-16T10:22:35.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7a61ac3f03f
+  - type: covered_by
+    from: SYM-cli-search-answer-markdown-sections
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T10:22:35.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa718cc29826

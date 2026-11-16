@@ -21827,6 +21827,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-search-answer-layer
+      - type: executable_for
+        target: TEST-search-answer-requirement-reasons
   - id: SYM-test-kibi-query-fact-filters
     title: Typed fact questions consumer suite
     status: active
@@ -22272,8 +22274,12 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-kibi-search-answer-verdicts
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
+      - type: implements
+        target: REQ-search-answer-gives-recorded-reason
   - id: SYM-agent-core-appendHookUsageRows
     title: appendHookUsageRows
     status: active
@@ -31412,6 +31418,8 @@ symbols:
         target: TEST-proof-search-answer-governing
       - type: covered_by
         target: TEST-proof-search-answer-max-bytes
+      - type: covered_by
+        target: TEST-proof-search-answer-reason-chars
       - type: implements
         target: REQ-kibi-search-answer-limits
   - id: SYM-proof-search-answer-max-bytes
@@ -41591,18 +41599,113 @@ symbols:
         target: TEST-kibi-proof-steps-directory
       - type: implements
         target: REQ-kibi-proof-step-settings
-  - id: SYM-test-check-restated-twin-facts
-    title: Restated twin facts consumer suite
+  - id: SYM-cli-search-answer-requirement-reason
+    title: requirementReason
     status: active
-    sourceFile: packages/cli/tests/consumer/restated-twin-facts.test.ts
+    sourceFile: packages/cli/src/search-answer.ts
     symbol_role: behavioral
-    granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T10:52:50.700Z
+      recorded_at: 2026-11-16T10:22:28.078Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-marks-missing-reason
+      - type: implements
+        target: REQ-search-answer-reason-source-order
+  - id: SYM-cli-search-answer-prose-excerpt
+    title: proseExcerpt
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:22:31.344Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-reason-length
+  - id: SYM-cli-search-answer-markdown-sections
+    title: markdownSections
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:22:34.521Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-reason-source-order
+  - id: SYM-cli-search-answer-adr-excerpt
+    title: adrExcerpt
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:22:37.669Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: implements
+        target: REQ-kibi-search-answer-layer-v2
+  - id: SYM-cli-search-answer-note
+    title: answerNote
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:30:25.660Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-marks-missing-reason
+  - id: SYM-cli-search-answer-reason-type
+    title: SearchAnswerReason
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:30:29.027Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-marks-missing-reason
+  - id: SYM-cli-search-answer-requirement-type
+    title: SearchAnswerRequirement
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:30:32.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-gives-recorded-reason
+  - id: SYM-proof-search-answer-reason-chars
+    title: searchAnswerReasonCharsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-answer-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:12:54.061Z
     relationships:
       - type: executable_for
-        target: TEST-check-restated-twin-facts
+        target: TEST-proof-search-answer-reason-chars
   - id: SYM-cli-use-core-module-goal
     title: useCoreModuleGoal
     status: active
@@ -41705,3 +41808,15 @@ symbols:
         target: TEST-engine-client-core-modules-from-engine
       - type: implements
         target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-test-check-restated-twin-facts
+    title: Restated twin facts consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/restated-twin-facts.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:52:50.700Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-restated-twin-facts

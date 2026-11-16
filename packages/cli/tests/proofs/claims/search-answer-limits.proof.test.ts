@@ -68,6 +68,17 @@ export function searchAnswerExcerptCharsCertificate(): CodeCertificate {
   });
 }
 
+/** A requirement's reason in the kb_search answer shall be at most 280 characters. */
+export function searchAnswerReasonCharsCertificate(): CodeCertificate {
+  return arithmeticCertificate({
+    testId: "TEST-proof-search-answer-reason-chars",
+    variable: "reason_text_max_chars",
+    valueType: "int",
+    assumptions: [{ operator: "eq", value: SEARCH_ANSWER_LIMITS.excerptChars }],
+    claim: { operator: "lte", value: 280 },
+  });
+}
+
 describe("Search answer size limits", () => {
   test("A search answer shall be at most 16384 bytes", () => {
     writeCodeCertificate(searchAnswerMaxBytesCertificate());
@@ -92,5 +103,10 @@ describe("Search answer size limits", () => {
   test("A search answer shall keep at most 280 characters of an ADR decision excerpt", () => {
     writeCodeCertificate(searchAnswerExcerptCharsCertificate());
     expect(SEARCH_ANSWER_LIMITS.excerptChars).toBe(280);
+  });
+
+  test("A requirement's reason in the kb_search answer shall be at most 280 characters", () => {
+    writeCodeCertificate(searchAnswerReasonCharsCertificate());
+    expect(SEARCH_ANSWER_LIMITS.excerptChars).toBeLessThanOrEqual(280);
   });
 });
