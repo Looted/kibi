@@ -16,6 +16,7 @@ import {
 import {
   captureReminder,
   ruleCaptureTemplate,
+  rulePromptNote,
   signoffReminder,
 } from "kibi-agent-core/decision-guard";
 
@@ -1814,6 +1815,15 @@ describe("ZCode decision guard", () => {
         prompt: "Rename computeTotal.",
       }),
     ).toEqual({ continue: true });
+    expect(
+      expectAdditionalContext(
+        await event({
+          hook_event_name: "UserPromptSubmit",
+          prompt: "Totals must not be rounded, because refunds drift.",
+        }),
+        "UserPromptSubmit",
+      ),
+    ).toBe(rulePromptNote("must not", "because refunds drift"));
   });
 
   test("Stop asks once for the decision record when source changed and nothing was recorded", async () => {

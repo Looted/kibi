@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4d717ab872d
+  - type: assumes
+    from: SCEN-agent-hosts-stated-reason-asked
+    to: FACT-agent-hosts-stated-reason-asked
+    created_at: 2026-11-16T16:11:41.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b285e0d1451
+  - type: verified_by
+    from: SCEN-agent-hosts-stated-reason-asked
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:18:02.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40d58b0d3981

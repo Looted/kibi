@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cee2a295d1d0
+  - type: implements
+    from: SYM-session-state-empty-session-state
+    to: REQ-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T17:04:44.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aa4cb09b8fb
+  - type: covered_by
+    from: SYM-session-state-empty-session-state
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T17:04:44.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb17a4a78b60

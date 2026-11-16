@@ -272,3 +272,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e44844e0ce7
+  - type: constrains
+    from: REQ-agent-hosts-rule-reason-capture
+    to: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
+    created_at: 2026-11-16T16:13:47.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e191a995f39
+  - type: requires_property
+    from: REQ-agent-hosts-rule-reason-capture
+    to: FACT-agent-hosts-capture-template-why
+    created_at: 2026-11-16T16:13:47.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6e242329e33
+  - type: requires_property
+    from: REQ-agent-hosts-rule-reason-capture
+    to: FACT-agent-hosts-stated-reason-asked
+    created_at: 2026-11-16T16:13:47.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7b5ec80d8a7
+  - type: specified_by
+    from: REQ-agent-hosts-rule-reason-capture
+    to: SCEN-agent-hosts-capture-template-why
+    created_at: 2026-11-16T16:13:47.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87ed71a378fd
+  - type: specified_by
+    from: REQ-agent-hosts-rule-reason-capture
+    to: SCEN-agent-hosts-stated-reason-asked
+    created_at: 2026-11-16T16:13:47.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca5abbc33986
+  - type: specified_by
+    from: REQ-agent-hosts-rule-reason-capture
+    to: SCEN-NEG-agent-hosts-capture-template-why-NO-WHY
+    created_at: 2026-11-16T16:23:46.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-756e0ce11a25
+  - type: specified_by
+    from: REQ-agent-hosts-rule-reason-capture
+    to: SCEN-NEG-agent-hosts-stated-reason-asked-NOT-ASKED
+    created_at: 2026-11-16T16:23:47.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07d18ca5d71d

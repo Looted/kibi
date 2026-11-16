@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-501a71f64428
+  - type: implements
+    from: SYM-capture-with-requirement-capture
+    to: REQ-kb-upsert-requirement-why
+    created_at: 2026-11-16T16:12:01.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb8456095519
+  - type: covered_by
+    from: SYM-capture-with-requirement-capture
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:20:56.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f28e6d23084d

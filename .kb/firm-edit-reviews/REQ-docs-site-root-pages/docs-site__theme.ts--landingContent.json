@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-docs-site-root-pages",
+  "sourceFile": "docs-site/theme.ts",
+  "symbol": "landingContent",
+  "verdict": "keeps",
+  "note": "Only one landing-page sentence changes wording to mention the recorded reason; where and when the site and report are published is unchanged.",
+  "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
+  "codeHash": "sha256:534cc93cc109c6ab440609688c757e13bfaf116da2415c7e447a1aac6805187c",
+  "startLine": 1447,
+  "endLine": 1833,
+  "recordedAt": "2026-11-16T16:43:54.668Z"
+}

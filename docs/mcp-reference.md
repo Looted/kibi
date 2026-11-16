@@ -815,6 +815,7 @@ working-tree files for Git.
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
 - `dryRun` (optional, default `false`): Validate the payload and write nothing. See [Dry run](#dry-run-validation).
 - `implementedBy` (optional, `req` only): `[{ sourceFile, symbol }]`, the code that implements the requirement. See [Linking code while writing a requirement](#linking-code-while-writing-a-requirement).
+- `why` (optional, `req` only): why the requirement exists, in the words of the person who asked (`Reason not stated` when they gave none). See [Recording a rule with its reason](#recording-a-rule-with-its-reason).
 - `document` (optional): `{ path?, body? }` for an explicit tracked source
   target. Existing entities preserve their current body when `body` is omitted;
   new requirements default the body to `semantic_text`. New entities without a
@@ -845,6 +846,20 @@ Confirmation of entity creation/update and relationship creation counts. Success
 - a file outside the workspace, or one that cannot be read, is refused.
 
 The resolved declaration's symbol entity gets an `implements` link to the requirement. When the KB already has a symbol with that title and `sourceFile`, Kibi adds the link to it and keeps its status; otherwise it creates one (`status: active`, the inferred `symbol_role`) under the first free id of `SYM-<file>-<symbol>`, `SYM-<dir>-<file>-<symbol>` and `SYM-<path>-<symbol>`. The requirement and every symbol write are validated before anything is written, and a refusal (`VALIDATION_FAILED`, rule `implemented_by_unresolved`) writes nothing. On `dryRun` the result previews the links without writing them. The result's `implementedBy` lists each entry's `sourceFile`, `symbol`, `symbolId` and `created`. If a symbol write fails after the requirement was written, the error names what was written and gives the remaining symbol payloads to upsert. A new symbol still needs `covered_by` to a test (see the `symbol-coverage` warning below).
+
+#### Recording a rule with its reason
+
+`why` gives the reason one home on the way in and writes it to every place that reads it: the requirement's `rationale` and the reason section of its body. That is its `## Context` section, or an existing `## Why` or `## Rationale` section, which keeps its heading; a body with none gets a `## Context` section after the statement. When the body has no `## Source` section and `origin.ref` is set, the `origin.ref` text becomes one, as a blockquote. An update without `document.body` revises the stored file the same way and keeps its statement and other sections. A `why` that is not text, or one that disagrees with a `rationale` sent beside it, is refused (`VALIDATION_FAILED`, rule `requirement_why_invalid`); `why` on another entity type is refused too. The reason section counts toward `entity-context-missing` like any other: it needs 12 words or more with the Source.
+
+A requirement write that sends `document.body` without `semantic_text`, for a requirement with no stored `semantic_text`, records the body's statement (the body without its context sections) as `semantic_text`, so the proposition inventory Kibi fills in is derived from the statement the file holds, not from the title.
+
+A committed requirement write then returns what `kb_check` would still block it on and the call could not finish, as `nextActions` entries (`operation`, `code` naming the check rule, a ready `input`, `reason`, `required`), and leaves those warnings out of `warnings`:
+
+- `entity-context-missing`: a `kb_upsert` that sends `why`;
+- `claim-subject-missing`: a `kb_upsert` that sends the stored `semantic_inventory` back with, on each claim without subjects, the closest existing subject by its words (the reason names the other candidates; `<subject_key>` when none matches);
+- `evidence-floor` and `symbol-coverage`, for a requirement that has no test: a scenario and the `specified_by` link when it has none, a test that validates its scenarios, a `covered_by` link for each implementing symbol without coverage, and, when the requirement's floor is `tested` or `proved` (a firm one), a `kibi prove` step that names the proof contract and steps the test needs.
+
+A value only the agent can supply (a reason, the case a scenario decides) is a `<placeholder>` in the input. The result's `relatedRequirements` lists up to five other current requirements whose title and statement share at least two of the written requirement's topic words and at least half of the smaller set, as `{id, statement}`; numbers are not topic words, so a floor of 9 and a new floor of 10 match. If the write replaces one of them, add a `supersedes` link to it and close it.
 
 ### Dry run validation
 

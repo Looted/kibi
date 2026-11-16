@@ -28,9 +28,11 @@ import {
   ruleCaptureTemplate,
   rulePromptNote,
   sessionRulePhrase,
+  sessionRuleReason,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  statedReason,
   statedRule,
   takeRuleNote,
 } from "../src/decision-guard";
@@ -717,8 +719,11 @@ describe("statedRule and notes", () => {
   });
 
   test("prompt note quotes the phrase and capture reminder mentions the rule", () => {
-    expect(rulePromptNote("never")).toStartWith(
-      'Kibi: this request reads as a rule or decision (it says "never").',
+    expect(rulePromptNote("never")).toBe(
+      [
+        'Kibi: this request reads as a rule or decision (it says "never").',
+        "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it.",
+      ].join("\n"),
     );
     expect(captureReminder("never")).toBe(
       [
@@ -737,7 +742,7 @@ describe("statedRule and notes", () => {
 
   test("the capture template quotes the phrase and is one kb_upsert payload", () => {
     const [intro, payload, ...rest] = ruleCaptureTemplate("must").split("\n");
-    expect(rest).toEqual([]);
+    expect(rest).toEqual(["Then follow the nextActions the result returns."]);
     expect(intro).toBe(
       'Kibi: the request said "must" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:',
     );
@@ -754,6 +759,7 @@ describe("statedRule and notes", () => {
         },
       },
       document: { body: "<the rule as one shall or must sentence>" },
+      why: "<why the person wants it, in their words; 'Reason not stated' if they gave none>",
       implementedBy: [
         {
           sourceFile: "<file you changed>",
@@ -761,6 +767,91 @@ describe("statedRule and notes", () => {
         },
       ],
     });
+  });
+
+  test("a stated reason is asked for in why by the note and the template", () => {
+    const ask =
+      "The request gives its reason (\"because longer ones get skipped\"): put that reason in the requirement's why field, in the person's words.";
+    expect(rulePromptNote("must", "because longer ones get skipped")).toBe(
+      `${rulePromptNote("must")}\n${ask}`,
+    );
+    const [, payload, line, last] = ruleCaptureTemplate(
+      "must",
+      "because longer ones get skipped",
+    ).split("\n");
+    expect(JSON.parse(payload as string).why).toBe(
+      "<the person's reason, in their words>",
+    );
+    expect(line).toBe(ask);
+    expect(last).toBe("Then follow the nextActions the result returns.");
+  });
+});
+
+describe("statedReason", () => {
+  test("reads a because or so that clause in or right after the rule sentence", () => {
+    expect(
+      statedReason(
+        "Snippets must never show more than seven lines, because longer ones get skipped.",
+      ),
+    ).toBe("because longer ones get skipped");
+    expect(
+      statedReason("Uploads must stay under 10 MB so that the proxy keeps up!"),
+    ).toBe("so that the proxy keeps up");
+    expect(
+      statedReason("From now on, sign every release. Because audits need it."),
+    ).toBe("Because audits need it");
+    // A question keeps its mark; only a closing . or ! is dropped.
+    expect(
+      statedReason(
+        "Can you make sure we never log tokens, because why risk it?",
+      ),
+    ).toBe("because why risk it?");
+    // The reason must be near the rule: two sentences on is another topic.
+    expect(
+      statedReason(
+        "Uploads must stay small. Thanks. It broke because of load.",
+      ),
+    ).toBeUndefined();
+    // Before the rule sentence, a reason is about something else.
+    expect(
+      statedReason("It broke because of load. Uploads must stay small."),
+    ).toBeUndefined();
+    expect(statedReason("Please fix this because it broke")).toBeUndefined();
+    expect(statedReason("Uploads must stay small")).toBeUndefined();
+    expect(statedReason("Ensure the job always retries because")).toBe(
+      "because",
+    );
+    // "becausewe" is no marker word.
+    expect(statedReason("Keys must rotate becausewe say so")).toBeUndefined();
+  });
+
+  test("cuts a long reason to 200 characters", () => {
+    const reason = statedReason(
+      `Keys must rotate because ${"x".repeat(300)} end.`,
+    ) as string;
+    expect(reason).toHaveLength(200);
+    expect(reason.startsWith("because xxx")).toBe(true);
+    expect(reason.endsWith("x…")).toBe(true);
+    expect(statedReason(`Keys must rotate because ${"y".repeat(191)}`)).toBe(
+      `because ${"y".repeat(191)}`,
+    );
+    // Exactly 200 characters is kept whole.
+    expect(statedReason(`Keys must rotate because ${"y".repeat(192)}`)).toBe(
+      `because ${"y".repeat(192)}`,
+    );
+    // A cut that lands after a space drops the space before the ellipsis.
+    expect(
+      statedReason(
+        `Keys must rotate because ${"x".repeat(190)} ${"z".repeat(50)}`,
+      ),
+    ).toBe(`because ${"x".repeat(190)}…`);
+  });
+
+  test("drops only the closing marks of the reason", () => {
+    expect(statedReason("Keys must rotate because v1.2 leaks them!!")).toBe(
+      "because v1.2 leaks them",
+    );
+    expect(statedReason(undefined)).toBeUndefined();
   });
 });
 
@@ -871,6 +962,16 @@ describe("rule capture template", () => {
     expect(claimRuleCaptureTemplate(rule)).toBe(ruleCaptureTemplate("must"));
     expect(claimRuleCaptureTemplate(rule)).toBe(undefined);
 
+    const reasoned = session("reasoned");
+    recordRequest(
+      reasoned,
+      "Uploads must stay small because the proxy is slow",
+    );
+    markDecisionFlag(reasoned, "source-edited");
+    expect(claimRuleCaptureTemplate(reasoned)).toBe(
+      ruleCaptureTemplate("must", "because the proxy is slow"),
+    );
+
     const recorded = session("recorded");
     recordRequest(recorded, "Uploads must stay under 10 MB");
     markDecisionFlag(recorded, "source-edited");
@@ -901,6 +1002,13 @@ describe("request memory", () => {
     // A later prompt without a rule keeps the session's rule phrase.
     recordRequest(s, "Please add retry logic");
     expect(sessionRulePhrase(s)).toBe("must");
+    expect(sessionRuleReason(s)).toBe(undefined);
+    recordRequest(s, "Keys must rotate because audits ask");
+    expect(sessionRuleReason(s)).toBe("because audits ask");
+    // The latest rule prompt's reason stands, even when it gives none.
+    recordRequest(s, "Keys must rotate");
+    expect(sessionRuleReason(s)).toBe(undefined);
+    expect(sessionRuleReason(noState)).toBe(undefined);
   });
 
   test("request words ignore missing, corrupt or non-array state", () => {
@@ -946,6 +1054,10 @@ describe("held rule notes", () => {
     expect(takeRuleNote(s)).toBeUndefined();
     holdRuleNote(s, "from now on");
     expect(takeRuleNote(s)).toBe(rulePromptNote("from now on"));
+    holdRuleNote(s, "must", "so that we can audit");
+    expect(takeRuleNote(s)).toBe(
+      rulePromptNote("must", "so that we can audit"),
+    );
     expect(takeRuleNote(s)).toBeUndefined();
     holdRuleNote(noState, "never");
     expect(takeRuleNote(noState)).toBeUndefined();

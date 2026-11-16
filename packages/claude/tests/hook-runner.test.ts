@@ -1241,6 +1241,22 @@ describe("decision capture", () => {
     expect(first).toBe(ruleCaptureTemplate("must"));
     expect(await post("Edit", { file_path: "src/checkout.ts" })).toEqual({});
 
+    // A reason the prompt gave is asked for in the template's why.
+    const reasoned = createKibiWorkspace();
+    await prompt(
+      reasoned,
+      "Totals must never be negative, because refunds break.",
+      "s-why",
+    );
+    expect(
+      contextOf(
+        await session(reasoned, "s-why").post("Edit", {
+          file_path: "src/checkout.ts",
+        }),
+        "PostToolUse",
+      ),
+    ).toBe(ruleCaptureTemplate("must", "because refunds break"));
+
     // A shell write is a source edit too.
     const shell = createKibiWorkspace();
     commitAll(shell);

@@ -178,3 +178,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0b83e96ba5ae
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-stated-reason-asked-NOT-ASKED
+    to: FACT-NEG-agent-hosts-stated-reason-asked-NOT-ASKED
+    created_at: 2026-11-16T16:23:41.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9db65e7b99d7
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-stated-reason-asked-NOT-ASKED
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:23:41.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aedfed312f6

@@ -363,3 +363,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5bca4db4c36
+  - type: constrains
+    from: REQ-kb-upsert-capture-next-actions
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-16T16:12:27.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-044b2e653eb0
+  - type: requires_property
+    from: REQ-kb-upsert-capture-next-actions
+    to: FACT-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:12:28.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2062a7ae62f5
+  - type: specified_by
+    from: REQ-kb-upsert-capture-next-actions
+    to: SCEN-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:12:28.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae3088728eb7
+  - type: specified_by
+    from: REQ-kb-upsert-capture-next-actions
+    to: SCEN-NEG-kb-upsert-capture-next-actions-WARNING-ONLY
+    created_at: 2026-11-16T16:12:28.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e1ca5efd7cf

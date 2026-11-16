@@ -8,6 +8,7 @@ import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import {
   captureReminder,
   ruleCaptureTemplate,
+  rulePromptNote,
 } from "kibi-agent-core/decision-guard";
 import {
   FIRM_EDIT_RECEIPT_VERSION,
@@ -65,7 +66,9 @@ function writeKeepsReceipt(root: string): void {
       symbol: "computeTotal",
       verdict: "keeps",
       note: "Still rounds to cents.",
-      statementHash: firmEditStatementHash("Totals round half up to two decimals."),
+      statementHash: firmEditStatementHash(
+        "Totals round half up to two decimals.",
+      ),
       codeHash: firmEditCodeHash(content, 1, lines) as string,
       startLine: 1,
       endLine: lines,
@@ -993,6 +996,27 @@ describe("Cursor decision guard", () => {
       'Kibi: this request reads as a rule or decision (it says "must not").',
     );
     expect(message).toContain("Kibi knowledge for src/checkout.ts");
+  });
+
+  test("a rule prompt's reason is asked for in why by the held note and the template", async () => {
+    const { event, edit, workspace } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded, because refunds drift.",
+    });
+    expect((await event(edit)).agent_message ?? "").toStartWith(
+      rulePromptNote("must not", "because refunds drift"),
+    );
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    expect((await event(edit)).agent_message ?? "").toContain(
+      ruleCaptureTemplate("must not", "because refunds drift"),
+    );
   });
 
   test("stop asks once for the decision record when source changed and nothing was recorded", async () => {

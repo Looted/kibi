@@ -18,6 +18,13 @@ import {
   normalizeRepoRelativePath,
   resolveWorkspaceSourceAbsolute,
 } from "../../utils/repo-relative-path.js";
+import {
+  type CaptureReads,
+  captureFollowUp,
+  prologCaptureReads,
+  relatedCurrentRequirements,
+  withRequirementCapture,
+} from "./capture.js";
 import type {
   ImplementedByInput,
   ImplementedByLink,
@@ -260,6 +267,8 @@ export type ImplementedByDeps = Readonly<{
   storedSymbols: (
     context: OperationContext,
   ) => Promise<readonly Record<string, unknown>[]>;
+  /** What the capture steps read; none without a store. */
+  captureReads: (context: OperationContext) => CaptureReads | undefined;
 }>;
 
 export const IMPLEMENTED_BY_DEPS: ImplementedByDeps = {
@@ -268,7 +277,63 @@ export const IMPLEMENTED_BY_DEPS: ImplementedByDeps = {
   // kb_upsert requires Prolog, so the operation runtime always supplies it.
   storedSymbols: (context) =>
     loadEntitiesPaged(context.prolog as PrologPort, "symbol"),
+  captureReads: (context) =>
+    context.prolog === undefined
+      ? undefined
+      : prologCaptureReads(context.prolog),
 };
+
+/**
+ * kb_upsert as requested: `why` and the statement applied to a requirement
+ * (withRequirementCapture), its implementedBy links written with it, and a
+ * written requirement's result completed with the steps left as nextActions
+ * and the current requirements on the same terms.
+ */
+export async function executeUpsertRequest(
+  input: UpsertInput,
+  context: OperationContext,
+  deps: ImplementedByDeps = IMPLEMENTED_BY_DEPS,
+): Promise<OperationResult<UpsertPayload>> {
+  const reads = deps.captureReads(context);
+  const captured = await withRequirementCapture(input, context, reads);
+  const result = await executeLinkedUpsert(captured, context, deps);
+  if (captured.type !== "req" || captured.dryRun === true) return result;
+  const payload = payloadOf(result);
+  // A write that needs repair already names its own next steps.
+  if (payload.status === "committed_with_repairs") return result;
+  const followUp = await captureFollowUp(captured, payload, context, reads);
+  const related = await relatedCurrentRequirements(captured, context, reads);
+  return {
+    ...result,
+    content: [
+      ...result.content,
+      ...(followUp.nextActions.length > 0
+        ? [
+            {
+              type: "text" as const,
+              text: `Left before kb_check passes: ${followUp.nextActions.length} step(s), each in nextActions with its input.`,
+            },
+          ]
+        : []),
+      ...(related.length > 0
+        ? [
+            {
+              type: "text" as const,
+              text: `Current requirements on the same terms: ${related.map((requirement) => requirement.id).join(", ")}. If ${captured.id} replaces one, add a supersedes link to it and close it.`,
+            },
+          ]
+        : []),
+    ],
+    structuredContent: {
+      ...payload,
+      warnings: followUp.warnings,
+      ...(followUp.nextActions.length > 0
+        ? { nextActions: followUp.nextActions }
+        : {}),
+      ...(related.length > 0 ? { relatedRequirements: related } : {}),
+    },
+  };
+}
 
 /**
  * kb_upsert with implementedBy: resolve every entry and validate the
@@ -276,10 +341,10 @@ export const IMPLEMENTED_BY_DEPS: ImplementedByDeps = {
  * it will be) before anything is written, then write the requirement and
  * the symbols in order. A write without implementedBy is executeUpsert.
  */
-export async function executeUpsertRequest(
+async function executeLinkedUpsert(
   input: UpsertInput,
   context: OperationContext,
-  deps: ImplementedByDeps = IMPLEMENTED_BY_DEPS,
+  deps: ImplementedByDeps,
 ): Promise<OperationResult<UpsertPayload>> {
   if (input.implementedBy === undefined) return deps.execute(input, context);
   const wanted = entries(input);

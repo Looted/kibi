@@ -297,3 +297,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8582c4aa664
+  - type: implements
+    from: SYM-agent-core-rule-capture-template
+    to: REQ-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:13:57.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2514363f9f1e
+  - type: covered_by
+    from: SYM-agent-core-rule-capture-template
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:24:58.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d8807aa6af2
+  - type: implements
+    from: SYM-capture-related-requirement
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:09.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4343067ee62c
+  - type: covered_by
+    from: SYM-capture-related-requirement
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:42:26.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b0c440af9e1

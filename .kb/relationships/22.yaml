@@ -454,3 +454,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b16b76aa2f49
+  - type: implements
+    from: SYM-capture-max-related-statement
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:18.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb950d59bf62
+  - type: implements
+    from: SYM-capture-capture-reads
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:30.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3162e648e76
+  - type: covered_by
+    from: SYM-capture-max-related-statement
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:42:17.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa42557166d8
+  - type: covered_by
+    from: SYM-capture-capture-reads
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:38.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54c5cad274ee

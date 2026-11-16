@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a270363fb871
+  - type: implements
+    from: SYM-upsert-why-schema
+    to: REQ-kb-upsert-requirement-why
+    created_at: 2026-11-16T16:40:11.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09c563cb1794
+  - type: covered_by
+    from: SYM-upsert-why-schema
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:11.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18f5e9274659

@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f3696ab03c9
+  - type: assumes
+    from: SCEN-kb-upsert-related-requirements-AT-CAP
+    to: FACT-kb-upsert-related-requirements-AT-CAP
+    created_at: 2026-11-16T16:25:50.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ad26bfede2e
+  - type: verified_by
+    from: SCEN-kb-upsert-related-requirements-AT-CAP
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:25:50.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00afce20f5c9

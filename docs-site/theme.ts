@@ -1610,7 +1610,7 @@ export function landingContent(args: {
       <span class="po-num">01</span>
       <h3>The why outlives the chat</h3>
       <div class="po-row po-without"><span>Without</span><p>The chat said &ldquo;we&rsquo;ll do X to retain users&rdquo;. The code only says X, and the next agent cannot tell a trade-off from a mistake.</p></div>
-      <div class="po-row po-with"><span>With Kibi</span><p>Each requirement records why it exists, and decisions keep their trade-offs. They live in <code>.kb/</code> beside the code on every branch, and Kibi flags requirements that do not say why.</p></div>
+      <div class="po-row po-with"><span>With Kibi</span><p>Each requirement records why it exists, in the words of whoever asked, and decisions keep their trade-offs. They live in <code>.kb/</code> beside the code on every branch, and Kibi flags requirements that do not say why.</p></div>
     </li>
     <li class="reveal reveal-d1">
       <span class="po-num">02</span>

@@ -307,3 +307,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d46afc83a6e9
+  - type: assumes
+    from: SCEN-agent-hosts-capture-template-why
+    to: FACT-agent-hosts-capture-template-why
+    created_at: 2026-11-16T16:11:39.399Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c74bb0141c1
+  - type: verified_by
+    from: SCEN-agent-hosts-capture-template-why
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:18:01.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26fc49501a86
+  - type: assumes
+    from: SCEN-kb-upsert-related-requirements-NONE
+    to: FACT-kb-upsert-related-requirements-NONE
+    created_at: 2026-11-16T16:25:53.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5be6b8546771
+  - type: verified_by
+    from: SCEN-kb-upsert-related-requirements-NONE
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:25:53.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-502c5dd55cc5

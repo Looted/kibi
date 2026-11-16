@@ -361,8 +361,8 @@ function blockquote(text: string): string {
     .join("\n");
 }
 
-function contextSectionBlock(context: string): string {
-  return `## Context\n\n${context}`;
+function contextSectionBlock(context: string, heading = "Context"): string {
+  return `## ${heading}\n\n${context}`;
 }
 
 function sourceSectionBlock(source: BodySource | undefined): string | null {
@@ -401,17 +401,24 @@ export function renderRequirementBody(input: {
  * replaced by the new statement; every context section is kept byte for byte,
  * except that a supplied `context` replaces the `## Context` section and a
  * supplied source replaces the `## Source` section (each is appended when the
- * body had none).
+ * body had none). `contextHeading` names the section the context goes in
+ * (`Why` replaces a `## Why` section); `Context` when not given.
  */
 export function reviseRequirementBody(input: {
   existingBody: string;
   statement: string;
   context?: string | undefined;
   source?: BodySource | undefined;
+  contextHeading?: string | undefined;
 }): string {
   const replacements = new Map<string, string>();
   const context = input.context?.trim();
-  if (context) replacements.set("context", contextSectionBlock(context));
+  const heading = input.contextHeading ?? "Context";
+  if (context)
+    replacements.set(
+      heading.toLowerCase(),
+      contextSectionBlock(context, heading),
+    );
   const source = sourceSectionBlock(input.source);
   if (source !== null) replacements.set("source", source);
 

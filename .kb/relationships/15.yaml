@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef63ac171af5
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-capture-template-why-NO-WHY
+    to: FACT-NEG-agent-hosts-capture-template-why-NO-WHY
+    created_at: 2026-11-16T16:23:38.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8eb9cb3a2de8
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-capture-template-why-NO-WHY
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:23:38.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2e5304475d3

@@ -17,6 +17,7 @@ export {
   ruleCaptureTemplate,
   rulePromptNote,
   signoffReminder,
+  statedReason,
   statedRule,
 } from "kibi-agent-core/decision-guard";
 export {

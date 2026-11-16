@@ -688,6 +688,11 @@ const BASE_DATA_SCHEMAS: Readonly<
           description:
             "Each implementedBy entry with the symbolId that implements the requirement and whether it was created.",
         },
+        relatedRequirements: {
+          ...recordArray,
+          description:
+            "Current requirements on the same terms ({id, statement}).",
+        },
       }),
       objectData(
         {

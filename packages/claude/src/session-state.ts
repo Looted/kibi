@@ -38,7 +38,13 @@ export type SessionEvent =
    * rule or decision ("must", "never", "from now on"), and the phrase that
    * makes it read so (empty when it does not; absent in older journals).
    */
-  | { kind: "prompt"; words: string[]; rule: boolean; phrase?: string }
+  | {
+      kind: "prompt";
+      words: string[];
+      rule: boolean;
+      phrase?: string;
+      reason?: string | undefined;
+    }
   /**
    * An edit of `path` was put to the person because it changes code that
    * implements these firm requirements.
@@ -61,6 +67,8 @@ export type SessionState = {
   requestWords: string[];
   /** The phrase of the latest prompt this session that read as a rule. */
   rulePhrase: string | undefined;
+  /** The reason that prompt gave ("because ...", "so that ..."), if any. */
+  ruleReason: string | undefined;
   /** Firm requirements whose edit was put to the person, by edited path. */
   firmAsked: Map<string, string[]>;
   /** Firm requirements the person let an edit change this session. */
@@ -111,6 +119,7 @@ export function emptySessionState(): SessionState {
     commandStartedAt: undefined,
     requestWords: [],
     rulePhrase: undefined,
+    ruleReason: undefined,
     firmAsked: new Map(),
     firmConfirmed: new Set(),
     sourceEdited: false,
@@ -166,7 +175,10 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     case "prompt":
       state.requestWords = event.words;
-      if (event.phrase) state.rulePhrase = event.phrase;
+      if (event.phrase) {
+        state.rulePhrase = event.phrase;
+        state.ruleReason = event.reason || undefined;
+      }
       return;
     case "firm_asked":
       state.firmAsked.set(event.path, [

@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7149223743f5
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-why-recorded-DROPPED
+    to: FACT-NEG-kb-upsert-why-recorded-DROPPED
+    created_at: 2026-11-16T16:23:31.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cb58847dce4
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-why-recorded-DROPPED
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:23:32.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa6ec58df77c

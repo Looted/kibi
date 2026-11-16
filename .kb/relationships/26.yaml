@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3c38ae26e65
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-related-requirements-cap-TOO-MANY
+    to: FACT-NEG-kb-upsert-related-requirements-cap-TOO-MANY
+    created_at: 2026-11-16T16:11:36.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45437f3857d6
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-related-requirements-cap-TOO-MANY
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:17:59.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f58fd9258924

@@ -18796,12 +18796,12 @@ symbols:
     sourceFile: packages/claude/src/hook-runner.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-claude-adapter-isolation
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-adapter-isolation
       - type: implements
         target: REQ-claude-hook-usage-telemetry-v2
   - id: SYM-claude-adapterKind
@@ -23275,8 +23275,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kb-entity-body-context
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
       - type: implements
         target: REQ-kb-entity-body-context
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
   - id: SYM-test-cli-staged-consistency
     title: Staged consistency consumer suite
     status: active
@@ -26473,6 +26477,8 @@ symbols:
       recorded_at: 2026-10-14T16:59:46.571Z
     relationships:
       - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: covered_by
         target: TEST-claude-edit-snippet-hook
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
@@ -26480,6 +26486,8 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
       - type: implements
         target: REQ-claude-decision-capture-nudges
   - id: SYM-claude-captureReminder
@@ -26665,10 +26673,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T17:48:06.414Z
     relationships:
-      - type: implements
-        target: REQ-agent-hosts-rule-prompt-note
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-rule-prompt-note
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
   - id: SYM-agent-core-decision-guard-takerulenote
     title: takeRuleNote
     status: active
@@ -40777,6 +40789,8 @@ symbols:
       - type: executable_for
         target: TEST-agent-hosts-rule-phrase-detection
       - type: executable_for
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: executable_for
         target: TEST-claude-edit-snippet-hook
   - id: SYM-test-kibi-scoped-check-output
     title: Scoped kb_check output suite
@@ -41330,6 +41344,8 @@ symbols:
       recorded_at: 2026-11-16T08:46:03.177Z
     relationships:
       - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: covered_by
         target: TEST-claude-edit-snippet-hook
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
@@ -41337,6 +41353,8 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
       - type: implements
         target: REQ-claude-decision-capture-nudges
   - id: SYM-agent-core-claim-rule-capture-template
@@ -41804,3 +41822,322 @@ symbols:
         target: TEST-engine-client-core-modules-from-engine
       - type: implements
         target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-capture-with-requirement-capture
+    title: withRequirementCapture
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:59.897Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-capture-capture-follow-up
+    title: captureFollowUp
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:30.133Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-capture-prolog-capture-reads
+    title: prologCaptureReads
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:36.034Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-capture-evidence-floor-of
+    title: evidenceFloorOf
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:41.725Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-subject-warnings-claim-subject-gaps
+    title: claimSubjectGaps
+    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:47.351Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-capture-related-current-requirements
+    title: relatedCurrentRequirements
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:13:10.836Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-decision-guard-stated-reason
+    title: statedReason
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:13:50.098Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-decision-guard-session-rule-reason
+    title: sessionRuleReason
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:14:06.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-test-kb-upsert-capture-with-why
+    title: kb_upsert capture with why consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/upsert-capture-with-why.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:17:36.301Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-capture-with-why
+  - id: SYM-types-upsert-input
+    title: UpsertInput
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:03.779Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-types-upsert-payload
+    title: UpsertPayload
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:07.541Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-upsert-why-schema
+    title: WHY_SCHEMA
+    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:10.489Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-capture-why-placeholder
+    title: WHY_PLACEHOLDER
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:13.296Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-capture-capture-next-action
+    title: CaptureNextAction
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:34.646Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-subject-warnings-claim-subject-missing-prefix
+    title: claimSubjectMissingPrefix
+    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:40.368Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-subject-warnings-claim-subject-gap
+    title: ClaimSubjectGap
+    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:48.501Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-capture-related-requirement
+    title: RelatedRequirement
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:08.638Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-capture-max-related-requirements
+    title: MAX_RELATED_REQUIREMENTS
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:12.964Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-capture-max-related-statement
+    title: MAX_RELATED_STATEMENT
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:17.070Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-implemented-by-implemented-by-deps
+    title: ImplementedByDeps
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:21.293Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-mutation-implemented-by-implemented-by-deps
+    title: IMPLEMENTED_BY_DEPS
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:25.652Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-capture-capture-reads
+    title: CaptureReads
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:29.618Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-session-state-session-event
+    title: SessionEvent
+    sourceFile: packages/claude/src/session-state.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:46.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-session-state-session-state
+    title: SessionState
+    sourceFile: packages/claude/src/session-state.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:52.497Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-session-state-empty-session-state
+    title: emptySessionState
+    sourceFile: packages/claude/src/session-state.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:56.748Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
