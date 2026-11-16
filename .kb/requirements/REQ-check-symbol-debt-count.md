@@ -8,8 +8,9 @@ tags:
   - check
 origin:
   kind: agent
+  ref: 'Measured on Kibi''s own KB, 2026-11-16: a passing kibi check printed 89,524 characters and an unfiltered kb_check returned 105,413. Maintainer decision, 2026-11-16, approving this statement as worded.'
   recorded_at: '2026-11-16T15:47:00.000Z'
-  ref: 'Measured on Kibi''s own KB, 2026-11-16: a passing kibi check printed 89,524 characters and an unfiltered kb_check returned 105,413.'
+  approved_by: maintainer
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: df4ebc44185369895adda8089d5d5684006519cf7148a001a0b590af88eae6bb
