@@ -22068,7 +22068,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-10-04 03:13:45.666000+00:00
+      recorded_at: 2026-10-04T03:13:45.666Z
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippet-why
@@ -22286,7 +22286,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-10-04 03:15:21.947000+00:00
+      recorded_at: 2026-10-04T03:15:21.947Z
     relationships:
       - type: covered_by
         target: TEST-kibi-search-answer-layer
@@ -41630,7 +41630,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16 10:22:28.078000+00:00
+      recorded_at: 2026-11-16T10:22:28.078Z
     relationships:
       - type: covered_by
         target: TEST-search-answer-first-layer
@@ -41853,7 +41853,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:53:48.612000+00:00
+      recorded_at: 2026-11-16T15:53:48.612Z
     relationships:
       - type: covered_by
         target: TEST-search-answer-first-layer
@@ -41866,7 +41866,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:54:16.306000+00:00
+      recorded_at: 2026-11-16T15:54:16.306Z
     relationships:
       - type: covered_by
         target: TEST-search-answer-first-layer
@@ -41879,7 +41879,7 @@ symbols:
     symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:54:32.667000+00:00
+      recorded_at: 2026-11-16T15:54:32.667Z
     relationships:
       - type: covered_by
         target: TEST-search-answer-first-layer
@@ -41892,7 +41892,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:55:06.431000+00:00
+      recorded_at: 2026-11-16T15:55:06.431Z
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippet-why
@@ -41904,7 +41904,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:55:11.954000+00:00
+      recorded_at: 2026-11-16T15:55:11.954Z
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippet-why
@@ -41917,7 +41917,7 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:55:21.322000+00:00
+      recorded_at: 2026-11-16T15:55:21.322Z
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippet-why
@@ -41929,7 +41929,7 @@ symbols:
     status: active
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:55:25.938000+00:00
+      recorded_at: 2026-11-16T15:55:25.938Z
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippet-why
@@ -41942,7 +41942,7 @@ symbols:
     symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:55:37.080000+00:00
+      recorded_at: 2026-11-16T15:55:37.080Z
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippet-why
@@ -41955,7 +41955,7 @@ symbols:
     symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:55:45.352000+00:00
+      recorded_at: 2026-11-16T15:55:45.352Z
     relationships:
       - type: covered_by
         target: TEST-agent-core-edit-snippet-why
@@ -41968,7 +41968,7 @@ symbols:
     symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:56:19.364000+00:00
+      recorded_at: 2026-11-16T15:56:19.364Z
     relationships:
       - type: covered_by
         target: TEST-search-answer-first-layer
@@ -41981,7 +41981,7 @@ symbols:
     symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16 15:56:26.472000+00:00
+      recorded_at: 2026-11-16T15:56:26.472Z
     relationships:
       - type: covered_by
         target: TEST-search-answer-first-layer
