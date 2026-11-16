@@ -360,3 +360,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42490fc3b7a9
+  - type: implements
+    from: SYM-createOverlayFacts
+    to: REQ-behavioral-kinds-keep-implements
+    created_at: 2026-11-16T05:46:28.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1531ac7bd05
+  - type: covered_by
+    from: SYM-createOverlayFacts
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:46:28.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce1b7e50d844

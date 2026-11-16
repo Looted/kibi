@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7240639cd7aa
+  - type: implements
+    from: SYM-core-kb-linklessNonBehavioralSymbol
+    to: REQ-symbol-traceability-behavioral-only
+    created_at: 2026-11-16T05:45:57.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d100c5f35186
+  - type: covered_by
+    from: SYM-core-kb-linklessNonBehavioralSymbol
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:57.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-257344ddd483

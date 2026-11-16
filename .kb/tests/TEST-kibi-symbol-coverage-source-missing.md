@@ -1,6 +1,6 @@
 ---
 title: Symbol coverage reports a linked symbol as uncovered once its source file is deleted
-status: pending
+status: passing
 priority: must
 tags:
   - coverage

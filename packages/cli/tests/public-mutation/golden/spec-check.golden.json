@@ -246,6 +246,36 @@
               "truncation": {
                 "type": "object",
                 "additionalProperties": true
+              },
+              "symbolDebt": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["total", "files"],
+                "properties": {
+                  "total": {
+                    "type": "integer"
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["path", "unrecorded"],
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "unrecorded": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record. Non-blocking: the staged gate judges them only when a commit adds or changes them."
               }
             }
           },

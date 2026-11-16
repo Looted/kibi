@@ -273,7 +273,7 @@ export interface GreetOptions {
         "Not in .kb/symbols.yaml: GreetOptions (line 5)",
       );
       expect(output).toContain(
-        "Author .kb/symbols.yaml entries for the uncovered symbols",
+        "Author .kb/symbols.yaml entries for the listed declarations",
       );
     },
     TEST_TIMEOUT_MS,

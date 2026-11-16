@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6e52f12e853
+  - type: implements
+    from: SYM-staged-declaration-declarationOwnText
+    to: REQ-staged-gate-changed-declaration-definition
+    created_at: 2026-11-16T05:44:27.817Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed9adcbabfbd
+  - type: covered_by
+    from: SYM-staged-declaration-declarationOwnText
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:44:27.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f3696ab03c9

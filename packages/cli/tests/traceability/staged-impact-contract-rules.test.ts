@@ -30,8 +30,8 @@ describe("diagnostic contract", () => {
         id: "symbols_manifest_stale",
         title: "Symbol manifest does not cover the staged declarations",
         resolution: [
-          "Read the Detail lines: they name the extracted symbols the staged .kb/symbols.yaml does not cover, and the entries whose declaration is gone.",
-          "Author .kb/symbols.yaml entries for the uncovered symbols (kibi upsert, with implements/covered_by links); re-point or remove (kibi delete) entries whose declaration is gone.",
+          "Read the Detail lines: they name the declarations this commit adds or changes that the staged .kb/symbols.yaml does not cover, and the entries whose declaration is gone. Gaps the commit did not cause are not judged.",
+          "Author .kb/symbols.yaml entries for the declarations this commit adds or changes (kibi upsert), each with a symbol_role; behavioral code also needs implements/covered_by links. Re-point or remove (kibi delete) entries whose declaration this commit removed.",
           "Stage .kb/symbols.yaml in the same change as the behavior edit, then re-run or let the hook run kibi check --staged. Symbol coordinates are derived locally and never staged.",
         ],
       },

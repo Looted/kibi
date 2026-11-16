@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c535546a3dc
+  - type: executable_for
+    from: SYM-e2e-test-check-reports-symbol-debt
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:34:22.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-666478144143

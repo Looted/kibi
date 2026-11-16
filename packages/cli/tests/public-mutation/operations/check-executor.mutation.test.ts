@@ -823,7 +823,10 @@ describe("executeCheck", () => {
     expect(Object.hasOwn(full, "omittedViolations")).toBe(false);
     expect(Object.hasOwn(full, "summarizePlan")).toBe(false);
     expect(fit).not.toHaveBeenCalled();
-    expect(unscoped.structuredContent).toBe(full);
+    expect(unscoped.structuredContent).toStrictEqual({
+      ...full,
+      symbolDebt: { total: 0, files: [] },
+    });
   });
 
   test("lists only impact diagnostics for explicit rules without impact", async () => {
@@ -854,6 +857,41 @@ describe("executeCheck", () => {
     );
   });
 
+  test("reports symbol debt only for an unscoped check and drops it when the engine cannot project it", async () => {
+    const debtGoal = (goal: string) => goal.startsWith("findall([Id,symbol");
+    harness({ rules: ["required-fields"] });
+    const answering = prologPort(async () => ({
+      success: true,
+      bindings: { Rows: "[]" },
+    }));
+    const unscoped = await run({}, context({ prolog: answering }));
+    expect(unscoped.structuredContent.symbolDebt).toStrictEqual({
+      total: 0,
+      files: [],
+    });
+    expect(answering.queries.filter(debtGoal)).toHaveLength(1);
+
+    harness({ rules: ["required-fields"] });
+    const scoped = prologPort();
+    const scopedResult = await run(
+      { sourceFiles: ["a.ts"] },
+      context({ prolog: scoped }),
+    );
+    expect(Object.hasOwn(scopedResult.structuredContent, "symbolDebt")).toBe(
+      false,
+    );
+    expect(scoped.queries.filter(debtGoal)).toEqual([]);
+
+    harness({ rules: ["required-fields"] });
+    const failing = prologPort(async (goal) => ({
+      success: !debtGoal(goal),
+      bindings: {},
+    }));
+    const failed = await run({}, context({ prolog: failing }));
+    expect(Object.hasOwn(failed.structuredContent, "symbolDebt")).toBe(false);
+    expect(failing.queries.filter(debtGoal)).toHaveLength(1);
+  });
+
   test("counts the compared fact pairs of domain contradictions", async () => {
     const counted = async (count: unknown, success = true) => {
       harness({ rules: ["domain-contradictions"] });
@@ -862,9 +900,9 @@ describe("executeCheck", () => {
         bindings: { Count: count },
       }));
       const result = await run({}, context({ prolog }));
-      expect(prolog.queries).toEqual([
+      expect(prolog.queries[0]).toBe(
         "kb_domain_contradiction_pairs_examined(Count)",
-      ]);
+      );
       return result.structuredContent.evaluated;
     };
     expect(await counted("0")).toStrictEqual({

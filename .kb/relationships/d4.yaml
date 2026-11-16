@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6686fa5b5b40
+  - type: assumes
+    from: SCEN-NEG-staged-gate-reports-inherited-symbol-gaps-INHERITED-GAP-SILENT
+    to: FACT-NEG-staged-gate-reports-inherited-symbol-gaps-INHERITED-GAP-SILENT
+    created_at: 2026-11-16T05:33:54.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af41adbb94d1
