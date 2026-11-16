@@ -675,3 +675,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a016d9a35050
+  - type: covered_by
+    from: SYM-check-executor-check-execution-options
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T20:34:04.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-246ea0aeaeee

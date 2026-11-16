@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-66987dd1f96e
+  - type: covered_by
+    from: SYM-finding-blocks-finding-blocks
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-16T20:34:14.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f37210d62eac

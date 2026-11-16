@@ -2,7 +2,7 @@
 title: Changed check verdict tests
 status: active
 priority: must
-verification_scope: integration
+verification_scope: end_to_end
 tags:
   - check
   - staged

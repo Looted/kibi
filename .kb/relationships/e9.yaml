@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3346001bdca3
+  - type: assumes
+    from: SCEN-check-finding-blocks
+    to: FACT-check-finding-blocks
+    created_at: 2026-11-16T20:33:41.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a37fe89f306f

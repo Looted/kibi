@@ -42002,6 +42002,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:29:02.401Z
     relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
       - type: implements
         target: REQ-check-changed-commit-verdict
   - id: SYM-changed-check-changed-gate-runner
@@ -42013,6 +42015,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:29:07.256Z
     relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
       - type: implements
         target: REQ-check-changed-commit-verdict
   - id: SYM-changed-check-changed-check-content
@@ -42024,6 +42028,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:29:10.894Z
     relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
       - type: implements
         target: REQ-check-changed-commit-verdict
   - id: SYM-changed-check-run-changed-gate
@@ -42086,6 +42092,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:29:28.934Z
     relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
       - type: implements
         target: REQ-check-changed-commit-verdict
   - id: SYM-changed-index-prepare-changed-index
@@ -42123,6 +42131,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:29:38.444Z
     relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
       - type: implements
         target: REQ-check-changed-commit-verdict
   - id: SYM-check-executor-check-execution-options
@@ -42134,6 +42144,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:29:43.613Z
     relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
       - type: implements
         target: REQ-check-changed-commit-verdict
   - id: SYM-finding-blocks-finding-blocks
@@ -42145,6 +42157,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:30:01.171Z
     relationships:
+      - type: covered_by
+        target: TEST-check-finding-blocks
       - type: implements
         target: REQ-check-finding-blocks
   - id: SYM-finding-blocks-is-blocking-finding
@@ -42242,6 +42256,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:32:01.463Z
     relationships:
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
       - type: implements
         target: REQ-staged-gate-scratch-store
   - id: SYM-evidence-floor-evidence-floor-options
@@ -42253,6 +42269,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T19:32:07.317Z
     relationships:
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
       - type: implements
         target: REQ-staged-gate-scratch-store
   - id: SYM-evidence-floor-read-requirement-proof-payload
