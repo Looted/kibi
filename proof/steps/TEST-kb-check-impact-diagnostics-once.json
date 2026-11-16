@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-kb-check-impact-diagnostics-once",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "240000",
+      "./packages/cli/tests/public-mutation/operations/check-format-shared.mutation.test.ts",
+      "./packages/cli/tests/public/operations/migration-plan-coverage.test.ts",
+      "./packages/mcp/tests/tools/check-impact.test.ts"
+    ]
+  ]
+}

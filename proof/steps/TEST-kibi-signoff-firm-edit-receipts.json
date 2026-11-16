@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-kibi-signoff-firm-edit-receipts",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/signoff/collect-mutation.test.ts",
+      "./packages/cli/tests/signoff/markdown-render.test.ts",
+      "./packages/cli/tests/signoff/html-render.test.ts"
+    ]
+  ]
+}

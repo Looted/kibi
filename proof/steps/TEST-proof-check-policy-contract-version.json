@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-check-policy-contract-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/check-policy-version.proof.test.ts"
+    ]
+  ]
+}

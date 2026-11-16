@@ -349,3 +349,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a63e6adade96
+  - type: validates
+    from: TEST-kibi-proof-steps-directory
+    to: REQ-kibi-proof-step-settings
+    created_at: 2026-11-16T07:29:39.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f696cdcce214
+  - type: validates
+    from: TEST-kibi-proof-steps-directory
+    to: SCEN-kibi-proof-steps-directory
+    created_at: 2026-11-16T07:29:39.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58be2fa27904
+  - type: validates
+    from: TEST-kibi-proof-steps-directory
+    to: SCEN-kibi-proof-test-report-outcomes
+    created_at: 2026-11-16T08:23:38.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83f8f06a4bb1

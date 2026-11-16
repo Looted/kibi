@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-engine-read-time-limit-cap",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/engine-read-limit-settings.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-ontology-polarities",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts"
+    ]
+  ]
+}

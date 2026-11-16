@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { executeDelete } from "../../../../src/operations/mutation/delete.js";
-import { executeUpsert } from "../../../../src/operations/mutation/upsert.js";
+import { executeUpsertRequest } from "../../../../src/operations/mutation/implemented-by.js";
 import { executeValidateUpsert } from "../../../../src/operations/mutation/validate-upsert.js";
 import { executeIngestProof } from "../../../../src/operations/proof/ingest-proof.js";
 import { withContractDefaults } from "../../../../src/public/operations/catalog.js";
@@ -42,7 +42,7 @@ describe("declarative operation specs", () => {
 
   test("kb_upsert", () => {
     expectGolden("spec-upsert", withContractDefaults(upsertSpec));
-    expect(upsertSpec.execute).toBe(executeUpsert);
+    expect(upsertSpec.execute).toBe(executeUpsertRequest);
     expect(reexportedUpsertSpec).toBe(upsertSpec);
   });
 

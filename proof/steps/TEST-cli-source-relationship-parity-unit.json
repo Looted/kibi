@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-cli-source-relationship-parity-unit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/public/operations/source-relationship-parity-coverage.test.ts"
+    ]
+  ]
+}

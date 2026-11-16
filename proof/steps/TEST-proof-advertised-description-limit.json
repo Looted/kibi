@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-advertised-description-limit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+    ]
+  ]
+}

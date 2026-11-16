@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-impact-review-path",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/impact-review-file.proof.test.ts"
+    ]
+  ]
+}

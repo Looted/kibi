@@ -31275,6 +31275,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: covered_by
         target: TEST-proof-default-proof-steps-path
       - type: implements
         target: REQ-kibi-proof-step-settings
@@ -31303,6 +31305,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
       - type: covered_by
         target: TEST-proof-proof-test-report-env
       - type: implements
@@ -31333,6 +31337,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: covered_by
         target: TEST-proof-proof-test-report-version
       - type: implements
         target: REQ-kibi-proof-step-settings
@@ -31361,6 +31367,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
       - type: covered_by
         target: TEST-proof-proof-test-report-outcomes
       - type: implements
@@ -40879,121 +40887,46 @@ symbols:
         target: TEST-mcp-upsert-proof-field-stubs
       - type: implements
         target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
-  - id: SYM-test-kibi-firm-edit-receipts
-    title: Firm-edit receipt suite
+  - id: SYM-const-default-proof-steps-dir
+    title: DEFAULT_PROOF_STEPS_DIR
     status: active
-    sourceFile: packages/agent-core/tests/firm-edit-review.test.ts
+    sourceFile: packages/cli/src/proof/step-runner.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:28:53.295Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: covered_by
+        target: TEST-proof-default-proof-steps-path
+      - type: implements
+        target: REQ-kibi-proof-step-settings
+  - id: SYM-test-kibi-proof-steps-directory
+    title: Proof steps directory suite
+    status: active
+    sourceFile: packages/cli/tests/proof/step-runner-mutation.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T06:59:01.934Z
+      recorded_at: 2026-11-16T07:29:30.726Z
     relationships:
       - type: executable_for
-        target: TEST-kibi-firm-edit-receipts
-  - id: SYM-cli-execute-review-firm-edit
-    title: executeReviewFirmEdit
+        target: TEST-kibi-proof-steps-directory
+  - id: SYM-cli-load-proof-steps
+    title: loadProofSteps
     status: active
-    sourceFile: packages/cli/src/public/operations/firm-edit-review.ts
+    sourceFile: packages/cli/src/proof/step-runner.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T06:59:31.892Z
+      recorded_at: 2026-11-16T07:29:41.514Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-firm-edit-receipts
+        target: TEST-kibi-proof-steps-directory
       - type: implements
-        target: REQ-kibi-firm-edit-receipts
-  - id: SYM-agent-core-firm-edit-receipt-mismatch
-    title: firmEditReceiptMismatch
-    status: active
-    sourceFile: packages/agent-core/src/firm-edit-review.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:59:36.200Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-firm-edit-receipts
-      - type: implements
-        target: REQ-kibi-firm-edit-receipts
-  - id: SYM-test-kibi-staged-firm-edit-gate
-    title: Staged firm-edit gate suite
-    status: active
-    sourceFile: packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:59:43.932Z
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-staged-firm-edit-gate
-  - id: SYM-cli-create-firm-edit-gate-diagnostics
-    title: createFirmEditGateDiagnostics
-    status: active
-    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:59:56.792Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-staged-firm-edit-gate
-      - type: implements
-        target: REQ-kibi-staged-firm-edit-gate
-  - id: SYM-cli-firm-edit-review-state
-    title: reviewState
-    status: active
-    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:00:01.068Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-staged-firm-edit-gate
-      - type: implements
-        target: REQ-kibi-staged-firm-edit-gate
-  - id: SYM-test-kibi-signoff-firm-edit-receipts
-    title: Signoff firm-edit receipt suite
-    status: active
-    sourceFile: packages/cli/tests/signoff/collect-mutation.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:00:07.168Z
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-signoff-firm-edit-receipts
-  - id: SYM-test-agent-hosts-firm-edit-receipt-notice
-    title: Host firm-edit receipt notice suite
-    status: active
-    sourceFile: packages/codex/tests/hook-runner.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:01:54.787Z
-    relationships:
-      - type: executable_for
-        target: TEST-agent-hosts-firm-edit-receipt-notice
-  - id: SYM-agent-core-firm-edit-reviewed
-    title: firmEditReviewed
-    status: active
-    sourceFile: packages/agent-core/src/firm-edit-review.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:02:53.793Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hosts-firm-edit-receipt-notice
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: implements
-        target: REQ-claude-firm-edit-confirmation
+        target: REQ-kibi-proof-step-settings
   - id: SYM-e2e-test-staged-gate-inherited-symbol-gaps
     title: staged-inherited-symbol-gaps.test
     status: active
@@ -41588,3 +41521,143 @@ symbols:
         target: TEST-kibi-source-proof-kinds
       - type: implements
         target: REQ-kibi-env-reader-presence-tests
+  - id: SYM-test-kibi-firm-edit-receipts
+    title: Firm-edit receipt suite
+    status: active
+    sourceFile: packages/agent-core/tests/firm-edit-review.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:59:01.934Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-firm-edit-receipts
+  - id: SYM-cli-execute-review-firm-edit
+    title: executeReviewFirmEdit
+    status: active
+    sourceFile: packages/cli/src/public/operations/firm-edit-review.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:59:31.892Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-firm-edit-receipts
+      - type: implements
+        target: REQ-kibi-firm-edit-receipts
+  - id: SYM-agent-core-firm-edit-receipt-mismatch
+    title: firmEditReceiptMismatch
+    status: active
+    sourceFile: packages/agent-core/src/firm-edit-review.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:59:36.200Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-firm-edit-receipts
+      - type: implements
+        target: REQ-kibi-firm-edit-receipts
+  - id: SYM-test-kibi-staged-firm-edit-gate
+    title: Staged firm-edit gate suite
+    status: active
+    sourceFile: packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:59:43.932Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-staged-firm-edit-gate
+  - id: SYM-cli-create-firm-edit-gate-diagnostics
+    title: createFirmEditGateDiagnostics
+    status: active
+    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:59:56.792Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-staged-firm-edit-gate
+      - type: implements
+        target: REQ-kibi-staged-firm-edit-gate
+  - id: SYM-cli-firm-edit-review-state
+    title: reviewState
+    status: active
+    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:00:01.068Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-staged-firm-edit-gate
+      - type: implements
+        target: REQ-kibi-staged-firm-edit-gate
+  - id: SYM-test-kibi-signoff-firm-edit-receipts
+    title: Signoff firm-edit receipt suite
+    status: active
+    sourceFile: packages/cli/tests/signoff/collect-mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:00:07.168Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-signoff-firm-edit-receipts
+  - id: SYM-test-agent-hosts-firm-edit-receipt-notice
+    title: Host firm-edit receipt notice suite
+    status: active
+    sourceFile: packages/codex/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:01:54.787Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hosts-firm-edit-receipt-notice
+  - id: SYM-agent-core-firm-edit-reviewed
+    title: firmEditReviewed
+    status: active
+    sourceFile: packages/agent-core/src/firm-edit-review.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:02:53.793Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-firm-edit-receipt-notice
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation
+  - id: SYM-test-kb-upsert-implemented-by
+    title: kb_upsert implementedBy suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:13:22.017Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-implemented-by
+  - id: SYM-cli-execute-upsert-request
+    title: executeUpsertRequest
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:14:10.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-implemented-by
+      - type: implements
+        target: REQ-kb-upsert-implemented-by

@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-kibi-proposition-complete-ingestion",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/operations/mutation.test.ts"
+    ]
+  ]
+}

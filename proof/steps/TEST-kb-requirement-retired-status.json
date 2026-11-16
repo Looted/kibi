@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-kb-requirement-retired-status",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "240000",
+      "./packages/cli/tests/commands/retired-status.test.ts",
+      "./packages/cli/tests/operations/migration/retired-status.test.ts"
+    ]
+  ]
+}

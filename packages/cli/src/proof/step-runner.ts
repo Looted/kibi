@@ -28,14 +28,28 @@
  */
 
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import {
   PROOF_TEST_REPORT_ENV,
   PROOF_TEST_REPORT_VERSION,
 } from "./command-test-report.js";
 
-/** Where `kibi proof run-steps` reads steps when no file is given. */
+/**
+ * Where `kibi proof run-steps` reads steps when no source is given: one
+ * `<test_id>.json` file per test, so parallel branches that each add a test
+ * never edit the same file.
+ */
+export const DEFAULT_PROOF_STEPS_DIR = "proof/steps";
+
+/** The single steps file read when the steps directory does not exist. */
 export const DEFAULT_PROOF_STEPS_PATH = "proof/steps.json";
 
 const DEFAULT_STEP_TIMEOUT_MS = 15 * 60_000;
@@ -84,6 +98,61 @@ export function validateProofSteps(value: unknown): ProofStepEntry[] {
     });
     return { test_id: testId, steps };
   });
+}
+
+function readJson(file: string): unknown {
+  try {
+    return JSON.parse(readFileSync(file).toString());
+  } catch (error) {
+    // readFileSync and JSON.parse only throw Error instances.
+    fail(`cannot read ${file}: ${(error as Error).message}`);
+  }
+}
+
+function isDirectory(target: string): boolean {
+  return statSync(target, { throwIfNoEntry: false })?.isDirectory() === true;
+}
+
+/**
+ * The entries of a steps directory: each `<test_id>.json` file holds one
+ * `{test_id, steps}` object, and a file whose test_id differs from its name
+ * is refused so two tests can never share or shadow a file.
+ */
+function readStepsDirectory(directory: string): unknown[] {
+  const files = readdirSync(directory)
+    .filter((name) => name.endsWith(".json"))
+    .sort();
+  return files.map((name) => {
+    const value = readJson(path.join(directory, name));
+    const expected = name.slice(0, -".json".length);
+    // null, an array or a scalar declares no test_id.
+    const declared = (value as Record<string, unknown> | null)?.test_id;
+    if (declared !== expected)
+      fail(
+        `${path.join(directory, name)} declares test_id ${JSON.stringify(declared)}; a proof steps file must hold one {test_id, steps} object whose test_id is its file name`,
+      );
+    return value;
+  });
+}
+
+/**
+ * The validated steps of a source: the given path, a directory or a file, or
+ * by default the proof/steps directory, else proof/steps.json.
+ */
+export function loadProofSteps(
+  workspaceRoot: string,
+  stepsPath?: string,
+): ProofStepEntry[] {
+  const directory = path.resolve(workspaceRoot, DEFAULT_PROOF_STEPS_DIR);
+  const source =
+    stepsPath === undefined
+      ? isDirectory(directory)
+        ? directory
+        : path.resolve(workspaceRoot, DEFAULT_PROOF_STEPS_PATH)
+      : path.resolve(workspaceRoot, stepsPath);
+  return validateProofSteps(
+    isDirectory(source) ? readStepsDirectory(source) : readJson(source),
+  );
 }
 
 /** The selected tests' entries, in request order; a missing id is an error. */
@@ -218,18 +287,7 @@ export async function runProofSteps(options: {
 }): Promise<number> {
   const env = options.env ?? process.env;
   const write = options.write ?? ((line: string) => console.error(line));
-  const stepsPath = path.resolve(
-    options.workspaceRoot,
-    options.stepsPath ?? DEFAULT_PROOF_STEPS_PATH,
-  );
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(readFileSync(stepsPath).toString());
-  } catch (error) {
-    // readFileSync and JSON.parse only throw Error instances.
-    fail(`cannot read ${stepsPath}: ${(error as Error).message}`);
-  }
-  const entries = validateProofSteps(parsed);
+  const entries = loadProofSteps(options.workspaceRoot, options.stepsPath);
   let testIds = options.testIds;
   if (testIds === undefined) {
     const raw = env.KIBI_PROOF_TEST_IDS;

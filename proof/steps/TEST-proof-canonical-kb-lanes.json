@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-canonical-kb-lanes",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/canonical-kb-lanes.proof.test.ts"
+    ]
+  ]
+}

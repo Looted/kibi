@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-near-restatement-jaccard",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/numeric-thresholds.proof.test.ts"
+    ]
+  ]
+}

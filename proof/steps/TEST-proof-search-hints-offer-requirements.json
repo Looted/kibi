@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-search-hints-offer-requirements",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/search-hints-limits.proof.test.ts"
+    ]
+  ]
+}

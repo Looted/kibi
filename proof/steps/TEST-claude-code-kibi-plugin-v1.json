@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-claude-code-kibi-plugin-v1",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--retry=0",
+      "--timeout",
+      "120000",
+      "./packages/claude/tests"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-env-legacy-file",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/env-bootstrap-files.proof.test.ts"
+    ]
+  ]
+}

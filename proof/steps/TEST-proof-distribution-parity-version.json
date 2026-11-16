@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-distribution-parity-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/distribution-parity-version.proof.test.ts"
+    ]
+  ]
+}

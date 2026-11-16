@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-kibi-firm-edit-receipts",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/agent-core/tests/firm-edit-review.test.ts",
+      "./packages/cli/tests/public-mutation/operations/firm-edit-review.mutation.test.ts",
+      "./packages/cli/tests/consumer/firm-edit-review.test.ts"
+    ]
+  ]
+}

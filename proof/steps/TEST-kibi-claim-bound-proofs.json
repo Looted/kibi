@@ -1,0 +1,20 @@
+{
+  "test_id": "TEST-kibi-claim-bound-proofs",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/claim-bound-proofs.test.ts"
+    ],
+    [
+      "swipl",
+      "-q",
+      "-s",
+      "packages/core/tests/kb.plt",
+      "-g",
+      "run_tests(claim_bound_proofs)",
+      "-t",
+      "halt"
+    ]
+  ]
+}

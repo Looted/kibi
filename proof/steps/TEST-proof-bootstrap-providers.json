@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-bootstrap-providers",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/bootstrap-evidence-providers.proof.test.ts"
+    ]
+  ]
+}

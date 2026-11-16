@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-provenance-stub-tag",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/provenance-stub-tag.proof.test.ts"
+    ]
+  ]
+}

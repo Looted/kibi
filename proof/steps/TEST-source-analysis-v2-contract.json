@@ -1,0 +1,24 @@
+{
+  "test_id": "TEST-source-analysis-v2-contract",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/plugin-sdk/tests",
+      "./packages/plugin-builtin/tests",
+      "./packages/cli/tests/plugins/source-analysis-v2.test.ts"
+    ],
+    [
+      "node",
+      "--test",
+      "packages/plugin-treesitter/tests/plugin.test.js"
+    ],
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/multilingual-source-analysis.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-vocabulary-convergence-e2e",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/vocabulary-convergence.test.ts"
+    ]
+  ]
+}

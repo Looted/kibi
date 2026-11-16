@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-symbol-coordinates-format-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/generated-coordinate-settings.proof.test.ts"
+    ]
+  ]
+}

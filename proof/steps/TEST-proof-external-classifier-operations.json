@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-external-classifier-operations",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/capability-plugin-vocabulary.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-source-proof-kinds-readers",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/source-proof-kinds.proof.test.ts"
+    ]
+  ]
+}

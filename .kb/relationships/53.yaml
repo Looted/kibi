@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77b40eed1a8d
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-implemented-by-FILE-LINK
+    to: FACT-NEG-kb-upsert-implemented-by-FILE-LINK
+    created_at: 2026-11-16T07:13:31.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34306c209aa6
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-implemented-by-FILE-LINK
+    to: TEST-kb-upsert-implemented-by
+    created_at: 2026-11-16T07:13:31.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af57bcef6a6f
