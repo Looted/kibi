@@ -56,6 +56,6 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Runs kibi upsert through the built CLI on a workspace with an agent-authored requirement that records no reason and one that records a rationale, each grounded on a client quota fact (packages/cli/tests/consumer/upsert-reason-note.test.ts). It checks the note on a new requirement with and without a rationale, on an update that keeps or changes the statement, on a value change under each requirement, and that an unchanged value gets no note.
+Runs kibi upsert through the built CLI on a workspace with an agent-authored requirement that records no reason and one that records a rationale, each grounded on a client quota fact (packages/cli/tests/consumer/upsert-reason-note.test.ts). It checks the note on a new requirement with and without a rationale, on a new requirement whose Context section names who asked and says Reason not stated, on an update that keeps or changes the statement, on a value change under each requirement, and that an unchanged value gets no note.
 
 A false pass would be a fixture whose requirements all record a reason, or a fact write that never changes the value, so neither note is ever produced.

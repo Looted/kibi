@@ -142,6 +142,25 @@ describe("kb_upsert notes on a requirement's reason", () => {
     expect(reasonNotes(changed)).toHaveLength(1);
   }, 300_000);
 
+  test("a Context section that names who asked and says no reason was stated still gets the note", () => {
+    const result = upsert({
+      type: "req",
+      id: "REQ-quota-burst",
+      properties: {
+        title: "A client sends at most 20 calls a second",
+        status: "open",
+        origin: { kind: "agent" },
+      },
+      document: {
+        body: "A client sends at most 20 calls a second.\n\n## Context\n\nAsked by the owner in the project chat on 2026-11-10. Reason not stated.\n",
+      },
+    });
+    expect(result.status, JSON.stringify(result)).toBe("success");
+    const notes = reasonNotes(result);
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toContain("REQ-quota-burst records no reason");
+  }, 300_000);
+
   test("a new requirement written with its rationale gets no note", () => {
     const result = upsert({
       type: "req",

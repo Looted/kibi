@@ -56,6 +56,6 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Runs kibi search through the built CLI on a workspace with a requirement that has a rationale field, one with a Why section and one with neither, and checks each governing entry's why and the answer note (packages/cli/tests/consumer/search-answer-layer.test.ts). Unit tests in packages/cli/tests/search-answer.test.ts cover each source in order, a Reason not stated section, the 280-character limit and the byte-budget shrink order.
+Runs kibi search through the built CLI on a workspace with a requirement that has a rationale field, one with a Why section and one with neither, and checks each governing entry's why and the answer note (packages/cli/tests/consumer/search-answer-layer.test.ts). Unit tests in packages/cli/tests/search-answer.test.ts cover each source in order, a Reason not stated section, one that names who asked and the source before saying Reason not stated (also past the excerpt limit), a rationale field that says Reason not stated, the 280-character limit and the byte-budget shrink order.
 
 A false pass would be a fixture whose requirements all record a reason the same way, so the order between sources and the recorded false mark are never exercised.

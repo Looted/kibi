@@ -62,6 +62,7 @@ import {
   validateSupersedesSourceHistory,
 } from "./relationships.js";
 import {
+  CONTRACT_FIELDS,
   type ServerInventoryEntry,
   assertStoredRequirementBoundary,
   withServerSemanticInventory,
@@ -99,7 +100,10 @@ import {
   authoredEntityLookup,
   readUncompiledAuthoredSource,
 } from "./uncompiled-source.js";
-import { validateUpsertInput } from "./validation.js";
+import {
+  isPartialSemanticInventory,
+  validateUpsertInput,
+} from "./validation.js";
 import {
   scenarioCoverageWarnings,
   symbolCoverageWarnings,
@@ -424,6 +428,36 @@ export type UpsertValidation = Readonly<{
 }>;
 
 /**
+ * Whether a requirement write sends semantic_inventory entries in the
+ * partial shape ({claim_key, status, subjects}) and none of the contract
+ * fields, so Kibi derives the rest of the inventory from the prose.
+ */
+function sendsPartialInventory(payload: UpsertInput): boolean {
+  if (payload.type !== "req") return false;
+  const properties = payload.properties ?? {};
+  return (
+    !CONTRACT_FIELDS.some((field) => properties[field] !== undefined) &&
+    isPartialSemanticInventory(properties.semantic_inventory)
+  );
+}
+
+/**
+ * Schema validation of a write as sent. Partial inventory entries are not
+ * yet entity fields: the rest of the write is validated, and the entity is
+ * validated whole once Kibi has filled the inventory in.
+ */
+function validateSent(
+  input: UpsertInput,
+  now: Date,
+  partialInventory: boolean,
+): ValidatedUpsert {
+  if (!partialInventory) return validateUpsertInput(input, now);
+  const { semantic_inventory: _entries, ...properties } =
+    input.properties ?? {};
+  return validateUpsertInput({ ...input, properties }, now);
+}
+
+/**
  * The complete validation an upsert passes before its first write: schema,
  * append-only proof receipts, relationship sources, symbol granularity,
  * strict-lane pairing, live relationship targets, supersedes direction,
@@ -440,7 +474,8 @@ export async function validateUpsertForCommit(
   const prolog = requireProlog(context);
   const staged = options.staged;
   // The payload must be valid on its own before the store is read.
-  const checked = validateUpsertInput(payload, context.clock());
+  const partialInventory = sendsPartialInventory(payload);
+  const checked = validateSent(payload, context.clock(), partialInventory);
   validateRelationshipSources(payload.id, checked.relationships);
   // Symbol granularity of a payload that names its source file reads only the
   // payload and that file, so it runs before the store is read.
@@ -485,7 +520,9 @@ export async function validateUpsertForCommit(
       ? await withStoredOmittedProperties(withSemantics, lookup, staged)
       : withSemantics;
   let validated =
-    input === payload ? checked : validateUpsertInput(input, context.clock());
+    input === payload
+      ? checked
+      : validateSent(input, context.clock(), partialInventory);
   if (uncompiledSource !== null)
     lookup = {
       ...lookup,
@@ -506,7 +543,7 @@ export async function validateUpsertForCommit(
         ...input,
         properties: { ...input.properties, ...kept },
       };
-      validated = validateUpsertInput(input, context.clock());
+      validated = validateSent(input, context.clock(), partialInventory);
     }
   }
   const relationships = await effectiveRelationships(
@@ -582,6 +619,9 @@ export async function validateUpsertForCommit(
     semantic = await boundary(input);
     inventoryApplied = server.applied;
   }
+  // Partial entries Kibi did not complete are judged as the entity they are.
+  if (partialInventory && inventoryApplied === undefined)
+    validated = validateUpsertInput(input, context.clock());
   await assertLogicalGroundingClaimKeys(
     prolog,
     { ...input, relationships },
