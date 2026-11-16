@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import type { SourceAnalysisResult } from "kibi-plugin-sdk";
 import type { PrologPort } from "../../../src/public/operations/runtime-types.js";
 import { SOURCE_ANALYSIS_CACHE_FILE } from "../../../src/public/operations/source-analysis-cache.js";
 import {
@@ -324,7 +325,10 @@ describe("analyzeWorkspaceSources", () => {
     expect([...sources.keys()]).toEqual(["src/a.ts"]);
     expect(sources.get("src/a.ts")).toEqual({
       content: "a",
-      analysis: { status: "ok", symbols: [] },
+      analysis: {
+        status: "ok",
+        symbols: [],
+      } as unknown as SourceAnalysisResult,
     });
   });
 });

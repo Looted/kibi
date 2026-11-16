@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { SourceAnalysisResult } from "kibi-plugin-sdk";
+import type { ManifestSymbolRecord } from "../../src/extractors/manifest.js";
 import type { StagedFile } from "../../src/traceability/git-staged.js";
 import {
   assessStagedSymbolsManifest,
@@ -32,8 +33,9 @@ function manifest(...records: unknown[]): string {
   return JSON.stringify({ symbols: records });
 }
 
+// A title is unknown so a test can pass a malformed one.
 function rec(title: unknown, sourceFile: string, extra: object = {}) {
-  return { title, sourceFile, ...extra };
+  return { title, sourceFile, ...extra } as ManifestSymbolRecord;
 }
 
 function sym(name: string, startLine: number, extra: object = {}) {
