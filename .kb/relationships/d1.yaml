@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d7e2f4c4894
+  - type: implements
+    from: SYM-operations-changed-check-changed-check-content
+    to: REQ-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:18.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14c1ba5df4e8
+  - type: covered_by
+    from: SYM-operations-changed-check-changed-check-content
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T19:35:14.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a12f4b1d944

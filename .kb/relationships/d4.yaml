@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29eebbb45c59
+  - type: assumes
+    from: SCEN-NEG-staged-gate-scratch-store-SAVES
+    to: FACT-NEG-staged-gate-scratch-store-SAVES
+    created_at: 2026-11-16T19:24:11.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c6fb9d9d2c1

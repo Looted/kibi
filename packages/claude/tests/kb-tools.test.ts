@@ -116,6 +116,22 @@ describe("Kibi MCP usage", () => {
     }
   });
 
+  test("a changed check without a source filter covers every edit", () => {
+    expect(extractMcpKbUsage("kb_check", { changed: true })?.checkAll).toBe(
+      true,
+    );
+    expect(
+      extractMcpKbUsage("kb_check", { changed: true, sourceFiles: ["a.ts"] })
+        ?.checkAll,
+    ).toBe(false);
+    expect(extractMcpKbUsage("kb_check", { changed: "true" })?.checkAll).toBe(
+      false,
+    );
+    expect(extractMcpKbUsage("kb_search", { changed: true })?.checkAll).toBe(
+      false,
+    );
+  });
+
   test("only a working-tree check without a source filter covers every edit", () => {
     expect(
       extractMcpKbUsage("kb_check", { includeWorkingTreeDiff: true }),

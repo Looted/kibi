@@ -222,6 +222,10 @@ export function registerReportingCommands(program: Command): void {
     .option("--rules <csv>", "Comma-separated allowlist of rule names to run")
     .option("--staged", "Run check only against staged changes (experimental)")
     .option(
+      "--changed [paths...]",
+      "Judge the working tree plus the index as the commit gate would (--staged over a scratch index; the real index is untouched). Paths limit it to those files and .kb",
+    )
+    .option(
       "--min-links <n>",
       "Minimum number of links required for symbol coverage",
       "1",
@@ -245,6 +249,7 @@ export function registerReportingCommands(program: Command): void {
         async (
           options: Parameters<typeof checkCommand>[0] & {
             input?: string;
+            changed?: boolean | string[];
             writeCertificates?: string;
             certificates?: string;
           },
@@ -262,6 +267,7 @@ export function registerReportingCommands(program: Command): void {
             if (
               options.writeCertificates !== undefined ||
               options.staged ||
+              options.changed !== undefined ||
               options.rules !== undefined
             )
               throw new Error(
@@ -274,11 +280,28 @@ export function registerReportingCommands(program: Command): void {
               json: options.format === "json",
             });
           }
-          if (options.writeCertificates !== undefined && options.staged)
+          if (
+            options.writeCertificates !== undefined &&
+            (options.staged || options.changed !== undefined)
+          )
             throw new Error(
-              "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged",
+              "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged or --changed",
             );
-          const { writeCertificates, ...checkOptions } = options;
+          const { writeCertificates, changed, ...checkOptions } = options;
+          if (changed !== undefined) {
+            const { withChangedIndex } = await import(
+              "./traceability/changed-index.js"
+            );
+            return withChangedIndex(
+              process.cwd(),
+              Array.isArray(changed) ? changed : undefined,
+              async () =>
+                (await import("./commands/check.js")).checkCommand({
+                  ...checkOptions,
+                  staged: true,
+                }),
+            );
+          }
           const result = await (
             await import("./commands/check.js")
           ).checkCommand(checkOptions);

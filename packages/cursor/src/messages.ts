@@ -60,7 +60,7 @@ function impactCheckFollowup(sourcePaths: readonly string[]): string {
   const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
   return [
     `Kibi: run impact-enabled kb_check after ${fileCount} edited source ${noun}.`,
-    `Use kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}).`,
+    `Use kb_check({changed:true, sourceFiles:${sourceFiles}}); findings with blocks:"commit" stop the commit.`,
     "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
   ].join("\n");
 }

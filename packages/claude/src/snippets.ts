@@ -57,6 +57,6 @@ export function stopReminder(paths: readonly string[]): string {
     paths.length > shown.length ? ` +${paths.length - shown.length}` : "";
   return [
     `Kibi: ${paths.length} source ${paths.length === 1 ? "file" : "files"} changed this session without a Kibi impact check: ${shown.join(", ")}${more}.`,
-    `kb_check({sourceFiles:${JSON.stringify(shown)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports requirement ownership, stale traceability, and symbol-manifest drift for ${paths.length === 1 ? "it" : "them"}. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
+    `kb_check({changed:true, sourceFiles:${JSON.stringify(shown)}}) gives the commit gate's verdict on ${paths.length === 1 ? "it" : "them"}: each finding says whether it blocks the commit. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
   ].join("\n");
 }

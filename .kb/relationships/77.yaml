@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5bca4db4c36
+  - type: implements
+    from: SYM-changed-index-changed-index
+    to: REQ-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:30.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48f771374152

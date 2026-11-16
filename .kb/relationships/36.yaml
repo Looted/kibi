@@ -461,3 +461,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a29a0157fa2
+  - type: executable_for
+    from: SYM-test-check-finding-blocks
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-16T19:24:33.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16eebd2d25ba

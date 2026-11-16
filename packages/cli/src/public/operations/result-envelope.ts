@@ -17,7 +17,10 @@ function diagnostics(value: unknown): KibiResult["diagnostics"] {
     if (typeof entry === "string")
       return [{ message: entry, severity: "warning" as const }];
     if (!record(entry) || typeof entry.message !== "string") return [];
-    return [entry as KibiResult["diagnostics"][number]];
+    // What a finding blocks stays in the data; the envelope's diagnostic
+    // shape is fixed.
+    const { blocks: _blocks, ...diagnostic } = entry;
+    return [diagnostic as KibiResult["diagnostics"][number]];
   });
 }
 

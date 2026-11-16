@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac4b6803eab1
+  - type: implements
+    from: SYM-messages-post-edit-impact-note
+    to: REQ-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:30:23.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30372336ef23
+  - type: covered_by
+    from: SYM-messages-post-edit-impact-note
+    to: TEST-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:34:24.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-032f54d6c5af

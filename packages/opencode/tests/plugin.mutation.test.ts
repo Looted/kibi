@@ -615,7 +615,9 @@ describe("plugin system transform", () => {
     write(dir, "src/a.ts", "export const a = 2;\n");
     const [guidance] = await run.transform();
     expect(guidance).toContain("📝 **Code changes detected**");
-    expect(guidance).toContain('kb_check({sourceFiles:["src/a.ts"]');
+    expect(guidance).toContain(
+      'kb_check({changed:true, sourceFiles:["src/a.ts"]',
+    );
     expect(guidanceLog(run)).toMatchObject({
       emitted: true,
       guidance_action: "emit",

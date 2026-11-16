@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-740047f0b22d
+  - type: implements
+    from: SYM-staged-evidence-floor-collectStagedEvidenceFloorViolations
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T19:32:24.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c71d8299fa3
+  - type: covered_by
+    from: SYM-staged-evidence-floor-collectStagedEvidenceFloorViolations
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:35:57.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfd71e69768b

@@ -259,7 +259,7 @@ describe("pre-edit snippets", () => {
     );
     expect(text).toContain('symbol:"computeTotal"');
     expect(text).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
   });
 
@@ -346,7 +346,7 @@ describe("pre-edit snippets", () => {
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
     // Same symbol again: nothing new to say.
     expect(
@@ -377,7 +377,9 @@ describe("pre-edit snippets", () => {
       "Kibi: this edit to src/checkout.ts changes code that implements REQ-checkout-rounding, REQ-currency-display.",
     );
     expect(text).toContain("REQ-checkout-rounding must keep true:");
-    expect(text).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(text).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     expect(text).not.toContain("Kibi knowledge for");
   });
 
@@ -559,7 +561,7 @@ describe("evaluation trace replays", () => {
     );
     expect(edit).toContain("REQ-checkout-rounding must keep true: ");
     expect(edit).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
     // What the Read already showed is not repeated.
     expect(edit).not.toContain("Kibi knowledge for");
@@ -802,7 +804,9 @@ describe("shell commands", () => {
     );
     expect(text).toContain("REQ-checkout-rounding");
     expect(text).toContain("must keep true");
-    expect(text).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(text).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     expect(await stop()).toContain("src/checkout.ts");
   });
 
@@ -833,7 +837,9 @@ describe("shell commands", () => {
     const before = await pre("Bash", { command });
     expect(before).toContain("REQ-checkout-rounding");
     expect(before).toContain("must keep true");
-    expect(before).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(before).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     write(fixture.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// sed\n`);
     // Already said before the edit: not repeated after it.
     expect(await post("Bash", { command })).toEqual({});

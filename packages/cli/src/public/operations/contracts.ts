@@ -762,6 +762,20 @@ const BASE_DATA_SCHEMAS: Readonly<
         violationGroups: recordArray,
         truncated: { const: true },
         truncation: recordValue,
+        changed: {
+          const: true,
+          description:
+            "Set by changed:true: the commit gate judged the working tree plus the index.",
+        },
+        commitAllowed: {
+          ...booleanValue,
+          description:
+            "changed:true only. True when a commit of these changes passes the commit gate.",
+        },
+        messages: stringArray,
+        staged: recordValue,
+        ownerFindings: valueArray,
+        operationalError: stringValue,
         symbolDebt: {
           ...objectData(
             {

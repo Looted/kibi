@@ -78,9 +78,12 @@ function usageFromPayload(
     paths,
     ids,
     check,
-    // A working-tree-diff check without a source filter covers every edit.
+    // A working-tree-diff or changed check without a source filter covers
+    // every edit.
     checkAll:
-      check && paths.length === 0 && payload.includeWorkingTreeDiff === true,
+      check &&
+      paths.length === 0 &&
+      (payload.includeWorkingTreeDiff === true || payload.changed === true),
   };
 }
 

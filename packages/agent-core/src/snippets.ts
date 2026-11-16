@@ -218,7 +218,7 @@ export function unreadableManifestNote(relativePath: string): string {
 
 /** The impact-check line that closes every edit snippet. */
 function impactCheckLine(relativePath: string): string {
-  return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
+  return `Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:[${jsonString(relativePath)}]}) gives the commit gate's verdict on the edit.`;
 }
 
 /** Link types through which a requirement is grounded in semantic facts. */

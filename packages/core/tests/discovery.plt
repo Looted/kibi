@@ -1407,6 +1407,33 @@ test(evidence_floor_rows_list_unmet_floors) :-
         ], unapprovedImplemented: []})
     )).
 
+% The staged check asks only about the requirements a commit stages: the
+% scoped form evaluates those of the named ids the KB holds as requirements
+% (once each), and the unscoped form all of them.
+test(evidence_floor_json_scope_evaluates_only_named_requirements) :-
+    dsc_kb((
+        pf_entity(req, 'REQ-1', [status=open]),
+        pf_entity(req, 'REQ-2', [status=open]),
+        pf_entity(scenario, 'SCEN-1', [status=active]),
+        Params = snap-'2026-05-02T00:00:00Z'-100-per_contract-_{'T': h},
+        dsc_stub(Params, 'REQ-1', _{evidenceLevel: asserted, proofStatus: missing, proofGaps: [],
+            evidenceFloor: _{required: tested, source: firmness, status: below}}),
+        dsc_stub(Params, 'REQ-2', _{evidenceLevel: asserted, proofStatus: missing, proofGaps: [],
+            evidenceFloor: _{required: tested, source: firmness, status: below}}),
+        dsc_json(evidence_floor_json(ids(['REQ-2', 'REQ-2', 'SCEN-1', 'REQ-MISSING']),
+            per_contract, _{'T': h}, snap, '2026-05-02T00:00:00Z', 100), Scoped),
+        same(Scoped.evaluated, 1),
+        findall(Id, (member(Row, Scoped.rows), Id = Row.id), ScopedIds),
+        same(ScopedIds, ['REQ-2']),
+        dsc_json(evidence_floor_json(all, per_contract, _{'T': h}, snap,
+            '2026-05-02T00:00:00Z', 100), All),
+        same(All.evaluated, 2),
+        dsc_json(evidence_floor_json(ids([]), per_contract, _{'T': h}, snap,
+            '2026-05-02T00:00:00Z', 100), None),
+        same(None.evaluated, 0),
+        same(None.rows, [])
+    )).
+
 test(evidence_floor_json_lists_requirement_review_rows) :-
     dsc_kb((
         pf_entity(req, 'REQ-U', [status=open, priority=must, created_at='2026-01-01T00:00:00Z',

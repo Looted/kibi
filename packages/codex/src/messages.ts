@@ -21,7 +21,7 @@ export function freshnessReminder(dirtyPaths: readonly string[]): string {
 export function postEditImpactNote(sourcePaths: readonly string[]): string {
   const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
   return [
-    `Kibi impact review: run kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
+    `Kibi impact review: run kb_check({changed:true, sourceFiles:${sourceFiles}}) while this edit is fresh; it gives the commit gate's verdict.`,
     "Check whether the linked requirements, scenarios and tests still cover the changed behavior.",
   ].join("\n");
 }
@@ -34,7 +34,7 @@ export function impactCheckReminder(sourcePaths: readonly string[]): string {
 
   return [
     "Kibi impact reminder: source paths changed during this Codex session.",
-    `Run kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) before finishing.`,
+    `Run kb_check({changed:true, sourceFiles:${sourceFiles}}) before finishing; findings with blocks:"commit" stop the commit.`,
     "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
     ...preview.map((sourcePath) => `- ${sourcePath}`),
     ...suffix,

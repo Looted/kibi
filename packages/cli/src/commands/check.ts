@@ -55,6 +55,7 @@ import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { createFirmEditGateDiagnostics } from "../public/impact/firm-edit-gate.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
+import { tagBlocks } from "../public/operations/finding-blocks.js";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import type { SymbolDebt } from "../public/operations/symbol-debt.js";
@@ -452,10 +453,18 @@ export function printStagedResult(input: {
     console.log(
       JSON.stringify({
         structuredContent: {
-          violations,
+          // Every staged finding says what it stops: a violation, or a
+          // blocking diagnostic, refuses the commit.
+          violations: tagBlocks(violations as object[], "commit", true),
           count: violations.length,
-          diagnostics: input.coverage?.diagnostics ?? [],
-          qualityDiagnostics,
+          diagnostics: tagBlocks(
+            (input.coverage?.diagnostics ?? []) as object[],
+            "commit",
+          ),
+          qualityDiagnostics: tagBlocks(
+            qualityDiagnostics as object[],
+            "commit",
+          ),
           staged: input.coverage,
           messages: input.messages ?? [],
           ...(input.inheritedSymbolGaps

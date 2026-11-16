@@ -440,3 +440,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb22f0ae223d
+  - type: implements
+    from: SYM-changed-check-changed-check-summary
+    to: REQ-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:22.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-448b234f6845
+  - type: implements
+    from: SYM-check-executor-with-merge-blocks
+    to: REQ-check-finding-blocks
+    created_at: 2026-11-16T19:30:13.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-003858860360
+  - type: covered_by
+    from: SYM-changed-check-changed-check-summary
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T19:34:32.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b8fe79f022f
+  - type: covered_by
+    from: SYM-check-executor-with-merge-blocks
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-16T19:35:19.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcc8dc94d936

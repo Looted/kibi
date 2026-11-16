@@ -482,3 +482,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6f3c3d90b98
+  - type: implements
+    from: SYM-changed-check-changed-check-content
+    to: REQ-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:12.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43382ac88f62

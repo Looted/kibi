@@ -538,3 +538,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-815eced38766
+  - type: implements
+    from: SYM-cli-evidence-floor-check
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T19:32:20.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95e087cb60fe
+  - type: covered_by
+    from: SYM-cli-evidence-floor-check
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:35:43.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd34be1bcb07

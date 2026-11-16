@@ -274,7 +274,7 @@ describe("shared file knowledge snippet", () => {
       "Covered by: TEST-rounding.",
       "The edit is inside computeTotal, which implements REQ-rounding.",
       'Next layer: kb_query({id:"REQ-rounding", includeBody:true}) returns the full requirement text and why it exists; kb_search({query:"<topic>", sourceLocations:[{path:"src/checkout.ts", symbol:"computeTotal"}]}) answers with governing requirements, facts, decisions, and tests.',
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
 
     const read = fileKnowledgeSnippet({
@@ -376,7 +376,7 @@ describe("edit update after a shown snippet", () => {
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-rounding.",
       "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
       "Decision: ADR-decimal: Money is decimal cents.",
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
   });
 

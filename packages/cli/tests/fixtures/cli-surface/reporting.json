@@ -22,7 +22,9 @@
   },
   {
     "name": "find-gaps",
-    "aliases": ["gaps"],
+    "aliases": [
+      "gaps"
+    ],
     "description": "List KB entities by the relationships they lack or have. Use for questions like which requirements lack scenarios or tests; all filters must match, and a relationship counts in either direction. Use kb_coverage instead for proof status and repair plans, and kb_check for rule violations. No mutation side effects.",
     "arguments": [
       {
@@ -382,6 +384,12 @@
       {
         "flags": "--staged",
         "description": "Run check only against staged changes (experimental)",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--changed [paths...]",
+        "description": "Judge the working tree plus the index as the commit gate would (--staged over a scratch index; the real index is untouched). Paths limit it to those files and .kb",
         "default": null,
         "mandatory": false
       },
