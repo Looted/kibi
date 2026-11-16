@@ -419,17 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0fb304f8b994
-  - type: implements
-    from: SYM-mcp-BOOTSTRAP_TOOLS
-    to: REQ-mcp-default-tool-profile
-    created_at: 2026-11-16T17:28:51.747Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-00860152eb37
   - type: covered_by
     from: SYM-mcp-BOOTSTRAP_TOOLS
-    to: TEST-mcp-default-tool-profile
-    created_at: 2026-11-16T17:28:51.873Z
+    to: TEST-proof-mcp-bootstrap-tools
+    created_at: 2026-11-16T22:38:10.343Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-ac78e979aa2e
+    id: rel-fe6697d236b4

@@ -211,20 +211,6 @@ relationships:
     id: rel-a9d5c74bd8b5
   - type: requires_property
     from: REQ-mcp-default-tool-profile
-    to: FACT-mcp-default-profile-lists-six
-    created_at: 2026-11-16T17:27:10.085Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-79ea0a8d1728
-  - type: requires_property
-    from: REQ-mcp-default-tool-profile
-    to: FACT-mcp-empty-kb-lists-bootstrap
-    created_at: 2026-11-16T17:27:10.194Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-500955937348
-  - type: requires_property
-    from: REQ-mcp-default-tool-profile
     to: FACT-mcp-instructions-name-unlisted
     created_at: 2026-11-16T17:27:10.230Z
     created_by: kibi/upsert
@@ -265,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ab3fa5ab880
+  - type: requires_property
+    from: REQ-mcp-default-tool-profile
+    to: FACT-mcp-default-profile-tools
+    created_at: 2026-11-16T22:37:05.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5d0a61c1084
+  - type: requires_property
+    from: REQ-mcp-default-tool-profile
+    to: FACT-mcp-empty-kb-bootstrap-tools
+    created_at: 2026-11-16T22:37:12.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d69c30f17dd

@@ -42004,9 +42004,7 @@ symbols:
       recorded_at: 2026-11-16T20:00:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-mcp-default-tool-profile
-      - type: implements
-        target: REQ-mcp-default-tool-profile
+        target: TEST-proof-mcp-default-profile-tools
   - id: SYM-mcp-BOOTSTRAP_TOOLS
     title: BOOTSTRAP_TOOLS
     status: active
@@ -42017,9 +42015,7 @@ symbols:
       recorded_at: 2026-11-16T20:00:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-mcp-default-tool-profile
-      - type: implements
-        target: REQ-mcp-default-tool-profile
+        target: TEST-proof-mcp-bootstrap-tools
   - id: SYM-mcp-resolveToolProfile
     title: resolveToolProfile
     status: active
@@ -43285,3 +43281,31 @@ symbols:
         target: TEST-upsert-stale-siblings
       - type: implements
         target: REQ-apply-plan-checks-contradictions-once
+  - id: SYM-proof-mcp-default-profile-tools
+    title: mcpDefaultProfileToolsCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T22:37:52.745Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-default-profile-tools
+  - id: SYM-proof-mcp-bootstrap-tools
+    title: mcpBootstrapToolsCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T22:37:54.454Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-bootstrap-tools

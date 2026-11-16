@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f7fac7c6f82
+  - type: executable_for
+    from: SYM-proof-mcp-default-profile-tools
+    to: TEST-proof-mcp-default-profile-tools
+    created_at: 2026-11-16T22:37:53.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9d7f3bc5edb
