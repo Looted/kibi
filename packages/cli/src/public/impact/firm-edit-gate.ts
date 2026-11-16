@@ -56,6 +56,10 @@ export type FirmEditReview =
   | { state: "missing" }
   | { state: "statement-changed" | "code-changed"; receipt: FirmEditReceipt };
 
+/** The review states that let a staged change of firm code through. */
+export const STAGED_PASSING_REVIEW_STATES: readonly FirmEditReview["state"][] =
+  ["kept"];
+
 /** How the stored receipt for one requirement and symbol stands now. */
 export function reviewState(input: {
   requirementId: string;
@@ -155,7 +159,8 @@ export function createFirmEditGateDiagnostics(
         content: options.readContent(symbol.location.file),
         readReceipt: options.readReceipt,
       });
-      if (review.state !== "kept") open.push({ symbol, review });
+      if (!STAGED_PASSING_REVIEW_STATES.includes(review.state))
+        open.push({ symbol, review });
     }
     if (open.length === 0) continue;
     open.sort((left, right) =>
