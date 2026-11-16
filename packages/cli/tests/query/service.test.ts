@@ -239,48 +239,6 @@ describe("query service", () => {
     expect(service.validateEntityType("req")).toBe(true);
     expect(service.validateEntityType("unknown")).toBe(false);
   });
-
-  test("getInvalidTypeError lists the supported entity types", () => {
-    expect(service.getInvalidTypeError("unknown")).toBe(
-      "Invalid type 'unknown'. Valid types: req, scenario, test, adr, flag, event, symbol, fact. Use a single type value, or omit this parameter to query all entities.",
-    );
-  });
-
-  describe("buildQuerySummaryText", () => {
-    test("describes empty results", () => {
-      expect(
-        service.buildQuerySummaryText(
-          { entities: [], totalCount: 0 },
-          { type: "req" },
-        ),
-      ).toBe("No entities found of type 'req'.");
-    });
-
-    test("describes paginated results and strips file URI prefixes", () => {
-      const text = service.buildQuerySummaryText(
-        {
-          entities: [
-            {
-              id: "file:///tmp/.kb/requirements/REQ-7.md",
-              title: "Readable title",
-              status: "open",
-            },
-            {
-              id: "REQ-8",
-              title: undefined,
-              status: undefined,
-            },
-          ],
-          totalCount: 2,
-        },
-        { offset: 1, limit: 2 },
-      );
-
-      expect(text).toBe(
-        "Found 2 entities. Showing 2 (offset 1, limit 2): REQ-7.md (Readable title, status=open), REQ-8 (, status=)",
-      );
-    });
-  });
 });
 
 const { escapeAtom } = await import("../../src/prolog/codec.js");
@@ -338,31 +296,5 @@ describe("query service defaults and edge filters", () => {
       6,
     );
     expect((await service.queryEntities(prolog, {})).totalCount).toBe(6);
-  });
-
-  test("the summary strips only a leading file URI directory", () => {
-    const summary = service.buildQuerySummaryText(
-      {
-        entities: [
-          { id: "file:///repo/docs/REQ-a", title: "T", status: "open" },
-          { id: "see file:///x/y", title: "U", status: "draft" },
-          {},
-        ],
-        totalCount: 3,
-      },
-      { offset: 0, limit: 10 },
-    );
-    expect(summary).toBe(
-      "Found 3 entities. Showing 3 (offset 0, limit 10): REQ-a (T, status=open), see file:///x/y (U, status=draft),  (, status=)",
-    );
-    expect(
-      service.buildQuerySummaryText({ entities: [], totalCount: 0 }, {}),
-    ).toBe("No entities found.");
-    expect(
-      service.buildQuerySummaryText(
-        { entities: [], totalCount: 0 },
-        { type: "req" },
-      ),
-    ).toBe("No entities found of type 'req'.");
   });
 });

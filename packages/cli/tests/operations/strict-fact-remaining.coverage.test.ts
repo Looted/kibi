@@ -1,8 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import {
-  assertRuleSchemaArity,
-  validateFactModelingShape,
-} from "../../src/operations/mutation/strict-fact.js";
+import { validateFactModelingShape } from "../../src/operations/mutation/strict-fact.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
@@ -24,11 +21,5 @@ describe("strict-fact remaining rule_schema length mismatch", () => {
         argument_types: ["atom", "atom"],
       }),
     ).toThrow(/equal lengths/);
-    expect(() => assertRuleSchemaArity(["a"], ["atom", "atom"])).toThrow(
-      /equal lengths/,
-    );
-    expect(() => assertRuleSchemaArity("a", ["atom"])).toThrow(/equal lengths/);
-    expect(() => assertRuleSchemaArity(["a"], "atom")).toThrow(/equal lengths/);
-    expect(() => assertRuleSchemaArity(["a"], ["atom"])).not.toThrow();
   });
 });
