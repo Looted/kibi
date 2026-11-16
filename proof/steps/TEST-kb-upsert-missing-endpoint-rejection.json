@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-kb-upsert-missing-endpoint-rejection",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/operations-mutation/mutation/contradictions.test.ts",
+      "./packages/cli/tests/prolog/error-terms.test.ts"
+    ]
+  ]
+}
