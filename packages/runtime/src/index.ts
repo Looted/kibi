@@ -297,6 +297,7 @@ export {
   getLastBootstrapResult,
   inspectSecretSource,
   isSecretAvailable,
+  isWorkspaceEnvKeyAllowed,
   parseEnvContent,
   resetKibiEnvironmentBootstrapStateForTests,
   resolveEnvFilePath,

@@ -20,6 +20,7 @@ import {
   KIBI_PROJECT_ENV_FILE,
   bootstrapKibiEnvironment,
   inspectSecretSource,
+  isWorkspaceEnvKeyAllowed,
   parseEnvContent,
   resolveEnvFilePath,
   resolveKibiProjectEnvPath,
@@ -104,7 +105,11 @@ export function loadEnvFile(options: {
   try {
     const raw = fs.readFileSync(envFilePath, "utf8");
     for (const { key, value } of parseEnvContent(raw)) {
-      if (!key || Object.prototype.hasOwnProperty.call(process.env, key)) {
+      if (
+        !key ||
+        !isWorkspaceEnvKeyAllowed(key) ||
+        Object.prototype.hasOwnProperty.call(process.env, key)
+      ) {
         continue;
       }
       process.env[key] = value;

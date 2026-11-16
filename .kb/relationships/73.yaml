@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5128211bb7d3
+  - type: implements
+    from: SYM-env-bootstrap-kibi-environment
+    to: REQ-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:34:53.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf4016acdaee
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-environment
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:34:53.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c579fc5d6eea

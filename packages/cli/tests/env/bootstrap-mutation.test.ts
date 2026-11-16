@@ -345,6 +345,8 @@ describe("bootstrapKibiEnvironment with an injected env", () => {
       keysLoadedFromUser: ["U_ONLY", "SHARED", "USER_LEGACY"],
       keysLoadedFromProject: ["SHARED", "P_ONLY"],
       keysLoadedFromLegacy: ["L_ONLY", "EMPTY_PROC"],
+      keysIgnoredFromProject: [],
+      keysIgnoredFromLegacy: [],
     });
     expect(env).toStrictEqual({
       PROC: "process",
@@ -435,59 +437,59 @@ describe("bootstrapKibiEnvironment on process.env", () => {
     setProcessEnv({
       ...WORKSPACE_KEYS,
       XDG_CONFIG_HOME: xdg,
-      KIBI_BOOT_A: undefined,
-      KIBI_BOOT_B: undefined,
+      BOOT_TEST_A: undefined,
+      BOOT_TEST_B: undefined,
     });
     return { root, xdg };
   }
 
   test("remembers the first snapshot of process keys", () => {
-    const { root } = processWorkspace("KIBI_BOOT_A=file\n");
-    setProcessEnv({ KIBI_BOOT_B: "proc" });
+    const { root } = processWorkspace("BOOT_TEST_A=file\n");
+    setProcessEnv({ BOOT_TEST_B: "proc" });
     const first = bootstrapKibiEnvironment({ startDir: root });
-    expect(process.env.KIBI_BOOT_A).toBe("file");
-    expect(first.sources.KIBI_BOOT_A).toBe("project_env");
-    expect(first.sources.KIBI_BOOT_B).toBe("process");
+    expect(process.env.BOOT_TEST_A).toBe("file");
+    expect(first.sources.BOOT_TEST_A).toBe("project_env");
+    expect(first.sources.BOOT_TEST_B).toBe("process");
     expect(getLastBootstrapResult()).toBe(first);
 
     // The file value is not a process key on re-entry, so a changed file
     // still applies; a key cleared since is no longer process-owned.
-    write(path.join(root, ".env.kibi"), "KIBI_BOOT_A=changed\n");
-    setProcessEnv({ KIBI_BOOT_B: "" });
+    write(path.join(root, ".env.kibi"), "BOOT_TEST_A=changed\n");
+    setProcessEnv({ BOOT_TEST_B: "" });
     const second = bootstrapKibiEnvironment({ startDir: root });
-    expect(process.env.KIBI_BOOT_A).toBe("changed");
-    expect(second.sources.KIBI_BOOT_A).toBe("project_env");
-    expect("KIBI_BOOT_B" in second.sources).toBe(false);
+    expect(process.env.BOOT_TEST_A).toBe("changed");
+    expect(second.sources.BOOT_TEST_A).toBe("project_env");
+    expect("BOOT_TEST_B" in second.sources).toBe(false);
     expect(getLastBootstrapResult()).toBe(second);
   });
 
   test("snapshots the process again for a new workspace", () => {
-    const { root } = processWorkspace("KIBI_BOOT_A=file\n");
+    const { root } = processWorkspace("BOOT_TEST_A=file\n");
     bootstrapKibiEnvironment({ startDir: root });
-    const other = workspaceWithFiles({ project: "KIBI_BOOT_A=other\n" });
+    const other = workspaceWithFiles({ project: "BOOT_TEST_A=other\n" });
     const again = bootstrapKibiEnvironment({ startDir: other.root });
     expect(again.workspaceRoot).toBe(other.root);
-    expect(again.sources.KIBI_BOOT_A).toBe("process");
-    expect(process.env.KIBI_BOOT_A).toBe("file");
+    expect(again.sources.BOOT_TEST_A).toBe("process");
+    expect(process.env.BOOT_TEST_A).toBe("file");
     const same = bootstrapKibiEnvironment({ startDir: other.root });
-    expect(same.sources.KIBI_BOOT_A).toBe("process");
+    expect(same.sources.BOOT_TEST_A).toBe("process");
   });
 
   test("does not remember a snapshot of an injected env", () => {
-    const { root } = processWorkspace("KIBI_BOOT_A=file\n");
-    setProcessEnv({ KIBI_BOOT_B: "proc" });
+    const { root } = processWorkspace("BOOT_TEST_A=file\n");
+    setProcessEnv({ BOOT_TEST_B: "proc" });
     bootstrapKibiEnvironment({ env: { KIBI_WORKSPACE: root }, startDir: root });
     const real = bootstrapKibiEnvironment({ startDir: root });
-    expect(real.sources.KIBI_BOOT_B).toBe("process");
+    expect(real.sources.BOOT_TEST_B).toBe("process");
   });
 
   test("forgets the snapshot when reset", () => {
-    const { root } = processWorkspace("KIBI_BOOT_A=file\n");
+    const { root } = processWorkspace("BOOT_TEST_A=file\n");
     bootstrapKibiEnvironment({ startDir: root });
     resetKibiEnvironmentBootstrapStateForTests();
     expect(getLastBootstrapResult()).toBe(null);
     const fresh = bootstrapKibiEnvironment({ startDir: root });
-    expect(fresh.sources.KIBI_BOOT_A).toBe("process");
+    expect(fresh.sources.BOOT_TEST_A).toBe("process");
   });
 });
 
@@ -579,64 +581,64 @@ describe("secret attribution", () => {
   });
 
   test("answers from the last process bootstrap unless options narrow it", () => {
-    const { root, xdg } = workspaceWithFiles({ project: "KIBI_BOOT_B=file\n" });
+    const { root, xdg } = workspaceWithFiles({ project: "BOOT_TEST_B=file\n" });
     setProcessEnv({
       ...WORKSPACE_KEYS,
       KIBI_WORKSPACE: root,
       XDG_CONFIG_HOME: xdg,
-      KIBI_BOOT_B: undefined,
-      KIBI_BOOT_C: "proc",
+      BOOT_TEST_B: undefined,
+      BOOT_TEST_C: "proc",
     });
     bootstrapKibiEnvironment();
-    expect(inspectSecretSource("KIBI_BOOT_B")).toBe("project_env");
+    expect(inspectSecretSource("BOOT_TEST_B")).toBe("project_env");
     // Recorded attribution is read, not the files: a later file is ignored.
-    write(path.join(root, ".env.kibi"), "KIBI_BOOT_B=file\nKIBI_BOOT_D=late\n");
-    expect(inspectSecretSource("KIBI_BOOT_D")).toBe("missing");
-    expect(inspectSecretSource("KIBI_BOOT_D", { startDir: root })).toBe(
+    write(path.join(root, ".env.kibi"), "BOOT_TEST_B=file\nBOOT_TEST_D=late\n");
+    expect(inspectSecretSource("BOOT_TEST_D")).toBe("missing");
+    expect(inspectSecretSource("BOOT_TEST_D", { startDir: root })).toBe(
       "project_env",
     );
-    expect(inspectSecretSource("KIBI_BOOT_D", { xdgConfigHome: xdg })).toBe(
+    expect(inspectSecretSource("BOOT_TEST_D", { xdgConfigHome: xdg })).toBe(
       "project_env",
     );
-    expect(inspectSecretSource("KIBI_BOOT_D", { homedir: "/h" })).toBe(
+    expect(inspectSecretSource("BOOT_TEST_D", { homedir: "/h" })).toBe(
       "project_env",
     );
     expect(
-      inspectSecretSource("KIBI_BOOT_D", {
+      inspectSecretSource("BOOT_TEST_D", {
         initialNonEmptyProcessKeys: new Set(),
       }),
     ).toBe("project_env");
     expect(
-      inspectSecretSource("KIBI_BOOT_D", { initialProcessKeys: new Set() }),
+      inspectSecretSource("BOOT_TEST_D", { initialProcessKeys: new Set() }),
     ).toBe("project_env");
-    expect(process.env.KIBI_BOOT_D).toBe(undefined);
-    // The remembered process keys still own KIBI_BOOT_C in a dry run, while
-    // the file-loaded KIBI_BOOT_B is not a process key.
-    write(path.join(root, ".env.kibi"), "KIBI_BOOT_B=file\nKIBI_BOOT_C=file\n");
-    expect(inspectSecretSource("KIBI_BOOT_C", { startDir: root })).toBe(
+    expect(process.env.BOOT_TEST_D).toBe(undefined);
+    // The remembered process keys still own BOOT_TEST_C in a dry run, while
+    // the file-loaded BOOT_TEST_B is not a process key.
+    write(path.join(root, ".env.kibi"), "BOOT_TEST_B=file\nBOOT_TEST_C=file\n");
+    expect(inspectSecretSource("BOOT_TEST_C", { startDir: root })).toBe(
       "process",
     );
-    expect(inspectSecretSource("KIBI_BOOT_B", { startDir: root })).toBe(
+    expect(inspectSecretSource("BOOT_TEST_B", { startDir: root })).toBe(
       "project_env",
     );
-    setProcessEnv({ KIBI_BOOT_C: " " });
-    expect(inspectSecretSource("KIBI_BOOT_C", { startDir: root })).toBe(
+    setProcessEnv({ BOOT_TEST_C: " " });
+    expect(inspectSecretSource("BOOT_TEST_C", { startDir: root })).toBe(
       "project_env",
     );
   });
 
   test("snapshots a copy of the process env without a prior bootstrap", () => {
-    const { root, xdg } = workspaceWithFiles({ project: "KIBI_BOOT_A=file\n" });
+    const { root, xdg } = workspaceWithFiles({ project: "BOOT_TEST_A=file\n" });
     setProcessEnv({
       ...WORKSPACE_KEYS,
       KIBI_WORKSPACE: root,
       XDG_CONFIG_HOME: xdg,
-      KIBI_BOOT_A: "proc",
+      BOOT_TEST_A: "proc",
     });
-    expect(inspectSecretSource("KIBI_BOOT_A")).toBe("process");
+    expect(inspectSecretSource("BOOT_TEST_A")).toBe("process");
     expect(getLastBootstrapResult()).toBe(null);
-    setProcessEnv({ KIBI_BOOT_A: undefined });
-    expect(inspectSecretSource("KIBI_BOOT_A")).toBe("project_env");
-    expect(process.env.KIBI_BOOT_A).toBe(undefined);
+    setProcessEnv({ BOOT_TEST_A: undefined });
+    expect(inspectSecretSource("BOOT_TEST_A")).toBe("project_env");
+    expect(process.env.BOOT_TEST_A).toBe(undefined);
   });
 });
