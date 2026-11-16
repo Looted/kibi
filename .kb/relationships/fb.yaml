@@ -545,3 +545,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e2815f82157
+  - type: executable_for
+    from: SYM-test-upsert-sibling-requirements-unit
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:16:58.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-286e55dfd94e

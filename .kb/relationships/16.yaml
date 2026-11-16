@@ -440,3 +440,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a234ad18b1d4
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-input
+    to: REQ-upsert-lists-sibling-requirements
+    created_at: 2026-11-16T19:17:32.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60bdd870e577
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-input
+    to: REQ-upsert-dry-run-lists-siblings
+    created_at: 2026-11-16T19:17:32.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dcc695171db
+  - type: covered_by
+    from: SYM-cli-sibling-requirements-sibling-input
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:32.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56faa23dc8ff
