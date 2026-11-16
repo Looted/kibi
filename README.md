@@ -299,7 +299,7 @@ For a requirement to be tested end to end rather than merely documented:
 - Requirements must be specified by scenarios, and tests must verify those scenarios. A success scenario that assumes something a current requirement forbids blocks proof.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests, and the pre-commit hook applies the same rule as the full check.
-- The pre-commit hook judges a commit only on the declarations it adds or changes, so an older repository whose KB records only its deciding code can adopt Kibi without first recording every declaration. `kibi check` reports the unrecorded rest as non-blocking symbol debt, and every commit that touches it records it.
+- The pre-commit hook judges a commit only on the declarations it adds or changes, so an older repository whose KB records only its deciding code can adopt Kibi without first recording every declaration. `kibi check` counts the unrecorded rest as non-blocking symbol debt on its one-line verdict (`kibi check --symbol-debt` lists it), and every commit that touches it records it.
 - `kibi check --changed` (`kb_check` with `changed: true` for agents) gives the pre-commit hook's verdict on every current change before anything is staged, without touching the index, and every finding says whether it blocks the commit (`blocks: "commit"`), the merge (`"merge"`) or nothing (`"none"`). The agent hooks recommend it after each edit.
 - End-to-end evidence must be fresh and bound to the current code snapshot, so CI and a local checkout of the same commit agree.
 

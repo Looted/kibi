@@ -31,7 +31,7 @@ symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of stag
   records: <file> has N declaration(s) without a .kb/symbols.yaml record that
   this commit did not add or change ...`. No action is required; do not
   record them to make the note go away unless the human asks. `kibi check`
-  lists them all under `symbolDebt`.
+  counts them; `kibi check --symbol-debt` lists them all.
 - A record needs a `symbol_role`. Only behavioral code needs `implements` and
   `covered_by`: a function, class, method, property, accessor or a variable
   holding a function always does; a schema constant or type can be recorded

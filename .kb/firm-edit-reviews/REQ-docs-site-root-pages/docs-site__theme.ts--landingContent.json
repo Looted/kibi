@@ -4,10 +4,10 @@
   "sourceFile": "docs-site/theme.ts",
   "symbol": "landingContent",
   "verdict": "keeps",
-  "note": "Only the landing page FAQ text changed to describe kb_check changed:true; where and how the site is published and built is unchanged.",
+  "note": "The landing page still publishes the same root pages with the same link checks; its copy names kibi check --symbol-debt and describes kb_check changed:true.",
   "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
-  "codeHash": "sha256:6165b421b50e17bddb50223074b6ab7db5913341bd948cb70a8544a0e830774a",
+  "codeHash": "sha256:ce4c5525fc5fc57d21b384bec15a1a7ff3208c58e29a17c2654808bc5389eb46",
   "startLine": 1447,
   "endLine": 1833,
-  "recordedAt": "2026-11-16T20:42:18.952Z"
+  "recordedAt": "2026-11-16T23:36:53.443Z"
 }

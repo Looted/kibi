@@ -38,6 +38,7 @@ import {
   type CheckStructuredContent,
   buildStructuredContent,
   buildSummary,
+  describeEvaluatedRules,
   fitScopedCheckToBudget,
 } from "./check-format-shared.js";
 import {
@@ -77,7 +78,11 @@ import {
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
 import { collectSubjectLayerViolations } from "./subject-layer.js";
 import { collectSymbolCoordinatesMissingViolations } from "./symbol-coordinates-check.js";
-import { type SymbolDebt, collectSymbolDebt } from "./symbol-debt.js";
+import {
+  type SymbolDebt,
+  collectSymbolDebt,
+  symbolDebtListing,
+} from "./symbol-debt.js";
 import { collectSymbolGranularityViolations } from "./symbol-granularity-check.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -100,6 +105,8 @@ export type CheckInput = {
   readonly freshEvidence?: boolean;
   /** A scoped check returns the full migration plan instead of its summary. */
   readonly includeMigrationPlan?: boolean;
+  /** An unscoped check lists its symbol debt per file, not only as counts. */
+  readonly includeSymbolDebt?: boolean;
 };
 
 export type CheckPayload = CheckStructuredContent;
@@ -123,25 +130,29 @@ export type CheckExecutionOptions = {
   readonly branchStoreAttached?: boolean;
   /** Runs the commit gate for `changed: true` (tests inject one). */
   readonly changedGateRunner?: ChangedGateRunner;
+  /**
+   * Every finding in full, past the size budget a check without a rule
+   * selection keeps (the `kibi check` command prints them all).
+   */
+  readonly fullListing?: boolean;
 };
 
 /**
- * What this run evaluated: the rules that ran, in registry order, and for
- * `domain-contradictions` the number of requirement fact pairs the rule
- * compared, read from the engine after the rules ran on the same store. A
- * count the engine cannot give (an older engine) is left out rather than
- * reported as zero.
+ * What this run evaluated: how many rules ran (named, in registry order,
+ * only when a default rule did not), and for `domain-contradictions` the
+ * number of requirement fact pairs the rule compared, read from the engine
+ * after the rules ran on the same store. A count the engine cannot give (an
+ * older engine) is left out rather than reported as zero.
  */
 async function describeEvaluation(
   prolog: PrologPort,
   rules: ReadonlySet<string>,
 ): Promise<CheckEvaluated> {
   const evaluated: {
-    rules: string[];
+    ruleCount: number;
+    rules?: readonly string[];
     domainContradictions?: { factPairsExamined: number };
-  } = {
-    rules: [...rules],
-  };
+  } = describeEvaluatedRules(rules);
   if (!rules.has("domain-contradictions")) return evaluated;
   try {
     const result = await prolog.query(
@@ -264,7 +275,7 @@ export function withSymbolDebtSummary(
   summary: string,
 ): string {
   if (debt === undefined || debt.total === 0) return summary;
-  return `${summary}\nSymbol records (not blocking): ${debt.total} declaration(s) in ${debt.files.length} file(s) with symbol records have none; a commit is judged on them only when it adds or changes them.`;
+  return `${summary}\nSymbol records (not blocking): ${debt.total} declaration(s) in ${debt.fileCount} file(s) with symbol records have none; a commit is judged on them only when it adds or changes them.${debt.files === undefined ? " includeSymbolDebt: true lists them." : ""}`;
 }
 
 export function analysisCacheDir(
@@ -342,7 +353,9 @@ export async function executeCheck(
         statusPlan,
       );
       // Every store-backed rule was skipped: only this one was evaluated.
-      const evaluated = { rules: [BRANCH_STORE_NOT_COMPILED_RULE] };
+      const evaluated = describeEvaluatedRules([
+        BRANCH_STORE_NOT_COMPILED_RULE,
+      ]);
       return {
         content: [
           {
@@ -403,7 +416,7 @@ export async function executeCheck(
         statusPlan,
         impactResult,
       );
-      const evaluated = { rules: [] };
+      const evaluated = describeEvaluatedRules([]);
       return {
         content: [
           {
@@ -617,14 +630,26 @@ export async function executeCheck(
             prolog,
             workspaceRoot,
             analysisCacheDir(context, workspaceRoot, options),
-          ).catch(() => undefined)
+          )
+            .then((debt) =>
+              symbolDebtListing(debt, args.includeSymbolDebt === true),
+            )
+            .catch(() => undefined)
         : undefined;
+    // A rule selection lists its findings in full; any other check keeps to
+    // the size budget, and the debt list, when asked for, comes on top.
+    const fitted =
+      hasExplicitRules || options.fullListing === true
+        ? structured
+        : fitScopedCheckToBudget(
+            // Tagged before the cut, so the budget counts the tags.
+            withMergeBlocks(structured),
+            undefined,
+            scoped,
+            args.includeMigrationPlan === true,
+          );
     const structuredContent = withMergeBlocks(
-      scoped
-        ? fitScopedCheckToBudget(structured)
-        : symbolDebt !== undefined
-          ? { ...structured, symbolDebt }
-          : structured,
+      symbolDebt !== undefined ? { ...fitted, symbolDebt } : fitted,
     );
     return {
       content: [

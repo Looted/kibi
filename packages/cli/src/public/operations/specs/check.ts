@@ -35,7 +35,16 @@ export const checkSpec = {
       includeMigrationPlan: {
         type: "boolean",
         description:
-          "With sourceFiles: return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary.",
+          "Return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary, which a check with sourceFiles always gives and any other check gives when the result is over its size budget.",
+        [ADVERTISED_DESCRIPTION]:
+          "Return the full migrationPlan (for kb_apply_plan) even when the result would show only its summary.",
+      },
+      includeSymbolDebt: {
+        type: "boolean",
+        description:
+          "Without rules or sourceFiles: list the unrecorded declarations per file under symbolDebt.files. By default symbolDebt carries only total and fileCount; the debt never blocks.",
+        [ADVERTISED_DESCRIPTION]:
+          "Without rules or sourceFiles: list unrecorded declarations per file (symbolDebt has counts only by default).",
       },
       staged: {
         type: "boolean",

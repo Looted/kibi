@@ -418,6 +418,12 @@
         "mandatory": false
       },
       {
+        "flags": "--symbol-debt",
+        "description": "List the unrecorded declarations per file (a full check reports only their count)",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--write-certificates <file>",
         "description": "Also save the kibi.certificates.v1 bundle the kb-consistency rule re-checked",
         "default": null,

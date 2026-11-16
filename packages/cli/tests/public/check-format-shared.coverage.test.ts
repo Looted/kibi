@@ -104,6 +104,7 @@ describe("check-format-shared formatters", () => {
     const structured = buildStructuredContent({
       violations,
       evaluated: {
+        ruleCount: 2,
         rules: ["required-fields", "domain-contradictions"],
         domainContradictions: { factPairsExamined: 3 },
       },
@@ -127,17 +128,18 @@ describe("check-format-shared formatters", () => {
     expect(structured.diagnostics[0]?.file).toBe("a.md");
 
     expect(structured.evaluated).toEqual({
+      ruleCount: 2,
       rules: ["required-fields", "domain-contradictions"],
       domainContradictions: { factPairsExamined: 3 },
     });
     const thin = buildStructuredContent({
       violations: [],
-      evaluated: { rules: [] },
+      evaluated: { ruleCount: 0, rules: [] },
       diagnostics: [],
       impactResult: undefined,
     });
     expect(thin.count).toBe(0);
-    expect(thin.evaluated).toEqual({ rules: [] });
+    expect(thin.evaluated).toEqual({ ruleCount: 0, rules: [] });
     expect(thin.qualityDiagnostics).toBeUndefined();
     expect(thin.impactDiagnostics).toBeUndefined();
 
@@ -154,6 +156,7 @@ describe("check-format-shared formatters", () => {
       buildSummary({
         violations: [],
         evaluated: {
+          ruleCount: 1,
           rules: ["domain-contradictions"],
           domainContradictions: { factPairsExamined: 0 },
         },
@@ -166,6 +169,7 @@ describe("check-format-shared formatters", () => {
     const summary = buildSummary({
       violations,
       evaluated: {
+        ruleCount: 2,
         rules: ["required-fields", "domain-contradictions"],
         domainContradictions: { factPairsExamined: 3 },
       },
