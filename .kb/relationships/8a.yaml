@@ -251,3 +251,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e8f32ea82ea
+  - type: assumes
+    from: SCEN-kibi-proof-test-report-outcomes
+    to: FACT-proof-test-report-outcomes
+    created_at: 2026-11-16T08:23:34.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-550e9c00cc5a
+  - type: assumes
+    from: SCEN-kibi-proof-test-report-outcomes
+    to: FACT-proof-test-report-env
+    created_at: 2026-11-16T08:23:34.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-484c75df1f60
+  - type: assumes
+    from: SCEN-kibi-proof-test-report-outcomes
+    to: FACT-proof-test-report-version
+    created_at: 2026-11-16T08:23:34.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f64cb5a2f64
+  - type: verified_by
+    from: SCEN-kibi-proof-test-report-outcomes
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T08:23:34.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b41f013d6956

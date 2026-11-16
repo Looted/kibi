@@ -353,3 +353,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76e9439b122a
+  - type: assumes
+    from: SCEN-NEG-kibi-proof-step-settings-MISNAMED-FILE
+    to: FACT-NEG-kibi-proof-step-settings-MISNAMED-FILE
+    created_at: 2026-11-16T07:29:36.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8ba63987632
+  - type: verified_by
+    from: SCEN-NEG-kibi-proof-step-settings-MISNAMED-FILE
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T07:29:36.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7e6a4593bad

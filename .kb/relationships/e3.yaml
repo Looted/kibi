@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2f56e2d6eb1
+  - type: covered_by
+    from: SYM-const-proof-test-report-env
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T08:23:49.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80dc42c0ee10
