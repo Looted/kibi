@@ -52,6 +52,13 @@ consolidated routes `kibi skill` and `kibi model` match the MCP tools
   inputs of `semantic-advisor`, `model-requirement`, or `suggest-predicates`
   (`text` is always required), and returns that operation's payload with
   `mode`.
+- `kibi upsert` refuses a fact write that makes two current requirements
+  grounded on the fact contradict where they did not before, and lists the
+  other current requirements on the quantity a value fact write changes under
+  `siblings`, each also a warning and a required `nextActions` entry; the dry
+  run does both without writing. `kibi apply-plan` runs the contradiction
+  check once after every step. See
+  [Writes the contradiction check refuses](inference-rules.md#writes-the-contradiction-check-refuses).
 - `kibi upsert` accepts `"dryRun": true`: it runs the `validate-upsert`
   checks, writes nothing, and returns the validation payload plus
   `dryRun: true` and `skippedEffects`. With `"plannedFacts": [...]` (the

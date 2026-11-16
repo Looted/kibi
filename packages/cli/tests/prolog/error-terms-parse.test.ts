@@ -356,6 +356,37 @@ describe("contradiction errors", () => {
   });
 });
 
+describe("fact contradiction errors", () => {
+  test("lists each complete conflict with the requirement on both sides", () => {
+    expect(
+      parse(
+        "error(kb_fact_contradiction('FACT-1', [conflict('REQ-A', 'REQ-B', \"lte 2 vs gte 3\"), conflict(x, y), other(a, b, c), conflict('', b, c)]), 'Contradiction detected for fact FACT-1: listed')",
+      ),
+    ).toStrictEqual({
+      code: "contradiction",
+      entityId: "FACT-1",
+      conflicts: [
+        { reason: "lte 2 vs gte 3", otherId: "REQ-B", requirementId: "REQ-A" },
+      ],
+      message: "Contradiction detected for fact FACT-1: listed",
+    });
+  });
+
+  test("a missing list has no conflicts and names the fact", () => {
+    for (const term of [
+      "kb_fact_contradiction('FACT-1')",
+      "kb_fact_contradiction('FACT-1', x)",
+    ])
+      expect(parse(`error(${term})`)).toStrictEqual({
+        code: "contradiction",
+        entityId: "FACT-1",
+        conflicts: [],
+        message:
+          "Contradiction detected for fact FACT-1: the write makes current requirements conflict",
+      });
+  });
+});
+
 describe("validation errors", () => {
   test("carry their unquoted message", () => {
     expect(
