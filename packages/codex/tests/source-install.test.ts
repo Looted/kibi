@@ -64,6 +64,7 @@ function resultOf(output: {
   systemMessage?: string;
   decision?: string;
   reason?: string;
+  hookSpecificOutput?: { hookEventName: string; additionalContext: string };
 } {
   expect(output.exitCode, output.stderr).toBe(0);
   return JSON.parse(output.stdout.trim()) as {
@@ -71,6 +72,7 @@ function resultOf(output: {
     systemMessage?: string;
     decision?: string;
     reason?: string;
+    hookSpecificOutput?: { hookEventName: string; additionalContext: string };
   };
 }
 
