@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-self-attested-review-code",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/lifecycle-review-actions.proof.test.ts"
+    ]
+  ]
+}

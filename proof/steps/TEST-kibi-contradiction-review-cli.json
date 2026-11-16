@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-contradiction-review-cli",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/contradiction-review.test.ts"
+    ]
+  ]
+}

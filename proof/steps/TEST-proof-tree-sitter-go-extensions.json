@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-tree-sitter-go-extensions",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/tree-sitter-languages.proof.test.ts"
+    ]
+  ]
+}

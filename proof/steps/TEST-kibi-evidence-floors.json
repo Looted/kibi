@@ -1,0 +1,25 @@
+{
+  "test_id": "TEST-kibi-evidence-floors",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/evidence-floors.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/public/evidence-floor.test.ts"
+    ],
+    [
+      "swipl",
+      "-q",
+      "-s",
+      "packages/core/tests/kb.plt",
+      "-g",
+      "run_tests(requirement_evidence_floors)",
+      "-t",
+      "halt"
+    ]
+  ]
+}

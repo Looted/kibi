@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-bootstrap-claim-name-length",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/operations/bootstrap-claim-name-length.test.ts"
+    ]
+  ]
+}

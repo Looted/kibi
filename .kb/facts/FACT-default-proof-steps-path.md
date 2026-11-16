@@ -1,15 +1,15 @@
 ---
-title: The default proof steps file shall be proof/steps.json
+title: The default proof steps source shall be the proof/steps directory, with one file per proof-bearing test named after its test id, and proof/steps.json when that directory does not exist
 status: active
 fact_kind: property_value
 subject_key: kibi.proof.steps
-claim_key: CLAIM-9C090DC61B833364
-claim_text: The default proof steps file shall be proof/steps.json
+claim_key: CLAIM-435BE68CBC8205AD
+claim_text: The default proof steps source shall be the proof/steps directory, with one file per proof-bearing test named after its test id, and proof/steps.json when that directory does not exist
 text_ref: REQ-kibi-proof-step-settings
 property_key: steps_path
 operator: eq
 value_type: string
-value_string: proof/steps.json
+value_string: proof/steps
 origin:
   kind: agent
   recorded_at: '2026-10-28T11:06:28.937Z'

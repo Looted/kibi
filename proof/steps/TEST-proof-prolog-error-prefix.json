@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-prolog-error-prefix",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/prolog-runtime-libraries.proof.test.ts"
+    ]
+  ]
+}

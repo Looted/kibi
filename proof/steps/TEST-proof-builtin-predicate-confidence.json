@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-builtin-predicate-confidence",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/builtin-predicate-confidence.proof.test.ts"
+    ]
+  ]
+}

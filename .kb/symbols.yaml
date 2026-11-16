@@ -31275,6 +31275,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: covered_by
         target: TEST-proof-default-proof-steps-path
       - type: implements
         target: REQ-kibi-proof-step-settings
@@ -31303,6 +31305,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
       - type: covered_by
         target: TEST-proof-proof-test-report-env
       - type: implements
@@ -31333,6 +31337,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: covered_by
         target: TEST-proof-proof-test-report-version
       - type: implements
         target: REQ-kibi-proof-step-settings
@@ -31361,6 +31367,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
       - type: covered_by
         target: TEST-proof-proof-test-report-outcomes
       - type: implements
@@ -40879,31 +40887,46 @@ symbols:
         target: TEST-mcp-upsert-proof-field-stubs
       - type: implements
         target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
-  - id: SYM-test-kb-upsert-implemented-by
-    title: kb_upsert implementedBy suite
+  - id: SYM-const-default-proof-steps-dir
+    title: DEFAULT_PROOF_STEPS_DIR
     status: active
-    sourceFile: packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts
+    sourceFile: packages/cli/src/proof/step-runner.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:28:53.295Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: covered_by
+        target: TEST-proof-default-proof-steps-path
+      - type: implements
+        target: REQ-kibi-proof-step-settings
+  - id: SYM-test-kibi-proof-steps-directory
+    title: Proof steps directory suite
+    status: active
+    sourceFile: packages/cli/tests/proof/step-runner-mutation.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T07:13:22.017Z
+      recorded_at: 2026-11-16T07:29:30.726Z
     relationships:
       - type: executable_for
-        target: TEST-kb-upsert-implemented-by
-  - id: SYM-cli-execute-upsert-request
-    title: executeUpsertRequest
+        target: TEST-kibi-proof-steps-directory
+  - id: SYM-cli-load-proof-steps
+    title: loadProofSteps
     status: active
-    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    sourceFile: packages/cli/src/proof/step-runner.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T07:14:10.709Z
+      recorded_at: 2026-11-16T07:29:41.514Z
     relationships:
       - type: covered_by
-        target: TEST-kb-upsert-implemented-by
+        target: TEST-kibi-proof-steps-directory
       - type: implements
-        target: REQ-kb-upsert-implemented-by
+        target: REQ-kibi-proof-step-settings
   - id: SYM-e2e-test-staged-gate-inherited-symbol-gaps
     title: staged-inherited-symbol-gaps.test
     status: active
@@ -41480,3 +41503,28 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-firm-edit-confirmation
+  - id: SYM-test-kb-upsert-implemented-by
+    title: kb_upsert implementedBy suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:13:22.017Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-implemented-by
+  - id: SYM-cli-execute-upsert-request
+    title: executeUpsertRequest
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:14:10.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-implemented-by
+      - type: implements
+        target: REQ-kb-upsert-implemented-by

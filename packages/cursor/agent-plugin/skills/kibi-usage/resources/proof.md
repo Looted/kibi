@@ -99,9 +99,12 @@ replacing one named integration.
   detected runner again), or make the run attributable per test: have the
   command write a `kibi.proof-test-report.v1` to the path in
   `KIBI_PROOF_TEST_REPORT` so each test is judged by its own steps. The
-  shipped `kibi proof run-steps` does that from `proof/steps.json`
-  (`[{test_id, steps: [[argv...]]}]`); use it as the integration command
-  instead of writing a producer script.
+  shipped `kibi proof run-steps` does that from `proof/steps/`, one
+  `<test_id>.json` file per test holding `{test_id, steps: [[argv...]]}`
+  (or `proof/steps.json`, one array of them, when that directory does not
+  exist); use it as the integration command instead of writing a producer
+  script. Add a new test's steps as a new file, so parallel branches do not
+  conflict.
 - `producer: playwright` (or custom) — the child emits `kibi.proof-run.v1`
   itself (bundled reporter: `kibi-cli/playwright-reporter`).
 - `producer: junit` / `tap` — Kibi converts the native report at `artifact`

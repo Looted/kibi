@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-advisor-case-preview-limit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/advisor-case-preview-limit.proof.test.ts"
+    ]
+  ]
+}

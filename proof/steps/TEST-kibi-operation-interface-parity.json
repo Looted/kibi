@@ -1,0 +1,31 @@
+{
+  "test_id": "TEST-kibi-operation-interface-parity",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/public/operations/discovery-search-paging.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/cli/tests/parity/helpers.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/agent-core/tests/agent-core.test.ts"
+    ]
+  ]
+}

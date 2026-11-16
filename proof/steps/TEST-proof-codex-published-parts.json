@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-codex-published-parts",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/codex-plugin-package.proof.test.ts"
+    ]
+  ]
+}

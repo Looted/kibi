@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-relationship-type-vocabulary",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/relationship-types.proof.test.ts"
+    ]
+  ]
+}

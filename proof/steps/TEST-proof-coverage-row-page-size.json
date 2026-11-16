@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-coverage-row-page-size",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+    ]
+  ]
+}
