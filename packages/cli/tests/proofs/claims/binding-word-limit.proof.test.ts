@@ -16,7 +16,7 @@ import { MAX_NAMING_BINDING_WORDS } from "../../../src/operations/modeling/predi
 export function bindingWordLimitCertificate(): CodeCertificate {
   return arithmeticCertificate({
     testId: "TEST-proof-binding-word-limit",
-    variable: "max_naming_binding_words",
+    variable: "bound_participant_max_words",
     valueType: "int",
     assumptions: [{ operator: "eq", value: MAX_NAMING_BINDING_WORDS }],
     claim: { operator: "eq", value: 3 },
