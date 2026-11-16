@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff3683fc3470
+  - type: validates
+    from: TEST-prolog-permission-error-names-refusal
+    to: REQ-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T09:59:50.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7f38e00ae97
+  - type: validates
+    from: TEST-prolog-permission-error-names-refusal
+    to: SCEN-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T09:59:50.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f554e93d6a9d

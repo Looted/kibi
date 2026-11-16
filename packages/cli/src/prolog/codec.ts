@@ -64,6 +64,32 @@ export function escapeAtomContent(value: string): string {
 }
 
 /**
+ * A goal that loads the Kibi core module `modulePath` names from the core the
+ * engine already runs, not from the caller's own install.
+ *
+ * Two installs of one Kibi release (a project-local one and a global one, or
+ * a source checkout built at a release commit) report the same package
+ * versions and core-source digest, so one engine daemon serves both. Loading
+ * the caller's copy of a module there would load a second `kb` module from a
+ * different file, which SWI-Prolog refuses with a permission error. The goal
+ * therefore loads the module of the same file name next to the engine's own
+ * kb.pl, and falls back to `modulePath` only in a process with no kb module.
+ * The double negation keeps its helper variables out of the query bindings.
+ */
+export function useCoreModuleGoal(modulePath: string): string {
+  const normalized = modulePath.replaceAll("\\", "/");
+  const fileName = normalized.slice(normalized.lastIndexOf("/") + 1);
+  return `\\+ \\+ (module_property(kb, file(KibiKbFile)) -> file_directory_name(KibiKbFile, KibiCoreDir), directory_file_path(KibiCoreDir, '${escapeAtom(fileName)}', KibiCoreModule), use_module(KibiCoreModule) ; use_module('${escapeAtom(normalized)}'))`;
+}
+
+/** True for a goal {@link useCoreModuleGoal} returned. */
+export function isCoreModuleGoal(goal: string): boolean {
+  return /^\\\+ \\\+ \(module_property\(kb, file\(KibiKbFile\)\) -> file_directory_name\(KibiKbFile, KibiCoreDir\), directory_file_path\(KibiCoreDir, '(?:[^']|'')*', KibiCoreModule\), use_module\(KibiCoreModule\) ; use_module\('(?:[^']|'')*'\)\)$/u.test(
+    goal,
+  );
+}
+
+/**
  * Parse a Prolog list of list rows without decoding or normalizing columns.
  * Malformed outer collections fail closed rather than returning a partial
  * projection.
