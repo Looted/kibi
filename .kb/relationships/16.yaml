@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-58a1b5ec3ee8
+  - type: implements
+    from: SYM-cli-advertised-input-schema
+    to: REQ-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:21.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81a8b81e6a59
+  - type: covered_by
+    from: SYM-cli-advertised-input-schema
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:21.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85829e0786d6
