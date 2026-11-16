@@ -666,7 +666,7 @@ describe("readMigrationConfigStatus", () => {
     expect(status).toMatchObject({
       status: "older",
       currentVersion: 12,
-      latestVersion: 18,
+      latestVersion: 19,
       needsMigration: true,
       warning: null,
     });
@@ -678,7 +678,7 @@ describe("readMigrationConfigStatus", () => {
     expect(readMigrationConfigStatus(root)).toStrictEqual({
       status: "missing",
       currentVersion: null,
-      latestVersion: 18,
+      latestVersion: 19,
       needsMigration: true,
       warning:
         "Kibi lifecycle manifest is missing; run 'kibi init' or 'kibi migrate' to create it.",

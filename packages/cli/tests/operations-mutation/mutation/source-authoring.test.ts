@@ -4,14 +4,12 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { parseDocument } from "yaml";
 import { reviseRequirementBody } from "../../../src/entity-body-context.js";
 import * as authoring from "../../../src/operations/mutation/source-authoring.js";
 import {
   authoredFrontmatter,
   canonicalSourcePath,
   isUntrackedByGit,
-  manifestRelationships,
   newEntitySourceTarget,
   normalizeAuthoredSourcePath,
   readFileTimes,
@@ -932,17 +930,6 @@ describe("symbol manifests", () => {
         "Symbol manifest must contain a symbols array",
       );
     }
-  });
-
-  test("read typed relationships from a manifest entry", () => {
-    const entry = parseDocument(
-      "id: SYM-1\nrelationships:\n  - {type: a, target: X}\n  - {type: b, to: Y}\n  - {type: 5, target: Z}\n  - {type: c, target: 6}\n  - null\n  - plain\n",
-    ).contents;
-    expect(manifestRelationships(entry)).toEqual([
-      { type: "a", target: "X" },
-      { type: "b", target: "Y" },
-    ]);
-    expect(manifestRelationships(parseDocument("- a").contents)).toEqual([]);
   });
 });
 

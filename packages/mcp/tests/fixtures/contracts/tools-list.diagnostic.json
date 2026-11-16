@@ -4934,6 +4934,10 @@
                   "type": "string"
                 },
                 {
+                  "const": "quantity-duplicate",
+                  "type": "string"
+                },
+                {
                   "const": "subject-hierarchy-invalid",
                   "type": "string"
                 },
