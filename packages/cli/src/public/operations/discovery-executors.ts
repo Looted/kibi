@@ -1,9 +1,4 @@
 import { readFile } from "node:fs/promises";
-import {
-  definitionQuote,
-  readSubjectDomain,
-  type SubjectDomain,
-} from "./subject-domain.js";
 import path from "node:path";
 import {
   compilerFingerprintReason,
@@ -69,6 +64,11 @@ import type {
   OperationContext,
   PrologPort,
 } from "./runtime-types.js";
+import {
+  type SubjectDomain,
+  definitionQuote,
+  readSubjectDomain,
+} from "./subject-domain.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 

@@ -9,6 +9,7 @@ import {
   executeSuggestPredicates,
 } from "../../../operations/modeling/suggest-predicates.js";
 import type { OperationSpec } from "../types.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 export const modelRequirementSpec = {
   name: "kb_model_requirement",
@@ -28,6 +29,8 @@ export const modelRequirementSpec = {
         type: "string",
         description:
           "Optional primary source path or provenance root used for stable IDs and text refs. Example: '.kb/requirements/customer-retention.md'.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional primary source path used for stable IDs and text refs.",
       },
       sourceFiles: {
         type: "array",
@@ -42,6 +45,8 @@ export const modelRequirementSpec = {
         maximum: 1,
         description:
           "Confidence score for the extracted claim. >= 0.70 yields strict-lane output; lower confidence yields observation-only review output.",
+        [ADVERTISED_DESCRIPTION]:
+          "Confidence of the extracted claim: >= 0.70 yields strict-lane output, lower yields observation-only output.",
       },
       subjectKey: {
         type: "string",
@@ -71,6 +76,8 @@ export const modelRequirementSpec = {
         ],
         description:
           "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). A set claim takes a list value with eq (exactly these), includes (at least these), subset_of (only these) or excludes (none of these); matches takes a regular expression string. Example: 'eq'.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional claim operator, e.g. eq, gt, lt; sets take eq, includes, subset_of or excludes; matches takes a regex.",
       },
       value: {
         anyOf: [
@@ -81,11 +88,15 @@ export const modelRequirementSpec = {
         ],
         description:
           "Optional extracted semantic claim value: a string, number or boolean, or a list of strings for a set claim. Example: ['requireAuth'] with operator includes.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional claim value: string, number, boolean, or a list of strings for a set claim.",
       },
       provenance: {
         type: "string",
         description:
           "Optional extracted text reference. Falls back to source when omitted. Example: '.kb/requirements/customer-retention.md#L1'.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional extracted text reference; falls back to source. Example: '.kb/requirements/customer-retention.md#L1'.",
       },
       existingLogicClaims: {
         type: "array",
@@ -93,11 +104,15 @@ export const modelRequirementSpec = {
         uniqueItems: true,
         description:
           "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
+        [ADVERTISED_DESCRIPTION]:
+          "Existing requirement logic_claims values; the update merges the new claim key into them.",
       },
       requirementId: {
         type: "string",
         description:
           "Optional requirement ID. The strict write set updates this requirement instead of minting a REQ-AUTO id, and a typed logic rule attaches its requires_rule relationship to it.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional requirement ID the strict write set updates instead of minting a REQ-AUTO id.",
       },
       claimKey: {
         type: "string",
@@ -137,11 +152,15 @@ export const suggestPredicatesSpec = {
         type: "string",
         description:
           "Required prose requirement or claim to classify into ontology predicates. Example: 'When users navigate away, draft edits must auto-save.'.",
+        [ADVERTISED_DESCRIPTION]:
+          "Required prose requirement or claim to classify into ontology predicates.",
       },
       requirementId: {
         type: "string",
         description:
           "Optional existing requirement ID. When provided, the response includes a relationshipPlan describing the req -> fact requires_predicate link to attach after preserving existing requirement metadata.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional existing requirement ID; the response then plans its requires_predicate link.",
       },
       source: {
         type: "string",
@@ -174,24 +193,32 @@ export const suggestPredicatesSpec = {
         default: true,
         description:
           "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
+        [ADVERTISED_DESCRIPTION]:
+          "Whether to include the KB's predicate_schema facts beside the built-in predicate catalog. Default: true.",
       },
       schemaId: {
         type: "string",
         minLength: 1,
         description:
           "Optional exact reviewed predicate schema ID. When supplied, Kibi selects that schema instead of lexical rank order and fails closed if it is unavailable.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional exact reviewed predicate schema ID to use instead of rank order; fails closed if unavailable.",
       },
       argumentBindings: {
         type: "object",
         additionalProperties: { type: "string", minLength: 1 },
         description:
           "Optional exact predicate argument values keyed by a candidate schema's argument_names. Required before applying a candidate whose binding_status is incomplete; Kibi never substitutes guessed values for unbound arguments.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional exact predicate argument values keyed by argument name; required when binding_status is incomplete.",
       },
       polarityHint: {
         type: "string",
         enum: ["assert", "deny"],
         description:
           "Optional reviewed polarity override for claims whose surface negation does not express predicate denial. Use only after reviewing the selected schema and full claim scope.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional reviewed polarity override when surface negation does not mean predicate denial.",
       },
       existingLogicClaims: {
         type: "array",
@@ -199,6 +226,8 @@ export const suggestPredicatesSpec = {
         uniqueItems: true,
         description:
           "Existing requirement logic_claims values. Returned relationship guidance includes a merged manifest so repeated clause modeling does not discard earlier claims.",
+        [ADVERTISED_DESCRIPTION]:
+          "Existing requirement logic_claims values; the guidance merges the new claim key into them.",
       },
     },
   },

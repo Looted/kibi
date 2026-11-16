@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ddbe7fd05cae
+  - type: executable_for
+    from: SYM-test-mcp-short-field-descriptions
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:07.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e36876afbf34

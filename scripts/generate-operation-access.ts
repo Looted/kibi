@@ -32,6 +32,8 @@ const MCP_CALL: Readonly<Record<string, string>> = {
   kb_model_requirement: '`kb_model` with `mode: "requirement"`',
   kb_suggest_predicates: '`kb_model` with `mode: "predicates"`',
   kb_validate_upsert: "`kb_upsert` with `dryRun: true`",
+  kb_review_firm_edit:
+    "none: CLI only, run the `kibi review-firm-edit` input the `firm_edit_unreviewed` finding prints",
   kb_sparql_remote:
     "`kb_sparql_remote`, registered only when `KIBI_MCP_OPTIONAL_TOOLS` names it",
 };

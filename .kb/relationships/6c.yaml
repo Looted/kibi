@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c13acb4f92f
+  - type: executable_for
+    from: SYM-test-kibi-firm-edit-receipts
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T06:59:02.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2908e70fce86

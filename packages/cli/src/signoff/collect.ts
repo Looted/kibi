@@ -1,6 +1,10 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import {
+  FIRM_EDIT_REVIEWS_DIR,
+  parseFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 import { effectiveFirmness } from "../decision-firmness.js";
 import {
   type ExtractedEntity,
@@ -10,6 +14,7 @@ import { readAllShards } from "../relationships/shards.js";
 import {
   SIGNOFF_VERSION,
   type SignoffChange,
+  type SignoffFirmEditReview,
   type SignoffFirmness,
   type SignoffProof,
   type SignoffQuestion,
@@ -193,6 +198,60 @@ function readRelationships(workspaceRoot: string) {
   }
 }
 
+/**
+ * The firm-edit receipts the change adds or rewrites, by requirement id, in
+ * the path order git lists them: by source file, then symbol.
+ */
+function changedFirmEditReviews(
+  workspaceRoot: string,
+  git: (args: readonly string[]) => string,
+  scope: SignoffScope,
+  base: string,
+): Map<string, SignoffFirmEditReview[]> {
+  const args =
+    scope === "staged"
+      ? [
+          "diff",
+          "--cached",
+          "--name-only",
+          "--no-renames",
+          "--diff-filter=AM",
+          base,
+        ]
+      : ["diff", "--name-only", "--no-renames", "--diff-filter=AM", base];
+  const files = git([...args, "--", FIRM_EDIT_REVIEWS_DIR]).split("\n");
+  if (scope === "working")
+    files.push(
+      ...git([
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "--",
+        FIRM_EDIT_REVIEWS_DIR,
+      ]).split("\n"),
+    );
+  const byRequirement = new Map<string, SignoffFirmEditReview[]>();
+  for (const file of [...new Set(files)].filter((name) =>
+    name.endsWith(".json"),
+  )) {
+    const content = currentContent(workspaceRoot, git, scope, file);
+    const receipt = parseFirmEditReceipt(content);
+    if (receipt === undefined) continue;
+    const list = byRequirement.get(receipt.requirementId) ?? [];
+    list.push({
+      symbol: receipt.symbol,
+      sourceFile: receipt.sourceFile,
+      verdict: receipt.verdict,
+      note: flat(receipt.note),
+      ...(receipt.requestQuote
+        ? { requestQuote: flat(receipt.requestQuote) }
+        : {}),
+    });
+    byRequirement.set(receipt.requirementId, list);
+  }
+  return byRequirement;
+}
+
 function headExists(git: (args: readonly string[]) => string): boolean {
   return (
     tryGit(git, ["rev-parse", "--verify", "--quiet", "HEAD"]) !== undefined
@@ -322,6 +381,31 @@ export async function collectSignoffSummary(
   } catch (error) {
     notes.push(
       `Requirements affected by code changes could not be computed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  try {
+    for (const [id, reviews] of changedFirmEditReviews(
+      workspaceRoot,
+      git,
+      scope,
+      base,
+    )) {
+      const existing = drafts.get(id);
+      if (existing) {
+        drafts.set(id, { ...existing, firmEditReviews: reviews });
+        continue;
+      }
+      const entity = readRequirement(id);
+      if (!entity || RETIRED_STATUS.test(entity.status)) continue;
+      drafts.set(id, {
+        ...draftFor(entity, "affected", `${REQUIREMENTS_DIR}/${id}.md`),
+        firmEditReviews: reviews,
+      });
+    }
+  } catch (error) {
+    notes.push(
+      `Firm-edit reviews could not be listed: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 

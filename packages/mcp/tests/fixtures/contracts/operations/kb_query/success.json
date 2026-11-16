@@ -22,18 +22,18 @@
     "inputSchema": {
       "properties": {
         "args": {
-          "description": "Positional argument values for predicate when it has no schema; null matches any value. Example: ['admin', null, null, 'allow']. Prefer where.",
+          "description": "Positional argument values for a predicate with no schema; null matches any. Prefer where.",
           "items": {
             "type": ["string", "null"]
           },
           "type": "array"
         },
         "distinct": {
-          "description": "Optional argument name to count distinct values of across the matching predicate facts, e.g. distinct: 'role' with predicate 'has_role' and where {user: 'alice'} answers how many roles alice has.",
+          "description": "Optional argument name whose distinct values to count across the matching predicate facts.",
           "type": "string"
         },
         "factKind": {
-          "description": "Typed fact filter: list facts of one kind with their typed fields. 'predicate_schema' returns the catalog of askable predicates (argument names, constants, fact counts). Example: 'predicate_schema'.",
+          "description": "Typed fact filter: list facts of one kind; 'predicate_schema' returns the catalog of askable predicates.",
           "enum": [
             "subject",
             "property_value",
@@ -52,11 +52,11 @@
         },
         "includeBody": {
           "default": false,
-          "description": "With id only: also return the entity's authored Markdown body (the prose after its front matter) as body {id, path, text}, so a stale statement in it can be corrected; kb_upsert document.body replaces it. Default: false.",
+          "description": "With id only: also return the entity's authored Markdown body. Default: false.",
           "type": "boolean"
         },
         "kb": {
-          "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+          "description": "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
           "maxLength": 64,
           "minLength": 1,
           "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
@@ -82,7 +82,7 @@
           "type": "string"
         },
         "predicate": {
-          "description": "Typed fact filter: predicate name to ask about, e.g. 'has_role' or 'permission_rule'. Combine with where for named arguments. Returns every stored fact of that predicate with its arguments, polarity and allow/deny effect.",
+          "description": "Typed fact filter: predicate name to ask about; returns its stored facts with arguments, polarity and effect.",
           "type": "string"
         },
         "propertyKey": {
@@ -99,7 +99,7 @@
           "type": "string"
         },
         "subjectKey": {
-          "description": "Typed fact filter: dotted subject key whose property facts to list, e.g. 'user.role_assignment'. Combine with propertyKey for one property, or with factKind 'subject' for the subject's domain view.",
+          "description": "Typed fact filter: dotted subject key whose property facts to list; combine with propertyKey or factKind 'subject'.",
           "type": "string"
         },
         "tags": {
@@ -127,11 +127,11 @@
           "additionalProperties": {
             "type": "string"
           },
-          "description": "Named argument values for predicate, order-free, using the argument names from the predicate's schema. Example: {actor: 'admin', decision: 'allow'}. An unknown name returns a warning with the declared names; no match returns the values that do exist.",
+          "description": "Named argument values for predicate, using the names from its schema.",
           "type": "object"
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

@@ -6,6 +6,14 @@ The Kibi Model Context Protocol (MCP) server is a peer public interface alongsid
 
 The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`. Every MCP tool also accepts `workspaceRoot`, the directory the call is about; see [Workspace Routing](#workspace-routing).
 
+Every session loads the tool list, so it is kept small: each input field is
+described in one line of at most 120 characters, and a choice among string
+constants is listed as an `enum`. A field whose rule needs more words keeps
+its full description in the operation catalog, which validates input on MCP
+and the CLI alike, and in the kibi-usage resource `operation-fields`
+(`kb_skills` with `action: "read"`, `id: "kibi-usage"`,
+`resource: "resources/operation-fields.md"`).
+
 ### Response envelope
 
 Every tool except `kb_job_status` returns `structuredContent` as a protocol 1
@@ -72,6 +80,7 @@ Translate them with this table:
 | `kb_model_requirement` | `kb_model` with `mode: "requirement"` | `kibi model-requirement`, or `kibi model` |
 | `kb_suggest_predicates` | `kb_model` with `mode: "predicates"` | `kibi suggest-predicates`, or `kibi model` |
 | `kb_validate_upsert` | `kb_upsert` with `dryRun: true` | `kibi validate-upsert`, or `kibi upsert` with `"dryRun": true` |
+| `kb_review_firm_edit` | none: run the CLI route the `firm_edit_unreviewed` finding prints | `kibi review-firm-edit` |
 | `kb_sparql_remote` | `kb_sparql_remote` (opt-in) | `kibi sparql-remote` |
 | `kb_job_status` | `kb_job_status` (opt-in) | none: jobs live in the server process |
 

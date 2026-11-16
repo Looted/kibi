@@ -24,18 +24,18 @@ proof_bindings:
     target: default
     native_id: documentation/tests/e2e/packed/multilingual-source-analysis.test.ts::passes a baseline, rejects an unowned declaration, and accepts its authored owner in Python, Go, and Rust
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-fea127bc127bb8ce5d1cf3d6
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-018f174fad8ba72d45436b51
     test_id: TEST-source-analysis-v2-contract
     scope: end_to_end
     outcome: passed
-    code_snapshot: 1d442bd07788e49f01747ce90fcac74ae56fd006d23b7e6912f021fb0809ca83
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-10-04T21:14:16.353Z'
-    finished_at: '2026-10-04T22:06:01.024Z'
-    artifact_digest: 9c5d99e7639c043a2240c0d58f9e934f6a75ac252c6f7774a6667b697f58a8d4
+    code_snapshot: 97a1f8ae8b5497330ab28e93a9d81f8e7d9ff5ea036c1beb3794253bf0b278cb
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-16T08:18:42.277Z'
+    finished_at: '2026-11-16T08:19:20.475Z'
+    artifact_digest: f0342b4dc6519f0912cb8546d4ea03e4b7233952a911b0b9df0e6f15af09cc57
     contract_hash: 7cca64eeeb76cb3a50bccbcc856100da4dc5e1f3ed13f169ab3347a0784f6f35
-    binding_hash: 35ef0eaf24465c31de8619f377fac45892f811d2c9e4c6954e4d15b4ee6271cf
+    binding_hash: 510f14c781b0ad2af11116cef8dc8dc3c382b4bf31b0430a44704d30d22307a6
     fingerprint: 1f87cbd90cbf32481869095020e3132c8714995feac55cc2e2221a13c2ed64ae
     fingerprint_components:
       contract: 7cca64eeeb76cb3a50bccbcc856100da4dc5e1f3ed13f169ab3347a0784f6f35
@@ -57,6 +57,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 origin:
   kind: migration
   ref: 'kibi migrate v5->v6 Maintainer decision, 2026-11-10, approving the entity context recovered from history in the KB gold-standard review (context batch 3): "Agree with batch 3 as well."'

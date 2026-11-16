@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   isEntityLanePath,
+  isFirmEditReceiptPath,
   isKbKnowledgePath,
   isSymbolsManifestPath,
 } from "../utils/kb-paths.js";
@@ -233,6 +234,7 @@ function isMetadataPath(path: string): boolean {
   return (
     (normalized.endsWith(".md") && isEntityLanePath(normalized)) ||
     relationshipShard ||
+    isFirmEditReceiptPath(normalized) ||
     normalized === ".kb/manifest.json" ||
     normalized === ".kb/symbols.yml" ||
     isSymbolsManifestPath(normalized)

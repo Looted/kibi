@@ -23,7 +23,8 @@
             "type": "string"
           },
           "description": "Optional exact predicate argument values keyed by a candidate schema's argument_names. Required before applying a candidate whose binding_status is incomplete; Kibi never substitutes guessed values for unbound arguments.",
-          "type": "object"
+          "type": "object",
+          "x-kibi-advertised-description": "Optional exact predicate argument values keyed by argument name; required when binding_status is incomplete."
         },
         "existingLogicClaims": {
           "description": "Existing requirement logic_claims values. Returned relationship guidance includes a merged manifest so repeated clause modeling does not discard earlier claims.",
@@ -32,12 +33,14 @@
             "type": "string"
           },
           "type": "array",
-          "uniqueItems": true
+          "uniqueItems": true,
+          "x-kibi-advertised-description": "Existing requirement logic_claims values; the guidance merges the new claim key into them."
         },
         "includeExistingSchemas": {
           "default": true,
           "description": "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
-          "type": "boolean"
+          "type": "boolean",
+          "x-kibi-advertised-description": "Whether to include the KB's predicate_schema facts beside the built-in predicate catalog. Default: true."
         },
         "maxCandidates": {
           "default": 5,
@@ -56,16 +59,19 @@
         "polarityHint": {
           "description": "Optional reviewed polarity override for claims whose surface negation does not express predicate denial. Use only after reviewing the selected schema and full claim scope.",
           "enum": ["assert", "deny"],
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Optional reviewed polarity override when surface negation does not mean predicate denial."
         },
         "requirementId": {
           "description": "Optional existing requirement ID. When provided, the response includes a relationshipPlan describing the req -> fact requires_predicate link to attach after preserving existing requirement metadata.",
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Optional existing requirement ID; the response then plans its requires_predicate link."
         },
         "schemaId": {
           "description": "Optional exact reviewed predicate schema ID. When supplied, Kibi selects that schema instead of lexical rank order and fails closed if it is unavailable.",
           "minLength": 1,
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Optional exact reviewed predicate schema ID to use instead of rank order; fails closed if unavailable."
         },
         "source": {
           "description": "Optional provenance or text reference for generated predicate facts or ontology-gap observations.",
@@ -77,10 +83,11 @@
         },
         "text": {
           "description": "Required prose requirement or claim to classify into ontology predicates. Example: 'When users navigate away, draft edits must auto-save.'.",
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Required prose requirement or claim to classify into ontology predicates."
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

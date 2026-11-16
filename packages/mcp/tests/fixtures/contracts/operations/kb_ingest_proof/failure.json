@@ -44,10 +44,10 @@
       "properties": {
         "artifact": {
           "additionalProperties": false,
-          "description": "Producer-emitted kibi.proof-run.v1 proof artifact. Producers report what happened; Kibi evaluates proof obligations and policies. Produce it via `kibi prove` or direct kb_ingest_proof calls.",
+          "description": "Producer-emitted kibi.proof-run.v1 artifact, from kibi prove or a direct call; Kibi evaluates the obligations.",
           "properties": {
             "certificates": {
-              "description": "kibi.code-certificate.v1 objects the run left for certificate-kind contracts, one per test. Kibi re-checks each before a receipt counts as proved.",
+              "description": "kibi.code-certificate.v1 objects for certificate-kind contracts, one per test; Kibi re-checks each.",
               "items": {
                 "required": ["version", "kind", "test_id"],
                 "type": "object"
@@ -115,7 +115,7 @@
             "proof_results": {
               "items": {
                 "additionalProperties": false,
-                "description": "One observed proof result. binding distinguishes native-case observations from aggregate-run bindings; attempts must report facts only.",
+                "description": "One observed proof result; attempts report facts only.",
                 "properties": {
                   "attempts": {
                     "oneOf": [
@@ -291,7 +291,7 @@
           "type": "array"
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

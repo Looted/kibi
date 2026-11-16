@@ -21,6 +21,7 @@ import {
   type ResolvedKbDependency,
   resolveKbDependency,
 } from "./kb-dependencies.js";
+import { ADVERTISED_DESCRIPTION } from "../public/operations/advertised-schema.js";
 
 /** Business input key that scopes a read operation to a KB dependency. */
 export const KB_DEPENDENCY_ARGUMENT = "kb";
@@ -39,6 +40,8 @@ export const KB_DEPENDENCY_INPUT_SCHEMA = {
   pattern: "^[a-z0-9][a-z0-9._-]{0,63}$",
   description:
     "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+  [ADVERTISED_DESCRIPTION]:
+    "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
 } as const;
 
 /** The `kb` value of an operation input, or undefined when it names none. */

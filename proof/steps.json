@@ -7826,6 +7826,22 @@
     ]
   },
   {
+    "test_id": "TEST-mcp-short-field-descriptions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/mcp/tests/server/tool-surface-consumer.test.ts",
+        "./packages/cli/tests/operations/advertised-schema.test.ts",
+        "./packages/cli/tests/operations/field-reference.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-staged-gate-inherited-symbol-gaps",
     "steps": [
       [
@@ -7842,6 +7858,63 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/check-symbol-debt.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-firm-edit-receipts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/agent-core/tests/firm-edit-review.test.ts",
+        "./packages/cli/tests/public-mutation/operations/firm-edit-review.mutation.test.ts",
+        "./packages/cli/tests/consumer/firm-edit-review.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-staged-firm-edit-gate",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts",
+        "./packages/cli/tests/public-mutation/impact/analyzer.mutation.test.ts",
+        "./packages/cli/tests/commands-mutation/check/staged-results.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-signoff-firm-edit-receipts",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/cli/tests/signoff/collect-mutation.test.ts",
+        "./packages/cli/tests/signoff/markdown-render.test.ts",
+        "./packages/cli/tests/signoff/html-render.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-agent-hosts-firm-edit-receipt-notice",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/codex/tests/hook-runner.test.ts",
+        "./packages/cursor/tests/hook-runner.test.ts",
+        "./packages/zcode/tests/hook-runner.test.ts",
+        "./packages/agent-core/tests/decision-guard.test.ts"
       ]
     ]
   }
