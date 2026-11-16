@@ -657,6 +657,8 @@ const BASE_DATA_SCHEMAS: Readonly<
     stagedFacts: stringArray,
     whatIf: recordValue,
     inventoryApplied: recordArray,
+    siblings: recordArray,
+    nextActions: recordArray,
   }),
   kb_upsert: {
     description:
@@ -678,15 +680,16 @@ const BASE_DATA_SCHEMAS: Readonly<
         nextActions: recordArray,
         sourceWrites: recordArray,
         contradictionCheck: recordValue,
+        siblings: recordArray,
         inventoryApplied: {
           ...recordArray,
           description:
-            "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text.",
+            "Each claim recorded for a requirement sent without its inventory contract.",
         },
         implementedBy: {
           ...recordArray,
           description:
-            "Each implementedBy entry with the symbolId that implements the requirement and whether it was created.",
+            "Each implementedBy entry's symbolId and whether it was created.",
         },
       }),
       objectData(
@@ -702,6 +705,8 @@ const BASE_DATA_SCHEMAS: Readonly<
           whatIf: recordValue,
           inventoryApplied: recordArray,
           implementedBy: recordArray,
+          siblings: recordArray,
+          nextActions: recordArray,
           dryRun: { const: true },
           skippedEffects: stringArray,
         },
