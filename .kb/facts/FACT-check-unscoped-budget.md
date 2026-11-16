@@ -19,5 +19,9 @@ claim_text: kb_check run without a rule or file scope must cut its result to the
 text_ref: REQ-check-unscoped-budget
 id: FACT-check-unscoped-budget
 type: fact
+distinct_from:
+  - mcp.kb_check.scoped_check_budget_chars
 ---
 kb_check without a rule or file scope cuts its structured result to 24,000 characters, the scoped check's budget, keeping each blocking rule named and count complete. Grounds the clause of REQ-check-unscoped-budget.
+
+This fact bounds the size of an unscoped check's result (at most 24,000 characters). mcp.kb_check.scoped_check_budget_chars is the budget value itself (exactly 24,000, which FACT-kibi-scoped-check-budget-chars states). Both use the same constant in check-format-shared.ts, but one is a cap on what a result may hold and the other is the setting, so they are different quantities that share a value.
