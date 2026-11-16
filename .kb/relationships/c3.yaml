@@ -517,3 +517,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68ad789aa675
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-requirement
+    to: REQ-upsert-lists-sibling-requirements
+    created_at: 2026-11-16T19:17:22.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d08e545ece21
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-requirement
+    to: REQ-upsert-flags-stale-sibling-claim
+    created_at: 2026-11-16T19:17:22.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a442e4557db7
+  - type: covered_by
+    from: SYM-cli-sibling-requirements-sibling-requirement
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:22.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4194f9c18f68

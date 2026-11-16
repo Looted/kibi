@@ -446,6 +446,8 @@ export type QuantityInputs = Readonly<{
   code: QuantityCode;
   /** subject_key.property_key of every active value fact. */
   allValueKeys: Set<string>;
+  /** Every fact, requirement and test read, by id. */
+  entities: ReadonlyMap<string, AuthoredEntity>;
 }>;
 
 const QUANTITY_LANES = ["facts", "requirements", "tests"] as const;
@@ -612,6 +614,7 @@ function buildQuantityInputs(
     byId,
     code: { symbolsByRequirement, fileBySymbol, valueSourcesByFact },
     allValueKeys,
+    entities: entityById,
   };
 }
 
