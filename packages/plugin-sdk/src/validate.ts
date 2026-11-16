@@ -1526,6 +1526,15 @@ export function validateSourceAnalysisResultV2(
           `symbols[${index}].directiveText must be a string when provided`,
         );
       }
+      if (
+        sourceSymbol.callable !== undefined &&
+        typeof sourceSymbol.callable !== "boolean"
+      ) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}].callable must be a boolean when provided`,
+        );
+      }
       let nameRange: SourceAnalysisRangeV2 | undefined;
       if (sourceSymbol.nameRange !== undefined) {
         nameRange = validateSourceAnalysisRangeV2(
@@ -1550,6 +1559,7 @@ export function validateSourceAnalysisResultV2(
         ...(nativeKind !== undefined ? { nativeKind } : {}),
         ...(signature !== undefined ? { signature } : {}),
         ...(nameRange !== undefined ? { nameRange } : {}),
+        ...(sourceSymbol.callable === true ? { callable: true } : {}),
       };
     },
   );

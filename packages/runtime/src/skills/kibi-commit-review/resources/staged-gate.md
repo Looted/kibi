@@ -9,14 +9,28 @@ not the working tree, so a fix counts only once it is staged.
 
 ```text
 symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of staged source files: src/billing/refund.ts
-  Detail: src/billing/refund.ts — extraction finds 4 symbol(s), evidence covers 3.
+  Detail: src/billing/refund.ts — this commit adds or changes 1 of 4 declaration(s); the gaps below are the ones it is judged on.
       Not in .kb/symbols.yaml: approveRefund (line 42)
-  Suggestion: Author .kb/symbols.yaml entries for the uncovered symbols (kibi upsert, with implements/covered_by links). Stage .kb/symbols.yaml with the behavior edit, then re-run kibi check --staged.
+  Suggestion: Author .kb/symbols.yaml entries for the listed declarations (kibi upsert), each with a symbol_role (...); behavioral code also needs implements and covered_by links, ... Stage .kb/symbols.yaml with the behavior edit, then re-run kibi check --staged.
 ```
 
-- Detail lines name every symbol, never a shortened list. `Evidence without a
-  matching symbol:` lists manifest entries whose declaration is gone or
-  renamed: rename the symbol's `title`, or retire the entry.
+- A commit is judged only on what it changes: declarations it adds or
+  changes (title new, or text different once comments and whitespace are
+  dropped), records it removes, and records whose declaration it removes or
+  renames. Detail lines name every such symbol, never a shortened list.
+  `Evidence without a matching symbol:` lists manifest entries whose
+  declaration is gone or renamed: rename the symbol's `title`, or retire the
+  entry.
+- Gaps the commit did not cause print as a non-blocking note, `Symbol
+  records: <file> has N declaration(s) without a .kb/symbols.yaml record that
+  this commit did not add or change ...`. No action is required; do not
+  record them to make the note go away unless the human asks. `kibi check`
+  lists them all under `symbolDebt`.
+- A record needs a `symbol_role`. Only behavioral code needs `implements` and
+  `covered_by`: a function, class, method, property, accessor or a variable
+  holding a function always does; a schema constant or type can be recorded
+  as `config` or `type-shape` with no link. Never invent a requirement link to
+  pass the gate.
 - `--format json` carries the same lists in the diagnostic `evidence`
   (`symbolsManifest[].missing` / `extra`, `uncoveredSymbols[].titles`).
 
@@ -24,8 +38,8 @@ symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of stag
 
 | Id or message | Cause | Fix |
 | --- | --- | --- |
-| `kibi_impact_evidence_missing` | A staged behavior edit (changed lines in exported or behavior-bearing code, not comments or formatting) has no staged Kibi evidence. Test-only edits do not need it unless they add executable test symbols. | Query the owning knowledge; update it when behavior changed; stage entity Markdown under `.kb/` or authored `.kb/symbols.yaml` entries for the listed symbols. A file whose every declaration already has a `.kb/symbols.yaml` entry needs nothing more. |
-| `symbols_manifest_stale` | A staged behavior file declares symbols `.kb/symbols.yaml` has no entry for, or an entry names a declaration that is gone. | Author entries for the listed symbols, re-point or retire entries whose declaration is gone, and stage `.kb/symbols.yaml`. Coordinates are derived locally and never staged. |
+| `kibi_impact_evidence_missing` | A staged behavior edit (changed lines in exported or behavior-bearing code, not comments or formatting) has no staged Kibi evidence. Test-only edits do not need it unless they add executable test symbols. | Query the owning knowledge; update it when behavior changed; stage entity Markdown under `.kb/` or authored `.kb/symbols.yaml` entries for the listed symbols. A file where every declaration the commit adds or changes already has a `.kb/symbols.yaml` entry needs nothing more. |
+| `symbols_manifest_stale` | A staged behavior file has a declaration the commit adds or changes with no `.kb/symbols.yaml` entry, the commit removes an entry, or an entry the commit adds, changes or orphans names a declaration that is gone. | Author entries for the listed symbols, re-point or retire entries whose declaration is gone, and stage `.kb/symbols.yaml`. Coordinates are derived locally and never staged. |
 | `symbol_granularity_violation` | A changed behavioral member is owned only by a coarse class or module symbol while a narrower declaration exists. | Add a symbol for the member itself (`title` = `Class.method` or the exported function) with its own links; use `granularity_reason` (`config-artifact`, `module-level-behavior`, `extractor-miss`, `legacy-link`, `test-suite`) only when it is true. |
 | `symbol-coverage` | A changed symbol, or a symbol whose staged manifest entry changed, fails the full-check rule on the staged knowledge. | The symbol `implements` the requirement and is `covered_by` a test that verifies it: through the requirement's scenario (`verified_by` scenario -> test) when it has one, else `verified_by` requirement -> test. A direct requirement -> test link does not count while a scenario exists. The finding's suggestion names the missing link (see `kibi-traceability`). |
 | `entity-context-missing` (staged entity) | A staged requirement, scenario, test, ADR or observation fact has fewer than 12 words of context. | Upsert a sectioned `document.body` (see `kibi-usage`, Entity body contract). |

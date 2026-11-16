@@ -424,6 +424,50 @@ test(ownership_and_adr, Violations == [V1, V2, V3, V4, V5]) :-
 
 :- end_tests(checks_symbol_traceability).
 
+:- begin_tests(checks_symbol_role_exemption).
+
+% One linkless record per role, one non-behavioral record that does claim a
+% requirement but has no coverage, and one config record whose only link
+% names something that is not a requirement.
+chk_role_fixture :-
+    chk_req('REQ-R'),
+    chk_ent(test, 'TEST-R', []),
+    forall(
+        member(Id-Role, ['SYM-STRUCT'-structural, 'SYM-TYPE'-'type-shape',
+                         'SYM-CONF'-config, 'SYM-MOD'-module,
+                         'SYM-BEH'-behavioral, 'SYM-UNK'-unknown]),
+        chk_ent(symbol, Id, [symbol_role=Role])
+    ),
+    chk_ent(symbol, 'SYM-NOROLE', []),
+    chk_ent(symbol, 'SYM-TYPE-LINKED', [symbol_role='type-shape']),
+    chk_rel(implements, 'SYM-TYPE-LINKED', 'REQ-R'),
+    chk_ent(symbol, 'SYM-CONF-WRONG', [symbol_role=config]),
+    chk_raw_rel(implements, 'SYM-CONF-WRONG', 'TEST-R').
+
+chk_violation_ids(Violations, Ids) :-
+    findall(Id, member(violation(_, Id, _, _, _), Violations), Ids0),
+    sort(Ids0, Ids).
+
+test(linkless_non_behavioral_roles_owe_no_ownership,
+     Ids == ['SYM-BEH', 'SYM-CONF-WRONG', 'SYM-NOROLE', 'SYM-UNK']) :-
+    chk_kb((chk_role_fixture, check_symbol_traceability(false, Violations))),
+    chk_violation_ids(Violations, Ids).
+
+test(linkless_non_behavioral_roles_owe_no_coverage,
+     Ids == ['SYM-BEH', 'SYM-CONF-WRONG', 'SYM-NOROLE', 'SYM-TYPE-LINKED', 'SYM-UNK']) :-
+    chk_kb((chk_role_fixture, check_symbol_coverage(Violations))),
+    chk_violation_ids(Violations, Ids).
+
+test(exempt_role_still_needs_the_adr_when_required,
+     Descriptions == ["Symbol has no ADR constraint."]) :-
+    chk_kb((
+        chk_ent(symbol, 'SYM-CONF', [symbol_role=config]),
+        check_symbol_traceability(true, Violations)
+    )),
+    findall(D, member(violation(_, 'SYM-CONF', D, _, _), Violations), Descriptions).
+
+:- end_tests(checks_symbol_role_exemption).
+
 % --- proof contract symbols ---------------------------------------------------
 
 :- begin_tests(checks_proof_contract_symbols).

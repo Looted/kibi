@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fc814e61dc9
+  - type: implements
+    from: SYM-staged-declaration-declarationSpanKey
+    to: REQ-staged-gate-judges-changed-declarations
+    created_at: 2026-11-16T05:44:18.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-463275955f39
+  - type: covered_by
+    from: SYM-staged-declaration-declarationSpanKey
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:44:18.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af67180e950b

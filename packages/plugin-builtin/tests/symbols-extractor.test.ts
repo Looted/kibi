@@ -348,6 +348,46 @@ describe("v2 symbol extractor", () => {
     }
   });
 
+  test("marks variables whose value is a function as callable", async () => {
+    const extractor = createBuiltinTsMorphSymbolExtractorV2();
+    const result = await extractor.analyze({
+      path: "src/tags.ts",
+      content: [
+        "export const arrow = () => 1;",
+        "export const fn = function () { return 1; };",
+        "export const wrapped = (async () => 1) as unknown as () => Promise<number>;",
+        "export const checked = (() => 1) satisfies () => number;",
+        "export const asserted = <() => number>(() => 1);",
+        "export const nonNull = (() => 1)!;",
+        "export const handler = defineHandler(async (c) => c);",
+        "export const handlerFn = defineHandler(function (c) { return c; });",
+        "export const schema = z.string().refine((v) => v.length > 0);",
+        "export const factoryValue = defineHandler(options);",
+        "export const plain = 1;",
+        "export let declared;",
+      ].join("\n"),
+    });
+    expect(
+      result.symbols.map((symbol) => [
+        symbol.name,
+        (symbol as { callable?: boolean }).callable ?? false,
+      ]),
+    ).toStrictEqual([
+      ["arrow", true],
+      ["fn", true],
+      ["wrapped", true],
+      ["checked", true],
+      ["asserted", true],
+      ["nonNull", true],
+      ["handler", true],
+      ["handlerFn", true],
+      ["schema", false],
+      ["factoryValue", false],
+      ["plain", false],
+      ["declared", false],
+    ]);
+  });
+
   test("reports unsupported sources with the extension in the message", async () => {
     const extractor = createBuiltinTsMorphSymbolExtractorV2();
     expect(

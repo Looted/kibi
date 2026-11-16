@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbeda49ba2d9
+  - type: assumes
+    from: SCEN-staged-gate-judges-changed-declarations
+    to: FACT-staged-gate-judges-changed-declarations
+    created_at: 2026-11-16T05:33:38.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0db2e8b88b63

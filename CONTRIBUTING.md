@@ -158,7 +158,7 @@ If you ran `kibi init`, a pre-commit hook will automatically check your staged c
 
 1. **Symbol traceability**: New or modified symbols must be linked to a requirement by an `implements` relationship on their `.kb/symbols.yaml` entry. If any staged symbol lacks a requirement link, the commit is blocked.
 
-2. **Kibi impact evidence for behavior changes**: Behavior-changing source edits must include staged Kibi impact evidence — either updated KB entity markdown under `.kb/` (requirements, scenarios, tests, facts, ADRs, flags, events) or authored `.kb/symbols.yaml` entries. An edit to a file whose every declaration already has a `.kb/symbols.yaml` entry needs nothing more; symbol coordinates are derived locally by `kibi sync` and never committed. Test-only edits (`tests/`, `*.test.*`, `*.spec.*`) and docs-only edits (`.md`) are exempt.
+2. **Kibi impact evidence for behavior changes**: Behavior-changing source edits must include staged Kibi impact evidence — either updated KB entity markdown under `.kb/` (requirements, scenarios, tests, facts, ADRs, flags, events) or authored `.kb/symbols.yaml` entries. An edit where every declaration the commit adds or changes already has a `.kb/symbols.yaml` entry needs nothing more (unrecorded declarations the commit did not touch only print a note); symbol coordinates are derived locally by `kibi sync` and never committed. Test-only edits (`tests/`, `*.test.*`, `*.spec.*`) and docs-only edits (`.md`) are exempt.
 
 If `kibi check --staged` reports `kibi_impact_evidence_missing` or `symbols_manifest_stale`, resolve by:
 - Querying Kibi via MCP before behavior changes
