@@ -559,29 +559,39 @@ export function migrationOnlyNote(entityIds: readonly string[]): string {
 }
 
 /**
- * The Baseline-style line for a staged file with gaps the commit did not
- * cause: unchanged declarations without a record, and untouched records
- * whose declaration is gone.
+ * A staged file's gaps that the commit did not cause: unchanged
+ * declarations without a record, and untouched records whose declaration is
+ * gone. Nothing when the file has none.
  */
-export function inheritedSymbolGapsNote(
+export function inheritedSymbolGapsOf(
   detail: KibiImpactSymbolsManifestFileDetail,
-): string | undefined {
-  const unrecorded = detail.inherited?.missing.length ?? 0;
-  const orphaned = detail.inherited?.extra.length ?? 0;
-  if (unrecorded === 0 && orphaned === 0) return undefined;
+): InheritedSymbolGaps | undefined {
+  const inherited = detail.inherited;
+  if (inherited === undefined) return undefined;
+  if (inherited.missing.length === 0 && inherited.extra.length === 0)
+    return undefined;
+  return {
+    path: detail.path,
+    unrecorded: inherited.missing,
+    orphaned: inherited.extra,
+  };
+}
+
+/** The Baseline-style line for a staged file's inherited gaps. */
+export function inheritedSymbolGapsNote(gaps: InheritedSymbolGaps): string {
   const parts = [
-    ...(unrecorded > 0
+    ...(gaps.unrecorded.length > 0
       ? [
-          `${unrecorded} declaration(s) without a .kb/symbols.yaml record that this commit did not add or change`,
+          `${gaps.unrecorded.length} declaration(s) without a .kb/symbols.yaml record that this commit did not add or change`,
         ]
       : []),
-    ...(orphaned > 0
+    ...(gaps.orphaned.length > 0
       ? [
-          `${orphaned} record(s) whose declaration was already gone before this commit`,
+          `${gaps.orphaned.length} record(s) whose declaration was already gone before this commit`,
         ]
       : []),
   ];
-  return `Symbol records: ${detail.path} has ${parts.join(" and ")}. They are not judged by this commit and no action is required. Run kibi check for the list.`;
+  return `Symbol records: ${gaps.path} has ${parts.join(" and ")}. They are not judged by this commit and no action is required. Run kibi check for the list.`;
 }
 
 export function hasYamlFrontmatter(content: string): boolean {
@@ -1270,18 +1280,16 @@ export async function checkCommand(
           symbolsManifestPath,
           baseSource,
         });
-        const inheritedDetails = (
-          stagedKibiEvidence.symbolsManifest.fileDetails ?? []
-        ).filter((detail) => inheritedSymbolGapsNote(detail) !== undefined);
-        for (const detail of inheritedDetails)
-          baselineNotes.push(inheritedSymbolGapsNote(detail) as string);
-        inheritedSymbolGaps.push(
-          ...inheritedDetails.map((detail) => ({
-            path: detail.path,
-            unrecorded: detail.inherited?.missing ?? [],
-            orphaned: detail.inherited?.extra ?? [],
-          })),
-        );
+        const fileDetails = stagedKibiEvidence.symbolsManifest.fileDetails;
+        // rationale: a placeholder detail has no inherited gaps, so it is
+        // skipped like an empty list.
+        // Stryker disable next-line ArrayDeclaration
+        for (const detail of fileDetails ?? []) {
+          const gaps = inheritedSymbolGapsOf(detail);
+          if (gaps === undefined) continue;
+          baselineNotes.push(inheritedSymbolGapsNote(gaps));
+          inheritedSymbolGaps.push(gaps);
+        }
         const stagedKibiDiagnostics = collectStagedKibiDiagnostics(
           stagedKibiEvidence,
           symbolsManifestPath,

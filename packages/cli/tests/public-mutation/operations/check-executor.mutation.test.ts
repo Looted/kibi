@@ -5,6 +5,7 @@ import {
   analysisCacheDir,
   executeCheck,
   uncompiledBranchStoreViolation,
+  withSymbolDebtSummary,
 } from "../../../src/public/operations/check-executor.js";
 import * as format from "../../../src/public/operations/check-format-shared.js";
 import * as helpers from "../../../src/public/operations/check-helpers.js";
@@ -958,6 +959,48 @@ describe("executeCheck", () => {
     const failed = await run({}, context({ prolog: failing }));
     expect(Object.hasOwn(failed.structuredContent, "symbolDebt")).toBe(false);
     expect(failing.queries.filter(debtGoal)).toHaveLength(1);
+  });
+
+  test("summarizes a fitted scoped result with its groups and truncation", async () => {
+    harness({
+      rules: ALL_RULES,
+      impact: {
+        sourceFiles: ["a.ts"],
+        linkedEntities: [],
+        extractedSymbols: [],
+      },
+    });
+    const violationGroups = [{ rule: "aggregated", count: 2 }];
+    const truncation = { budgetChars: 10, hint: "narrow it" };
+    spy(format, "fitScopedCheckToBudget").mockImplementation(() => ({
+      violations: [],
+      violationGroups,
+      truncation,
+    }));
+    const scoped = await run({ sourceFiles: ["a.ts"] });
+    const summaryOf = scoped.content[0].text.summaryOf;
+    expect(summaryOf.qualityDiagnostics).toStrictEqual([]);
+    expect(summaryOf.violationGroups).toBe(violationGroups);
+    expect(summaryOf.truncation).toBe(truncation);
+  });
+
+  test("adds one debt sentence to the summary only for a debt", () => {
+    expect(withSymbolDebtSummary(undefined, "S")).toBe("S");
+    expect(withSymbolDebtSummary({ total: 0, files: [] }, "S")).toBe("S");
+    expect(
+      withSymbolDebtSummary(
+        {
+          total: 3,
+          files: [
+            { path: "a.ts", unrecorded: ["x", "y"] },
+            { path: "b.ts", unrecorded: ["z"] },
+          ],
+        },
+        "S",
+      ),
+    ).toBe(
+      "S\nSymbol records (not blocking): 3 declaration(s) in 2 file(s) with symbol records have none; a commit is judged on them only when it adds or changes them.",
+    );
   });
 
   test("counts the compared fact pairs of domain contradictions", async () => {

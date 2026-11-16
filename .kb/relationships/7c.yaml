@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7986c261ec0a
+  - type: implements
+    from: SYM-cli-reason-note-reason-note-requirement-limit
+    to: REQ-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:47.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4541e5b92574
+  - type: covered_by
+    from: SYM-cli-reason-note-reason-note-requirement-limit
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:47.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9831acb29c56

@@ -492,6 +492,42 @@ test(one_claim_minted_as_several_facts) :-
                          facts: ['F-A', 'F-B', 'F-BLANK-POLARITY']})
     )).
 
+test(restated_twins_are_not_one_claim_minted_twice) :-
+    with_fixture_kb((
+        sqx_req('REQ-LIMIT'),
+        sqx_req('REQ-USE'),
+        sqx_req('REQ-OTHER'),
+        sqx_req('REQ-OLD'),
+        sqx_req('REQ-NEW'),
+        % Each requirement words the claim its own way, so each grounds its
+        % own fact on the one tuple; restates marks the twin as deliberate.
+        sqx_property('F-LIMIT', "kibi.hints", "max_shown", lte, int, 10, []),
+        sqx_property('F-USE', "kibi.hints", "max_shown", lte, int, 10, []),
+        fixture_rel(requires_property, 'REQ-LIMIT', 'F-LIMIT'),
+        fixture_rel(requires_property, 'REQ-USE', 'F-USE'),
+        fixture_rel(restates, 'REQ-USE', 'REQ-LIMIT'),
+        % A replaced requirement's twin is history of the same claim.
+        sqx_property('F-OLD', "kibi.hints", "offer_min", eq, int, 50, []),
+        sqx_property('F-NEW', "kibi.hints", "offer_min", eq, int, 50, []),
+        fixture_rel(requires_property, 'REQ-OLD', 'F-OLD'),
+        fixture_rel(requires_property, 'REQ-NEW', 'F-NEW'),
+        fixture_rel(supersedes, 'REQ-NEW', 'REQ-OLD'),
+        % A third fact whose requirement restates neither is still reported,
+        % with the whole group.
+        sqx_property('F-WEAK-A', "kibi.hints", "weak_score", eq, int, 44, []),
+        sqx_property('F-WEAK-B', "kibi.hints", "weak_score", eq, int, 44, []),
+        sqx_property('F-WEAK-C', "kibi.hints", "weak_score", eq, int, 44, []),
+        fixture_rel(requires_property, 'REQ-LIMIT', 'F-WEAK-A'),
+        fixture_rel(requires_property, 'REQ-USE', 'F-WEAK-B'),
+        fixture_rel(requires_property, 'REQ-OTHER', 'F-WEAK-C'),
+        check_subject_key_identity(Violations),
+        findall(Facts,
+                member(violation(_, _, _, _, _, _{subjectKey: _, propertyKey: _, operator: _, polarity: _, facts: Facts}),
+                       Violations),
+                Groups),
+        Groups == [['F-WEAK-A', 'F-WEAK-B', 'F-WEAK-C']]
+    )).
+
 test(signature_values) :-
     semantic_quality:signature_value('^^'("a", xsd), V1), V1 == a,
     semantic_quality:signature_value(literal(type(xsd, "b")), V2), V2 == b,

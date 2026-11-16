@@ -126,6 +126,52 @@ describe("scopeViolationsToImpact", () => {
   });
 });
 
+describe("scopeViolationsToImpact paths and endpoints", () => {
+  test("matches sources however their path is spelled", () => {
+    const spelled: ChangedFileImpactResult = {
+      ...impact,
+      sourceFiles: ["./src/a.ts", "src\\b.ts"],
+    };
+    const kept = [
+      finding("source-path-dangling", "REQ-far", { source: "src\\a.ts" }),
+      finding("source-path-dangling", "REQ-far", { source: "./src/b.ts" }),
+    ];
+    expect(scopeViolationsToImpact(kept, spelled, new Set())).toStrictEqual({
+      kept,
+      omitted: undefined,
+    });
+  });
+
+  test("strips only a leading ./ from a source", () => {
+    const near: ChangedFileImpactResult = {
+      ...impact,
+      sourceFiles: ["src/ab.ts"],
+    };
+    const far = finding("required-fields", "REQ-far", {
+      source: "src/a./b.ts",
+    });
+    expect(scopeViolationsToImpact([far], near, new Set()).kept).toStrictEqual(
+      [],
+    );
+  });
+
+  test("leaves out findings whose endpoints and source are all elsewhere", () => {
+    const far = [
+      finding("verified-by-target", "SCEN-far", {
+        evidence: { relationship: { from: "SCEN-far", to: "REQ-far" } },
+      }),
+      finding("required-fields", "REQ-far", { source: undefined }),
+      finding("required-fields", "REQ-far", { source: "src/other.ts" }),
+    ];
+    const scoped = scopeViolationsToImpact(far, impact, new Set());
+    expect(scoped.kept).toStrictEqual([]);
+    expect(scoped.omitted).toStrictEqual({
+      total: 3,
+      byRule: { "required-fields": 2, "verified-by-target": 1 },
+    });
+  });
+});
+
 describe("changedKbEntityIds", () => {
   function repo(): string {
     const dir = mkdtempSync(path.join(os.tmpdir(), "kibi-check-scope-"));
@@ -167,6 +213,45 @@ describe("changedKbEntityIds", () => {
       "REQ-renamed",
       "REQ-staged",
     ]);
+  });
+
+  test("ignores files that only look like KB documents", () => {
+    const dir = repo();
+    writeFileSync(path.join(dir, ".kb", "requirements", "REQ-x.md.orig"), "x");
+    writeFileSync(path.join(dir, ".kb", "requirements", "notes.txt"), "x");
+    mkdirSync(path.join(dir, ".kb", "requirements", "deep"));
+    writeFileSync(
+      path.join(dir, ".kb", "requirements", "deep", "REQ-d.md"),
+      "x",
+    );
+    expect([...changedKbEntityIds(dir)]).toStrictEqual([]);
+  });
+
+  test("reads paths of a workspace nested in the repository", () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-check-scope-"));
+    dirs.push(root);
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: root, stdio: "pipe" });
+    git("init", "-q", "-b", "main");
+    const reqs = path.join(root, "sub", ".kb", "requirements");
+    mkdirSync(reqs, { recursive: true });
+    for (const id of ["REQ-edited", "REQ-moved", "REQ-source"]) {
+      writeFileSync(
+        path.join(reqs, `${id}.md`),
+        `${id} body that is long enough\n`.repeat(20),
+      );
+    }
+    git("add", ".");
+    git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base");
+    writeFileSync(path.join(reqs, "REQ-edited.md"), "changed");
+    git(
+      "mv",
+      path.join(reqs, "REQ-moved.md"),
+      path.join(reqs, "REQ-renamed.md"),
+    );
+    expect(
+      [...changedKbEntityIds(path.join(root, "sub"))].sort(),
+    ).toStrictEqual(["REQ-edited", "REQ-renamed"]);
   });
 
   test("names none outside a Git work tree", () => {

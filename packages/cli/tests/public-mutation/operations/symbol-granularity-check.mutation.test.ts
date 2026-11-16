@@ -10,10 +10,12 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import type { SourceAnalysisResult } from "kibi-plugin-sdk";
 import type { PrologPort } from "../../../src/public/operations/runtime-types.js";
 import { SOURCE_ANALYSIS_CACHE_FILE } from "../../../src/public/operations/source-analysis-cache.js";
 import {
   SYMBOL_GRANULARITY_RULE,
+  analyzeWorkspaceSources,
   collectSymbolGranularityViolations,
 } from "../../../src/public/operations/symbol-granularity-check.js";
 
@@ -301,5 +303,32 @@ describe("collectSymbolGranularityViolations", () => {
     ).toStrictEqual([]);
     expect(readFileSync(cachePath, "utf8")).toBe(stored);
     expect(existsSync(cachePath)).toBe(true);
+  });
+});
+
+describe("analyzeWorkspaceSources", () => {
+  test("only a complete analysis is kept", async () => {
+    const root = workspace({ "src/a.ts": "a", "src/b.ts": "b" });
+    const analyses: Record<string, unknown> = {
+      "src/a.ts": { status: "ok", symbols: [] },
+      "src/b.ts": { status: "partial", symbols: [] },
+    };
+    const cache = {
+      get: (file: string) => analyses[file],
+      set: () => {},
+    } as unknown as Parameters<typeof analyzeWorkspaceSources>[2];
+    const sources = await analyzeWorkspaceSources(
+      ["src/a.ts", "src/b.ts"],
+      root,
+      cache,
+    );
+    expect([...sources.keys()]).toEqual(["src/a.ts"]);
+    expect(sources.get("src/a.ts")).toEqual({
+      content: "a",
+      analysis: {
+        status: "ok",
+        symbols: [],
+      } as unknown as SourceAnalysisResult,
+    });
   });
 });

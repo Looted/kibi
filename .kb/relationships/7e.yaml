@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb50cf91559f
+  - type: assumes
+    from: SCEN-NEG-upsert-quotes-older-reason-UNQUOTED
+    to: FACT-NEG-upsert-quotes-older-reason-UNQUOTED
+    created_at: 2026-11-16T14:58:23.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cb6099f0245
+  - type: verified_by
+    from: SCEN-NEG-upsert-quotes-older-reason-UNQUOTED
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:23.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1031174f742f

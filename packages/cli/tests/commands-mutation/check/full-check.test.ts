@@ -484,6 +484,50 @@ describe("result rendering", () => {
     ]);
   });
 
+  const DEBT = {
+    total: 1,
+    files: [{ path: "src/a.ts", unrecorded: ["one"] }],
+  };
+  const DEBT_TEXT =
+    "Symbol records (not blocking): 1 unrecorded declaration(s) in 1 file(s) that have symbol records. A commit is judged on them only when it adds or changes them.\n  src/a.ts (1): one";
+
+  test("a clean result prints its symbol debt last", async () => {
+    checkResult = { structuredContent: { symbolDebt: DEBT } };
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
+    expect(logs).toEqual([
+      "✓ No violations found. KB is valid.",
+      "",
+      DEBT_TEXT,
+    ]);
+  });
+
+  test("a failing result prints its symbol debt after the violations", async () => {
+    checkResult = {
+      structuredContent: {
+        violations: [violation({ suggestion: undefined })],
+        symbolDebt: DEBT,
+      },
+    };
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 1 });
+    expect(logs.slice(-2)).toEqual([DEBT_TEXT, ""]);
+  });
+
+  test("a zero debt, or a result without content, prints no debt", async () => {
+    checkResult = {
+      structuredContent: {
+        violations: [violation({ suggestion: undefined })],
+        symbolDebt: { total: 0, files: [] },
+      },
+    };
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 1 });
+    expect(logs.at(-1)).toBe("");
+    expect(logs.at(-2)).toBe("  Missing required field: title");
+    logs.length = 0;
+    checkResult = {};
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
+    expect(logs).toEqual(["✓ No violations found. KB is valid."]);
+  });
+
   test("violations are listed by source, with fixes on request", async () => {
     checkResult = {
       structuredContent: {

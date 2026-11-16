@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbc28acf4fbd
+  - type: executable_for
+    from: SYM-test-upsert-reason-notes
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:16.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e21092b0c0a4

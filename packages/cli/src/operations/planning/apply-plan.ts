@@ -1600,16 +1600,14 @@ export function assertLegacyAttachmentMigrates(
 ): void {
   const attachment = context.branchAttachment;
   if (attachment?.migrationRequired !== true) return;
-  const approved = new Set(
-    isMigrationApplyArgs(args) && Array.isArray(args.approvedActionIds)
-      ? args.approvedActionIds
-      : [],
-  );
   if (
     isMigrationApplyArgs(args) &&
     args.plan.actions.some(
       (action) =>
-        action.code === LEGACY_BRANCH_STORAGE && approved.has(action.id),
+        action.code === LEGACY_BRANCH_STORAGE &&
+        // A list that is not an array is refused by plan validation later.
+        Array.isArray(args.approvedActionIds) &&
+        args.approvedActionIds.includes(action.id),
     )
   )
     return;
@@ -2976,13 +2974,12 @@ export async function applyMigrationPlan(
     throw new Error(
       `Migration apply failed: legacy branch migration '${dependentLegacy.id}' must not depend on other actions; it runs before all of them`,
     );
-  const actions = topologicalActions(
-    validateMigrationPlanShape(args).sort(
-      (left, right) =>
-        Number(right.code === LEGACY_BRANCH_STORAGE) -
-        Number(left.code === LEGACY_BRANCH_STORAGE),
-    ),
-  );
+  const shaped = validateMigrationPlanShape(args);
+  const isLegacy = (action: MigrationAction) =>
+    action.code === LEGACY_BRANCH_STORAGE;
+  // Listed first, the legacy migration runs first; the walk visits each
+  // action once.
+  const actions = topologicalActions([...shaped.filter(isLegacy), ...shaped]);
   const initialStatus = (await executeStatus({}, context)).structuredContent;
   if (!initialStatus)
     throw new Error("Migration apply failed: status query returned no payload");
