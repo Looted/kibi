@@ -723,7 +723,10 @@ statement (the previous one too for a rewrite) with its firmness, origin,
 replaced requirements, scenarios and proof state. The proof state names the
 evidence level, the evidence floor and whether it is met (a floor lowered with
 `required_evidence` says so, since approving the requirement accepts it), and
-any certificate that no longer re-checks. `--no-proof` skips the proof
+any certificate that no longer re-checks. Each firm-edit receipt the change
+adds or rewrites (see `kibi review-firm-edit`) is listed under its
+requirement as the agent's verdict, labelled "judged by the agent, not
+approved by you". `--no-proof` skips the proof
 lookup, which runs a full coverage pass and can take tens of seconds on a
 large knowledge base.
 
@@ -779,6 +782,57 @@ kibi signoff --staged --format html --open
 # Decisions waiting for the person
 printf '%s' '{"questions":[{"id":"REQ-042","statement":"Exports stay in CSV.","quote":"keep CSV for now","firmness":"firm"}]}' \
   | kibi signoff --questions -
+```
+
+## `kibi review-firm-edit`
+
+Records the agent's verdict on its change to code that implements a current
+firm requirement, a rule a person set. `kibi check --staged` blocks such a
+change (`firm_edit_unreviewed`) until every edited symbol has a current
+`keeps` receipt. It is a CLI command, not an MCP tool: the blocking finding
+prints the exact input to pipe in, with the requirement, file and symbol
+filled and the note left empty.
+
+**Syntax:**
+```bash
+kibi review-firm-edit --input <path|->
+```
+
+**Input:** `{"reviews":[{"requirementId", "sourceFile", "symbol", "verdict": "keeps"|"changes", "note", "requestQuote"?}], "dryRun"?}`.
+`symbol` is the name `kibi check` gives (`expireKey`, `KeyStore.rotate`) and
+must carry an `implements` link to the requirement; `note` says in one line
+why the change keeps or changes the rule. The requirement must be current and
+firm. Every entry is validated before any receipt is written, and a refusal
+(`VALIDATION_FAILED`, rule `firm_edit_review_invalid`) writes nothing.
+
+**Receipts:** each entry writes
+`.kb/firm-edit-reviews/<REQ-id>/<file>--<symbol>.json`, replacing an earlier
+receipt for the same requirement and symbol. A receipt holds the verdict,
+the note, a hash of the requirement's statement and a hash of the symbol's
+code as they are when it is recorded. It stops matching when the statement
+changes, when the requirement is superseded or retired, or when the symbol's
+code changes, so record it after the edit and again after a later edit.
+Stage it with the change: `kibi check --staged` reads receipts from the
+index.
+
+- `keeps` clears `firm_edit_unreviewed` for that symbol.
+- `changes` turns the finding into `firm_edit_breaks_rule`, which stays
+  blocking until the requirement is superseded with the person's words in
+  `origin.ref` (a superseded requirement is no longer current, so its code is
+  no longer gated).
+
+A receipt is the agent's judgment, never the person's approval; `kibi
+signoff` shows it as such. Hooks read receipts too: the Claude Code
+PreToolUse hook skips its firm-edit question when a current `keeps` receipt
+covers every edited symbol, and the Codex, Cursor and ZCode notices name this
+command. `KIBI_CONFIRM_FIRM_EDITS=0` turns off only the hook question, never
+the staged gate.
+
+**Example:**
+```bash
+echo '{"reviews":[{"requirementId":"REQ-key-expiry","sourceFile":"src/keys.ts","symbol":"expireKey","verdict":"keeps","note":"Same ninety days, constant written another way."}]}' \
+  | kibi review-firm-edit --input -
+git add .kb/firm-edit-reviews
 ```
 
 ## `kibi graph`

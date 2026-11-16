@@ -136,6 +136,8 @@ Four blocking checks keep it honest:
 
 Kibi checks that a firm decision names a reference; it cannot check that the reference is real or that a person wrote it, as with approvals. A reviewer reads the reference.
 
+Code that implements a current firm requirement is guarded as well. `kibi check --staged` blocks a staged change inside such a symbol (`firm_edit_unreviewed`) until the agent records its verdict with `kibi review-firm-edit`: a `keeps` receipt under `.kb/firm-edit-reviews/`, bound to the requirement's statement and the symbol's code, clears it; a `changes` receipt (`firm_edit_breaks_rule`) keeps the change blocked until the requirement is superseded with the person's words. A requirement whose own document changes in the same commit is left to the checks above. Receipts are the agent's judgment, not approvals, and `kibi signoff` lists them as such (see `docs/cli-reference.md`).
+
 ---
 
 ### Retired requirements
