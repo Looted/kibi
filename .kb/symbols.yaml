@@ -42762,3 +42762,361 @@ symbols:
         target: TEST-ci-kb-merge-resolution
       - type: executable_for
         target: TEST-kb-merge-action
+  - id: SYM-test-check-quantity-duplicate
+    title: quantity-duplicate consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/quantity-duplicate.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:07.778Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-duplicate-rule
+    title: QUANTITY_DUPLICATE_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:44.401Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-layer-schema-version
+    title: QUANTITY_LAYER_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:48.940Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-word-share
+    title: QUANTITY_WORD_SHARE
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:52.364Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-value
+    title: quantityValue
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:15.583Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-trivial-values
+  - id: SYM-cli-quantity-layer-value-fact-entry
+    title: valueFactEntry
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:42.035Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-code
+    title: QuantityCode
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:02.536Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-signal
+    title: QuantitySignal
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:05.905Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-pair
+    title: quantityPair
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:25.381Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-distinct-from
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-inputs
+    title: QuantityInputs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:12.473Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-layer-quantity-words
+    title: quantityWords
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:18.744Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-declared-distinct
+    title: declaredDistinct
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:22.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-distinct-from
+  - id: SYM-cli-quantity-layer-quantity-duplicate-pairs
+    title: quantityDuplicatePairs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:28.694Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-duplicate-violations
+    title: quantityDuplicateViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:32.113Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-dangling-distinct
+  - id: SYM-cli-quantity-layer-read-quantity-inputs
+    title: readQuantityInputs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:35.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-value-fact-key
+    title: valueFactKey
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:38.624Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-layer-applies
+    title: quantityLayerApplies
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:45.441Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-collect-quantity-duplicate-violations
+    title: collectQuantityDuplicateViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:48.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-review-code
+    title: QUANTITY_DUPLICATE_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:51.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-action-prefix
+    title: QUANTITY_DUPLICATE_ACTION_PREFIX
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:54.020Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-plan-quantity-duplicate-reviews
+    title: planQuantityDuplicateReviews
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:56.052Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-actions
+    title: quantityDuplicateActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:58.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-note
+    title: quantityDuplicateNote
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:59.881Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-warnings-quantity-warning-input
+    title: QuantityWarningInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/quantity-warnings.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:02.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-upsert-names-quantity-twin
+      - type: implements
+        target: REQ-upsert-quantity-previous-value
+  - id: SYM-cli-quantity-warnings-quantity-warnings
+    title: quantityWarnings
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/quantity-warnings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:05.670Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-upsert-names-quantity-twin
+      - type: implements
+        target: REQ-upsert-quantity-previous-value
+  - id: SYM-cli-quantity-layer-quantity-inputs-from-knowledge
+    title: quantityInputsFromKnowledge
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:44:23.917Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-staged-quantity-violations
+    title: stagedQuantityViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:44:27.306Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate

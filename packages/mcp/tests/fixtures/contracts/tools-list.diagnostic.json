@@ -3708,7 +3708,7 @@
                 "type": "string"
               },
               "distinct_from": {
-                "description": "subject only: similar subject keys this subject was checked to differ from; silences subject-duplicate.",
+                "description": "Keys this subject or value fact was checked to differ from; silences subject-duplicate and quantity-duplicate.",
                 "items": {
                   "type": "string"
                 },
@@ -5449,6 +5449,10 @@
                 },
                 {
                   "const": "subject-duplicate",
+                  "type": "string"
+                },
+                {
+                  "const": "quantity-duplicate",
                   "type": "string"
                 },
                 {

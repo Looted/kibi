@@ -57,7 +57,7 @@ is a representative smoke corpus, not a claim of broad semantic coverage.
 
 ## Repository KB search gate
 
-`repo-search-gold.v2.jsonl` asks Kibi's own KB realistic questions through the
+`repo-search-gold.v3.jsonl` asks Kibi's own KB realistic questions through the
 built CLI (`kibi search --input -`, one process per question). Each case lists
 the current requirements that govern the answer (`expectedIds`); three cases
 must abstain, and fourteen name the superseded or closed requirements a naive
@@ -68,12 +68,15 @@ questions of `v1` and moves five of them to the requirements that superseded
 their v1 answers (`REQ-kibi-search-answer-layer-v2`,
 `REQ-kibi-fresh-verification-receipts-v2` twice,
 `REQ-kibi-scenario-feasibility-v2` and `REQ-branch-store-recovery-v4`), listing
-each replaced requirement under `supersededIds`.
+each replaced requirement under `supersededIds`. `v3` keeps every `v2`
+question and adds `REQ-upsert-quantity-previous-value` to the
+`repo-upsert-dry-run` answers: it governs what a `kb_upsert` dry run must report
+when a value fact moves away from a twin's value.
 
 ```bash
 bun run build && bun packages/cli/bin/kibi sync
 bun run scripts/change-to-proof-eval.ts --repo-kb \
-  documentation/evaluations/change-to-proof/repo-search-gold.v2.jsonl \
+  documentation/evaluations/change-to-proof/repo-search-gold.v3.jsonl \
   --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
 ```
 

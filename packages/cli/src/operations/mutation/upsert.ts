@@ -53,6 +53,7 @@ import {
   withPlanRecoveryNotes,
 } from "./plan-apply-journal.js";
 import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
+import { quantityWarnings } from "./quantity-warnings.js";
 import { reasonNotes } from "./reason-note.js";
 import {
   existingRelationships,
@@ -829,6 +830,18 @@ export async function executeUpsert(
     relationshipCount = validated.relationships.length;
     semanticAdvisor = semantic.receipt;
     const sourceScope = await sourceWriteScope(input, context);
+    // Which requires_property links a requirement write adds is known only
+    // before the write, so its quantity warnings are read now.
+    const requirementQuantityWarnings =
+      input.type === "req"
+        ? quantityWarnings({
+            type: input.type,
+            id: input.id,
+            entity: validated.entity,
+            relationships: validated.relationships,
+            workspaceRoot: context.workspaceRoot,
+          })
+        : [];
     if (sourceScope !== null) {
       priorEntity = sourceScope.existing;
       priorEntityRead = true;
@@ -1152,6 +1165,16 @@ export async function executeUpsert(
           sourceWrite?.receipt.path,
         ),
         ...subjectWarnings,
+        ...(input.type === "req"
+          ? requirementQuantityWarnings
+          : quantityWarnings({
+              type: input.type,
+              id: input.id,
+              entity: writtenEntity,
+              before: priorEntity ?? writtenEntity,
+              relationships: validated.relationships,
+              workspaceRoot: context.workspaceRoot,
+            })),
         ...requirementReasonNotes,
         ...shardWarnings,
         ...coordinateWarnings,

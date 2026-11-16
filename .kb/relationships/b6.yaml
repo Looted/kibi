@@ -454,3 +454,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ac7534e5939
+  - type: constrains
+    from: REQ-check-quantity-duplicate
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:10.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbf36738a889
+  - type: requires_property
+    from: REQ-check-quantity-duplicate
+    to: FACT-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:10.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d26b7edda79c
+  - type: specified_by
+    from: REQ-check-quantity-duplicate
+    to: SCEN-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:10.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48dbc2330b77
+  - type: specified_by
+    from: REQ-check-quantity-duplicate
+    to: SCEN-NEG-check-quantity-duplicate-UNREPORTED
+    created_at: 2026-11-16T16:10:10.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1cc3d45e767
