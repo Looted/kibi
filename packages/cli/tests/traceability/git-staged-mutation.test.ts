@@ -452,6 +452,7 @@ describe("getStagedInventory with a git reader", () => {
       ".kb\\relationships\\r.yml",
       ".kb/tests/T.md",
       ".kb\\facts\\F.md",
+      ".kb/firm-edit-reviews/REQ-a/src__a.ts--run.json",
     ];
     const files = [
       "a.ts.txt",
@@ -463,6 +464,7 @@ describe("getStagedInventory with a git reader", () => {
       "docs/R.md",
       ".kb/manifest.json.bak",
       "x/.kb/symbols.yml",
+      ".kb/firm-edit-reviews/REQ-a/notes.txt",
     ];
     const all = [...sources, ...metadata, ...files];
     const { exec } = scripted({

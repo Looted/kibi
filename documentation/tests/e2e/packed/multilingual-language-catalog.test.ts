@@ -933,6 +933,8 @@ async function runCatalogWorkflow(tarballs: Tarballs): Promise<void> {
         id: "REQ-multilingual-language-catalog",
         title: "Qualified multilingual source declarations remain traceable",
         status: "active",
+        // Not a firm rule: the fixture edits its code without firm-edit receipts.
+        firmness: "default",
         created_at: "2026-09-26T00:00:00Z",
         updated_at: "2026-09-26T00:00:00Z",
         source: ".kb/requirements/REQ-multilingual-language-catalog.md",

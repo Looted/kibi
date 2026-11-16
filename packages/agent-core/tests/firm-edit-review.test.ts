@@ -118,10 +118,8 @@ describe("receipt paths", () => {
 describe("parse and serialize", () => {
   test("a written receipt reads back the same, with a stable key order", () => {
     const quoted = receipt({ requestQuote: "fix the expiry" });
-    const text = serializeFirmEditReceipt({
-      recordedAt: quoted.recordedAt,
-      ...quoted,
-    });
+    const { recordedAt, ...rest } = quoted;
+    const text = serializeFirmEditReceipt({ recordedAt, ...rest });
     expect(text.endsWith("}\n")).toBe(true);
     expect(Object.keys(JSON.parse(text))).toEqual([
       "version",
