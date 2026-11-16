@@ -311,3 +311,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-206824993156
+  - type: constrains
+    from: REQ-ci-kb-merge-uses-action
+    to: FACT-SUBJECT-kibi-ci-kb-merge-workflow
+    created_at: 2026-11-16T18:13:07.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6cf9a85b8d1
+  - type: requires_property
+    from: REQ-ci-kb-merge-uses-action
+    to: FACT-ci-kb-merge-uses-action
+    created_at: 2026-11-16T18:13:07.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5938321302f0
+  - type: specified_by
+    from: REQ-ci-kb-merge-uses-action
+    to: SCEN-ci-kb-merge-uses-action
+    created_at: 2026-11-16T18:13:07.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e823e655f67
+  - type: specified_by
+    from: REQ-ci-kb-merge-uses-action
+    to: SCEN-NEG-ci-kb-merge-uses-action-VIOLATED
+    created_at: 2026-11-16T18:13:07.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9f382f88d5f

@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1031174f742f
+  - type: assumes
+    from: SCEN-kb-merge-action-skip-forks
+    to: FACT-kb-merge-action-skip-forks
+    created_at: 2026-11-16T18:11:45.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4a0021ad380
+  - type: verified_by
+    from: SCEN-kb-merge-action-skip-forks
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:11:45.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a41172e0d32

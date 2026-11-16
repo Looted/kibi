@@ -2,10 +2,19 @@ name: Kibi KB merge
 
 # When develop moves, open pull requests often stop merging only because both
 # sides appended records to .kb/symbols.yaml (or a .kb/relationships shard).
-# This workflow merges develop into each such same-repository PR branch with
-# `kibi merge-driver`, compiles the merged KB, runs the proof gate, and pushes
-# the merge commit. PRs with any other conflict, or a real conflict inside a
-# manifest, are left for a person.
+# GitHub's mergeability check never runs a custom merge driver, so this
+# workflow does it with actions/kb-merge, the same action Kibi publishes for
+# other repositories (docs/github-integration.md): it merges develop into each
+# such same-repository PR branch with `kibi merge-driver`, compiles the merged
+# KB, runs the proof gate, and pushes the merge commit. PRs with any other
+# conflict, or a real conflict inside a manifest, are left for a person. A
+# branch that moves while it is being merged is merged again.
+#
+# It runs when develop moves (every open PR) and when any other branch is
+# pushed (that branch's PR only, if it has one): a push that adds records to a
+# manifest develop already changed conflicts at once, and a branch whose
+# earlier merge was refused gets another try. GitHub does not start
+# pull_request workflows for a PR that has conflicts, so push is the trigger.
 #
 # Pushes made with the default GITHUB_TOKEN do not start other workflows, so
 # the PR's checks would not re-run on the merge commit. Add a repository
@@ -15,13 +24,10 @@ name: Kibi KB merge
 # changes under .github/workflows/ is rejected without it; GITHUB_TOKEN can
 # never push those merges. An expired secret fails the job; it does not fall
 # back to GITHUB_TOKEN.
-#
-# The reusable version for other repositories is
-# docs/examples/github/kibi-kb-merge.yml; see docs/github-integration.md.
 
 concurrency:
-  group: kibi-kb-merge
-  cancel-in-progress: false
+  group: kibi-kb-merge-${{ github.ref_name }}
+  cancel-in-progress: ${{ github.ref_name != 'develop' }}
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -33,12 +39,13 @@ permissions:
 
 on:
   push:
-    branches: [develop]
+    branches: ["**"]
   workflow_dispatch:
 
 jobs:
   find-conflicts:
     name: Find PRs blocked only by KB manifests
+    if: ${{ github.ref_name != 'master' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -53,34 +60,13 @@ jobs:
 
       - name: List PR branches whose only conflicts are KB manifests
         id: find
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BASE: develop
-        run: |
-          set -euo pipefail
-          resolvable='^\.kb/(symbols\.yaml|relationships/[^/]+\.yaml)$'
-          branches='[]'
-          for head in $(gh pr list --base "$BASE" --state open --limit 200 \
-              --json headRefName,isCrossRepository \
-              --jq '.[] | select(.isCrossRepository | not) | .headRefName'); do
-            git fetch --quiet origin "+refs/heads/$head:refs/remotes/origin/$head"
-            status=0
-            out=$(git merge-tree --write-tree --name-only --no-messages \
-              "origin/$BASE" "origin/$head") || status=$?
-            if [ "$status" -eq 0 ]; then continue; fi
-            if [ "$status" -ne 1 ]; then
-              echo "::warning::Could not test-merge $head (git merge-tree exit $status)"
-              continue
-            fi
-            conflicts=$(printf '%s\n' "$out" | tail -n +2 | sed '/^$/d')
-            if printf '%s\n' "$conflicts" | grep -Evq "$resolvable"; then
-              echo "$head: needs a person ($(echo $conflicts))"
-              continue
-            fi
-            echo "$head: KB manifest conflicts only ($(echo $conflicts))"
-            branches=$(jq -c --arg b "$head" '. + [$b]' <<<"$branches")
-          done
-          echo "branches=$branches" >> "$GITHUB_OUTPUT"
+        uses: ./actions/kb-merge
+        with:
+          base: develop
+          # A push to develop (or a manual run) checks every open PR; a push
+          # to any other branch checks only that branch.
+          branches: ${{ github.event_name == 'push' && github.ref_name != 'develop' && github.ref_name || '' }}
+          list-only: "true"
 
   swipl-bundle:
     name: Bundled SWI-Prolog
@@ -89,27 +75,25 @@ jobs:
     uses: ./.github/workflows/swipl-ci-bundle.yml
 
   resolve:
-    name: Merge develop into ${{ matrix.branch }}
+    name: Merge develop into the listed PRs
     needs: [find-conflicts, swipl-bundle]
     if: ${{ needs.find-conflicts.outputs.branches != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        branch: ${{ fromJSON(needs.find-conflicts.outputs.branches) }}
-    env:
-      KIBI_BRANCH: ${{ matrix.branch }}
-      BASE: develop
+      pull-requests: read
     steps:
-      # The merge driver and the KB compiler come from develop, not the
-      # PR branch: a branch that predates them has no `kibi merge-driver`, and
-      # its own lockfile or build may be stale until develop is merged in.
+      # The merge driver, the KB compiler and the proof gate come from
+      # develop, not the PR branch: a branch that predates them has no
+      # `kibi merge-driver`, and its own lockfile or build may be stale until
+      # develop is merged in. The PR branches are merged in scratch worktrees
+      # of this checkout and never installed or built; its credentials push.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.sha }}
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
@@ -127,67 +111,16 @@ jobs:
       - name: Install SWI-Prolog
         uses: ./.github/actions/use-bundled-swipl
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The check is the proof gate a person runs before pushing (integrity
+      # rules and every requirement's evidence floor), evaluated with
+      # develop's Kibi build on the merged tree. A failure leaves the PR
+      # untouched for a person instead of pushing a merge that breaks it.
+      - name: Merge develop with the Kibi merge driver, proof-check, push
+        uses: ./actions/kb-merge
+        env:
+          KIBI_CLI: ${{ github.workspace }}/packages/cli/bin/kibi
         with:
-          ref: ${{ matrix.branch }}
-          path: pr
-          fetch-depth: 0
-          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
-
-      - name: Merge develop with the Kibi merge driver
-        working-directory: pr
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config merge.kibi.driver "node $GITHUB_WORKSPACE/packages/cli/bin/kibi merge-driver %O %A %B"
-          printf '%s\n' '.kb/symbols.yaml merge=kibi' '.kb/relationships/*.yaml merge=kibi' \
-            >> .git/info/attributes
-          git merge --no-ff --no-commit "origin/$BASE" || true
-          if ! git rev-parse -q --verify MERGE_HEAD >/dev/null; then
-            echo "::error::Nothing to merge; the branch already contains $BASE or the merge could not start."
-            exit 1
-          fi
-          unmerged=$(git diff --name-only --diff-filter=U)
-          if [ -n "$unmerged" ]; then
-            echo "::error::Conflicts need a person: $(echo $unmerged)"
-            git merge --abort
-            exit 1
-          fi
-
-      - name: Commit the merge
-        working-directory: pr
-        run: |
-          set -euo pipefail
-          git commit -m "Merge $BASE into $KIBI_BRANCH" \
-            -m "Kibi merge driver resolved the .kb manifest conflicts."
-
-      # The branch store and the symbol-coordinate cache are local and never
-      # committed, so a fresh checkout has neither; without this step the proof
-      # gate stops at "needs a fresh Kibi store" on every merge. Sync must not
-      # rewrite a tracked file: a manifest it would change needs a person.
-      - name: Compile the merged KB
-        working-directory: pr
-        env:
-          KIBI_CLI: ${{ github.workspace }}/packages/cli/bin/kibi
-        run: |
-          set -euo pipefail
-          bun "$KIBI_CLI" sync
-          if ! git diff --quiet HEAD; then
-            echo "::error::Kibi sync changed tracked files after the merge: $(git diff --name-only HEAD | tr '\n' ' ')"
-            exit 1
-          fi
-
-      # The proof gate a person runs before pushing (integrity rules and every
-      # requirement's evidence floor), evaluated with develop's Kibi build. A
-      # failure leaves the PR untouched for a person instead of pushing a
-      # merge that breaks it.
-      - name: Run the proof gate before pushing
-        working-directory: pr
-        env:
-          KIBI_CLI: ${{ github.workspace }}/packages/cli/bin/kibi
-        run: sh scripts/proof-gate.sh
-
-      - name: Push the merge
-        working-directory: pr
-        run: git push origin "HEAD:refs/heads/$KIBI_BRANCH"
+          base: develop
+          branches: ${{ needs.find-conflicts.outputs.branches }}
+          kibi: node ${{ github.workspace }}/packages/cli/bin/kibi
+          check: sh scripts/proof-gate.sh
