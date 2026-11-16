@@ -7,6 +7,7 @@ import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
@@ -18,6 +19,7 @@ import {
   removesOnlyDeadImplementsComments,
   requestWords,
   rulePromptNote,
+  sessionRulePhrase,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
@@ -379,6 +381,7 @@ function postEditContext(
   stateDir: string | undefined,
   sessionId: string | undefined,
   sourcePaths: readonly string[],
+  captureTemplate?: string,
 ): HookResult | undefined {
   const fresh = sourcePaths.filter((sourcePath) =>
     claimSnippetSlot(
@@ -389,12 +392,16 @@ function postEditContext(
       `${sessionId ?? ""}\u0000post-edit\u0000${sourcePath}`,
     ),
   );
-  if (fresh.length === 0) return undefined;
+  const notes = [
+    ...(fresh.length > 0 ? [postEditImpactNote(fresh)] : []),
+    ...(captureTemplate === undefined ? [] : [captureTemplate]),
+  ];
+  if (notes.length === 0) return undefined;
   return {
     continue: true,
     hookSpecificOutput: {
       hookEventName: "PostToolUse",
-      additionalContext: postEditImpactNote(fresh),
+      additionalContext: notes.join("\n\n"),
     },
   };
 }
@@ -566,6 +573,9 @@ export async function runHook(
             stateDir,
             input.sessionId,
             dirtyPaths.filter(isSourceImpactRelevantPath),
+            dirtyPaths.some(isSourceImpactRelevantPath)
+              ? claimRuleCaptureTemplate(session)
+              : undefined,
           );
           if (note) return note;
         }
@@ -584,7 +594,7 @@ export async function runHook(
         const session = { stateDir, sessionId: input.sessionId };
         if (!input.stopHookActive && claimCaptureReminder(session)) {
           const reason = [
-            captureReminder(hasDecisionFlag(session, "rule-prompt")),
+            captureReminder(sessionRulePhrase(session)),
             ...(uncheckedSourcePaths.length > 0
               ? [impactCheckReminder(uncheckedSourcePaths)]
               : []),

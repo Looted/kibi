@@ -5,7 +5,10 @@ import os from "node:os";
 import path from "node:path";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
-import { captureReminder } from "kibi-agent-core/decision-guard";
+import {
+  captureReminder,
+  ruleCaptureTemplate,
+} from "kibi-agent-core/decision-guard";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
   hashTelemetryId,
@@ -953,6 +956,53 @@ describe("Codex decision guard", () => {
     expect(again.reason).toContain("kb_check(");
   });
 
+  test("a rule session gets the capture template after its first source edit, and Stop quotes the rule phrase", async () => {
+    const event = session();
+    await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guards should never pass by default.",
+    });
+    // A patch that also edits docs still counts as the first source edit;
+    // the template follows the impact note.
+    const first = await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: {
+        command: GUARD_PATCH.replace(
+          "*** Begin Patch",
+          "*** Begin Patch\n*** Update File: README.md\n@@\n-a\n+b",
+        ),
+      },
+    });
+    expect(contextOf(first)).toContain(
+      `\n\n${ruleCaptureTemplate("should never")}`,
+    );
+    const second = await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    expect(JSON.stringify(second)).not.toContain("fill in this template");
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(stop.reason).toStartWith(captureReminder("should never"));
+
+    // Without a rule, the first source edit gets no template.
+    const plain = session();
+    await plain({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Rename the guard.",
+    });
+    const edit = await plain({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    expect(JSON.stringify(edit)).not.toContain("fill in this template");
+  });
+
   test("a kb_upsert in the session keeps Stop from asking for capture", async () => {
     const event = session();
     await event({
@@ -1654,7 +1704,7 @@ describe("Codex hook runner result contracts", () => {
       continue: true,
       decision: "block",
       reason: [
-        captureReminder(false),
+        captureReminder(undefined),
         impactCheckReminder(["src/guard.ts"]),
       ].join("\n"),
     });
@@ -1710,7 +1760,7 @@ describe("Codex hook runner result contracts", () => {
     ).toEqual({
       continue: true,
       decision: "block",
-      reason: captureReminder(false),
+      reason: captureReminder(undefined),
     });
   });
 
@@ -1727,7 +1777,7 @@ describe("Codex hook runner result contracts", () => {
       (await event({ hook_event_name: "Stop", stop_hook_active: false }))
         .reason,
     ).toBe(
-      `${captureReminder(false)}\n${impactCheckReminder(["src/guard.ts"])}`,
+      `${captureReminder(undefined)}\n${impactCheckReminder(["src/guard.ts"])}`,
     );
   });
 });

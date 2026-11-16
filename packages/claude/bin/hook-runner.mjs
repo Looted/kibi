@@ -1827,10 +1827,41 @@ function rulePromptNote(phrase) {
   ].join(`
 `);
 }
-function captureReminder(rulePrompt) {
-  return [
-    rulePrompt ? "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base." : "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+function captureReminder(rulePhrase) {
+  return rulePhrase === undefined ? [
+    "Kibi: this session changed source files and recorded nothing in the knowledge base.",
     "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line."
+  ].join(`
+`) : [
+    `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
+    `Record the rule behind "${rulePhrase}" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`
+  ].join(`
+`);
+}
+function ruleCaptureTemplate(rulePhrase) {
+  const template = {
+    type: "req",
+    id: "REQ-<short-name>",
+    properties: {
+      title: "<the rule in a few words>",
+      status: "open",
+      firmness: "firm",
+      origin: {
+        kind: "agent",
+        ref: "<the person's words and where they said them>"
+      }
+    },
+    document: { body: "<the rule as one shall or must sentence>" },
+    implementedBy: [
+      {
+        sourceFile: "<file you changed>",
+        symbol: "<function that enforces it>"
+      }
+    ]
+  };
+  return [
+    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
+    JSON.stringify(template)
   ].join(`
 `);
 }
@@ -2773,7 +2804,7 @@ function emptySessionState() {
     reminded: new Set,
     commandStartedAt: undefined,
     requestWords: [],
-    rulePrompt: false,
+    rulePhrase: undefined,
     firmAsked: new Map,
     firmConfirmed: new Set,
     sourceEdited: false,
@@ -2824,8 +2855,8 @@ function applyEvent(state, event) {
       return;
     case "prompt":
       state.requestWords = event.words;
-      if (event.rule)
-        state.rulePrompt = true;
+      if (event.phrase)
+        state.rulePhrase = event.phrase;
       return;
     case "firm_asked":
       state.firmAsked.set(event.path, [
@@ -3292,6 +3323,16 @@ function bashChanges(workspace, events, trace) {
   }
   return note;
 }
+function captureTemplateNote(workspace, events) {
+  const field = (event, name) => event[name];
+  if (!events.some((event) => field(event, "pathKind") === "source") || events.some((event) => field(event, "operation") === "kb_upsert"))
+    return;
+  const state = loadSessionState(workspace.stateDir);
+  if (state.rulePhrase === undefined || state.kbRecorded || state.notices.has("capture-template"))
+    return;
+  events.push({ kind: "notice", name: "capture-template" });
+  return ruleCaptureTemplate(state.rulePhrase);
+}
 function recordKbUsage(usage, workspace, events) {
   const paths = usage.paths.map((candidate) => toWorkspacePath2(workspace.root, candidate, workspace.root)?.relative).filter((candidate) => candidate !== undefined);
   events.push({
@@ -3335,7 +3376,8 @@ function postToolUse(input, workspace, trace = {}) {
     const usage = extractCliKbUsage(command);
     if (usage)
       recordUsage(usage);
-    const note = bashChanges(workspace, events, trace);
+    const changed = bashChanges(workspace, events, trace);
+    const note = changed ?? captureTemplateNote(workspace, events);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
       events.push({ kind: "checked", paths: [], all: true });
     }
@@ -3349,8 +3391,9 @@ function postToolUse(input, workspace, trace = {}) {
       markDecisionFlag({ stateDir: workspace.stateDir, sessionId: input.sessionId }, "requirement-recorded");
     }
   }
+  const template = captureTemplateNote(workspace, events);
   appendSessionEvents(workspace.stateDir, events);
-  return {};
+  return template ? context("PostToolUse", template) : {};
 }
 function stop(input, workspace, trace = {}) {
   if (input.stopHookActive)
@@ -3365,7 +3408,7 @@ function stop(input, workspace, trace = {}) {
   const parts = [];
   if (capture) {
     events.push({ kind: "notice", name: "capture-stop" });
-    parts.push(captureReminder(state.rulePrompt));
+    parts.push(captureReminder(state.rulePhrase));
   }
   if (signoff)
     parts.push(signoffReminder());
@@ -3386,7 +3429,8 @@ function userPromptSubmit(input, workspace, trace) {
     {
       kind: "prompt",
       words: requestTopicWords(prompt),
-      rule: rule !== undefined
+      rule: rule !== undefined,
+      phrase: rule ?? ""
     }
   ]);
   if (rule === undefined) {

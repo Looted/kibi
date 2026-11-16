@@ -405,14 +405,50 @@ export function rulePromptNote(phrase: string): string {
 
 /**
  * Stop-time note for a session that changed source files and wrote nothing
- * to the knowledge base.
+ * to the knowledge base. When a prompt stated a rule, the note quotes its
+ * phrase and asks for the rule or a reason it is not one; only a session
+ * without one may report that no decision was made.
  */
-export function captureReminder(rulePrompt: boolean): string {
+export function captureReminder(rulePhrase: string | undefined): string {
+  return rulePhrase === undefined
+    ? [
+        "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line.",
+      ].join("\n")
+    : [
+        `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
+        `Record the rule behind "${rulePhrase}" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`,
+      ].join("\n");
+}
+
+/**
+ * Post-edit note for the first source edit of a session whose prompt stated
+ * a rule: a kb_upsert payload to fill in, so recording the rule is one call.
+ */
+export function ruleCaptureTemplate(rulePhrase: string): string {
+  const template = {
+    type: "req",
+    id: "REQ-<short-name>",
+    properties: {
+      title: "<the rule in a few words>",
+      status: "open",
+      firmness: "firm",
+      origin: {
+        kind: "agent",
+        ref: "<the person's words and where they said them>",
+      },
+    },
+    document: { body: "<the rule as one shall or must sentence>" },
+    implementedBy: [
+      {
+        sourceFile: "<file you changed>",
+        symbol: "<function that enforces it>",
+      },
+    ],
+  };
   return [
-    rulePrompt
-      ? "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base."
-      : "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line.",
+    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
+    JSON.stringify(template),
   ].join("\n");
 }
 
@@ -453,6 +489,7 @@ export type DecisionFlag =
   | "kb-recorded"
   | "rule-prompt"
   | "capture-asked"
+  | "capture-template"
   | "requirement-recorded"
   | "signoff-asked";
 
@@ -546,8 +583,46 @@ export function recordRequest(
   } catch {
     // Best effort.
   }
-  if (rule !== undefined) markDecisionFlag(session, "rule-prompt");
+  if (rule !== undefined) {
+    markDecisionFlag(session, "rule-prompt");
+    try {
+      writeMarker(sessionPath(session, "rule-phrase"), rule);
+    } catch {
+      // Best effort: without it the reminders read as for no rule.
+    }
+  }
   return rule;
+}
+
+/** The phrase of the session's latest prompt that read as a rule, or undefined. */
+export function sessionRulePhrase(
+  session: DecisionSession,
+): string | undefined {
+  let phrase = "";
+  try {
+    phrase = String(fs.readFileSync(sessionPath(session, "rule-phrase")));
+  } catch {
+    // No rule prompt this session, or no state directory.
+  }
+  return phrase || undefined;
+}
+
+/**
+ * The rule capture template, the first time a session whose prompt read as a
+ * rule changes source files before anything is recorded; otherwise undefined.
+ */
+export function claimRuleCaptureTemplate(
+  session: DecisionSession,
+): string | undefined {
+  const phrase = sessionRulePhrase(session);
+  if (
+    phrase === undefined ||
+    !hasDecisionFlag(session, "source-edited") ||
+    hasDecisionFlag(session, "kb-recorded") ||
+    !claimDecisionFlag(session, "capture-template")
+  )
+    return undefined;
+  return ruleCaptureTemplate(phrase);
 }
 
 /** Topic words of the session's latest prompt, or none. */

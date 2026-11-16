@@ -1526,10 +1526,41 @@ function rulePromptNote(phrase) {
   ].join(`
 `);
 }
-function captureReminder(rulePrompt) {
-  return [
-    rulePrompt ? "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base." : "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+function captureReminder(rulePhrase) {
+  return rulePhrase === undefined ? [
+    "Kibi: this session changed source files and recorded nothing in the knowledge base.",
     "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line."
+  ].join(`
+`) : [
+    `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
+    `Record the rule behind "${rulePhrase}" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`
+  ].join(`
+`);
+}
+function ruleCaptureTemplate(rulePhrase) {
+  const template = {
+    type: "req",
+    id: "REQ-<short-name>",
+    properties: {
+      title: "<the rule in a few words>",
+      status: "open",
+      firmness: "firm",
+      origin: {
+        kind: "agent",
+        ref: "<the person's words and where they said them>"
+      }
+    },
+    document: { body: "<the rule as one shall or must sentence>" },
+    implementedBy: [
+      {
+        sourceFile: "<file you changed>",
+        symbol: "<function that enforces it>"
+      }
+    ]
+  };
+  return [
+    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
+    JSON.stringify(template)
   ].join(`
 `);
 }
@@ -1588,9 +1619,26 @@ function recordRequest(session, prompt) {
   try {
     writeMarker(sessionPath(session, "request-words.json"), JSON.stringify(requestTopicWords(prompt)));
   } catch {}
-  if (rule !== undefined)
+  if (rule !== undefined) {
     markDecisionFlag(session, "rule-prompt");
+    try {
+      writeMarker(sessionPath(session, "rule-phrase"), rule);
+    } catch {}
+  }
   return rule;
+}
+function sessionRulePhrase(session) {
+  try {
+    return String(fs4.readFileSync(sessionPath(session, "rule-phrase"))) || undefined;
+  } catch {
+    return;
+  }
+}
+function claimRuleCaptureTemplate(session) {
+  const phrase = sessionRulePhrase(session);
+  if (phrase === undefined || !hasDecisionFlag(session, "source-edited") || hasDecisionFlag(session, "kb-recorded") || !claimDecisionFlag(session, "capture-template"))
+    return;
+  return ruleCaptureTemplate(phrase);
 }
 function claimCaptureReminder(session) {
   return hasDecisionFlag(session, "source-edited") && !hasDecisionFlag(session, "kb-recorded") && claimDecisionFlag(session, "capture-asked");
@@ -3240,6 +3288,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
         trace.requirementIds = implementedRequirementIds(linked.symbols);
         const focus = editFocus(path11.resolve(cwd, primaryPath), input.toolInput);
         const ruleNote = takeRuleNote(session);
+        const captureTemplate = claimRuleCaptureTemplate(session);
         const notice = firmNotice(cwd, linked, focus, session, environment.env ?? process.env, removesOnlyDeadImplementsComments(path11.resolve(cwd, primaryPath), input.toolInput, cwd));
         const guidance = hasGuidedPath(state, "pre-edit", relativePath) ? undefined : preEditGuidance(primaryPath, {
           cwd,
@@ -3251,7 +3300,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
         if (guidance) {
           rememberGuidedPath(stateDir, "pre-edit", relativePath);
         }
-        const parts = [ruleNote, notice, guidance].filter((part) => part !== undefined);
+        const parts = [ruleNote, captureTemplate, notice, guidance].filter((part) => part !== undefined);
         trace.action = parts.length > 0 ? "edit_snippet" : "edit_silent";
         return parts.length > 0 ? { permission: "allow", agent_message: parts.join(`
 
@@ -3378,7 +3427,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
           }
           return emptyResult();
         }
-        const capture = claimCaptureReminder(session) ? captureReminder(hasDecisionFlag(session, "rule-prompt")) : undefined;
+        const capture = claimCaptureReminder(session) ? captureReminder(sessionRulePhrase(session)) : undefined;
         const signoff = claimSignoffReminder(session, cwd) ? signoffReminder() : undefined;
         const reminder = stopFollowupMessage(state);
         const followupMessage = [capture, signoff, reminder].filter((part) => part !== undefined).join(`

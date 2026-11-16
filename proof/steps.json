@@ -2041,7 +2041,8 @@
         "--timeout",
         "120000",
         "./packages/claude/tests/hook-runner.test.ts",
-        "./packages/agent-core/tests/requirement-candidates.test.ts"
+        "./packages/agent-core/tests/requirement-candidates.test.ts",
+        "./packages/agent-core/tests/decision-guard.test.ts"
       ]
     ]
   },

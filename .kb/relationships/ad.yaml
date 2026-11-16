@@ -262,3 +262,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-badac203664e
+  - type: implements
+    from: SYM-agent-core-rule-capture-template
+    to: REQ-claude-decision-capture-nudges
+    created_at: 2026-11-16T08:46:03.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2069abbbf7f3
+  - type: covered_by
+    from: SYM-agent-core-rule-capture-template
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T08:46:03.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4df237088920
+  - type: covered_by
+    from: SYM-agent-core-rule-capture-template
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-11-16T08:46:03.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-818486a5b0fa
+  - type: covered_by
+    from: SYM-agent-core-rule-capture-template
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-16T08:46:03.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e318c5887c42
+  - type: covered_by
+    from: SYM-agent-core-rule-capture-template
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-16T08:46:03.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8582c4aa664

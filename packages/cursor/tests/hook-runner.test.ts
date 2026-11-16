@@ -5,6 +5,10 @@ import os from "node:os";
 import path from "node:path";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
+import {
+  captureReminder,
+  ruleCaptureTemplate,
+} from "kibi-agent-core/decision-guard";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
   hashTelemetryId,
@@ -962,6 +966,33 @@ describe("Cursor decision guard", () => {
     expect(again.followup_message).not.toContain(
       "recorded nothing in the knowledge base",
     );
+  });
+
+  test("a rule session's first source edit puts the capture template on the next pre-edit message, and stop quotes the rule phrase", async () => {
+    const { event, edit, workspace } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Guests should never see totals.",
+    });
+    // The first pre-edit message carries the rule note, not the template.
+    expect((await event(edit)).agent_message ?? "").not.toContain(
+      "fill in this template",
+    );
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    expect((await event(edit)).agent_message ?? "").toContain(
+      ruleCaptureTemplate("should never"),
+    );
+    expect((await event(edit)).agent_message ?? "").not.toContain(
+      "fill in this template",
+    );
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message).toStartWith(captureReminder("should never"));
   });
 
   test("stop asks once for a signoff view after a requirement is written", async () => {
