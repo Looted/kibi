@@ -40901,6 +40901,46 @@ symbols:
         target: TEST-mcp-upsert-proof-field-stubs
       - type: implements
         target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
+  - id: SYM-const-default-proof-steps-dir
+    title: DEFAULT_PROOF_STEPS_DIR
+    status: active
+    sourceFile: packages/cli/src/proof/step-runner.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:28:53.295Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: covered_by
+        target: TEST-proof-default-proof-steps-path
+      - type: implements
+        target: REQ-kibi-proof-step-settings
+  - id: SYM-test-kibi-proof-steps-directory
+    title: Proof steps directory suite
+    status: active
+    sourceFile: packages/cli/tests/proof/step-runner-mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:29:30.726Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-proof-steps-directory
+  - id: SYM-cli-load-proof-steps
+    title: loadProofSteps
+    status: active
+    sourceFile: packages/cli/src/proof/step-runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:29:41.514Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: implements
+        target: REQ-kibi-proof-step-settings
   - id: SYM-e2e-test-staged-gate-inherited-symbol-gaps
     title: staged-inherited-symbol-gaps.test
     status: active
@@ -41324,19 +41364,73 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T09:00:00.000Z
-  - id: SYM-check-inheritedSymbolGapsOf
-    title: inheritedSymbolGapsOf
+  - id: SYM-stryker-MUTATION_SHARDS
+    title: MUTATION_SHARDS
     status: active
-    sourceFile: packages/cli/src/commands/check.ts
+    sourceFile: stryker.conf.mjs
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-check-policy-rules-PolicyRuleHead
+    title: PolicyRuleHead
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-source-authoring-writePendingSourceReceipt
+    title: writePendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T10:00:00.000Z
+      recorded_at: 2026-11-16T15:00:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-staged-gate-inherited-symbol-gaps
+        target: TEST-kibi-pending-receipt-branch-scope
       - type: implements
-        target: REQ-staged-gate-reports-inherited-symbol-gaps
+        target: REQ-kibi-pending-receipt-branch-scope
+  - id: SYM-test-mcp-short-field-descriptions
+    title: Short MCP field description suite
+    status: active
+    sourceFile: packages/cli/tests/operations/field-reference.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:07.122Z
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-short-field-descriptions
+  - id: SYM-cli-operation-field-reference
+    title: operationFieldReference
+    status: active
+    sourceFile: packages/cli/src/public/operations/field-reference.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:24.542Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-short-field-descriptions
+  - id: SYM-cli-shortened-fields
+    title: shortenedFields
+    status: active
+    sourceFile: packages/cli/src/public/operations/field-reference.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:28.425Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-short-field-descriptions
   - id: SYM-test-kibi-firm-edit-receipts
     title: Firm-edit receipt suite
     status: active
@@ -41452,44 +41546,6 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-firm-edit-confirmation
-  - id: SYM-test-mcp-short-field-descriptions
-    title: Short MCP field description suite
-    status: active
-    sourceFile: packages/cli/tests/operations/field-reference.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:40:07.122Z
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-short-field-descriptions
-  - id: SYM-cli-operation-field-reference
-    title: operationFieldReference
-    status: active
-    sourceFile: packages/cli/src/public/operations/field-reference.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:40:24.542Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-short-field-descriptions
-      - type: implements
-        target: REQ-mcp-short-field-descriptions
-  - id: SYM-cli-shortened-fields
-    title: shortenedFields
-    status: active
-    sourceFile: packages/cli/src/public/operations/field-reference.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T06:40:28.425Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-short-field-descriptions
-      - type: implements
-        target: REQ-mcp-short-field-descriptions
   - id: SYM-test-kb-upsert-implemented-by
     title: kb_upsert implementedBy suite
     status: active
@@ -41515,46 +41571,6 @@ symbols:
         target: TEST-kb-upsert-implemented-by
       - type: implements
         target: REQ-kb-upsert-implemented-by
-  - id: SYM-const-default-proof-steps-dir
-    title: DEFAULT_PROOF_STEPS_DIR
-    status: active
-    sourceFile: packages/cli/src/proof/step-runner.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:28:53.295Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proof-steps-directory
-      - type: covered_by
-        target: TEST-proof-default-proof-steps-path
-      - type: implements
-        target: REQ-kibi-proof-step-settings
-  - id: SYM-test-kibi-proof-steps-directory
-    title: Proof steps directory suite
-    status: active
-    sourceFile: packages/cli/tests/proof/step-runner-mutation.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:29:30.726Z
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-proof-steps-directory
-  - id: SYM-cli-load-proof-steps
-    title: loadProofSteps
-    status: active
-    sourceFile: packages/cli/src/proof/step-runner.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:29:41.514Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proof-steps-directory
-      - type: implements
-        target: REQ-kibi-proof-step-settings
   - id: SYM-agent-core-rule-capture-template
     title: ruleCaptureTemplate
     status: active
@@ -41833,6 +41849,19 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-check-restated-twin-facts
+  - id: SYM-check-inheritedSymbolGapsOf
+    title: inheritedSymbolGapsOf
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-reports-inherited-symbol-gaps
   - id: SYM-test-upsert-reason-notes
     title: kb_upsert reason note consumer suite
     status: active

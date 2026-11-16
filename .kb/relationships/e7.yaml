@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90922c318727
+  - type: implements
+    from: SYM-source-authoring-writePendingSourceReceipt
+    to: REQ-kibi-pending-receipt-branch-scope
+    created_at: 2026-11-16T10:55:46.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb030678b86f
+  - type: covered_by
+    from: SYM-source-authoring-writePendingSourceReceipt
+    to: TEST-kibi-pending-receipt-branch-scope
+    created_at: 2026-11-16T10:55:46.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f27a31f82ee

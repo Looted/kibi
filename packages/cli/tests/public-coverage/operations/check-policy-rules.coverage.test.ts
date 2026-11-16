@@ -176,7 +176,7 @@ describe("collectCheckPolicyViolations", () => {
       stored_rule_fact: {
         success: true,
         bindings: {
-          Rows: "[['RULE-2',ui_pattern,1,[[0,'modal-dialog']],true],['RULE-3',ui_pattern,1,[[0,'modal-dialog']],false]]",
+          Rows: "[['RULE-2',ui_pattern,[[0,'modal-dialog']],true],['RULE-3',ui_pattern,[[0,'modal-dialog']],false]]",
         },
       },
       predicate_fact: {
