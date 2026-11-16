@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3871ce9d32b
+  - type: assumes
+    from: SCEN-kb-merge-action-verify-before-push
+    to: FACT-kb-merge-action-verify-before-push
+    created_at: 2026-11-16T18:11:43.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d23e6702f1e
+  - type: verified_by
+    from: SCEN-kb-merge-action-verify-before-push
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:11:43.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e30f1a10c73

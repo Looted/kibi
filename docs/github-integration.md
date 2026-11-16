@@ -247,33 +247,121 @@ git config merge.kibi.driver "npm exec --no -- kibi merge-driver %O %A %B"
 Without that setting Git ignores the attribute and falls back to its normal
 line merge, so declaring it is safe for contributors who do not use Kibi.
 
-### In CI
+### Keep pull requests mergeable in CI
 
-Copy [docs/examples/github/kibi-kb-merge.yml](examples/github/kibi-kb-merge.yml)
-to `.github/workflows/kibi-kb-merge.yml`. On every push to the default branch
-it test-merges each open same-repository pull request with
-`git merge-tree`. When the only conflicts are Kibi manifests, it merges the
-default branch into the PR branch with `kibi merge-driver` and pushes the
-merge commit. A branch that still tracks `.kb/symbol-coordinates.yaml` from
-before schema 13 has it removed in that merge. Pull requests with any other conflict, or a real conflict inside a
-manifest, are left untouched for a person. Fork pull requests are skipped
-because the workflow cannot push to them.
+GitHub decides whether a pull request can merge with its own merge, which
+never runs a custom driver (Git only runs a driver that each clone configures,
+and GitHub runs no program from repository content). So as soon as one pull
+request that added symbols merges, every other open one that also added
+symbols shows a conflict in `.kb/symbols.yaml`, even though `kibi merge-driver`
+would merge it cleanly. The **Kibi KB merge** action closes that gap: it does
+the merge GitHub cannot do and pushes the result to the pull request branch.
 
-The merge driver and `kibi sync` run from the default branch's install of
-`kibi-cli`, not the pull request's, so branches opened before the driver
-existed are still handled. The default branch therefore needs a `kibi-cli`
-version that includes `kibi merge-driver`.
+#### Set it up
+
+1. Declare the driver in `.gitattributes` as shown above, and commit a
+   `kibi-cli` dependency (any version with `kibi merge-driver`) on the default
+   branch.
+2. Copy [docs/examples/github/kibi-kb-merge.yml](examples/github/kibi-kb-merge.yml)
+   to `.github/workflows/kibi-kb-merge.yml`. Replace `@master` with a full
+   commit SHA of `Looted/kibi` so the action only changes when you update it.
+3. Create a token so the merge commits start your checks (see
+   [Tokens and permissions](#tokens-and-permissions)) and save it as the
+   repository secret `KIBI_MERGE_TOKEN`. Without it the workflow still pushes
+   merges with `GITHUB_TOKEN`, but your pull request checks do not re-run on
+   them.
+4. Optional: change the `check` input to the gate your repository runs before
+   merging, for example `npm run kb:gate`. It runs in the merged tree, and the
+   merge is pushed only when it exits 0.
+
+For pnpm, Yarn or Bun, change the `setup-node` and `npm ci` steps and point
+the `kibi` input at the installed binary (for example
+`node_modules/.bin/kibi`, or `bunx kibi`).
+
+#### What it does
+
+The workflow runs on every push. A push to the default branch checks every
+open pull request into it; a push to any other branch checks only that
+branch's pull request, so a branch that adds records after the default branch
+moved is merged at once. (GitHub does not start `pull_request` workflows while
+a pull request has conflicts, so `push` is the trigger.) For each candidate
+pull request the action:
+
+1. test-merges the default branch into the pull request head with
+   `git merge-tree`, exactly as GitHub does, and stops if it merges cleanly;
+2. stops and leaves the pull request for a person if any file outside
+   `.kb/symbols.yaml` and `.kb/relationships/*.yaml` conflicts;
+3. merges the default branch into the head in a scratch worktree with
+   `kibi merge-driver`, using the default branch's install of Kibi (never the
+   pull request's, so a branch opened before the driver existed still merges);
+4. runs `kibi sync` on the merged tree and refuses the merge if sync would
+   change a tracked file, then runs the `check` command;
+5. pushes the merge commit only when both passed. If someone pushed to the
+   branch meanwhile, the push is refused and the action starts again from
+   step 1 on the new tip (three attempts by default, see `attempts`).
+
+A branch that still tracks `.kb/symbol-coordinates.yaml` from before KB schema
+13 has it removed in that merge. The job summary lists each branch with what
+happened, and the action's outputs `merged`, `blocked` and `failed` hold the
+same lists as JSON. The job fails only for a branch the driver should have
+handled but whose merge failed `kibi sync`, the check, or the push.
+
+#### What it does not resolve
+
+- **Real conflicts inside a manifest.** When both sides changed the same field
+  of one record differently (for example two `status` values),
+  `kibi merge-driver` leaves conflict markers and the pull request is left for
+  a person, with a warning in the job log.
+- **Conflicts in any other file**, including requirement, scenario and test
+  Markdown under `.kb/`. Those are documents a person should reconcile.
+- **Fork pull requests.** A workflow cannot push to a fork's branch, so they
+  are skipped. Their authors merge the default branch locally with the driver
+  configured (see [Locally](#locally)).
+- **Pull requests into other branches.** Only pull requests into the default
+  branch are checked; set the `base` input to keep another branch's pull
+  requests mergeable instead.
+- **Merges that break the check.** A merge that fails `kibi sync` or the check
+  is not pushed; the pull request keeps its conflict until a person merges.
+
+#### Tokens and permissions
+
+The workflow needs `contents: write` (to push merge commits) and
+`pull-requests: read` (to list pull requests). It pushes with the credentials
+of its checkout of the default branch, which is why the example passes
+`token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}` to `actions/checkout`.
 
 Pushes made with the default `GITHUB_TOKEN` do not start other workflows, so
-the pull request's checks would not re-run on the merge commit. Add a
-repository secret named `KIBI_MERGE_TOKEN` and the workflow pushes with it
-instead. Use a fine-grained personal access token or GitHub App token limited
-to the repository, with **Contents** and **Workflows** set to read and write.
-Workflows access is needed because a merge that brings in changes under
-`.github/workflows/` is rejected without it; the default `GITHUB_TOKEN` can
-never push those merges. An expired secret fails the job rather than falling
-back to `GITHUB_TOKEN`, so renew it or delete the secret. The same
-package-manager adaptations as the report workflow apply.
+the pull request's checks would not re-run on the merge commit. Use a
+fine-grained personal access token or a GitHub App token limited to the
+repository, with **Contents** and **Workflows** set to read and write, as
+`KIBI_MERGE_TOKEN`. Workflows access is needed because a merge that brings in
+changes under `.github/workflows/` is rejected without it; the default
+`GITHUB_TOKEN` can never push those merges. An expired secret fails the job
+rather than falling back to `GITHUB_TOKEN`, so renew it or delete the secret.
+The bot's own merge push starts the workflow again; that run finds the branch
+clean and does nothing.
+
+Git hooks installed in the checkout (for example by `npm ci`) do not run for
+the action's merge commit or push; the `check` input is the gate.
+
+#### Action reference
+
+`uses: Looted/kibi/actions/kb-merge@<commit SHA>`
+
+| Input | Default | Meaning |
+| --- | --- | --- |
+| `base` | repository default branch | Branch whose pull requests are kept mergeable. |
+| `branches` | every open pull request | Head branches to consider: newline or space separated, or a JSON array. |
+| `list-only` | `false` | `true` only lists the branches whose sole conflicts are Kibi manifests (output `branches`) and changes nothing. |
+| `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. A relative path resolves from the workspace. |
+| `check` | `$KIBI check` | Shell command run in the merged tree before the push. `$KIBI` and `$KIBI_BRANCH` are set. `""` runs none. |
+| `attempts` | `3` | Tries per branch when the branch moves while it is being merged. |
+| `github-token` | `github.token` | Token `gh` uses to list pull requests. |
+
+The action needs `git` 2.38 or newer, `gh` and `jq`, which GitHub-hosted
+runners have. Outside GitHub Actions the same logic is
+`actions/kb-merge/kb-merge.sh`, configured through `KB_MERGE_*` environment
+variables described at the top of the script.
 
 ## Troubleshooting
 
