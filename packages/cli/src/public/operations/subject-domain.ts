@@ -20,7 +20,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { contextProse } from "../../entity-body-context.js";
 import { resolveKbPlPath } from "../../prolog.js";
-import { escapeAtom, toPrologAtom } from "../../prolog/codec.js";
+import { toPrologAtom, useCoreModuleGoal } from "../../prolog/codec.js";
 import { readAuthoredEntity } from "./entity-context.js";
 import type { PrologPort } from "./runtime-types.js";
 
@@ -137,10 +137,10 @@ export async function readSubjectDomain(
   workspaceRoot: string,
   subjectKey: string,
 ): Promise<SubjectDomain> {
-  const modulePath = escapeAtom(domainModulePath());
+  const loadGoal = useCoreModuleGoal(domainModulePath());
   // call/1 defers module resolution until use_module has loaded the module.
   const result = await prolog.query(
-    `(use_module('${modulePath}'), call(domain_subjects:subject_domain_json(${toPrologAtom(subjectKey)}, Json)))`,
+    `(${loadGoal}, call(domain_subjects:subject_domain_json(${toPrologAtom(subjectKey)}, Json)))`,
   );
   if (!result.success) {
     throw new Error(
@@ -176,11 +176,11 @@ export async function readSubjectNeighbours(
     withIds: readonly string[];
   }>,
 ): Promise<SubjectNeighbours> {
-  const modulePath = escapeAtom(domainModulePath());
+  const loadGoal = useCoreModuleGoal(domainModulePath());
   const keys = input.subjectKeys.map(toPrologAtom).join(",");
   const withIds = input.withIds.map(toPrologAtom).join(",");
   const result = await prolog.query(
-    `(use_module('${modulePath}'), call(domain_subjects:subject_neighbours_json([${keys}], ${toPrologAtom(input.requirementId)}, [${withIds}], Json)))`,
+    `(${loadGoal}, call(domain_subjects:subject_neighbours_json([${keys}], ${toPrologAtom(input.requirementId)}, [${withIds}], Json)))`,
   );
   if (!result.success) {
     throw new Error(

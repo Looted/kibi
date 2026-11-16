@@ -1155,7 +1155,7 @@ const VERDICT_GOAL = (ids: string[]) =>
   `discovery:search_answer_verdicts_json([${ids.map((id) => `'${id}'`).join(",")}], JsonString)`;
 const MODULE_GOAL = (ids: string[]) =>
   new RegExp(
-    `^\\(use_module\\('[^']*/discovery\\.pl'\\), ${VERDICT_GOAL(ids).replace(/[[\]()]/g, "\\$&")}\\)$`,
+    `^\\(\\\\\\+ \\\\\\+ \\(module_property\\(kb, file\\(KibiKbFile\\)\\) -> .*? ; use_module\\('[^']*/discovery\\.pl'\\)\\), ${VERDICT_GOAL(ids).replace(/[[\]()]/g, "\\$&")}\\)$`,
   );
 const PAYLOAD = { requirements: [{ id: "R1" }], scope: { snapshotId: "s" } };
 

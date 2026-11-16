@@ -49,6 +49,7 @@ import { writePerformanceTraceEvent } from "./performance-trace.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import {
   escapeAtom,
+  isCoreModuleGoal,
   parseEntityFromList,
   parseListOfLists,
 } from "./prolog/codec.js";
@@ -1943,7 +1944,7 @@ export class EngineSession {
     const normalized = goal.trim().replace(/\.+\s*$/u, "");
     if (
       result.success &&
-      USE_MODULE_GOAL.test(normalized) &&
+      (USE_MODULE_GOAL.test(normalized) || isCoreModuleGoal(normalized)) &&
       !this.modules.some((module) => module.goal === normalized)
     ) {
       this.modules.push({ goal: normalized, label: "client-loaded" });

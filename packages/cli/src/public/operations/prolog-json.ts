@@ -1,7 +1,7 @@
 import path from "node:path";
 
 import { resolveKbPlPath } from "../../prolog.js";
-import { escapeAtom } from "../../prolog/codec.js";
+import { escapeAtom, useCoreModuleGoal } from "../../prolog/codec.js";
 import type { PrologPort } from "./runtime-types.js";
 
 export type JsonBindingDecodeStage = "outer" | "inner";
@@ -53,9 +53,7 @@ export async function runOperationJsonQuery<T>(
   errorLabel: string,
   signal?: AbortSignal,
 ): Promise<T> {
-  const modulePath = escapeAtom(
-    resolveCoreModulePath(fileName).replaceAll("\\", "/"),
-  );
+  const loadGoal = useCoreModuleGoal(resolveCoreModulePath(fileName));
   // Loading a module and invoking its predicate in one interactive goal makes
   // SWI reject `use_module/1` under the engine's guarded `once/1` wrapper, so
   // an interactive port gets two serialized requests. That split is only
@@ -80,10 +78,10 @@ export async function runOperationJsonQuery<T>(
     fileName === "status.pl" && typeof typedStatusQuery === "function"
       ? await typedStatusQuery.call(prolog, signal)
       : oneShotMode
-        ? await prolog.query(`(use_module('${modulePath}'), ${goal})`, signal)
+        ? await prolog.query(`(${loadGoal}, ${goal})`, signal)
         : await runInteractiveModuleQuery(
             prolog,
-            modulePath,
+            loadGoal,
             goal,
             errorLabel,
             signal,
@@ -123,12 +121,12 @@ export async function runOperationJsonQuery<T>(
 
 async function runInteractiveModuleQuery(
   prolog: PrologPort,
-  modulePath: string,
+  loadGoal: string,
   goal: string,
   errorLabel: string,
   signal?: AbortSignal,
 ) {
-  const loadResult = await prolog.query(`use_module('${modulePath}')`, signal);
+  const loadResult = await prolog.query(loadGoal, signal);
   if (!loadResult.success) {
     throw new Error(
       `${errorLabel} module load failed: ${loadResult.error ?? "Unknown error"}`,

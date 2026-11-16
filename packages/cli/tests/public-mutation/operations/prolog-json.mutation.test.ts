@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { useCoreModuleGoal } from "../../../src/prolog/codec.js";
 import {
   OperationJsonDecodeError,
   runOperationJsonQuery,
@@ -76,7 +77,7 @@ describe("runOperationJsonQuery transport", () => {
       await runOperationJsonQuery(prolog, "x.pl", "x:goal(J)", "X", signal),
     ).toStrictEqual({ a: 1 });
     expect(calls).toStrictEqual([
-      ["(use_module('/core/src/x.pl'), x:goal(J))", signal],
+      [`(${useCoreModuleGoal("/core/src/x.pl")}, x:goal(J))`, signal],
     ]);
   });
 
@@ -85,7 +86,7 @@ describe("runOperationJsonQuery transport", () => {
     const { calls, port: prolog } = port([ok("1")], { oneShotMode: true });
     await runOperationJsonQuery(prolog, "x.pl", "g", "X");
     expect(calls).toStrictEqual([
-      ["(use_module('/it''s/core/x.pl'), g)", undefined],
+      [`(${useCoreModuleGoal("/it's/core/x.pl")}, g)`, undefined],
     ]);
   });
 
@@ -93,7 +94,7 @@ describe("runOperationJsonQuery transport", () => {
     const { calls, port: prolog } = port([ok("1")]);
     await runOperationJsonQuery(prolog, "x.pl", "g", "X");
     expect(calls).toStrictEqual([
-      ["(use_module('/core/src/x.pl'), g)", undefined],
+      [`(${useCoreModuleGoal("/core/src/x.pl")}, g)`, undefined],
     ]);
   });
 
@@ -107,7 +108,7 @@ describe("runOperationJsonQuery transport", () => {
       await runOperationJsonQuery(prolog, "x.pl", "g", "X", signal),
     ).toStrictEqual([1]);
     expect(calls).toStrictEqual([
-      ["use_module('/core/src/x.pl')", signal],
+      [useCoreModuleGoal("/core/src/x.pl"), signal],
       ["g", signal],
     ]);
   });
@@ -120,7 +121,7 @@ describe("runOperationJsonQuery transport", () => {
     ]);
     expect(await runOperationJsonQuery(prolog, "x.pl", "g", "X")).toBe(2);
     expect(calls.map(([goal]) => goal)).toStrictEqual([
-      "use_module('/core/src/x.pl')",
+      useCoreModuleGoal("/core/src/x.pl"),
       "g",
     ]);
   });
@@ -132,7 +133,7 @@ describe("runOperationJsonQuery transport", () => {
     );
     expect(await runOperationJsonQuery(prolog, "x.pl", "g", "X")).toBe(3);
     expect(calls.map(([goal]) => goal)).toStrictEqual([
-      "use_module('/core/src/x.pl')",
+      useCoreModuleGoal("/core/src/x.pl"),
       "g",
     ]);
   });
@@ -177,7 +178,7 @@ describe("runOperationJsonQuery transport", () => {
     const { calls, port: prolog } = port([ok("4")], { oneShotMode: true });
     expect(await runOperationJsonQuery(prolog, "status.pl", "g", "X")).toBe(4);
     expect(calls.map(([goal]) => goal)).toStrictEqual([
-      "(use_module('/core/src/status.pl'), g)",
+      `(${useCoreModuleGoal("/core/src/status.pl")}, g)`,
     ]);
   });
 
