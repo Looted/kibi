@@ -2,7 +2,7 @@
 title: 'Claim-bound proofs: A claim binding must be one of derived, attested or rejected'
 status: active
 fact_kind: property_value
-subject_key: kibi.claim_bound_proof
+subject_key: kibi.proofs.vocabulary
 property_key: binding_verdicts
 operator: eq
 claim_key: CLAIM-B5DC77B02767FF31
