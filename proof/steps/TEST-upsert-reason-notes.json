@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-upsert-reason-notes",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/upsert-reason-note.test.ts"
+    ]
+  ]
+}
