@@ -12,7 +12,7 @@
     "inputSchema": {
       "properties": {
         "clauses": {
-          "description": "Optional complete atomic clause decomposition. Each clause must be a verbatim fragment of intent (whitespace may differ); a clause that does not occur in intent fails the call with VALIDATION_FAILED naming it. Each assertive clause receives independent proposition accounting.",
+          "description": "Optional atomic clause decomposition; each clause must be a verbatim fragment of intent.",
           "items": {
             "minLength": 1,
             "type": "string"
@@ -21,7 +21,7 @@
           "type": "array"
         },
         "conflictReviews": {
-          "description": "Your verdict on each contradictionAnalysis.reviewCandidates entry of a previous compile: whether the intent contradicts that current requirement, which Kibi could not compare logically. A conflict verdict blocks the plan; a no_conflict verdict clears that candidate. A verdict may also name a current requirement discovery did not rank.",
+          "description": "Your verdict on each reviewCandidates entry of a previous compile; a conflict verdict blocks the plan.",
           "items": {
             "additionalProperties": false,
             "properties": {
@@ -45,7 +45,7 @@
           "type": "array"
         },
         "context": {
-          "description": "Why the requirement exists, who asked and anything that does not fit its checked meaning. Required when mode is create (validation error naming this field otherwise); rendered as a '## Context' section of the requirement document, never as part of the checked meaning. Never invent a reason: write 'Reason not stated' when the requester gave none. An update keeps the existing document body unless context is supplied.",
+          "description": "Why the requirement exists and who asked; required for create. Write 'Reason not stated' rather than invent one.",
           "maxLength": 10000,
           "type": "string"
         },
@@ -84,7 +84,7 @@
           "type": "array"
         },
         "mode": {
-          "description": "Create a new requirement or update an existing one. Update auto-selection is allowed only with a high-confidence, well-separated candidate.",
+          "description": "Create a new requirement or update an existing one.",
           "enum": ["create", "update"],
           "type": "string"
         },
@@ -176,7 +176,7 @@
           "type": "object"
         },
         "sourceExcerpt": {
-          "description": "Optional verbatim text the intent came from (a ticket, a message, a document passage). Rendered as a blockquote in the requirement's '## Source' section; requires context.",
+          "description": "Optional verbatim text the intent came from, quoted in the Source section; requires context.",
           "maxLength": 10000,
           "type": "string"
         },
@@ -209,7 +209,7 @@
           "type": "array"
         },
         "sourceReference": {
-          "description": "Optional locator of the source text (ticket id, URL, path). Rendered in the requirement's '## Source' section; requires context.",
+          "description": "Optional locator of the source text (ticket id, URL, path) for the Source section; requires context.",
           "maxLength": 2000,
           "type": "string"
         },
@@ -257,7 +257,7 @@
           "type": "string"
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

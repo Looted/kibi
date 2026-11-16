@@ -6,6 +6,14 @@ The Kibi Model Context Protocol (MCP) server is a peer public interface alongsid
 
 The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP, with equivalent operation access through `kibi <route> --input <file|->`. Every MCP tool also accepts `workspaceRoot`, the directory the call is about; see [Workspace Routing](#workspace-routing).
 
+Every session loads the tool list, so it is kept small: each input field is
+described in one line of at most 120 characters, and a choice among string
+constants is listed as an `enum`. A field whose rule needs more words keeps
+its full description in the operation catalog, which validates input on MCP
+and the CLI alike, and in the kibi-usage resource `operation-fields`
+(`kb_skills` with `action: "read"`, `id: "kibi-usage"`,
+`resource: "resources/operation-fields.md"`).
+
 ### Response envelope
 
 Every tool except `kb_job_status` returns `structuredContent` as a protocol 1

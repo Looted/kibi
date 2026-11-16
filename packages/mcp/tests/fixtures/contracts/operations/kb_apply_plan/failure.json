@@ -61,7 +61,7 @@
       ],
       "properties": {
         "approvedActionIds": {
-          "description": "Required for migration-plan.v2. Exact action IDs explicitly approved for this application: automatic actions, or review actions with a cli invocation that Kibi executes only when approved by id (for example semantic_inventory_rederive_drop_grounding).",
+          "description": "Required for migration-plan.v2: the exact action IDs approved for this application.",
           "items": {
             "minLength": 1,
             "type": "string"
@@ -75,21 +75,21 @@
         },
         "async": {
           "default": false,
-          "description": "MCP only. When true, start the apply as a background job and return a kibi.job.v1 receipt immediately instead of holding the request open; poll kb_job_status with the returned jobId for the final result. Use for large bootstrap plans (hundreds of actions) that can outlast a client's request timeout. The MCP server registers kb_job_status only when KIBI_MCP_OPTIONAL_TOOLS includes it; otherwise async applies synchronously. A synchronous apply sends notifications/progress after each bootstrap action when the request carries a progressToken. The CLI ignores this field.",
+          "description": "MCP only: when true, run as a background job and return a kibi.job.v1 receipt to poll with kb_job_status.",
           "type": "boolean"
         },
         "plan": {
-          "description": "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked actions and review actions Kibi cannot execute.",
+          "description": "The complete bootstrap, compile, migration or hash-bound entity-deletion plan object to apply.",
           "required": ["version", "planHash"],
           "type": "object"
         },
         "recoveryJournalId": {
-          "description": "Typed recovery journal identifier returned by a committed_with_repairs result or a PLAN_APPLY_RECOVERY_REQUIRED error. Recovery replays only the immutable journal and never the original plan request; a compile-plan journal (plan-apply-*) is completed or rolled back deterministically and reports which. A bootstrap journal left `applying` by a process that died mid-action is resumed without edits: the interrupted action is re-applied and a source lock held by the dead process is reclaimed and recorded in the journal.",
+          "description": "Recovery journal id from a committed_with_repairs result or PLAN_APPLY_RECOVERY_REQUIRED error, to resume.",
           "pattern": "^[A-Za-z0-9._-]+$",
           "type": "string"
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

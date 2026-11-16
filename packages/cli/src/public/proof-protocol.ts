@@ -133,11 +133,14 @@ import {
   normalizeSourceSpec,
   sourceSpecErrors,
 } from "./proof-sources.js";
+import { ADVERTISED_DESCRIPTION } from "./operations/advertised-schema.js";
 
 export const PROOF_RESULT_SCHEMA = {
   type: "object",
   description:
     "One observed proof result. binding distinguishes native-case observations from aggregate-run bindings; attempts must report facts only.",
+  [ADVERTISED_DESCRIPTION]:
+    "One observed proof result; attempts report facts only.",
   required: ["symbol_id", "target", "outcome", "binding", "attempts"],
   properties: {
     symbol_id: {
@@ -198,6 +201,8 @@ export const PROOF_RUN_ARTIFACT_SCHEMA = {
   type: "object",
   description:
     "Producer-emitted kibi.proof-run.v1 proof artifact. Producers report what happened; Kibi evaluates proof obligations and policies. Produce it via `kibi prove` or direct kb_ingest_proof calls.",
+  [ADVERTISED_DESCRIPTION]:
+    "Producer-emitted kibi.proof-run.v1 artifact, from kibi prove or a direct call; Kibi evaluates the obligations.",
   required: [
     "version",
     "producer",
@@ -261,6 +266,8 @@ export const PROOF_RUN_ARTIFACT_SCHEMA = {
       type: "array",
       description:
         "kibi.code-certificate.v1 objects the run left for certificate-kind contracts, one per test. Kibi re-checks each before a receipt counts as proved.",
+      [ADVERTISED_DESCRIPTION]:
+        "kibi.code-certificate.v1 objects for certificate-kind contracts, one per test; Kibi re-checks each.",
       maxItems: 1000,
       items: { type: "object", required: ["version", "kind", "test_id"] },
     },
