@@ -15,13 +15,14 @@ import {
 describe("symbol debt text", () => {
   test("no debt, or a zero total, prints nothing", () => {
     expect(formatSymbolDebt(undefined)).toBe("");
-    expect(formatSymbolDebt({ total: 0, files: [] })).toBe("");
+    expect(formatSymbolDebt({ total: 0, fileCount: 0, files: [] })).toBe("");
   });
 
   test("a debt names the total and each file's declarations", () => {
     expect(
       formatSymbolDebt({
         total: 3,
+        fileCount: 2,
         files: [
           { path: "src/a.ts", unrecorded: ["one", "two"] },
           { path: "src/b.ts", unrecorded: ["three"] },

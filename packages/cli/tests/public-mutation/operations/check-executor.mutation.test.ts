@@ -986,11 +986,14 @@ describe("executeCheck", () => {
 
   test("adds one debt sentence to the summary only for a debt", () => {
     expect(withSymbolDebtSummary(undefined, "S")).toBe("S");
-    expect(withSymbolDebtSummary({ total: 0, files: [] }, "S")).toBe("S");
+    expect(
+      withSymbolDebtSummary({ total: 0, fileCount: 0, files: [] }, "S"),
+    ).toBe("S");
     expect(
       withSymbolDebtSummary(
         {
           total: 3,
+          fileCount: 2,
           files: [
             { path: "a.ts", unrecorded: ["x", "y"] },
             { path: "b.ts", unrecorded: ["z"] },

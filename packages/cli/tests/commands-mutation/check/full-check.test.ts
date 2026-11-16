@@ -486,6 +486,7 @@ describe("result rendering", () => {
 
   const DEBT = {
     total: 1,
+    fileCount: 1,
     files: [{ path: "src/a.ts", unrecorded: ["one"] }],
   };
   const DEBT_TEXT =
@@ -495,7 +496,7 @@ describe("result rendering", () => {
     checkResult = { structuredContent: { symbolDebt: DEBT } };
     expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
     expect(logs).toEqual([
-      "✓ No violations found. KB is valid.",
+      "✓ No violations. 0 rules. 1 unrecorded declaration in 1 file does not block (kibi check --symbol-debt lists them).",
       "",
       DEBT_TEXT,
     ]);
@@ -516,7 +517,7 @@ describe("result rendering", () => {
     checkResult = {
       structuredContent: {
         violations: [violation({ suggestion: undefined })],
-        symbolDebt: { total: 0, files: [] },
+        symbolDebt: { total: 0, fileCount: 0, files: [] },
       },
     };
     expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 1 });
@@ -525,7 +526,7 @@ describe("result rendering", () => {
     logs.length = 0;
     checkResult = {};
     expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
-    expect(logs).toEqual(["✓ No violations found. KB is valid."]);
+    expect(logs).toEqual(["✓ No violations. 0 rules."]);
   });
 
   test("violations are listed by source, with fixes on request", async () => {

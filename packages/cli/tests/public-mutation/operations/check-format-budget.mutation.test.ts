@@ -7,7 +7,7 @@ import {
 import type { Violation } from "../../../src/utils/rule-registry.js";
 
 const HINT =
-  "The result was cut to its size budget. Narrow sourceFiles, select rules, or run kb_check without sourceFiles for every finding in full.";
+  "The result was cut to its size budget. Narrow sourceFiles, or pass rules to list those rules' findings in full; kibi check --format json lists every finding.";
 const size = (value: unknown) => JSON.stringify(value).length;
 
 function violation(index: number, extra: Partial<Violation> = {}): Violation {
@@ -75,7 +75,7 @@ describe("fitScopedCheckToBudget", () => {
           message:
             "3 advisory findings are not listed, to keep this result within its size budget.",
           suggestion:
-            "Run kb_check without sourceFiles to list every advisory finding.",
+            "Run kibi check --format json to list every advisory finding.",
           evidence: { omitted: 3, byId: { q1: 2, q2: 1 } },
         },
       ],
