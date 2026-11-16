@@ -50,6 +50,8 @@ export const IMPLEMENTED_BY_SCHEMA = {
   minItems: 1,
   description:
     "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant). Kibi creates or reuses each symbol and links it with implements; an entry that resolves to no single granular declaration is refused with candidates.",
+  [ADVERTISED_DESCRIPTION]:
+    "req only: the declarations that implement it, each {sourceFile, symbol}; Kibi links each with implements.",
   items: {
     type: "object",
     additionalProperties: false,
