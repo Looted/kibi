@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5128211bb7d3
+  - type: implements
+    from: SYM-agent-core-SESSION_BRIEF
+    to: REQ-agent-core-session-brief
+    created_at: 2026-11-16T16:35:40.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd44062b2334
+  - type: covered_by
+    from: SYM-agent-core-SESSION_BRIEF
+    to: TEST-session-brief
+    created_at: 2026-11-16T16:35:41.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71ee0aca296b

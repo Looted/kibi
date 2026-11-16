@@ -70,7 +70,7 @@ npm install --save-dev kibi-core kibi-cli kibi-mcp
 npm exec -- kibi init
 ```
 
-`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It never overwrites a hook it did not write; with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add instead. It does not infer product knowledge. So that a fresh clone (a teammate's, a cloud agent's) uses Kibi too, it also writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md`) that tells any agent the knowledge base exists, and adds a `prepare` step that installs the hooks when dependencies are installed; the first Kibi query in a clone compiles the branch's store from the committed knowledge. Each of these can be turned off ([setup choices](https://looted.github.io/kibi/reference/cli.html#setup-choices)). [Connect your coding agent](#connect-your-coding-agent), then ask it:
+`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It never overwrites a hook it did not write; with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add instead. It does not infer product knowledge. So that a fresh clone (a teammate's, a cloud agent's) uses Kibi too, it also writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md` for Claude Code and from `GEMINI.md` for Gemini CLI) that tells any agent the knowledge base exists, and adds a `prepare` step that installs the hooks when dependencies are installed; the first Kibi query in a clone compiles the branch's store from the committed knowledge. Each of these can be turned off ([setup choices](https://looted.github.io/kibi/reference/cli.html#setup-choices)). [Connect your coding agent](#connect-your-coding-agent), then ask it:
 
 > **Bootstrap Kibi for this repository.**
 
@@ -191,6 +191,8 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 </details>
 
 ### What your agent gets
+
+Every surface opens a session with the same short brief: search for the recorded intent before changing behaviour, record the person's decisions with their reason, run the commit check before finishing, and treat a request that would make a recorded rule false as a question. The host plugins add it at session start, and the MCP server returns it in its `initialize` instructions and in `kb_status`, so an MCP client without hooks reads it too.
 
 Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and a small set of MCP tools does the rest. The main skill, `kibi-usage`, is a short arc of about 3k characters (search for prior intent, edit, record the decision, check, commit); its topic guidance, such as modeling claims or changing someone else's KB, loads only when the task needs it:
 
