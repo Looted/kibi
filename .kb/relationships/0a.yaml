@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0561bfa9cb34
+  - type: assumes
+    from: SCEN-NEG-staged-firm-edit-gate-UNREVIEWED
+    to: FACT-NEG-staged-firm-edit-gate-UNREVIEWED
+    created_at: 2026-11-16T06:59:50.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9846bb3fdec1
+  - type: verified_by
+    from: SCEN-NEG-staged-firm-edit-gate-UNREVIEWED
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:50.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4abd2632dbde

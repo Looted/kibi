@@ -86,6 +86,20 @@ describe("renderSummaryMarkdownBody", () => {
               { id: "REQ-00", title: "Older", statement: "Older rule." },
             ],
             symbols: ["a.ts#f", "b.ts#g"],
+            firmEditReviews: [
+              {
+                symbol: "f",
+                sourceFile: "a.ts",
+                verdict: "keeps",
+                note: "same",
+              },
+              {
+                symbol: "g",
+                sourceFile: "b.ts",
+                verdict: "changes",
+                note: "new limit",
+              },
+            ],
             scenarios: [
               { id: "SCEN-1", title: "SCEN-1" },
               { id: "SCEN-2", title: "Second" },
@@ -114,6 +128,8 @@ describe("renderSummaryMarkdownBody", () => {
         "- Replaces REQ-0 (exploratory): Old rule.",
         "- Replaces REQ-00 (default): Older rule.",
         "- Changed code: a.ts#f, b.ts#g",
+        "- Agent review: f in a.ts: the agent judged that the change keeps the rule (same); judged by the agent, not approved by you",
+        "- Agent review: g in b.ts: the agent judged that the change changes the rule (new limit); judged by the agent, not approved by you",
         "- Scenarios: SCEN-1; SCEN-2 (Second)",
         "- Proof: tested, 1 test",
         "- Contradiction: c1",

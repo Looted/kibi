@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c2d100dfe6b
+  - type: validates
+    from: TEST-kibi-signoff-firm-edit-receipts
+    to: REQ-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:15.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e99ae929a050
+  - type: validates
+    from: TEST-kibi-signoff-firm-edit-receipts
+    to: SCEN-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:16.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-163386e93f05

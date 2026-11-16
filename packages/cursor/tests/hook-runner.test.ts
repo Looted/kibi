@@ -5,6 +5,13 @@ import os from "node:os";
 import path from "node:path";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
   hashTelemetryId,
@@ -28,6 +35,40 @@ afterEach(() => {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+/**
+ * A current keeps receipt for computeTotal, spanning the whole file, bound to
+ * the requirement's prose.
+ */
+function writeKeepsReceipt(root: string): void {
+  const content = fs.readFileSync(path.join(root, "src/checkout.ts"), "utf8");
+  const lines = content.split("\n").length;
+  const file = path.join(
+    root,
+    firmEditReceiptPath(
+      "REQ-checkout-rounding",
+      "src/checkout.ts",
+      "computeTotal",
+    ) as string,
+  );
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(
+    file,
+    serializeFirmEditReceipt({
+      version: FIRM_EDIT_RECEIPT_VERSION,
+      requirementId: "REQ-checkout-rounding",
+      sourceFile: "src/checkout.ts",
+      symbol: "computeTotal",
+      verdict: "keeps",
+      note: "Still rounds to cents.",
+      statementHash: firmEditStatementHash("Totals round half up to two decimals."),
+      codeHash: firmEditCodeHash(content, 1, lines) as string,
+      startLine: 1,
+      endLine: lines,
+      recordedAt: "2026-11-16T00:00:00.000Z",
+    }),
+  );
+}
 
 describe("Cursor hook runner", () => {
   test("sessionStart reminds when cwd has no Kibi config", async () => {
@@ -914,6 +955,16 @@ describe("Cursor decision guard", () => {
     expect(await event(edit)).toEqual({});
     expect((await event(edit, "guard-2")).agent_message).toStartWith(
       FIRM_NOTICE,
+    );
+  });
+
+  test("a current keeps receipt for the edited code stops the firm-edit notice", async () => {
+    const { event, edit, workspace } = conversation();
+    writeKeepsReceipt(workspace);
+    const result = await event(edit);
+    expect(result.permission).toBe("allow");
+    expect(JSON.stringify(result)).not.toContain(
+      "which implements a firm requirement",
     );
   });
 

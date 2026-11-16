@@ -129,6 +129,18 @@ const SEED_INPUTS = {
     },
   },
   kb_prepare_impact_review: { scope: { kind: "staged" } },
+  kb_review_firm_edit: {
+    reviews: [
+      {
+        requirementId: "REQ-CONTRACT-001",
+        sourceFile: "src/contract.ts",
+        symbol: "contract",
+        verdict: "keeps",
+        note: "Parity case.",
+      },
+    ],
+    dryRun: true,
+  },
 } as const satisfies Record<OperationName, JsonInput>;
 
 export const PARITY_CASES: readonly ParityCase[] = listSpecs().map((spec) => ({

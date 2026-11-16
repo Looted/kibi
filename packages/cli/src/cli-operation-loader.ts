@@ -85,6 +85,10 @@ export async function loadOperationSpec(
         await import("./public/operations/specs/impact-review-preparation.js")
       ).prepareImpactReviewSpec;
       break;
+    case "kb_review_firm_edit":
+      spec = (await import("./public/operations/specs/firm-edit-review.js"))
+        .reviewFirmEditSpec;
+      break;
     case "kb_compile_intent":
       spec = (await import("./public/operations/specs/planning.js"))
         .compileIntentSpec;

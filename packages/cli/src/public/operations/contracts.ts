@@ -850,6 +850,10 @@ const BASE_DATA_SCHEMAS: Readonly<
       jobReceiptData,
     ],
   },
+  kb_review_firm_edit: objectData({
+    dryRun: booleanValue,
+    receipts: recordArray,
+  }),
   kb_ingest_proof: objectData({
     artifactDigest: stringValue,
     environmentHash: stringValue,
@@ -937,6 +941,7 @@ const EFFECT_OVERRIDES: Readonly<
   },
   kb_check: {},
   kb_prepare_impact_review: {},
+  kb_review_firm_edit: {},
   kb_compile_intent: {},
   kb_apply_plan: {
     "kb-write": { destructive: true, retrySafety: "unsafe" },

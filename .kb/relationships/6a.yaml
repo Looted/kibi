@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4704288a04cb
+  - type: validates
+    from: TEST-kibi-staged-firm-edit-gate
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:54.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-293127572915
+  - type: validates
+    from: TEST-kibi-staged-firm-edit-gate
+    to: SCEN-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:54.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b527c9f22a9

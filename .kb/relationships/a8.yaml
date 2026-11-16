@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-336a3b73110c
+  - type: implements
+    from: SYM-cli-create-firm-edit-gate-diagnostics
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:57.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d52c63deb2c
+  - type: covered_by
+    from: SYM-cli-create-firm-edit-gate-diagnostics
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:57.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44c108488b7e
