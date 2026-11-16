@@ -21,6 +21,7 @@ import {
   settledFirmRequirements,
   signoffReminder,
 } from "kibi-agent-core/decision-guard";
+import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import {
   type HookTrace,
   appendHookUsage,
@@ -185,6 +186,7 @@ function preEditContext(
   trace.requirementIds = implementedRequirementIds(files[first.relative] ?? []);
   const summarize = createEntitySummarizer(workspaceRoot);
   const notice = firmNotice(
+    workspaceRoot,
     targets,
     files,
     summarize,
@@ -218,6 +220,7 @@ function preEditContext(
  * cannot resolve counts as touching the whole file.
  */
 function firmNotice(
+  workspaceRoot: string,
   targets: readonly EditTarget[],
   files: Record<string, readonly IndexedSymbol[]>,
   summarize: Summarize,
@@ -235,6 +238,10 @@ function firmNotice(
       wholeFile: focus === undefined,
       summarize,
       confirmed: settled,
+      reviewed: firmEditReviewed(workspaceRoot, target.relative, (id) => {
+        const summary = summarize(id);
+        return summary.statement ?? summary.title;
+      }),
       commentOnly: removesOnlyDeadImplementsComments(
         target.absolute,
         input.toolInput,

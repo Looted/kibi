@@ -6366,6 +6366,292 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Record a firm-edit review"
+      },
+      "description": "Record your verdict on a change to code that implements a current firm requirement: keeps (the code still does what it says) or changes. kibi check --staged blocks such a change until each edited symbol has a current keeps receipt. A receipt is your judgment, not the person's approval. Side effects: writes .kb/firm-edit-reviews/ files; dryRun:true writes nothing.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "_diagnostic_telemetry": {
+            "additionalProperties": {},
+            "description": "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+            "properties": {
+              "actor_id": {
+                "description": "Optional opaque actor identifier used to prevent evidence from a different actor being correlated with this call. Do not put personal data in this field.",
+                "type": "string"
+              },
+              "attempt_number": {
+                "description": "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "type": "integer"
+              },
+              "confidence_score": {
+                "description": "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+                "type": "number"
+              },
+              "is_autonomous": {
+                "description": "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+                "type": "boolean"
+              },
+              "missing_context": {
+                "description": "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+                "type": "string"
+              },
+              "reasoning": {
+                "description": "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+                "type": "string"
+              },
+              "session_id": {
+                "description": "Optional opaque workflow-session identifier used to correlate advisor, preflight, mutation, coverage, and verification evidence. Do not put personal data in this field.",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "reviews": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "note": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "requestQuote": {
+                  "type": "string"
+                },
+                "requirementId": {
+                  "pattern": "^REQ-[A-Za-z0-9._-]+$",
+                  "type": "string"
+                },
+                "sourceFile": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "symbol": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "verdict": {
+                  "anyOf": [
+                    {
+                      "const": "keeps",
+                      "type": "string"
+                    },
+                    {
+                      "const": "changes",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "requirementId",
+                "sourceFile",
+                "symbol",
+                "verdict",
+                "note"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "type": "string"
+          }
+        },
+        "required": ["reviews"],
+        "type": "object"
+      },
+      "name": "kb_review_firm_edit",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "dryRun": {
+                "type": "boolean"
+              },
+              "receipts": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "anyOf": [
+                    {
+                      "const": "info",
+                      "type": "string"
+                    },
+                    {
+                      "const": "warning",
+                      "type": "string"
+                    },
+                    {
+                      "const": "error",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "anyOf": [
+                    {
+                      "const": "completed",
+                      "type": "string"
+                    },
+                    {
+                      "const": "failed",
+                      "type": "string"
+                    },
+                    {
+                      "const": "not_applicable",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "minItems": 2,
+            "type": "array"
+          },
+          "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1,
+            "type": "number"
+          },
+          "nextActions": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_review_firm_edit",
+            "type": "string"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_review_firm_edit.v1",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "const": "success",
+                "type": "string"
+              },
+              {
+                "const": "committed_with_repairs",
+                "type": "string"
+              },
+              {
+                "const": "error",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
         "readOnlyHint": true,
         "title": "Plan Kibi bootstrap"
       },

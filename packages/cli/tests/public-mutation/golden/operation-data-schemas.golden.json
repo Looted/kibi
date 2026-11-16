@@ -3528,6 +3528,22 @@
       }
     ]
   },
+  "kb_review_firm_edit": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "dryRun": {
+        "type": "boolean"
+      },
+      "receipts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
   "kb_ingest_proof": {
     "type": "object",
     "additionalProperties": false,

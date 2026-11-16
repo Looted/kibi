@@ -37,6 +37,7 @@ const AGENT_FACING_TOOLS = [
   "kb_delete",
   "kb_check",
   "kb_prepare_impact_review",
+  "kb_review_firm_edit",
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
@@ -144,7 +145,7 @@ function requirementFiles(workspace: string): string[] {
 }
 
 describe("kibi-mcp consolidated tool surface", () => {
-  test("lists 16 tools, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
+  test("lists 17 tools, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
     const workspace = initWorkspace();
     const client = await connect(workspace);
 

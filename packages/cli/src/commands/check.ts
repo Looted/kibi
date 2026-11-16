@@ -52,6 +52,7 @@ import {
   hasBlockingImpactDiagnostics,
 } from "../public/impact-diagnostics.js";
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
+import { createFirmEditGateDiagnostics } from "../public/impact/firm-edit-gate.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
@@ -1226,6 +1227,24 @@ export async function checkCommand(
           }),
           ...createSemanticReviewDiagnostics({ symbolsByFile }),
           ...createStagedEntityIdStyleDiagnostics(markdownFiles),
+          ...createFirmEditGateDiagnostics({
+            symbolsByFile: new Map(
+              [...symbolsByFile].map(([file, symbols]) => [
+                file,
+                symbols.filter((symbol) => symbol.hunkRanges.length > 0),
+              ]),
+            ),
+            readContent: (file) => sourceContentByFile.get(file),
+            readRequirement: (id) =>
+              snapshotEntities.find((result) => result.entity.id === id)
+                ?.entity,
+            requirementChanged: (requirement) =>
+              snapshot.inventory.some(
+                (file) => file.path === requirement.source,
+              ),
+            readReceipt: (receiptPath) =>
+              readTreeFile(snapshot.headTree)(receiptPath) ?? undefined,
+          }),
         );
 
         // Run the Prolog rules over the staged knowledge: the minLinks

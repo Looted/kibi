@@ -1,5 +1,4 @@
 import { ENTITY_ORIGIN_SCHEMA } from "../../entity-origin.js";
-import { ADVERTISED_SUMMARY } from "../advertised-schema.js";
 import { EVIDENCE_LEVELS } from "../../evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
@@ -9,6 +8,7 @@ import {
   MAX_PROOF_RECEIPTS,
   PROOF_RECEIPT_SCHEMA,
 } from "../../proof-receipt.js";
+import { ADVERTISED_SUMMARY } from "../advertised-schema.js";
 
 export const ENTITY_TYPES = [
   "req",

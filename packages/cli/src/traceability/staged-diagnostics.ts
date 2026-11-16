@@ -14,6 +14,8 @@ export type KibiImpactDiagnosticId =
   | "symbol_semantic_review_needed"
   | "source_file_unowned"
   | "requirement_statement_unverified"
+  | "firm_edit_unreviewed"
+  | "firm_edit_breaks_rule"
   | "multi_requirement_symbol_review"
   | "duplicate_symbol_coordinate_review"
   | "component_mixed_purpose_review"

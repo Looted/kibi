@@ -130,6 +130,12 @@ export const CLI_OPERATION_METADATA = [
       "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
   },
   {
+    name: "kb_review_firm_edit",
+    cliName: "review-firm-edit",
+    description:
+      "Record your verdict on a change to code that implements a current firm requirement: keeps (the code still does what it says) or changes. kibi check --staged blocks such a change until each edited symbol has a current keeps receipt. A receipt is your judgment, not the person's approval. Side effects: writes .kb/firm-edit-reviews/ files; dryRun:true writes nothing.",
+  },
+  {
     name: "kb_sparql_remote",
     cliName: "sparql-remote",
     description:

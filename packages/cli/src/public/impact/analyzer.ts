@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import {
   createMaintenanceSourceAnalysisService,
@@ -17,6 +18,7 @@ import {
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
 } from "./diagnostics.js";
+import { createFirmEditGateDiagnostics } from "./firm-edit-gate.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
@@ -166,6 +168,15 @@ export async function analyzeChangedFileImpact(
       // A missing source file adds undefined, which names no file.
       .map((result) => result.sourceFile as string),
   );
+  // A snapshot holds every endpoint its symbols link to.
+  const readRequirement = (id: string) =>
+    snapshotKnowledge
+      ? snapshotEntities.get(id)
+      : readWorkspaceRequirement(workspaceRoot, id);
+  const requirementChanged = (requirement: { source: string }) =>
+    snapshot
+      ? snapshot.inventory.some((file) => file.path === requirement.source)
+      : workspaceFileChanged(workspaceRoot, requirement.source);
   const impactDiagnostics =
     options.includeImpactDiagnostics === false
       ? []
@@ -182,17 +193,26 @@ export async function analyzeChangedFileImpact(
           ...createRequirementStatementDiagnostics({
             workspaceRoot,
             symbolsByFile,
-            // A snapshot holds every endpoint its symbols link to.
-            readRequirement: (id) =>
-              snapshotKnowledge
-                ? snapshotEntities.get(id)
-                : readWorkspaceRequirement(workspaceRoot, id),
-            requirementChanged: (requirement) =>
-              snapshot
-                ? snapshot.inventory.some(
-                    (file) => file.path === requirement.source,
-                  )
-                : workspaceFileChanged(workspaceRoot, requirement.source),
+            readRequirement,
+            requirementChanged,
+          }),
+          ...createFirmEditGateDiagnostics({
+            symbolsByFile,
+            readContent: (file) =>
+              sourceChanges.find((change) => change.file === file)?.content,
+            readRequirement,
+            requirementChanged,
+            readReceipt: (receiptPath) => {
+              try {
+                return snapshot
+                  ? snapshot
+                      .readGit(["show", `${snapshot.headTree}:${receiptPath}`])
+                      .toString("utf8")
+                  : readFileSync(path.join(workspaceRoot, receiptPath), "utf8");
+              } catch {
+                return undefined;
+              }
+            },
           }),
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeManifestResults,

@@ -18,6 +18,37 @@
       }
     },
     {
+      "id": "firm_edit_unreviewed",
+      "severity": "error",
+      "blocking": true,
+      "category": "requirement",
+      "entityId": "REQ-upload",
+      "files": ["src/upload.ts"],
+      "docs": ["docs/entity-schema.md"],
+      "message": "The change edits code that implements REQ-upload, a firm rule the person set, without a current review of that code: upload in src/upload.ts (no review recorded). Statement: \"Uploads keep their name.\"",
+      "suggestion": "Read the changed code against REQ-upload. If it still does what REQ-upload says, record that with kb_review_firm_edit (CLI: kibi review-firm-edit) and verdict \"keeps\" and a one-line note; this receipt is the agent's judgment, not the person's approval. If it no longer does, record verdict \"changes\" and ask the person before keeping the change.",
+      "evidence": {
+        "requirement": "REQ-upload",
+        "statement": "Uploads keep their name.",
+        "reviews": [
+          {
+            "sourceFile": "src/upload.ts",
+            "symbol": "upload",
+            "state": "missing"
+          }
+        ],
+        "reviewInput": {
+          "reviews": [
+            {
+              "requirementId": "REQ-upload",
+              "sourceFile": "src/upload.ts",
+              "symbol": "upload"
+            }
+          ]
+        }
+      }
+    },
+    {
       "id": "symbol_granularity_violation",
       "severity": "error",
       "blocking": true,
