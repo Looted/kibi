@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90cdf5180217
+  - type: assumes
+    from: SCEN-check-symbol-debt-count
+    to: FACT-check-symbol-debt-count
+    created_at: 2026-11-16T16:00:49.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dba88fd05a3

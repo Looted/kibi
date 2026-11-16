@@ -4,7 +4,7 @@ description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a 
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-commit-review
-  version: 1.6.0
+  version: 1.7.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -78,7 +78,9 @@ Never read or open any file under `.kb`, not even read-only with a file tool to 
    read its `qualityDiagnostics`. The staged gate does not judge requirement
    size, so a link that makes a requirement too broad
    (`broad_requirement_review`) shows only there, and can fail a project's
-   CI gate after the commit passed.
+   CI gate after the commit passed. A result over its size budget comes back
+   `truncated` with advisory findings as counts by id; `kibi check --format
+   json` lists every one.
 
 Keep the source change as small as the task. Reshaping a function the task
 did not need (extracting a helper, renaming an export) adds declarations the

@@ -25,6 +25,7 @@ import * as dangling from "../../../src/public/operations/source-path-dangling.j
 import * as parity from "../../../src/public/operations/source-relationship-parity.js";
 import * as reporting from "../../../src/public/operations/specs/reporting.js";
 import * as coordinates from "../../../src/public/operations/symbol-coordinates-check.js";
+import * as debt from "../../../src/public/operations/symbol-debt.js";
 import * as granularity from "../../../src/public/operations/symbol-granularity-check.js";
 import * as snapshots from "../../../src/public/operations/workspace-snapshot.js";
 import * as resolver from "../../../src/utils/branch-resolver.js";
@@ -90,6 +91,8 @@ const finding = (rule: string, extra: Record<string, unknown> = {}) => ({
   description: `${rule} found`,
   ...extra,
 });
+
+const realBuildStructuredContent = format.buildStructuredContent;
 
 type HarnessOptions = {
   rules?: readonly string[];
@@ -349,7 +352,7 @@ describe("executeCheck", () => {
     const ctx = context({ branchAttachment: ATTACHED as never });
     const result = await run({ workspaceRoot: "/ws/args" }, ctx);
     const violation = uncompiledBranchStoreViolation(ctx, "/ws/args");
-    const evaluated = { rules: ["branch-store-not-compiled"] };
+    const evaluated = { ruleCount: 1, rules: ["branch-store-not-compiled"] };
     const migrationPlan = {
       merged: [
         "STATUS",
@@ -422,7 +425,7 @@ describe("executeCheck", () => {
     const explicit = await run({ rules: [] }, ctx);
     expect(explicit.structuredContent).toStrictEqual({
       violations: [],
-      evaluated: { rules: [] },
+      evaluated: { ruleCount: 0, rules: [] },
       diagnostics: [],
       qualityDiagnostics: [],
       impactResult: undefined,
@@ -447,7 +450,7 @@ describe("executeCheck", () => {
         text: {
           summaryOf: {
             violations: [],
-            evaluated: { rules: [] },
+            evaluated: { ruleCount: 0, rules: [] },
             impactResult: undefined,
             qualityDiagnostics: [],
           },
@@ -646,7 +649,7 @@ describe("executeCheck", () => {
       severity: "error",
       message: "plain found",
     });
-    expect(content.evaluated).toStrictEqual({ rules: ALL_RULES });
+    expect(content.evaluated).toStrictEqual({ ruleCount: 4, rules: ALL_RULES });
     expect(prolog.queries).toEqual([]);
     expect(content.qualityDiagnostics).toStrictEqual([
       { id: "Q-advisory" },
@@ -804,7 +807,7 @@ describe("executeCheck", () => {
     expect(structured.diagnostics).toHaveLength(3);
     expect(structured.omittedViolations.total).toBe(10);
     expect(structured.summarizePlan).toBe(true);
-    expect(fit).toHaveBeenCalledWith(structured);
+    expect(fit).toHaveBeenCalledWith(structured, undefined, true, false);
     // The plan still repairs every finding.
     expect(calls.actions.mock.calls.at(-1)[0].violations).toHaveLength(13);
     expect(scoped.content[0].text.summaryOf.omittedViolations).toEqual(
@@ -815,6 +818,12 @@ describe("executeCheck", () => {
     expect(
       Object.hasOwn(calls.structured.mock.calls.at(-1)[0], "summarizePlan"),
     ).toBe(false);
+    expect(fit).toHaveBeenLastCalledWith(
+      calls.structured.mock.calls.at(-1)[0],
+      undefined,
+      true,
+      true,
+    );
 
     fit.mockClear();
     const unscoped = await run({});
@@ -822,11 +831,70 @@ describe("executeCheck", () => {
     expect(full.violations).toHaveLength(13);
     expect(Object.hasOwn(full, "omittedViolations")).toBe(false);
     expect(Object.hasOwn(full, "summarizePlan")).toBe(false);
-    expect(fit).not.toHaveBeenCalled();
+    // An unscoped check keeps to the same budget, with its own hint.
+    expect(fit).toHaveBeenCalledWith(full, undefined, false, false);
     expect(unscoped.structuredContent).toStrictEqual({
       ...full,
-      symbolDebt: { total: 0, files: [] },
+      symbolDebt: { total: 0, fileCount: 0 },
     });
+
+    // A rule selection, or the command that prints every finding, is
+    // listed in full.
+    fit.mockClear();
+    await run({ rules: ALL_RULES });
+    await run({}, context(), { fullListing: true });
+    expect(fit).not.toHaveBeenCalled();
+  });
+
+  test("keeps an unscoped result within budget and adds the debt list on top", async () => {
+    const many = Array.from({ length: 400 }, (_, index) => ({
+      rule: "required-fields",
+      entityId: `REQ-${index}`,
+      description: "x".repeat(80),
+    }));
+    const calls = harness({ rules: ALL_RULES, aggregated: many });
+    calls.structured.mockImplementation(realBuildStructuredContent);
+    calls.merge.mockImplementation(() => ({
+      planHash: "hash",
+      status: "blocked",
+      summary: { actions: many.length },
+      actions: many.map((violation, index) => ({
+        id: `A-${index}`,
+        code: "fix",
+        state: "blocked",
+        detail: violation.description,
+      })),
+    }));
+    const files = Array.from({ length: 300 }, (_, index) => ({
+      path: `src/f${index}.ts`,
+      unrecorded: ["a", "b"],
+    }));
+    spy(debt, "collectSymbolDebt").mockResolvedValue({
+      total: 600,
+      fileCount: 300,
+      files,
+    });
+    const listed = await run({ includeSymbolDebt: true });
+    expect(listed.structuredContent.truncated).toBe(true);
+    // The other fake rules add one finding each.
+    expect(listed.structuredContent.count).toBe(412);
+    expect(listed.structuredContent.symbolDebt.files).toBe(files);
+    const { symbolDebt, ...rest } = listed.structuredContent;
+    expect(JSON.stringify(rest).length).toBeLessThanOrEqual(
+      format.SCOPED_CHECK_BUDGET_CHARS,
+    );
+    // The plan nobody asked for in full is summarized to fit.
+    expect(Object.hasOwn(listed.structuredContent, "migrationPlan")).toBe(
+      false,
+    );
+    expect(listed.structuredContent.migrationPlanSummary.planHash).toBe("hash");
+    const counted = await run({});
+    expect(counted.structuredContent.symbolDebt).toStrictEqual({
+      total: 600,
+      fileCount: 300,
+    });
+    const withPlan = await run({ includeMigrationPlan: true });
+    expect(withPlan.structuredContent.migrationPlan.actions).toHaveLength(400);
   });
 
   test("lists only impact diagnostics for explicit rules without impact", async () => {
@@ -867,7 +935,7 @@ describe("executeCheck", () => {
     const unscoped = await run({}, context({ prolog: answering }));
     expect(unscoped.structuredContent.symbolDebt).toStrictEqual({
       total: 0,
-      files: [],
+      fileCount: 0,
     });
     expect(answering.queries.filter(debtGoal)).toHaveLength(1);
 
@@ -906,18 +974,22 @@ describe("executeCheck", () => {
       return result.structuredContent.evaluated;
     };
     expect(await counted("0")).toStrictEqual({
+      ruleCount: 1,
       rules: ["domain-contradictions"],
       domainContradictions: { factPairsExamined: 0 },
     });
     expect(await counted(12)).toStrictEqual({
+      ruleCount: 1,
       rules: ["domain-contradictions"],
       domainContradictions: { factPairsExamined: 12 },
     });
     for (const rejected of [-1, 1.5, "x"])
       expect(await counted(rejected)).toStrictEqual({
+        ruleCount: 1,
         rules: ["domain-contradictions"],
       });
     expect(await counted(4, false)).toStrictEqual({
+      ruleCount: 1,
       rules: ["domain-contradictions"],
     });
     harness({ rules: ["domain-contradictions"] });
@@ -926,6 +998,6 @@ describe("executeCheck", () => {
     });
     expect(
       (await run({}, context({ prolog: failing }))).structuredContent.evaluated,
-    ).toStrictEqual({ rules: ["domain-contradictions"] });
+    ).toStrictEqual({ ruleCount: 1, rules: ["domain-contradictions"] });
   });
 });

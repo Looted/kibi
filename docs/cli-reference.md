@@ -903,6 +903,7 @@ Validates knowledge base integrity and runs inference rules.
 - `--dry-run` - Show staged-traceability effects without modifying files
 - `--format json|text` - Output structured JSON for integrations such as OpenCode scheduled checks, or human-readable text output (default: text)
 - `--fix` - Show each violation's whole fix suggestion. Text output otherwise prints the first sentence of each suggestion.
+- `--symbol-debt` - List the unrecorded declarations per file. Without it a full check reports only their count: a passing check prints one line, `✓ No violations. 66 rules. 2,924 unrecorded declarations in 522 files do not block (kibi check --symbol-debt lists them).`, and JSON `symbolDebt` carries `total` and `fileCount` without `files`.
 - `--fresh-evidence` - The `evidence-floor` rule judges proof receipts as they are: a requirement whose receipts are only older than the code fails instead of counting as pending re-proof, and the proof snapshot must be clean. Run it right after `kibi prove`
 - `--write-certificates <file>` - Also save the `kibi.certificates.v1` bundle the `kb-consistency` rule re-checked (not with `--staged`)
 - `--certificates <file>` - Only re-check a saved bundle against the current KB with the independent checker and print the `kibi.verification.v1` report (one verdict per theorem: `proved`, `disproved` or `unresolved`, and every rejected certificate with the reason; `--format json` prints it as JSON). Exits 1 when a certificate is rejected or missing or a theorem is disproved; cannot be combined with `--write-certificates`, `--staged` or `--rules`
@@ -934,6 +935,9 @@ kibi check
 
 # Export structured two-lane check output for automation
 kibi check --format json
+
+# List the non-blocking unrecorded declarations per file
+kibi check --symbol-debt
 
 # Check only staged changes
 kibi check --staged

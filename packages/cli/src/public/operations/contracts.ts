@@ -766,6 +766,7 @@ const BASE_DATA_SCHEMAS: Readonly<
           ...objectData(
             {
               total: integerValue,
+              fileCount: integerValue,
               files: {
                 type: "array",
                 items: objectData(
@@ -774,10 +775,10 @@ const BASE_DATA_SCHEMAS: Readonly<
                 ),
               },
             },
-            ["total", "files"],
+            ["total", "fileCount"],
           ),
           description:
-            "Unscoped checks only. Declarations without a symbol record in source files that have at least one record. Non-blocking: the staged gate judges them only when a commit adds or changes them.",
+            "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them.",
         },
       }),
       jobReceiptData,

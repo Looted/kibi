@@ -3116,7 +3116,10 @@ export async function applyMigrationPlan(
           import("../../public/operations/specs/reporting.js"),
           import("../../public/operations/migration-plan.js"),
         ]);
-        const check = await executeCheck({}, operationContext);
+        // The remaining plan needs every action, past the size budget.
+        const check = await executeCheck({}, operationContext, {
+          fullListing: true,
+        });
         const coverage = await executeCoverage(
           { by: "req", limit: 10_000, offset: 0 },
           operationContext,

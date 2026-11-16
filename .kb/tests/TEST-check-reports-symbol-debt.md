@@ -1,5 +1,5 @@
 ---
-title: The full check reports symbol debt and exempts linkless non-behavioral records
+title: The full check counts symbol debt on a one-line pass, lists it on request, and exempts linkless non-behavioral records
 status: passing
 priority: must
 tags:
@@ -21,17 +21,17 @@ id: TEST-check-reports-symbol-debt
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-e536d1f4b8852862f4734b20
+    receipt_id: PR-3fc870bbce83b01f26f206d8
     test_id: TEST-check-reports-symbol-debt
     scope: end_to_end
     outcome: passed
-    code_snapshot: 757508a84d4b2d78105acf52125095ff6bb5fe105bcd9da69a24a032fdac5cbc
+    code_snapshot: 4e47a68c746581f33f2d52e55653dfac162019b74ec53556ac56a5ac78f47f1e
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T06:26:22.076Z'
-    finished_at: '2026-11-16T06:26:26.588Z'
-    artifact_digest: ccf09ae5a08f64239a51be0349aeae230f54ed7f587792e8a57e2536df8834f6
+    started_at: '2026-11-16T16:05:00.993Z'
+    finished_at: '2026-11-16T16:07:19.794Z'
+    artifact_digest: b2282785087a42ac6e8165669567b78d5e4879621e9fbcfc5eef857825a3f2f9
     contract_hash: 213ba1df2b7e8e432243f5a60abe2ad0cb478d462447d4f9f499211d4ccb9142
-    binding_hash: deb64c630565ebc597ad520d6d4008bad6396994d71cea0d3d3d487c396f4929
+    binding_hash: 0bef3094748b50b6b3c4701eb185c9a78d03e3498f3b728a51965b108b8a3bac
     fingerprint: cffbffa2c2ab0aa99686b627fb5184e2396dff68bee662c7f2ed7616030521d5
     fingerprint_components:
       contract: 213ba1df2b7e8e432243f5a60abe2ad0cb478d462447d4f9f499211d4ccb9142
@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Packed end-to-end test documentation/tests/e2e/packed/check-symbol-debt.test.ts: in an installed project it checks that an unscoped kibi check reports the unrecorded declarations of a recorded file per file and as a total in JSON symbolDebt and in text, without a violation, that a rule-scoped check carries no debt, that a config record with no implements link raises neither symbol-traceability nor symbol-coverage while a behavioral one is flagged, and that the installed kibi-bootstrap skill states the staged symbol rule and reports the debt total.
+Packed end-to-end test documentation/tests/e2e/packed/check-symbol-debt.test.ts: in an installed project it checks that an unscoped kibi check passes with one verdict line giving the rule count and the unrecorded declarations of a recorded file as a count, that JSON symbolDebt carries total and fileCount and lists the declarations per file only with --symbol-debt or kb_check includeSymbolDebt:true, that kb_check gives evaluated.ruleCount without rule names, that a rule-scoped check carries no debt, that a config record with no implements link raises neither symbol-traceability nor symbol-coverage while a behavioral one is flagged, and that the installed kibi-bootstrap skill states the staged symbol rule and reports the debt total.

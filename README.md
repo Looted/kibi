@@ -297,7 +297,7 @@ For a requirement to be tested end to end rather than merely documented:
 - Requirements must be specified by scenarios, and tests must verify those scenarios. A success scenario that assumes something a current requirement forbids blocks proof.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests, and the pre-commit hook applies the same rule as the full check.
-- The pre-commit hook judges a commit only on the declarations it adds or changes, so an older repository whose KB records only its deciding code can adopt Kibi without first recording every declaration. `kibi check` reports the unrecorded rest as non-blocking symbol debt, and every commit that touches it records it.
+- The pre-commit hook judges a commit only on the declarations it adds or changes, so an older repository whose KB records only its deciding code can adopt Kibi without first recording every declaration. `kibi check` counts the unrecorded rest as non-blocking symbol debt on its one-line verdict (`kibi check --symbol-debt` lists it), and every commit that touches it records it.
 - End-to-end evidence must be fresh and bound to the current code snapshot, so CI and a local checkout of the same commit agree.
 
 That makes questions answerable in both directions: which requirement owns this symbol, what this E2E test actually verifies, which requirements lack a scenario or current evidence, and whether two current requirements contradict each other. Code coverage alone cannot answer them: it shows that a test touched a line, not which product behavior was exercised.
