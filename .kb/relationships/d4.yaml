@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af41adbb94d1
+  - type: implements
+    from: SYM-engine-session-record-module-load
+    to: REQ-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:10:24.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94550325737a
+  - type: covered_by
+    from: SYM-engine-session-record-module-load
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:10:24.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29eebbb45c59

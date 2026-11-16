@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-engine-client-core-modules-from-engine",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "130000",
+      "./packages/cli/tests/prolog/core-module-goal.test.ts"
+    ]
+  ]
+}

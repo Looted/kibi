@@ -41600,3 +41600,105 @@ symbols:
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
         target: REQ-claude-decision-capture-nudges
+  - id: SYM-cli-use-core-module-goal
+    title: useCoreModuleGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:20.225Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-cli-is-core-module-goal
+    title: isCoreModuleGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:23.142Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-test-engine-client-core-modules-from-engine
+    title: Engine client core-module loading suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/core-module-goal.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:28.228Z
+    relationships:
+      - type: executable_for
+        target: TEST-engine-client-core-modules-from-engine
+  - id: SYM-test-prolog-permission-error-names-refusal
+    title: Prolog permission error message suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/error-terms-parse.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:30.861Z
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-permission-error-names-refusal
+  - id: SYM-cli-parse-prolog-error-term
+    title: parsePrologErrorTerm
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:44.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-permission-error-names-refusal
+      - type: implements
+        target: REQ-prolog-permission-error-names-refusal
+  - id: SYM-engine-session-record-module-load
+    title: EngineSession.recordModuleLoad
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:24.362Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-subject-domain-read-subject-domain
+    title: readSubjectDomain
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-domain.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:27.485Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-traceability-validate-staged-symbol-coverage
+    title: validateStagedSymbolCoverage
+    status: active
+    sourceFile: packages/cli/src/traceability/validate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:30.738Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine

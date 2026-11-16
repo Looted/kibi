@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cf5892c0b9db
+  - type: implements
+    from: SYM-cli-parse-prolog-error-term
+    to: REQ-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T10:00:44.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55cd677cb8f1
+  - type: covered_by
+    from: SYM-cli-parse-prolog-error-term
+    to: TEST-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T10:00:44.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbc28acf4fbd

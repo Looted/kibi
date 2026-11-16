@@ -416,7 +416,7 @@ describe("non-numeric claims", () => {
     });
     expect(rows?.map((row) => row.reason)).toStrictEqual(["the model check failed"]);
     expect(
-      goals.map((goal) => /^\(use_module\('[^']*\/(\w+\.pl)'\), (.*)\)$/.exec(goal)?.slice(1)),
+      goals.map((goal) => /^\(\\\+ \\\+ \(module_property\(kb, file\(KibiKbFile\)\) -> .*? ; use_module\('[^']*\/(\w+\.pl)'\)\), (.*)\)$/.exec(goal)?.slice(1)),
     ).toStrictEqual([
       [
         "claim_obligations.pl",
