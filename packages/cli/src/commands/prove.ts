@@ -589,6 +589,7 @@ export async function proveCommand(
       throw new OperationError(
         "WORKSPACE_SNAPSHOT_UNAVAILABLE",
         `prove: ${before.error}`,
+        true,
       );
     const snapshot = before.snapshot.hash;
     // Packed contracts run in separate processes; one shared packed-tarball

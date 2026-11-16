@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0586506674d4
+  - type: implements
+    from: SYM-cli-errors-is-kb-rejection
+    to: REQ-cli-rejection-not-retryable
+    created_at: 2026-11-16T14:41:22.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fadc4c83654
+  - type: covered_by
+    from: SYM-cli-errors-is-kb-rejection
+    to: TEST-cli-rejection-not-retryable
+    created_at: 2026-11-16T14:41:22.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ab3fa5ab880
