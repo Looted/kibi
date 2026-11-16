@@ -238,15 +238,34 @@ describe("kibi-mcp consolidated tool surface", () => {
     const client = await connect(workspace);
 
     // Every session loads these definitions, so their size is a cost every
-    // host pays. kb_upsert advertises its proof sub-objects as stubs.
+    // host pays. kb_upsert advertises its proof sub-objects as stubs, and
+    // every field description is one short line.
     const { tools } = await client.listTools();
-    const budget = (name: string) => (name === "kb_upsert" ? 32_000 : 17_000);
+    const budget = (name: string) => (name === "kb_upsert" ? 26_000 : 15_000);
     for (const tool of tools) {
       expect({
         name: tool.name,
         size: JSON.stringify(tool).length <= budget(tool.name),
       }).toEqual({ name: tool.name, size: true });
     }
+    expect(
+      tools.reduce((total, tool) => total + JSON.stringify(tool).length, 0),
+    ).toBeLessThanOrEqual(132_000);
+    const longDescriptions: string[] = [];
+    const walk = (name: string, value: unknown): void => {
+      if (Array.isArray(value)) {
+        for (const child of value) walk(name, child);
+        return;
+      }
+      if (value === null || typeof value !== "object") return;
+      for (const [key, child] of Object.entries(value)) {
+        if (key === "description" && typeof child === "string") {
+          if (child.length > 120) longDescriptions.push(`${name}: ${child}`);
+        } else walk(name, child);
+      }
+    };
+    for (const tool of tools) walk(tool.name, tool.inputSchema);
+    expect(longDescriptions).toEqual([]);
     const upsert = tools.find((tool) => tool.name === "kb_upsert");
     const fields = (
       (upsert?.inputSchema.properties as Json).properties as {

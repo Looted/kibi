@@ -51,14 +51,14 @@
             "type": "object"
           },
           "args": {
-            "description": "Positional argument values for predicate when it has no schema; null matches any value. Example: ['admin', null, null, 'allow']. Prefer where.",
+            "description": "Positional argument values for a predicate with no schema; null matches any. Prefer where.",
             "items": {
               "type": ["string", "null"]
             },
             "type": "array"
           },
           "distinct": {
-            "description": "Optional argument name to count distinct values of across the matching predicate facts, e.g. distinct: 'role' with predicate 'has_role' and where {user: 'alice'} answers how many roles alice has.",
+            "description": "Optional argument name whose distinct values to count across the matching predicate facts.",
             "type": "string"
           },
           "factKind": {
@@ -96,18 +96,18 @@
                 "type": "string"
               }
             ],
-            "description": "Typed fact filter: list facts of one kind with their typed fields. 'predicate_schema' returns the catalog of askable predicates (argument names, constants, fact counts). Example: 'predicate_schema'."
+            "description": "Typed fact filter: list facts of one kind; 'predicate_schema' returns the catalog of askable predicates."
           },
           "id": {
             "description": "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
             "type": "string"
           },
           "includeBody": {
-            "description": "With id only: also return the entity's authored Markdown body (the prose after its front matter) as body {id, path, text}, so a stale statement in it can be corrected; kb_upsert document.body replaces it. Default: false.",
+            "description": "With id only: also return the entity's authored Markdown body. Default: false.",
             "type": "boolean"
           },
           "kb": {
-            "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+            "description": "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
@@ -139,7 +139,7 @@
             "description": "Optional polarity filter for predicate facts. Default: both."
           },
           "predicate": {
-            "description": "Typed fact filter: predicate name to ask about, e.g. 'has_role' or 'permission_rule'. Combine with where for named arguments. Returns every stored fact of that predicate with its arguments, polarity and allow/deny effect.",
+            "description": "Typed fact filter: predicate name to ask about; returns its stored facts with arguments, polarity and effect.",
             "type": "string"
           },
           "propertyKey": {
@@ -164,7 +164,7 @@
             "type": "string"
           },
           "subjectKey": {
-            "description": "Typed fact filter: dotted subject key whose property facts to list, e.g. 'user.role_assignment'. Combine with propertyKey for one property, or with factKind 'subject' for the subject's domain view.",
+            "description": "Typed fact filter: dotted subject key whose property facts to list; combine with propertyKey or factKind 'subject'.",
             "type": "string"
           },
           "tags": {
@@ -213,12 +213,12 @@
           },
           "where": {
             "additionalProperties": {},
-            "description": "Named argument values for predicate, order-free, using the argument names from the predicate's schema. Example: {actor: 'admin', decision: 'allow'}. An unknown name returns a warning with the declared names; no match returns the values that do exist.",
+            "description": "Named argument values for predicate, using the names from its schema.",
             "properties": {},
             "type": "object"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -470,7 +470,7 @@
             "type": "object"
           },
           "answer": {
-            "description": "Intent-v1 only, first page only. When true (default) the result includes an answer layer: current governing requirements with their linked facts, scenarios, tests and ADRs, superseded requirements listed separately, and observation facts labelled as notes. Bounded in size; discovery, not proof.",
+            "description": "Intent-v1, first page: when true (default), include the answer layer of governing requirements and their evidence.",
             "type": "boolean"
           },
           "fields": {
@@ -484,21 +484,21 @@
                 "type": "string"
               }
             ],
-            "description": "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need."
+            "description": "Optional result detail: 'summary' (metadata and snippet) or 'full' (complete entity bodies)."
           },
           "hints": {
-            "description": "Intent-v1 only, first page only. When true (default) and the project activates a kibi.search-hints.v1 plugin, a weak or abstained answer adds queryAnalysis.hints: requirements the question may mean, to re-ask with. Hints never change results or the answer layer.",
+            "description": "Intent-v1, first page: when true (default), a weak answer adds hints from a kibi.search-hints.v1 plugin.",
             "type": "boolean"
           },
           "kb": {
-            "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+            "description": "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
             "type": "string"
           },
           "limit": {
-            "description": "Optional max rows to return after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
+            "description": "Optional max rows after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
@@ -532,11 +532,11 @@
                 "type": "string"
               }
             ],
-            "description": "Optional deterministic ranking mode. Default intent-v1: question-aware ranking with semantic facets, source-aware evidence, graph boosts, superseded demotion and abstention. Use legacy for the older lexical ranking."
+            "description": "Optional ranking mode: intent-v1 (default, question-aware) or legacy (older lexical ranking)."
           },
           "semanticFacets": {
             "additionalProperties": false,
-            "description": "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; ranking never calls a model.",
+            "description": "Optional host-agent interpretations Kibi uses as deterministic aliases and facets; ranking never calls a model.",
             "properties": {
               "actions": {
                 "items": {
@@ -645,7 +645,7 @@
             "description": "Optional entity type filter to narrow discovery. Example: 'req'."
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -905,14 +905,14 @@
             "type": "object"
           },
           "kb": {
-            "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+            "description": "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
             "type": "string"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -1287,7 +1287,7 @@
             "type": "string"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -1567,7 +1567,7 @@
             "type": "object"
           },
           "kb": {
-            "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+            "description": "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
@@ -1580,7 +1580,7 @@
             "type": "integer"
           },
           "missingRelationships": {
-            "description": "Relationship types the entity must have none of, in either direction, for example specified_by or verified_by. verified_by and validates satisfy each other.",
+            "description": "Relationship types the entity must have none of, e.g. specified_by or verified_by.",
             "items": {
               "type": "string"
             },
@@ -1604,7 +1604,7 @@
             "type": "string"
           },
           "tags": {
-            "description": "Keep entities carrying any of these metadata tags. Bootstrap provenance stubs appear in rows only when this names bootstrap:provenance-stub.",
+            "description": "Keep entities carrying any of these metadata tags.",
             "items": {
               "type": "string"
             },
@@ -1648,7 +1648,7 @@
             "description": "Only report entities of this type. Omit for all types."
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -1908,7 +1908,7 @@
                 "type": "string"
               }
             ],
-            "description": "Report shape: req gives per-requirement proof status and a repair plan, symbol gives per-symbol ownership coverage, type gives counts per entity type."
+            "description": "Report shape: req (proof status and repair plan), symbol (ownership coverage) or type (counts per type)."
           },
           "includeMigrationPreview": {
             "description": "Opt in to a deterministic, read-only kibi.legacy-migration-plan.v1 preview for ready semantic-inventory repair batches.",
@@ -1923,7 +1923,7 @@
             "type": "boolean"
           },
           "kb": {
-            "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+            "description": "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
@@ -1966,7 +1966,7 @@
             "type": "integer"
           },
           "statuses": {
-            "description": "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
+            "description": "req mode: include only rows whose proofStatus is listed. The summary always covers the whole KB.",
             "items": {
               "anyOf": [
                 {
@@ -1997,7 +1997,7 @@
             "type": "array"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -2281,14 +2281,14 @@
             "description": "outgoing follows links from each node, incoming follows links pointing at it, both does either."
           },
           "entityTypes": {
-            "description": "Keep only nodes of these types (req, scenario, test, adr, flag, event, symbol, fact) in the result, and the edges between them. Traversal still passes through other types.",
+            "description": "Keep only nodes of these types and the edges between them; traversal still passes through other types.",
             "items": {
               "type": "string"
             },
             "type": "array"
           },
           "kb": {
-            "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+            "description": "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
@@ -2307,7 +2307,7 @@
             "type": "integer"
           },
           "relationships": {
-            "description": "Relationship types to follow, for example specified_by, verified_by or implements. Omit to follow every relationship type.",
+            "description": "Relationship types to follow, e.g. specified_by, verified_by or implements. Omit to follow every type.",
             "items": {
               "type": "string"
             },
@@ -2321,7 +2321,7 @@
             "type": "array"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -2570,7 +2570,7 @@
           },
           "argumentBindings": {
             "additionalProperties": {},
-            "description": "Optional exact predicate argument values keyed by a candidate schema's argument_names. Required before applying a candidate whose binding_status is incomplete; Kibi never substitutes guessed values for unbound arguments.",
+            "description": "Optional exact predicate argument values keyed by argument name; required when binding_status is incomplete.",
             "properties": {},
             "type": "object"
           },
@@ -2583,20 +2583,20 @@
             "type": "string"
           },
           "clauses": {
-            "description": "Optional complete list of atomic requirement clauses supplied by the caller. Each clause must be a verbatim fragment of text (whitespace may differ); a clause that does not occur in text fails the call with VALIDATION_FAILED naming it. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+            "description": "Optional complete list of atomic clauses; each must be a verbatim fragment of text.",
             "items": {
               "type": "string"
             },
             "type": "array"
           },
           "confidence": {
-            "description": "Confidence score for the extracted claim. >= 0.70 yields strict-lane output; lower confidence yields observation-only review output.",
+            "description": "Confidence of the extracted claim: >= 0.70 yields strict-lane output, lower yields observation-only output.",
             "maximum": 1,
             "minimum": 0,
             "type": "number"
           },
           "existingLogicClaims": {
-            "description": "Existing requirement logic_claims values. The returned requirement update merges the new atomic claim key into this manifest instead of replacing prior claims.",
+            "description": "Existing requirement logic_claims values; the update merges the new claim key into them.",
             "items": {
               "pattern": "^CLAIM-[A-F0-9]{16}$",
               "type": "string"
@@ -2609,11 +2609,11 @@
             "type": "string"
           },
           "includeExistingSchemas": {
-            "description": "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
+            "description": "Whether to include the KB's predicate_schema facts beside the built-in predicate catalog. Default: true.",
             "type": "boolean"
           },
           "interpretations": {
-            "description": "Optional host-LLM typed kibi.logic.v1 interpretations. Kibi validates and canonicalizes them; raw Prolog is not accepted.",
+            "description": "Optional typed kibi.logic.v1 interpretations from the host model; raw Prolog is not accepted.",
             "items": {
               "additionalProperties": {},
               "properties": {
@@ -2731,7 +2731,7 @@
                 "type": "string"
               }
             ],
-            "description": "Optional extracted semantic claim operator. Use gt/lt for strict bounds ('greater than zero' is gt 0, not gte 0). A set claim takes a list value with eq (exactly these), includes (at least these), subset_of (only these) or excludes (none of these); matches takes a regular expression string. Example: 'eq'."
+            "description": "Optional claim operator, e.g. eq, gt, lt; sets take eq, includes, subset_of or excludes; matches takes a regex."
           },
           "polarityHint": {
             "anyOf": [
@@ -2744,27 +2744,27 @@
                 "type": "string"
               }
             ],
-            "description": "Optional reviewed polarity override for claims whose surface negation does not express predicate denial. Use only after reviewing the selected schema and full claim scope."
+            "description": "Optional reviewed polarity override when surface negation does not mean predicate denial."
           },
           "propertyKey": {
             "description": "Optional extracted semantic claim propertyKey. Example: 'Retention Years'.",
             "type": "string"
           },
           "provenance": {
-            "description": "Optional extracted text reference. Falls back to source when omitted. Example: '.kb/requirements/customer-retention.md#L1'.",
+            "description": "Optional extracted text reference; falls back to source. Example: '.kb/requirements/customer-retention.md#L1'.",
             "type": "string"
           },
           "requirementId": {
-            "description": "Optional requirement ID. The strict write set updates this requirement instead of minting a REQ-AUTO id, and a typed logic rule attaches its requires_rule relationship to it.",
+            "description": "Optional requirement ID the strict write set updates instead of minting a REQ-AUTO id.",
             "type": "string"
           },
           "schemaId": {
-            "description": "Optional exact reviewed predicate schema ID. When supplied, Kibi selects that schema instead of lexical rank order and fails closed if it is unavailable.",
+            "description": "Optional exact reviewed predicate schema ID to use instead of rank order; fails closed if unavailable.",
             "minLength": 1,
             "type": "string"
           },
           "source": {
-            "description": "Optional primary source path or provenance root used for stable IDs and text refs. Example: '.kb/requirements/customer-retention.md'.",
+            "description": "Optional primary source path used for stable IDs and text refs.",
             "type": "string"
           },
           "sourceFiles": {
@@ -2829,7 +2829,7 @@
                 "type": "string"
               }
             ],
-            "description": "Entity type context for analysis. Requirement, domain-fact, and supporting prose all receive a proposition ledger; only requirements receive deterministic modeling suggestions."
+            "description": "Entity type context for analysis; only requirements receive deterministic modeling suggestions."
           },
           "value": {
             "anyOf": [
@@ -2850,10 +2850,10 @@
                 "type": "array"
               }
             ],
-            "description": "Optional extracted semantic claim value: a string, number or boolean, or a list of strings for a set claim. Example: ['requireAuth'] with operator includes."
+            "description": "Optional claim value: string, number, boolean, or a list of strings for a set claim."
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -3417,7 +3417,7 @@
           },
           "document": {
             "additionalProperties": false,
-            "description": "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes (a requirement whose semantic_text changes gets the new statement in place of the old one, with its context sections kept). For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.",
+            "description": "Optional source document write; omit body on update to keep it. New requirements take statement, Context, Source.",
             "properties": {
               "body": {
                 "type": "string"
@@ -3430,15 +3430,15 @@
             "type": "object"
           },
           "dryRun": {
-            "description": "Validate the payload and return schema/modeling errors, a normalized preview and the semantic advisor receipt without writing the KB or workspace. Use it as the preflight before the real write.",
+            "description": "Validate and preview without writing the KB or workspace; use it as the preflight before the real write.",
             "type": "boolean"
           },
           "id": {
-            "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
+            "description": "Unique entity ID named by the behavior it governs (<TYPE>-<area>-<behavior>); an existing ID updates the entity.",
             "type": "string"
           },
           "plannedFacts": {
-            "description": "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
+            "description": "dryRun only: fact payloads (e.g. kb_model applyPlan entries) staged before this one, so their links resolve.",
             "items": {
               "additionalProperties": {},
               "properties": {
@@ -3452,7 +3452,7 @@
                   "type": "object"
                 },
                 "relationships": {
-                  "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+                  "description": "Optional relationship rows to create in the same call; asserts edges in the KB.",
                   "items": {
                     "additionalProperties": {},
                     "properties": {
@@ -3547,7 +3547,7 @@
                             "type": "string"
                           }
                         ],
-                        "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test)."
+                        "description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test)."
                       }
                     },
                     "required": ["type", "from", "to"],
@@ -3585,7 +3585,7 @@
                 }
               }
             ],
-            "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
+            "description": "Entity fields to persist; must include title and status.",
             "properties": {
               "aliases": {
                 "description": "Optional vocabulary aliases for predicate discovery.",
@@ -3600,19 +3600,19 @@
                 "type": "string"
               },
               "approved_by": {
-                "description": "Requirement-only. The human who approved this exception requirement. An exception that exempts a requirement and is specified_by a success scenario makes that scenario feasible only when approved_by is set.",
+                "description": "Requirement-only: the human who approved this exception requirement.",
                 "minLength": 1,
                 "type": "string"
               },
               "argument_aliases": {
                 "additionalProperties": {},
-                "description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {\"severity\": {\"warn\": \"warning\"}}. kibi migrate rewrites facts that still use an alias.",
+                "description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant.",
                 "properties": {},
                 "type": "object"
               },
               "argument_constants": {
                 "additionalProperties": {},
-                "description": "predicate_schema only: allowed constants keyed by argument name, e.g. {\"severity\": [\"warning\", \"info\"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open.",
+                "description": "predicate_schema only: allowed constants keyed by argument name; unlisted arguments stay open.",
                 "properties": {},
                 "type": "object"
               },
@@ -3642,7 +3642,7 @@
                 "type": "string"
               },
               "case_waiver": {
-                "description": "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set.",
+                "description": "Fact-only: why the edge cases derived from this fact are covered elsewhere or cannot occur.",
                 "minLength": 1,
                 "type": "string"
               },
@@ -3652,7 +3652,7 @@
                 "type": "string"
               },
               "claim_key": {
-                "description": "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key.",
+                "description": "Optional key of the clause this fact grounds; Kibi derives it from claim_text, and a sent key must match.",
                 "pattern": "^CLAIM-[A-F0-9]{16}$",
                 "type": "string"
               },
@@ -3667,7 +3667,7 @@
                 "type": "integer"
               },
               "claim_text": {
-                "description": "Exact atomic requirement clause represented by this fact, retained for human audit. On a grounding fact Kibi derives claim_key from it; an observation or meta fact quotes the clause it is about without a key.",
+                "description": "Exact atomic requirement clause this fact represents; Kibi derives claim_key from it on a grounding fact.",
                 "type": "string"
               },
               "closed_world": {
@@ -3675,7 +3675,7 @@
                 "type": "boolean"
               },
               "dimension_waiver": {
-                "description": "Fact-only. Why the quantifier word in claim_text ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented once dimension_waiver_approved_by is set.",
+                "description": "Fact-only: why the quantifier in claim_text ranges over nothing; counts once dimension_waiver_approved_by is set.",
                 "minLength": 1,
                 "type": "string"
               },
@@ -3685,7 +3685,7 @@
                 "type": "string"
               },
               "distinct_from": {
-                "description": "subject only: similar defined subject keys this subject was checked to differ from; the body says how. Silences subject-duplicate for those pairs.",
+                "description": "subject only: similar subject keys this subject was checked to differ from; silences subject-duplicate.",
                 "items": {
                   "type": "string"
                 },
@@ -3699,7 +3699,7 @@
                 "type": "array"
               },
               "exempts_claims": {
-                "description": "Requirement-only. Claim keys of the exempted requirement whose constraints this exception waives; omit to waive the whole requirement.",
+                "description": "Requirement-only: claim keys of the exempted requirement this exception waives; omit to waive all of it.",
                 "items": {
                   "pattern": "^CLAIM-[A-F0-9]{16}$",
                   "type": "string"
@@ -3743,10 +3743,10 @@
                     "type": "string"
                   }
                 ],
-                "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose."
+                "description": "Optional fact lane: subject, property_value, observation, meta, predicate_schema or predicate."
               },
               "failure_side_waiver": {
-                "description": "Requirement-only. Why the requirement has no failure side to test (its claims state a capability or output shape). Waives happy_path_only once failure_side_waiver_approved_by is set.",
+                "description": "Requirement-only: why the requirement has no failure side to test; counts once failure_side_waiver_approved_by is set.",
                 "minLength": 1,
                 "type": "string"
               },
@@ -3770,7 +3770,7 @@
                     "type": "string"
                   }
                 ],
-                "description": "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); its title, meaning or firmness changes only with new human words (a new origin.ref) or by supersede. default = delegated or agent choice; exploratory = flagged guess. Absent = default if an agent wrote it, else firm."
+                "description": "req/adr only: firm (a human's rule, needs origin.ref), default or exploratory. Absent = default if an agent wrote it."
               },
               "granularity_reason": {
                 "anyOf": [
@@ -3795,10 +3795,10 @@
                     "type": "string"
                   }
                 ],
-                "description": "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist."
+                "description": "Optional justification for a coarse file or module-level traceability link when narrower symbols exist."
               },
               "key_arguments": {
-                "description": "predicate_schema only: argument names that determine the remaining arguments (a functional dependency), e.g. [\"sensor\"] for reading(sensor, value). Rule contradiction analysis treats two atoms with identical keys as the same fact; without it the predicate is multivalued and opposing rules stay unresolved instead of disjoint.",
+                "description": "predicate_schema only: argument names that determine the remaining arguments (a functional dependency).",
                 "items": {
                   "minLength": 1,
                   "type": "string"
@@ -3822,7 +3822,7 @@
                 "type": "array"
               },
               "logic_claims": {
-                "description": "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: kibi model). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+                "description": "Requirement-only: every atomic claim key kb_model mode analyze returned; each must be grounded by a linked fact.",
                 "items": {
                   "pattern": "^CLAIM-[A-F0-9]{16}$",
                   "type": "string"
@@ -3874,14 +3874,14 @@
                     "type": "string"
                   }
                 ],
-                "description": "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole. Set facts only: 'includes' means every member of value_set has the property and other members may have it too; 'subset_of' means every member that has the property is in value_set ('every env var the server reads is one of ...'); 'excludes' means no member of value_set has it ('never imports md5'); 'eq' on a set means exactly those members."
+                "description": "Optional comparison operator for property_value facts, e.g. eq, gt, matches (regex), includes, subset_of, excludes."
               },
               "origin": {
                 "additionalProperties": false,
-                "description": "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time.",
+                "description": "Optional provenance: kind (human, agent, migration, import) and authority (ref, approved_by, recorded_at).",
                 "properties": {
                   "approved_by": {
-                    "description": "The person who reviewed and approved this entity's content. Distinct from the requirement-level approved_by of an exception.",
+                    "description": "The person who reviewed and approved this entity's content, not the approved_by of an exception requirement.",
                     "minLength": 1,
                     "pattern": "\\S",
                     "type": "string"
@@ -3927,7 +3927,7 @@
                 "type": "string"
               },
               "pair_reviews": {
-                "description": "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming what resolves it: a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim_key of either, never the two requirements themselves; conflict, which stays blocking until a person decides), claims (the claim_key of each unmodeled claim; a payload_hash is accepted and ignored) and origin (kind human or agent; on a must or firm pair, a verdict whose origin is missing or agent, or that sits on a requirement an agent wrote, counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
+                "description": "Requirement only: verdicts on related pairs whose unmodeled claims cannot be modeled. Model the claims first.",
                 "items": {
                   "additionalProperties": {},
                   "properties": {},
@@ -3936,7 +3936,7 @@
                 "type": "array"
               },
               "part_of": {
-                "description": "subject only: defined subject keys this subject is a part of. A dotted key prefix that is itself a defined subject is broader already.",
+                "description": "subject only: defined subject keys this subject is a part of.",
                 "items": {
                   "type": "string"
                 },
@@ -3964,7 +3964,7 @@
                 "description": "Optional polarity for property_value or predicate facts."
               },
               "predicate_args": {
-                "description": "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_args.",
+                "description": "Optional ordered predicate arguments for ontology predicate facts; prefer kb_model mode predicates.",
                 "items": {
                   "type": "string"
                 },
@@ -3977,7 +3977,7 @@
                 "type": "integer"
               },
               "predicate_name": {
-                "description": "Optional predicate name for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_name.",
+                "description": "Optional predicate name for ontology predicate facts; prefer kb_model mode predicates.",
                 "type": "string"
               },
               "predicate_namespace": {
@@ -3989,7 +3989,7 @@
                 "type": "string"
               },
               "proof_bindings": {
-                "description": "test only: native-runner bindings (symbol_id, target) for proof obligations; provenance, never a replacement for proof_contract. A rejection returns the full schema.",
+                "description": "test only: native-runner bindings (symbol_id, target) for proof obligations; a rejection returns the full schema.",
                 "items": {
                   "additionalProperties": {},
                   "properties": {},
@@ -3999,12 +3999,12 @@
               },
               "proof_contract": {
                 "additionalProperties": {},
-                "description": "test only: kibi.proof-contract.v1 binding this test to proof obligations run by one integration. Load the kibi-usage skill resource `proof` (kb_skills) before writing one; a rejection returns the full schema.",
+                "description": "test only: kibi.proof-contract.v1 for this test; load the kibi-usage resource `proof` first. Rejections give the schema.",
                 "properties": {},
                 "type": "object"
               },
               "proof_receipts": {
-                "description": "test only: append-only proof receipts. Never hand-written: kb_ingest_proof derives them from proof-run artifacts. Send the stored list unchanged or omit it.",
+                "description": "test only: proof receipts kb_ingest_proof derives; never hand-write them. Send the stored list unchanged or omit it.",
                 "items": {
                   "additionalProperties": {},
                   "properties": {},
@@ -4013,11 +4013,11 @@
                 "type": "array"
               },
               "property_key": {
-                "description": "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
+                "description": "Optional snake_case property key for property_value facts. Example: 'session.timeout_minutes'.",
                 "type": "string"
               },
               "rationale": {
-                "description": "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent; not part of the checked meaning.",
+                "description": "Requirement-only: why the requirement exists, from whoever stated the intent; not part of the checked meaning.",
                 "minLength": 1,
                 "type": "string"
               },
@@ -4040,7 +4040,7 @@
                     "type": "string"
                   }
                 ],
-                "description": "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified."
+                "description": "Requirement-only: weakest evidence level it accepts. Absent = tested if firm, else unverified."
               },
               "rule_hash": {
                 "description": "Deterministic hash of canonical rule_ir.",
@@ -4065,7 +4065,7 @@
                 "type": "string"
               },
               "semantic_clauses": {
-                "description": "Optional complete atomic decomposition used by kb_model mode analyze and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
+                "description": "Optional reviewed atomic decomposition of the prose, used when automatic sentence splitting needs an override.",
                 "items": {
                   "minLength": 1,
                   "type": "string"
@@ -4074,7 +4074,7 @@
                 "type": "array"
               },
               "semantic_inventory": {
-                "description": "Requirement proposition ledger returned by kb_model mode analyze (CLI: kibi model); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
+                "description": "Requirement proposition ledger from kb_model mode analyze; preserve entries while modeling each span.",
                 "items": {
                   "additionalProperties": {},
                   "properties": {},
@@ -4114,7 +4114,7 @@
                 "type": "string"
               },
               "semantic_text": {
-                "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans. Keep text_ref available for independent document or code evidence.",
+                "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans.",
                 "type": "string"
               },
               "severity": {
@@ -4130,11 +4130,11 @@
                 "type": "string"
               },
               "status": {
-                "description": "Required lifecycle state. Allowed values depend on entity type; backward-compatible legacy statuses are also accepted. Examples: 'open', 'passing', 'accepted', 'active'.",
+                "description": "Required lifecycle state; allowed values depend on the entity type. Examples: 'open', 'passing', 'accepted'.",
                 "type": "string"
               },
               "subject_key": {
-                "description": "Snake_case only. Optional canonical subject key for strict fact entities. Example: 'user.session'. Do not use subjectKey in kb_upsert.properties.",
+                "description": "Optional snake_case subject key for strict fact entities. Example: 'user.session'.",
                 "type": "string"
               },
               "symbol_role": {
@@ -4236,7 +4236,7 @@
                     "type": "string"
                   }
                 ],
-                "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value."
+                "description": "Optional value type for property_value facts; pair with exactly one value_string, _int, _number, _bool or _set."
               },
               "verification_perspective": {
                 "anyOf": [
@@ -4273,7 +4273,7 @@
             "type": "object"
           },
           "relationships": {
-            "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+            "description": "Optional relationship rows to create in the same call; asserts edges in the KB.",
             "items": {
               "additionalProperties": {},
               "properties": {
@@ -4368,7 +4368,7 @@
                       "type": "string"
                     }
                   ],
-                  "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test)."
+                  "description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test)."
                 }
               },
               "required": ["type", "from", "to"],
@@ -4414,7 +4414,7 @@
             "description": "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'."
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -4791,12 +4791,12 @@
             "type": "object"
           },
           "approvedPlanHash": {
-            "description": "With ids only: the deletionPlan.planHash a prior call for the same ids returned. The plan is recomputed and applied through kb_apply_plan when its hash still matches; a mismatch fails with DELETE_PLAN_HASH_MISMATCH and writes nothing. Not allowed with relationships or dryRun.",
+            "description": "With ids only: the deletionPlan.planHash a prior call returned; applied only while the hash still matches.",
             "pattern": "^[a-fA-F0-9]{64}$",
             "type": "string"
           },
           "dryRun": {
-            "description": "Preview without writing. Relationship and direct entity deletes run their preflight and return outcome dry_run with wouldDelete counts, the sourceWrites (paths and hashes) a commit would make, and skippedEffects. Authored ids return the same deletion plan as without dryRun.",
+            "description": "Preview without writing: returns what a commit would delete and write.",
             "type": "boolean"
           },
           "ids": {
@@ -4832,7 +4832,7 @@
             "type": "array"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -5174,11 +5174,11 @@
             "type": "object"
           },
           "async": {
-            "description": "When true, start the check as a background job and return a kibi.job.v1 receipt immediately instead of holding the request until the tool timeout. Poll kb_job_status with the returned jobId. Use for full checks on large KBs that exceed the configured tool timeout. The MCP server registers kb_job_status only when KIBI_MCP_OPTIONAL_TOOLS includes it; otherwise async runs the check synchronously.",
+            "description": "When true, run as a background job and return a kibi.job.v1 receipt to poll with kb_job_status.",
             "type": "boolean"
           },
           "includeImpactDiagnostics": {
-            "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation, symbol_semantic_review_needed, source_file_unowned and requirement_statement_unverified (each current requirement the changed code implements, with its statement and firmness, since the check never compares code with a statement) in structured output.",
+            "description": "When true, include changed-file impact diagnostics (granularity, ownership, statements to verify) in the output.",
             "type": "boolean"
           },
           "includeMigrationPlan": {
@@ -5186,7 +5186,7 @@
             "type": "boolean"
           },
           "includeWorkingTreeDiff": {
-            "description": "When true, inspect current unstaged working-tree diffs for impact diagnostics. Pair with sourceFiles to scope the analysis.",
+            "description": "When true, inspect unstaged working-tree diffs for impact diagnostics; pair with sourceFiles to scope.",
             "type": "boolean"
           },
           "maxDiagnostics": {
@@ -5196,7 +5196,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, retired-reason-missing, retired-owner-only, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, claim-subject-missing, claim-subject-undefined, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, subject-definition-missing, subject-duplicate, subject-hierarchy-invalid, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, agent-requirement-unapproved-implemented, must-positive-scenario, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Omit to run every canonical and advisory rule plus the full-KB audit; selected rules stay scoped.",
             "items": {
               "anyOf": [
                 {
@@ -5476,18 +5476,18 @@
             "type": "array"
           },
           "sourceFiles": {
-            "description": "Optional repo-relative source files to inspect for early impact diagnostics. Use with includeImpactDiagnostics after meaningful source edits. Scopes the result to those files: blocking violations are listed for entities the changed symbols link to, entities whose KB document changed, and store-level rules; the rest are counted in omittedViolations (count still includes them). The migration plan comes as migrationPlanSummary, and a result over its size budget is cut (truncated: true).",
+            "description": "Optional repo-relative source files to inspect for impact diagnostics; scopes violations to what they touch.",
             "items": {
               "type": "string"
             },
             "type": "array"
           },
           "staged": {
-            "description": "When true, inspect staged source changes for impact diagnostics using the shared CLI impact analyzer without shelling out to kibi check.",
+            "description": "When true, inspect staged source changes for impact diagnostics, as kibi check --staged does.",
             "type": "boolean"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -5878,10 +5878,10 @@
             "type": "object"
           },
           "scope": {
-            "description": "What to review: {\"kind\":\"staged\"} for the staged snapshot, or {\"kind\":\"diff\",\"baseCommit\":\"<sha>\",\"headCommit\":\"<sha>\"} with full commit hashes."
+            "description": "{\"kind\":\"staged\"} for the staged snapshot, or {\"kind\":\"diff\",\"baseCommit\",\"headCommit\"} with full hashes."
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -6448,7 +6448,7 @@
             "description": "Optional declared bootstrap context supplied by the agent to ground the read-only synthesis output.",
             "properties": {
               "conflicts": {
-                "description": "Contradictions the agent found between declared intentClaims and leaves for the human to resolve. Each becomes a cited fact candidate with fact_kind observation tagged review:conflict. Every claimReference must match a declared claim's sourceId and reference. Bound into the plan hash.",
+                "description": "Contradictions between declared intentClaims left for the human; each becomes a fact tagged review:conflict.",
                 "items": {
                   "additionalProperties": false,
                   "properties": {
@@ -6485,17 +6485,17 @@
                 "type": "array"
               },
               "intentClaims": {
-                "description": "Statements the agent harvested from knowledgeSources, each citing its source. Intent claims (the default kind) that the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Observation and open_question claims never become requirements: they become cited fact candidates with fact_kind observation, open questions tagged review:open-question. Every intent and observation claim needs an excerpt: the created entity's body keeps the statement, then a '## Source' section with the blockquoted excerpt, the source title and the reference. Bound into the plan hash.",
+                "description": "Statements harvested from knowledgeSources, each citing its source and excerpt; intent claims may become requirements.",
                 "items": {
                   "additionalProperties": false,
                   "properties": {
                     "component": {
-                      "description": "Optional component the claim is about (for example recorder). Generated subject keys take the shape component.aspect with the aspect from the claim's subject. Without a component on the claim or its knowledge source, a claim whose subject is not a single word or already dotted becomes an authoring follow-up with a diagnostic instead of a malformed subject key.",
+                      "description": "Optional component the claim is about; generated subject keys take the shape component.aspect.",
                       "minLength": 1,
                       "type": "string"
                     },
                     "excerpt": {
-                      "description": "Verbatim passage from the source the claim came from. Required for intent and observation claims (optional for open_question): Kibi persists it with the knowledge source title and reference in the created entity's '## Source' section, because the ticket or page may be gone by the next migration.",
+                      "description": "Verbatim passage the claim came from; required for intent and observation claims, kept in the entity's Source section.",
                       "minLength": 1,
                       "type": "string"
                     },
@@ -6514,10 +6514,10 @@
                           "type": "string"
                         }
                       ],
-                      "description": "intent: intended behavior (may become a req). observation: how things are today, without stating intent. open_question: something the sources leave undecided. Default: intent."
+                      "description": "intent (may become a req), observation (how things are today) or open_question. Default: intent."
                     },
                     "rationale": {
-                      "description": "Optional reason the requirement exists, as the source states it or the human answered when asked. It becomes the requirement's rationale and its body's '## Context' section. Never invent one.",
+                      "description": "Optional reason the requirement exists, as the source or the human states it. Never invent one.",
                       "minLength": 1,
                       "type": "string"
                     },
@@ -6543,7 +6543,7 @@
                 "type": "array"
               },
               "knowledgeSources": {
-                "description": "Knowledge sources outside the code that the human confirmed during the bootstrap interview (issue trackers, wikis, specs, decision logs). Kibi never contacts them; the agent reads them through its own connectors and cites them from intentClaims. Bound into the plan hash.",
+                "description": "Knowledge sources outside the code the human confirmed (trackers, wikis, specs); the agent cites them from intentClaims.",
                 "items": {
                   "additionalProperties": false,
                   "properties": {
@@ -6562,10 +6562,10 @@
                           "type": "string"
                         }
                       ],
-                      "description": "The human's call: authoritative claims become higher-confidence candidates, supporting claims lower ones, and stale sources are cited but never produce candidates."
+                      "description": "The human's call: authoritative, supporting, or stale (cited, never a candidate)."
                     },
                     "component": {
-                      "description": "Optional component this source's claims are about (for example recorder). It becomes the first segment of each generated subject_key (component.aspect); a claim's own component overrides it.",
+                      "description": "Optional component the source's claims are about; the first segment of each generated subject_key.",
                       "minLength": 1,
                       "type": "string"
                     },
@@ -6705,11 +6705,11 @@
             "type": "array"
           },
           "includeGenericMarkdown": {
-            "description": "Whether to include generic markdown file content as candidate facts. Default: true, or false when bootstrapContext declares intentClaims (the declared sources already carry the intent); set it explicitly to override.",
+            "description": "Whether to include generic markdown content as candidate facts. Default: true, or false with declared intentClaims.",
             "type": "boolean"
           },
           "maxCandidates": {
-            "description": "Budget for candidates Kibi discovers itself (symbols, tests, repository documents). Declared intentClaims sit outside it: they are never capped and never use its slots. Clamped to [1, 200]. Default: 50.",
+            "description": "Budget for candidates Kibi discovers itself; declared intentClaims are never capped. Clamped to [1, 200]. Default: 50.",
             "maximum": 200,
             "minimum": 1,
             "type": "integer"
@@ -6721,7 +6721,7 @@
             "type": "number"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -7077,7 +7077,7 @@
             "type": "object"
           },
           "clauses": {
-            "description": "Optional complete atomic clause decomposition. Each clause must be a verbatim fragment of intent (whitespace may differ); a clause that does not occur in intent fails the call with VALIDATION_FAILED naming it. Each assertive clause receives independent proposition accounting.",
+            "description": "Optional atomic clause decomposition; each clause must be a verbatim fragment of intent.",
             "items": {
               "minLength": 1,
               "type": "string"
@@ -7086,7 +7086,7 @@
             "type": "array"
           },
           "conflictReviews": {
-            "description": "Your verdict on each contradictionAnalysis.reviewCandidates entry of a previous compile: whether the intent contradicts that current requirement, which Kibi could not compare logically. A conflict verdict blocks the plan; a no_conflict verdict clears that candidate. A verdict may also name a current requirement discovery did not rank.",
+            "description": "Your verdict on each reviewCandidates entry of a previous compile; a conflict verdict blocks the plan.",
             "items": {
               "additionalProperties": false,
               "properties": {
@@ -7118,7 +7118,7 @@
             "type": "array"
           },
           "context": {
-            "description": "Why the requirement exists, who asked and anything that does not fit its checked meaning. Required when mode is create (validation error naming this field otherwise); rendered as a '## Context' section of the requirement document, never as part of the checked meaning. Never invent a reason: write 'Reason not stated' when the requester gave none. An update keeps the existing document body unless context is supplied.",
+            "description": "Why the requirement exists and who asked; required for create. Write 'Reason not stated' rather than invent one.",
             "maxLength": 10000,
             "type": "string"
           },
@@ -7172,7 +7172,7 @@
                 "type": "string"
               }
             ],
-            "description": "Create a new requirement or update an existing one. Update auto-selection is allowed only with a high-confidence, well-separated candidate."
+            "description": "Create a new requirement or update an existing one."
           },
           "proposalDecisions": {
             "description": "Explicit decisions for deterministic traceability proposals. Pending proposals never enter steps.",
@@ -7272,7 +7272,7 @@
             "type": "object"
           },
           "sourceExcerpt": {
-            "description": "Optional verbatim text the intent came from (a ticket, a message, a document passage). Rendered as a blockquote in the requirement's '## Source' section; requires context.",
+            "description": "Optional verbatim text the intent came from, quoted in the Source section; requires context.",
             "maxLength": 10000,
             "type": "string"
           },
@@ -7307,7 +7307,7 @@
             "type": "array"
           },
           "sourceReference": {
-            "description": "Optional locator of the source text (ticket id, URL, path). Rendered in the requirement's '## Source' section; requires context.",
+            "description": "Optional locator of the source text (ticket id, URL, path) for the Source section; requires context.",
             "maxLength": 2000,
             "type": "string"
           },
@@ -7376,7 +7376,7 @@
             "type": "string"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -7660,7 +7660,7 @@
             "type": "object"
           },
           "approvedActionIds": {
-            "description": "Required for migration-plan.v2. Exact action IDs explicitly approved for this application: automatic actions, or review actions with a cli invocation that Kibi executes only when approved by id (for example semantic_inventory_rederive_drop_grounding).",
+            "description": "Required for migration-plan.v2: the exact action IDs approved for this application.",
             "items": {
               "minLength": 1,
               "type": "string"
@@ -7673,22 +7673,22 @@
             "type": "string"
           },
           "async": {
-            "description": "MCP only. When true, start the apply as a background job and return a kibi.job.v1 receipt immediately instead of holding the request open; poll kb_job_status with the returned jobId for the final result. Use for large bootstrap plans (hundreds of actions) that can outlast a client's request timeout. The MCP server registers kb_job_status only when KIBI_MCP_OPTIONAL_TOOLS includes it; otherwise async applies synchronously. A synchronous apply sends notifications/progress after each bootstrap action when the request carries a progressToken. The CLI ignores this field.",
+            "description": "MCP only: when true, run as a background job and return a kibi.job.v1 receipt to poll with kb_job_status.",
             "type": "boolean"
           },
           "plan": {
             "additionalProperties": {},
-            "description": "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked actions and review actions Kibi cannot execute.",
+            "description": "The complete bootstrap, compile, migration or hash-bound entity-deletion plan object to apply.",
             "properties": {},
             "type": "object"
           },
           "recoveryJournalId": {
-            "description": "Typed recovery journal identifier returned by a committed_with_repairs result or a PLAN_APPLY_RECOVERY_REQUIRED error. Recovery replays only the immutable journal and never the original plan request; a compile-plan journal (plan-apply-*) is completed or rolled back deterministically and reports which. A bootstrap journal left `applying` by a process that died mid-action is resumed without edits: the interrupted action is re-applied and a source lock held by the dead process is reclaimed and recorded in the journal.",
+            "description": "Recovery journal id from a committed_with_repairs result or PLAN_APPLY_RECOVERY_REQUIRED error, to resume.",
             "pattern": "^[A-Za-z0-9._-]+$",
             "type": "string"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },
@@ -8044,10 +8044,10 @@
           },
           "artifact": {
             "additionalProperties": false,
-            "description": "Producer-emitted kibi.proof-run.v1 proof artifact. Producers report what happened; Kibi evaluates proof obligations and policies. Produce it via `kibi prove` or direct kb_ingest_proof calls.",
+            "description": "Producer-emitted kibi.proof-run.v1 artifact, from kibi prove or a direct call; Kibi evaluates the obligations.",
             "properties": {
               "certificates": {
-                "description": "kibi.code-certificate.v1 objects the run left for certificate-kind contracts, one per test. Kibi re-checks each before a receipt counts as proved.",
+                "description": "kibi.code-certificate.v1 objects for certificate-kind contracts, one per test; Kibi re-checks each.",
                 "items": {
                   "additionalProperties": {},
                   "properties": {},
@@ -8117,7 +8117,7 @@
               "proof_results": {
                 "items": {
                   "additionalProperties": false,
-                  "description": "One observed proof result. binding distinguishes native-case observations from aggregate-run bindings; attempts must report facts only.",
+                  "description": "One observed proof result; attempts report facts only.",
                   "properties": {
                     "attempts": {},
                     "binding": {
@@ -8307,7 +8307,7 @@
             "type": "array"
           },
           "workspaceRoot": {
-            "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
             "type": "string"
           }
         },

@@ -46,7 +46,8 @@
               "type": "string"
             }
           },
-          "type": "object"
+          "type": "object",
+          "x-kibi-advertised-description": "Optional source document write; omit body on update to keep it. New requirements take statement, Context, Source."
         },
         "id": {
           "type": "string"
@@ -98,13 +99,15 @@
                         "exempts",
                         "relates_to"
                       ],
-                      "type": "string"
+                      "type": "string",
+                      "x-kibi-advertised-description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test)."
                     }
                   },
                   "required": ["type", "from", "to"],
                   "type": "object"
                 },
-                "type": "array"
+                "type": "array",
+                "x-kibi-advertised-description": "Optional relationship rows to create in the same call; asserts edges in the KB."
               },
               "type": {
                 "const": "fact",
@@ -114,7 +117,8 @@
             "required": ["type", "id", "properties"],
             "type": "object"
           },
-          "type": "array"
+          "type": "array",
+          "x-kibi-advertised-description": "dryRun only: fact payloads (e.g. kb_model applyPlan entries) staged before this one, so their links resolve."
         },
         "properties": {
           "description": "Entity properties to validate using the same snake_case field names accepted by kb_upsert.",
@@ -140,7 +144,7 @@
           "type": "string"
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

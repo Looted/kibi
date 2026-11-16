@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: "Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair. Also use for knowledge base quality work: cleaning up or auditing a KB, clearing kibi check review findings (broad_requirement_review, multi_requirement_symbol_review, coarse_anchor_only_review, entity-context-missing), splitting a requirement that covers several behaviors, choosing which function owns a behavior, writing why a requirement exists, and retiring knowledge whose behavior is gone."
-version: 2.49.0
+version: 2.50.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -25,6 +25,7 @@ resources:
   - resources/logic-ir.md
   - resources/kb-improvement.md
   - resources/kb-quality.md
+  - resources/operation-fields.md
 ---
 # Kibi Usage
 
@@ -70,6 +71,9 @@ printf '%s\n' '{"query":"checkout","limit":10}' | npx --no-install kibi search -
 
 Read `resources/operation-access.md` for the route, result version, effects,
 mutability, and Prolog requirements of each operation.
+The MCP tool list gives long field rules in one short line. Read
+`resources/operation-fields.md` for a field's full rule before relying on a
+detail the short line leaves out.
 
 ## Working in a git worktree or another directory
 

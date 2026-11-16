@@ -7826,6 +7826,22 @@
     ]
   },
   {
+    "test_id": "TEST-mcp-short-field-descriptions",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "30000",
+        "--isolate",
+        "--max-concurrency=1",
+        "./packages/mcp/tests/server/tool-surface-consumer.test.ts",
+        "./packages/cli/tests/operations/advertised-schema.test.ts",
+        "./packages/cli/tests/operations/field-reference.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-staged-gate-inherited-symbol-gaps",
     "steps": [
       [
