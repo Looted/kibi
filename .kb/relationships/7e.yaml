@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1031174f742f
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: REQ-requirement-reason-skips-change-notes
+    created_at: 2026-11-16T17:37:28.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1ea6a9c0d6c

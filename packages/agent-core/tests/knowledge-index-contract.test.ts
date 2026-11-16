@@ -13,6 +13,7 @@ import {
   readEntitySummary,
   scanSymbolCoordinates,
   scanSymbolsManifest,
+  withoutChangeNotes,
 } from "../src/knowledge-index";
 
 const roots: string[] = [];
@@ -2033,11 +2034,17 @@ describe("a requirement summary's recorded reason", () => {
     });
   });
 
-  test("then Why this changed, then a Why, Rationale or Context section", () => {
+  test("then a Why, Rationale or Context section, then Why this changed", () => {
     expect(
       why(
         "",
-        "S.\n\n## Why\n\nOld.\n\n## Why this changed\n\nThe **limit** moved.\n",
+        "S.\n\n## Why this changed\n\nThe limit moved.\n\n## Why\n\nAudits.\n",
+      ),
+    ).toEqual({ recorded: true, text: "Audits.", from: "section" });
+    expect(
+      why(
+        "",
+        "S.\n\n## Why\n\nReason not stated.\n\n## Why this changed\n\nThe **limit** moved.\n",
       ),
     ).toEqual({
       recorded: true,
@@ -2202,6 +2209,55 @@ describe("a requirement summary's recorded reason", () => {
     expect(why("# Why: a comment\nnote: n\n", "S.\n")).toEqual({
       recorded: false,
     });
+  });
+
+  test("split and supersede notes are not a reason", () => {
+    expect(
+      why(
+        "",
+        "S.\n\n## Why this changed\n\nSplit from REQ-B, which held two rules.\n\n## Context\n\nAudits need cents.\n",
+      ),
+    ).toEqual({ recorded: true, text: "Audits need cents.", from: "section" });
+    expect(
+      why(
+        "",
+        "S.\n\n## Why\n\nSuperseded by REQ-C.\n\n## Context\n\nAudits need cents.\n",
+      ),
+    ).toEqual({ recorded: true, text: "Audits need cents.", from: "section" });
+    expect(
+      why(
+        "",
+        "S.\n\n## Why this changed\n\n- Replaces REQ-D.\n- The audit failed.\n",
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "The audit failed.",
+      from: "why_this_changed",
+    });
+    expect(why("", "S.\n\n## Why\n\n> Replaced by REQ-F.\n")).toEqual({
+      recorded: false,
+    });
+    expect(
+      why("rationale: Split from REQ-B.\n", "S.\n\n## Why\n\nReal.\n"),
+    ).toEqual({ recorded: true, text: "Real.", from: "section" });
+    expect(
+      withoutChangeNotes([
+        "It was split from REQ-B because it held two rules.",
+        "Splitting from REQ-B helped.",
+        "Split fromREQ-B",
+        "  - Supersedes REQ-C.",
+        ">Replaced by REQ-D.",
+        "*Replaces REQ-E",
+        "",
+        "Kept.",
+      ]),
+    ).toEqual([
+      "It was split from REQ-B because it held two rules.",
+      "Splitting from REQ-B helped.",
+      "Split fromREQ-B",
+      "",
+      "Kept.",
+    ]);
   });
 
   test("origin dates and approvers are read from their own keys", () => {

@@ -1,5 +1,5 @@
 ---
-title: A requirement's older reason is preferred over the current one
+title: A change note is preferred over the requirement's reason
 status: active
 expects: rejection
 tags:
@@ -10,6 +10,6 @@ origin:
 id: SCEN-NEG-search-answer-reason-source-order-WRONG-ORDER
 type: scenario
 ---
-A superseding requirement has a Why section copied from its predecessor and a Why this changed section; the answer quotes the copied reason instead of why it changed.
+A requirement has a Context section saying why the rule exists and a Why this changed section saying how it was split; the answer quotes the Why this changed section instead of the reason.
 
 This is the failure side the answer must not produce; packages/cli/tests/search-answer.test.ts checks it.

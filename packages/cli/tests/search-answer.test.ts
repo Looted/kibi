@@ -18,6 +18,7 @@ import {
   reasonSource,
   requirementReason,
   requirementStatementOf,
+  withoutChangeNotes,
 } from "../src/search-answer.js";
 
 type Row = Record<string, string | readonly string[]>;
@@ -1687,16 +1688,33 @@ describe("a governing requirement's recorded reason", () => {
     });
   });
 
-  test("then the Why this changed section, before a Why section", () => {
+  test("then a Why section, before the Why this changed section", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A" },
+        body(
+          "Statement.",
+          "## Why this changed",
+          "The **limit** moved to 9 after the audit.",
+          "## Why",
+          "Finance reconciles to the cent.",
+        ),
+        [],
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Finance reconciles to the cent.",
+      from: "section",
+    });
     expect(
       requirementReason(
         { id: "REQ-A" },
         body(
           "Statement.",
           "## Why",
-          "The old reason.",
+          "Reason not stated.",
           "## Why this changed",
-          "The **limit** moved to 9 after the audit.",
+          "The limit moved to 9 after the audit.",
         ),
         [],
       ),
@@ -1705,6 +1723,88 @@ describe("a governing requirement's recorded reason", () => {
       text: "The limit moved to 9 after the audit.",
       from: "why_this_changed",
     });
+  });
+
+  test("split and supersede notes are not a reason", () => {
+    const reason = (...lines: string[]) =>
+      requirementReason({ id: "REQ-A" }, body("Statement.", ...lines), []);
+    expect(
+      reason(
+        "## Why this changed",
+        "Split from REQ-B, which held three behaviors.",
+        "## Context",
+        "Finance reconciles to the cent.",
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Finance reconciles to the cent.",
+      from: "section",
+    });
+    // A note section is skipped for a later section of the same kind.
+    expect(
+      reason(
+        "## Why",
+        "Superseded by REQ-C.",
+        "## Context",
+        "Audits need cents.",
+      ),
+    ).toEqual({ recorded: true, text: "Audits need cents.", from: "section" });
+    expect(
+      reason("## Why this changed", "- Replaces REQ-D.", "- The audit failed."),
+    ).toEqual({
+      recorded: true,
+      text: "The audit failed.",
+      from: "why_this_changed",
+    });
+    expect(
+      reason("## Why this changed", "Supersedes REQ-E.\nThe audit failed."),
+    ).toEqual({
+      recorded: true,
+      text: "The audit failed.",
+      from: "why_this_changed",
+    });
+    expect(reason("## Why", "> Replaced by REQ-F.")).toEqual({
+      recorded: false,
+    });
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Split from REQ-B." },
+        body("Statement.", "## Why", "Real."),
+        [],
+      ),
+    ).toEqual({ recorded: true, text: "Real.", from: "section" });
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Audits need cents.\nSplit from REQ-B." },
+        null,
+        [],
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Audits need cents.",
+      from: "rationale",
+    });
+  });
+
+  test("a note is only a note when it opens its line", () => {
+    expect(
+      withoutChangeNotes([
+        "It was split from REQ-B because it held two rules.",
+        "Splitting from REQ-B helped.",
+        "Split fromREQ-B",
+        "  - Supersedes REQ-C.",
+        ">Replaced by REQ-D.",
+        "*Replaces REQ-E",
+        "",
+        "Kept.",
+      ]),
+    ).toEqual([
+      "It was split from REQ-B because it held two rules.",
+      "Splitting from REQ-B helped.",
+      "Split fromREQ-B",
+      "",
+      "Kept.",
+    ]);
   });
 
   test("then a Why, Rationale or Context section, at any level", () => {

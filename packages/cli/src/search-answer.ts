@@ -751,12 +751,32 @@ export function adrExcerpt(
 const NO_REASON_STATED = /^reason not stated\b/i;
 
 /**
+ * A line that only records how a requirement was split or superseded
+ * ("Split from REQ-…", "Superseded by …"): it says where the text came
+ * from, not why the rule exists.
+ */
+const CHANGE_NOTE =
+  /^(?:[-*+>]\s*)?(?:split from|superseded by|supersedes|replaces|replaced by)\s/i;
+
+/** Markdown lines without the lines that are only split or supersede notes. */
+export function withoutChangeNotes(lines: readonly string[]): string[] {
+  return lines.filter((line) => !CHANGE_NOTE.test(line.trim()));
+}
+
+/** Body sections that record a reason, in the order they are tried. */
+const REASON_SECTIONS = [
+  [/^(?:rationale|why(?! this changed)|context)\b/, "section"],
+  [/^why this changed\b/, "why_this_changed"],
+] as const;
+
+/**
  * A governing requirement's recorded reason, tried in order: its
- * `rationale` field, its "Why this changed" section, its Why, Rationale or
- * Context section (the headings requirement-rationale-missing reads), then
- * the opening of a linked ADR. `body` is the requirement's own document
- * without front matter, or null when it could not be read; `adrExcerpts`
- * are the linked current ADRs' excerpts in link order.
+ * `rationale` field, its Why, Rationale or Context section (the headings
+ * requirement-rationale-missing reads), its "Why this changed" section, then
+ * the opening of a linked ADR. Lines that only note a split or
+ * supersede are skipped. `body` is the requirement's own document without
+ * front matter, or null when it could not be read; `adrExcerpts` are the
+ * linked current ADRs' excerpts in link order.
  */
 export function requirementReason(
   row: Row,
@@ -765,19 +785,17 @@ export function requirementReason(
 ): SearchAnswerReason {
   const source = reasonSource(row.origin);
   const said = source ? { said: source } : {};
-  const field = proseExcerpt(text(row.rationale).split(/\r?\n/));
+  const field = proseExcerpt(
+    withoutChangeNotes(text(row.rationale).split(/\r?\n/)),
+  );
   if (field) return { recorded: true, text: field, from: "rationale", ...said };
-  if (body !== null) {
-    const parsed = markdownSections(body);
-    for (const [pattern, from] of [
-      [/^why this changed\b/, "why_this_changed"],
-      [/^(?:rationale|why|context)\b/, "section"],
-    ] as const) {
-      const lines = namedSection(parsed, pattern);
-      const excerpt = lines ? proseExcerpt(lines) : undefined;
-      if (excerpt && !NO_REASON_STATED.test(excerpt))
-        return { recorded: true, text: excerpt, from, ...said };
-    }
+  const sections = body === null ? new Map() : markdownSections(body).sections;
+  for (const [pattern, from] of REASON_SECTIONS) {
+    const excerpt = [...sections]
+      .filter(([name]) => pattern.test(name))
+      .map(([, lines]) => proseExcerpt(withoutChangeNotes(lines)))
+      .find((prose) => prose !== undefined && !NO_REASON_STATED.test(prose));
+    if (excerpt) return { recorded: true, text: excerpt, from, ...said };
   }
   const adr = adrExcerpts.find((excerpt) => excerpt !== undefined);
   return adr === undefined

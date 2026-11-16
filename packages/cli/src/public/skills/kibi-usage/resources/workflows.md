@@ -97,8 +97,9 @@ On the first page, intent mode also returns an answer layer in `data.answer`
   the answer lists carries `moreFacts` (`count` and the `kb_query` `ask` that
   lists them all); never read a short `facts` list as the whole rule. Each
   also carries `why`, its recorded reason: `{ recorded: true, text, from }`
-  (`from` is `rationale`, `why_this_changed`, `section` or `adr`, tried in
-  that order; `said` gives who it came from and when) or
+  (`from` is `rationale`, `section`, `why_this_changed` or `adr`, tried in
+  that order, split and supersede notes skipped; `said` gives who it came
+  from and when) or
   `{ recorded: false }`. A fact's `kb_query` call (`ask`) and each result's
   graph paths come only with `fields: "full"`.
 - `rationale` — ADRs that explain the decisions.

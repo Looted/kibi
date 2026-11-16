@@ -737,9 +737,9 @@ export type EntitySummary = {
 
 /**
  * Why a requirement is what it is, as its document records it: the
- * `rationale` field, else the "Why this changed" section, else a Why,
- * Rationale or Context section (one that says "Reason not stated" holds
- * none), as at most MAX_REASON_CHARS characters of plain prose. `by` and `on`
+ * `rationale` field, else a Why, Rationale or Context section (one that says
+ * "Reason not stated" holds none), else the "Why this changed" section, with
+ * lines that only note a split or supersede skipped, as at most MAX_REASON_CHARS characters of plain prose. `by` and `on`
  * say who it came from and when, read from the origin: the approver
  * (`approved_by`), else the origin's kind (`human`, `agent` or `import`),
  * and the date the origin was recorded; a migration origin names neither.
@@ -860,13 +860,27 @@ const NO_REASON_STATED = /^reason not stated\b/i;
 
 /** Body sections that record a reason, in the order they are tried. */
 const REASON_SECTIONS: readonly [RegExp, "why_this_changed" | "section"][] = [
+  [/^(?:rationale|why(?! this changed)|context)\b/, "section"],
   [/^why this changed\b/, "why_this_changed"],
-  [/^(?:rationale|why|context)\b/, "section"],
 ];
 
 /**
+ * A line that only records how a requirement was split or superseded
+ * ("Split from REQ-…", "Superseded by …"): it says where the text came
+ * from, not why the rule exists.
+ */
+const CHANGE_NOTE =
+  /^(?:[-*+>]\s*)?(?:split from|superseded by|supersedes|replaces|replaced by)\s/i;
+
+/** Markdown lines without the lines that are only split or supersede notes. */
+export function withoutChangeNotes(lines: readonly string[]): string[] {
+  return lines.filter((line) => !CHANGE_NOTE.test(line.trim()));
+}
+
+/**
  * A requirement's recorded reason from its `rationale` field, else the first
- * reason section of its body (fenced code skipped) that holds prose.
+ * reason section of its body (fenced code skipped) that holds prose besides
+ * split or supersede notes.
  */
 function recordedReason(
   rationale: string | undefined,
@@ -874,7 +888,10 @@ function recordedReason(
 ):
   | { text: string; from: "rationale" | "why_this_changed" | "section" }
   | undefined {
-  const field = proseExcerpt([rationale ?? ""], MAX_REASON_CHARS);
+  const field = proseExcerpt(
+    withoutChangeNotes([rationale ?? ""]),
+    MAX_REASON_CHARS,
+  );
   if (field) return { text: field, from: "rationale" };
   // rationale: a placeholder entry in place of the empty list is a string,
   // whose one-character name matches no reason heading.
@@ -897,11 +914,13 @@ function recordedReason(
     current?.push(line);
   }
   for (const [pattern, from] of REASON_SECTIONS) {
-    const lines = sections.find(
-      ([name, content]) => pattern.test(name) && content.join("").trim(),
-    )?.[1];
-    const text = lines ? proseExcerpt(lines, MAX_REASON_CHARS) : undefined;
-    if (text && !NO_REASON_STATED.test(text)) return { text, from };
+    const text = sections
+      .filter(([name]) => pattern.test(name))
+      .map(([, content]) =>
+        proseExcerpt(withoutChangeNotes(content), MAX_REASON_CHARS),
+      )
+      .find((prose) => prose !== undefined && !NO_REASON_STATED.test(prose));
+    if (text) return { text, from };
   }
   return undefined;
 }

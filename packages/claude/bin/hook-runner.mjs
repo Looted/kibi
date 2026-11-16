@@ -883,11 +883,15 @@ function proseExcerpt(lines, maxChars) {
 }
 var NO_REASON_STATED = /^reason not stated\b/i;
 var REASON_SECTIONS = [
-  [/^why this changed\b/, "why_this_changed"],
-  [/^(?:rationale|why|context)\b/, "section"]
+  [/^(?:rationale|why(?! this changed)|context)\b/, "section"],
+  [/^why this changed\b/, "why_this_changed"]
 ];
+var CHANGE_NOTE = /^(?:[-*+>]\s*)?(?:split from|superseded by|supersedes|replaces|replaced by)\s/i;
+function withoutChangeNotes(lines) {
+  return lines.filter((line) => !CHANGE_NOTE.test(line.trim()));
+}
 function recordedReason(rationale, body) {
-  const field = proseExcerpt([rationale ?? ""], MAX_REASON_CHARS);
+  const field = proseExcerpt(withoutChangeNotes([rationale ?? ""]), MAX_REASON_CHARS);
   if (field)
     return { text: field, from: "rationale" };
   const sections = [];
@@ -909,9 +913,8 @@ function recordedReason(rationale, body) {
     current?.push(line);
   }
   for (const [pattern, from] of REASON_SECTIONS) {
-    const lines = sections.find(([name, content]) => pattern.test(name) && content.join("").trim())?.[1];
-    const text = lines ? proseExcerpt(lines, MAX_REASON_CHARS) : undefined;
-    if (text && !NO_REASON_STATED.test(text))
+    const text = sections.filter(([name]) => pattern.test(name)).map(([, content]) => proseExcerpt(withoutChangeNotes(content), MAX_REASON_CHARS)).find((prose) => prose !== undefined && !NO_REASON_STATED.test(prose));
+    if (text)
       return { text, from };
   }
   return;

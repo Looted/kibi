@@ -42100,3 +42100,29 @@ symbols:
         target: REQ-search-answer-reason-source-order
       - type: implements
         target: REQ-upsert-notes-missing-reason
+  - id: SYM-search-answer-without-change-notes
+    title: withoutChangeNotes
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:36:54.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-requirement-reason-skips-change-notes
+  - id: SYM-knowledge-index-without-change-notes
+    title: withoutChangeNotes
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:37:01.678Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-requirement-reason-skips-change-notes
