@@ -2,8 +2,8 @@
 title: 'Proof kinds: a contract kind is one of eleven'
 status: active
 fact_kind: property_value
-subject_key: kibi.code_proof
-property_key: proof_contract_kinds
+subject_key: kibi.proofs.vocabulary
+property_key: proof_kinds
 operator: eq
 value_type: set
 value_set:

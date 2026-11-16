@@ -2,7 +2,7 @@
 title: The bootstrap plan would offer the search-hints plugin at 49 requirement documents
 status: active
 fact_kind: property_value
-subject_key: kibi.plugins.search_hints_potion
+subject_key: kibi.search.hint_limits
 property_key: offer_min_requirements
 operator: eq
 value_type: int

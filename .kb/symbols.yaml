@@ -18595,7 +18595,11 @@ symbols:
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
+        target: TEST-check-restated-twin-facts
+      - type: covered_by
         target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-check-restated-twin-facts
       - type: implements
         target: REQ-kibi-subject-vocabulary
   - id: SYM-core-check-subject-key-shape
@@ -41817,3 +41821,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-search-answer-reason-chars
+  - id: SYM-test-check-restated-twin-facts
+    title: Restated twin facts consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/restated-twin-facts.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:52:50.700Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-restated-twin-facts
