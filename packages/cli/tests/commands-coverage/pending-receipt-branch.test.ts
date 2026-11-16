@@ -296,4 +296,49 @@ describe("sync leaves another branch's receipts alone", () => {
       /Pending source is missing/,
     );
   });
+
+  test("a receipt that spells its path with backslashes is retired too", async () => {
+    const cwd = track(createGitWorkspace("main"));
+    const relative = ".kb/requirements/REQ-SLASHED.md";
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(path.join(cwd, relative), "slashed\n");
+    git(cwd, `add ${relative}`);
+    const receipt = writeReceipt(cwd, "slashed", {
+      path: relative.replaceAll("/", "\\"),
+      afterHash: sha("slashed\n"),
+    });
+    await discoverSourceFiles(cwd, { trackedOnly: true });
+    expect(existsSync(receipt)).toBe(false);
+  });
+
+  test("a backslashed receipt for a file another branch committed is retired", async () => {
+    const cwd = track(createGitWorkspace("main"));
+    const relative = ".kb/requirements/REQ-ELSEWHERE.md";
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(path.join(cwd, relative), "elsewhere\n");
+    git(cwd, "checkout -q -b feature");
+    git(cwd, `add ${relative}`);
+    git(cwd, "commit -q --no-verify -m elsewhere");
+    git(cwd, "checkout -q main");
+    const receipt = writeReceipt(cwd, "elsewhere", {
+      path: relative.replaceAll("/", "\\"),
+      afterHash: sha("elsewhere\n"),
+    });
+    await discoverSourceFiles(cwd, { trackedOnly: true });
+    expect(existsSync(receipt)).toBe(false);
+  });
+
+  test("only YAML files in the relationships folder are relationship shards", () => {
+    const cwd = track(createGitWorkspace("main"));
+    const relationshipsDir = path.join(cwd, ".kb", "relationships");
+    mkdirSync(relationshipsDir, { recursive: true });
+    for (const name of ["ab.yaml", "cd.yml", "notes.md"]) {
+      writeFileSync(path.join(relationshipsDir, name), "x\n");
+    }
+    git(cwd, "add .kb/relationships");
+    expect(trackedRelationshipFiles(cwd, relationshipsDir)).toStrictEqual([
+      path.join(relationshipsDir, "ab.yaml"),
+      path.join(relationshipsDir, "cd.yml"),
+    ]);
+  });
 });

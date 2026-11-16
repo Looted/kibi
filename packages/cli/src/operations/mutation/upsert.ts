@@ -553,8 +553,16 @@ export async function validateUpsertForCommit(
     // is judged again as if it had been sent: a write the boundary accepts
     // (legacy prose kept as it was) is never filled in, and a contract sent
     // in any part is judged exactly as sent.
+    // The store reads behind the boundary are cached, so any other refusal
+    // recurs unchanged when the filled-in write is judged again, and a write
+    // the server does not fill is refused again as is; these checks only
+    // spare that work.
     if (
+      // rationale: cached store reads make the retry refuse the same way.
+      // Stryker disable next-line ConditionalExpression,LogicalOperator
       !(error instanceof KbRejection) ||
+      // rationale: cached store reads make the retry refuse the same way.
+      // Stryker disable next-line ConditionalExpression
       error.code !== "INCOMPLETE_PROPOSITIONS"
     )
       throw error;
@@ -566,6 +574,8 @@ export async function validateUpsertForCommit(
       staged,
       lookup,
     );
+    // rationale: an unfilled write is refused again as is when re-judged.
+    // Stryker disable next-line ConditionalExpression
     if (server.applied === undefined) throw error;
     input = server.input;
     validated = validateUpsertInput(input, context.clock());
