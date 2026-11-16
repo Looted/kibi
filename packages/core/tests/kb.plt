@@ -12219,7 +12219,10 @@ test(an_update_drops_the_index_rows_of_the_old_version, [setup(setup_kb), cleanu
     assertion(Sources == ['src/new.md']),
     assertion(\+ kb:kb_index_token(zebra, 'REQ-REINDEX')),
     assertion(\+ kb:kb_index_token(old, 'REQ-REINDEX')),
-    assertion(kb:kb_index_token(yak, 'REQ-REINDEX')).
+    assertion(kb:kb_index_token(yak, 'REQ-REINDEX')),
+    % A tag's words are search tokens too.
+    assertion(kb:kb_index_token(beta, 'REQ-REINDEX')),
+    assertion(\+ kb:kb_index_token(alpha, 'REQ-REINDEX')).
 
 test(a_write_leaves_an_unbuilt_index_to_the_next_rebuild, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     retractall(kb:kb_index_entity_count(_)),

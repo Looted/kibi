@@ -495,3 +495,279 @@ describe("withServerSemanticInventory", () => {
     ).toStrictEqual({ input: complete });
   });
 });
+
+describe("withServerSemanticInventory decisions", () => {
+  const MIXED =
+    "Users must keep 12 active sessions. Admins must keep one session. Users must export reports as CSV. For example, a monthly sales report. This is nice to have.";
+  const NEW_TEXT =
+    "Users must export reports as CSV. Exports must finish within a minute.";
+  const keysOf = (text: string) =>
+    analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-1",
+        properties: { semantic_text: text },
+        relationships: [],
+      },
+    }).receipt.propositions.map((p) => p.claim_key);
+  const [EXPORT_CSV, FINISH] = keysOf(NEW_TEXT) as [string, string];
+
+  async function fill(
+    input: UpsertInput,
+    options: {
+      stored?: Record<string, unknown>;
+      relationships?: { type: string; from: string; to: string }[];
+      plan?: StagedUpsertState;
+      prolog?: { query: (goal: string) => Promise<unknown> };
+    } = {},
+  ) {
+    const { lookup } = lookupOf(options.stored);
+    return withServerSemanticInventory(
+      input,
+      input,
+      options.relationships ?? [],
+      (options.prolog ?? PROLOG) as never,
+      options.plan,
+      lookup,
+    );
+  }
+  const statuses = (result: { applied?: readonly { status: string }[] }) =>
+    result.applied?.map((entry) => entry.status);
+  const open = (properties: Record<string, unknown>) =>
+    req({ status: "open", ...properties });
+  const plan = (entities: Record<string, Record<string, unknown>>) =>
+    ({
+      entities: new Map(Object.entries(entities)),
+      relationships: [],
+    }) as StagedUpsertState;
+
+  test("reports the advisor's reading only for an unclassified claim", async () => {
+    const result = await fill(open({ semantic_text: MIXED }));
+    expect(result.applied?.map(({ claim_key, ...rest }) => rest)).toStrictEqual(
+      [
+        {
+          role: "normative",
+          status: "missing",
+          claim_text: "Users must keep 12 active sessions",
+          advisor_status: "ambiguous",
+        },
+        {
+          role: "normative",
+          status: "missing",
+          claim_text: "Admins must keep one session",
+          advisor_status: "ambiguous",
+        },
+        {
+          role: "normative",
+          status: "missing",
+          claim_text: "Users must export reports as CSV",
+          advisor_status: "ontology_gap",
+        },
+        {
+          role: "example",
+          status: "nonlogical",
+          claim_text: "For example, a monthly sales report",
+        },
+        {
+          role: "descriptive",
+          status: "missing",
+          claim_text: "This is nice to have",
+        },
+      ],
+    );
+    const [ambiguous] = keysOf(MIXED);
+    const classified = await fill(
+      open({
+        semantic_text: MIXED,
+        semantic_inventory: [{ claim_key: ambiguous, status: "ontology_gap" }],
+      }),
+    );
+    expect(Object.hasOwn(classified.applied?.[0] ?? {}, "advisor_status")).toBe(
+      false,
+    );
+    const inventory = classified.input.properties
+      ?.semantic_inventory as object[];
+    expect(inventory.some((entry) => Object.hasOwn(entry, "subjects"))).toBe(
+      false,
+    );
+  });
+
+  for (const type of [
+    "requires_property",
+    "requires_predicate",
+    "requires_rule",
+  ]) {
+    test(`a ${type} link to a planned fact models its claim`, async () => {
+      const result = await fill(open({ semantic_text: NEW_TEXT }), {
+        relationships: [{ type, from: "REQ-1", to: "FACT-csv" }],
+        plan: plan({ "FACT-csv": { type: "fact", claim_key: EXPORT_CSV } }),
+      });
+      expect(statuses(result)).toStrictEqual(["modeled", "missing"]);
+    });
+  }
+
+  test("only the requirement's own grounding links to facts model a claim", async () => {
+    const result = await fill(open({ semantic_text: NEW_TEXT }), {
+      relationships: [
+        { type: "requires_property", from: "REQ-2", to: "FACT-csv" },
+        { type: "relates_to", from: "REQ-1", to: "FACT-csv" },
+        { type: "requires_property", from: "REQ-1", to: "REQ-other" },
+        { type: "requires_property", from: "REQ-1", to: "FACT-blank" },
+      ],
+      plan: plan({
+        "FACT-csv": { type: "fact", claim_key: EXPORT_CSV },
+        "REQ-other": { type: "req", claim_key: FINISH },
+        "FACT-blank": { type: "fact" },
+      }),
+    });
+    expect(statuses(result)).toStrictEqual(["missing", "missing"]);
+  });
+
+  test("a stored fact models its claim, a target not stored grounds none", async () => {
+    const goals: string[] = [];
+    const prolog = {
+      query: async (goal: string) => {
+        goals.push(goal);
+        if (goal.includes("'FACT-stored', fact"))
+          return { success: true, bindings: { ClaimKey: `'${FINISH}'` } };
+        return { success: false, bindings: {} };
+      },
+    };
+    const result = await fill(open({ semantic_text: NEW_TEXT }), {
+      relationships: [
+        { type: "requires_property", from: "REQ-1", to: "FACT-stored" },
+        { type: "requires_property", from: "REQ-1", to: "FACT-absent" },
+      ],
+      prolog,
+    });
+    expect(statuses(result)).toStrictEqual(["missing", "modeled"]);
+    expect(goals.some((goal) => goal.includes("FACT-absent"))).toBe(true);
+  });
+
+  test("a stored modeled status without a grounding link is missing", async () => {
+    const result = await fill(open({ semantic_text: NEW_TEXT }), {
+      stored: {
+        semantic_text: NEW_TEXT,
+        semantic_inventory: [
+          "not an entry",
+          { claim_key: EXPORT_CSV, status: "modeled" },
+          { claim_key: FINISH, status: "ontology_gap" },
+        ],
+      },
+    });
+    expect(statuses(result)).toStrictEqual(["missing", "ontology_gap"]);
+  });
+
+  test("a context claim keeps the advisor's status", async () => {
+    const result = await fill(
+      open({
+        semantic_text:
+          "Reports must usually be exported quickly. We chose CSV because auditors want it. Users prefer dark themes.",
+      }),
+    );
+    expect(
+      result.applied?.map((entry) => [entry.role, entry.status]),
+    ).toStrictEqual([
+      ["normative", "missing"],
+      ["rationale", "nonlogical"],
+      ["subjective", "nonlogical"],
+    ]);
+  });
+
+  test("a non-array inventory is judged as sent; a non-record entry is skipped", async () => {
+    const odd = open({ semantic_text: NEW_TEXT, semantic_inventory: "all" });
+    expect(await fill(odd)).toStrictEqual({ input: odd });
+    const junk = await fill(
+      open({ semantic_text: NEW_TEXT, semantic_inventory: ["junk"] }),
+    );
+    expect(statuses(junk)).toStrictEqual(["missing", "missing"]);
+  });
+
+  test("a stored ledger that completes the write leaves it alone", async () => {
+    const properties = { status: "open", semantic_text: NEW_TEXT };
+    const contract = semanticInventoryContract(
+      { type: "req", id: "REQ-1", properties },
+      analyzeSemanticAdvisorInput({
+        payload: { type: "req", id: "REQ-1", properties, relationships: [] },
+      }).receipt,
+    );
+    const input = open({ semantic_text: NEW_TEXT });
+    expect(
+      await fill(input, { stored: { ...properties, ...contract } }),
+    ).toStrictEqual({ input });
+  });
+
+  test("a stored source that leaves no prose to check leaves the write alone", async () => {
+    const input = open({ semantic_text: NEW_TEXT });
+    expect(
+      await fill(input, {
+        stored: { semantic_source_field: "text_ref", text_ref: "" },
+      }),
+    ).toStrictEqual({ input });
+  });
+
+  test("the ledger is derived from the stored prose under the payload, without stored ledger fields", async () => {
+    // The stored text_ref ledger is replaced: the stored semantic_text is read.
+    const result = await fill(open({ text_ref: "Users must keep a log." }), {
+      stored: {
+        semantic_text: NEW_TEXT,
+        semantic_source_field: "text_ref",
+        text_ref: "Users must keep a log.",
+      },
+    });
+    expect(result.applied?.map((entry) => entry.claim_key)).toStrictEqual([
+      EXPORT_CSV,
+      FINISH,
+    ]);
+    expect(result.input.properties?.semantic_source_field).toBe(
+      "semantic_text",
+    );
+  });
+
+  test("stored clauses split the prose only while it is unchanged", async () => {
+    const clauses = [NEW_TEXT];
+    const same = await fill(open({ semantic_text: NEW_TEXT }), {
+      stored: { semantic_text: NEW_TEXT, semantic_clauses: clauses },
+    });
+    const changed = await fill(open({ semantic_text: `${NEW_TEXT} ` }), {
+      stored: { semantic_text: NEW_TEXT, semantic_clauses: clauses },
+    });
+    const own = await fill(
+      open({
+        semantic_text: NEW_TEXT,
+        semantic_clauses: [
+          "Users must export reports as CSV.",
+          "Exports must finish within a minute.",
+        ],
+      }),
+      { stored: { semantic_text: NEW_TEXT, semantic_clauses: clauses } },
+    );
+    expect(same.applied).toHaveLength(1);
+    expect(same.input.properties?.semantic_clauses).toStrictEqual(clauses);
+    expect(changed.applied).toHaveLength(2);
+    expect(own.applied).toHaveLength(2);
+  });
+
+  test("an entry for an unstated claim is refused with its issue", async () => {
+    const error = await fill(
+      open({
+        semantic_text: NEW_TEXT,
+        semantic_inventory: [
+          { claim_key: "CLAIM-0000000000000000" },
+          { claim_key: "CLAIM-1111111111111111" },
+        ],
+      }),
+    ).catch((caught: unknown) => caught);
+    expect(error).toMatchObject({
+      code: "INCOMPLETE_PROPOSITIONS",
+      issues: [
+        {
+          rule: "semantic_inventory_unstated_claim",
+          field: "semantic_inventory",
+        },
+      ],
+      message:
+        "Proposition-complete ingestion failed: semantic_inventory names claim key(s) CLAIM-0000000000000000, CLAIM-1111111111111111 that the prose of REQ-1 does not state, so the entries were written for other prose. Send semantic_inventory entries only for the claim keys kb_model mode analyze returns for the current prose, or omit semantic_inventory to have Kibi derive it.",
+    });
+  });
+});

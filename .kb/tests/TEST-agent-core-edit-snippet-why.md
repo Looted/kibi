@@ -28,15 +28,15 @@ id: TEST-agent-core-edit-snippet-why
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-202f6b23c7dce6641ad75280
+    receipt_id: PR-5de27477e5c76443f8465d78
     test_id: TEST-agent-core-edit-snippet-why
     scope: end_to_end
     outcome: passed
-    code_snapshot: 374a02ed5308ae68e3ebe17b0118169d75b042689f20049a0f29038b4a32fba5
+    code_snapshot: f5912dc3fe126b68be0d7f2a26b4ef3d9aa6714b20db0c96de55004948d8c1d8
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T17:39:07.975Z'
-    finished_at: '2026-11-16T17:39:14.395Z'
-    artifact_digest: 13559c7423e9ea9b99be7f63487ccb432030d0a4743d05793a0b5afe333737fc
+    started_at: '2026-11-16T17:52:39.528Z'
+    finished_at: '2026-11-16T17:53:16.398Z'
+    artifact_digest: 5fa2527d88277ca597a309de7ae3a8a371804b6da35f2cf9e4d461d17e482af5
     contract_hash: 224d4d40039b12210402031044a34f08eb90d882323330d1358771cb1626e334
     binding_hash: 93940ef5696b0d4b86cd2824740eb3f1f550f5b37df2c9154968cee3f66654fd
     fingerprint: d9fdd3283b887b9dce54efaabb3bafbc82feadf0fe153c4c12a9130d7abbd06f

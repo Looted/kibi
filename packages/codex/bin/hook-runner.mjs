@@ -1844,7 +1844,7 @@ var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please)\s+|\b(?:mak
 var REQUEST_QUESTION = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i;
 var CODE_SPANS = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
 function requestSentences(prompt) {
-  return prompt.replace(CODE_SPANS, " ").split(/(?<=[.!?])\s+|\n+/).map((sentence) => sentence.trim()).filter((sentence) => sentence.length > 0);
+  return prompt.replace(CODE_SPANS, " ").split(/(?<=[.!?])\s|\n/).map((sentence) => sentence.trim());
 }
 function statedRule(prompt) {
   for (const sentence of requestSentences(prompt)) {

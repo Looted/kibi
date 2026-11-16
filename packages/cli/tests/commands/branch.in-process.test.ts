@@ -82,6 +82,8 @@ describe("branch commands", () => {
     expect(legacyBranchMigrationApprovalHash(cwd, "main", "..")).toBe(
       undefined,
     );
+    // `.kb/branches/..` is the .kb folder itself, which exists.
+    expect(legacyBranchMigrationApprovalHash(cwd, "..", "..")).toBe(undefined);
     mkdirSync(branchStorePath(cwd, "main"), { recursive: true });
     expect(legacyBranchMigrationApprovalHash(cwd, "main", "main")).toBe(
       undefined,

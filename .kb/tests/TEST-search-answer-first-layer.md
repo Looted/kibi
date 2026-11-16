@@ -22,15 +22,15 @@ id: TEST-search-answer-first-layer
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-8502b18c453a926592f1903c
+    receipt_id: PR-72325d270171622e350f50ae
     test_id: TEST-search-answer-first-layer
     scope: end_to_end
     outcome: passed
-    code_snapshot: 374a02ed5308ae68e3ebe17b0118169d75b042689f20049a0f29038b4a32fba5
+    code_snapshot: f5912dc3fe126b68be0d7f2a26b4ef3d9aa6714b20db0c96de55004948d8c1d8
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T17:39:19.167Z'
-    finished_at: '2026-11-16T17:39:51.100Z'
-    artifact_digest: eeec07351abfd7d4f0d3847f31912aa1c16e2a3b9a39b7c6c7102a47f22d3c02
+    started_at: '2026-11-16T17:51:09.261Z'
+    finished_at: '2026-11-16T17:51:36.145Z'
+    artifact_digest: 7de3c5677f24e02add876284808f74c51dabfe2145b26deafb5dec4c99756e20
     contract_hash: 52dfb01c7e4dc38f26ff1b9e54d30afdc01c27a2bc244bf4c618063e49fbc02d
     binding_hash: e16fc470391563cddde0cf5a7e7a5702b49f6709c550d3e290314ef7e3e6bd76
     fingerprint: 91f91298196d96e55a13d2c41a78833837832da7e4e53823ca35c05bcae96586
