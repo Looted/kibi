@@ -440,3 +440,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb22f0ae223d
+  - type: validates
+    from: TEST-init-gemini-instructions
+    to: SCEN-init-gemini-instructions
+    created_at: 2026-11-16T16:35:02.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d893c45a7c1c
+  - type: validates
+    from: TEST-init-gemini-instructions
+    to: SCEN-NEG-init-gemini-instructions-NOT-WRITTEN
+    created_at: 2026-11-16T16:35:02.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d3afd3123e3

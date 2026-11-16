@@ -110,7 +110,7 @@ not infer or write product knowledge.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` (authored, committed) and the local `.kb/symbol-coordinates.yaml` cache when they do not already exist
 - Leaves `.kb/manifest.json` and `.kb/symbols.yaml` alone when a legacy `.kb/config.json` is present and points to `kibi migrate --yes`, which moves the existing knowledge and runs every schema step from the legacy version
-- Sets up what a fresh clone of the repository needs, following the [setup choices](#setup-choices) recorded in the project: a Kibi section in `AGENTS.md` and an `@AGENTS.md` import in `CLAUDE.md`, and a step in the root `package.json` `prepare` script that installs Kibi's git hooks on every dependency install
+- Sets up what a fresh clone of the repository needs, following the [setup choices](#setup-choices) recorded in the project: a Kibi section in `AGENTS.md`, an `@AGENTS.md` import in `CLAUDE.md` and an `@./AGENTS.md` import in `GEMINI.md`, and a step in the root `package.json` `prepare` script that installs Kibi's git hooks on every dependency install
 
 **Flags:**
 - `--no-hooks` - Skip git hook installation (hooks are installed by default)
@@ -134,7 +134,7 @@ Git never clones `.git/hooks` or the compiled branch store, and agent plugins ar
 | --- | --- | --- |
 | `autoSync` | on | A query, check or write that finds this branch's store never compiled compiles it first (a compile that writes nothing Git tracks), instead of answering from an empty store. `KIBI_AUTO_SYNC=0` turns it off for one environment. |
 | `prepareHooks` | on | Adds a step to the root `package.json` `prepare` script that runs `kibi hooks install --quiet`, so installing the project's dependencies installs the hooks. The step does nothing when `kibi-cli` is not installed (a production `npm ci --omit=dev`), in CI, or outside a Git work tree, and never fails the install. It is not added when a hook manager owns the hooks or there is no root `package.json`. Yarn 2+ does not run `prepare` on install; there, run `kibi hooks install` after cloning. |
-| `agentInstructions` | on | Keeps a marked Kibi section in `AGENTS.md` (read by Codex, Cursor, OpenCode, ZCode and most other agents) and an `@AGENTS.md` import in `CLAUDE.md` for Claude Code. Text outside the markers is never touched, and neither is a file that is a symlink leaving the repository. |
+| `agentInstructions` | on | Keeps a marked Kibi section in `AGENTS.md` (read by Codex, Cursor, OpenCode, ZCode and most other agents) an `@AGENTS.md` import in `CLAUDE.md` for Claude Code, and an `@./AGENTS.md` import in `GEMINI.md` for Gemini CLI. Text outside the markers is never touched, and neither is a file that is a symlink leaving the repository. |
 | `ciGate` | off | Adds `.github/workflows/kibi-check.yml` ([example](examples/github/kibi-check.yml)), which runs `kibi check` on every pull request. It can fail pull requests of a repository whose KB already has violations, so it is offered rather than defaulted. |
 
 `kibi doctor` reports a recorded choice that is not in place under "Fresh-clone setup"; `kibi init` applies it.

@@ -5,6 +5,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
+import { CODEX_SESSION_NOTE } from "../src/messages";
 
 const execFileAsync = promisify(execFile);
 const packageRoot = path.resolve(import.meta.dir, "..");
@@ -140,7 +142,13 @@ async function exercisePlugin(
         cwd: workspaceRoot,
       }),
     ),
-  ).toEqual({ continue: true });
+  ).toEqual({
+    continue: true,
+    hookSpecificOutput: {
+      hookEventName: "SessionStart",
+      additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+    },
+  });
 
   expect(
     resultOf(

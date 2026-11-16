@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f09fefe12aa
+  - type: assumes
+    from: SCEN-init-gemini-instructions
+    to: FACT-init-gemini-imports-agents
+    created_at: 2026-11-16T16:34:53.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4234eb3930c1
