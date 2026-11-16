@@ -114,7 +114,9 @@ function renderProlog() {
     allowed_granularity_reason/1,
     coarse_granularity_reason/1,
     symbol_role/1,
+    non_behavioral_role/1,
     inferred_role/2,
+    behavioral_kind/1,
     traceability_relationship_type/1
 ]).
 
@@ -124,11 +126,18 @@ ${source.granularity_reasons.coarse.map((v) => fact("coarse_granularity_reason",
 
 ${source.symbol_roles.map((v) => fact("symbol_role", v)).join("\n")}
 
+${source.non_behavioral_roles.map((v) => fact("non_behavioral_role", v)).join("\n")}
+
 ${Object.entries(source.role_inference)
   .map(
     ([kind, role]) =>
       `inferred_role('${escapeSingleQuotes(kind)}', '${escapeSingleQuotes(role)}').`,
   )
+  .join("\n")}
+
+${Object.entries(source.role_inference)
+  .filter(([, role]) => role === "behavioral")
+  .map(([kind]) => fact("behavioral_kind", kind))
   .join("\n")}
 
 ${source.traceability_relationship_types.map((v) => fact("traceability_relationship_type", v)).join("\n")}

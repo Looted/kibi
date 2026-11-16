@@ -594,3 +594,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-029c297e5d99
+  - type: executable_for
+    from: SYM-proof-staged-passing-review-states
+    to: TEST-proof-staged-passing-review-states
+    created_at: 2026-11-16T11:04:45.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3d7d8e8c11d
