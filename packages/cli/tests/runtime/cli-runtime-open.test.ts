@@ -672,6 +672,17 @@ describe("operations that require Prolog", () => {
     expect(engineCalls).toEqual([]);
   });
 
+  test("any other operation on a legacy store opens its engine as before", async () => {
+    const root = fresh();
+    onBranch();
+    mkdirSync(legacyBranchStorePath(root, "main"), { recursive: true });
+    const runtime = createCliRuntime({ workspaceRoot: root });
+    const context = await runtime.open(readSpec());
+    expect(context.branchAttachment?.migrationRequired).toBe(true);
+    expect(context.prolog).toBeDefined();
+    await runtime.close(context, { status: "success", result: null });
+  });
+
   test("an injected port serves a plan apply on a legacy store as before", async () => {
     const root = fresh();
     onBranch();
