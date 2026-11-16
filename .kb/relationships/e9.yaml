@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-641ad442c180
+  - type: implements
+    from: SYM-source-code-readers-extract-script-references
+    to: REQ-kibi-env-reader-presence-tests
+    created_at: 2026-11-16T11:06:32.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7406844024a
+  - type: covered_by
+    from: SYM-source-code-readers-extract-script-references
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-16T11:06:32.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3346001bdca3

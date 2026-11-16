@@ -307,6 +307,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4586dcf37020
+  - type: requires_property
+    from: REQ-mcp-short-field-descriptions
+    to: FACT-mcp-advertised-description-limit
+    created_at: 2026-11-16T11:02:31.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab2eb58ef9df
   - type: restates
     from: REQ-kibi-proof-vocabulary
     to: REQ-kibi-source-proof-reader-vocabulary

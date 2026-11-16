@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-staged-passing-review-states",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+    ]
+  ]
+}
