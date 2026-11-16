@@ -369,6 +369,7 @@ describe("prompts", () => {
       kind: string;
       words: string[];
       rule: boolean;
+      phrase: string;
     }[];
     expect(journal[0]?.rule).toBe(false);
     expect(journal[0]?.words.length).toBeGreaterThan(0);
