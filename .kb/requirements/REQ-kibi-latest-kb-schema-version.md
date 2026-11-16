@@ -3,9 +3,9 @@ title: Latest knowledge base schema version
 status: open
 priority: must
 firmness: default
-semantic_text: The latest knowledge base schema version shall be 18.
+semantic_text: The latest knowledge base schema version shall be 19.
 semantic_clauses:
-  - The latest knowledge base schema version shall be 18.
+  - The latest knowledge base schema version shall be 19.
 tags:
   - proof
 origin:
@@ -15,22 +15,22 @@ origin:
   recorded_at: '2026-10-29T10:58:04.408Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: dc6ede114be0721407caebf9a0321de822bada00530dbf1bd9fa35add2de5fba
+semantic_source_hash: dfa11823409f22d664bb998a95a5130d233964828a3937ae4b69d6be2e070a01
 semantic_inventory:
-  - claim_key: CLAIM-821C4C60E832D7CE
-    claim_text: The latest knowledge base schema version shall be 18
+  - claim_key: CLAIM-1EA55F3F05AB0839
+    claim_text: The latest knowledge base schema version shall be 19
     role: normative
     status: modeled
     span:
       start: 0
       end: 52
 logic_claims:
-  - CLAIM-821C4C60E832D7CE
+  - CLAIM-1EA55F3F05AB0839
 id: REQ-kibi-latest-kb-schema-version
 type: req
 required_evidence: tested
 ---
-The latest knowledge base schema version shall be 18.
+The latest knowledge base schema version shall be 19.
 
 ## Context
 

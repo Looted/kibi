@@ -440,3 +440,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef510233cdd5
+  - type: constrains
+    from: REQ-upsert-names-quantity-twin
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:21.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34f8d0a9c507
+  - type: requires_property
+    from: REQ-upsert-names-quantity-twin
+    to: FACT-upsert-names-quantity-twin
+    created_at: 2026-11-16T16:10:21.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4ae2982709d
+  - type: specified_by
+    from: REQ-upsert-names-quantity-twin
+    to: SCEN-upsert-names-quantity-twin
+    created_at: 2026-11-16T16:10:21.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd2e6f833297
+  - type: specified_by
+    from: REQ-upsert-names-quantity-twin
+    to: SCEN-NEG-upsert-names-quantity-twin-UNNAMED
+    created_at: 2026-11-16T16:10:21.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37fd2870a410
+  - type: implements
+    from: SYM-cli-quantity-layer-read-quantity-inputs
+    to: REQ-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:35.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64a81bde4e82
+  - type: covered_by
+    from: SYM-cli-quantity-layer-read-quantity-inputs
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:35.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d79949efa1c7

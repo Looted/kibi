@@ -214,24 +214,6 @@ export function getFreshSymbolsManifestSourcePaths(
 }
 
 /**
- * Returns all staged evidence file paths that a later CLI integration can cite
- * in diagnostics or logs.
- */
-export function getKbEvidencePaths(evidence: KibiImpactEvidence): string[] {
-  const paths: string[] = [];
-
-  if (evidence.mode.kind === "kb_changes") {
-    paths.push(...evidence.mode.kbArtifacts.map((artifact) => artifact.path));
-  }
-
-  if (evidence.symbolsManifest.state === "fresh") {
-    paths.push(evidence.symbolsManifest.path);
-  }
-
-  return uniqueSorted(paths);
-}
-
-/**
  * Returns behavior-changing staged source files that still lack valid Kibi
  * impact evidence.
  */

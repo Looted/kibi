@@ -26,17 +26,17 @@ id: TEST-proof-binding-word-limit
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f0d21b750500529ce9f41e58
+    receipt_id: PR-321be1cbad8f0852608816fe
     test_id: TEST-proof-binding-word-limit
     scope: unit
     outcome: passed
-    code_snapshot: c4d9d166a9ab4e76d943d7d63ccf7c0b34eaa49fd1054dbfd9d0a4a29aa9998f
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T10:14:45.745Z'
-    finished_at: '2026-10-28T10:14:45.891Z'
-    artifact_digest: e03369afe1053599007ce4faaa4982f45c86964bc84f07c9318ec154e89f0266
+    code_snapshot: 10e564ce4356afc9c925da5afb529e76ef8f97000491b52aa890342ff45a750d
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-16T19:35:17.888Z'
+    finished_at: '2026-11-16T19:35:17.983Z'
+    artifact_digest: e5d52abae73acdcf087db1b80a0ddfffd15b67d40cb136660980790d60a8baf0
     contract_hash: 64e9817aa3659147aba27706efb4d6ed713cddc7ed2999e94293b1061b82c660
-    binding_hash: baa1824ad9ea83c9891eef26aa56a10b313022c80f01d279dbd3775359a2e42a
+    binding_hash: 2fdee369930e3a4c35248c776c220433bb7b4f932c2b9833036898f5cb1b4899
     fingerprint: 7aebf7c8bf9264610c76c6475b3760e7b0c5d28fd6bb10edd45dbbce9592e090
     fingerprint_components:
       contract: 64e9817aa3659147aba27706efb4d6ed713cddc7ed2999e94293b1061b82c660
@@ -64,7 +64,7 @@ proof_receipts:
       version: kibi.code-certificate.v1
       kind: arithmetic
       test_id: TEST-proof-binding-word-limit
-      variable: max_naming_binding_words
+      variable: bound_participant_max_words
       value_type: int
       assumptions:
         - operator: eq
@@ -72,7 +72,7 @@ proof_receipts:
       claim:
         operator: eq
         value: 3
-    certificate_digest: e7fe4054ea128b013e69c8babefe1d34f2cb3b52e725bcbf7277401527beb8f8
+    certificate_digest: a8cd953f1543eb2e7748eb6d4f83405e63b2401cd422b3702c91cbcad7ed6d0e
     claim_bindings:
       - claim_key: CLAIM-0177F086CAF82496
         requirement_id: REQ-model-predicates-binding-word-limit
@@ -84,6 +84,6 @@ proof_receipts:
           operator: eq
           value: 3
           value_type: int
-          variable: max_naming_binding_words
+          variable: bound_participant_max_words
 ---
 Proves that the maximum bound participant name length shall be 3 words, against the code Kibi reads at ingest.

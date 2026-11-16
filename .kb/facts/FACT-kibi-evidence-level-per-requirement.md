@@ -22,6 +22,9 @@ tags:
 origin:
   kind: agent
   recorded_at: '2026-10-23T12:06:44.417Z'
+distinct_from:
+  - kibi.evidence_levels.vocabulary.levels
 id: FACT-kibi-evidence-level-per-requirement
 type: fact
 ---
+This is the set of levels coverage reports, which the exhaustive proof enumerates over the coverage code. It equals the level vocabulary by design, but it is a property of the coverage output, not the vocabulary itself.

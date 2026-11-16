@@ -426,3 +426,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7da828f1e178
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-pair
+    to: REQ-check-quantity-duplicate-pairing
+    created_at: 2026-11-16T16:11:09.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6f5e4816f34
+  - type: covered_by
+    from: SYM-cli-quantity-layer-quantity-pair
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:09.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6578f1c602ab
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-pair
+    to: REQ-check-quantity-duplicate-distinct-from
+    created_at: 2026-11-16T16:11:25.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70fdf359990d

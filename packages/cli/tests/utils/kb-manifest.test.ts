@@ -15,7 +15,6 @@ import {
   defaultKbManifest,
   parseKbManifest,
   readKbManifest,
-  readKbManifestOrDefault,
   readKbManifestStatus,
   writeKbManifest,
 } from "../../src/utils/kb-manifest.js";
@@ -184,10 +183,8 @@ describe("readKbManifest and writeKbManifest", () => {
   test("readers return the manifest only when it is ok", () => {
     const ok = workspace(JSON.stringify(VALID));
     expect<unknown>(readKbManifest(ok)).toStrictEqual(VALID);
-    expect<unknown>(readKbManifestOrDefault(ok)).toStrictEqual(VALID);
     const broken = workspace("{");
     expect(readKbManifest(broken)).toBeNull();
-    expect(readKbManifestOrDefault(broken)).toStrictEqual(defaultKbManifest());
   });
 
   test("writes pretty JSON atomically, creating .kb when needed", () => {

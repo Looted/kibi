@@ -321,3 +321,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86c0b8d961a2
+  - type: constrains
+    from: REQ-migrate-quantity-duplicate-review
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:26.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66d7b613bb07
+  - type: requires_property
+    from: REQ-migrate-quantity-duplicate-review
+    to: FACT-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T16:10:26.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a6057e4b214
+  - type: specified_by
+    from: REQ-migrate-quantity-duplicate-review
+    to: SCEN-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T16:10:26.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f9bbccff914
+  - type: specified_by
+    from: REQ-migrate-quantity-duplicate-review
+    to: SCEN-NEG-migrate-quantity-duplicate-review-UNLISTED
+    created_at: 2026-11-16T16:10:26.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43cb67a2805e

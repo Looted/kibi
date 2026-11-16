@@ -31,7 +31,6 @@ import * as cacheModule from "../../../src/commands/sync/cache.js";
 const {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
-  copySyncCache,
   hashFile,
   readSyncCache,
   toCacheKey,
@@ -438,78 +437,6 @@ describe("writeSyncCache", () => {
     expect(mockWriteFileSync).toHaveBeenCalledWith(
       "/cache.json",
       expected,
-      "utf8",
-    );
-  });
-});
-
-describe("copySyncCache", () => {
-  beforeEach(() => {
-    mockExistsSync.mockClear();
-    mockReadFileSync.mockClear();
-    mockWriteFileSync.mockClear();
-  });
-
-  test("copies live cache to staging when live cache exists", () => {
-    mockExistsSync.mockReturnValue(true);
-    const cacheContent = JSON.stringify({
-      version: 2,
-      hashes: { "a.ts": "h1" },
-      seenAt: {},
-    });
-    mockReadFileSync.mockReturnValue(cacheContent);
-
-    copySyncCache("/live/.kb", "/staging/.kb", cacheDeps());
-
-    expect(mockReadFileSync).toHaveBeenCalledWith(
-      "/live/.kb/sync-cache.json",
-      "utf8",
-    );
-    expect(mockWriteFileSync).toHaveBeenCalledWith(
-      "/staging/.kb/sync-cache.json",
-      cacheContent,
-      "utf8",
-    );
-  });
-
-  test("does nothing when live cache does not exist", () => {
-    mockExistsSync.mockReturnValue(false);
-
-    copySyncCache("/live/.kb", "/staging/.kb", cacheDeps());
-
-    expect(mockReadFileSync).not.toHaveBeenCalled();
-    expect(mockWriteFileSync).not.toHaveBeenCalled();
-  });
-
-  test("copies file content exactly without modification", () => {
-    mockExistsSync.mockReturnValue(true);
-    const originalContent =
-      '{\n  "version": 1,\n  "hashes": {},\n  "seenAt": {}\n}';
-    mockReadFileSync.mockReturnValue(originalContent);
-
-    copySyncCache("/live", "/staging", cacheDeps());
-
-    expect(mockWriteFileSync).toHaveBeenCalledWith(
-      "/staging/sync-cache.json",
-      originalContent,
-      "utf8",
-    );
-  });
-
-  test("uses correct file name (sync-cache.json) in paths", () => {
-    mockExistsSync.mockReturnValue(true);
-    mockReadFileSync.mockReturnValue("{}");
-
-    copySyncCache("/a/b", "/c/d", cacheDeps());
-
-    expect(mockExistsSync).toHaveBeenCalledWith("/a/b/sync-cache.json");
-    expect(mockReadFileSync).toHaveBeenCalledWith(
-      "/a/b/sync-cache.json",
-      "utf8",
-    );
-    expect(mockWriteFileSync).toHaveBeenCalledWith(
-      "/c/d/sync-cache.json",
-      "{}",
       "utf8",
     );
   });

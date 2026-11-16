@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67fdcc8956bd
+  - type: assumes
+    from: SCEN-upsert-quantity-previous-value
+    to: FACT-upsert-quantity-previous-value
+    created_at: 2026-11-16T16:10:39.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d747e8d5d01
+  - type: verified_by
+    from: SCEN-upsert-quantity-previous-value
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:39.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a41db5d45fa2

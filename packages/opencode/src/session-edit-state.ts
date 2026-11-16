@@ -8,14 +8,6 @@ import * as path from "node:path";
 
 export type EditEventKind = string;
 
-export function pushEventHintIfKind(
-  hints: Array<{ kind: string; timestamp: number }>,
-  kind: string | undefined,
-  timestamp: number,
-): void {
-  if (kind) hints.push({ kind, timestamp });
-}
-
 export interface SessionEditEntry {
   /** Relative file path (relative to worktree root). */
   filePath: string;

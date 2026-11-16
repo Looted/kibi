@@ -311,6 +311,14 @@ const SCHEMA_MIGRATION_STEPS: readonly SchemaMigrationStep[] = [
     from: 17,
     to: 18,
   },
+  // quantity-duplicate blocks two value facts of current requirements that
+  // state one quantity under different keys. Whether they are one quantity is
+  // a person's call, so nothing is written; kibi migrate lists the pairs.
+  {
+    id: "quantity-duplicates-v19",
+    from: 18,
+    to: 19,
+  },
 ];
 
 function migrationStepsFor(
@@ -1057,9 +1065,12 @@ export async function migrateCommand(
     (step) => step.id === "positive-scenarios-v17",
   );
   const pairReviewStep = migrationSteps.some(
-    // rationale: pair-reviews-v18 is the last step, so every non-empty step list holds it and matching any step is the same until a later step exists.
-    // Stryker disable next-line ConditionalExpression
     (step) => step.id === "pair-reviews-v18",
+  );
+  const quantityStep = migrationSteps.some(
+    // rationale: quantity-duplicates-v19 is the last step, so every non-empty step list holds it and matching any step is the same until a later step exists.
+    // Stryker disable next-line ConditionalExpression
+    (step) => step.id === "quantity-duplicates-v19",
   );
   const domainSubjectsStep = migrationSteps.some(
     (step) => step.id === "domain-subjects-v16",
@@ -1121,6 +1132,9 @@ export async function migrateCommand(
   } = await import("../operations/migration/positive-scenario.js");
   const { pairReviewNote, planPairReviewCandidates } = await import(
     "../operations/migration/pair-review.js"
+  );
+  const { planQuantityDuplicateReviews, quantityDuplicateNote } = await import(
+    "../operations/migration/quantity-duplicate.js"
   );
   const {
     acknowledgedContextIds,
@@ -1194,6 +1208,11 @@ export async function migrateCommand(
       const candidates = planPairReviewCandidates(cwd);
       if (candidates.length > 0)
         console.log(pairReviewNote(candidates.length, true));
+    }
+    if (quantityStep) {
+      const pairs = planQuantityDuplicateReviews(cwd);
+      if (pairs.length > 0)
+        console.log(quantityDuplicateNote(pairs.length, true));
     }
     if (evidenceFloorStep) {
       const floors = planEvidenceFloorPins(cwd, ladderFloors, floorScope);
@@ -1446,6 +1465,9 @@ export async function migrateCommand(
   if (subjectReviewNote !== null) console.log(subjectReviewNote);
   if (pairReviewCandidates.length > 0)
     console.log(pairReviewNote(pairReviewCandidates.length, false));
+  const quantityPairs = quantityStep ? planQuantityDuplicateReviews(cwd) : [];
+  if (quantityPairs.length > 0)
+    console.log(quantityDuplicateNote(quantityPairs.length, false));
   if (evidenceFloorsPinned > 0)
     console.log(
       `Recorded required_evidence: asserted on ${evidenceFloorsPinned} current firm or approved requirement(s) whose evidence is below tested; raise it to tested once the requirement has an end-to-end proof.`,
@@ -1549,6 +1571,7 @@ export async function migrateCommand(
     synced ? await readUpgradeReviewFindings(cwd) : null,
     subjectReview,
     pairReviewCandidates.length,
+    quantityPairs.length,
   );
   if (reviewLeft !== null) console.log(reviewLeft);
   else if (!incomplete)

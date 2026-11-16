@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2eff30ba89b9
+  - type: implements
+    from: SYM-cli-quantity-layer-staged-quantity-violations
+    to: REQ-check-quantity-duplicate
+    created_at: 2026-11-16T16:44:27.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d29850f65cac
+  - type: covered_by
+    from: SYM-cli-quantity-layer-staged-quantity-violations
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:44:27.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c68a028df437

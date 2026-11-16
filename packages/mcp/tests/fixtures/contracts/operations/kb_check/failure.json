@@ -91,6 +91,7 @@
               "entity-context-missing",
               "subject-definition-missing",
               "subject-duplicate",
+              "quantity-duplicate",
               "subject-hierarchy-invalid",
               "entity-context-acknowledged",
               "decision-firm-unreferenced",

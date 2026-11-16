@@ -4,7 +4,6 @@ import {
   KIBI_STAGED_IMPACT_EVIDENCE_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiImpactEvidence,
-  getKbEvidencePaths,
   getMissingBehaviorSourcePaths,
 } from "../../src/traceability/evidence-model.js";
 import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
@@ -50,11 +49,6 @@ describe("evidence-model", () => {
         ],
       },
     });
-
-    expect(getKbEvidencePaths(evidence)).toEqual([
-      ".kb/requirements/REQ-cli-check.md",
-      KIBI_SYMBOLS_MANIFEST_PATH,
-    ]);
     expect(getMissingBehaviorSourcePaths(evidence)).toEqual([]);
     expect(collectStagedKibiDiagnostics(evidence)).toEqual([]);
   });
