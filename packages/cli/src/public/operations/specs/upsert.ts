@@ -9,12 +9,15 @@ import {
   ENTITY_TYPES,
   RELATIONSHIPS_SCHEMA,
 } from "./mutation-schemas.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 /** kb_upsert's plannedFacts (dryRun only); kb_validate_upsert takes it too. */
 export const PLANNED_FACTS_SCHEMA = {
   type: "array",
   description:
     "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
+  [ADVERTISED_DESCRIPTION]:
+    "dryRun only: fact payloads (e.g. kb_model applyPlan entries) staged before this one, so their links resolve.",
   items: {
     type: "object",
     required: ["type", "id", "properties"],
@@ -33,6 +36,8 @@ export const UPSERT_DOCUMENT_SCHEMA = {
   additionalProperties: false,
   description:
     "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes (a requirement whose semantic_text changes gets the new statement in place of the old one, with its context sections kept). For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.",
+  [ADVERTISED_DESCRIPTION]:
+    "Optional source document write; omit body on update to keep it. New requirements take statement, Context, Source.",
   properties: {
     path: { type: "string", minLength: 1 },
     body: { type: "string" },
@@ -75,6 +80,8 @@ export const upsertSpec = {
         type: "string",
         description:
           "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
+        [ADVERTISED_DESCRIPTION]:
+          "Unique entity ID named by the behavior it governs (<TYPE>-<area>-<behavior>); an existing ID updates the entity.",
       },
       properties: ENTITY_PROPERTIES_SCHEMA,
       relationships: RELATIONSHIPS_SCHEMA,
@@ -83,6 +90,8 @@ export const upsertSpec = {
         default: false,
         description:
           "Validate the payload and return schema/modeling errors, a normalized preview and the semantic advisor receipt without writing the KB or workspace. Use it as the preflight before the real write.",
+        [ADVERTISED_DESCRIPTION]:
+          "Validate and preview without writing the KB or workspace; use it as the preflight before the real write.",
       },
       plannedFacts: PLANNED_FACTS_SCHEMA,
       document: UPSERT_DOCUMENT_SCHEMA,

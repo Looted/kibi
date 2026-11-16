@@ -17,7 +17,7 @@
       "properties": {
         "by": {
           "default": "req",
-          "description": "Report shape: req gives per-requirement proof status and a repair plan, symbol gives per-symbol ownership coverage, type gives counts per entity type.",
+          "description": "Report shape: req (proof status and repair plan), symbol (ownership coverage) or type (counts per type).",
           "enum": ["req", "symbol", "type"],
           "type": "string"
         },
@@ -37,7 +37,7 @@
           "type": "boolean"
         },
         "kb": {
-          "description": "Optional KB dependency to read instead of this project's own KB: a name declared in .kb/dependencies.json and pinned in .kb/dependencies.lock.json. The answer comes from that repository's own read-only KB at the pinned commit, kept apart from this project's KB. Omit it to read this project's KB.",
+          "description": "Optional KB dependency name from .kb/dependencies.json to read, at its pinned commit, instead of this project's KB.",
           "maxLength": 64,
           "minLength": 1,
           "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
@@ -81,7 +81,7 @@
           "type": "integer"
         },
         "statuses": {
-          "description": "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
+          "description": "req mode: include only rows whose proofStatus is listed. The summary always covers the whole KB.",
           "items": {
             "enum": ["tested", "missing", "unresolved", "not_applicable"],
             "type": "string"
@@ -96,7 +96,7 @@
           "type": "array"
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },
