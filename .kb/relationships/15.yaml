@@ -335,3 +335,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef63ac171af5
+  - type: implements
+    from: SYM-kibi-freshness-skill-guidance
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:38:54.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efda639bfcc3
+  - type: covered_by
+    from: SYM-kibi-freshness-skill-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:38:54.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11f1365061a4

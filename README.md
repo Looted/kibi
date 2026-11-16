@@ -192,7 +192,7 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 
 ### What your agent gets
 
-Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and a small set of MCP tools does the rest:
+Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and a small set of MCP tools does the rest. The main skill, `kibi-usage`, is a short arc of about 3k characters (search for prior intent, edit, record the decision, check, commit); its topic guidance, such as modeling claims or changing someone else's KB, loads only when the task needs it:
 
 - **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements, the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.

@@ -5,6 +5,17 @@ import {
   readBundledSkillResource,
 } from "../src/public/skills";
 
+/** A skill's guidance as an agent can reach it: the body plus every declared resource. */
+function skillGuidance(id: string): string {
+  const bundle = loadBundledSkill(id);
+  return [
+    bundle.body,
+    ...(bundle.manifest.resources ?? []).map((resource) =>
+      readBundledSkillResource(id, resource),
+    ),
+  ].join("\n");
+}
+
 describe("bundled Kibi skills", () => {
   test("ships the canonical skills with source-first descriptions", () => {
     const skills = listBundledSkills();
@@ -23,22 +34,24 @@ describe("bundled Kibi skills", () => {
       expect(bundle.manifest.description).toMatch(
         /Git|source|traceability|bootstrap/i,
       );
-      expect(bundle.body).toContain("kibiProtocol");
-      expect(bundle.body).toContain("committed_with_repairs");
-      expect(bundle.body).toContain("nextActions");
-      expect(bundle.body).toContain("Git-stages");
+      const guidance = skillGuidance(id);
+      expect(guidance).toContain("kibiProtocol");
+      expect(guidance).toContain("committed_with_repairs");
+      expect(guidance).toContain("nextActions");
+      expect(guidance).toContain("Git-stages");
     }
   });
 
   test("usage teaches exact branching, source authoring, and typed facts", () => {
     const bundle = loadBundledSkill("kibi-usage");
-    expect(bundle.body).toContain("KIBI_BRANCH");
-    expect(bundle.body).toContain("branch.json");
-    expect(bundle.body).toContain("document.path");
-    expect(bundle.body).toContain("supersedes");
-    expect(bundle.body).toContain("fact_kind: predicate");
-    expect(bundle.body).toContain("fact_kind: observation");
-    expect(bundle.body).toContain("Hosts may expose prefixed identifiers");
+    const guidance = skillGuidance("kibi-usage");
+    expect(guidance).toContain("KIBI_BRANCH");
+    expect(guidance).toContain("branch.json");
+    expect(guidance).toContain("document.path");
+    expect(guidance).toContain("supersedes");
+    expect(guidance).toContain("fact_kind: predicate");
+    expect(guidance).toContain("fact_kind: observation");
+    expect(guidance).toContain("Hosts may expose prefixed identifiers");
     expect(bundle.body).not.toContain("OpenCode");
     expect(bundle.body).not.toContain("Public Training Trajectories");
     expect(bundle.body).not.toContain("Training Data");

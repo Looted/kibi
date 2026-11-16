@@ -368,6 +368,18 @@ function exactCoordinateRefreshApplied(context: CaseSignalContext): boolean {
   );
 }
 
+/**
+ * Whether a `kb_query` ran before the first `kb_upsert`. The write result
+ * reports what was written, so a safe mutation is credited for the exact read
+ * before its write rather than a read-back after it.
+ */
+export function queriedBeforeWrite(brokerTools: readonly string[]): boolean {
+  const firstWrite = brokerTools.indexOf("kb_upsert");
+  return (
+    firstWrite > 0 && brokerTools.slice(0, firstWrite).includes("kb_query")
+  );
+}
+
 function workflowSignalObserved(
   signal: string,
   results: readonly Readonly<{ tool: string; result: unknown }>[],
@@ -404,8 +416,8 @@ function workflowSignalObserved(
       return context.taskId?.includes(SAFE_MUTATION_TASK) === true
         ? safeMutationLinksApplied(results, context.taskId)
         : text.includes('"implements"') && text.includes('"covered_by"');
-    case "symbol readback after write":
-      return brokerTools.filter((tool) => tool === "kb_query").length >= 2;
+    case "symbol queried before write":
+      return queriedBeforeWrite(brokerTools);
     case "final check executed":
       return hasBrokerTool("kb_check");
     case "typed envelope inspected":

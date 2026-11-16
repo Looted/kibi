@@ -25,7 +25,9 @@ Advanced hosts may call `kb_skills` with `action: "list"` and `action: "load"`
 (CLI: `kibi skill`) to discover that plumbing; ordinary onboarding follows
 typed status and the named skill.
 For general Kibi work, load the bundled `kibi-usage` skill as the shared
-source-first guidance.
+source-first guidance. Its body is the core arc (search for prior intent,
+edit, record, check, commit); read its resources with `kb_skills`
+(`action: "read"`) when a task needs a topic it lists.
 
 Follow the loaded skill guidance and current operation schemas.
 Do not treat a package `skills/` directory as implicitly loaded by the host.

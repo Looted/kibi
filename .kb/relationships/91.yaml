@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93459521839a
+  - type: assumes
+    from: SCEN-NEG-kibi-usage-core-arc-OVERSIZED-BODY
+    to: FACT-kibi-usage-inline-topics-body
+    created_at: 2026-11-16T15:45:37.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e28597c5a759
+  - type: assumes
+    from: SCEN-NEG-kibi-usage-core-arc-OVERSIZED-BODY
+    to: FACT-kibi-usage-body-55000-chars
+    created_at: 2026-11-16T15:45:37.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66dc17fef894

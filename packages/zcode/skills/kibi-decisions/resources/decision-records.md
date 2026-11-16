@@ -69,8 +69,8 @@ validation, not the write.
   proof kinds in kibi-usage `resources/proof.md`.
 - Your own choice is `default`; a guess is `exploratory`. Write the value
   explicitly whenever you record a decision.
-- For strict modeling (claim keys, predicate facts) follow `kibi-usage`,
-  "Second-agent edits", recipe 1.
+- For strict modeling (claim keys, predicate facts) follow the `kibi-usage`
+  resource `resources/second-agent-edits.md`, recipe 1.
 
 ## Supersede a rule
 

@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f9c3f7bb48
+  - type: executable_for
+    from: SYM-test-skills-core-arc
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:37:05.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-137ed8698acb
