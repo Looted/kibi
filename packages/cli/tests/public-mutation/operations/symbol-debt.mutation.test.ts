@@ -10,7 +10,10 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { PrologPort } from "../../../src/public/operations/runtime-types.js";
-import { collectSymbolDebt } from "../../../src/public/operations/symbol-debt.js";
+import {
+  collectSymbolDebt,
+  symbolDebtListing,
+} from "../../../src/public/operations/symbol-debt.js";
 
 const roots: string[] = [];
 afterEach(() => {
@@ -78,6 +81,7 @@ describe("collectSymbolDebt", () => {
     );
     expect(await collectSymbolDebt(fake, root)).toStrictEqual({
       total: 2,
+      fileCount: 1,
       files: [{ path: "src/tags.ts", unrecorded: ["Tag", "tagIdSchema"] }],
     });
     expect(fake.queries).toStrictEqual([QUERY]);
@@ -96,6 +100,7 @@ describe("collectSymbolDebt", () => {
     );
     expect(await collectSymbolDebt(fake, root)).toStrictEqual({
       total: 2,
+      fileCount: 2,
       files: [
         { path: "src/a.ts", unrecorded: ["a2"] },
         { path: "src/b.ts", unrecorded: ["b2"] },
@@ -126,6 +131,7 @@ describe("collectSymbolDebt", () => {
     );
     expect(await collectSymbolDebt(fake, root)).toStrictEqual({
       total: 0,
+      fileCount: 0,
       files: [],
     });
   });
@@ -143,6 +149,7 @@ describe("collectSymbolDebt", () => {
     );
     expect(await collectSymbolDebt(fake, root)).toStrictEqual({
       total: 1,
+      fileCount: 1,
       files: [{ path: "src/tags.ts", unrecorded: ["tagIdSchema"] }],
     });
   });
@@ -150,6 +157,7 @@ describe("collectSymbolDebt", () => {
   test("no symbol records means no debt and no analysis", async () => {
     expect(await collectSymbolDebt(port(rows()), "/nowhere")).toStrictEqual({
       total: 0,
+      fileCount: 0,
       files: [],
     });
     expect(
@@ -157,7 +165,7 @@ describe("collectSymbolDebt", () => {
         port({ success: true, bindings: {} }),
         "/nowhere",
       ),
-    ).toStrictEqual({ total: 0, files: [] });
+    ).toStrictEqual({ total: 0, fileCount: 0, files: [] });
   });
 
   test("a failed projection throws with the engine's error", async () => {
@@ -196,5 +204,24 @@ describe("collectSymbolDebt", () => {
         readFileSync(join(cacheDir, name), "utf8"),
       ]),
     ).toStrictEqual(cached);
+  });
+});
+
+describe("symbolDebtListing", () => {
+  const debt = {
+    total: 3,
+    fileCount: 2,
+    files: [
+      { path: "src/a.ts", unrecorded: ["one", "two"] },
+      { path: "src/b.ts", unrecorded: ["three"] },
+    ],
+  };
+
+  test("keeps only the counts unless the list was asked for", () => {
+    expect(symbolDebtListing(debt, false)).toStrictEqual({
+      total: 3,
+      fileCount: 2,
+    });
+    expect(symbolDebtListing(debt, true)).toBe(debt);
   });
 });

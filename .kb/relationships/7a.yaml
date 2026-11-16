@@ -342,13 +342,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3871ce9d32b
-  - type: assumes
-    from: SCEN-NEG-check-reports-symbol-debt-SYMBOL-DEBT-BLOCKS
-    to: FACT-NEG-check-reports-symbol-debt-SYMBOL-DEBT-BLOCKS
-    created_at: 2026-11-16T05:33:59.367Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-73cd60695bb3
   - type: executable_for
     from: SYM-test-cli-commandSurface
     to: TEST-cli-help-command-summaries

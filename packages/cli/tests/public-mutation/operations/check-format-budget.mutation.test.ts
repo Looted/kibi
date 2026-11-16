@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { QualityDiagnostic } from "../../../src/public/impact/types.js";
 import {
   type CheckStructuredContent,
   fitScopedCheckToBudget,
@@ -7,7 +8,7 @@ import {
 import type { Violation } from "../../../src/utils/rule-registry.js";
 
 const HINT =
-  "The result was cut to its size budget. Narrow sourceFiles, select rules, or run kb_check without sourceFiles for every finding in full.";
+  "The result was cut to its size budget. Narrow sourceFiles, or pass rules to list those rules' findings in full; kibi check --format json lists every finding.";
 const size = (value: unknown) => JSON.stringify(value).length;
 
 function violation(index: number, extra: Partial<Violation> = {}): Violation {
@@ -75,7 +76,7 @@ describe("fitScopedCheckToBudget", () => {
           message:
             "3 advisory findings are not listed, to keep this result within its size budget.",
           suggestion:
-            "Run kb_check without sourceFiles to list every advisory finding.",
+            "Run kibi check --format json to list every advisory finding.",
           evidence: { omitted: 3, byId: { q1: 2, q2: 1 } },
         },
       ],
@@ -94,6 +95,71 @@ describe("fitScopedCheckToBudget", () => {
     expect(fitted.qualityDiagnostics?.[0]?.message).toBe(
       "1 advisory finding is not listed, to keep this result within its size budget.",
     );
+  });
+
+  test("telemetry acceptance diagnostics are kept after the count", () => {
+    const finding = (id: string, category: string) =>
+      ({
+        id,
+        severity: "warning",
+        blocking: false,
+        category,
+        message: "m".repeat(400),
+      }) as unknown as QualityDiagnostic;
+    const accepted = finding("telemetry_acceptance_passed", "telemetry");
+    const input = content(1, {
+      qualityDiagnostics: [
+        accepted,
+        finding("q1", "symbol"),
+        finding("q2", "symbol"),
+      ],
+    } as unknown as Partial<CheckStructuredContent>);
+    const fitted = fitScopedCheckToBudget(input, size(input) - 1);
+    expect(fitted.qualityDiagnostics?.map((d) => d.id)).toStrictEqual([
+      "check_quality_truncated",
+      "telemetry_acceptance_passed",
+    ]);
+    expect(fitted.qualityDiagnostics?.[0]?.evidence).toStrictEqual({
+      omitted: 2,
+      byId: { q1: 1, q2: 1 },
+    });
+    expect(fitted.qualityDiagnostics?.[1]).toBe(accepted);
+
+    const onlyTelemetry = content(1, {
+      qualityDiagnostics: [accepted],
+    } as unknown as Partial<CheckStructuredContent>);
+    expect(
+      fitScopedCheckToBudget(onlyTelemetry, size(onlyTelemetry) - 1)
+        .qualityDiagnostics,
+    ).toStrictEqual([accepted]);
+  });
+
+  test("an over-budget plan becomes its summary unless it is asked for", () => {
+    const plan = {
+      actions: Array.from({ length: 40 }, (_, i) => ({
+        kind: "add-field",
+        entityId: `REQ-${i}`,
+        detail: "d".repeat(80),
+      })),
+    };
+    const input = content(1, {
+      migrationPlan: plan,
+    } as unknown as Partial<CheckStructuredContent>);
+    const budget = size(input) - 1;
+    const summarized = fitScopedCheckToBudget(
+      input,
+      budget,
+    ) as unknown as Record<string, unknown>;
+    expect(summarized.migrationPlan).toBeUndefined();
+    expect(summarized.migrationPlanSummary).toBeDefined();
+    const kept = fitScopedCheckToBudget(
+      input,
+      budget,
+      true,
+      true,
+    ) as unknown as Record<string, unknown>;
+    expect(kept.migrationPlan).toBe(plan);
+    expect(kept.migrationPlanSummary).toBeUndefined();
   });
 
   test("no advisory findings, missing or empty, adds no count", () => {

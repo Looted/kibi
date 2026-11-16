@@ -395,7 +395,7 @@ Body.
     } as never);
     const clean = await withCwd(cwd, () => checkCommand({ kbPath }));
     expect(clean.exitCode).toBe(0);
-    expect(io.logText()).toContain("No violations found. KB is valid.");
+    expect(io.logText()).toContain("✓ No violations. 0 rules.");
   });
 
   test("accepts staged entity markdown without exported symbols", async () => {

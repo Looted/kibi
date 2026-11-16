@@ -242,6 +242,10 @@ export function registerReportingCommands(program: Command): void {
       "evidence-floor judges receipts as they are (stale receipts fail) and needs a clean proof snapshot; run it after kibi prove",
     )
     .option(
+      "--symbol-debt",
+      "List the unrecorded declarations per file (a full check reports only their count)",
+    )
+    .option(
       "--write-certificates <file>",
       "Also save the kibi.certificates.v1 bundle the kb-consistency rule re-checked",
     )
