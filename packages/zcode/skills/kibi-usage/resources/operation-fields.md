@@ -154,6 +154,7 @@ Generated from the public `OperationSpec` catalog by `scripts/generate-operation
 - `plannedFacts[].relationships`: Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.
 - `plannedFacts[].relationships[].type`: Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).
 - `document`: Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes (a requirement whose semantic_text changes gets the new statement in place of the old one, with its context sections kept). For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.
+- `implementedBy`: req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant). Kibi creates or reuses each symbol and links it with implements; an entry that resolves to no single granular declaration is refused with candidates.
 
 ## `kb_delete` (`kibi delete`)
 

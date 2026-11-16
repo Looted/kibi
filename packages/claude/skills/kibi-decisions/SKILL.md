@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-decisions
   id: kibi-decisions
-  version: 1.12.0
+  version: 1.13.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -42,6 +42,8 @@ name the missing capability. Never read or edit `.kb/` files directly.
 - The Stop hook says the session changed source files and recorded nothing.
 - `kb_check` reports `requirement_statement_unverified`, quoting a requirement
   the changed code implements, and the code no longer does what it says.
+- `kibi check --staged` reports `firm_edit_unreviewed` or
+  `firm_edit_breaks_rule`: the commit changes code of a firm requirement.
 - A request contradicts a requirement or ADR you found.
 
 ## Read the rule first
@@ -83,9 +85,20 @@ name the missing capability. Never read or edit `.kb/` files directly.
   ask). Name the rule (id and what it requires) and ask whether to change it. Do not implement the
   request and do not supersede the rule until the person says to change that
   rule.
-- **Edit confirmation declined, or nobody could answer:** the requirement
-  stands. Say which rule blocked it and ask how to proceed; never reach the
-  same change another way (another tool, a shell write, another file).
+- **Edit confirmation declined by the person:** the requirement stands. Say
+  which rule blocked it and ask how to proceed; never reach the same change
+  another way (another tool, a shell write, another file).
+- **Nobody could answer the confirmation, or the commit gate reports
+  `firm_edit_unreviewed`:** read the changed code against the rule. If it
+  still does what the rule says, pipe the input the finding prints, with a
+  one-line note on why, to `kibi review-firm-edit --input -`, then stage the
+  receipt under `.kb/firm-edit-reviews/`. A current `keeps` receipt also stops
+  the Claude Code question for that code; record it again after a later edit,
+  because a receipt stops matching once the code changes. If the change breaks
+  the rule, record `changes` and ask the person: the commit stays blocked
+  (`firm_edit_breaks_rule`) until they agree and the rule is superseded with
+  their words. A receipt is your judgment, not their approval, and `kibi
+  signoff` shows it that way.
 - **Edit confirmation allowed:** if the change still keeps the rule, carry on.
   If it changes what the rule says, update the rule in this same change, citing
   the person's words. Clicking allow is not a stated rule: when their request

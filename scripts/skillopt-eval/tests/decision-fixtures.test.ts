@@ -252,6 +252,53 @@ class ScriptedAgent {
     );
   }
 
+  /**
+   * Record a keeps verdict on the agent's change to firm-rule code with
+   * `kibi review-firm-edit`, the CLI-only receipt writer, and stage the
+   * receipt it writes, as the staged gate's suggestion says.
+   */
+  async reviewFirmEdit(
+    reviews: readonly Readonly<{
+      requirementId: string;
+      symbol: string;
+      note: string;
+    }>[],
+  ): Promise<void> {
+    const input = JSON.stringify({
+      reviews: reviews.map((review) => ({
+        requirementId: review.requirementId,
+        sourceFile: "src/fixture.ts",
+        symbol: review.symbol,
+        verdict: "keeps",
+        note: review.note,
+      })),
+    });
+    const inputPath = join(this.staged.privateEvidence, "firm-edit.json");
+    await writeFile(inputPath, input, "utf8");
+    const result = await cli(this.staged.workspace, [
+      "review-firm-edit",
+      "--input",
+      inputPath,
+    ]);
+    if (result.exitCode !== 0)
+      throw new Error(`review-firm-edit failed: ${result.output}`);
+    await git(this.staged.workspace, ["add", "--", ".kb/firm-edit-reviews"]);
+    this.sequence += 1;
+    this.events.push(
+      line({
+        type: "item.completed",
+        item: {
+          id: `command-${this.sequence}`,
+          type: "command_execution",
+          command: `kibi review-firm-edit --input - <<'EOF'\n${input}\nEOF\ngit add .kb/firm-edit-reviews`,
+          aggregated_output: result.output,
+          exit_code: 0,
+          status: "completed",
+        },
+      }),
+    );
+  }
+
   transcript(answer: string): string {
     return [
       ...this.events,
@@ -426,10 +473,7 @@ async function expectQuotedGateOutput(
       ? ["check-generated", "--staged", "--changed-only"]
       : ["check", "--staged"],
   );
-  // A firm-rule contradiction with current symbol evidence only warns.
-  if (quoted === QUOTED_GATE_OUTPUT.conflict)
-    expect(gate.exitCode, task.id).toBe(0);
-  else expect(gate.exitCode, task.id).not.toBe(0);
+  expect(gate.exitCode, task.id).not.toBe(0);
   const printed = new Set(gate.output.split("\n"));
   for (const quotedLine of quoted.split("\n")) {
     if (quotedLine !== "")
@@ -975,6 +1019,13 @@ describe("commit-review fixtures: seeds pass no signal, scripted solutions pass 
           ],
         });
         await agent.call("kb_check", {});
+        await agent.reviewFirmEdit([
+          {
+            requirementId: DECISION_IDS.labelRequirement,
+            symbol: "fixtureFamilyLabel",
+            note: "fixtureFamilyLabel returns family: followed by the trimmed name, as the label rule states.",
+          },
+        ]);
         return COMMANDS_ANSWER;
       },
     );
@@ -997,6 +1048,13 @@ describe("commit-review fixtures: seeds pass no signal, scripted solutions pass 
       "kibi-commit-review-coordinate-cache-staged-development-1",
       async (agent) => {
         await discover(agent);
+        await agent.reviewFirmEdit([
+          {
+            requirementId: DECISION_IDS.rule,
+            symbol: "fixtureFamily",
+            note: "The rename keeps the trim and the 32 character limit unchanged.",
+          },
+        ]);
         return UNSTAGE_ANSWER;
       },
     );
@@ -1007,6 +1065,13 @@ describe("commit-review fixtures: seeds pass no signal, scripted solutions pass 
     const staged = await solve(
       "kibi-commit-review-impact-review-preparation-development-1",
       async (agent) => {
+        await agent.reviewFirmEdit([
+          {
+            requirementId: DECISION_IDS.rule,
+            symbol: "fixtureFamily",
+            note: "The error message now names the rejected value; the 32 character limit is unchanged.",
+          },
+        ]);
         const prepared = await agent.data("kb_prepare_impact_review", {
           scope: { kind: "staged" },
         });
@@ -1099,6 +1164,13 @@ describe("commit-review fixtures: seeds pass no signal, scripted solutions pass 
           ],
         });
         await agent.call("kb_check", {});
+        await agent.reviewFirmEdit([
+          {
+            requirementId: DECISION_IDS.labelRequirement,
+            symbol: "fixtureFamilyLabel",
+            note: "fixtureFamilyLabel returns family: followed by the trimmed name, as the label rule states.",
+          },
+        ]);
         return `${COMMANDS_ANSWER}\n\nsrc/inherited.ts comes unchanged from the merged branch, so the merge commit does not judge it and I recorded nothing for it.`;
       },
     );

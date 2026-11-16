@@ -1,6 +1,10 @@
 import { execSync } from "node:child_process";
 import { isCliTraceOrDebugEnabled } from "../env.js";
-import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
+import {
+  isEntityLanePath,
+  isFirmEditReceiptPath,
+  isSymbolsManifestPath,
+} from "../utils/kb-paths.js";
 import { captureStagedSnapshot } from "./git-change-snapshot.js";
 
 export type Status = "A" | "M" | "R" | "C" | "T" | "D";
@@ -154,6 +158,7 @@ function isKibiMetadataPath(p: string): boolean {
     isEntityMarkdown(posix) ||
     isManifestFile(posix) ||
     isRelationshipShard(posix) ||
+    isFirmEditReceiptPath(posix) ||
     posix === ".kb/manifest.json"
   );
 }

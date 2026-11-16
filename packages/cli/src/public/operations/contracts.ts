@@ -683,6 +683,11 @@ const BASE_DATA_SCHEMAS: Readonly<
           description:
             "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text.",
         },
+        implementedBy: {
+          ...recordArray,
+          description:
+            "Each implementedBy entry with the symbolId that implements the requirement and whether it was created.",
+        },
       }),
       objectData(
         {
@@ -696,6 +701,7 @@ const BASE_DATA_SCHEMAS: Readonly<
           stagedFacts: stringArray,
           whatIf: recordValue,
           inventoryApplied: recordArray,
+          implementedBy: recordArray,
           dryRun: { const: true },
           skippedEffects: stringArray,
         },
@@ -844,6 +850,10 @@ const BASE_DATA_SCHEMAS: Readonly<
       jobReceiptData,
     ],
   },
+  kb_review_firm_edit: objectData({
+    dryRun: booleanValue,
+    receipts: recordArray,
+  }),
   kb_ingest_proof: objectData({
     artifactDigest: stringValue,
     environmentHash: stringValue,
@@ -931,6 +941,7 @@ const EFFECT_OVERRIDES: Readonly<
   },
   kb_check: {},
   kb_prepare_impact_review: {},
+  kb_review_firm_edit: {},
   kb_compile_intent: {},
   kb_apply_plan: {
     "kb-write": { destructive: true, retrySafety: "unsafe" },

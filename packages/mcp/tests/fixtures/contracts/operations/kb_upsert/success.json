@@ -82,6 +82,26 @@
           "description": "Unique entity ID named by the behavior it governs (<TYPE>-<area>-<behavior>); an existing ID updates the entity.",
           "type": "string"
         },
+        "implementedBy": {
+          "description": "req only: the declarations that implement it, each {sourceFile, symbol}; Kibi links each with implements.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "sourceFile": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "symbol": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["sourceFile", "symbol"],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
         "plannedFacts": {
           "description": "dryRun only: fact payloads (e.g. kb_model applyPlan entries) staged before this one, so their links resolve.",
           "items": {

@@ -10,6 +10,7 @@ import {
   entityLaneForPath,
   isDerivedKbPath,
   isEntityLanePath,
+  isFirmEditReceiptPath,
   isKbKnowledgePath,
   isSymbolsManifestPath,
 } from "../../src/utils/kb-paths.js";
@@ -49,6 +50,7 @@ describe("kb-paths constants", () => {
       symbolCoordinates: ".kb/symbol-coordinates.yaml",
       manifest: ".kb/manifest.json",
       relationships: ".kb/relationships",
+      firmEditReviews: ".kb/firm-edit-reviews",
     });
     expect([...DERIVED_KB_PREFIXES]).toStrictEqual([
       ".kb/branches",
@@ -115,5 +117,31 @@ describe("kb-paths predicates", () => {
     }
     expect(isDerivedKbPath(".kb\\branches\\x")).toBe(true);
     expect(isDerivedKbPath(".kb/requirements/x")).toBe(false);
+  });
+});
+
+describe("isFirmEditReceiptPath", () => {
+  test("accepts a JSON receipt under .kb/firm-edit-reviews in either separator", () => {
+    expect(
+      isFirmEditReceiptPath(".kb/firm-edit-reviews/REQ-a/src__a.ts--run.json"),
+    ).toBe(true);
+    expect(
+      isFirmEditReceiptPath(
+        ".kb\\firm-edit-reviews\\REQ-a\\src__a.ts--run.json",
+      ),
+    ).toBe(true);
+  });
+
+  test("rejects other files, other folders and a lookalike prefix", () => {
+    expect(isFirmEditReceiptPath(".kb/firm-edit-reviews/REQ-a/notes.md")).toBe(
+      false,
+    );
+    expect(isFirmEditReceiptPath(".kb/firm-edit-reviews")).toBe(false);
+    expect(isFirmEditReceiptPath(".kb/firm-edit-reviews-old/a.json")).toBe(
+      false,
+    );
+    expect(isFirmEditReceiptPath("src/.kb/firm-edit-reviews/a.json")).toBe(
+      false,
+    );
   });
 });

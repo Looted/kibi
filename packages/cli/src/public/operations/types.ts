@@ -18,6 +18,7 @@ export type OperationName =
   | "kb_delete"
   | "kb_check"
   | "kb_prepare_impact_review"
+  | "kb_review_firm_edit"
   | "kb_model_requirement"
   | "kb_suggest_predicates"
   | "kb_model"

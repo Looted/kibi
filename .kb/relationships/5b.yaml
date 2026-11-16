@@ -391,3 +391,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29ca3881a30c
+  - type: assumes
+    from: SCEN-kibi-staged-firm-edit-gate
+    to: FACT-staged-firm-edit-needs-keeps-receipt
+    created_at: 2026-11-16T06:59:49.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8996cb2c9d9a
+  - type: assumes
+    from: SCEN-kibi-staged-firm-edit-gate
+    to: FACT-staged-firm-edit-changes-blocks
+    created_at: 2026-11-16T06:59:49.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a179684e1a5
+  - type: verified_by
+    from: SCEN-kibi-staged-firm-edit-gate
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:49.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2203b73c4e5

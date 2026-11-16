@@ -22,6 +22,7 @@ import {
   firmRequirementsTouched,
   removesOnlyDeadImplementsComments,
 } from "kibi-agent-core/decision-guard";
+import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import {
   requestTopicWords,
@@ -234,6 +235,11 @@ function firmEdit(
     wholeFile,
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
+    reviewed: firmEditReviewed(
+      workspace.root,
+      relativePath,
+      workspace.summarize,
+    ),
   });
   if (ids.length === 0) return undefined;
   return {

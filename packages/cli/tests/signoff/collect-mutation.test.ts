@@ -444,6 +444,10 @@ describe("collectSignoffSummary with a scripted git", () => {
   const UNTRACKED = "ls-files --others --exclude-standard -- .kb/requirements";
   const HEAD = "rev-parse --verify --quiet HEAD";
   const BRANCH = "rev-parse --abbrev-ref HEAD";
+  const REVIEWS =
+    "diff --name-only --no-renames --diff-filter=AM HEAD -- .kb/firm-edit-reviews";
+  const REVIEWS_UNTRACKED =
+    "ls-files --others --exclude-standard -- .kb/firm-edit-reviews";
 
   test("keeps only added, modified and deleted Markdown files", async () => {
     const root = workspace();
@@ -462,6 +466,8 @@ describe("collectSignoffSummary with a scripted git", () => {
           "",
         ].join("\n"),
         [UNTRACKED]: "\n",
+        [REVIEWS]: "",
+        [REVIEWS_UNTRACKED]: "",
         [BRANCH]: "feature\n",
       },
       calls,
@@ -480,6 +486,8 @@ describe("collectSignoffSummary with a scripted git", () => {
       DIFF,
       UNTRACKED,
       "show HEAD:.kb/requirements/REQ-m.md",
+      REVIEWS,
+      REVIEWS_UNTRACKED,
       BRANCH,
     ]);
   });
@@ -498,6 +506,8 @@ describe("collectSignoffSummary with a scripted git", () => {
           "D\t.kb/requirements/REQ-unknown.md",
         ].join("\n"),
         [UNTRACKED]: ".kb/requirements/REQ-u.md\n.kb/requirements/x.txt",
+        [REVIEWS]: "",
+        [REVIEWS_UNTRACKED]: "",
         [BRANCH]: "HEAD\n",
       },
       calls,
@@ -526,6 +536,8 @@ describe("collectSignoffSummary with a scripted git", () => {
       UNTRACKED,
       "show HEAD:.kb/requirements/REQ-missing.md",
       "show HEAD:.kb/requirements/REQ-unknown.md",
+      REVIEWS,
+      REVIEWS_UNTRACKED,
       BRANCH,
     ]);
 
@@ -540,6 +552,7 @@ describe("collectSignoffSummary with a scripted git", () => {
           "show HEAD:.kb/requirements/REQ-s.md": requirement("REQ-s", "Old."),
           "show :.kb/requirements/REQ-s.md": requirement("REQ-s", "New."),
           [UNTRACKED]: ".kb/requirements/REQ-u.md\n",
+          [`diff --cached ${REVIEWS.slice("diff ".length)}`]: "",
           [BRANCH]: "main\n",
         },
         stagedCalls,
@@ -560,6 +573,7 @@ describe("collectSignoffSummary with a scripted git", () => {
       STAGED_DIFF,
       "show HEAD:.kb/requirements/REQ-s.md",
       "show :.kb/requirements/REQ-s.md",
+      `diff --cached ${REVIEWS.slice("diff ".length)}`,
       BRANCH,
     ]);
   });
@@ -588,6 +602,7 @@ describe("collectSignoffSummary with a scripted git", () => {
       notes: [
         "Changed requirement documents could not be listed: unexpected git diff --name-status --no-renames 4b825dc642cb6eb9a060e54bf8d69288fbee4904 -- .kb/requirements",
         "Requirements affected by code changes could not be computed: analysis offline",
+        "Firm-edit reviews could not be listed: unexpected git diff --name-only --no-renames --diff-filter=AM 4b825dc642cb6eb9a060e54bf8d69288fbee4904 -- .kb/firm-edit-reviews",
       ],
     });
     expect(proofCalls).toBe(0);
@@ -605,6 +620,7 @@ describe("collectSignoffSummary with a scripted git", () => {
     });
     expect(failing.notes).toStrictEqual([
       "Changed requirement documents could not be listed: 7",
+      "Firm-edit reviews could not be listed: 7",
       "Proof state is unavailable: coverage offline",
     ]);
     expect(failing.requirements.map((row) => row.id)).toStrictEqual(["REQ-a"]);
@@ -622,6 +638,127 @@ describe("collectSignoffSummary with a scripted git", () => {
     expect(thrown.notes).toStrictEqual([
       "Requirements affected by code changes could not be computed: analysis failed",
     ]);
+  });
+
+  test("lists the firm-edit receipts the change records, as the agent's judgment", async () => {
+    const { root, git } = repo();
+    writeReq(root, "REQ-kept", "Keys expire.");
+    writeReq(root, "REQ-new", "Keys rotate.");
+    writeReq(root, "REQ-old", "Keys never expire.", { status: "closed" });
+    write(root, "README.md", "x\n");
+    git("add", ".");
+    git("commit", "-q", "-m", "base");
+    writeReq(root, "REQ-new", "Keys rotate weekly.");
+    const receipt = (
+      requirementId: string,
+      symbol: string,
+      extra: Record<string, unknown> = {},
+    ) =>
+      `${JSON.stringify({
+        version: 1,
+        requirementId,
+        sourceFile: "src/keys.ts",
+        symbol,
+        verdict: "keeps",
+        note: "Still  ninety\ndays.",
+        statementHash: "sha256:s",
+        codeHash: "sha256:c",
+        startLine: 1,
+        endLine: 3,
+        recordedAt: "2026-11-16T00:00:00.000Z",
+        ...extra,
+      })}\n`;
+    const dir = ".kb/firm-edit-reviews";
+    write(
+      root,
+      `${dir}/REQ-kept/src__keys.ts--zeta.json`,
+      receipt("REQ-kept", "zeta"),
+    );
+    write(
+      root,
+      `${dir}/REQ-kept/src__keys.ts--alpha.json`,
+      receipt("REQ-kept", "alpha", {
+        verdict: "changes",
+        requestQuote: " make it  91 ",
+      }),
+    );
+    write(
+      root,
+      `${dir}/REQ-new/src__keys.ts--rotate.json`,
+      receipt("REQ-new", "rotate"),
+    );
+    write(root, `${dir}/REQ-old/src__keys.ts--f.json`, receipt("REQ-old", "f"));
+    write(
+      root,
+      `${dir}/REQ-gone/src__keys.ts--f.json`,
+      receipt("REQ-gone", "f"),
+    );
+    write(root, `${dir}/REQ-kept/broken.json`, "not json");
+    write(root, `${dir}/REQ-kept/notes.txt`, "x");
+    const working = await collectSignoffSummary(root, "working", {
+      now,
+      loadAffected: async () => new Map(),
+    });
+    expect(
+      working.requirements.map((row) => [
+        row.id,
+        row.change,
+        row.firmEditReviews,
+      ]),
+    ).toStrictEqual([
+      [
+        "REQ-new",
+        "changed",
+        [
+          {
+            symbol: "rotate",
+            sourceFile: "src/keys.ts",
+            verdict: "keeps",
+            note: "Still ninety days.",
+          },
+        ],
+      ],
+      [
+        "REQ-kept",
+        "affected",
+        [
+          {
+            symbol: "alpha",
+            sourceFile: "src/keys.ts",
+            verdict: "changes",
+            note: "Still ninety days.",
+            requestQuote: "make it 91",
+          },
+          {
+            symbol: "zeta",
+            sourceFile: "src/keys.ts",
+            verdict: "keeps",
+            note: "Still ninety days.",
+          },
+        ],
+      ],
+    ]);
+    expect(working.notes).toStrictEqual([]);
+    expect(working.requirements[1]?.source).toBe(
+      ".kb/requirements/REQ-kept.md",
+    );
+
+    // Staged, only what the index holds counts; an unchanged receipt is not
+    // part of the change.
+    git("add", `${dir}/REQ-new`);
+    const staged = await collectSignoffSummary(root, "staged", {
+      now,
+      loadAffected: async () => new Map(),
+    });
+    expect(
+      staged.requirements.map((row) => [row.id, row.firmEditReviews?.length]),
+    ).toStrictEqual([["REQ-new", 1]]);
+    git("commit", "-q", "-m", "reviews");
+    const committed = await collectSignoffSummary(root, "staged", {
+      now,
+      loadAffected: async () => new Map(),
+    });
+    expect(committed.requirements).toStrictEqual([]);
   });
 
   test("words the unsynced note for one requirement", async () => {
