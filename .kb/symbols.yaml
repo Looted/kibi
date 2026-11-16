@@ -41852,3 +41852,16 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-check-restated-twin-facts
+  - id: SYM-check-inheritedSymbolGapsOf
+    title: inheritedSymbolGapsOf
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-reports-inherited-symbol-gaps
