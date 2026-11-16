@@ -40841,10 +40841,14 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-15T18:31:05.700Z
+      recorded_at: 2026-11-16T06:40:20.889Z
     relationships:
       - type: covered_by
+        target: TEST-mcp-short-field-descriptions
+      - type: covered_by
         target: TEST-mcp-upsert-proof-field-stubs
+      - type: implements
+        target: REQ-mcp-short-field-descriptions
       - type: implements
         target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
   - id: SYM-cli-advertised-field-schema-hints
@@ -41353,3 +41357,41 @@ symbols:
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
         target: REQ-claude-decision-capture-nudges
+  - id: SYM-test-mcp-short-field-descriptions
+    title: Short MCP field description suite
+    status: active
+    sourceFile: packages/cli/tests/operations/field-reference.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:07.122Z
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-short-field-descriptions
+  - id: SYM-cli-operation-field-reference
+    title: operationFieldReference
+    status: active
+    sourceFile: packages/cli/src/public/operations/field-reference.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:24.542Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-short-field-descriptions
+  - id: SYM-cli-shortened-fields
+    title: shortenedFields
+    status: active
+    sourceFile: packages/cli/src/public/operations/field-reference.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T06:40:28.425Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-short-field-descriptions

@@ -54,11 +54,13 @@
       "approvedPlanHash": {
         "type": "string",
         "pattern": "^[a-fA-F0-9]{64}$",
-        "description": "With ids only: the deletionPlan.planHash a prior call for the same ids returned. The plan is recomputed and applied through kb_apply_plan when its hash still matches; a mismatch fails with DELETE_PLAN_HASH_MISMATCH and writes nothing. Not allowed with relationships or dryRun."
+        "description": "With ids only: the deletionPlan.planHash a prior call for the same ids returned. The plan is recomputed and applied through kb_apply_plan when its hash still matches; a mismatch fails with DELETE_PLAN_HASH_MISMATCH and writes nothing. Not allowed with relationships or dryRun.",
+        "x-kibi-advertised-description": "With ids only: the deletionPlan.planHash a prior call returned; applied only while the hash still matches."
       },
       "dryRun": {
         "type": "boolean",
-        "description": "Preview without writing. Relationship and direct entity deletes run their preflight and return outcome dry_run with wouldDelete counts, the sourceWrites (paths and hashes) a commit would make, and skippedEffects. Authored ids return the same deletion plan as without dryRun."
+        "description": "Preview without writing. Relationship and direct entity deletes run their preflight and return outcome dry_run with wouldDelete counts, the sourceWrites (paths and hashes) a commit would make, and skippedEffects. Authored ids return the same deletion plan as without dryRun.",
+        "x-kibi-advertised-description": "Preview without writing: returns what a commit would delete and write."
       }
     }
   },

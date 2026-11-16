@@ -28,7 +28,8 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "x-kibi-advertised-description": "Optional complete list of atomic clauses; each must be a verbatim fragment of text."
         },
         "id": {
           "description": "Optional requirement ID used for deterministic draft relationship guidance.",
@@ -60,7 +61,8 @@
             "type": "object"
           },
           "maxItems": 3,
-          "type": "array"
+          "type": "array",
+          "x-kibi-advertised-description": "Optional typed kibi.logic.v1 interpretations from the host model; raw Prolog is not accepted."
         },
         "source": {
           "description": "Optional provenance for draft suggestions.",
@@ -91,10 +93,11 @@
             "symbol",
             "fact"
           ],
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Entity type context for analysis; only requirements receive deterministic modeling suggestions."
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

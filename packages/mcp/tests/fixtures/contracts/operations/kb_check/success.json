@@ -16,11 +16,11 @@
       "properties": {
         "async": {
           "default": false,
-          "description": "When true, start the check as a background job and return a kibi.job.v1 receipt immediately instead of holding the request until the tool timeout. Poll kb_job_status with the returned jobId. Use for full checks on large KBs that exceed the configured tool timeout. The MCP server registers kb_job_status only when KIBI_MCP_OPTIONAL_TOOLS includes it; otherwise async runs the check synchronously.",
+          "description": "When true, run as a background job and return a kibi.job.v1 receipt to poll with kb_job_status.",
           "type": "boolean"
         },
         "includeImpactDiagnostics": {
-          "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation, symbol_semantic_review_needed, source_file_unowned and requirement_statement_unverified (each current requirement the changed code implements, with its statement and firmness, since the check never compares code with a statement) in structured output.",
+          "description": "When true, include changed-file impact diagnostics (granularity, ownership, statements to verify) in the output.",
           "type": "boolean"
         },
         "includeMigrationPlan": {
@@ -28,7 +28,7 @@
           "type": "boolean"
         },
         "includeWorkingTreeDiff": {
-          "description": "When true, inspect current unstaged working-tree diffs for impact diagnostics. Pair with sourceFiles to scope the analysis.",
+          "description": "When true, inspect unstaged working-tree diffs for impact diagnostics; pair with sourceFiles to scope.",
           "type": "boolean"
         },
         "maxDiagnostics": {
@@ -37,7 +37,7 @@
           "type": "integer"
         },
         "rules": {
-          "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, symbol-granularity, symbol-coordinates-missing, no-dangling-refs, source-relationship-parity, branch-store-not-compiled, source-path-dangling, no-cycles, required-fields, deprecated-adr-no-successor, superseded-requirement-open, scenario-feasibility, scenario-feasibility-unknown, scenario-outcome-mismatch, exception-claim-keys, numeric-string-value, rule-key-arguments-missing, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, retired-reason-missing, retired-owner-only, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, related-requirement-unmodeled, claim-subject-missing, claim-subject-undefined, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality, exception-unapproved, exception-approval-self-attested, agent-requirement-unapproved, requirement-rationale-missing, symbol-owner-superseded, adr-unlinked, adr-proposed, predicate-schema-conformance, entity-context-missing, subject-definition-missing, subject-duplicate, subject-hierarchy-invalid, entity-context-acknowledged, decision-firm-unreferenced, decision-firm-superseded, decision-firm-edited, supersedes-reason-missing, supersedes-reason-acknowledged, policy-ownership, policy-markers, kb-consistency, kb-consistency-unresolved, evidence-floor, agent-requirement-unapproved-implemented, must-positive-scenario, proof-contract-claims. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+          "description": "Optional rule subset. Omit to run every canonical and advisory rule plus the full-KB audit; selected rules stay scoped.",
           "items": {
             "enum": [
               "must-priority-coverage",
@@ -114,18 +114,18 @@
           "type": "array"
         },
         "sourceFiles": {
-          "description": "Optional repo-relative source files to inspect for early impact diagnostics. Use with includeImpactDiagnostics after meaningful source edits. Scopes the result to those files: blocking violations are listed for entities the changed symbols link to, entities whose KB document changed, and store-level rules; the rest are counted in omittedViolations (count still includes them). The migration plan comes as migrationPlanSummary, and a result over its size budget is cut (truncated: true).",
+          "description": "Optional repo-relative source files to inspect for impact diagnostics; scopes violations to what they touch.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "staged": {
-          "description": "When true, inspect staged source changes for impact diagnostics using the shared CLI impact analyzer without shelling out to kibi check.",
+          "description": "When true, inspect staged source changes for impact diagnostics, as kibi check --staged does.",
           "type": "boolean"
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },
