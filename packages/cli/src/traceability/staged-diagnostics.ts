@@ -1,4 +1,5 @@
 import type { QualityDiagnostic } from "../public/impact/types.js";
+import { SYMBOL_ROLES } from "../public/symbol-granularity.js";
 import {
   KIBI_STAGED_IMPACT_EVIDENCE_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
@@ -74,7 +75,9 @@ function manifestDetailLines(
   symbolsManifestPath: string,
 ): string[] {
   const lines = [
-    `${detail.path} — extraction finds ${detail.expectedCount} symbol(s), evidence covers ${detail.coveredCount}.`,
+    detail.changedCount === undefined
+      ? `${detail.path} — extraction finds ${detail.expectedCount} symbol(s), evidence covers ${detail.coveredCount}.`
+      : `${detail.path} — this commit adds or changes ${detail.changedCount} of ${detail.expectedCount} declaration(s); the gaps below are the ones it is judged on.`,
   ];
   if (detail.missing.length > 0) {
     const names = detail.missing.map(
@@ -151,7 +154,7 @@ function createSymbolsManifestStaleDiagnostic(
   const steps = [
     ...(hasMissingSymbols
       ? [
-          `author ${symbolsManifestPath} entries for the uncovered symbols (kibi upsert, with implements/covered_by links)`,
+          `author ${symbolsManifestPath} entries for the listed declarations (kibi upsert), each with a symbol_role (${SYMBOL_ROLES.join(", ")}); behavioral code also needs implements and covered_by links, and a function, class, method, property, accessor or variable holding a function always does; never invent a requirement link to pass the gate`,
         ]
       : []),
     ...(hasExtraSymbols

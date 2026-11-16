@@ -391,3 +391,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bedd0c01c8ad
+  - type: assumes
+    from: SCEN-staged-gate-changed-declaration-definition
+    to: FACT-staged-gate-changed-declaration-definition
+    created_at: 2026-11-16T05:33:43.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb6e19c660bb

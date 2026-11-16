@@ -57,12 +57,14 @@ import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
+import type { SymbolDebt } from "../public/operations/symbol-debt.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
+  type KibiImpactSymbolsManifestFileDetail,
 } from "../traceability/evidence-model.js";
 import { captureStagedSnapshot } from "../traceability/git-change-snapshot.js";
 import {
@@ -82,6 +84,12 @@ import {
   formatConsistencyViolations,
   stagesKnowledge,
 } from "../traceability/staged-consistency.js";
+import {
+  type DeclarationSource,
+  declarationSpanKey,
+  declarationsInChange,
+  judgedByCommit,
+} from "../traceability/staged-declaration-change.js";
 import {
   type KibiImpactDiagnostic,
   collectStagedKibiDiagnostics,
@@ -110,6 +118,7 @@ import {
   stagedRequirementRules,
 } from "../traceability/staged-requirement-rules.js";
 import {
+  type StagedSymbolsBaseSource,
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
 } from "../traceability/staged-symbols-manifest.js";
@@ -351,6 +360,7 @@ export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
   migrationPlan?: MigrationPlan | undefined;
+  symbolDebt?: SymbolDebt | undefined;
 }): void {
   console.log(
     JSON.stringify({
@@ -362,9 +372,25 @@ export function printStructuredCheckResult(input: {
         // The same migration plan kb_check returns, so the CLI and MCP agree
         // (JSON leaves the key out when there is none).
         migrationPlan: input.migrationPlan,
+        symbolDebt: input.symbolDebt,
       },
     }),
   );
+}
+
+/**
+ * The text check's non-blocking section on declarations without a symbol
+ * record, or nothing when there are none.
+ */
+export function formatSymbolDebt(debt: SymbolDebt | undefined): string {
+  if (debt === undefined || debt.total === 0) return "";
+  return [
+    `Symbol records (not blocking): ${debt.total} unrecorded declaration(s) in ${debt.files.length} file(s) that have symbol records. A commit is judged on them only when it adds or changes them.`,
+    ...debt.files.map(
+      (file) =>
+        `  ${file.path} (${file.unrecorded.length}): ${file.unrecorded.join(", ")}`,
+    ),
+  ].join("\n");
 }
 
 export function formatStagedCoverage(result: StagedFileCoverageResult): string {
@@ -404,6 +430,13 @@ export function formatStagedCoverage(result: StagedFileCoverageResult): string {
   return lines.join("\n");
 }
 
+/** A staged file's symbol gaps that the commit did not cause. */
+export interface InheritedSymbolGaps {
+  path: string;
+  unrecorded: ReadonlyArray<{ title: string; line: number }>;
+  orphaned: readonly string[];
+}
+
 export function printStagedResult(input: {
   format: "text" | "json" | undefined;
   coverage: StagedFileCoverageResult | null;
@@ -411,6 +444,7 @@ export function printStagedResult(input: {
   qualityDiagnostics?: readonly unknown[];
   messages?: readonly string[];
   operationalError?: string;
+  inheritedSymbolGaps?: readonly InheritedSymbolGaps[];
 }): void {
   const violations = input.violations ?? [];
   const qualityDiagnostics = input.qualityDiagnostics ?? [];
@@ -424,6 +458,9 @@ export function printStagedResult(input: {
           qualityDiagnostics,
           staged: input.coverage,
           messages: input.messages ?? [],
+          ...(input.inheritedSymbolGaps
+            ? { inheritedSymbolGaps: input.inheritedSymbolGaps }
+            : {}),
           ...(input.operationalError
             ? { operationalError: input.operationalError }
             : {}),
@@ -494,6 +531,32 @@ export function migrationOnlyNote(entityIds: readonly string[]): string {
   return `Migration commit: ${entityIds.length} symbol record(s) changed only by kibi migrate (legacy-link marks, review:context-missing tags) are not judged as changed by this commit: ${shown}${more}. Run kibi check for the full report.`;
 }
 
+/**
+ * The Baseline-style line for a staged file with gaps the commit did not
+ * cause: unchanged declarations without a record, and untouched records
+ * whose declaration is gone.
+ */
+export function inheritedSymbolGapsNote(
+  detail: KibiImpactSymbolsManifestFileDetail,
+): string | undefined {
+  const unrecorded = detail.inherited?.missing.length ?? 0;
+  const orphaned = detail.inherited?.extra.length ?? 0;
+  if (unrecorded === 0 && orphaned === 0) return undefined;
+  const parts = [
+    ...(unrecorded > 0
+      ? [
+          `${unrecorded} declaration(s) without a .kb/symbols.yaml record that this commit did not add or change`,
+        ]
+      : []),
+    ...(orphaned > 0
+      ? [
+          `${orphaned} record(s) whose declaration was already gone before this commit`,
+        ]
+      : []),
+  ];
+  return `Symbol records: ${detail.path} has ${parts.join(" and ")}. They are not judged by this commit and no action is required. Run kibi check for the list.`;
+}
+
 export function hasYamlFrontmatter(content: string): boolean {
   const trimmed = content.trimStart();
   return trimmed.startsWith("---") && trimmed.includes("\n---");
@@ -513,6 +576,7 @@ export function buildStagedKibiImpactEvidence(options: {
   analyzeSource?: (filePath: string, content: string) => SourceAnalysisResult;
   ignoreMigrationOwnedEdits?: boolean;
   onMigrationOnlySymbols?: (entityIds: readonly string[]) => void;
+  baseSource?: StagedSymbolsBaseSource;
 }): KibiImpactEvidence {
   const {
     stagedFiles,
@@ -550,6 +614,7 @@ export function buildStagedKibiImpactEvidence(options: {
   const stagedSymbolsManifest = assessStagedSymbolsManifest({
     ...(options.analyzeSource ? { analyzeSource: options.analyzeSource } : {}),
     ...(options.readBaseFile ? { readBaseFile: options.readBaseFile } : {}),
+    ...(options.baseSource ? { baseSource: options.baseSource } : {}),
     symbolsManifestPath,
     stagedFiles,
     sourceFiles: behaviorSourceFiles,
@@ -614,6 +679,9 @@ export function buildStagedKibiImpactEvidence(options: {
       sourcePaths: stagedSymbolsManifest.sourcePaths,
       ...(stagedSymbolsManifest.fileDetails
         ? { fileDetails: stagedSymbolsManifest.fileDetails }
+        : {}),
+      ...(stagedSymbolsManifest.coveredSourcePaths
+        ? { coveredSourcePaths: stagedSymbolsManifest.coveredSourcePaths }
         : {}),
     },
     mode:
@@ -765,10 +833,13 @@ export async function checkCommand(
         type NotedResult = Parameters<typeof printStagedResult>[0] & {
           messages: readonly string[];
         };
+        // Set once the staged evidence is built; empty when nothing is inherited.
+        const inheritedSymbolGaps: InheritedSymbolGaps[] = [];
         const printNotedResult = (input: NotedResult): void => {
           printStagedResult({
             ...input,
             messages: [...baselineNotes, ...input.messages],
+            ...(inheritedSymbolGaps.length > 0 ? { inheritedSymbolGaps } : {}),
           });
         };
         const printSnapshotResult = (input: NotedResult): void => {
@@ -1029,6 +1100,20 @@ export async function checkCommand(
           ),
         );
         const generatedSkipped: string[] = [];
+        // The base version of a staged source file: the analysis of its
+        // content in the base tree (at its old path for a rename). A copy is
+        // new code at its path, so like an added file it has no base.
+        const baseSource = (file: StagedFile): DeclarationSource | null => {
+          const before = sourceAnalysis.get(file.path)?.before;
+          const entry = stagedInventory.find(
+            (candidate) => candidate.path === file.path,
+          );
+          return before &&
+            entry?.previousContent !== undefined &&
+            entry.copyFromPath === undefined
+            ? { analysis: before, content: entry.previousContent }
+            : null;
+        };
         for (const f of sourceFiles) {
           try {
             if (f.content !== undefined) {
@@ -1053,9 +1138,30 @@ export async function checkCommand(
             }
             const exempt =
               generatedStaged.has(f.path) && !manifestSourceFiles.has(f.path);
+            // A declaration without a record is judged only when this commit
+            // adds or changes it; recorded ones keep the hunk rule.
+            const after = sourceAnalysis.get(f.path)?.after;
+            const changedSpanKeys = after
+              ? new Set(
+                  [
+                    ...declarationsInChange(baseSource(f), {
+                      analysis: after,
+                      content: f.content ?? "",
+                    }),
+                  ].map(declarationSpanKey),
+                )
+              : null;
+            const judged = symbols.filter((symbol) =>
+              judgedByCommit(
+                symbol,
+                symbol.relationships !== undefined ||
+                  symbol.reqLinks.length > 0,
+                changedSpanKeys,
+              ),
+            );
             const checked = exempt
-              ? symbols.filter((symbol) => symbol.reqLinks.length > 0)
-              : symbols;
+              ? judged.filter((symbol) => symbol.reqLinks.length > 0)
+              : judged;
             if (exempt && checked.length < symbols.length)
               generatedSkipped.push(f.path);
             symbolsByFile.set(f.path, checked);
@@ -1135,7 +1241,20 @@ export async function checkCommand(
           markdownResultsByPath,
           symbolsByFile,
           symbolsManifestPath,
+          baseSource,
         });
+        const inheritedDetails = (
+          stagedKibiEvidence.symbolsManifest.fileDetails ?? []
+        ).filter((detail) => inheritedSymbolGapsNote(detail) !== undefined);
+        for (const detail of inheritedDetails)
+          baselineNotes.push(inheritedSymbolGapsNote(detail) as string);
+        inheritedSymbolGaps.push(
+          ...inheritedDetails.map((detail) => ({
+            path: detail.path,
+            unrecorded: detail.inherited?.missing ?? [],
+            orphaned: detail.inherited?.extra ?? [],
+          })),
+        );
         const stagedKibiDiagnostics = collectStagedKibiDiagnostics(
           stagedKibiEvidence,
           symbolsManifestPath,
@@ -1437,9 +1556,11 @@ export async function checkCommand(
         violations,
         qualityDiagnostics,
         migrationPlan: result.structuredContent?.migrationPlan,
+        symbolDebt: result.structuredContent?.symbolDebt,
       });
       return { exitCode: violations.length === 0 ? 0 : 1 };
     }
+    const debtOutput = formatSymbolDebt(result.structuredContent?.symbolDebt);
     const schemaNote = schemaUpgradeNote(process.cwd());
     if (schemaNote !== null) {
       console.log(schemaNote);
@@ -1451,6 +1572,10 @@ export async function checkCommand(
       if (qualityOutput.length > 0) {
         console.log();
         console.log(qualityOutput);
+      }
+      if (debtOutput.length > 0) {
+        console.log();
+        console.log(debtOutput);
       }
       return { exitCode: 0 };
     }
@@ -1482,6 +1607,10 @@ export async function checkCommand(
 
     if (qualityOutput.length > 0) {
       console.log(qualityOutput);
+      console.log();
+    }
+    if (debtOutput.length > 0) {
+      console.log(debtOutput);
       console.log();
     }
 

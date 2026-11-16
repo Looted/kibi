@@ -419,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa93bab95702
+  - type: assumes
+    from: SCEN-NEG-symbol-traceability-behavioral-only-BEHAVIORAL-EXEMPTED
+    to: FACT-NEG-symbol-traceability-behavioral-only-BEHAVIORAL-EXEMPTED
+    created_at: 2026-11-16T05:34:04.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e140521cc05

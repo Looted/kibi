@@ -656,6 +656,12 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/plugins/source-classification.test.ts",
     "packages/cli/tests/plugins/source-classification-cases.test.ts",
   ],
+  "packages/cli/src/traceability/staged-declaration-change.ts": [
+    "packages/cli/tests/traceability/staged-declaration-change.test.ts",
+  ],
+  "packages/cli/src/public/operations/symbol-debt.ts": [
+    "packages/cli/tests/public-mutation/operations/symbol-debt.mutation.test.ts",
+  ],
   "packages/cli/src/traceability/staged-symbols-manifest.ts": [
     "packages/cli/tests/traceability/staged-symbols-manifest-mutation.test.ts",
   ],

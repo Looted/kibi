@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82192f981717
+  - type: implements
+    from: SYM-check-printStructuredCheckResult
+    to: REQ-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:21.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fed74ca35bc1
+  - type: covered_by
+    from: SYM-check-printStructuredCheckResult
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:21.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2eff30ba89b9

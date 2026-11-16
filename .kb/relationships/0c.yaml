@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e23d61e2a3a
+  - type: assumes
+    from: SCEN-NEG-behavioral-kinds-keep-implements-ROLE-EXCUSES-FUNCTION
+    to: FACT-NEG-behavioral-kinds-keep-implements-ROLE-EXCUSES-FUNCTION
+    created_at: 2026-11-16T05:34:08.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9540b52b5147

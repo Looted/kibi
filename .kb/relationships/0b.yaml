@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-039227e017cd
+  - type: assumes
+    from: SCEN-staged-evidence-scoped-to-changed-declarations
+    to: FACT-staged-evidence-scoped-to-changed-declarations
+    created_at: 2026-11-16T05:33:48.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b21b45a5847

@@ -18,6 +18,7 @@
 
 import { readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
+import type { SourceAnalysisResult } from "kibi-plugin-sdk";
 import type { ExtractionResult } from "../../extractors/markdown.js";
 import { createMaintenanceSourceAnalysisService } from "../../plugins/maintenance-source-analysis.js";
 import {
@@ -153,17 +154,23 @@ function granularityCandidates(
   );
 }
 
-async function analyzeFiles(
+/**
+ * The complete parser-backed analyses of workspace files, read through the
+ * branch analysis cache. A file that is missing, not a regular file, or not
+ * fully analyzed is left out: it cannot decide anything.
+ */
+export async function analyzeWorkspaceSources(
   files: readonly string[],
-  results: readonly ExtractionResult[],
   workspaceRoot: string,
   cache: SourceAnalysisCache | null,
-): Promise<Map<string, readonly ExtractedSymbol[]>> {
-  const manifestLookup = createImpactManifestLookup(results);
+): Promise<Map<string, { content: string; analysis: SourceAnalysisResult }>> {
   let service: ReturnType<
     typeof createMaintenanceSourceAnalysisService
   > | null = null;
-  const analyses = new Map<string, readonly ExtractedSymbol[]>();
+  const analyses = new Map<
+    string,
+    { content: string; analysis: SourceAnalysisResult }
+  >();
   for (const file of files) {
     try {
       const absolutePath = path.resolve(workspaceRoot, file);
@@ -176,27 +183,42 @@ async function analyzeFiles(
         analysis = await service.analyzeTextV2(file, content);
         cache?.set(file, content, analysis);
       }
-      const decided = analysis;
       // Only a complete parser-backed analysis decides; the staged gate
       // reports an incomplete one itself when the file is touched.
-      // rationale: an incomplete analysis carries no symbols, so extracting
-      // from it finds none either; the check only skips that work.
-      // Stryker disable next-line ConditionalExpression
-      if (decided.status !== "ok") continue;
-      // rationale: every declaration meets the whole-file hunk, so neither
-      // the status nor the hunk range changes which symbols come back
-      // Stryker disable StringLiteral,ArrayDeclaration,ObjectLiteral
-      const wholeFile: StagedFile = {
-        path: file,
-        status: "M",
-        content,
-        hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-      };
-      // Stryker restore StringLiteral,ArrayDeclaration,ObjectLiteral
+      if (analysis.status !== "ok") continue;
+      analyses.set(file, { content, analysis });
+    } catch {
+      // An analysis failure cannot decide anything for this file.
+    }
+  }
+  return analyses;
+}
+
+async function analyzeFiles(
+  files: readonly string[],
+  results: readonly ExtractionResult[],
+  workspaceRoot: string,
+  cache: SourceAnalysisCache | null,
+): Promise<Map<string, readonly ExtractedSymbol[]>> {
+  const manifestLookup = createImpactManifestLookup(results);
+  const analyses = new Map<string, readonly ExtractedSymbol[]>();
+  const sources = await analyzeWorkspaceSources(files, workspaceRoot, cache);
+  for (const [file, { content, analysis }] of sources) {
+    // rationale: every declaration meets the whole-file hunk, so neither
+    // the status nor the hunk range changes which symbols come back
+    // Stryker disable StringLiteral,ArrayDeclaration,ObjectLiteral
+    const wholeFile: StagedFile = {
+      path: file,
+      status: "M",
+      content,
+      hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+    };
+    // Stryker restore StringLiteral,ArrayDeclaration,ObjectLiteral
+    try {
       const symbols = await extractSymbolsFromStagedFileAsync(
         wholeFile,
         manifestLookup,
-        { analyzeText: async () => decided },
+        { analyzeText: async () => analysis },
       );
       analyses.set(file, symbols);
     } catch {

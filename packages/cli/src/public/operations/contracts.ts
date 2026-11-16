@@ -756,6 +756,23 @@ const BASE_DATA_SCHEMAS: Readonly<
         violationGroups: recordArray,
         truncated: { const: true },
         truncation: recordValue,
+        symbolDebt: {
+          ...objectData(
+            {
+              total: integerValue,
+              files: {
+                type: "array",
+                items: objectData(
+                  { path: stringValue, unrecorded: stringArray },
+                  ["path", "unrecorded"],
+                ),
+              },
+            },
+            ["total", "files"],
+          ),
+          description:
+            "Unscoped checks only. Declarations without a symbol record in source files that have at least one record. Non-blocking: the staged gate judges them only when a commit adds or changes them.",
+        },
       }),
       jobReceiptData,
     ],

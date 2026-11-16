@@ -167,3 +167,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9f035eb2e68b
+  - type: requires_property
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: FACT-bootstrap-states-staged-symbol-rule
+    created_at: 2026-11-16T05:38:19.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35e35d733c81
+  - type: constrains
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-11-16T05:38:19.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dae109152ca5
+  - type: specified_by
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: SCEN-bootstrap-states-staged-symbol-rule
+    created_at: 2026-11-16T05:38:19.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e56f33d91e2e
+  - type: specified_by
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: SCEN-NEG-bootstrap-states-staged-symbol-rule-SILENT-ON-SYMBOL-RULE
+    created_at: 2026-11-16T05:38:19.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ba8c89394ea
+  - type: verified_by
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:38:19.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ff5f22ca4ec

@@ -537,6 +537,14 @@ export function createOverlayFacts(symbols: ExtractedSymbol[]): string {
     lines.push(
       `kb:changed_symbol_loc(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.location.file)}, ${symbol.location.startLine}, 0, ${escapePrologAtom(symbol.name)}).`,
     );
+    // The extracted kind lets the link rule refuse a non-behavioral role on
+    // a function, class, method, property or accessor.
+    lines.push(
+      `kb:changed_symbol_kind(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.kind)}).`,
+    );
+    if (symbol.callable) {
+      lines.push(`kb:changed_symbol_callable(${escapePrologAtom(symbol.id)}).`);
+    }
 
     // Emit overlay facts for the requirement links the symbol manifest gives
     // the changed symbol; source comments are never a link.

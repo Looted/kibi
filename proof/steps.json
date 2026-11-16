@@ -7840,6 +7840,16 @@
     ]
   },
   {
+    "test_id": "TEST-staged-gate-inherited-symbol-gaps",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/staged-inherited-symbol-gaps.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-staged-firm-edit-gate",
     "steps": [
       [
@@ -7879,6 +7889,16 @@
         "./packages/cursor/tests/hook-runner.test.ts",
         "./packages/zcode/tests/hook-runner.test.ts",
         "./packages/agent-core/tests/decision-guard.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-check-reports-symbol-debt",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/check-symbol-debt.test.ts"
       ]
     ]
   }

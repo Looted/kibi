@@ -20,6 +20,7 @@ import type { ChangedFileImpactResult } from "../impact-diagnostics.js";
 import type { QualityDiagnostic } from "../impact-diagnostics.js";
 import type { OmittedViolations } from "./check-helpers.js";
 import type { MigrationPlan } from "./migration-plan.js";
+import type { SymbolDebt } from "./symbol-debt.js";
 
 export interface CheckDiagnostic {
   readonly category: string;
@@ -60,6 +61,11 @@ export interface CheckStructuredContent {
   /** Set when the result was cut to its size budget. */
   readonly truncated?: true;
   readonly truncation?: Readonly<{ budgetChars: number; hint: string }>;
+  /**
+   * Declarations without a symbol record in files that have at least one,
+   * reported by a check with no rule or file scope. Never blocking.
+   */
+  readonly symbolDebt?: SymbolDebt;
 }
 
 /** A migration plan reduced to what a scoped check needs to say. */

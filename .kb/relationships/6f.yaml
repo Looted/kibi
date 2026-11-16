@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43ea5aca26fc
+  - type: implements
+    from: SYM-check-executor-withSymbolDebtSummary
+    to: REQ-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:26.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20f015d1069a
+  - type: covered_by
+    from: SYM-check-executor-withSymbolDebtSummary
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:26.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-addd1c29ba03

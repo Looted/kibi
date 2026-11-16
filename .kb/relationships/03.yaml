@@ -405,3 +405,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38e130ff522d
+  - type: assumes
+    from: SCEN-NEG-staged-evidence-scoped-to-changed-declarations-UNRECORDED-CHANGE-ACCEPTED
+    to: FACT-NEG-staged-evidence-scoped-to-changed-declarations-UNRECORDED-CHANGE-ACCEPTED
+    created_at: 2026-11-16T05:33:49.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30d4eb2a7560
+  - type: requires_property
+    from: REQ-staged-evidence-scoped-to-changed-declarations
+    to: FACT-staged-evidence-scoped-to-changed-declarations
+    created_at: 2026-11-16T05:38:10.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc7478d8d4c1
+  - type: constrains
+    from: REQ-staged-evidence-scoped-to-changed-declarations
+    to: FACT-SUBJ-REQ-CLI-STAGED-IMPACT-ENFORCEMENT
+    created_at: 2026-11-16T05:38:10.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17685d127d45
+  - type: specified_by
+    from: REQ-staged-evidence-scoped-to-changed-declarations
+    to: SCEN-staged-evidence-scoped-to-changed-declarations
+    created_at: 2026-11-16T05:38:10.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22a7d791e616
+  - type: specified_by
+    from: REQ-staged-evidence-scoped-to-changed-declarations
+    to: SCEN-NEG-staged-evidence-scoped-to-changed-declarations-UNRECORDED-CHANGE-ACCEPTED
+    created_at: 2026-11-16T05:38:10.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3b3653b5b75
+  - type: verified_by
+    from: REQ-staged-evidence-scoped-to-changed-declarations
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:38:11.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b45bcd6f6e8
