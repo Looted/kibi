@@ -215,6 +215,33 @@ describe("changedKbEntityIds", () => {
     ]);
   });
 
+  test("reads the id from the document's front matter", () => {
+    const dir = repo();
+    const reqs = path.join(dir, ".kb", "requirements");
+    writeFileSync(
+      path.join(reqs, "second-rule.md"),
+      "---\nid: REQ-two\ntitle: Two\n---\nBody\n",
+    );
+    // No id, a blank id, or front matter that does not parse: the file name.
+    writeFileSync(
+      path.join(reqs, "REQ-three.md"),
+      "---\ntitle: Three\n---\nBody\n",
+    );
+    writeFileSync(path.join(reqs, "REQ-blank.md"), "---\nid: '  '\n---\n");
+    writeFileSync(path.join(reqs, "REQ-broken.md"), "---\nid: [\n---\n");
+    // A deleted document keeps its file name.
+    execFileSync("git", ["rm", "-q", path.join(reqs, "REQ-kept.md")], {
+      cwd: dir,
+    });
+    expect([...changedKbEntityIds(dir)].sort()).toEqual([
+      "REQ-blank",
+      "REQ-broken",
+      "REQ-kept",
+      "REQ-three",
+      "REQ-two",
+    ]);
+  });
+
   test("ignores files that only look like KB documents", () => {
     const dir = repo();
     writeFileSync(path.join(dir, ".kb", "requirements", "REQ-x.md.orig"), "x");

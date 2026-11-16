@@ -38,6 +38,7 @@ import {
   analyzeChangedFileImpact,
 } from "../impact-diagnostics.js";
 import type { CheckInput } from "./check-executor.js";
+import { readAuthoredEntity } from "./entity-context.js";
 
 export { RULE_NAMES, getEffectiveRules };
 
@@ -165,16 +166,36 @@ export type OmittedViolations = {
   readonly byRule: Readonly<Record<string, number>>;
 };
 
-/** The entity id a `.kb/<kind>/<ID>.md` path from Git holds, or undefined. */
-function kbDocumentEntityId(file: string): string | undefined {
-  // Git prints paths with forward slashes on every platform.
-  const match = /(?:^|\/)\.kb\/[^/]+\/([^/]+)\.md$/.exec(file);
-  return match?.[1];
+/**
+ * The entity id a `.kb/<kind>/<file>.md` path from Git holds, or undefined:
+ * the `id` in the document's front matter, or the file name when the
+ * document is gone or names no id.
+ */
+function kbDocumentEntityId(
+  workspaceRoot: string,
+  file: string,
+): string | undefined {
+  // Git prints paths with forward slashes on every platform, relative to the
+  // repository; the `.kb/...` part is relative to the workspace.
+  const match = /(?:^|\/)(\.kb\/[^/]+\/([^/]+)\.md)$/.exec(file);
+  if (!match) return undefined;
+  const relative = match[1] as string;
+  try {
+    const entity = readAuthoredEntity(
+      readFileSync(path.join(workspaceRoot, relative), "utf8"),
+      relative,
+    );
+    if (entity) return entity.id;
+  } catch {
+    // Deleted: the file name is all that is left.
+  }
+  return match[2];
 }
 
 /**
  * Ids of the KB entities whose authored document differs from HEAD: staged,
- * unstaged or untracked `.kb/<kind>/<ID>.md` files. These are the agent's own
+ * unstaged or untracked `.kb/<kind>/<file>.md` files, by the id their front
+ * matter names. These are the agent's own
  * writes, so a scoped check always reports their findings. Outside a Git
  * work tree there is nothing to compare with, and none is returned.
  */
@@ -209,7 +230,7 @@ export function changedKbEntityIds(workspaceRoot: string): Set<string> {
       entry[0] === "C"
     )
       index += 1;
-    const id = kbDocumentEntityId(entry.slice(3));
+    const id = kbDocumentEntityId(workspaceRoot, entry.slice(3));
     if (id !== undefined) ids.add(id);
   }
   return ids;

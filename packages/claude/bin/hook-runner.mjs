@@ -1806,22 +1806,55 @@ function firmEditContext(ids) {
 `);
 }
 var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
-var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please)\s+|\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+)(never|always)\b/i;
+var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please|also|let['’]?s|let us)\s+)(never|always)\b(?!-)(?!\s+mind\b)/i;
+var ASKING_ADVERB = /(?:\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+|\b(?:remember|need|want|be sure|try) to\s+|\b(?:may|shall|can)\s+(?=never)|\b(?:we|you)\s+(?=(?:never|always)\s+(?:want|need) to\b))(never|always)\b(?!-)/i;
+var DESCRIBING_NEXT_WORD = /^\s+(?:a|an|the|have been|has|had|been|was|were|is|are|am|did|does|\w+ed|\w*[^s\W]s)\b/i;
 var REQUEST_QUESTION = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i;
-var CODE_SPANS = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
+var ASKS_TO_BE_TOLD = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\s+(?:tell|explain|show)\b/i;
+var CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
+var LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
+var EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
+function requestLines(text) {
+  const lines = [];
+  let previous = "blank";
+  for (const line of text.split(`
+`)) {
+    if (/^(?: {4}|\t)/.test(line) && previous !== "text") {
+      previous = "code";
+      continue;
+    }
+    previous = line.trim() === "" ? "blank" : "text";
+    if (/^\s*>/.test(line))
+      continue;
+    lines.push(line.trim().replace(LINE_MARKERS, "").replace(EMPHASIS, ""));
+  }
+  return lines;
+}
 function requestSentences(prompt) {
-  return prompt.replace(CODE_SPANS, " ").split(/(?<=[.!?])\s|\n/).map((sentence) => sentence.trim());
+  return requestLines(prompt.replace(CODE_SPANS, " ")).flatMap((line) => line.split(/(?<=[.!?])\s/)).map((sentence) => sentence.trim());
+}
+function instructingAdverb(sentence) {
+  const asked = ASKING_ADVERB.exec(sentence);
+  if (asked)
+    return asked[1].toLowerCase();
+  const pattern = new RegExp(IMPERATIVE_ADVERB.source, "gi");
+  for (const match of sentence.matchAll(pattern)) {
+    const rest = sentence.slice(match.index + match[0].length);
+    if (!DESCRIBING_NEXT_WORD.test(rest))
+      return match[1].toLowerCase();
+  }
+  return;
 }
 function statedRule(prompt) {
   for (const sentence of requestSentences(prompt)) {
-    if (sentence.endsWith("?") && !REQUEST_QUESTION.test(sentence))
+    if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
       continue;
     const match = RULE_PHRASES.exec(sentence);
     if (match)
       return match[0].toLowerCase();
-    const adverb = IMPERATIVE_ADVERB.exec(sentence);
+    const adverb = instructingAdverb(sentence);
     if (adverb)
-      return adverb[1].toLowerCase();
+      return adverb;
   }
   return;
 }
@@ -1856,7 +1889,17 @@ function ruleCaptureTemplate(rulePhrase) {
         ref: "<the person's words and where they said them>"
       }
     },
-    document: { body: "<the rule as one shall or must sentence>" },
+    document: {
+      body: `<the rule as one shall or must sentence>
+
+## Context
+
+<who asked for the rule and why, in their words; write 'Reason not stated' when they gave no reason>
+
+## Source
+
+<the person's words, verbatim>`
+    },
     implementedBy: [
       {
         sourceFile: "<file you changed>",
@@ -1866,15 +1909,82 @@ function ruleCaptureTemplate(rulePhrase) {
   };
   return [
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
-    JSON.stringify(template)
+    JSON.stringify(template),
+    "kb_check then asks for a scenario and a test that prove the rule; add them in this change or name them as still to do in the final report."
   ].join(`
 `);
 }
-function sessionPath(session, name) {
+var UNATTRIBUTED = "unattributed";
+var UNATTRIBUTED_IDLE_MS = 2 * 60 * 60 * 1000;
+var STALE_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
+function sessionKey(session) {
+  return createHash2("sha256").update(session.sessionId?.trim() || UNATTRIBUTED).digest("hex").slice(0, 32);
+}
+function guardRoot(session) {
   if (!session.stateDir)
     throw new Error;
-  const key = createHash2("sha256").update(session.sessionId?.trim() || "unattributed").digest("hex").slice(0, 32);
-  return path6.join(session.stateDir, "decision-guard", key, name);
+  return path6.join(session.stateDir, "decision-guard");
+}
+function sessionPath(session, name) {
+  return path6.join(guardRoot(session), sessionKey(session), name);
+}
+function newestOf(files) {
+  let newest = Number.NaN;
+  for (const file of files) {
+    try {
+      const time = fs6.statSync(file).mtimeMs;
+      if (!(time <= newest))
+        newest = time;
+    } catch {}
+  }
+  return newest;
+}
+function markerFiles(dir) {
+  try {
+    return fs6.readdirSync(dir).map((name) => path6.join(dir, name));
+  } catch {
+    return [];
+  }
+}
+function removeQuietly(target) {
+  try {
+    fs6.rmSync(target, { recursive: true, force: true });
+  } catch {}
+}
+function startDecisionSession(session, cause, options = {}) {
+  const now = options.now ?? Date.now();
+  const hostFiles = options.hostFiles ?? [];
+  let root;
+  try {
+    root = guardRoot(session);
+  } catch {
+    return false;
+  }
+  const own = sessionKey(session);
+  let dropped = false;
+  if (!session.sessionId?.trim() && cause !== "resume") {
+    const files = [...markerFiles(path6.join(root, own)), ...hostFiles];
+    dropped = cause === "startup" || newestOf(files) < now - UNATTRIBUTED_IDLE_MS;
+    if (dropped) {
+      for (const file of files)
+        removeQuietly(file);
+    }
+  }
+  if (cause === "prompt")
+    return dropped;
+  let keys = [];
+  try {
+    keys = fs6.readdirSync(root);
+  } catch {}
+  for (const key of keys) {
+    if (key === own)
+      continue;
+    const dir = path6.join(root, key);
+    if (!(newestOf(markerFiles(dir)) >= now - STALE_SESSION_MS)) {
+      removeQuietly(dir);
+    }
+  }
+  return dropped;
 }
 function touchMarker(file, flag) {
   fs6.mkdirSync(path6.dirname(file), { recursive: true });
@@ -2810,7 +2920,10 @@ function usageFromPayload(operation, payload) {
 }
 function extractMcpKbUsage(toolName, toolInput) {
   const operation = canonicalKbOperation(toolName);
-  return operation ? usageFromPayload(operation, payloadOf(toolInput)) : undefined;
+  if (!operation)
+    return;
+  const payload = payloadOf(toolInput);
+  return usageFromPayload(operation === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : operation, payload);
 }
 function isVerifiedGitCommit(command) {
   const gitCommit = /(?:^|[\s;&|(])git(?:\s+-[Cc]\s+\S+|\s+--?[\w-]+(?:=\S+)?)*\s+commit(?=\s|$|[;&|)])/;
@@ -2947,6 +3060,9 @@ function applyEvent(state, event) {
       state.exploredIds.clear();
       return;
   }
+}
+function sessionJournal(dir) {
+  return dir ? [path11.join(dir, JOURNAL)] : [];
 }
 function loadSessionState(dir) {
   const state = emptySessionState();
@@ -3502,6 +3618,7 @@ function stop(input, workspace, trace = {}) {
 function userPromptSubmit(input, workspace, trace) {
   const prompt = input.prompt ?? "";
   const rule = statedRule(prompt);
+  startDecisionSession({ stateDir: workspace.stateDir, sessionId: input.sessionId }, "prompt", { hostFiles: sessionJournal(workspace.stateDir) });
   appendSessionEvents(workspace.stateDir, [
     {
       kind: "prompt",
@@ -3557,8 +3674,9 @@ async function runHook(rawInput, environment = {}) {
 }
 function dispatchHook(input, workspace, trace) {
   switch (input.event) {
-    case "SessionStart":
+    case "SessionStart": {
       trace.action = "session_start";
+      startDecisionSession({ stateDir: workspace.stateDir, sessionId: input.sessionId }, input.source === "resume" || input.source === "compact" ? "resume" : "startup", { hostFiles: sessionJournal(workspace.stateDir) });
       if (input.source === "compact" || input.source === "clear") {
         appendSessionEvents(workspace.stateDir, [{ kind: "context_reset" }]);
       }
@@ -3567,6 +3685,7 @@ function dispatchHook(input, workspace, trace) {
         missingHooksNote(workspace.root)
       ].filter((line) => line !== null).join(`
 `));
+    }
     case "UserPromptSubmit":
       return userPromptSubmit(input, workspace, trace);
     case "PreToolUse": {

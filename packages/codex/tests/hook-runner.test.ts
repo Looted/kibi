@@ -1051,6 +1051,31 @@ describe("Codex decision guard", () => {
     expect(JSON.stringify(edit)).not.toContain("fill in this template");
   });
 
+  test("a new session without an id is not silenced by an earlier one's markers", async () => {
+    const event = session();
+    const anonymous = (payload: Record<string, unknown>) => event(payload, "");
+    const edit = {
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    };
+    const stop = { hook_event_name: "Stop", stop_hook_active: false };
+    await anonymous({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guards should never pass by default.",
+    });
+    await anonymous(edit);
+    expect((await anonymous(stop)).reason).toStartWith(
+      captureReminder("should never"),
+    );
+    // A new session starts clean: no stale rule phrase, and it is asked.
+    await anonymous({ hook_event_name: "SessionStart" });
+    await anonymous(edit);
+    expect((await anonymous(stop)).reason).toStartWith(
+      captureReminder(undefined),
+    );
+  });
+
   test("a kb_upsert in the session keeps Stop from asking for capture", async () => {
     const event = session();
     await event({
