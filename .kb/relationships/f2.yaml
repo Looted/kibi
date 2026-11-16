@@ -216,3 +216,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ee362819ab7
+  - type: implements
+    from: SYM-ci-kb-merge-workflow
+    to: REQ-ci-kb-merge-branch-push
+    created_at: 2026-11-16T18:22:46.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e99bddbc71d4
+  - type: implements
+    from: SYM-ci-kb-merge-workflow
+    to: REQ-ci-kb-merge-uses-action
+    created_at: 2026-11-16T18:22:46.600Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e8606d987fd
+  - type: covered_by
+    from: SYM-ci-kb-merge-workflow
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:22:46.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d961806f844

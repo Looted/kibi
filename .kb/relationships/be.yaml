@@ -342,3 +342,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51061725c12c
+  - type: constrains
+    from: REQ-kb-merge-action-manifest-only
+    to: FACT-SUBJECT-kibi-ci-kb-merge-action
+    created_at: 2026-11-16T18:12:53.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be453d464099
+  - type: requires_property
+    from: REQ-kb-merge-action-manifest-only
+    to: FACT-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:12:53.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00b95f17e90d
+  - type: specified_by
+    from: REQ-kb-merge-action-manifest-only
+    to: SCEN-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:12:53.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba0a8cd5a3cf
+  - type: specified_by
+    from: REQ-kb-merge-action-manifest-only
+    to: SCEN-NEG-kb-merge-action-manifest-only-VIOLATED
+    created_at: 2026-11-16T18:12:53.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9053e1558b68
+  - type: requires_property
+    from: REQ-kb-merge-action-manifest-only
+    to: FACT-kb-merge-action-blocked-left-unchanged
+    created_at: 2026-11-16T18:12:53.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fca346b438c

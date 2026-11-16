@@ -37,7 +37,7 @@ The Kibi KB merge workflow must run the proof gate before pushing a merge.
 
 ## Context
 
-The resolve job of .github/workflows/kb-merge.yml runs `sh scripts/proof-gate.sh` as its own step and pushes the merge in a later step; GitHub Actions stops a job at the first failing step, so the order of these two steps is what keeps a merge that fails the gate from being pushed. This claim was split from REQ-ci-kb-merge-resolution so it is proved against the workflow file itself; how the merge is built and what happens on a failed gate stay there.
+The resolve job of .github/workflows/kb-merge.yml runs the Kibi KB merge action with `sh scripts/proof-gate.sh` as its `check`; the action runs the check on the merged tree after `kibi sync` and pushes the merge only when it passed (REQ-kb-merge-action-verify-before-push). This claim was split from REQ-ci-kb-merge-resolution and was proved against the workflow's step order while the workflow pushed in its own step; since the push moved into the action, scripts/tests/kb-merge-resolution.test.ts tests it by running the action with Kibi's proof gate against a scratch remote.
 
 ## Source
 
