@@ -447,6 +447,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f177abd2b1c
+  - type: assumes
+    from: SCEN-NEG-kibi-env-reader-presence-tests-HANDED-ON
+    to: FACT-NEG-kibi-env-reader-presence-tests-MISREAD
+    created_at: 2026-11-16T11:06:30.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77277d7d3530
+  - type: verified_by
+    from: SCEN-NEG-kibi-env-reader-presence-tests-HANDED-ON
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-16T11:06:30.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-929fb29c9182
   - type: executable_for
     from: SYM-test-kibi-search-answer-layer
     to: TEST-search-answer-requirement-reasons

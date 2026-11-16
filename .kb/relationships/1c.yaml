@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a741e3a1e9c
+  - type: covered_by
+    from: SYM-const-scoped-check-budget-chars
+    to: TEST-proof-scoped-check-budget
+    created_at: 2026-11-16T11:01:47.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4026784f377c

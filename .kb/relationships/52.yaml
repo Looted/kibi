@@ -517,3 +517,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cdc32f9bf02
+  - type: validates
+    from: TEST-proof-non-behavioral-symbol-roles
+    to: SCEN-symbol-traceability-behavioral-only
+    created_at: 2026-11-16T11:03:55.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4d0e71a4e46

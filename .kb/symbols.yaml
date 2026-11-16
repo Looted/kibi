@@ -41211,14 +41211,6 @@ symbols:
         target: TEST-check-reports-symbol-debt
       - type: implements
         target: REQ-symbol-traceability-behavioral-only
-  - id: SYM-core-kb-nonBehavioralSymbolRole
-    title: non_behavioral_symbol_role
-    status: active
-    sourceFile: packages/core/src/kb.pl
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T09:00:00.000Z
   - id: SYM-core-checks-symbolTraceabilityViolation
     title: symbol_traceability_violation
     status: active
@@ -42359,6 +42351,147 @@ symbols:
         target: TEST-cli-rejection-not-retryable
       - type: implements
         target: REQ-cli-rejection-not-retryable
+  - id: SYM-proof-scoped-check-budget
+    title: scopedCheckBudgetCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:01:44.044Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-scoped-check-budget
+  - id: SYM-const-scoped-check-budget-chars
+    title: SCOPED_CHECK_BUDGET_CHARS
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:01:47.164Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-scoped-check-budget
+  - id: SYM-proof-advertised-description-limit
+    title: advertisedDescriptionLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:02:34.446Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-advertised-description-limit
+  - id: SYM-const-advertised-description-limit
+    title: ADVERTISED_DESCRIPTION_LIMIT
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:02:37.619Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-advertised-description-limit
+  - id: SYM-proof-checked-as-sent-ledger-fields
+    title: checkedAsSentFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:13.312Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-checked-as-sent-ledger-fields
+  - id: SYM-const-ledger-contract-fields
+    title: CONTRACT_FIELDS
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:16.641Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-checked-as-sent-ledger-fields
+  - id: SYM-proof-non-behavioral-symbol-roles
+    title: nonBehavioralRolesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:56.501Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-non-behavioral-symbol-roles
+  - id: SYM-proof-behavioral-symbol-kinds
+    title: behavioralKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:07.565Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-behavioral-symbol-kinds
+  - id: SYM-proof-staged-passing-review-states
+    title: stagedPassingReviewStatesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:44.289Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-staged-passing-review-states
+  - id: SYM-const-staged-passing-review-states
+    title: STAGED_PASSING_REVIEW_STATES
+    status: active
+    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:47.502Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-staged-passing-review-states
+  - id: SYM-source-code-readers-extract-script-references
+    title: extractScriptReferences
+    status: active
+    sourceFile: packages/cli/src/operations/proof/source-code-readers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:06:32.168Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-env-reader-presence-tests
   - id: SYM-test-upsert-stale-siblings
     title: stale siblings consumer suite
     status: active
