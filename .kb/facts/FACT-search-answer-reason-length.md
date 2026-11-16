@@ -18,7 +18,11 @@ tags:
   - lane:strict
   - fact:property_value
   - provenance:req-search-answer-reason-length
+distinct_from:
+  - kibi.search.answer_limits.excerpt_chars
 id: FACT-search-answer-reason-length
 type: fact
 ---
 The longest reason text, in characters, the answer gives for one governing requirement.
+
+The reason length bounds a requirement's reason, a different text from an ADR decision excerpt. The code cuts both with the same excerpt limit today, and the arithmetic proof re-checks this bound against that limit, so a change to the limit is caught there.

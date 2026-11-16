@@ -24,7 +24,6 @@ import {
 import {
   defaultKbManifest,
   readKbManifest,
-  readKbManifestOrDefault,
   readKbManifestStatus,
   writeKbManifest,
 } from "../src/utils/kb-manifest.js";
@@ -49,7 +48,6 @@ describe("coverage gaps: kb-manifest", () => {
     const root = tempDir();
     expect(readKbManifestStatus(root).state).toBe("missing");
     expect(readKbManifest(root)).toBeNull();
-    expect(readKbManifestOrDefault(root)).toEqual(defaultKbManifest());
 
     mkdirSync(path.join(root, ".kb"), { recursive: true });
     writeFileSync(path.join(root, ".kb", "manifest.json"), "{not-json");

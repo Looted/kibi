@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-129e905bcd2c
+  - type: implements
+    from: SYM-cli-quantity-layer-declared-distinct
+    to: REQ-check-quantity-duplicate-distinct-from
+    created_at: 2026-11-16T16:11:22.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0440581c164
+  - type: covered_by
+    from: SYM-cli-quantity-layer-declared-distinct
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:22.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd542d77cb5a

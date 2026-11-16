@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-870c837e3333
+  - type: constrains
+    from: REQ-check-quantity-duplicate-distinct-from
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:17.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-815c4b0fae4e
+  - type: requires_property
+    from: REQ-check-quantity-duplicate-distinct-from
+    to: FACT-check-quantity-duplicate-distinct-from
+    created_at: 2026-11-16T16:10:17.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e2af1374724
+  - type: specified_by
+    from: REQ-check-quantity-duplicate-distinct-from
+    to: SCEN-check-quantity-duplicate-distinct-from
+    created_at: 2026-11-16T16:10:17.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fe4f8cbbb34
+  - type: specified_by
+    from: REQ-check-quantity-duplicate-distinct-from
+    to: SCEN-NEG-check-quantity-duplicate-distinct-from-REPORTED
+    created_at: 2026-11-16T16:10:17.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9612ce56b0b8

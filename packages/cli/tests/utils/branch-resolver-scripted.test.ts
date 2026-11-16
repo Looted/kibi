@@ -24,12 +24,10 @@ import {
   copyCleanSnapshot,
   detachedHeadWriteRefusal,
   getBranchDiagnostic,
-  getVolatileArtifactPatterns,
   isDetachedHead,
   isValidBranchName,
   resolveActiveBranch,
   resolveBranchAttachment,
-  resolveDefaultBranch,
   resolveReadBranchAttachment,
   unreadableMigrationJournalError,
 } from "../../src/utils/branch-resolver.js";
@@ -309,7 +307,7 @@ describe("resolveActiveBranch", () => {
   });
 });
 
-describe("isDetachedHead and resolveDefaultBranch", () => {
+describe("isDetachedHead", () => {
   test("detached when rev-parse names HEAD or fails", () => {
     script({ [ABBREV]: " HEAD \n" });
     expect(isDetachedHead("/w")).toBe(true);
@@ -323,34 +321,6 @@ describe("isDetachedHead and resolveDefaultBranch", () => {
     expect(isDetachedHead("/w")).toBe(false);
     script({ [ABBREV]: fail(new Error("x")) });
     expect(isDetachedHead("/w")).toBe(true);
-  });
-
-  test("reads origin/HEAD for display only", () => {
-    const SYMBOLIC = "git symbolic-ref refs/remotes/origin/HEAD";
-    const none = {
-      error:
-        "No remote default branch is configured; provide explicit migration identities.",
-      code: "NO_DEFAULT_BRANCH",
-    };
-    script({ [SYMBOLIC]: " refs/remotes/origin/trunk/x \n" });
-    expect(resolveDefaultBranch("/w")).toStrictEqual({ branch: "trunk/x" });
-    expect(calls[0]?.options).toStrictEqual({
-      cwd: "/w",
-      encoding: "utf8",
-      timeout: 5000,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    for (const answer of [
-      "xrefs/remotes/origin/main",
-      "refs/remotes/origin/main\nother",
-      "refs/remotes/origin/a b",
-      "refs/heads/main",
-    ]) {
-      script({ [SYMBOLIC]: answer });
-      expect(resolveDefaultBranch("/w")).toStrictEqual(none);
-    }
-    script({ [SYMBOLIC]: fail(new Error("no origin")) });
-    expect(resolveDefaultBranch("/w")).toStrictEqual(none);
   });
 });
 
@@ -557,23 +527,6 @@ describe("resolveReadBranchAttachment and detachedHeadWriteRefusal", () => {
 });
 
 describe("copyCleanSnapshot", () => {
-  test("lists the volatile patterns", () => {
-    expect(getVolatileArtifactPatterns()).toStrictEqual([
-      "sync-cache.json",
-      "source-analysis-cache.json",
-      "journal.log",
-      "audit.log",
-      "lock",
-      "lockfile",
-      ".lock",
-      "*.lock",
-      "*.tmp",
-      "*.temp",
-      "*.pid",
-      "journal-*.log",
-    ]);
-  });
-
   test("copies everything except volatile artifacts, into nested and existing targets", () => {
     const source = fresh();
     const keep = [

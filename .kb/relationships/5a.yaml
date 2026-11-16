@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e21092b0c0a4
+  - type: assumes
+    from: SCEN-NEG-check-quantity-duplicate-dangling-distinct-UNREPORTED
+    to: FACT-NEG-check-quantity-duplicate-dangling-distinct-UNREPORTED
+    created_at: 2026-11-16T16:10:36.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98afd19ce23f
+  - type: verified_by
+    from: SCEN-NEG-check-quantity-duplicate-dangling-distinct-UNREPORTED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:36.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afa5149d4dd1

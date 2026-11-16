@@ -155,40 +155,6 @@ export function validateEntityType(type: string): boolean {
   return VALID_ENTITY_TYPES.includes(type);
 }
 
-/**
- * Get validation error message for invalid type.
- */
-export function getInvalidTypeError(type: string): string {
-  return `Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`;
-}
-
-/**
- * Build human-readable summary text for query results.
- */
-export function buildQuerySummaryText(
-  result: QueryResult,
-  filters: QueryFilters,
-): string {
-  const { entities, totalCount } = result;
-  const { type, offset, limit } = filters;
-  const ofType = type ? ` of type '${type}'` : "";
-
-  if (totalCount === 0) {
-    return `No entities found${ofType}.`;
-  }
-
-  const details = entities
-    .map((e) => {
-      const id = String(e.id || "").replace(/^file:\/\/.*\//, "");
-      const title = String(e.title || "");
-      const status = String(e.status || "");
-      return `${id} (${title}, status=${status})`;
-    })
-    .join(", ");
-
-  return `Found ${totalCount} entities${ofType}. Showing ${entities.length} (offset ${offset}, limit ${limit}): ${details}`;
-}
-
 function hasAnyTag(
   entity: Record<string, unknown>,
   requestedTags: string[],

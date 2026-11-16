@@ -398,3 +398,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e02cf250fd16
+  - type: assumes
+    from: SCEN-NEG-check-quantity-duplicate-distinct-from-REPORTED
+    to: FACT-NEG-check-quantity-duplicate-distinct-from-REPORTED
+    created_at: 2026-11-16T16:10:34.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e0a2bf84029
+  - type: verified_by
+    from: SCEN-NEG-check-quantity-duplicate-distinct-from-REPORTED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:34.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f4c1ba92267
+  - type: assumes
+    from: SCEN-NEG-migrate-quantity-duplicate-review-UNLISTED
+    to: FACT-NEG-migrate-quantity-duplicate-review-UNLISTED
+    created_at: 2026-11-16T16:10:41.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5fffbc08d19
+  - type: verified_by
+    from: SCEN-NEG-migrate-quantity-duplicate-review-UNLISTED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:41.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76f1221f6394
