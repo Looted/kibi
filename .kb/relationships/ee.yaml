@@ -566,3 +566,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2365dcaa072a
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-missing-endpoint-rejection-FAILURE
+    to: FACT-NEG-kb-upsert-missing-endpoint-rejection-FAILURE
+    created_at: 2026-11-16T13:40:33.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-885f1e941d4b
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-missing-endpoint-rejection-FAILURE
+    to: TEST-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:40:33.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb4c8d611cdd
