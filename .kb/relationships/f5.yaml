@@ -342,3 +342,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e07076e5428b
+  - type: implements
+    from: SYM-agent-core-claim-rule-capture-template
+    to: REQ-claude-decision-capture-nudges
+    created_at: 2026-11-16T08:46:07.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e070d2202eb
+  - type: covered_by
+    from: SYM-agent-core-claim-rule-capture-template
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-11-16T08:46:08.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b6a6b82c8b0
+  - type: covered_by
+    from: SYM-agent-core-claim-rule-capture-template
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-16T08:46:08.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7754fecbc5dd
+  - type: covered_by
+    from: SYM-agent-core-claim-rule-capture-template
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-16T08:46:08.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44d4aac23c50
+  - type: covered_by
+    from: SYM-agent-core-claim-rule-capture-template
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T08:46:08.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d26346c9594a
