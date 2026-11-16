@@ -26,15 +26,15 @@ id: TEST-proof-proof-receipt-max-age
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-6fbc10f193fbf4fc1e2d4f04
+    receipt_id: PR-b01ec22b5b511faee9b9adf0
     test_id: TEST-proof-proof-receipt-max-age
     scope: unit
     outcome: passed
-    code_snapshot: 687a75b3c57bd11cbd5b1b79fcfa7589e153fe88b2edd678594f1eb4f347fdda
+    code_snapshot: 0e92ecb6e2415cb6b44cd4648abe5bf8c9c235c18d9f56844e07e29be087804d
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T11:11:44.143Z'
-    finished_at: '2026-11-16T11:13:25.311Z'
-    artifact_digest: f79044ea9b4e1d539c65f539f226328db9b08c254176cc9b90d70a7f30e8803c
+    started_at: '2026-11-16T11:21:23.092Z'
+    finished_at: '2026-11-16T11:22:49.884Z'
+    artifact_digest: 4c5ff880d8b0e5e45dca5d0803c0c793347804c85ecfaa631ec1e84c2fe84bfa
     contract_hash: a366d0da4e92faf11d5023d954aff5bd81c6fbc80e1704c67b07f58bd11d1a00
     binding_hash: 1c22df6fd0b878fd06acccab0601f0b85c64c7f6ce8e65629c6aeff6d82673bd
     fingerprint: 11ceac338fae894356b29798d30f9de08934292ed67014ac3c0c122f95587c61
