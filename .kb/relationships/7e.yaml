@@ -335,3 +335,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8039937b3dcd
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: REQ-search-answer-gives-recorded-reason
+    created_at: 2026-11-16T10:21:16.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95726764e6d6
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: REQ-search-answer-marks-missing-reason
+    created_at: 2026-11-16T10:21:17.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-571a41e85050
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: REQ-search-answer-reason-source-order
+    created_at: 2026-11-16T10:21:17.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e5a3fdee765
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: REQ-search-answer-reason-length
+    created_at: 2026-11-16T10:21:17.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fa54d64d59d
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: SCEN-search-answer-gives-recorded-reason
+    created_at: 2026-11-16T10:21:17.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e03edbf9ba7a
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: SCEN-search-answer-marks-missing-reason
+    created_at: 2026-11-16T10:21:17.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c814cfd83d66
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: SCEN-search-answer-reason-source-order
+    created_at: 2026-11-16T10:21:17.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39f81716ea90
+  - type: validates
+    from: TEST-search-answer-requirement-reasons
+    to: SCEN-search-answer-reason-length
+    created_at: 2026-11-16T10:21:17.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d398f5939f1c

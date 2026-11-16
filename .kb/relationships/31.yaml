@@ -584,3 +584,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-186bcbc90005
+  - type: covered_by
+    from: SYM-const-search-answer-limits
+    to: TEST-proof-search-answer-reason-chars
+    created_at: 2026-11-16T13:12:57.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4ac1f30f76e
