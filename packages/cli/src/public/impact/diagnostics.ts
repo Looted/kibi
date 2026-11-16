@@ -66,6 +66,31 @@ function readSourceSymbols(
   return extractAllSymbols(sourceFile, readFileSync(absolutePath, "utf8"));
 }
 
+/**
+ * A probe for the coarse-anchor review: true when the workspace file
+ * declares a behavioral symbol, or when it cannot be read (an unreadable
+ * file keeps the extractor-based answer). Each file is read once.
+ */
+export function createBehavioralUnitProbe(
+  workspaceRoot: string,
+): (sourceFile: string) => boolean {
+  const answers = new Map<string, boolean>();
+  return (sourceFile) => {
+    const cached = answers.get(sourceFile);
+    if (cached !== undefined) return cached;
+    const absolutePath = path.isAbsolute(sourceFile)
+      ? sourceFile
+      : path.resolve(workspaceRoot, sourceFile);
+    const answer =
+      !existsSync(absolutePath) ||
+      getBehavioralSymbolNames([
+        ...readSourceSymbols(sourceFile, undefined, workspaceRoot),
+      ]).length > 0;
+    answers.set(sourceFile, answer);
+    return answer;
+  };
+}
+
 function getGranularSymbolsForSourceFile(
   sourceFile: string,
   options: SymbolGranularityDiagnosticsOptions,

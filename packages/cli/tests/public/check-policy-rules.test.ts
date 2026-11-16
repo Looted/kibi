@@ -106,6 +106,8 @@ function input(
         polarity: "assert",
       },
     ],
+    requiresRuleEdges: [],
+    ruleHeads: [],
     readFile: (path) =>
       path === "src/app/list/item-list.component.html"
         ? '<ol><li><span class="timeline-dot"></span><span data-testid="timeline-connector"></span></li></ol>'
@@ -120,6 +122,89 @@ function input(
 describe("check policy rules", () => {
   test("a design-owned component that keeps its markers passes", () => {
     expect(evaluateCheckPolicies(input(), RULES)).toEqual([]);
+  });
+
+  test("a requirement grounded by an asserted rule head owns its components", () => {
+    const grounded = input({
+      implementsEdges: [["SYM-list", "REQ-list-rule"]],
+      currentRequirements: new Set(["REQ-list-rule"]),
+      requiresPredicateEdges: [],
+      requiresRuleEdges: [["REQ-list-rule", "FACT-RULE-list"]],
+      ruleHeads: [
+        {
+          id: "FACT-RULE-list",
+          name: "ui_pattern",
+          args: [undefined, "line_dots_timeline"],
+          asserted: true,
+        },
+      ],
+    });
+    // The head's constant argument names the pattern whose markers apply.
+    expect(evaluateCheckPolicies(grounded, RULES)).toEqual([]);
+    expect(
+      evaluateCheckPolicies(
+        { ...grounded, readFile: () => undefined },
+        RULES,
+      ).map((finding) => [finding.rule, finding.evidence?.marker]),
+    ).toEqual([
+      [POLICY_MARKERS_RULE, "timeline_dot"],
+      [POLICY_MARKERS_RULE, "timeline-connector"],
+    ]);
+    // A variable in the pattern position names no pattern, so no marker
+    // applies, but the requirement still owns the component.
+    expect(
+      evaluateCheckPolicies(
+        {
+          ...grounded,
+          readFile: () => undefined,
+          ruleHeads: [
+            {
+              id: "FACT-RULE-list",
+              name: "ui_pattern",
+              args: ["item_list", undefined],
+              asserted: true,
+            },
+          ],
+        },
+        RULES,
+      ),
+    ).toEqual([]);
+  });
+
+  test("a deny rule head, or one of a requirement that is not current, owns nothing", () => {
+    const ownership = (overrides: Partial<CheckPolicyEvaluationInput>) =>
+      evaluateCheckPolicies(
+        input({
+          implementsEdges: [["SYM-list", "REQ-list-rule"]],
+          currentRequirements: new Set(["REQ-list-rule"]),
+          requiresPredicateEdges: [],
+          requiresRuleEdges: [["REQ-list-rule", "FACT-RULE-list"]],
+          ruleHeads: [
+            {
+              id: "FACT-RULE-list",
+              name: "ui_pattern",
+              args: [undefined, "line_dots_timeline"],
+              asserted: true,
+            },
+          ],
+          ...overrides,
+        }),
+        new Set([POLICY_OWNERSHIP_RULE]),
+      ).map((finding) => finding.entityId);
+    expect(
+      ownership({
+        ruleHeads: [
+          {
+            id: "FACT-RULE-list",
+            name: "ui_pattern",
+            args: [undefined, "line_dots_timeline"],
+            asserted: false,
+          },
+        ],
+      }),
+    ).toEqual(["SYM-list"]);
+    expect(ownership({ currentRequirements: new Set() })).toEqual(["SYM-list"]);
+    expect(ownership({ requiresRuleEdges: [] })).toEqual(["SYM-list"]);
   });
 
   test("a component owned only by a non-design requirement is reported", () => {

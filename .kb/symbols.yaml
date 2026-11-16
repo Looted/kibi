@@ -1746,10 +1746,10 @@ symbols:
     symbol_role: behavioral
     status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-coarse-anchor-review
       - type: covered_by
         target: TEST-e2e-check-review-rules
+      - type: implements
+        target: REQ-kibi-coarse-anchor-review-v2
   - id: SYM-ingest-proof-enforceNativeCaseBindings
     title: enforceNativeCaseBindings
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
@@ -40588,57 +40588,6 @@ symbols:
         target: TEST-kibi-cli-legacy-apply-safe
       - type: implements
         target: REQ-kibi-cli-legacy-apply-safe
-  - id: SYM-test-mcp-upsert-proof-field-stubs
-    title: kb_upsert proof field stub suite
-    status: active
-    sourceFile: packages/cli/tests/operations/advertised-schema.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-15T18:30:52.721Z
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-upsert-proof-field-stubs
-  - id: SYM-cli-advertised-input-schema
-    title: advertisedInputSchema
-    status: active
-    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-15T18:31:05.700Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-upsert-proof-field-stubs
-      - type: implements
-        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
-  - id: SYM-cli-advertised-field-schema-hints
-    title: advertisedFieldSchemaHints
-    status: active
-    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-15T18:31:10.097Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-upsert-proof-field-stubs
-      - type: implements
-        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
-  - id: SYM-cli-prepare-operation-input
-    title: prepareOperationInput
-    status: active
-    sourceFile: packages/cli/src/cli-validate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-15T18:31:14.538Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-upsert-proof-field-stubs
-      - type: implements
-        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
   - id: SYM-e2e-test-kibi-symbol-coverage-source-missing
     title: symbol-coverage-missing-source.test
     status: active
@@ -40778,6 +40727,31 @@ symbols:
         target: TEST-kb-upsert-derives-proposition-ledger
       - type: implements
         target: REQ-kb-upsert-derives-proposition-ledger
+  - id: SYM-cli-impact-createBehavioralUnitProbe
+    title: createBehavioralUnitProbe
+    status: active
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T22:02:01.063Z
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-check-review-rules
+      - type: implements
+        target: REQ-kibi-coarse-anchor-review-v2
+  - id: SYM-test-agent-hosts-rule-phrase-detection
+    title: Rule phrase detection suite
+    status: active
+    sourceFile: packages/agent-core/tests/decision-guard.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:53:01.638Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hosts-rule-phrase-detection
   - id: SYM-test-kibi-scoped-check-output
     title: Scoped kb_check output suite
     status: active
@@ -40842,15 +40816,54 @@ symbols:
         target: TEST-kibi-scoped-check-output
       - type: implements
         target: REQ-kibi-scoped-check-output
-  - id: SYM-test-agent-hosts-rule-phrase-detection
-    title: Rule phrase detection suite
+  - id: SYM-test-mcp-upsert-proof-field-stubs
+    title: kb_upsert proof field stub suite
     status: active
-    sourceFile: packages/agent-core/tests/decision-guard.test.ts
+    sourceFile: packages/cli/tests/operations/advertised-schema.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-15T18:53:01.638Z
+      recorded_at: 2026-11-15T18:30:52.721Z
     relationships:
       - type: executable_for
-        target: TEST-agent-hosts-rule-phrase-detection
+        target: TEST-mcp-upsert-proof-field-stubs
+  - id: SYM-cli-advertised-input-schema
+    title: advertisedInputSchema
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:31:05.700Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-proof-field-stubs
+      - type: implements
+        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
+  - id: SYM-cli-advertised-field-schema-hints
+    title: advertisedFieldSchemaHints
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:31:10.097Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-proof-field-stubs
+      - type: implements
+        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
+  - id: SYM-cli-prepare-operation-input
+    title: prepareOperationInput
+    status: active
+    sourceFile: packages/cli/src/cli-validate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-15T18:31:14.538Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-proof-field-stubs
+      - type: implements
+        target: REQ-mcp-upsert-proof-fields-advertised-as-stubs

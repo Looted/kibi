@@ -433,3 +433,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63aacd7ab393
+  - type: assumes
+    from: SCEN-NEG-kibi-coarse-anchor-review-v2
+    to: FACT-NEG-kibi-coarse-anchor-review-UNREPORTED
+    created_at: 2026-11-15T22:01:27.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1df1d37f42aa
+  - type: assumes
+    from: SCEN-NEG-kibi-coarse-anchor-review-v2
+    to: FACT-NEG-kibi-coarse-anchor-review-v2-LINT-COUNTED
+    created_at: 2026-11-15T22:01:27.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81d7ee4c97f7
+  - type: verified_by
+    from: SCEN-NEG-kibi-coarse-anchor-review-v2
+    to: TEST-e2e-check-review-rules
+    created_at: 2026-11-15T22:01:27.616Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c264c23c4db2

@@ -1,9 +1,13 @@
 import { describe, expect, it } from "bun:test";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import type { ExtractionResult } from "../../../src/extractors/markdown.js";
 import {
   createCoarseAnchorQualityDiagnostics,
   createCoverageDepthQualityDiagnostics,
 } from "../../../src/public/impact/coverage-depth-quality.js";
+import { createBehavioralUnitProbe } from "../../../src/public/impact/diagnostics.js";
 
 type EntityFixture = {
   readonly id: string;
@@ -459,6 +463,37 @@ describe("createCoarseAnchorQualityDiagnostics", () => {
     ]);
   });
 
+  it("does not count an anchor on a file that declares nothing behavioral", () => {
+    const anchored = (id: string, sourceFile: string) => ({
+      ...symbol(id, "config-artifact", [
+        { type: "implements", from: id, to: "REQ-LINT" },
+      ]),
+      sourceFile,
+    });
+    const results = [
+      result({ id: "REQ-LINT", type: "req" }),
+      anchored("SYM-angular", "angular.json"),
+      anchored("SYM-ci", ".github/workflows/ci.yml"),
+      anchored("SYM-eslint", "eslint.config.js"),
+    ];
+    const probed: string[] = [];
+    const flatConfig = (file: string) => {
+      probed.push(file);
+      return file !== "eslint.config.js";
+    };
+    expect(createCoarseAnchorQualityDiagnostics(results, flatConfig)).toEqual(
+      [],
+    );
+    // Only files an extractor reads are probed.
+    expect(probed).toEqual(["eslint.config.js"]);
+    // A file that does declare a behavioral symbol is still reviewed.
+    expect(
+      createCoarseAnchorQualityDiagnostics(results, () => true).map(
+        (diagnostic) => diagnostic.entityId,
+      ),
+    ).toEqual(["REQ-LINT"]);
+  });
+
   it("stays quiet once a narrower symbol implements the requirement", () => {
     expect(
       createCoarseAnchorQualityDiagnostics([
@@ -471,5 +506,37 @@ describe("createCoarseAnchorQualityDiagnostics", () => {
         ]),
       ]),
     ).toEqual([]);
+  });
+});
+
+describe("createBehavioralUnitProbe", () => {
+  it("answers from the declarations the extractor finds in the file", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "kibi-behavioral-unit-"));
+    try {
+      writeFileSync(
+        path.join(root, "eslint.config.js"),
+        "const { defineConfig } = require('eslint/config');\nmodule.exports = defineConfig([{ rules: { semi: 'error' } }]);\n",
+      );
+      writeFileSync(
+        path.join(root, "eslint.config.mjs"),
+        "export default [{ rules: {} }];\n",
+      );
+      writeFileSync(
+        path.join(root, "rules.ts"),
+        "export function lintRule(): number {\n  return 1;\n}\n",
+      );
+      const probe = createBehavioralUnitProbe(root);
+      expect(probe("eslint.config.js")).toBe(false);
+      expect(probe("eslint.config.mjs")).toBe(false);
+      expect(probe("rules.ts")).toBe(true);
+      expect(probe(path.join(root, "rules.ts"))).toBe(true);
+      // An unreadable file keeps the extractor-based answer.
+      expect(probe("missing.ts")).toBe(true);
+      // Answers are cached per file.
+      rmSync(path.join(root, "eslint.config.js"));
+      expect(probe("eslint.config.js")).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
