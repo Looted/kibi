@@ -385,11 +385,11 @@ const CODE_SPANS = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
 
 /** The request's sentences, with code removed; a question keeps its `?`. */
 function requestSentences(prompt: string): string[] {
+  // An empty piece matches no rule phrase, so pieces are not filtered.
   return prompt
     .replace(CODE_SPANS, " ")
-    .split(/(?<=[.!?])\s+|\n+/)
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length > 0);
+    .split(/(?<=[.!?])\s|\n/)
+    .map((sentence) => sentence.trim());
 }
 
 /**

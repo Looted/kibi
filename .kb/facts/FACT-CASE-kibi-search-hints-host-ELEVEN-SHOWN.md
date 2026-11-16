@@ -2,7 +2,7 @@
 title: A search hints provider offers enough hits that 11 hints would be shown
 status: active
 fact_kind: property_value
-subject_key: kibi.search.hints
+subject_key: kibi.search.hint_limits
 property_key: max_shown_hints
 operator: eq
 value_type: int

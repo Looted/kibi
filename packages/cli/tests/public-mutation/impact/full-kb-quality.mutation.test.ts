@@ -780,6 +780,28 @@ describe("collectFullKbQualityDiagnostics", () => {
       expect(depth((await run(proof, broken)).diagnostics)).toEqual(plain);
   });
 
+  test("a workspace lets the coarse-anchor review skip files with no behavioral unit", async () => {
+    const coarse = (
+      diagnostics: readonly { id: string; entityId?: string }[],
+    ) =>
+      summary(diagnostics).filter((row) =>
+        row.startsWith("coarse_anchor_only_review"),
+      );
+    expect(coarse((await run()).diagnostics)).toEqual([
+      "coarse_anchor_only_review REQ-d",
+    ]);
+    const root = mkdtempSync(join(tmpdir(), "kibi-full-kb-"));
+    roots.push(root);
+    mkdirSync(join(root, "src"), { recursive: true });
+    writeFileSync(
+      join(root, "src", "file.ts"),
+      "export default [{ rules: {} }];\n",
+    );
+    expect(coarse((await run({ workspaceRoot: root })).diagnostics)).toEqual(
+      [],
+    );
+  });
+
   test("reads telemetry evidence beside the knowledge base", async () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-full-kb-"));
     roots.push(root);

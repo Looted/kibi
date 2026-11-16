@@ -72,7 +72,8 @@ export function writePendingSourceReceipt(
         version: 1,
         path: relativePath,
         afterHash,
-        ...(branch === undefined ? {} : { branch }),
+        // JSON leaves an undefined branch (outside a Git work tree) out.
+        branch,
         createdAt: new Date().toISOString(),
       },
       null,

@@ -2,12 +2,12 @@
 title: Offered by bootstrap at 50 requirement documents
 status: active
 fact_kind: property_value
-subject_key: kibi.plugins.search_hints_potion
+subject_key: kibi.search.hint_limits
 property_key: offer_min_requirements
 operator: eq
 value_type: int
 value_int: 50
-canonical_key: kibi.plugins.search_hints_potion.offer_min_requirements.eq.50
+canonical_key: kibi.search.hint_limits.offer_min_requirements.eq.50
 claim_key: CLAIM-A286FC226D97BF6F
 claim_text: The bootstrap plan must offer kibi-plugin-search-hints in replace mode when the KB holds 50 or more requirement documents and the project has neither activated nor declined it
 text_ref: packages/plugin-search-hints/src/index.ts

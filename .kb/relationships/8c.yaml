@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51470a01aae1
+  - type: assumes
+    from: SCEN-upsert-notes-missing-reason
+    to: FACT-upsert-notes-missing-reason
+    created_at: 2026-11-16T14:58:20.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-678aa582f032
+  - type: verified_by
+    from: SCEN-upsert-notes-missing-reason
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:20.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0af2366cd818

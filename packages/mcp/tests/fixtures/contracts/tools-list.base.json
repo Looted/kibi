@@ -3707,7 +3707,7 @@
                 "type": "string"
               },
               "rationale": {
-                "description": "Requirement-only: why the requirement exists, from whoever stated the intent; not part of the checked meaning.",
+                "description": "Requirement-only: why it exists, in the stater's words; send it in the same write when they gave one, never invent one.",
                 "minLength": 1,
                 "type": "string"
               },
