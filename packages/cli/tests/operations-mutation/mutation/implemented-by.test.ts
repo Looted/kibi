@@ -692,7 +692,11 @@ export function area(): number { return 1; }
   });
 
   test("reports the symbol writes in the counts and the written files", async () => {
-    const using = deps();
+    const using: {
+      -readonly [K in keyof ReturnType<typeof deps>]: ReturnType<
+        typeof deps
+      >[K];
+    } = deps();
     const write = (path: string, before: string | null, after: string) => ({
       path,
       beforeHash: before,
