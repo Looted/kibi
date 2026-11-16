@@ -301,7 +301,14 @@ export async function executeUpsertRequest(
   const payload = payloadOf(result);
   // A write that needs repair already names its own next steps.
   if (payload.status === "committed_with_repairs") return result;
-  const followUp = await captureFollowUp(captured, payload, context, reads);
+  // The write is committed: a store that fails a follow-up read leaves the
+  // result as the write returned it.
+  const followUp = await captureFollowUp(
+    captured,
+    payload,
+    context,
+    reads,
+  ).catch(() => ({ warnings: payload.warnings, nextActions: [] }));
   const related = await relatedCurrentRequirements(captured, context, reads);
   return {
     ...result,

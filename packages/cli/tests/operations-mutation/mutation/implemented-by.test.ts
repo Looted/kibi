@@ -594,6 +594,25 @@ describe("executeUpsertRequest", () => {
     expect(quiet.structuredContent).not.toHaveProperty("nextActions");
     expect(quiet.structuredContent).not.toHaveProperty("relatedRequirements");
 
+    // A store that fails a follow-up read leaves the write's own result.
+    const failing = await executeUpsertRequest(
+      req(undefined, { implementedBy: undefined }),
+      CONTEXT,
+      deps({
+        reads: {
+          ...reads,
+          entity: async () => {
+            throw new Error("Query failed");
+          },
+          currentRequirements: async () => [],
+        },
+      }),
+    );
+    expect(failing.structuredContent?.warnings).toEqual([
+      "warned REQ-key-expiry",
+    ]);
+    expect(failing.structuredContent).not.toHaveProperty("nextActions");
+
     // A dry run, a write needing repair and another type get no follow-up.
     const dry = await executeUpsertRequest(
       req(undefined, { implementedBy: undefined, dryRun: true }),
