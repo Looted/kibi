@@ -857,7 +857,7 @@ describe("the recorded reason on the Why line", () => {
     expect(fewer).toContain(" +1 more.");
     expect(fewer.endsWith("…")).toBe(false);
     const tight = update(fewer.length - 1);
-    expect(tight.split("\n")).toContain(reasonLine(lead, 160));
+    expect(tight.split("\n")).toContain(reasonLine(lead, 160) as string);
     expect(tight.endsWith("…")).toBe(false);
   });
 });
