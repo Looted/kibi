@@ -68,6 +68,7 @@ import { collectOriginReviewViolations } from "./origin-review.js";
 import { collectPositiveScenarioViolations } from "./positive-scenario.js";
 import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-conformance.js";
 import { collectProofContractClaimViolations } from "./proof-contract-claims.js";
+import { collectQuantityDuplicateViolations } from "./quantity-layer.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import {
   SOURCE_PATH_DANGLING_RULE,
@@ -475,6 +476,10 @@ export async function executeCheck(
       rulesAllowlist,
       workspaceRoot,
     );
+    const quantityFindings = collectQuantityDuplicateViolations(
+      rulesAllowlist,
+      workspaceRoot,
+    );
     const decisionFirmnessFindings = collectDecisionFirmnessViolations(
       rulesAllowlist,
       workspaceRoot,
@@ -510,6 +515,7 @@ export async function executeCheck(
       ...originReviewFindings,
       ...entityContextFindings,
       ...subjectLayerFindings,
+      ...quantityFindings,
       ...decisionFirmnessFindings,
       ...checkPolicyFindings,
       ...evidenceFloorFindings,

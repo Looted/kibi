@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23b9ee0ba743
+  - type: assumes
+    from: SCEN-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
+    to: FACT-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
+    created_at: 2026-11-16T16:10:33.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63bd6b35bb7b
+  - type: verified_by
+    from: SCEN-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:33.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23a629e51d38

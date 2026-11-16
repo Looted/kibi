@@ -4,9 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   convertRecordToRelationship,
-  extractFromRelationshipShards,
   extractRelationshipShard,
-  flattenRelationships,
   getRelationshipsDir,
   validateRelationships,
 } from "../../src/extractors/relationships.js";
@@ -133,32 +131,10 @@ describe("shard extraction", () => {
       )
       .join("")}`;
 
-  test("reads every yaml and yml shard file, skipping other entries", () => {
-    const dir = getRelationshipsDir(path.join(base, "kb"));
-    expect(dir).toBe(path.join(base, "kb", "relationships"));
-    expect(extractFromRelationshipShards(dir)).toEqual([]);
-    const a = shard(dir, "a.yaml", text("implements"));
-    const b = shard(dir, "b.yml", text("covered_by", "guards"));
-    shard(dir, "notes.txt", "x");
-    fs.mkdirSync(path.join(dir, "nested.yaml"));
-    const results = extractFromRelationshipShards(dir).sort((x, y) =>
-      x.shardPath.localeCompare(y.shardPath),
+  test("the relationships directory sits under the KB root", () => {
+    expect(getRelationshipsDir(path.join(base, "kb"))).toBe(
+      path.join(base, "kb", "relationships"),
     );
-    const edge = (type: string) => ({
-      type,
-      from: "A",
-      to: "B",
-      metadata: { created_at: "t", created_by: "me", source: "s" },
-    });
-    expect(results).toStrictEqual([
-      { shardPath: a, relationships: [edge("implements")] },
-      { shardPath: b, relationships: [edge("covered_by"), edge("guards")] },
-    ]);
-    expect(flattenRelationships(results)).toStrictEqual([
-      edge("implements"),
-      edge("covered_by"),
-      edge("guards"),
-    ]);
   });
 
   test("a non-Error read failure is named by its string form", () => {

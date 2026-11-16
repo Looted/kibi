@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-361edaa494f9
+  - type: implements
+    from: SYM-cli-quantity-duplicate-plan-quantity-duplicate-reviews
+    to: REQ-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T16:11:56.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d35d8b614831
+  - type: covered_by
+    from: SYM-cli-quantity-duplicate-plan-quantity-duplicate-reviews
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:56.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebe8778c623e

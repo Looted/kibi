@@ -1,5 +1,5 @@
 ---
-title: The latest knowledge base schema version shall be 18, by an arithmetic proof
+title: The latest knowledge base schema version shall be 19, by an arithmetic proof
 status: passing
 tags:
   - proof
@@ -18,7 +18,7 @@ proof_contract:
   value_source:
     - symbol_id: SYM-LATEST-KB-SCHEMA-VERSION
   proves:
-    - CLAIM-821C4C60E832D7CE
+    - CLAIM-1EA55F3F05AB0839
 origin:
   kind: agent
   recorded_at: '2026-10-29T10:58:21.157Z'
@@ -26,20 +26,20 @@ id: TEST-proof-latest-kb-schema-version
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-1df080835cb0b5b5f2cb1681
+    receipt_id: PR-aa2924c29a5f3969d75c47a1
     test_id: TEST-proof-latest-kb-schema-version
     scope: unit
     outcome: passed
-    code_snapshot: 6fd9a4bfa27027cd64e725c78e092bacee0c8b3d904976a0536b8181d7871dd0
+    code_snapshot: 33e9b5127d1136410947de6915da5077b98a759907759fce64f80416add4db45
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-13T07:26:55.277Z'
-    finished_at: '2026-11-13T07:26:55.428Z'
-    artifact_digest: 7fbb6dccbe392cbe157ff45f8818f6267f1612523ac1091039bcb021200a1f30
-    contract_hash: 405dd8b0ae7ec3e0c5a1e2e1fa9176d5c70fd0ce2268d5c33f120e4ab592187b
-    binding_hash: 444317445237058284c7633289587cf15fda9327ecf0d87e6965e6176f2d5874
-    fingerprint: b7fa7ac261ed040cdc90ec6c1cdf9b81f74db411c5e0806a6beacc9449dedcb1
+    started_at: '2026-11-16T15:58:41.068Z'
+    finished_at: '2026-11-16T15:58:41.171Z'
+    artifact_digest: c7c322faeaa32a057b935659a8ed7d51943b4dce1dcb9380601c39deae8d9168
+    contract_hash: 9f13cb1ec5202304f389b7f5664db639adfbddc60c647b6a25b617839eb232a7
+    binding_hash: fd4e1a5bb3a86a33cf7604ccf60ede9d3b38fe0310af8b32c7c7c46b39dc7be7
+    fingerprint: ea3151cc47c45c44c1c2684a197448b97f8d6385d22b79f9b3f19520766dac98
     fingerprint_components:
-      contract: 405dd8b0ae7ec3e0c5a1e2e1fa9176d5c70fd0ce2268d5c33f120e4ab592187b
+      contract: 9f13cb1ec5202304f389b7f5664db639adfbddc60c647b6a25b617839eb232a7
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -68,13 +68,13 @@ proof_receipts:
       value_type: int
       assumptions:
         - operator: eq
-          value: 18
+          value: 19
       claim:
         operator: eq
-        value: 18
-    certificate_digest: 4d047c9b8791eadf0e142d5ff85250da3c5c96d24e33b7d244843a5bbebeb306
+        value: 19
+    certificate_digest: 5053b1d18536db30bd517023c7962614fae79168ef3a5d8660da64f27a4d0a2f
     claim_bindings:
-      - claim_key: CLAIM-821C4C60E832D7CE
+      - claim_key: CLAIM-1EA55F3F05AB0839
         requirement_id: REQ-kibi-latest-kb-schema-version
         fact_id: FACT-latest-kb-schema-version
         binding: derived
@@ -82,7 +82,7 @@ proof_receipts:
         obligation:
           kind: numeric_constraint
           operator: eq
-          value: 18
+          value: 19
           value_type: int
           variable: latest_schema_version
 ---

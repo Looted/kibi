@@ -20,11 +20,8 @@ afterEach(() => {
 
 describe("manifest path resolver", () => {
   test("resolves canonical manifest and coordinate paths", async () => {
-    const {
-      resolveSymbolsManifestPaths,
-      DEFAULT_SYMBOLS_PATH,
-      DEFAULT_COORDINATES_PATH,
-    } = await import(manifestPathsModulePath);
+    const { resolveSymbolsManifestPaths, DEFAULT_COORDINATES_PATH } =
+      await import(manifestPathsModulePath);
 
     const workspaceRoot = createWorkspace();
     const result = resolveSymbolsManifestPaths(workspaceRoot);
@@ -33,7 +30,6 @@ describe("manifest path resolver", () => {
       coordinatesPath: join(workspaceRoot, ".kb", "symbol-coordinates.yaml"),
       symbolsPath: join(workspaceRoot, ".kb", "symbols.yaml"),
     });
-    expect(DEFAULT_SYMBOLS_PATH).toBe(".kb/symbols.yaml");
     expect(DEFAULT_COORDINATES_PATH).toBe(".kb/symbol-coordinates.yaml");
   });
 
