@@ -259,4 +259,54 @@ describe("kb_upsert judges a requirement update as its file will read", () => {
       }),
     ).toMatchObject({ status: "success" });
   }, 120_000);
+  test("completes partial semantic_inventory entries the writer sends for the claims it classifies", () => {
+    const workspace = createConsumerWorkspace("kibi-upsert-partial-inventory-");
+    ws = workspace;
+    const write = (id: string, extra: Json = {}, entries?: Json[]) =>
+      workspace.json(["upsert"], {
+        type: "req",
+        id,
+        properties: {
+          title: "Export retention",
+          status: "open",
+          semantic_text: PROSE,
+          ...(entries === undefined ? {} : { semantic_inventory: entries }),
+        },
+        ...extra,
+      });
+    // The claim key Kibi derives for this prose, from a preview.
+    const preview = write("REQ-export-retention-preview", { dryRun: true });
+    const [claim] = (preview.data as Json).inventoryApplied as Json[];
+    const claimKey = String(claim?.claim_key);
+    expect(claimKey).toMatch(/^CLAIM-[A-F0-9]{16}$/);
+    const partial = [
+      { claim_key: claimKey, status: "ontology_gap", subjects: ["export"] },
+    ];
+
+    const dryRun = write(ID, { dryRun: true }, partial);
+    expect(dryRun, JSON.stringify(dryRun)).toMatchObject({
+      status: "success",
+      data: { valid: true },
+    });
+    const written = write(ID, {}, partial);
+    expect(written, JSON.stringify(written)).toMatchObject({
+      status: "success",
+    });
+    expect((written.data as Json).inventoryApplied).toEqual([
+      expect.objectContaining({ claim_key: claimKey, status: "ontology_gap" }),
+    ]);
+    const file = workspace.read(`.kb/requirements/${ID}.md`);
+    expect(file).toContain("semantic_inventory_version:");
+    expect(file).toContain("status: ontology_gap");
+    expect(file).toMatch(/subjects:\n\s+- export/);
+
+    // An entry for a claim the prose does not state is still refused.
+    const stale = write(`${ID}-stale`, {}, [
+      { claim_key: "CLAIM-0000000000000000", status: "ontology_gap" },
+    ]);
+    expect(stale.status).toBe("error");
+    expect(JSON.stringify(stale.error)).toContain(
+      "names claim key(s) CLAIM-0000000000000000 that the prose",
+    );
+  }, 120_000);
 });

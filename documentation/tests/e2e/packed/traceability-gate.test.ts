@@ -607,6 +607,7 @@ if (RUN_NODE_TEST_SUITE) {
           ".kb/manifest.json",
           "AGENTS.md",
           "CLAUDE.md",
+          "GEMINI.md",
           ".kb/schema/entities.pl",
           ".kb/schema/relationships.pl",
           ".kb/schema/validation.pl",
@@ -654,6 +655,12 @@ if (RUN_NODE_TEST_SUITE) {
             {
               id: "staged_file_ownership_missing",
               path: "CLAUDE.md",
+              severity: "warning",
+              blocking: false,
+            },
+            {
+              id: "staged_file_ownership_missing",
+              path: "GEMINI.md",
               severity: "warning",
               blocking: false,
             },
