@@ -111,7 +111,7 @@ describe("kibi proof subcommands", () => {
     Reflect.deleteProperty(process.env, "KIBI_PROOF_WORKSPACE");
     await run("proof", "run-steps", "s.json", "--test", "A", "B");
     expect(plainCalls(spy)).toStrictEqual([
-      [{ workspaceRoot: "/ws", stepsPath: "proof/steps.json" }],
+      [{ workspaceRoot: "/ws" }],
       [
         {
           workspaceRoot: process.cwd(),

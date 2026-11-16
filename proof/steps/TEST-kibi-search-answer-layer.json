@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-search-answer-layer",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/search-answer-layer.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-mcp-conditional-input-validation",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/mcp/tests/server/kb-upsert-claim-conditional.test.ts",
+      "./packages/mcp/tests/server/json-schema-to-zod-remaining.coverage.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-cli-canonical-runtime",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/init-sync-check.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/cli/tests/operations/workspace-path-alias.test.ts"
+    ]
+  ]
+}

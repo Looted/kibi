@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-proof-test-report-env",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/proof-step-settings.proof.test.ts"
+    ]
+  ]
+}

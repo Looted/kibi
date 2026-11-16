@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-ci-integration-system-swipl",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/ci-system-swipl-job.proof.test.ts"
+    ]
+  ]
+}

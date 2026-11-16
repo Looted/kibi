@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-vscode-container-id",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/vscode-extension-ids.proof.test.ts"
+    ]
+  ]
+}

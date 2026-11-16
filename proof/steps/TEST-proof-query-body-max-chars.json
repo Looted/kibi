@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-query-body-max-chars",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-supersession-cycle-review-code",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+    ]
+  ]
+}

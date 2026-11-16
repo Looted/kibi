@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-compile-plan-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/plan-document-versions.proof.test.ts"
+    ]
+  ]
+}

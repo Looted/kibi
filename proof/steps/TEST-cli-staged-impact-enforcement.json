@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-cli-staged-impact-enforcement",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/traceability-gate.test.ts"
+    ]
+  ]
+}

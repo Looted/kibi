@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-origin-review-rules",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/entity-origin-vocabulary.proof.test.ts"
+    ]
+  ]
+}

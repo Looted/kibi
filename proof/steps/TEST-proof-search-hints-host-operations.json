@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-search-hints-host-operations",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/search-hints-host-operations.proof.test.ts"
+    ]
+  ]
+}

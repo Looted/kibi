@@ -1557,7 +1557,17 @@ which every test passed is also `per_test`. Kibi's own
 ### `kibi proof run-steps`
 
 Projects do not need their own producer script. Declare each proof-bearing
-test's steps (argv arrays, no shell) in `proof/steps.json`:
+test's steps (argv arrays, no shell) in its own file under `proof/steps/`,
+named after the test id. `proof/steps/TEST-checkout.json`:
+
+```json
+{ "test_id": "TEST-checkout", "steps": [["bun", "test", "./tests/checkout.test.ts"]] }
+```
+
+One file per test means two branches that each add a test never edit the same
+file, so their merges do not conflict. A file whose `test_id` differs from its
+name is refused. When `proof/steps/` does not exist, Kibi reads
+`proof/steps.json` instead, one JSON array of the same entries:
 
 ```json
 [
@@ -1565,6 +1575,9 @@ test's steps (argv arrays, no shell) in `proof/steps.json`:
   { "test_id": "TEST-cart", "steps": [["node", "--test", "tests/cart.test.js"]] }
 ]
 ```
+
+To move an existing project, write each entry of `proof/steps.json` to
+`proof/steps/<test_id>.json` and delete `proof/steps.json`.
 
 and make `kibi proof run-steps` the integration's command:
 

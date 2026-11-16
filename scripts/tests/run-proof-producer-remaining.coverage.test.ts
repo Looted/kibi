@@ -71,6 +71,78 @@ describe("proof step validation", () => {
       { test_id: "TEST-a", steps: [["true"]] },
     ]);
   });
+
+  test("reads proof/steps, one file per test, before proof/steps.json", () => {
+    const root = tempDir();
+    const directory = path.join(root, "proof", "steps");
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(
+      path.join(root, "proof", "steps.json"),
+      JSON.stringify([{ test_id: "TEST-old", steps: [["false"]] }]),
+    );
+    writeFileSync(
+      path.join(directory, "TEST-b.json"),
+      JSON.stringify({ test_id: "TEST-b", steps: [["b"]] }),
+    );
+    writeFileSync(
+      path.join(directory, "TEST-a.json"),
+      JSON.stringify({ test_id: "TEST-a", steps: [["a"]] }),
+    );
+    writeFileSync(path.join(directory, "README.md"), "not a steps file\n");
+    expect(loadProofSteps(root)).toStrictEqual([
+      { test_id: "TEST-a", steps: [["a"]] },
+      { test_id: "TEST-b", steps: [["b"]] },
+    ]);
+  });
+
+  test("refuses a steps file whose test_id is not its file name", () => {
+    const root = tempDir();
+    const directory = path.join(root, "proof", "steps");
+    mkdirSync(directory, { recursive: true });
+    const file = path.join(directory, "TEST-a.json");
+    writeFileSync(file, JSON.stringify({ test_id: "TEST-b", steps: [["b"]] }));
+    expect(() => loadProofSteps(root)).toThrow(
+      `run-proof-producer: ${file} declares test_id "TEST-b"; a proof steps file must hold one {test_id, steps} object whose test_id is its file name`,
+    );
+    writeFileSync(
+      file,
+      JSON.stringify([{ test_id: "TEST-a", steps: [["a"]] }]),
+    );
+    expect(() => loadProofSteps(root)).toThrow(
+      `run-proof-producer: ${file} declares test_id undefined;`,
+    );
+    writeFileSync(file, "null");
+    expect(() => loadProofSteps(root)).toThrow(
+      `run-proof-producer: ${file} declares test_id undefined;`,
+    );
+    writeFileSync(file, "{");
+    expect(() => loadProofSteps(root)).toThrow(
+      `run-proof-producer: unable to read ${file}: `,
+    );
+  });
+
+  test("an empty proof/steps directory has no steps", () => {
+    const root = tempDir();
+    mkdirSync(path.join(root, "proof", "steps"), { recursive: true });
+    writeFileSync(
+      path.join(root, "proof", "steps.json"),
+      JSON.stringify([{ test_id: "TEST-old", steps: [["true"]] }]),
+    );
+    expect(() => loadProofSteps(root)).toThrow("run-proof-producer:");
+  });
+
+  test("a proof/steps file that is not a directory falls back to steps.json", () => {
+    const root = tempDir();
+    mkdirSync(path.join(root, "proof"));
+    writeFileSync(path.join(root, "proof", "steps"), "");
+    writeFileSync(
+      path.join(root, "proof", "steps.json"),
+      JSON.stringify([{ test_id: "TEST-a", steps: [["true"]] }]),
+    );
+    expect(loadProofSteps(root)).toStrictEqual([
+      { test_id: "TEST-a", steps: [["true"]] },
+    ]);
+  });
 });
 
 describe("terminating a proof step", () => {

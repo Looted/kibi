@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-e2e-skillopt-trust-boundaries",
+  "steps": [
+    [
+      "bun",
+      "run",
+      "documentation/tests/e2e/skillopt-trust-boundaries.e2e.ts"
+    ]
+  ]
+}

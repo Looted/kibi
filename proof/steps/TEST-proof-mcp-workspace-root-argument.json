@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-mcp-workspace-root-argument",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/mcp-workspace-argument.proof.test.ts"
+    ]
+  ]
+}

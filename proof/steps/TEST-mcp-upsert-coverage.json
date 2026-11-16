@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-mcp-upsert-coverage",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/mcp-crud.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-signoff-latest-json",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/signoff-latest-views.proof.test.ts"
+    ]
+  ]
+}

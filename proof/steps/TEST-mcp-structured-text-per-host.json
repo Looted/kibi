@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-mcp-structured-text-per-host",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/mcp/tests/server/structured-text-host.test.ts",
+      "./packages/mcp/tests/server/tools-coverage.test.ts"
+    ]
+  ]
+}

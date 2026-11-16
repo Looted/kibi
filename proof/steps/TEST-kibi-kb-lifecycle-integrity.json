@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-kb-lifecycle-integrity",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/commands/migrate-lifecycle.test.ts"
+    ]
+  ]
+}

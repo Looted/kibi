@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-code-certificate-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/code-certificate-settings.proof.test.ts"
+    ]
+  ]
+}

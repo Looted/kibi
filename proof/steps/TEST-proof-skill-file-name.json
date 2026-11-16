@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-skill-file-name",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/skill-file-limits.proof.test.ts"
+    ]
+  ]
+}

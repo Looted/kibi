@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-search-hints-model-id",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/search-hints-model-pin.proof.test.ts"
+    ]
+  ]
+}

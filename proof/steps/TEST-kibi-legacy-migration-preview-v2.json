@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-legacy-migration-preview-v2",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/operations/legacy-migration-plan.test.ts"
+    ]
+  ]
+}
