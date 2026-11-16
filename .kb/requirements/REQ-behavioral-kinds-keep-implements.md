@@ -3,14 +3,16 @@ title: Functions and function-valued variables keep the staged implements rule
 status: open
 priority: must
 required_evidence: tested
-semantic_text: kibi check --staged must accept a changed declaration's record without an implements link only when its symbol_role is structural, type-shape, config or module and its extracted kind is not function, class, method, property or accessor and is not a callable variable.
+semantic_text: kibi check --staged must accept a changed declaration's record without an implements link only when its symbol_role is structural, type-shape, config or module and its extracted kind is not function, class, method, property or accessor and is not a callable variable. The extracted symbol kinds that always need an implements link shall be function, class, method, property and accessor.
 semantic_clauses:
   - kibi check --staged must accept a changed declaration's record without an implements link only when its symbol_role is structural, type-shape, config or module and its extracted kind is not function, class, method, property or accessor and is not a callable variable.
+  - The extracted symbol kinds that always need an implements link shall be function, class, method, property and accessor.
 logic_claims:
   - CLAIM-217D1C9ABB2E22CB
+  - CLAIM-90076AA08D1342F3
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: b4ea27078dd2707fb9d5ebe735198b57b398fd315056b73465ab78c76b74d0ee
+semantic_source_hash: 654750a8dd5932328130bdaba5e12eccf7e8c7890b42256241f72c96e3b1f7a3
 semantic_inventory:
   - claim_key: CLAIM-217D1C9ABB2E22CB
     claim_text: kibi check --staged must accept a changed declaration's record without an implements link only when its symbol_role is structural, type-shape, config or module and its extracted kind is not function, class, method, property or accessor and is not a callable variable
@@ -19,7 +21,13 @@ semantic_inventory:
     span:
       start: 0
       end: 266
-    reason: Grounded by the linked fact with this claim key.
+  - claim_key: CLAIM-90076AA08D1342F3
+    claim_text: The extracted symbol kinds that always need an implements link shall be function, class, method, property and accessor
+    role: normative
+    status: modeled
+    span:
+      start: 268
+      end: 386
 tags:
   - staged-gate
   - symbols
@@ -32,7 +40,7 @@ origin:
 id: REQ-behavioral-kinds-keep-implements
 type: req
 ---
-kibi check --staged must accept a changed declaration's record without an implements link only when its symbol_role is structural, type-shape, config or module and its extracted kind is not function, class, method, property or accessor and is not a callable variable.
+kibi check --staged must accept a changed declaration's record without an implements link only when its symbol_role is structural, type-shape, config or module and its extracted kind is not function, class, method, property or accessor and is not a callable variable. The extracted symbol kinds that always need an implements link shall be function, class, method, property and accessor.
 
 ## Context
 
@@ -41,3 +49,5 @@ A benchmark run of agents working in an onboarded open-source repository showed 
 ## Source
 
 > Maintainer, in review on 2026-11-16: approved this requirement statement in its reworded form.
+
+Maintainer-approved addition (2026-11-16), naming the set as its own sentence so a certificate can prove it: "The extracted symbol kinds that always need an implements link shall be function, class, method, property and accessor."

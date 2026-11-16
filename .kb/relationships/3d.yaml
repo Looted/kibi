@@ -314,3 +314,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82035f5d8c2c
+  - type: covered_by
+    from: SYM-const-staged-passing-review-states
+    to: TEST-proof-staged-passing-review-states
+    created_at: 2026-11-16T11:04:48.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95c86c277fda
