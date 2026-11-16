@@ -274,8 +274,26 @@ describe("createFirmEditGateDiagnostics", () => {
       files: ["src/keys.ts"],
       docs: ["docs/entity-schema.md"],
       message: `The change edits code that implements REQ-key-expiry, a firm rule the person set, without a current review of that code: expireKey in src/keys.ts (no review recorded); renderKey in src/keys.ts (no review recorded). Statement: "${STATEMENT}"`,
-      suggestion:
-        'Read the changed code against REQ-key-expiry. If it still does what REQ-key-expiry says, record that with kb_review_firm_edit (CLI: kibi review-firm-edit) and verdict "keeps" and a one-line note; this receipt is the agent\'s judgment, not the person\'s approval. If it no longer does, record verdict "changes" and ask the person before keeping the change.',
+      suggestion: `Read the changed code against REQ-key-expiry. If it still does what REQ-key-expiry says, write a one-line note on why into this input and pipe it to kibi review-firm-edit --input -, then stage the receipt it writes: ${JSON.stringify(
+        {
+          reviews: [
+            {
+              requirementId: "REQ-key-expiry",
+              sourceFile: "src/keys.ts",
+              symbol: "expireKey",
+              verdict: "keeps",
+              note: "",
+            },
+            {
+              requirementId: "REQ-key-expiry",
+              sourceFile: "src/keys.ts",
+              symbol: "renderKey",
+              verdict: "keeps",
+              note: "",
+            },
+          ],
+        },
+      )}. The receipt is your judgment, not the person's approval. If the change no longer does what REQ-key-expiry says, set verdict "changes" and ask the person before keeping the change.`,
       evidence: {
         requirement: "REQ-key-expiry",
         statement: STATEMENT,
@@ -289,11 +307,15 @@ describe("createFirmEditGateDiagnostics", () => {
               requirementId: "REQ-key-expiry",
               sourceFile: "src/keys.ts",
               symbol: "expireKey",
+              verdict: "keeps",
+              note: "",
             },
             {
               requirementId: "REQ-key-expiry",
               sourceFile: "src/keys.ts",
               symbol: "renderKey",
+              verdict: "keeps",
+              note: "",
             },
           ],
         },

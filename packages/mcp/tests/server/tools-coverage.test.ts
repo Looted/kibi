@@ -82,7 +82,6 @@ const TOOL_NAMES = [
   "kb_delete",
   "kb_check",
   "kb_prepare_impact_review",
-  "kb_review_firm_edit",
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",

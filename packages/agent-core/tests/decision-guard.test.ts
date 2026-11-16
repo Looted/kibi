@@ -663,7 +663,7 @@ describe("firm edit texts", () => {
     expect(firmEditNotice("src/a.ts", [firm])).toBe(
       [
         "Kibi: this edit changes src/a.ts, which implements a firm requirement, a rule the person set: REQ-a: Only admins delete.",
-        'Unless the edit keeps that rule, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kb_review_firm_edit ("keeps" or "changes"; CLI: kibi review-firm-edit). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person\'s approval.',
+        'Unless the edit keeps that rule, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kibi review-firm-edit ("keeps" or "changes"). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person\'s approval.',
       ].join("\n"),
     );
     const many = firmEditNotice("src/a.ts", [firm, untitled, third]);

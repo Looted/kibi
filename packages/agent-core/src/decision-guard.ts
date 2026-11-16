@@ -354,7 +354,7 @@ export function firmEditContext(ids: readonly string[]): string {
   return [
     `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
     "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " +
-      `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kb_review_firm_edit and retry: a current keeps receipt stops this question for that code. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`,
+      `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a current keeps receipt stops this question for that code. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`,
   ].join("\n");
 }
 
@@ -451,7 +451,7 @@ export function firmEditNotice(
   return [
     `Kibi: this edit changes ${where}, which implements ${one ? "a firm requirement" : "firm requirements"}, a rule the person set: ${shown.join("; ")}${more}.`,
     `Unless the edit keeps ${one ? "that rule" : "those rules"}, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. ` +
-      `After the edit, record your verdict for each edited symbol with kb_review_firm_edit ("keeps" or "changes"; CLI: kibi review-firm-edit). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person's approval.`,
+      `After the edit, record your verdict for each edited symbol with kibi review-firm-edit ("keeps" or "changes"). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person's approval.`,
   ].join("\n");
 }
 

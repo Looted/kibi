@@ -13,7 +13,7 @@ import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
 /**
  * A change to code that implements a firm requirement, a rule the person
  * set, is blocked until the agent records its verdict on that code with
- * `kb_review_firm_edit`: a `keeps` receipt bound to the requirement's
+ * `kibi review-firm-edit`: a `keeps` receipt bound to the requirement's
  * current statement and the symbol's current code clears it, a `changes`
  * receipt keeps it blocked until the requirement is superseded. This runs in
  * `kibi check --staged`, so it holds on every host and without one.
@@ -175,7 +175,10 @@ export function createFirmEditGateDiagnostics(
       requirementId: id,
       sourceFile: symbol.location.file,
       symbol: symbol.name,
+      verdict: "keeps",
+      note: "",
     }));
+    const reviewInput = { reviews };
     diagnostics.push({
       id: breaks ? "firm_edit_breaks_rule" : "firm_edit_unreviewed",
       severity: "error",
@@ -191,7 +194,7 @@ export function createFirmEditGateDiagnostics(
         : `The change edits code that implements ${id}, a firm rule the person set, without a current review of that code: ${listed}. Statement: "${statement.replace(/\s+/g, " ").trim()}"`,
       suggestion: breaks
         ? `Ask the person whether ${id} should change. With their words, supersede ${id} with kb_upsert (a new requirement with a supersedes link and their words in origin.ref) in this change; otherwise undo the edit.`
-        : `Read the changed code against ${id}. If it still does what ${id} says, record that with kb_review_firm_edit (CLI: kibi review-firm-edit) and verdict "keeps" and a one-line note; this receipt is the agent's judgment, not the person's approval. If it no longer does, record verdict "changes" and ask the person before keeping the change.`,
+        : `Read the changed code against ${id}. If it still does what ${id} says, write a one-line note on why into this input and pipe it to kibi review-firm-edit --input -, then stage the receipt it writes: ${JSON.stringify(reviewInput)}. The receipt is your judgment, not the person's approval. If the change no longer does what ${id} says, set verdict "changes" and ask the person before keeping the change.`,
       evidence: {
         requirement: id,
         statement: statement.replace(/\s+/g, " ").trim(),
@@ -200,7 +203,7 @@ export function createFirmEditGateDiagnostics(
           symbol: symbol.name,
           state: review.state,
         })),
-        reviewInput: { reviews },
+        reviewInput,
       },
     });
   }

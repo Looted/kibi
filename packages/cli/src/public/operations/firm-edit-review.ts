@@ -32,7 +32,7 @@ import { readWorkspaceRequirement } from "../impact/requirement-statements.js";
 import type { OperationContext, OperationResult } from "./types.js";
 
 /**
- * `kb_review_firm_edit`: record the agent's verdict that its change to a
+ * `kb_review_firm_edit` (CLI `kibi review-firm-edit`, not an MCP tool): record the agent's verdict that its change to a
  * symbol implementing a current firm requirement keeps that rule or changes
  * it. Each receipt is one file under `.kb/firm-edit-reviews/`, bound to the
  * requirement's statement and the symbol's code as they are now, so it stops
