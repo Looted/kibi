@@ -57,6 +57,12 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - **Semantic advisor receipts:** MCP preflight and write responses may warn that prose looks machine-checkable but unmodeled, and may include draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions. These suggestions are advisory. They do not add contradiction semantics unless the requirement is linked to strict facts or predicate facts.
 - **Automation:** The modeling pipeline is fully automated and does not require human approval for high-confidence (>= 0.7) claims.
 
+### Writes the contradiction check refuses
+
+`kb_upsert` runs the check at commit time and in its dry run. A requirement write is refused when the requirement contradicts any current requirement. A fact write is refused when it makes two current requirements grounded on the fact (`requires_property`, `requires_predicate`, `requires_rule` or `constrains`, from the store or from the write's own relationships) contradict where they did not before; a contradiction the KB already held is `kb_check`'s finding and does not block an unrelated edit of the fact. The refusal (`SEMANTIC_CONTRADICTION`) names every pair. `kb_apply_plan` stages every step and then runs the check once for the whole plan, so a change to a fact and to the requirement it would otherwise conflict with lands together.
+
+A value fact write that is accepted, and changes the fact's operator, value or unit or creates the fact, lists the other current requirements on the same quantity under `siblings`: those grounded on the fact (`shared_fact`), and those grounded on another fact with the same `subject_key` and `property_key`, or on a fact the `quantity-duplicate` pairing below matches by the value before or after the write (`same_quantity`). Each entry has the requirement's id, title and firmness, the fact, its subject, property and value, the requirement's claim text, and `statesOldValue`: the claim text still contains the old value and not the new one (a literal comparison), or a `same_quantity` fact still holds the old value. Each sibling is also the first lines of `warnings` and a required `kb_upsert` entry in `nextActions`: update a `default` or `exploratory` sibling to the new value in the same change, ask the person before touching a `firm` one, and supersede or scope the requirements when the person's change does not cover a sibling.
+
 ### Rule (logic IR) conflicts
 
 Typed `kibi.logic.v1` rules with opposing modalities (oblige or permit vs forbid) are compared three-valued:

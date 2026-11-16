@@ -194,6 +194,20 @@
               "type": "object",
               "additionalProperties": true
             }
+          },
+          "siblings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "nextActions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
           }
         }
       },

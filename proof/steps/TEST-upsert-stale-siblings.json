@@ -1,0 +1,22 @@
+{
+  "test_id": "TEST-upsert-stale-siblings",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/stale-siblings.test.ts",
+      "./packages/cli/tests/operations-mutation/mutation/sibling-requirements.test.ts"
+    ],
+    [
+      "swipl",
+      "-q",
+      "-g",
+      "load_test_files([]),run_tests(kb_wrapper_coverage_gaps:[fact_write_that_makes_its_requirements_contradict_is_refused,fact_write_keeps_a_contradiction_the_kb_already_holds,fact_write_linking_a_new_requirement_is_checked,batch_checks_contradictions_once_after_every_entry]),halt",
+      "-t",
+      "halt(1)",
+      "packages/core/tests/kb.plt"
+    ]
+  ]
+}
