@@ -454,3 +454,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c264c23c4db2
+  - type: implements
+    from: SYM-kb-merge-action-merge-one
+    to: REQ-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:22:35.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68a41560573b
+  - type: covered_by
+    from: SYM-kb-merge-action-merge-one
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:22:35.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-515823a9acf9
+  - type: executable_for
+    from: SYM-kb-merge-fixture-manifest-conflict
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:29:33.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f74b6992120c
+  - type: executable_for
+    from: SYM-kb-merge-fixture-manifest-conflict
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:29:33.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6017adddc2cb
