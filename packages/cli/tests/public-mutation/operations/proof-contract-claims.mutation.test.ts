@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { useCoreModuleGoal } from "../../../src/prolog/codec.js";
 import {
   CLAIM_BINDING_SCHEMA_VERSION,
   PROOF_CONTRACT_CLAIMS_RULE,
@@ -111,7 +112,7 @@ describe("readProofContractClaimIssues", () => {
       await readProofContractClaimIssues(context({ prolog: port })),
     ).toStrictEqual(ISSUES);
     expect(goals).toStrictEqual([
-      "(use_module('/core/src/claim_obligations.pl'), claim_obligations:proof_contract_claim_issues_json(JsonString))",
+      `(${useCoreModuleGoal("/core/src/claim_obligations.pl")}, claim_obligations:proof_contract_claim_issues_json(JsonString))`,
     ]);
   });
 

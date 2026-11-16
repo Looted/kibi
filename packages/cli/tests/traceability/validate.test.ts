@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import path from "node:path";
 import { resolveKbPlPath } from "../../src/prolog.js";
+import { useCoreModuleGoal } from "../../src/prolog/codec.js";
 import {
   type Violation,
   __test__,
@@ -267,10 +268,7 @@ function coverageProlog(
 }
 
 describe("traceability/validate symbol coverage", () => {
-  const checksPl = path
-    .join(path.dirname(resolveKbPlPath()), "checks.pl")
-    .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'");
+  const checksPl = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
 
   it("runs the full-check coverage rule over sorted unique extra symbols", async () => {
     const goals: string[] = [];
@@ -288,7 +286,7 @@ describe("traceability/validate symbol coverage", () => {
       extraSymbolIds: ["SYM-b", "SYM-a", "SYM-b"],
     });
     expect(goals).toStrictEqual([
-      `(use_module('${checksPl}'), call(checks:check_changed_symbol_coverage(['SYM-a','SYM-b'], Violations)))`,
+      `(${useCoreModuleGoal(checksPl)}, call(checks:check_changed_symbol_coverage(['SYM-a','SYM-b'], Violations)))`,
     ]);
     expect(violations).toStrictEqual([
       {

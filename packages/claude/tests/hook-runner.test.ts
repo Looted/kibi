@@ -16,7 +16,7 @@ import {
   type HookOutput,
   runHook,
 } from "../src/hook-runner";
-import { MAX_SNIPPET_CHARS } from "../src/snippets";
+import { MAX_SNIPPET_CHARS, ruleCaptureTemplate } from "../src/snippets";
 import {
   CHECKOUT_SOURCE,
   COORDINATES_YAML,
@@ -30,6 +30,29 @@ import {
 
 afterEach(cleanupTempDirs);
 
+/** Turns the fixture into a real git work tree with everything committed. */
+function commitAll(fixture: Fixture): void {
+  fs.rmSync(path.join(fixture.root, ".git"), { recursive: true });
+  const git = (...args: string[]) => {
+    const result = spawnSync("git", args, {
+      cwd: fixture.root,
+      encoding: "utf8",
+    });
+    expect(result.status, result.stderr).toBe(0);
+  };
+  write(fixture.root, ".gitignore", ".kb/usage.log\n");
+  git("init", "-q");
+  git("add", "-A");
+  git(
+    "-c",
+    "user.email=dev@example.test",
+    "-c",
+    "user.name=Dev",
+    "commit",
+    "-qm",
+    "fixture",
+  );
+}
 /** Relationship shard holding a `from` id's records, as the Kibi writer names it. */
 function shardOf(entityId: string): string {
   return createHash("sha256").update(entityId).digest("hex").slice(0, 2);
@@ -730,30 +753,6 @@ describe("stop reminders", () => {
 });
 
 describe("shell commands", () => {
-  /** Turns the fixture into a real git work tree with everything committed. */
-  function commitAll(fixture: Fixture): void {
-    fs.rmSync(path.join(fixture.root, ".git"), { recursive: true });
-    const git = (...args: string[]) => {
-      const result = spawnSync("git", args, {
-        cwd: fixture.root,
-        encoding: "utf8",
-      });
-      expect(result.status, result.stderr).toBe(0);
-    };
-    write(fixture.root, ".gitignore", ".kb/usage.log\n");
-    git("init", "-q");
-    git("add", "-A");
-    git(
-      "-c",
-      "user.email=dev@example.test",
-      "-c",
-      "user.name=Dev",
-      "commit",
-      "-qm",
-      "fixture",
-    );
-  }
-
   /** Sets a file's modification time `seconds` in the past. */
   function age(fixture: Fixture, relativePath: string, seconds: number): void {
     const past = new Date(Date.now() - seconds * 1000);
@@ -1192,18 +1191,29 @@ describe("decision capture", () => {
     expect(other).toContain("nothing recorded is known to cover it");
   });
 
-  test("a session that changed source and recorded nothing is asked once at stop to record the decision or say there was none", async () => {
+  test("a rule session that changed source and recorded nothing is asked once at stop for the rule, quoting its phrase, with no way out", async () => {
     const fixture = createKibiWorkspace();
     await prompt(fixture, "Totals must never be negative.");
     const { post, stop } = session(fixture);
     await post("Edit", { file_path: "src/checkout.ts" });
     const text = await stop();
     expect(text).toStartWith(
-      "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base.",
+      [
+        'Kibi: the person\'s request said "must", this session changed source files, and nothing was recorded in the knowledge base.',
+        'Record the rule behind "must" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "must" is not a rule.',
+      ].join("\n"),
     );
-    expect(text).toContain("the final report says so in one line");
+    expect(text).not.toContain("when there was none");
     expect(text).toContain(IMPACT_REMINDER);
     expect(await stop()).toBeUndefined();
+
+    const plain = createKibiWorkspace();
+    await prompt(plain, "Rename the helper to sum.");
+    const noRule = session(plain);
+    await noRule.post("Edit", { file_path: "src/checkout.ts" });
+    expect(await noRule.stop()).toStartWith(
+      "Kibi: this session changed source files and recorded nothing in the knowledge base.\nA decision the person stated or this change made",
+    );
 
     const recorded = createKibiWorkspace();
     const withRecord = session(recorded);
@@ -1217,6 +1227,95 @@ describe("decision capture", () => {
       includeWorkingTreeDiff: true,
     });
     expect(await withRecord.stop()).toBeUndefined();
+  });
+
+  test("the first source edit of a rule session gets the kb_upsert capture template once", async () => {
+    const fixture = createKibiWorkspace();
+    await prompt(fixture, "Totals must never be negative.");
+    const { post } = session(fixture);
+    expect(await post("Edit", { file_path: "README.md" })).toEqual({});
+    const first = contextOf(
+      await post("Edit", { file_path: "src/checkout.ts" }),
+      "PostToolUse",
+    );
+    expect(first).toBe(ruleCaptureTemplate("must"));
+    expect(await post("Edit", { file_path: "src/checkout.ts" })).toEqual({});
+
+    // A shell write is a source edit too.
+    const shell = createKibiWorkspace();
+    commitAll(shell);
+    await prompt(shell, "Totals must never be negative.", "s-sh");
+    const viaShell = session(shell, "s-sh");
+    await viaShell.pre("Bash", { command: "sed -i s/a/b/ src/refunds.ts" });
+    write(shell.root, "src/refunds.ts", "export const refund = 1;\n");
+    // The unlinked file's note comes first; the template waits for the next
+    // source edit, so one context stays within the budget.
+    const unlinked = contextOf(
+      await viaShell.post("Bash", {
+        command: "sed -i s/a/b/ src/refunds.ts",
+      }),
+      "PostToolUse",
+    );
+    expect(unlinked).toContain("src/refunds.ts");
+    expect(unlinked).not.toContain("fill in this template");
+    await viaShell.pre("Bash", { command: "sed -i s/b/c/ src/refunds.ts" });
+    write(shell.root, "src/refunds.ts", "export const refund = 2;\n");
+    expect(
+      contextOf(
+        await viaShell.post("Bash", {
+          command: "sed -i s/b/c/ src/refunds.ts",
+        }),
+        "PostToolUse",
+      ),
+    ).toBe(ruleCaptureTemplate("must"));
+
+    // A shell command that changes a test file and a source file, or runs
+    // a Kibi lookup that is not a write, still gets the template.
+    for (const command of [
+      "sed -i s/a/b/ tests/checkout.test.ts src/checkout.ts",
+      "npx --no-install kibi search --input q.json && sed -i s/a/b/ src/checkout.ts",
+    ]) {
+      const mixed = createKibiWorkspace();
+      commitAll(mixed);
+      await prompt(mixed, "Totals must never be negative.", "s-mix");
+      const run = session(mixed, "s-mix");
+      // The files' knowledge was shown before the edit, so the shell edit
+      // has no note of its own.
+      await run.pre("Edit", { file_path: "src/checkout.ts" });
+      await run.pre("Edit", { file_path: "tests/checkout.test.ts" });
+      await run.pre("Bash", { command });
+      write(mixed.root, "tests/checkout.test.ts", "// changed\n");
+      write(mixed.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// mixed\n`);
+      expect(
+        contextOf(await run.post("Bash", { command }), "PostToolUse"),
+      ).toContain(ruleCaptureTemplate("must"));
+    }
+
+    // No template without a rule, or once something is recorded.
+    const plain = createKibiWorkspace();
+    await prompt(plain, "Rename the helper to sum.");
+    expect(
+      await session(plain).post("Edit", { file_path: "src/checkout.ts" }),
+    ).toEqual({});
+    const recorded = createKibiWorkspace();
+    await prompt(recorded, "Totals must never be negative.");
+    const withRecord = session(recorded);
+    await withRecord.post("mcp__kibi__kb_upsert", { type: "req", id: "REQ-x" });
+    expect(
+      await withRecord.post("Edit", { file_path: "src/checkout.ts" }),
+    ).toEqual({});
+    // A shell command that records and edits at once is not sent the template.
+    const both = createKibiWorkspace();
+    commitAll(both);
+    await prompt(both, "Totals must never be negative.", "s-both");
+    const together = session(both, "s-both");
+    const command =
+      "sed -i s/a/b/ src/checkout.ts && npx --no-install kibi upsert --input req.json";
+    await together.pre("Bash", { command });
+    write(both.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// both\n`);
+    expect(
+      contextOf(await together.post("Bash", { command }), "PostToolUse") ?? "",
+    ).not.toContain("fill in this template");
   });
 
   test("a session that wrote a requirement is asked once at stop for a signoff view, unless kibi signoff ran since", async () => {

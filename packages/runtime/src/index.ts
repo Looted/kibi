@@ -231,6 +231,7 @@ export { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
 export {
   escapeAtomContent,
   splitTopLevel,
+  useCoreModuleGoal,
 } from "kibi-cli/prolog/codec";
 // The socket request envelope is intentionally not part of the runtime public
 // surface; adapters use EnginePort and EngineCommandV1 instead.

@@ -37,7 +37,7 @@ import {
   createCapabilityRegistry,
 } from "../../plugins/registry.js";
 import { resolveKbPlPath } from "../../prolog.js";
-import { escapeAtom, toPrologAtom } from "../../prolog/codec.js";
+import { toPrologAtom, useCoreModuleGoal } from "../../prolog/codec.js";
 import type {
   OperationContext,
   PrologPort,
@@ -100,12 +100,10 @@ function parseJsonBinding(raw: string | undefined): unknown {
 }
 
 async function queryJson(prolog: PrologPort, goal: string): Promise<unknown> {
-  const modulePath = escapeAtom(semanticQualityModulePath());
+  const loadGoal = useCoreModuleGoal(semanticQualityModulePath());
   // call/1 defers module resolution until use_module has loaded the module;
   // a literal qualified goal is checked when the query is read.
-  const result = await prolog.query(
-    `(use_module('${modulePath}'), call(${goal}))`,
-  );
+  const result = await prolog.query(`(${loadGoal}, call(${goal}))`);
   if (!result.success) {
     throw new Error(
       `Vocabulary query failed: ${result.error ?? "unknown error"}`,

@@ -13,4 +13,4 @@ type: scenario
 ---
 Given a session that changed a source file, recorded nothing in the knowledge base and was already asked once at stop to record the decision the person stated, when the session stops again, then the Stop hook stays silent, so the decision is never asked for twice in one session.
 
-The test case "a session that changed source and recorded nothing is asked once at stop to record the decision or say there was none" in packages/claude/tests/hook-runner.test.ts exercises it through the Claude Code hook runner: the second stop returns nothing. It covers the value past the bound, `gt 1`, of stop decision asks per session.
+The test case "a rule session that changed source and recorded nothing is asked once at stop for the rule, quoting its phrase, with no way out" in packages/claude/tests/hook-runner.test.ts exercises it through the Claude Code hook runner: the second stop returns nothing. It covers the value past the bound, `gt 1`, of stop decision asks per session.
