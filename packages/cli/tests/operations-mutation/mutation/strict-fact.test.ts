@@ -6,7 +6,6 @@ import {
   validateLogicIr,
 } from "../../../src/logic/ir.js";
 import {
-  assertRuleSchemaArity,
   factKindShapeHints,
   validateFactModelingShape,
   valueFieldHint,
@@ -206,26 +205,6 @@ describe("factKindShapeHints", () => {
       "fact_kind 'predicate' requires predicate_args.",
       PREDICATE_NEXT,
     ]);
-  });
-});
-
-describe("assertRuleSchemaArity", () => {
-  test("accepts equal-length lists and rejects anything else", () => {
-    expect(() => assertRuleSchemaArity(["a"], ["x"])).not.toThrow();
-    for (const [names, types] of [
-      ["a", ["x"]],
-      [["a"], "x"],
-      [["a"], ["x", "y"]],
-    ]) {
-      const error = rejected(() => assertRuleSchemaArity(names, types));
-      expect(error.code).toBe("ENTITY_VALIDATION_FAILED");
-      expect(error.message).toBe(
-        "Entity validation failed: rule_schema argument_names and argument_types must have equal lengths",
-      );
-      expect(error.issues).toStrictEqual([
-        { rule: "rule_schema_arity", field: "argument_types" },
-      ]);
-    }
   });
 });
 

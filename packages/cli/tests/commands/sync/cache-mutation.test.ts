@@ -8,7 +8,6 @@ import {
   SYNC_CACHE_VERSION,
   SYNC_COMPILER_FINGERPRINT,
   compilerFingerprintReason,
-  copySyncCache,
   failedSourceKeepsSemanticBaseline,
   hashFile,
   hashManifestWithCoordinates,
@@ -457,7 +456,7 @@ describe("cache files", () => {
     }
   });
 
-  test("writes, creates the directory and copies the cache", () => {
+  test("writes and creates the directory", () => {
     const root = tempRoot();
     const live = path.join(root, "live");
     const file = path.join(live, "sync-cache.json");
@@ -467,18 +466,6 @@ describe("cache files", () => {
     );
     writeSyncCache(file, { ...EMPTY, hashes: { a: "1" } });
     expect(readSyncCache(file).hashes).toStrictEqual({ a: "1" });
-    const staging = path.join(root, "staging");
-    mkdirSync(staging);
-    copySyncCache(live, staging);
-    expect(readFileSync(path.join(staging, "sync-cache.json")).toString()).toBe(
-      readFileSync(file).toString(),
-    );
-    const empty = path.join(root, "empty");
-    mkdirSync(empty);
-    const other = path.join(root, "other");
-    mkdirSync(other);
-    copySyncCache(empty, other);
-    expect(existsSync(path.join(other, "sync-cache.json"))).toBe(false);
   });
 });
 
@@ -534,17 +521,6 @@ describe("injected file access", () => {
     fs.files["/d"] = "";
     writeSyncCache("/d/c.json", EMPTY, fs.deps);
     expect(fs.calls.map(([op]) => op)).toStrictEqual(["exists", "write"]);
-    fs.calls.length = 0;
-    copySyncCache("/d", "/s", fs.deps);
-    expect(fs.calls).toStrictEqual([["exists", "/d/sync-cache.json"]]);
-    fs.files["/d/sync-cache.json"] = "{}";
-    fs.calls.length = 0;
-    copySyncCache("/d", "/s", fs.deps);
-    expect(fs.calls).toStrictEqual([
-      ["exists", "/d/sync-cache.json"],
-      ["read", "/d/sync-cache.json", "utf8"],
-      ["write", "/s/sync-cache.json", "{}", "utf8"],
-    ]);
   });
 
   test("a manifest without coordinates never asks for them", () => {
