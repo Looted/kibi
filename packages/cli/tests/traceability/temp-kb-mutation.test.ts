@@ -781,12 +781,15 @@ describe("createOverlayFacts", () => {
       {
         id: "s'1",
         name: "fn'a",
+        kind: "function",
         location: { file: "src/a'.ts", startLine: 3 },
         reqLinks: ["REQ-1", "REQ-2"],
       },
       {
         id: "s2",
         name: "b",
+        kind: "variable",
+        callable: true,
         location: { file: "b.ts", startLine: 9 },
         reqLinks: [],
       },
@@ -795,10 +798,13 @@ describe("createOverlayFacts", () => {
       [
         "kb:changed_symbol('s''1').",
         "kb:changed_symbol_loc('s''1', 'src/a''.ts', 3, 0, 'fn''a').",
+        "kb:changed_symbol_kind('s''1', 'function').",
         "kb:changed_symbol_req('s''1', 'REQ-1').",
         "kb:changed_symbol_req('s''1', 'REQ-2').",
         "kb:changed_symbol('s2').",
         "kb:changed_symbol_loc('s2', 'b.ts', 9, 0, 'b').",
+        "kb:changed_symbol_kind('s2', 'variable').",
+        "kb:changed_symbol_callable('s2').",
       ].join("\n"),
     );
     expect(createOverlayFacts([])).toBe("");

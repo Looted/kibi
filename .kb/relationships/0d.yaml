@@ -307,3 +307,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a44060b8337e
+  - type: validates
+    from: TEST-check-reports-symbol-debt
+    to: SCEN-check-reports-symbol-debt
+    created_at: 2026-11-16T05:34:20.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-653072335aed
+  - type: validates
+    from: TEST-check-reports-symbol-debt
+    to: SCEN-NEG-check-reports-symbol-debt-SYMBOL-DEBT-BLOCKS
+    created_at: 2026-11-16T05:34:20.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52976ca921c2
+  - type: validates
+    from: TEST-check-reports-symbol-debt
+    to: SCEN-symbol-traceability-behavioral-only
+    created_at: 2026-11-16T05:34:20.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02c2a204943c
+  - type: validates
+    from: TEST-check-reports-symbol-debt
+    to: SCEN-NEG-symbol-traceability-behavioral-only-BEHAVIORAL-EXEMPTED
+    created_at: 2026-11-16T05:34:20.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b31ddee2d74
+  - type: validates
+    from: TEST-check-reports-symbol-debt
+    to: SCEN-bootstrap-states-staged-symbol-rule
+    created_at: 2026-11-16T05:34:20.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11bb2f1f4298
+  - type: validates
+    from: TEST-check-reports-symbol-debt
+    to: SCEN-NEG-bootstrap-states-staged-symbol-rule-SILENT-ON-SYMBOL-RULE
+    created_at: 2026-11-16T05:34:20.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-004229aceed3

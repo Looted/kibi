@@ -18,14 +18,14 @@ export const GENERATED_RULES = [
   {
     name: "symbol-coverage",
     description:
-      "Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path",
+      "Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path; a linkless record whose symbol_role is structural, type-shape, config or module owes none",
     enforcementClass: "canonical",
     category: "coverage",
   },
   {
     name: "symbol-traceability",
     description:
-      "Production symbols must directly implement requirements for ownership; covered_by is coverage only and executable_for is test identity only",
+      "Production symbols must directly implement requirements for ownership, except a linkless record whose symbol_role is structural, type-shape, config or module; covered_by is coverage only and executable_for is test identity only",
     enforcementClass: "canonical",
     category: "traceability",
   },

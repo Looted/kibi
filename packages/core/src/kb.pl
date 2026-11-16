@@ -65,6 +65,7 @@
     adr_chain/2,
     deprecated_no_successor/1,
     symbol_no_req_coverage/2,
+    linkless_non_behavioral_symbol/1,
     changed_symbol_no_req_coverage/2,
     predicate_schema/6,
     predicate_schema_keys/4,
@@ -97,6 +98,7 @@
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('units.pl', [canonical_quantity/6]).
+:- use_module('symbol_classification.pl', [inferred_role/2]).
 :- use_module('intervals.pl', [numeric_constraints_satisfiable/2]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
@@ -3466,9 +3468,31 @@ normalize_uri_atom(Value, Atom) :-
 
 %% symbol_no_req_coverage(+Symbol, -Reason)
 % Find symbols that lack canonical production requirement coverage.
+% A linkless record of non-behavioral code (see
+% linkless_non_behavioral_symbol/1) owns no requirement, so it owes no
+% requirement coverage either.
 symbol_no_req_coverage(Symbol, no_qualifying_production_coverage) :-
     production_symbol(Symbol),
+    \+ linkless_non_behavioral_symbol(Symbol),
     \+ production_symbol_covered_for_requirement(Symbol, _).
+
+%% linkless_non_behavioral_symbol(+Symbol)
+% A symbol record whose symbol_role is structural, type-shape, config or
+% module and that has no implements link. It records a declaration without
+% claiming requirement ownership: symbol-traceability and symbol-coverage do
+% not flag it. A missing, unknown or behavioral role is never exempt, and a
+% non-behavioral symbol that does carry implements keeps every rule.
+linkless_non_behavioral_symbol(Symbol) :-
+    kb_entity(Symbol, symbol, Props),
+    memberchk(symbol_role=RawRole, Props),
+    normalize_term_atom(RawRole, Role),
+    non_behavioral_symbol_role(Role),
+    \+ kb_relationship(implements, Symbol, _).
+
+non_behavioral_symbol_role(structural).
+non_behavioral_symbol_role('type-shape').
+non_behavioral_symbol_role(config).
+non_behavioral_symbol_role(module).
 
 %% production_symbol_covered_for_requirement(+Symbol, +Req)
 % Production coverage requires a covered_by edge and a canonical requirement/test path.
@@ -3530,6 +3554,8 @@ coerce_timestamp_atom(Val, Atom) :-
 :- dynamic changed_symbol/1.
 :- dynamic changed_symbol_loc/5.
 :- dynamic changed_symbol_req/2.
+:- dynamic changed_symbol_kind/2.
+:- dynamic changed_symbol_callable/1.
 
 %% changed_symbol_missing_req(+Symbol, +MinLinks, -Count)
 % True if Symbol has fewer than MinLinks requirement connections.
@@ -3539,12 +3565,25 @@ coerce_timestamp_atom(Val, Atom) :-
 changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     changed_symbol(Symbol),
     \+ executable_test_symbol(Symbol),
+    \+ changed_symbol_link_exempt(Symbol),
     findall(Req, symbol_owns_requirement(Symbol, Req), KbReqs),
     findall(Req, changed_symbol_req(Symbol, Req), OverlayReqs),
     append(KbReqs, OverlayReqs, AllReqs),
     sort(AllReqs, UniqueReqs),
     length(UniqueReqs, Count),
     Count < MinLinks.
+
+%% changed_symbol_link_exempt(+Symbol)
+% A changed declaration recorded as linkless non-behavioral code needs no
+% requirement link, unless the extractor reports a behavioral kind for it
+% (function, class, method, property or accessor) or a variable whose value
+% is a function (changed_symbol_callable/1): those always need one.
+changed_symbol_link_exempt(Symbol) :-
+    linkless_non_behavioral_symbol(Symbol),
+    \+ (   changed_symbol_kind(Symbol, Kind),
+            inferred_role(Kind, behavioral)
+        ),
+    \+ changed_symbol_callable(Symbol).
 
 %% changed_symbol_no_req_coverage(+ExtraSymbols, -Symbol)
 % The full-check symbol-coverage rule restricted to a staged change set: the

@@ -71,7 +71,13 @@ describe("snapshot symbols for granularity", () => {
           : await deps.analyzeText();
       extracted.push([file.path, file.content, answer]);
       expect(file.status).toBe("M");
-      return [{ name: `sym-${file.path}`, reqLinks: [] }];
+      return [
+        {
+          name: `sym-${file.path}`,
+          reqLinks: [],
+          location: { file: file.path, startLine: 1, endLine: 1 },
+        },
+      ];
     });
     h.world.analysis = new Map([["src/a.ts", { after: side("ok") }]]);
     let granularity: Record<string, unknown> = {};
@@ -111,9 +117,27 @@ describe("snapshot symbols for granularity", () => {
     ]);
     const bySource = granularity.sourceSymbolsByFile as Map<string, unknown>;
     expect([...bySource.entries()]).toEqual([
-      ["src/a.ts", [{ name: "sym-src/a.ts", reqLinks: [] }]],
+      [
+        "src/a.ts",
+        [
+          {
+            name: "sym-src/a.ts",
+            reqLinks: [],
+            location: { file: "src/a.ts", startLine: 1, endLine: 1 },
+          },
+        ],
+      ],
       ["src/active.ts", []],
-      ["src/reg.ts", [{ name: "sym-src/reg.ts", reqLinks: [] }]],
+      [
+        "src/reg.ts",
+        [
+          {
+            name: "sym-src/reg.ts",
+            reqLinks: [],
+            location: { file: "src/reg.ts", startLine: 1, endLine: 1 },
+          },
+        ],
+      ],
     ]);
     expect(
       (granularity.manifestResults as Array<{ entity: { id: string } }>).map(

@@ -476,6 +476,16 @@ describe("validateSourceAnalysisResultV2 rejects", () => {
       "symbols[1].directiveText must be a string when provided",
     );
     expectFailure(
+      run({ callable: "yes" }),
+      "symbols[1].callable must be a boolean when provided",
+    );
+    expect(
+      validate(result({ symbols: [symbol({ callable: true })] })).symbols[0],
+    ).toHaveProperty("callable", true);
+    expect(
+      validate(result({ symbols: [symbol({ callable: false })] })).symbols[0],
+    ).not.toHaveProperty("callable");
+    expectFailure(
       run({ nameRange: "x" }),
       "symbols[1].nameRange must be a source range object",
     );

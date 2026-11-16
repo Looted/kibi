@@ -230,3 +230,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef7ca6ac0219
+  - type: requires_property
+    from: REQ-behavioral-kinds-keep-implements
+    to: FACT-behavioral-kinds-keep-implements
+    created_at: 2026-11-16T05:38:17.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fddd95487e0
+  - type: constrains
+    from: REQ-behavioral-kinds-keep-implements
+    to: FACT-SUBJ-REQ-CLI-STAGED-IMPACT-ENFORCEMENT
+    created_at: 2026-11-16T05:38:17.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc296ca3d276
+  - type: specified_by
+    from: REQ-behavioral-kinds-keep-implements
+    to: SCEN-behavioral-kinds-keep-implements
+    created_at: 2026-11-16T05:38:17.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34a9804f8ed6
+  - type: specified_by
+    from: REQ-behavioral-kinds-keep-implements
+    to: SCEN-NEG-behavioral-kinds-keep-implements-ROLE-EXCUSES-FUNCTION
+    created_at: 2026-11-16T05:38:17.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8491b746625f
+  - type: verified_by
+    from: REQ-behavioral-kinds-keep-implements
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:38:17.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8df5c2961fd3

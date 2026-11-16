@@ -15,7 +15,8 @@ A symbol that uses `executable_for` must not also carry `implements` or `covered
 Current engine alignment:
 
 - `executable_for` marks executable test symbols and excludes them from production ownership gates.
-- Any symbol without `executable_for` stays in the production ownership lane for `implements` and production coverage checks, even if it is metadata-heavy or non-runtime.
+- Any symbol without `executable_for` stays in the production ownership lane for `implements` and production coverage checks, except a record whose `symbol_role` is `structural`, `type-shape`, `config` or `module` and that has no `implements` link: it records a declaration without claiming requirement ownership, so `symbol-traceability` and `symbol-coverage` do not flag it. A non-behavioral record that does carry `implements` keeps both rules.
+- The staged gate accepts such a linkless record for a changed declaration only when the extractor does not report it as a function, class, method, property or accessor, or as a variable whose value is a function (`export const handler = () => ...`, or a plain function call with an inline function argument such as `defineHandler(async (c) => ...)`). Those are behavioral code and always need `implements`.
 
 ## Symbol classes
 
