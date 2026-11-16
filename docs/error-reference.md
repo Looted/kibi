@@ -118,6 +118,10 @@ If validation reports `Logical Claim Provenance Mismatch`, the fact's `claim_key
 
 Same-call relationship rows must start from the entity being upserted. To link `REQ-mcp-search-discovery -> TEST-mcp-search-discovery`, create `TEST-mcp-search-discovery` first, then upsert `REQ-mcp-search-discovery` with `verified_by`.
 
+## Relationship endpoint does not exist (`RELATIONSHIP_ENDPOINT_MISSING`)
+
+`Failed to upsert entity <id>: Target entity does not exist: <other>` (or `Source entity does not exist`) means a relationship names an entity the KB does not hold yet, often because the earlier write that would have created it was refused. Nothing is written, and resending the same payload fails the same way. Create `<other>` first, then resend, or write both entities as steps of one `kb_apply_plan`. `kb_validate_upsert` reports the same refusal without writing.
+
 ## Invalid relationship tuple
 
 `kb_upsert` (dry run or real) rejects relationship source/target type pairs that are not part of the relationship schema. For example, facts are not directly verified by tests: do not write `verified_by fact -> test` or `validates test -> fact`. Create or update a requirement, link the requirement to the fact with `constrains`, `requires_property`, or `requires_predicate`, and link the requirement or its scenario to the test with `verified_by` / `validates`.

@@ -342,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4a1ddf905eb4
+  - type: verified_by
+    from: SCEN-kb-upsert-missing-endpoint-rejection
+    to: TEST-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:34:26.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff3683fc3470
