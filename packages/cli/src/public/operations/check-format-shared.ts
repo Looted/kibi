@@ -164,7 +164,15 @@ export function fitScopedCheckToBudget(
     truncated: true,
     truncation,
   };
-  const advisory = content.qualityDiagnostics ?? [];
+  // Telemetry acceptance is a state of the whole project, read from an
+  // unfiltered check, not a per-entity finding: it is always kept.
+  const quality = content.qualityDiagnostics ?? [];
+  const telemetry = quality.filter(
+    (diagnostic) => diagnostic.category === "telemetry",
+  );
+  const advisory = quality.filter(
+    (diagnostic) => diagnostic.category !== "telemetry",
+  );
   if (advisory.length > 0) {
     const byId: Record<string, number> = {};
     for (const diagnostic of advisory) {
@@ -183,6 +191,7 @@ export function fitScopedCheckToBudget(
             "Run kibi check --format json to list every advisory finding.",
           evidence: { omitted: advisory.length, byId },
         },
+        ...telemetry,
       ],
     };
   }
