@@ -1,7 +1,7 @@
 import path from "node:path";
 import { EngineClient } from "../engine.js";
 import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
-import { escapeAtom } from "../prolog/codec.js";
+import { escapeAtom, useCoreModuleGoal } from "../prolog/codec.js";
 import {
   type RuntimeOptions,
   executeOperation,
@@ -107,12 +107,10 @@ export async function runJsonModuleQuery<T>(
   kbPath?: string,
   deps?: Partial<DiscoveryDeps>,
 ): Promise<T> {
-  const modulePath = escapeAtom(
-    resolveCoreModulePath(fileName, deps).replace(/\\/g, "/"),
-  );
+  const loadGoal = useCoreModuleGoal(resolveCoreModulePath(fileName, deps));
   const wrappedGoal = kbPath
-    ? `(use_module('${modulePath}'), kb_attach('${escapeAtom(kbPath)}'), ${goal}, kb_detach)`
-    : `(use_module('${modulePath}'), ${goal})`;
+    ? `(${loadGoal}, kb_attach('${escapeAtom(kbPath)}'), ${goal}, kb_detach)`
+    : `(${loadGoal}, ${goal})`;
   const result = await prolog.query(wrappedGoal);
 
   if (!result.success) {

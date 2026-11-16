@@ -10,6 +10,7 @@ import {
 } from "../../src/commands/discovery-shared.js";
 import { EngineClient } from "../../src/engine.js";
 import type { PrologProcess } from "../../src/prolog.js";
+import { useCoreModuleGoal } from "../../src/prolog/codec.js";
 import * as runtimeTypes from "../../src/public/operations/runtime-types.js";
 import { coverageSpec } from "../../src/public/operations/specs/reporting.js";
 import * as detachedSnapshot from "../../src/runtime/detached-snapshot.js";
@@ -243,7 +244,7 @@ describe("resolveCoreModulePath", () => {
 
 describe("runJsonModuleQuery", () => {
   const deps = { resolveKbPl: () => "/core\\it's/kb.pl" };
-  const modulePath = "/core/it''s/m.pl";
+  const loadGoal = useCoreModuleGoal("/core/it's/m.pl");
 
   test("loads the module, optionally attaches, and parses the JSON", async () => {
     const fake = fakeProlog({
@@ -274,11 +275,9 @@ describe("runJsonModuleQuery", () => {
         deps,
       ),
     ).toStrictEqual({ b: 2 });
-    expect(fake.calls).toStrictEqual([
-      `(use_module('${modulePath}'), goal(X))`,
-    ]);
+    expect(fake.calls).toStrictEqual([`(${loadGoal}, goal(X))`]);
     expect(twice.calls).toStrictEqual([
-      `(use_module('${modulePath}'), kb_attach('/kb/o''k'), goal(X), kb_detach)`,
+      `(${loadGoal}, kb_attach('/kb/o''k'), goal(X), kb_detach)`,
     ]);
   });
 

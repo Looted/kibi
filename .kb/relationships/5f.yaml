@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01f3e3a3f139
+  - type: executable_for
+    from: SYM-test-engine-client-core-modules-from-engine
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:00:28.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab824affc4b5

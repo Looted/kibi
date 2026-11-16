@@ -5,6 +5,7 @@ import {
   runAggregatedChecks,
 } from "../../src/commands/aggregated-checks.js";
 import { resolveKbPlPath } from "../../src/prolog.js";
+import { useCoreModuleGoal } from "../../src/prolog/codec.js";
 
 const goal = (ratio: string, minFacts: string) =>
   `(   predicate_property(semantic_quality:set_ontology_quality_overrides(_, _), defined)
@@ -70,7 +71,7 @@ describe("runAggregatedChecks", () => {
     const checks = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
     expect(
       goals[0]?.startsWith(
-        `(use_module('${checks.replaceAll("'", "''")}'), ${ontologyQualityOverridesGoal()}, (   `,
+        `(${useCoreModuleGoal(checks)}, ${ontologyQualityOverridesGoal()}, (   `,
       ),
     ).toBe(true);
   });

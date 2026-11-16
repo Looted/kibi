@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d4639ab050e
+  - type: implements
+    from: SYM-cli-use-core-module-goal
+    to: REQ-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:00:20.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-801a00a85cce
+  - type: covered_by
+    from: SYM-cli-use-core-module-goal
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:00:20.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c74073620fd

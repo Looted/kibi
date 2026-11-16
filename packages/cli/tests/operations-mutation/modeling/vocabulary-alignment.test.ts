@@ -17,7 +17,7 @@ import type {
   CapabilityRegistry,
 } from "../../../src/plugins/registry.js";
 import { resolveKbPlPath } from "../../../src/prolog.js";
-import { escapeAtom } from "../../../src/prolog/codec.js";
+import { useCoreModuleGoal } from "../../../src/prolog/codec.js";
 import type {
   OperationContext,
   PrologPort,
@@ -27,10 +27,12 @@ import { cleanupWorkspaces, workspace } from "../workspace.js";
 
 afterAll(cleanupWorkspaces);
 
-const MODULE = escapeAtom(
-  path.join(path.dirname(resolveKbPlPath()), "semantic_quality.pl"),
+const MODULE = path.join(
+  path.dirname(resolveKbPlPath()),
+  "semantic_quality.pl",
 );
-const goal = (inner: string) => `(use_module('${MODULE}'), call(${inner}))`;
+const goal = (inner: string) =>
+  `(${useCoreModuleGoal(MODULE)}, call(${inner}))`;
 const VOCABULARY_GOAL = goal("semantic_quality:subject_vocabulary_json(Json)");
 
 describe("readSubjectVocabulary", () => {
