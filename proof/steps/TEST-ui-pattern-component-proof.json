@@ -1,0 +1,24 @@
+{
+  "test_id": "TEST-ui-pattern-component-proof",
+  "steps": [
+    [
+      "swipl",
+      "-q",
+      "-s",
+      "packages/core/tests/kb.plt",
+      "-g",
+      "run_tests(ui_pattern_component_proof)",
+      "-t",
+      "halt"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/report/html-report.test.ts",
+      "-t",
+      "where its scenario accepts that scope"
+    ]
+  ]
+}

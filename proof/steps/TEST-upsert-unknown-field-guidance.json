@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-upsert-unknown-field-guidance",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/operations/upsert-unknown-property-guidance.test.ts"
+    ]
+  ]
+}

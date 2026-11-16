@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-agent-hosts-firm-edit-receipt-notice",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/codex/tests/hook-runner.test.ts",
+      "./packages/cursor/tests/hook-runner.test.ts",
+      "./packages/zcode/tests/hook-runner.test.ts",
+      "./packages/agent-core/tests/decision-guard.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "test_id": "TEST-kibi-proof-steps-directory",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/proof/step-runner-mutation.test.ts",
+      "./scripts/tests/run-proof-producer-remaining.coverage.test.ts",
+      "./scripts/tests/proof-workflow-contract.test.ts",
+      "./packages/cli/tests/proof/command-test-report.test.ts",
+      "./packages/cli/tests/proof/command-test-report-mutation.test.ts"
+    ]
+  ]
+}

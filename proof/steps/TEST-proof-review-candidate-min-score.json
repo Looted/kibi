@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-review-candidate-min-score",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/contradiction-review-limits.proof.test.ts"
+    ]
+  ]
+}

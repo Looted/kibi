@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-knowledge-source-kinds",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/knowledge-source-vocabulary.proof.test.ts"
+    ]
+  ]
+}

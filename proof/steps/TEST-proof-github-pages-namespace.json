@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-github-pages-namespace",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/github-report-settings.proof.test.ts"
+    ]
+  ]
+}

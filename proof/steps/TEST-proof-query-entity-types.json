@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-query-entity-types",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/operation-page-sizes.proof.test.ts"
+    ]
+  ]
+}

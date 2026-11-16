@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-e2e-proof-all-bounded-projection",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/proof-all-bounded-projection.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-skillopt-file-bridge-unit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--preload",
+      "./scripts/skillopt-eval/offline-test-preload.ts",
+      "--timeout",
+      "15000",
+      "./scripts/skillopt-eval/tests/file-bridge.test.ts"
+    ]
+  ]
+}

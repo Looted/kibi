@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-migration-sync-action",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/lifecycle-check-codes.proof.test.ts"
+    ]
+  ]
+}

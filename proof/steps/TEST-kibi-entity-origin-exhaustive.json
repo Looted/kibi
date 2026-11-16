@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-entity-origin-exhaustive",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/entity-origin.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-semantic-text-pin-code",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/migration-pin-codes.proof.test.ts"
+    ]
+  ]
+}

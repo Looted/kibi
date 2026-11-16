@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-logic-ir-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/logic-rule-limits.proof.test.ts"
+    ]
+  ]
+}

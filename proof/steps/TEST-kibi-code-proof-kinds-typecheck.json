@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-code-proof-kinds-typecheck",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/code-proof-kinds-typecheck.proof.test.ts"
+    ]
+  ]
+}

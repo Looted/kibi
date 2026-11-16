@@ -2,7 +2,7 @@
 id: kibi-traceability
 name: kibi-traceability
 description: "Maintain source-first requirement, scenario, test, symbol, and proof traceability through Kibi's peer interfaces. Use when linking a code symbol to a requirement (implements, covered_by, executable_for), choosing which function owns a behavior, moving or removing links, or when kb_check reports broad_requirement_review, multi_requirement_symbol_review, coarse_anchor_only_review, symbol-coverage or missing_production_symbol_coverage."
-version: 2.4.0
+version: 2.5.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -75,6 +75,12 @@ so a loose link is wrong context, not harmless extra coverage.
   the function with `implements` and `covered_by`. Leaving the symbol
   unowned, or linking it to a requirement that does not state its behavior,
   does not finish the task.
+- When you write a requirement for code that already exists, link that code
+  in the same call: `kb_upsert` of the requirement with
+  `implementedBy: [{sourceFile, symbol}]` creates or reuses each symbol and
+  its `implements` link, and refuses a name the file does not declare or a
+  class whose behavior lives in its methods, listing the candidates. Pick
+  the deciding function from the candidates rather than linking the class.
 - A behavioral symbol implements at most 2 requirements (4 for a class,
   component or module). A third link means the symbol or one of the
   requirements is too broad; `granularity_reason` does not exempt it.

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-source-extraction-failed",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/uncompiled-source-code.proof.test.ts"
+    ]
+  ]
+}

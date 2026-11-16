@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-e2e-coverage-proof-status",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/coverage-proof-status.test.ts"
+    ]
+  ]
+}

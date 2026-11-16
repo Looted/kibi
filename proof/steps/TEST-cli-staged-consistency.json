@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-cli-staged-consistency",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/staged-consistency.test.ts"
+    ]
+  ]
+}

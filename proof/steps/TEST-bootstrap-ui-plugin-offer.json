@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-bootstrap-ui-plugin-offer",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/operations/bootstrap-plugin-offers.test.ts",
+      "./packages/plugin-sdk/tests/check-policy.test.ts"
+    ]
+  ]
+}

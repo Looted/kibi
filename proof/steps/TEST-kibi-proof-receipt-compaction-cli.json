@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-proof-receipt-compaction-cli",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/proof-receipt-compaction.test.ts"
+    ]
+  ]
+}

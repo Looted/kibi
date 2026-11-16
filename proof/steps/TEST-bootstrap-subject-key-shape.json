@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-bootstrap-subject-key-shape",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/operations/bootstrap-subject-key-shape.test.ts"
+    ]
+  ]
+}
