@@ -1220,6 +1220,16 @@ symbol_coverage_row(Tags, Row) :-
     ->  TraceabilityRole = executable_test,
         Gaps = [],
         CoverageStatus = not_applicable
+    ;   linkless_non_behavioral_symbol(Id)
+    ->  % A linkless record of non-behavioral code claims no requirement, so
+        % link coverage does not apply; a vanished source file still shows.
+        TraceabilityRole = production,
+        (   entity_source_file_missing(Props, _)
+        ->  Gaps = [source_missing],
+            CoverageStatus = uncovered
+        ;   Gaps = [],
+            CoverageStatus = not_applicable
+        )
     ;   TraceabilityRole = production,
         production_symbol_gaps(Id, Props, Gaps),
         (   Gaps == []

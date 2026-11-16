@@ -62,7 +62,8 @@ derive_coverage_gaps :-
 derive_symbol_gaps :-
     forall(
         (   snapshot_production_symbol(Symbol),
-            \+ snapshot_symbol_req_coverage(Symbol)
+            \+ snapshot_symbol_req_coverage(Symbol),
+            \+ kb:linkless_non_behavioral_symbol(Symbol)
         ),
         assertz(derived_symbol_gap(Symbol, no_qualifying_production_coverage))
     ).

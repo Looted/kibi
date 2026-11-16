@@ -384,3 +384,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5ee91b17ef1d
+  - type: requires_property
+    from: REQ-staged-gate-judges-changed-declarations
+    to: FACT-staged-gate-judges-changed-declarations
+    created_at: 2026-11-16T05:38:06.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f89ba54852ca
+  - type: constrains
+    from: REQ-staged-gate-judges-changed-declarations
+    to: FACT-SUBJ-REQ-CLI-STAGED-IMPACT-ENFORCEMENT
+    created_at: 2026-11-16T05:38:06.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d28dbdccbdc
+  - type: specified_by
+    from: REQ-staged-gate-judges-changed-declarations
+    to: SCEN-staged-gate-judges-changed-declarations
+    created_at: 2026-11-16T05:38:07.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aeb53487c3b4
+  - type: specified_by
+    from: REQ-staged-gate-judges-changed-declarations
+    to: SCEN-NEG-staged-gate-judges-changed-declarations-INHERITED-GAP-BLOCKS
+    created_at: 2026-11-16T05:38:07.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4eb28298e20
+  - type: verified_by
+    from: REQ-staged-gate-judges-changed-declarations
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:38:07.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e1a172dd529

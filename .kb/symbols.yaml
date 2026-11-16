@@ -2860,10 +2860,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-staged-overlay-kb
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-behavioral-kinds-keep-implements
+      - type: implements
+        target: REQ-kibi-staged-overlay-kb
   - id: SYM-createRepoIgnorePolicy
     title: createRepoIgnorePolicy
     status: active
@@ -40867,3 +40871,426 @@ symbols:
         target: TEST-mcp-upsert-proof-field-stubs
       - type: implements
         target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
+  - id: SYM-e2e-test-staged-gate-inherited-symbol-gaps
+    title: staged-inherited-symbol-gaps.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/staged-inherited-symbol-gaps.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-staged-gate-inherited-symbol-gaps
+  - id: SYM-e2e-test-check-reports-symbol-debt
+    title: check-symbol-debt.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/check-symbol-debt.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-reports-symbol-debt
+  - id: SYM-staged-declaration-judgedByCommit
+    title: judgedByCommit
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-declaration-change.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-judges-changed-declarations
+  - id: SYM-staged-declaration-declarationSpanKey
+    title: declarationSpanKey
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-declaration-change.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-judges-changed-declarations
+  - id: SYM-staged-declaration-declarationsInChange
+    title: declarationsInChange
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-declaration-change.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-changed-declaration-definition
+  - id: SYM-staged-declaration-declarationOwnText
+    title: declarationOwnText
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-declaration-change.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-changed-declaration-definition
+  - id: SYM-staged-declaration-stripCommentsAndWhitespace
+    title: stripCommentsAndWhitespace
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-declaration-change.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-changed-declaration-definition
+  - id: SYM-staged-declaration-baseAnalysisUsable
+    title: baseAnalysisUsable
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-declaration-change.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-changed-declaration-definition
+  - id: SYM-staged-declaration-declarationLocator
+    title: declarationLocator
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-declaration-change.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-changed-declaration-definition
+  - id: SYM-staged-declaration-DeclarationSource
+    title: DeclarationSource
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-declaration-change.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-evidence-model-getFreshSymbolsManifestSourcePaths
+    title: getFreshSymbolsManifestSourcePaths
+    status: active
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-evidence-scoped-to-changed-declarations
+  - id: SYM-check-buildStagedKibiImpactEvidence
+    title: buildStagedKibiImpactEvidence
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-evidence-scoped-to-changed-declarations
+  - id: SYM-check-inheritedSymbolGapsNote
+    title: inheritedSymbolGapsNote
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-reports-inherited-symbol-gaps
+  - id: SYM-check-printStagedResult
+    title: printStagedResult
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-staged-gate-reports-inherited-symbol-gaps
+  - id: SYM-check-InheritedSymbolGaps
+    title: InheritedSymbolGaps
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-check-formatSymbolDebt
+    title: formatSymbolDebt
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-reports-symbol-debt
+  - id: SYM-check-printStructuredCheckResult
+    title: printStructuredCheckResult
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-reports-symbol-debt
+  - id: SYM-check-executor-withSymbolDebtSummary
+    title: withSymbolDebtSummary
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-reports-symbol-debt
+  - id: SYM-symbol-debt-collectSymbolDebt
+    title: collectSymbolDebt
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-debt.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-reports-symbol-debt
+  - id: SYM-symbol-debt-SymbolDebt
+    title: SymbolDebt
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-debt.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-symbol-granularity-analyzeWorkspaceSources
+    title: analyzeWorkspaceSources
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-granularity-check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-reports-symbol-debt
+  - id: SYM-staged-symbols-manifest-unrecordedDeclarations
+    title: unrecordedDeclarations
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-reports-symbol-debt
+  - id: SYM-staged-symbols-manifest-StagedSymbolsBaseSource
+    title: StagedSymbolsBaseSource
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-core-kb-linklessNonBehavioralSymbol
+    title: linkless_non_behavioral_symbol
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-symbol-traceability-behavioral-only
+  - id: SYM-core-kb-nonBehavioralSymbolRole
+    title: non_behavioral_symbol_role
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-core-checks-symbolTraceabilityViolation
+    title: symbol_traceability_violation
+    status: active
+    sourceFile: packages/core/src/checks.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-symbol-traceability-behavioral-only
+  - id: SYM-core-discovery-symbolCoverageRow
+    title: symbol_coverage_row
+    status: active
+    sourceFile: packages/core/src/discovery.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-symbol-traceability-behavioral-only
+  - id: SYM-core-kb-changedSymbolLinkExempt
+    title: changed_symbol_link_exempt
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-behavioral-kinds-keep-implements
+  - id: SYM-kibi-bootstrap-skill-guidance
+    title: kibi-bootstrap
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-bootstrap/SKILL.md
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-bootstrap-states-staged-symbol-rule
+  - id: SYM-check-format-CheckStructuredContent
+    title: CheckStructuredContent
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-evidence-model-KibiImpactSymbolsManifestFileDetail
+    title: KibiImpactSymbolsManifestFileDetail
+    status: active
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-evidence-model-KibiImpactSymbolsManifest
+    title: KibiImpactSymbolsManifest
+    status: active
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-staged-impact-contract-KIBI_IMPACT_DIAGNOSTICS
+    title: KIBI_IMPACT_DIAGNOSTICS
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-staged-symbols-manifest-StagedSymbolsManifestAssessment
+    title: StagedSymbolsManifestAssessment
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-symbol-extract-ExtractedSymbol
+    title: ExtractedSymbol
+    status: active
+    sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-plugin-sdk-SourceSymbolAnalysisV2
+    title: SourceSymbolAnalysisV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-skillopt-decisions-QUOTED_GATE_OUTPUT
+    title: QUOTED_GATE_OUTPUT
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/task-definitions-decisions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z
+  - id: SYM-stryker-CLI_MUTATION_MODULES
+    title: CLI_MUTATION_MODULES
+    status: active
+    sourceFile: stryker.conf.mjs
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T09:00:00.000Z

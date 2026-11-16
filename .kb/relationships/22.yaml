@@ -384,3 +384,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5f555d8a614
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-staged-gate-judges-changed-declarations
+    created_at: 2026-11-16T05:34:14.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64df4e489ed5
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-staged-gate-judges-changed-declarations-INHERITED-GAP-BLOCKS
+    created_at: 2026-11-16T05:34:14.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14a7032ffde6
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-staged-gate-changed-declaration-definition
+    created_at: 2026-11-16T05:34:14.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5d186719836
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-staged-gate-changed-declaration-definition-CHANGED-DECLARATION-IGNORED
+    created_at: 2026-11-16T05:34:14.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c108bb606e1
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-staged-evidence-scoped-to-changed-declarations
+    created_at: 2026-11-16T05:34:14.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7a7c2ad8932
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-staged-evidence-scoped-to-changed-declarations-UNRECORDED-CHANGE-ACCEPTED
+    created_at: 2026-11-16T05:34:14.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-970a213ea7b8
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T05:34:14.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a635765ae943
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-staged-gate-reports-inherited-symbol-gaps-INHERITED-GAP-SILENT
+    created_at: 2026-11-16T05:34:14.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62e4bbdce165
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-behavioral-kinds-keep-implements
+    created_at: 2026-11-16T05:34:14.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5428cf33eb19
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-behavioral-kinds-keep-implements-ROLE-EXCUSES-FUNCTION
+    created_at: 2026-11-16T05:34:15.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b16b76aa2f49

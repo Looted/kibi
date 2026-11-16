@@ -34,7 +34,7 @@ kibi branch recover --apply
 
 `.kb/symbol-coordinates.yaml` holds the source spans of your symbols. It is a gitignored local cache: every `kibi sync` re-extracts the symbols whose identity or source file changed, and a fresh clone builds it on its first sync. Never stage it.
 
-**`symbols_manifest_stale` from `kibi check --staged`:** a staged behavior file declares symbols `.kb/symbols.yaml` has no entry for, or an entry names a declaration that is gone. The Detail lines name them. Author the missing entries (`kibi upsert`), re-point or retire the orphaned ones, stage `.kb/symbols.yaml`, and retry. A declaration that only moved is never a finding.
+**`symbols_manifest_stale` from `kibi check --staged`:** a declaration the commit adds or changes has no `.kb/symbols.yaml` entry, the commit removed an entry, or an entry the commit adds, changes or orphans names a declaration that is gone. The Detail lines name them. Author the missing entries (`kibi upsert`, each with a `symbol_role`; only behavioral code needs `implements`), re-point or retire the orphaned ones, stage `.kb/symbols.yaml`, and retry. A declaration that only moved is never a finding, and unrecorded declarations the commit did not touch only print a non-blocking `Symbol records:` note.
 
 **`kibi check-generated --staged` says `.kb/symbol-coordinates.yaml` is staged:** the repository still tracks it from before schema 13. Run `kibi migrate --yes` (or `git rm --cached .kb/symbol-coordinates.yaml` and add it to `.gitignore`), then commit.
 

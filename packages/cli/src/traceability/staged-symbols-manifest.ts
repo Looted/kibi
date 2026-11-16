@@ -14,6 +14,11 @@ import { isCoarseGranularityReason } from "../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../utils/manifest-paths.js";
 import type { KibiImpactSymbolsManifestFileDetail } from "./evidence-model.js";
 import type { StagedFile } from "./git-staged.js";
+import {
+  type DeclarationSource,
+  baseAnalysisUsable,
+  declarationsInChange,
+} from "./staged-declaration-change.js";
 
 interface NormalizedManifestSymbol {
   title: string;
@@ -60,6 +65,8 @@ export interface StagedSymbolsManifestAssessment {
    * reporting a bare "stale" verdict.
    */
   fileDetails?: KibiImpactSymbolsManifestFileDetail[];
+  /** With a base: the source paths with no judged gap, whatever the state. */
+  coveredSourcePaths?: string[];
 }
 
 export interface StagedAuthoredSymbolsManifestEvidence {
@@ -296,16 +303,21 @@ function getChangedAuthoredEntityIds(
   };
 }
 
-function normalizeExpectedSymbolsForStagedFile(
-  stagedFile: StagedFile,
-  analyze?: (filePath: string, content: string) => SourceAnalysisResult,
-  authoredTitles: ReadonlySet<string> = new Set(),
-): NormalizedManifestSymbol[] {
-  const analysis = (analyze ?? analyzeSourceText)(
-    stagedFile.path,
-    stagedFile.content ?? "",
-  );
+interface ExpectedManifestSymbol extends NormalizedManifestSymbol {
+  /** The analyzed declaration the title names. */
+  declaration: SourceAnalysisResult["symbols"][number];
+}
 
+/**
+ * The titles a manifest uses for the declarations of one analysis: the bare
+ * name when an authored record uses it and it is unique in the file, else
+ * the qualified name.
+ */
+function expectedSymbolsForAnalysis(
+  sourcePath: string,
+  analysis: SourceAnalysisResult,
+  authoredTitles: ReadonlySet<string>,
+): ExpectedManifestSymbol[] {
   return analysis.symbols.map((symbol) => ({
     title: (() => {
       const qualified = (symbol as SourceSymbolAnalysisV2).qualifiedName;
@@ -318,11 +330,12 @@ function normalizeExpectedSymbolsForStagedFile(
         return symbol.name;
       return qualified;
     })(),
-    sourceFile: stagedFile.path,
+    sourceFile: sourcePath,
     sourceLine: symbol.startLine,
     sourceColumn: symbol.startColumn,
     sourceEndLine: symbol.endLine,
     sourceEndColumn: symbol.endColumn,
+    declaration: symbol,
   }));
 }
 
@@ -330,34 +343,144 @@ function uniqueSorted(paths: Iterable<string>): string[] {
   return Array.from(new Set(paths)).sort();
 }
 
+function byTitle(left: { title: string }, right: { title: string }): number {
+  return left.title.localeCompare(right.title);
+}
+
+/** Non-coarse record titles per title, for one source path. */
+function recordsByTitleForPath(
+  records: readonly ManifestSymbolRecord[],
+  sourcePath: string,
+): Map<string, ManifestSymbolRecord[]> {
+  const byTitle = new Map<string, ManifestSymbolRecord[]>();
+  // A record without a string title matches no extracted declaration.
+  for (const record of records) {
+    if (manifestRecordSourcePath(record) !== sourcePath) continue;
+    const title = record.title as string;
+    const list = byTitle.get(title) ?? [];
+    list.push(record);
+    byTitle.set(title, list);
+  }
+  return byTitle;
+}
+
+/** Titles whose every authored record is explicitly coarse. */
+function coarseTitlesOf(
+  recordsByTitle: ReadonlyMap<string, ManifestSymbolRecord[]>,
+): Set<string> {
+  return new Set(
+    [...recordsByTitle.entries()]
+      .filter(([, records]) => records.every(isDocumentedCoarseRecord))
+      .map(([title]) => title),
+  );
+}
+
+/**
+ * The declarations of one analyzed source file that no manifest record
+ * names, by the same title and coarse-record rules as the staged gate. A
+ * file whose every record is coarse has none.
+ */
+export function unrecordedDeclarations(
+  sourcePath: string,
+  analysis: SourceAnalysisResult,
+  records: readonly ManifestSymbolRecord[],
+): Array<{ title: string; line: number }> {
+  const recordsByTitle = recordsByTitleForPath(records, sourcePath);
+  const fileRecords = [...recordsByTitle.values()].flat();
+  if (fileRecords.length > 0 && fileRecords.every(isDocumentedCoarseRecord))
+    return [];
+  const coarseTitles = coarseTitlesOf(recordsByTitle);
+  return expectedSymbolsForAnalysis(
+    sourcePath,
+    analysis,
+    new Set(recordsByTitle.keys()),
+  )
+    .filter(
+      (symbol) =>
+        !coarseTitles.has(symbol.title) && !recordsByTitle.has(symbol.title),
+    )
+    .map((symbol) => ({ title: symbol.title, line: symbol.sourceLine ?? 0 }))
+    .sort(byTitle);
+}
+
+/** The base version of a staged source file, when the commit has one. */
+export type StagedSymbolsBaseSource = (
+  file: StagedFile,
+) => DeclarationSource | null;
+
+interface BaseComparison {
+  /** Declarations of the staged file the commit adds or changes. */
+  changed: ReadonlySet<SourceAnalysisResult["symbols"][number]>;
+  /** Titles the base version of the file declared. */
+  baseDeclarationTitles: ReadonlySet<string>;
+  /** Titles the base manifest recorded for the base path of the file. */
+  baseRecordTitles: ReadonlySet<string>;
+}
+
 function diffSymbolEvidence(
   sourcePath: string,
-  expectedSymbols: NormalizedManifestSymbol[],
+  expectedSymbols: ExpectedManifestSymbol[],
   stagedSymbols: NormalizedManifestSymbol[],
+  base: BaseComparison | null,
 ): KibiImpactSymbolsManifestFileDetail | null {
   const stagedTitles = new Set(stagedSymbols.map((symbol) => symbol.title));
   const expectedTitles = new Set(expectedSymbols.map((symbol) => symbol.title));
-  const missing = expectedSymbols
-    .filter((symbol) => !stagedTitles.has(symbol.title))
-    .map((symbol) => ({ title: symbol.title, line: symbol.sourceLine ?? 0 }))
-    .sort((left, right) => left.title.localeCompare(right.title));
-  const extra = stagedSymbols
+  const missingSymbols = expectedSymbols.filter(
+    (symbol) => !stagedTitles.has(symbol.title),
+  );
+  const extraTitles = stagedSymbols
     .filter((symbol) => !expectedTitles.has(symbol.title))
-    .map((symbol) => symbol.title)
-    .sort();
+    .map((symbol) => symbol.title);
   // Pure coordinate drift (titles unchanged) has no symbol-level remedy to
   // name; leave the detail out so the diagnostic stays verdict + refresh.
-  if (missing.length === 0 && extra.length === 0) {
+  if (missingSymbols.length === 0 && extraTitles.length === 0) {
     return null;
   }
+  // Without a base every gap is judged, as for a file the commit adds.
+  const judgedMissing = (symbol: ExpectedManifestSymbol): boolean =>
+    base === null ||
+    base.changed.has(symbol.declaration) ||
+    base.baseRecordTitles.has(symbol.title);
+  const judgedExtra = (title: string): boolean =>
+    base === null ||
+    base.baseDeclarationTitles.has(title) ||
+    !base.baseRecordTitles.has(title);
+  const toEntry = (symbol: ExpectedManifestSymbol) => ({
+    title: symbol.title,
+    line: symbol.sourceLine ?? 0,
+  });
+  const missing = missingSymbols
+    .filter(judgedMissing)
+    .map(toEntry)
+    .sort(byTitle);
+  const extra = extraTitles.filter(judgedExtra).sort();
+  const inheritedMissing = missingSymbols
+    .filter((symbol) => !judgedMissing(symbol))
+    .map(toEntry)
+    .sort(byTitle);
+  const inheritedExtra = extraTitles
+    .filter((title) => !judgedExtra(title))
+    .sort();
   // Keep the complete lists: the gate output names every symbol.
   return {
     path: sourcePath,
     expectedCount: expectedSymbols.length,
-    coveredCount: expectedSymbols.length - missing.length,
+    coveredCount: expectedSymbols.length - missingSymbols.length,
     missing,
     extra,
+    ...(base === null
+      ? {}
+      : {
+          changedCount: expectedSymbols.filter((symbol) =>
+            base.changed.has(symbol.declaration),
+          ).length,
+          inherited: { missing: inheritedMissing, extra: inheritedExtra },
+        }),
   };
+}
+
+function detailBlocks(detail: KibiImpactSymbolsManifestFileDetail): boolean {
+  return detail.missing.length > 0 || detail.extra.length > 0;
 }
 
 /**
@@ -365,10 +488,12 @@ function diffSymbolEvidence(
  * behavior files.
  *
  * Coordinates are derived from source and never committed, so the check
- * compares symbol titles only: every declaration extracted from a staged
- * file must have a manifest record and every granular record must still name
- * a declaration. A covered file is `fresh` evidence for its behavior edit; a
- * gap is `stale` and lists the uncovered and orphaned symbols.
+ * compares symbol titles only. With `baseSource`, a commit is judged only on
+ * what it changes: every declaration it adds or changes needs a record, a
+ * record it removes or a declaration it removes or renames leaves a gap, and
+ * a record it adds or changes must name a declaration. Gaps it did not cause
+ * are listed under `inherited` and never make the file stale. Without
+ * `baseSource` every declaration of a staged file is judged.
  */
 export function assessStagedSymbolsManifest(options: {
   symbolsManifestPath: string;
@@ -376,27 +501,39 @@ export function assessStagedSymbolsManifest(options: {
   stagedFiles: StagedFile[];
   readBaseFile?: (filePath: string) => string | null;
   analyzeSource?: (filePath: string, content: string) => SourceAnalysisResult;
+  baseSource?: StagedSymbolsBaseSource;
 }): StagedSymbolsManifestAssessment {
   const { sourceFiles, stagedFiles, symbolsManifestPath } = options;
   const paths = resolveRelativeManifestPaths(symbolsManifestPath);
+  const readBaseFile = options.readBaseFile ?? readHeadFileContent;
   const stagedManifestFile = stagedFiles.find(
     (file) => file.path === paths.symbolsPath,
   );
   const stagedManifestRecords = readManifestRecords(
     stagedManifestFile
       ? () => stagedManifestFile.content
-      : () => (options.readBaseFile ?? readHeadFileContent)(paths.symbolsPath),
+      : () => readBaseFile(paths.symbolsPath),
     paths.symbolsPath,
   );
+  // An unstaged manifest is the base manifest.
+  const baseManifestRecords =
+    options.baseSource && stagedManifestFile
+      ? readManifestRecords(
+          () => readBaseFile(paths.symbolsPath),
+          paths.symbolsPath,
+        )
+      : stagedManifestRecords;
 
   const coveredPaths: string[] = [];
   const uncoveredPaths: string[] = [];
   const symbolDetails: KibiImpactSymbolsManifestFileDetail[] = [];
 
   for (const sourceFile of sourceFiles) {
-    const manifestRecordsForFile = stagedManifestRecords.filter(
-      (record) => manifestRecordSourcePath(record) === sourceFile.path,
+    const recordsByTitle = recordsByTitleForPath(
+      stagedManifestRecords,
+      sourceFile.path,
     );
+    const manifestRecordsForFile = [...recordsByTitle.values()].flat();
     const coarseCovered =
       manifestRecordsForFile.length > 0 &&
       manifestRecordsForFile.every(isDocumentedCoarseRecord);
@@ -404,24 +541,16 @@ export function assessStagedSymbolsManifest(options: {
       continue;
     }
 
-    const recordsByTitle = new Map<string, ManifestSymbolRecord[]>();
-    // A record without a string title matches no extracted declaration.
-    for (const record of manifestRecordsForFile) {
-      const title = record.title as string;
-      const records = recordsByTitle.get(title) ?? [];
-      records.push(record);
-      recordsByTitle.set(title, records);
-    }
     // A coarse anchor stands in for its extracted declaration only when
     // every authored record with that title is explicitly coarse.
-    const coarseTitles = new Set(
-      [...recordsByTitle.entries()]
-        .filter(([, records]) => records.every(isDocumentedCoarseRecord))
-        .map(([title]) => title),
+    const coarseTitles = coarseTitlesOf(recordsByTitle);
+    const afterAnalysis = (options.analyzeSource ?? analyzeSourceText)(
+      sourceFile.path,
+      sourceFile.content ?? "",
     );
-    const expectedSymbols = normalizeExpectedSymbolsForStagedFile(
-      sourceFile,
-      options.analyzeSource,
+    const expectedSymbols = expectedSymbolsForAnalysis(
+      sourceFile.path,
+      afterAnalysis,
       new Set(recordsByTitle.keys()),
     ).filter((symbol) => !coarseTitles.has(symbol.title));
     const stagedSymbols = normalizeManifestSymbolsForSourceFile(
@@ -432,36 +561,76 @@ export function assessStagedSymbolsManifest(options: {
       continue;
     }
 
+    let base: BaseComparison | null = null;
+    if (options.baseSource) {
+      const before = options.baseSource(sourceFile);
+      const basePath = sourceFile.oldPath ?? sourceFile.path;
+      const baseRecords = recordsByTitleForPath(baseManifestRecords, basePath);
+      const baseRecordTitles = new Set(
+        [...baseRecords.entries()]
+          .filter(([, records]) => !records.every(isDocumentedCoarseRecord))
+          .map(([title]) => title),
+      );
+      base = {
+        changed: declarationsInChange(before, {
+          analysis: afterAnalysis,
+          content: sourceFile.content ?? "",
+        }),
+        baseDeclarationTitles: new Set(
+          before && baseAnalysisUsable(before.analysis)
+            ? expectedSymbolsForAnalysis(
+                basePath,
+                before.analysis,
+                new Set(baseRecords.keys()),
+              ).map((symbol) => symbol.title)
+            : [],
+        ),
+        baseRecordTitles,
+      };
+    }
+
     const detail = diffSymbolEvidence(
       sourceFile.path,
       expectedSymbols,
       stagedSymbols,
+      base,
     );
     if (detail === null) {
       coveredPaths.push(sourceFile.path);
-    } else {
+      continue;
+    }
+    symbolDetails.push(detail);
+    if (detailBlocks(detail)) {
       uncoveredPaths.push(sourceFile.path);
-      symbolDetails.push(detail);
+    } else {
+      coveredPaths.push(sourceFile.path);
     }
   }
 
+  const fileDetails = symbolDetails.sort((left, right) =>
+    left.path.localeCompare(right.path),
+  );
   if (coveredPaths.length === 0 && uncoveredPaths.length === 0) {
     return { state: "not_required", sourcePaths: [], path: paths.symbolsPath };
   }
+  const coveredSourcePaths = options.baseSource
+    ? { coveredSourcePaths: uniqueSorted(coveredPaths) }
+    : {};
   if (uncoveredPaths.length === 0) {
     return {
       state: "fresh",
       sourcePaths: uniqueSorted(coveredPaths),
       path: paths.symbolsPath,
+      ...(fileDetails.length > 0 ? { fileDetails } : {}),
+      ...coveredSourcePaths,
     };
   }
   return {
     state: "stale",
     sourcePaths: uniqueSorted(uncoveredPaths),
     path: paths.symbolsPath,
-    fileDetails: symbolDetails.sort((left, right) =>
-      left.path.localeCompare(right.path),
-    ),
+    fileDetails,
+    ...coveredSourcePaths,
   };
 }
 

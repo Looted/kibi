@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc17e5f6f1b3
+  - type: implements
+    from: SYM-staged-symbols-manifest-unrecordedDeclarations
+    to: REQ-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:47.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f6b5985c176
+  - type: covered_by
+    from: SYM-staged-symbols-manifest-unrecordedDeclarations
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:47.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12f9c3f7bb48

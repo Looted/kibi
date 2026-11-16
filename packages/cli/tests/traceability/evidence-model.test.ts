@@ -131,7 +131,7 @@ describe("evidence-model", () => {
       "    Evidence without a matching symbol: checkOld",
     ]);
     expect(stale?.suggestion).toBe(
-      "Author .kb/symbols.yaml entries for the uncovered symbols (kibi upsert, with implements/covered_by links), and re-point or remove (kibi delete) the .kb/symbols.yaml entries whose declaration is gone. Stage .kb/symbols.yaml with the behavior edit, then re-run kibi check --staged.",
+      "Author .kb/symbols.yaml entries for the listed declarations (kibi upsert), each with a symbol_role (behavioral, structural, type-shape, config, module, unknown); behavioral code also needs implements and covered_by links, and a function, class, method, property, accessor or variable holding a function always does; never invent a requirement link to pass the gate, and re-point or remove (kibi delete) the .kb/symbols.yaml entries whose declaration is gone. Stage .kb/symbols.yaml with the behavior edit, then re-run kibi check --staged.",
     );
   });
 

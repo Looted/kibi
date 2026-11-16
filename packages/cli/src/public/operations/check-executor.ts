@@ -71,6 +71,7 @@ import {
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
 import { collectSubjectLayerViolations } from "./subject-layer.js";
 import { collectSymbolCoordinatesMissingViolations } from "./symbol-coordinates-check.js";
+import { type SymbolDebt, collectSymbolDebt } from "./symbol-debt.js";
 import { collectSymbolGranularityViolations } from "./symbol-granularity-check.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -243,6 +244,15 @@ export function uncompiledBranchStoreViolation(
  * the place to keep parsed source analyses. A read-only detached snapshot
  * and an unknown store (an explicit --kb-path) get no cache.
  */
+/** The summary with one non-blocking sentence about unrecorded declarations. */
+export function withSymbolDebtSummary(
+  debt: SymbolDebt | undefined,
+  summary: string,
+): string {
+  if (debt === undefined || debt.total === 0) return summary;
+  return `${summary}\nSymbol records (not blocking): ${debt.total} declaration(s) in ${debt.files.length} file(s) with symbol records have none; a commit is judged on them only when it adds or changes them.`;
+}
+
 export function analysisCacheDir(
   context: OperationContext,
   workspaceRoot: string,
@@ -572,28 +582,45 @@ export async function executeCheck(
         ? { summarizePlan: true }
         : {}),
     });
+    // Only a check with no rule or file scope reports the repository's
+    // unrecorded declarations: it is the one that answers for the whole KB.
+    // The debt never blocks, so an engine that cannot project it leaves the
+    // field out instead of failing the check.
+    const symbolDebt =
+      !hasExplicitRules && args.sourceFiles === undefined
+        ? await collectSymbolDebt(
+            prolog,
+            workspaceRoot,
+            analysisCacheDir(context, workspaceRoot, options),
+          ).catch(() => undefined)
+        : undefined;
     const structuredContent = scoped
       ? fitScopedCheckToBudget(structured)
-      : structured;
+      : symbolDebt !== undefined
+        ? { ...structured, symbolDebt }
+        : structured;
     return {
       content: [
         {
           type: "text",
-          text: buildSummary({
-            violations: structuredContent.violations,
-            evaluated,
-            impactResult,
-            qualityDiagnostics: structuredContent.qualityDiagnostics ?? [],
-            ...(structuredContent.violationGroups !== undefined
-              ? { violationGroups: structuredContent.violationGroups }
-              : {}),
-            ...(structuredContent.omittedViolations !== undefined
-              ? { omittedViolations: structuredContent.omittedViolations }
-              : {}),
-            ...(structuredContent.truncation !== undefined
-              ? { truncation: structuredContent.truncation }
-              : {}),
-          }),
+          text: withSymbolDebtSummary(
+            symbolDebt,
+            buildSummary({
+              violations: structuredContent.violations,
+              evaluated,
+              impactResult,
+              qualityDiagnostics: structuredContent.qualityDiagnostics ?? [],
+              ...(structuredContent.violationGroups !== undefined
+                ? { violationGroups: structuredContent.violationGroups }
+                : {}),
+              ...(structuredContent.omittedViolations !== undefined
+                ? { omittedViolations: structuredContent.omittedViolations }
+                : {}),
+              ...(structuredContent.truncation !== undefined
+                ? { truncation: structuredContent.truncation }
+                : {}),
+            }),
+          ),
         },
       ],
       structuredContent,

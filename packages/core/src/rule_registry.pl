@@ -306,8 +306,8 @@ rule_predicate_arity('kb-consistency', 1).
 rule_predicate_arity('kb-consistency-unresolved', 1).
 
 rule_description('must-priority-coverage', 'Every current must-priority requirement (not superseded, retired, or closed without the implemented tag) must have a scenario and a test').
-rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path').
-rule_description('symbol-traceability', 'Production symbols must directly implement requirements for ownership; covered_by is coverage only and executable_for is test identity only').
+rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path; a linkless record whose symbol_role is structural, type-shape, config or module owes none').
+rule_description('symbol-traceability', 'Production symbols must directly implement requirements for ownership, except a linkless record whose symbol_role is structural, type-shape, config or module; covered_by is coverage only and executable_for is test identity only').
 rule_description('symbol-granularity', 'A symbol with traceability relationships must not link its source file coarsely while narrower behavioral symbols are available, unless it carries an allowed granularity_reason; the staged gate\'s symbol_granularity_violation evaluated KB-wide').
 rule_description('symbol-coordinates-missing', 'Advisory: an active symbol names a source file that exists, but Kibi could not place it there (the declaration was not found, the file is unreadable to the analyzer, or a declared plugin or grammar pack is missing), so its link is checked against no code').
 rule_description('no-dangling-refs', 'All relationship targets must exist in the KB').

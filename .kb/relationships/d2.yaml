@@ -328,3 +328,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdbfb995a2c8
+  - type: implements
+    from: SYM-staged-declaration-baseAnalysisUsable
+    to: REQ-staged-gate-changed-declaration-definition
+    created_at: 2026-11-16T05:44:36.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10e336b7f9c7
+  - type: covered_by
+    from: SYM-staged-declaration-baseAnalysisUsable
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:44:36.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdd2a1375f60
+  - type: implements
+    from: SYM-symbol-granularity-analyzeWorkspaceSources
+    to: REQ-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:42.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48d8bad74450
+  - type: covered_by
+    from: SYM-symbol-granularity-analyzeWorkspaceSources
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:42.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-794a5d85c566

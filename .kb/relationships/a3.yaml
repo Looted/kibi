@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0a88737f103
+  - type: assumes
+    from: SCEN-NEG-staged-gate-changed-declaration-definition-CHANGED-DECLARATION-IGNORED
+    to: FACT-NEG-staged-gate-changed-declaration-definition-CHANGED-DECLARATION-IGNORED
+    created_at: 2026-11-16T05:33:45.093Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23ddfbc35ae8
+  - type: assumes
+    from: SCEN-check-reports-symbol-debt
+    to: FACT-check-reports-symbol-debt
+    created_at: 2026-11-16T05:33:58.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-798ac16da5cb

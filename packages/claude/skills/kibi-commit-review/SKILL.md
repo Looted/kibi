@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-commit-review
   id: kibi-commit-review
-  version: 1.5.0
+  version: 1.6.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -43,9 +43,9 @@ Never read or open any file under `.kb`, not even read-only with a file tool to 
 
 1. **Read the whole failure.** Each finding names an id, the files, `Detail:`
    lines and a `Suggestion:`. Detail lines are complete per file: how many
-   symbols extraction finds in the staged content, how many the staged
-   evidence covers, and every symbol missing from `.kb/symbols.yaml` with its
-   line. The common ids and their fixes are in `resources/staged-gate.md`.
+   of its declarations the commit adds or changes, and every one of those
+   missing from `.kb/symbols.yaml` with its line. Declarations the commit did
+   not touch are not judged. The common ids and their fixes are in `resources/staged-gate.md`.
 2. **Find the owning knowledge.** `kb_search` with `sourceLocations` for each
    named file (or `kb_query({sourceFile})`), then `kb_query` the requirements,
    scenarios and tests it returns. Run `kb_check` with `sourceFiles`,
