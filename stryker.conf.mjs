@@ -525,6 +525,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/commands/sync/staging-remaining.coverage.test.ts",
   ],
   "packages/cli/src/commands/sync/discovery.ts": [
+    "packages/cli/tests/commands-coverage/pending-receipt-branch.test.ts",
     "packages/cli/tests/commands/sync/discovery-mutation.test.ts",
     "packages/cli/tests/commands/sync/discovery-coverage.test.ts",
     "packages/cli/tests/commands/sync/discovery-remaining.coverage.test.ts",
@@ -1122,6 +1123,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public-mutation/impact/symbol-quality.mutation.test.ts",
   ],
   "packages/cli/src/public/impact/diagnostics.ts": [
+    "packages/cli/tests/public/impact/coverage-depth-quality.test.ts",
     "packages/cli/tests/public-mutation/impact/diagnostics.mutation.test.ts",
   ],
   "packages/cli/src/public/impact/source-changes.ts": [
@@ -1137,6 +1139,8 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public-mutation/symbol-granularity.mutation.test.ts",
   ],
   "packages/cli/src/public/operations/check-format-shared.ts": [
+    "packages/cli/tests/public-mutation/operations/check-format-budget.mutation.test.ts",
+    "packages/cli/tests/public/operations/check-scope.test.ts",
     "packages/cli/tests/public-mutation/operations/check-format-shared.mutation.test.ts",
   ],
   "packages/cli/src/public/ignore-policy.ts": [
@@ -1146,6 +1150,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public-mutation/operations/node-ports.mutation.test.ts",
   ],
   "packages/cli/src/public/operations/check-helpers.ts": [
+    "packages/cli/tests/public/operations/check-scope.test.ts",
     "packages/cli/tests/public-mutation/operations/check-helpers.mutation.test.ts",
   ],
   "packages/cli/src/public/operations/catalog.ts": [
@@ -1384,6 +1389,8 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public/operations/source-analysis-cache.test.ts",
   ],
   "packages/cli/src/public/operations/check-policy-rules.ts": [
+    "packages/cli/tests/public/check-policy-rules.test.ts",
+    "packages/cli/tests/public-coverage/operations/check-policy-rules.coverage.test.ts",
     "packages/cli/tests/public-mutation/operations/check-policy-rules.mutation.test.ts",
   ],
   "packages/cli/src/public/operations/decision-firmness.ts": [
@@ -1427,8 +1434,10 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/commands-mutation/check/staged-setup.test.ts",
     "packages/cli/tests/commands-mutation/check/staged-rules.test.ts",
     "packages/cli/tests/commands-mutation/check/staged-results.test.ts",
+    "packages/cli/tests/commands-mutation/check/symbol-records.test.ts",
   ],
   "packages/cli/src/commands/sync.ts": [
+    "packages/cli/tests/commands-coverage/pending-receipt-branch.test.ts",
     "packages/cli/tests/commands-mutation/sync/helpers.test.ts",
     "packages/cli/tests/commands-mutation/sync/sync-setup.test.ts",
     "packages/cli/tests/commands-mutation/sync/sync-plan.test.ts",
@@ -1773,9 +1782,7 @@ export const MUTATION_SHARDS = [
     "packages/cli/src/public/operations/discovery-entities.ts",
     "packages/cli/src/public/operations/legacy-migration-plan.ts",
   ],
-  [
-    "packages/cli/src/engine.ts",
-  ],
+  ["packages/cli/src/engine.ts"],
   [
     "packages/cli/src/operations/planning/apply-plan.ts",
     "packages/cli/src/prolog.ts",

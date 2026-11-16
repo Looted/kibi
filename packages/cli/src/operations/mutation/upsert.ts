@@ -53,6 +53,7 @@ import {
   withPlanRecoveryNotes,
 } from "./plan-apply-journal.js";
 import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
+import { reasonNotes } from "./reason-note.js";
 import {
   existingRelationships,
   validateLiveRelationshipTargets,
@@ -552,8 +553,16 @@ export async function validateUpsertForCommit(
     // is judged again as if it had been sent: a write the boundary accepts
     // (legacy prose kept as it was) is never filled in, and a contract sent
     // in any part is judged exactly as sent.
+    // The store reads behind the boundary are cached, so any other refusal
+    // recurs unchanged when the filled-in write is judged again, and a write
+    // the server does not fill is refused again as is; these checks only
+    // spare that work.
     if (
+      // rationale: cached store reads make the retry refuse the same way.
+      // Stryker disable next-line ConditionalExpression,LogicalOperator
       !(error instanceof KbRejection) ||
+      // rationale: cached store reads make the retry refuse the same way.
+      // Stryker disable next-line ConditionalExpression
       error.code !== "INCOMPLETE_PROPOSITIONS"
     )
       throw error;
@@ -565,6 +574,8 @@ export async function validateUpsertForCommit(
       staged,
       lookup,
     );
+    // rationale: an unfilled write is refused again as is when re-judged.
+    // Stryker disable next-line ConditionalExpression
     if (server.applied === undefined) throw error;
     input = server.input;
     validated = validateUpsertInput(input, context.clock());
@@ -761,6 +772,9 @@ export async function executeUpsert(
   const saga = new MutationSaga();
   let sourceWrite: Awaited<ReturnType<typeof writeSourceForUpsert>> = null;
   let commitEntity: Readonly<Record<string, unknown>> | undefined;
+  // The entity before this write, when the source-first scope read it.
+  let priorEntity: Readonly<Record<string, unknown>> | undefined;
+  let priorEntityRead = false;
   let relationshipCount = 0;
   let changeKind: "created" | "updated" | null = null;
   let semanticAdvisor: SemanticAdvisorReceipt | null = null;
@@ -816,6 +830,8 @@ export async function executeUpsert(
     semanticAdvisor = semantic.receipt;
     const sourceScope = await sourceWriteScope(input, context);
     if (sourceScope !== null) {
+      priorEntity = sourceScope.existing;
+      priorEntityRead = true;
       sourceWrite = await writeSourceForUpsert(
         input,
         validated.entity,
@@ -1099,6 +1115,17 @@ export async function executeUpsert(
       context.prolog,
       context.workspaceRoot,
     );
+    const requirementReasonNotes =
+      priorEntityRead || created === 1
+        ? await reasonNotes({
+            type: input.type,
+            id: input.id,
+            before: created === 1 ? undefined : priorEntity,
+            after: writtenEntity,
+            prolog: requireProlog(context),
+            workspaceRoot: context.workspaceRoot,
+          })
+        : [];
     const payload: UpsertPayload = {
       created,
       updated: changeKind === "updated" ? 1 : 0,
@@ -1125,6 +1152,7 @@ export async function executeUpsert(
           sourceWrite?.receipt.path,
         ),
         ...subjectWarnings,
+        ...requirementReasonNotes,
         ...shardWarnings,
         ...coordinateWarnings,
       ],

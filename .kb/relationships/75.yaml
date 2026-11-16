@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad79fd14edaf
+  - type: implements
+    from: SYM-cli-reason-note-reason-notes
+    to: REQ-upsert-notes-missing-reason
+    created_at: 2026-11-16T14:58:26.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97f8badc7e5b
+  - type: implements
+    from: SYM-cli-reason-note-reason-notes
+    to: REQ-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:26.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf7f8bee15f1
+  - type: covered_by
+    from: SYM-cli-reason-note-reason-notes
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:26.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f23432dbb9bf
