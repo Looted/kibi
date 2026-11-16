@@ -433,7 +433,9 @@ coverage_id_list(Ids, Text) :-
 
 %% check_symbol_traceability(+RequireAdr, -Violations)
 % Finds all symbols lacking direct requirement ownership:
-% - Every symbol must have at least one direct implements ownership path
+% - Every symbol must have at least one direct implements ownership path,
+%   except a linkless record whose symbol_role is structural, type-shape,
+%   config or module (kb:linkless_non_behavioral_symbol/1)
 % - If RequireAdr=true, the symbol must also have at least one 'constrained_by' relationship to an ADR
 check_symbol_traceability(RequireAdr, Violations) :-
     findall(
@@ -462,9 +464,13 @@ symbol_traceability_violation(RequireAdr, violation(
     Source
 )) :-
     kb_entity(SymbolId, symbol, _),
-    % Check if symbol has direct requirement ownership
-    (   symbol_owns_requirement(SymbolId, ReqId),
-        kb_entity(ReqId, req, _)
+    % Check if symbol has direct requirement ownership. A linkless record of
+    % non-behavioral code (structural, type-shape, config or module role)
+    % records a declaration without claiming ownership, so it owes none.
+    (   (   symbol_owns_requirement(SymbolId, ReqId),
+            kb_entity(ReqId, req, _)
+        ;   linkless_non_behavioral_symbol(SymbolId)
+        )
     ->  HasReq = true
     ;   HasReq = false
     ),

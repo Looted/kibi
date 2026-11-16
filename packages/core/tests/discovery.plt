@@ -1235,6 +1235,20 @@ test(symbol_whose_source_file_is_gone_is_uncovered) :-
         Dict.summary.uncovered == 2
     )).
 
+test(linkless_non_behavioral_symbol_row_is_not_applicable) :-
+    dsc_branch_kb((
+        pf_entity(symbol, 'SYM-CONF-KEPT', [sourceFile="src/kept.ts", symbol_role=config]),
+        pf_entity(symbol, 'SYM-CONF-GONE', [sourceFile="src/gone.ts", symbol_role=config]),
+        dsc_json(coverage_report_json(symbol, [], true, false, 10, 0), Dict),
+        findall(Id-Role-Status-Gaps,
+                (   member(Row, Dict.rows), Id = Row.id, Role = Row.traceabilityRole,
+                    Status = Row.coverageStatus, Gaps = Row.gaps
+                ),
+                Rows),
+        Rows == ['SYM-CONF-GONE'-production-uncovered-[source_missing],
+                 'SYM-CONF-KEPT'-production-not_applicable-[]]
+    )).
+
 test(symbol_report_classifies_every_role) :-
     dsc_kb((
         dsc_symbol_fixture,

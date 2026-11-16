@@ -223,3 +223,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e0c70900b56
+  - type: requires_property
+    from: REQ-symbol-traceability-behavioral-only
+    to: FACT-symbol-traceability-behavioral-only
+    created_at: 2026-11-16T05:38:16.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00aec51c6cd4
+  - type: constrains
+    from: REQ-symbol-traceability-behavioral-only
+    to: FACT-SUBJ-REQ-SYMBOL-BEHAVIORAL-ANCHORS
+    created_at: 2026-11-16T05:38:16.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed55e29866aa
+  - type: specified_by
+    from: REQ-symbol-traceability-behavioral-only
+    to: SCEN-symbol-traceability-behavioral-only
+    created_at: 2026-11-16T05:38:16.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c9856b67829
+  - type: specified_by
+    from: REQ-symbol-traceability-behavioral-only
+    to: SCEN-NEG-symbol-traceability-behavioral-only-BEHAVIORAL-EXEMPTED
+    created_at: 2026-11-16T05:38:16.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6071a653d14f
+  - type: verified_by
+    from: REQ-symbol-traceability-behavioral-only
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:38:16.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b6b0675fea8

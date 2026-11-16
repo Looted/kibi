@@ -85,22 +85,41 @@ export interface KibiImpactSymbolsManifestFileDetail {
    * not counted.
    */
   coveredCount: number;
-  /** Every extracted symbol with no evidence entry (title + definition line). */
+  /**
+   * Extracted symbols with no evidence entry that the commit is judged on
+   * (title + definition line): declarations it adds or changes, and
+   * declarations whose record it removes.
+   */
   missing: Array<{ title: string; line: number }>;
-  /** Every evidence entry the extractor no longer finds at the recorded shape. */
+  /**
+   * Evidence entries naming no extracted declaration that the commit is
+   * judged on: records of declarations it removes or renames, and records
+   * it adds or changes.
+   */
   extra: string[];
+  /** Declarations the commit adds or changes in the file. */
+  changedCount?: number;
+  /**
+   * Gaps the commit did not cause: unchanged declarations with no record and
+   * untouched records with no declaration. Reported, never blocking.
+   */
+  inherited?: {
+    missing: Array<{ title: string; line: number }>;
+    extra: string[];
+  };
 }
 
 /**
- * Whether the staged symbol manifest covers the declarations of the staged
- * behavior files. Coordinates are derived from source, so only titles count.
+ * Whether the staged symbol manifest covers the declarations the commit adds
+ * or changes in the staged behavior files. Coordinates are derived from
+ * source, so only titles count.
  *
  * - `not_required`: the listed files declare nothing and own no records.
- * - `fresh`: every declaration in the listed files has a manifest record and
- *   every granular record names a declaration; this is evidence for their
- *   behavior edits.
- * - `stale`: the listed files have uncovered declarations or records whose
- *   declaration is gone.
+ * - `fresh`: every declaration the commit adds or changes in the listed files
+ *   has a manifest record and no record the commit is judged on names a gone
+ *   declaration; this is evidence for their behavior edits.
+ * - `stale`: some listed file has such a gap. `coveredSourcePaths` still
+ *   names the files without one.
  */
 export interface KibiImpactSymbolsManifest {
   /** Canonical repo-relative symbol manifest path. */
@@ -115,6 +134,11 @@ export interface KibiImpactSymbolsManifest {
    * uncovered symbols instead of reporting a bare "stale" verdict.
    */
   fileDetails?: readonly KibiImpactSymbolsManifestFileDetail[];
+  /**
+   * Staged source paths whose judged declarations are all covered, whatever
+   * the overall state: per-file evidence for their behavior edits.
+   */
+  coveredSourcePaths?: string[];
 }
 
 /** Explicit evidence state: staged KB artifacts are present. */
@@ -178,11 +202,15 @@ export function getKbCoveredSourcePaths(
 export function getFreshSymbolsManifestSourcePaths(
   evidence: KibiImpactEvidence,
 ): string[] {
-  if (evidence.symbolsManifest.state !== "fresh") {
+  const { symbolsManifest } = evidence;
+  if (symbolsManifest.coveredSourcePaths !== undefined) {
+    return [...symbolsManifest.coveredSourcePaths].sort();
+  }
+  if (symbolsManifest.state !== "fresh") {
     return [];
   }
 
-  return [...evidence.symbolsManifest.sourcePaths].sort();
+  return [...symbolsManifest.sourcePaths].sort();
 }
 
 /**

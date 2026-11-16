@@ -11900,7 +11900,9 @@ test(a_shared_property_fact_is_no_candidate_pair, [setup(setup_kb), cleanup(clea
 ks_clear_changed_symbols :-
     retractall(kb:changed_symbol(_)),
     retractall(kb:changed_symbol_req(_, _)),
-    retractall(kb:changed_symbol_loc(_, _, _, _, _)).
+    retractall(kb:changed_symbol_loc(_, _, _, _, _)),
+    retractall(kb:changed_symbol_kind(_, _)),
+    retractall(kb:changed_symbol_callable(_)).
 
 :- begin_tests(kb_changed_symbols, [cleanup(ks_clear_changed_symbols)]).
 
@@ -11922,6 +11924,23 @@ test(changed_symbols_count_unique_requirement_links, [setup(setup_kb), cleanup((
     assertion(Violations == ['SYM-CH-A'-2-'src/a.ts'-7-3-alpha, 'SYM-CH-K'-1-''-0-0-'',
                              'SYM-CH-N'-0-''-0-0-'']),
     assertion(UnderTwo == ['SYM-CH-N'-0]).
+
+
+test(changed_linkless_non_behavioral_record_needs_no_link_unless_behavioral_kind, [setup(setup_kb), cleanup((ks_clear_changed_symbols, cleanup_kb))]) :-
+    forall(member(Id-Role-Kind, ['SYM-RK-CONST'-config-variable, 'SYM-RK-TYPE'-'type-shape'-interface,
+                                 'SYM-RK-NOKIND'-structural-none, 'SYM-RK-FN'-config-function,
+                                 'SYM-RK-CLASS'-structural-class, 'SYM-RK-METHOD'-module-method,
+                                 'SYM-RK-PROP'-config-property, 'SYM-RK-ACC'-config-accessor,
+                                 'SYM-RK-ARROW'-config-variable, 'SYM-RK-BEH'-behavioral-variable]),
+           (   assert_fixture_entity(symbol, Id, "Changed", active, [symbol_role=Role]),
+               assertz(kb:changed_symbol(Id)),
+               (   Kind == none -> true ; assertz(kb:changed_symbol_kind(Id, Kind)) )
+           )),
+    assertz(kb:changed_symbol_callable('SYM-RK-ARROW')),
+    findall(Symbol, kb:changed_symbol_violation(Symbol, 1, 0, _, _, _, _), Violations0),
+    sort(Violations0, Violations),
+    assertion(Violations == ['SYM-RK-ACC', 'SYM-RK-ARROW', 'SYM-RK-BEH', 'SYM-RK-CLASS',
+                             'SYM-RK-FN', 'SYM-RK-METHOD', 'SYM-RK-PROP']).
 
 :- end_tests(kb_changed_symbols).
 

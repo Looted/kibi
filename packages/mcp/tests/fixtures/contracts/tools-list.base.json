@@ -5208,6 +5208,38 @@
                     },
                     "type": "array"
                   },
+                  "symbolDebt": {
+                    "additionalProperties": false,
+                    "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record. Non-blocking: the staged gate judges them only when a commit adds or changes them.",
+                    "properties": {
+                      "files": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "unrecorded": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            }
+                          },
+                          "required": ["path", "unrecorded"],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "total": {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      }
+                    },
+                    "required": ["total", "files"],
+                    "type": "object"
+                  },
                   "truncated": {
                     "const": true,
                     "type": "boolean"

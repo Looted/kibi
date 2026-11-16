@@ -7837,5 +7837,25 @@
         "./packages/cli/tests/consumer/upsert-implemented-by.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-staged-gate-inherited-symbol-gaps",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/staged-inherited-symbol-gaps.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-check-reports-symbol-debt",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/check-symbol-debt.test.ts"
+      ]
+    ]
   }
 ]
