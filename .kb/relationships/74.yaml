@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a9cbb041c02
+  - type: assumes
+    from: SCEN-NEG-mcp-upsert-capture-fields-EVERY-FIELD
+    to: FACT-mcp-upsert-advertises-every-field
+    created_at: 2026-11-16T17:22:05.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f7fac7c6f82

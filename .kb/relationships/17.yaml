@@ -318,3 +318,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2be35d267019
+  - type: implements
+    from: SYM-cli-commandSummary
+    to: REQ-cli-help-command-summaries
+    created_at: 2026-11-16T17:23:35.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4065705b2ee2
+  - type: covered_by
+    from: SYM-cli-commandSummary
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T17:23:35.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-424fc813f7cb

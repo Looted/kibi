@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f6e06599369
+  - type: executable_for
+    from: SYM-test-cli-CommandSurface
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T19:05:40.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ee362819ab7

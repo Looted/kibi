@@ -3,6 +3,7 @@
     "name": "check-generated",
     "aliases": [],
     "description": "Compare generated symbol manifests with the staged Git snapshot",
+    "summary": "",
     "arguments": [],
     "options": [
       {
@@ -24,6 +25,7 @@
     "name": "find-gaps",
     "aliases": ["gaps"],
     "description": "List KB entities by the relationships they lack or have. Use for questions like which requirements lack scenarios or tests; all filters must match, and a relationship counts in either direction. Use kb_coverage instead for proof status and repair plans, and kb_check for rule violations. No mutation side effects.",
+    "summary": "List KB entities by the relationships they lack or have.",
     "arguments": [
       {
         "name": "type",
@@ -95,6 +97,7 @@
     "name": "report",
     "aliases": [],
     "description": "Generate a self-contained HTML requirement-health report for local viewing or CI publishing",
+    "summary": "",
     "arguments": [],
     "options": [
       {
@@ -134,6 +137,7 @@
     "name": "signoff",
     "aliases": [],
     "description": "Show the requirements a change adds, rewrites or affects (or, with --questions, the decisions waiting for the person) as chat Markdown, a fenced block for host renderers, an HTML page or JSON for signoff",
+    "summary": "",
     "arguments": [],
     "options": [
       {
@@ -179,6 +183,7 @@
     "name": "coverage",
     "aliases": [],
     "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Use it to ask which requirements are tested end to end, how strong each requirement's evidence is (evidenceLevel: proved, tested, asserted or unverified), and what blocks the rest; use kb_find_gaps for a plain list of missing links and kb_check for rule violations. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
+    "summary": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types.",
     "arguments": [],
     "options": [
       {
@@ -284,6 +289,7 @@
     "name": "graph",
     "aliases": [],
     "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types and return the nodes and edges reached. Use it to follow links from IDs you already have, such as a requirement to its scenarios and tests or a symbol to the requirements it implements; use kb_query to find entities by filter and kb_search to ask a question. Traversal stops at depth, maxNodes or maxEdges and then sets truncated. No mutation side effects.",
+    "summary": "Run bounded graph traversal from one or more seed IDs across curated relationship types and return the nodes and edges reached.",
     "arguments": [],
     "options": [
       {
@@ -353,6 +359,7 @@
     "name": "check",
     "aliases": [],
     "description": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
+    "summary": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions.",
     "arguments": [],
     "options": [
       {
@@ -428,6 +435,7 @@
     "name": "check-diff",
     "aliases": [],
     "description": "Run the full protected pull-request impact gate from its trusted GitHub event",
+    "summary": "",
     "arguments": [],
     "options": [],
     "commands": []

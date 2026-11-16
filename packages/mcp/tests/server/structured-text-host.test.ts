@@ -193,9 +193,20 @@ describe("discovery results reach each host once", () => {
     expect(text).not.toContain('"entities"');
   }, 120_000);
 
-  test("any other host keeps the data JSON ahead of the summary", async () => {
+  test("the Codex launcher's host name drops the JSON copy from the text", async () => {
     const { text, data } = await callAs(
       { host: "codex", clientName: "test" },
+      "kb_query",
+      QUERY_ARGS,
+    );
+    expect(data.count).toBe(ROW_COUNT);
+    expect(text.startsWith("Found")).toBe(true);
+    expect(text).not.toContain('"entities"');
+  }, 120_000);
+
+  test("any other host keeps the data JSON ahead of the summary", async () => {
+    const { text, data } = await callAs(
+      { host: "cursor", clientName: "test" },
       "kb_query",
       QUERY_ARGS,
     );
@@ -207,7 +218,7 @@ describe("discovery results reach each host once", () => {
 
   test("KIBI_MCP_STRUCTURED_TEXT overrides the host-based choice both ways", async () => {
     const omitted = await callAs(
-      { host: "codex", clientName: "test", structuredText: "omit" },
+      { host: "cursor", clientName: "test", structuredText: "omit" },
       "kb_query",
       QUERY_ARGS,
     );

@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae59d89dc268
+  - type: validates
+    from: TEST-cli-help-command-summaries
+    to: SCEN-cli-help-command-summaries
+    created_at: 2026-11-16T17:22:14.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e14dff7fecc5
+  - type: validates
+    from: TEST-cli-help-command-summaries
+    to: SCEN-NEG-cli-help-command-summaries-FULL-TEXT
+    created_at: 2026-11-16T17:22:14.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-297add7fde24

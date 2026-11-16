@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85ec123bce7f
+  - type: implements
+    from: SYM-mcp-resolveToolProfile
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:18.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2178bbc12f83
+  - type: covered_by
+    from: SYM-mcp-resolveToolProfile
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:18.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fadba323df22

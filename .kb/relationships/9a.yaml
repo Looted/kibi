@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-954c3f2d6929
+  - type: implements
+    from: SYM-cli-ADVERTISED_FIELDS
+    to: REQ-mcp-upsert-capture-fields
+    created_at: 2026-11-16T17:23:26.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b793f7876742
+  - type: covered_by
+    from: SYM-cli-ADVERTISED_FIELDS
+    to: TEST-mcp-upsert-capture-fields
+    created_at: 2026-11-16T17:23:26.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce348c6defd0

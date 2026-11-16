@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2908e70fce86
+  - type: executable_for
+    from: SYM-test-mcp-upsert-proof-field-stubs
+    to: TEST-mcp-upsert-capture-fields
+    created_at: 2026-11-16T17:28:00.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0151b34f2ec0

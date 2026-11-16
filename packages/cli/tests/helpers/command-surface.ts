@@ -8,6 +8,8 @@ export type CommandSurface = {
   readonly name: string;
   readonly aliases: readonly string[];
   readonly description: string;
+  /** The line `kibi --help` lists, when it differs from the description. */
+  readonly summary: string;
   readonly arguments: readonly unknown[];
   readonly options: readonly unknown[];
   readonly commands: readonly CommandSurface[];
@@ -18,6 +20,7 @@ export function commandSurface(command: Command): CommandSurface {
     name: command.name(),
     aliases: command.aliases(),
     description: command.description(),
+    summary: command.summary(),
     arguments: command.registeredArguments.map((argument) => ({
       name: argument.name(),
       description: argument.description,

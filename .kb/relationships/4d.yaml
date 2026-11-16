@@ -251,3 +251,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29e0554e95a3
+  - type: assumes
+    from: SCEN-NEG-mcp-default-tool-profile-ALL-LISTED
+    to: FACT-mcp-default-profile-lists-every-tool
+    created_at: 2026-11-16T17:22:02.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4b4c0699ba1
+  - type: assumes
+    from: SCEN-NEG-mcp-default-tool-profile-ALL-LISTED
+    to: FACT-mcp-empty-kb-without-bootstrap
+    created_at: 2026-11-16T17:22:02.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b26468ae712
+  - type: assumes
+    from: SCEN-NEG-mcp-default-tool-profile-ALL-LISTED
+    to: FACT-mcp-full-profile-leaves-out-tools
+    created_at: 2026-11-16T18:29:36.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66369fcd8796

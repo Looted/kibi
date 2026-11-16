@@ -62,6 +62,8 @@ export function registerConfiguredTools<TProlog>(
   server: McpServer,
   runtime: ToolsRuntime<TProlog>,
   registerTool: ToolRegistrar<TProlog>,
+  // The tool profile's names; every configured tool when absent.
+  listed?: ReadonlySet<string>,
 ): void {
   const toolDef = (name: string) => {
     const t = runtime.tools.find((tool) => tool.name === name);
@@ -85,12 +87,13 @@ export function registerConfiguredTools<TProlog>(
     >,
   });
   const register = ({ name, execute }: ToolRegistration): void => {
+    const optional = (OPTIONAL_TOOL_NAMES as readonly string[]).includes(name);
+    // A tool profile lists only its names; an optional tool someone enabled
+    // by name is listed in every profile.
+    if (listed !== undefined && !listed.has(name) && !optional) return;
     // Optional tools (kb_sparql_remote) are registered only when enabled;
     // every other configured tool must have a definition.
-    if (
-      (OPTIONAL_TOOL_NAMES as readonly string[]).includes(name) &&
-      !runtime.tools.some((tool) => tool.name === name)
-    ) {
+    if (optional && !runtime.tools.some((tool) => tool.name === name)) {
       return;
     }
     const definition = toolDef(name);

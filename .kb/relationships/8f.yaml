@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9cc7bfff019a
+  - type: assumes
+    from: SCEN-NEG-mcp-structured-text-codex-DOUBLE
+    to: FACT-codex-discovery-data-copy
+    created_at: 2026-11-16T17:22:07.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ee632a27ca7

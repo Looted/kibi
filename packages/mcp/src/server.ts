@@ -34,6 +34,13 @@ import {
   WorkspaceRouter,
   setWorkspaceRouter,
 } from "./server/workspace-router.js";
+import {
+  OPTIONAL_TOOL_NAMES,
+  TOOLS,
+  knowledgeBaseIsEmpty,
+  profileToolNames,
+  resolveToolProfile,
+} from "./tools-config.js";
 import { startMcpTelemetry } from "./usage-telemetry.js";
 import { resolveWorkspaceRoot } from "./workspace.js";
 
@@ -43,13 +50,41 @@ const packageJson = JSON.parse(
 ) as { version: string };
 const VERSION = packageJson.version;
 
-const SERVER_INSTRUCTIONS = [
+const BASE_INSTRUCTIONS = [
   "Kibi is a branch-local requirements knowledge base for software traceability.",
   "Start with kb_search (ask it a question; its answer layer names the governing requirements, facts, ADRs and tests), then kb_query for exact lookups before any mutation.",
   "Model requirements as linked facts via kb_model (mode requirement) or kb_upsert (create endpoints before linking them); preflight writes with kb_upsert dryRun:true.",
   "Mutate sequentially with kb_upsert and kb_delete; validate with kb_check during iteration and run an unfiltered kb_check before completion.",
   "Confirm branch freshness with kb_status. For first-time repository setup, use the kibi-bootstrap prompt.",
-].join(" ");
+];
+
+/**
+ * The initialize instructions. A session that lists only part of the
+ * catalog is told where the rest is: the CLI peer of every operation, or
+ * the `full` profile.
+ */
+export function serverInstructions(
+  listed?: ReadonlySet<string>,
+  tools: readonly { name: string }[] = TOOLS,
+): string {
+  return [
+    ...BASE_INSTRUCTIONS,
+    ...(listed === undefined
+      ? []
+      : [
+          `This server lists ${[...listed].join(", ")}. The other Kibi operations (${tools
+            .map((tool) => tool.name)
+            .filter(
+              (name) =>
+                !listed.has(name) &&
+                !(OPTIONAL_TOOL_NAMES as readonly string[]).includes(name),
+            )
+            .join(
+              ", ",
+            )}) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.`,
+        ]),
+  ].join(" ");
+}
 
 export async function startServer(): Promise<void> {
   keepStdoutForProtocol();
@@ -60,6 +95,14 @@ export async function startServer(): Promise<void> {
   // Initialize diagnostic mode if --diagnostic-mode flag is present
   initializeDiagnosticMode();
   startMcpTelemetry();
+
+  // The tool profile decides what the session lists; the knowledge base
+  // being empty adds the bootstrap tools to the default profile.
+  const workspaceRoot = resolveWorkspaceRoot();
+  const listed = profileToolNames(
+    resolveToolProfile(workspaceRoot),
+    knowledgeBaseIsEmpty(workspaceRoot),
+  );
 
   // Create MCP server
   const server = new McpServer(
@@ -72,19 +115,17 @@ export async function startServer(): Promise<void> {
       version: VERSION,
       icons: KIBI_ICONS,
     },
-    { instructions: SERVER_INSTRUCTIONS },
+    { instructions: serverInstructions(listed) },
   );
 
   // Answer each call from the caller's workspace (worktrees, parallel agents).
-  setWorkspaceRouter(
-    new WorkspaceRouter({ server, workspaceRoot: resolveWorkspaceRoot() }),
-  );
+  setWorkspaceRouter(new WorkspaceRouter({ server, workspaceRoot }));
 
   // Setup documentation resources and prompts
   setupDocsAndPrompts(server);
 
   // Register all KB tools
-  registerAllTools(server);
+  registerAllTools(server, undefined, listed);
 
   // Setup transport and connect
   const transport = new StdioServerTransport();

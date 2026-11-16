@@ -5,7 +5,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import * as diagnostics from "../../src/diagnostics.js";
 import * as env from "../../src/env.js";
-import { startServer } from "../../src/server.js";
+import { serverInstructions, startServer } from "../../src/server.js";
 import * as docs from "../../src/server/docs.js";
 import { KIBI_ICONS } from "../../src/server/icons.js";
 import * as tools from "../../src/server/tools.js";
@@ -46,7 +46,13 @@ describe("startServer", () => {
     const setRouter = spyOn(router, "setWorkspaceRouter");
     spies.push(setRouter);
 
-    await startServer();
+    const profile = process.env.KIBI_MCP_TOOLS;
+    Reflect.deleteProperty(process.env, "KIBI_MCP_TOOLS");
+    try {
+      await startServer();
+    } finally {
+      if (profile !== undefined) process.env.KIBI_MCP_TOOLS = profile;
+    }
 
     expect(order).toStrictEqual([
       "keepStdoutForProtocol",
@@ -84,15 +90,24 @@ describe("startServer", () => {
       version,
       icons: KIBI_ICONS,
     });
-    expect(inner._instructions).toBe(
-      [
-        "Kibi is a branch-local requirements knowledge base for software traceability.",
-        "Start with kb_search (ask it a question; its answer layer names the governing requirements, facts, ADRs and tests), then kb_query for exact lookups before any mutation.",
-        "Model requirements as linked facts via kb_model (mode requirement) or kb_upsert (create endpoints before linking them); preflight writes with kb_upsert dryRun:true.",
-        "Mutate sequentially with kb_upsert and kb_delete; validate with kb_check during iteration and run an unfiltered kb_check before completion.",
-        "Confirm branch freshness with kb_status. For first-time repository setup, use the kibi-bootstrap prompt.",
-      ].join(" "),
+    // This repository's knowledge base is not empty: the default profile
+    // lists the six core tools and the instructions say where the rest is.
+    const listed = new Set([
+      "kb_search",
+      "kb_query",
+      "kb_upsert",
+      "kb_check",
+      "kb_status",
+      "kb_skills",
+    ]);
+    expect(inner._instructions).toBe(serverInstructions(listed));
+    expect(String(inner._instructions)).toStartWith(
+      "Kibi is a branch-local requirements knowledge base for software traceability.",
     );
+    expect(
+      (tools.registerAllTools as unknown as { mock: { calls: unknown[][] } })
+        .mock.calls[0]?.[2],
+    ).toStrictEqual(listed);
     expect(setRouter).toHaveBeenCalledTimes(1);
     const installed = setRouter.mock.calls[0]?.[0];
     expect(installed).toBeInstanceOf(router.WorkspaceRouter);

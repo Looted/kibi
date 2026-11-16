@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67fdcc8956bd
+  - type: assumes
+    from: SCEN-NEG-cli-help-command-summaries-FULL-TEXT
+    to: FACT-cli-help-full-description-listing
+    created_at: 2026-11-16T18:33:23.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4af4b03a04e
+  - type: assumes
+    from: SCEN-NEG-cli-help-command-summaries-FULL-TEXT
+    to: FACT-cli-command-help-shortened
+    created_at: 2026-11-16T18:35:25.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-729c5a3dd1e5

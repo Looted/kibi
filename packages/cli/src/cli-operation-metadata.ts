@@ -184,3 +184,14 @@ export function getCliOperationMetadata(
 export function isOperationName(name: string): name is OperationName {
   return METADATA_BY_NAME.has(name as OperationName);
 }
+
+/**
+ * The line `kibi --help` lists for an operation command: the first sentence
+ * of its description. `kibi <command> --help` still prints the whole text.
+ */
+export function commandSummary(description: string): string {
+  const text = description.trim();
+  // A sentence ends at the first `.`, `!` or `?` followed by white space; a
+  // description with none is one sentence.
+  return /.*?[.!?](?=\s)/s.exec(text)?.[0] ?? text;
+}
