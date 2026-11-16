@@ -12,7 +12,6 @@ import {
   MAX_PROOF_RECEIPTS,
   PROOF_RECEIPT_SCHEMA,
 } from "../../proof-receipt.js";
-import { ADVERTISED_SUMMARY } from "../advertised-schema.js";
 
 export const ENTITY_TYPES = [
   "req",
