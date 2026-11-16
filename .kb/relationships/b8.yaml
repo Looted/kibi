@@ -342,3 +342,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ae6a47b53591
+  - type: assumes
+    from: SCEN-kb-upsert-implemented-by
+    to: FACT-kb-upsert-implemented-by-links
+    created_at: 2026-11-16T07:13:28.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c9105d82d8a
+  - type: assumes
+    from: SCEN-kb-upsert-implemented-by
+    to: FACT-kb-upsert-implemented-by-one-declaration
+    created_at: 2026-11-16T07:13:28.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7d41010d522
+  - type: verified_by
+    from: SCEN-kb-upsert-implemented-by
+    to: TEST-kb-upsert-implemented-by
+    created_at: 2026-11-16T07:13:28.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e51d991ef70
+  - type: assumes
+    from: SCEN-kb-upsert-implemented-by
+    to: FACT-kb-upsert-implemented-by-no-file-links
+    created_at: 2026-11-16T07:17:14.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4d717ab872d

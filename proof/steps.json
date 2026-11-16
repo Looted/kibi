@@ -7824,5 +7824,18 @@
         "./packages/cli/tests/operations/advertised-schema.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kb-upsert-implemented-by",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "60000",
+        "./packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts",
+        "./packages/cli/tests/consumer/upsert-implemented-by.test.ts"
+      ]
+    ]
   }
 ]
