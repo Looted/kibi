@@ -2,8 +2,8 @@
 title: The guidance candidates for one injection exceed the bullet and word budget
 status: active
 fact_kind: property_value
-subject_key: opencode.kibi_plugin
-property_key: guidance_bullets_per_injection
+subject_key: kibi.opencode.guidance_block
+property_key: bullet_limit
 operator: eq
 value_type: int
 value_int: 6

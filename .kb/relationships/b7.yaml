@@ -293,3 +293,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4de7d4035d77
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: REQ-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:42.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aac7b6163f28
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: REQ-check-quantity-duplicate-pairing
+    created_at: 2026-11-16T16:10:42.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd9b4604d363
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: REQ-check-quantity-duplicate-trivial-values
+    created_at: 2026-11-16T16:10:42.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dc0bcf7fac2
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: REQ-check-quantity-duplicate-distinct-from
+    created_at: 2026-11-16T16:10:42.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f30a08e174eb
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: REQ-check-quantity-duplicate-dangling-distinct
+    created_at: 2026-11-16T16:10:42.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7100970f489
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: REQ-upsert-names-quantity-twin
+    created_at: 2026-11-16T16:10:42.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b343642b6dc
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: REQ-upsert-quantity-previous-value
+    created_at: 2026-11-16T16:10:42.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a1ab4f810ee
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: REQ-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T16:10:42.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87dec598b59b
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: SCEN-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:42.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc9052ee0a8e
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: SCEN-check-quantity-duplicate-pairing
+    created_at: 2026-11-16T16:10:42.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42a22fde502b
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: SCEN-check-quantity-duplicate-trivial-values
+    created_at: 2026-11-16T16:10:42.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d58e35141da
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: SCEN-check-quantity-duplicate-distinct-from
+    created_at: 2026-11-16T16:10:42.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64d852d11929
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: SCEN-check-quantity-duplicate-dangling-distinct
+    created_at: 2026-11-16T16:10:42.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4a40c9d7f4c
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: SCEN-upsert-names-quantity-twin
+    created_at: 2026-11-16T16:10:42.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94721992e592
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: SCEN-upsert-quantity-previous-value
+    created_at: 2026-11-16T16:10:42.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6601c2ceb5b0
+  - type: validates
+    from: TEST-check-quantity-duplicate
+    to: SCEN-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T16:10:42.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be264defa74b

@@ -237,11 +237,6 @@ export function readKbManifest(workspaceRoot: string): KbManifest | null {
   return readKbManifestStatus(workspaceRoot).manifest;
 }
 
-/** Read the manifest, tolerating missing/corrupt state with Kibi defaults. */
-export function readKbManifestOrDefault(workspaceRoot: string): KbManifest {
-  return readKbManifest(workspaceRoot) ?? defaultKbManifest();
-}
-
 function writeAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;

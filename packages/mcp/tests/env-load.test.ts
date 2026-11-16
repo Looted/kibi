@@ -1,23 +1,13 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  spyOn,
-  test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import {
   getBranchOverride,
   getCoreModulePathOverride,
-  getEnvFileName,
   getKbPlPathOverride,
   isMcpDebugEnabled,
   loadDefaultEnvFile,
-  loadEnvFile,
 } from "../src/env.js";
 import { restoreProcessEnv } from "./helpers/process-env.js";
 
@@ -41,75 +31,6 @@ afterEach(() => {
 });
 
 describe("env loading", () => {
-  test("loadEnvFile loads valid entries, preserves existing env, and strips quotes", () => {
-    const envPath = path.join(tmpDir, ".env.test");
-    fs.writeFileSync(
-      envPath,
-      [
-        "# comment",
-        "NEW_KEY=value",
-        'QUOTED_KEY="quoted value"',
-        "SINGLE='single value'",
-        "COMPLEX=foo=bar",
-        "INVALID_LINE",
-        "=missing_key",
-        "EXISTING_KEY=should_not_override",
-      ].join("\n"),
-    );
-    process.env.EXISTING_KEY = "keep-me";
-
-    const result = loadEnvFile({
-      envFileName: ".env.test",
-      workspaceRoot: tmpDir,
-    });
-
-    expect(result).toEqual({
-      loaded: true,
-      envFilePath: envPath,
-      keysLoaded: ["NEW_KEY", "QUOTED_KEY", "SINGLE", "COMPLEX"],
-    });
-    expect(process.env.NEW_KEY).toBe("value");
-    expect(process.env.QUOTED_KEY).toBe("quoted value");
-    expect(process.env.SINGLE).toBe("single value");
-    expect(process.env.COMPLEX).toBe("foo=bar");
-    expect(process.env.EXISTING_KEY).toBe("keep-me");
-  });
-
-  test("loadEnvFile returns unloaded result when file is missing", () => {
-    const result = loadEnvFile({
-      envFileName: ".env.missing",
-      workspaceRoot: tmpDir,
-    });
-
-    expect(result).toEqual({
-      loaded: false,
-      envFilePath: path.join(tmpDir, ".env.missing"),
-      keysLoaded: [],
-    });
-  });
-
-  test("loadEnvFile handles read failures and logs error", () => {
-    const envPath = path.join(tmpDir, ".env.broken");
-    fs.mkdirSync(envPath, { recursive: true });
-    const consoleError = mock(() => {});
-    console.error = consoleError;
-
-    const result = loadEnvFile({
-      envFileName: ".env.broken",
-      workspaceRoot: tmpDir,
-    });
-    expect(result).toEqual({
-      loaded: false,
-      envFilePath: envPath,
-      keysLoaded: [],
-    });
-    expect(consoleError).toHaveBeenCalledWith(
-      expect.stringContaining(
-        `[Kibi] Unable to load environment file ${envPath}:`,
-      ),
-    );
-  });
-
   test("loadDefaultEnvFile resolves workspace root and loads .env.kibi by default", () => {
     fs.mkdirSync(path.join(tmpDir, ".git"), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
@@ -171,7 +92,6 @@ describe("env loading", () => {
     Reflect.deleteProperty(process.env, "KIBI_KB_PL_PATH");
     Reflect.deleteProperty(process.env, "KIBI_DISCOVERY_PL_PATH");
 
-    expect(getEnvFileName()).toBe(".env.kibi");
     expect(getBranchOverride()).toBeUndefined();
     expect(isMcpDebugEnabled()).toBe(false);
     expect(getKbPlPathOverride()).toBeUndefined();
@@ -179,37 +99,6 @@ describe("env loading", () => {
 
     process.env.KIBI_ENV_FILE = "   ";
     process.env.KIBI_BRANCH = "";
-    expect(getEnvFileName()).toBe(".env.kibi");
     expect(getBranchOverride()).toBeUndefined();
-  });
-
-  test("skips empty keys and treats non-Error read failures as unloaded", () => {
-    const envPath = path.join(tmpDir, ".env.empty-key");
-    fs.writeFileSync(envPath, "   =novalue\nKEPT=ok\n");
-    const loaded = loadEnvFile({
-      envFileName: ".env.empty-key",
-      workspaceRoot: tmpDir,
-    });
-    expect(loaded.keysLoaded).toEqual(["KEPT"]);
-
-    const readSpy = spyOn(fs, "readFileSync").mockImplementation(() => {
-      throw "permission denied";
-    });
-    const consoleError = mock(() => {});
-    const originalError = console.error;
-    console.error = consoleError;
-    try {
-      const result = loadEnvFile({
-        envFileName: ".env.empty-key",
-        workspaceRoot: tmpDir,
-      });
-      expect(result.loaded).toBe(false);
-      expect(consoleError).toHaveBeenCalledWith(
-        expect.stringContaining("permission denied"),
-      );
-    } finally {
-      console.error = originalError;
-      readSpy.mockRestore();
-    }
   });
 });
