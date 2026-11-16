@@ -194,7 +194,7 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 
 Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and a small set of MCP tools does the rest:
 
-- **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements, the tests and decisions behind them, and what Kibi's checks say about each.
+- **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements with what each says and why it exists (its recorded reason, who gave it and when), the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.
 - **Safe writes.** Every write can be previewed first, and a plan you approve lands in full or not at all.
 - **Other repositories' knowledge, read-only.** Declare a repository your code depends on in `.kb/dependencies.json`, pin it with `kibi deps lock`, and `kb_search` (or `kibi search --kb <name>`) answers from that repository's own KB at the pinned commit. Its KB stays separate from yours, is never written to, and can be on an older KB schema (6 or later).

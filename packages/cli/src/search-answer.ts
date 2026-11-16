@@ -1,4 +1,5 @@
 import { type Firmness, effectiveFirmness } from "./decision-firmness.js";
+import { requirementSemanticText } from "./extractors/markdown.js";
 import {
   CLOSED_REQUIREMENT_FACTOR,
   type IntentSearchMatch,
@@ -119,9 +120,18 @@ export type SearchAnswerFact = SearchAnswerEntity &
   Readonly<{ factKind?: string; claim?: string; ask?: string }>;
 
 /**
+ * Who a requirement's recorded reason came from and when, read from its
+ * origin: `by` is the person who approved it (`origin.approved_by`), else
+ * the origin's kind (`human`, `agent` or `import`); `on` is the date the
+ * origin was recorded. A migration origin names neither.
+ */
+export type SearchAnswerReasonSource = Readonly<{ by: string; on?: string }>;
+
+/**
  * Why a governing requirement is what it is, as recorded in the KB. `from`
  * names where the text came from: the `rationale` field, the "Why this
  * changed" section, a Why, Rationale or Context section, or a linked ADR.
+ * `said` (not on an ADR's reason) says who it came from and when.
  * `recorded: false` means none of them holds a reason; nothing else is
  * evidence of one. `text` is absent only when the answer was cut to its byte
  * budget; kb_query the requirement to read it.
@@ -131,6 +141,7 @@ export type SearchAnswerReason =
       recorded: true;
       text?: string;
       from: "rationale" | "why_this_changed" | "section" | "adr";
+      said?: SearchAnswerReasonSource;
     }>
   | Readonly<{ recorded: false }>;
 
@@ -138,6 +149,12 @@ export type SearchAnswerRequirement = SearchAnswerEntity &
   Readonly<{
     score: number;
     via: string;
+    /**
+     * What the requirement says: its `semantic_text`, else the statement its
+     * body derives, at most `statementChars` characters. Absent when neither
+     * holds prose or the byte bound cut it.
+     */
+    statement?: string;
     why: SearchAnswerReason;
     facts: readonly SearchAnswerFact[];
     /**
@@ -205,6 +222,11 @@ export type SearchAnswerOptions = Readonly<{
   workspaceRoot?: string;
   /** The Git branch identity of the attached KB. */
   branch?: string | null;
+  /**
+   * `summary` leaves out each fact's `ask` call (kb_search without
+   * `fields: "full"`); `full` (the default here) keeps it.
+   */
+  detail?: "summary" | "full";
 }>;
 
 const CURRENT_REQ_STATUSES = new Set([
@@ -253,6 +275,7 @@ const ROW_KEYS = [
   "approved_by",
   "firmness",
   "rationale",
+  "semantic_text",
   "origin",
   "source",
   "sourceFile",
@@ -293,6 +316,8 @@ export const SEARCH_ANSWER_LIMITS = {
   titleChars: 160,
   /** Characters of an ADR decision kept as its excerpt. */
   excerptChars: 280,
+  /** Characters of a governing requirement's statement kept. */
+  statementChars: 300,
   /** Characters of a witness or unknown detail kept. */
   detailChars: 240,
 } as const;
@@ -738,8 +763,10 @@ export function requirementReason(
   body: string | null,
   adrExcerpts: readonly (string | undefined)[],
 ): SearchAnswerReason {
+  const source = reasonSource(row.origin);
+  const said = source ? { said: source } : {};
   const field = proseExcerpt(text(row.rationale).split(/\r?\n/));
-  if (field) return { recorded: true, text: field, from: "rationale" };
+  if (field) return { recorded: true, text: field, from: "rationale", ...said };
   if (body !== null) {
     const parsed = markdownSections(body);
     for (const [pattern, from] of [
@@ -749,13 +776,52 @@ export function requirementReason(
       const lines = namedSection(parsed, pattern);
       const excerpt = lines ? proseExcerpt(lines) : undefined;
       if (excerpt && !NO_REASON_STATED.test(excerpt))
-        return { recorded: true, text: excerpt, from };
+        return { recorded: true, text: excerpt, from, ...said };
     }
   }
   const adr = adrExcerpts.find((excerpt) => excerpt !== undefined);
   return adr === undefined
     ? { recorded: false }
     : { recorded: true, text: adr, from: "adr" };
+}
+
+/** Origin kinds that name who a reason came from. */
+const SPEAKING_ORIGINS = new Set(["human", "agent", "import"]);
+
+/**
+ * Who a requirement's own reason came from and when, from its origin: the
+ * approver, else the origin's kind, with the date the origin was recorded.
+ * Undefined for a migration origin, which names no one, and for none.
+ */
+export function reasonSource(
+  origin: unknown,
+): SearchAnswerReasonSource | undefined {
+  if (origin === null || typeof origin !== "object") return undefined;
+  const fields = origin as Record<string, unknown>;
+  const kind = text(fields.kind);
+  if (!SPEAKING_ORIGINS.has(kind)) return undefined;
+  const by = text(fields.approved_by).trim() || kind;
+  const on = /^\d{4}-\d{2}-\d{2}/.exec(text(fields.recorded_at))?.[0];
+  return on === undefined ? { by } : { by, on };
+}
+
+/**
+ * A governing requirement's statement as plain text of at most
+ * `statementChars` characters: its `semantic_text`, else the statement its
+ * body derives (context sections left out). Undefined when neither holds
+ * prose.
+ */
+export function requirementStatementOf(
+  row: Row,
+  body: string | null,
+): string | undefined {
+  const authored = text(row.semantic_text).trim();
+  const derived =
+    authored || (body === null ? "" : requirementSemanticText(body));
+  const flat = derived.replace(/\s+/g, " ");
+  return flat === ""
+    ? undefined
+    : clip(flat, SEARCH_ANSWER_LIMITS.statementChars);
 }
 
 export async function rationaleOf(
@@ -1007,6 +1073,20 @@ export async function fetchFactSchemas(
     await graph.fetch(request);
     return new Map();
   }
+}
+
+/**
+ * A fact as the requested detail shows it. Without `fields: "full"` a fact
+ * keeps its typed claim; the kb_query that reproduces it is one call away
+ * through the requirement's id.
+ */
+export function factAtDetail<T extends SearchAnswerFact>(
+  fact: T,
+  detail: SearchAnswerOptions["detail"],
+): T {
+  if (detail !== "summary") return fact;
+  const { ask: _ask, ...rest } = fact;
+  return rest as T;
 }
 
 export async function buildSearchAnswer(
@@ -1316,6 +1396,8 @@ export async function buildSearchAnswer(
     ]),
   );
 
+  const detailed = <T extends SearchAnswerFact>(fact: T): T =>
+    factAtDetail(fact, options.detail);
   const bodies = new Map<string, Promise<string | null>>();
   const rowsOf = (ids: readonly string[]) =>
     ids.map((id) => graph.row(id)).filter((row): row is Row => row !== null);
@@ -1348,20 +1430,25 @@ export async function buildSearchAnswer(
     if (projected.truncated) truncated = true;
     const testVia = testVias[index] as Map<string, string>;
     const ownSource = text(req.entity.source);
+    const ownBody = ownSource ? await bodyOf(ownSource) : null;
     const why = requirementReason(
       req.entity,
-      ownSource ? await bodyOf(ownSource) : null,
+      ownBody,
       await Promise.all(adrRows.map(excerptOf)),
     );
+    const statement = requirementStatementOf(req.entity, ownBody);
     governing.push({
       ...brief(req.entity),
       score: req.score,
       via: req.via,
+      ...(statement === undefined ? {} : { statement }),
       why,
-      facts: rowsOf(plan.facts).map((fact) => ({
-        ...brief(fact),
-        ...factDetail(fact, schemas.get(text(fact.id))),
-      })),
+      facts: rowsOf(plan.facts).map((fact) =>
+        detailed({
+          ...brief(fact),
+          ...factDetail(fact, schemas.get(text(fact.id))),
+        }),
+      ),
       ...(plan.factsOmitted > 0
         ? { moreFacts: moreFactsOf(req.id, plan.factsOmitted) }
         : {}),
@@ -1422,20 +1509,20 @@ export async function buildSearchAnswer(
       const row = entry.type === "fact" ? graph.row(entry.id) : null;
       if (row === null) return entry;
       const schema = schemas.get(entry.id);
-      const detailed = {
+      const entryDetail = detailed({
         ...brief(row),
         ...factDetail(row, schema),
         type: entry.type,
         rank: entry.rank,
-      };
+      });
       const holder = governingFacts.find(({ fact }) =>
         disagreeingPredicateFacts(row, fact, schema),
       );
-      if (holder === undefined) return detailed;
+      if (holder === undefined) return entryDetail;
       const factId = text(holder.fact.id);
       const { claim } = factDetail(holder.fact, schemas.get(factId));
       return {
-        ...detailed,
+        ...entryDetail,
         overriddenBy: {
           fact: factId,
           requirement: holder.requirement,
@@ -1561,7 +1648,8 @@ const REQUIREMENT_TRIM_ORDER = [
  * requirement keeps only its first scenario and test, last requirement first;
  * the least relevant governing requirements are dropped;
  * list items are dropped (notes and side lists, then the remaining
- * requirement's recorded reason text, then its own lists, its verdict
+ * requirement's statement, then its recorded reason text, then its own
+ * lists, its verdict
  * witnesses last); then the remaining
  * requirement's title and `via` are clipped. A verdict keeps its status when
  * its witnesses are dropped. If even that cannot fit, the requirement itself
@@ -1649,8 +1737,13 @@ export function fitSearchAnswer(
     }
     const [req] = current.governing;
     if (!req) break;
-    // The recorded reason outlasts the side lists but not the
-    // requirement's own facts and links.
+    // The statement and then the recorded reason outlast the side lists
+    // but not the requirement's own facts and links.
+    if (req.statement !== undefined) {
+      const { statement: _statement, ...rest } = req;
+      current = { ...current, governing: [rest] };
+      continue;
+    }
     if (req.why.recorded && req.why.text !== undefined) {
       const { text: _text, ...why } = req.why;
       current = { ...current, governing: [{ ...req, why }] };

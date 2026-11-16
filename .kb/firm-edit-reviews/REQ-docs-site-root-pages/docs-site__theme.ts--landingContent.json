@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-docs-site-root-pages",
+  "sourceFile": "docs-site/theme.ts",
+  "symbol": "landingContent",
+  "verdict": "keeps",
+  "note": "Only the copy describing what kb_search returns changed; the root pages still render the same sections and links.",
+  "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
+  "codeHash": "sha256:c9400015c638df8cb4bd9280f9c211f94a30fe52e1f28847bcad104f233f7cfa",
+  "startLine": 1447,
+  "endLine": 1833,
+  "recordedAt": "2026-11-16T16:04:07.908Z"
+}

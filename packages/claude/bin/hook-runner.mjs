@@ -833,8 +833,12 @@ var ENTITY_LANES = [
   ["EVT-", "events"]
 ];
 var SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var MAX_REASON_CHARS = 280;
+var REQUIREMENT_READ_BYTES = 65536;
+var ENTITY_READ_BYTES = 8192;
 var SUMMARY_SCALARS = {
   semantic_text: "statement",
+  rationale: "rationale",
   fact_kind: "factKind",
   subject_key: "subjectKey",
   property_key: "propertyKey",
@@ -863,6 +867,56 @@ function readScalar(lines, index, raw) {
   const joined = parts.join(" ");
   return { value: block ? joined : unquote2(joined), last };
 }
+function proseExcerpt(lines, maxChars) {
+  const prose = lines.map((line) => line.replace(/^\s*(?:[-*+]|\d+[.)])\s/, "").replace(/^\s*>\s?/, "").replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\*\*|__|`/g, "").trim()).filter((line) => !line.startsWith("|")).join(" ").replace(/\s+/g, " ").trim();
+  if (!prose)
+    return;
+  let excerpt = "";
+  for (const sentence of prose.split(/(?<=[.!?]) /)) {
+    const next = `${excerpt} ${sentence}`.trim();
+    if (excerpt !== "" && Array.from(next).length > maxChars)
+      break;
+    excerpt = next;
+  }
+  const chars = Array.from(excerpt);
+  return chars.length <= maxChars ? excerpt : `${chars.slice(0, maxChars - 1).join("")}…`;
+}
+var NO_REASON_STATED = /^reason not stated\b/i;
+var REASON_SECTIONS = [
+  [/^why this changed\b/, "why_this_changed"],
+  [/^(?:rationale|why|context)\b/, "section"]
+];
+function recordedReason(rationale, body) {
+  const field = proseExcerpt([rationale ?? ""], MAX_REASON_CHARS);
+  if (field)
+    return { text: field, from: "rationale" };
+  const sections = [];
+  let current;
+  let fenced = false;
+  for (const line of body) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced)
+      continue;
+    const heading = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
+    if (heading) {
+      current = [];
+      sections.push([heading[1].toLowerCase(), current]);
+      continue;
+    }
+    current?.push(line);
+  }
+  for (const [pattern, from] of REASON_SECTIONS) {
+    const lines = sections.find(([name, content]) => pattern.test(name) && content.join("").trim())?.[1];
+    const text = lines ? proseExcerpt(lines, MAX_REASON_CHARS) : undefined;
+    if (text && !NO_REASON_STATED.test(text))
+      return { text, from };
+  }
+  return;
+}
+var SPEAKING_ORIGINS = new Set(["human", "agent", "import"]);
 function firstParagraph(lines) {
   const paragraph = [];
   for (const line of lines) {
@@ -920,12 +974,15 @@ function readEntitySummary(workspaceRoot, entityId) {
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId))
     return { id: entityId };
+  const requirement = lane[1] === "requirements";
   let head;
+  let whole;
   try {
     const descriptor = fs3.openSync(path4.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
-      const buffer = Buffer.alloc(8192);
+      const buffer = Buffer.alloc(requirement ? REQUIREMENT_READ_BYTES : ENTITY_READ_BYTES);
       const bytes = fs3.readSync(descriptor, buffer, 0, buffer.length, 0);
+      whole = bytes < buffer.length;
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
       fs3.closeSync(descriptor);
@@ -944,6 +1001,8 @@ function readEntitySummary(workspaceRoot, entityId) {
   let inValueSet = false;
   let inOrigin = false;
   let originKind;
+  const origin = {};
+  let rationale;
   let closed = false;
   let bodyStart = lines.length;
   let pending;
@@ -961,6 +1020,8 @@ function readEntitySummary(workspaceRoot, entityId) {
       if (value !== "") {
         if (scalarField === "statement")
           summary.statement = value;
+        else if (scalarField === "rationale")
+          rationale = value;
         else
           claim[scalarField] = value;
       }
@@ -991,6 +1052,9 @@ function readEntitySummary(workspaceRoot, entityId) {
     const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
     if (nestedKind)
       originKind = nestedKind[1];
+    const originField = inOrigin ? /^\s+(approved_by|recorded_at):(.+)/.exec(line) : null;
+    if (originField)
+      origin[originField[1]] = unquote2(originField[2]);
     if (/^\S/.test(line))
       inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)/.exec(line);
@@ -1047,10 +1111,26 @@ function readEntitySummary(workspaceRoot, entityId) {
     claim.values = values;
   if (Object.keys(claim).length > 0)
     summary.claim = claim;
-  if (summary.statement === undefined && lane[1] === "requirements" && closed) {
+  if (summary.statement === undefined && requirement && closed) {
     const paragraph = firstParagraph(lines.slice(bodyStart));
     if (paragraph)
       summary.statement = paragraph;
+  }
+  if (requirement && closed) {
+    const reason = recordedReason(rationale, lines.slice(bodyStart));
+    if (reason) {
+      const speaking = SPEAKING_ORIGINS.has(String(originKind));
+      const by = origin.approved_by || (speaking ? originKind : undefined);
+      const on = /^\d{4}-\d{2}-\d{2}/.exec(String(origin.recorded_at))?.[0];
+      summary.why = {
+        recorded: true,
+        ...reason,
+        ...speaking && by ? { by } : {},
+        ...speaking && by && on ? { on } : {}
+      };
+    } else if (whole) {
+      summary.why = { recorded: false };
+    }
   }
   return summary;
 }
@@ -1319,6 +1399,9 @@ var MAX_TESTS = 3;
 var MAX_TITLE = 80;
 var MAX_GROUNDING = 2;
 var MAX_CLAIM = 160;
+var MAX_WHY_CHARS = 240;
+var SHORT_WHY_CHARS = 160;
+var TIGHT_WHY_CHARS = 100;
 var MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 var MAX_SNIPPET_CHARS = 1200;
 function truncate(text, limit) {
@@ -1496,8 +1579,24 @@ function groundingText(summary) {
 function withoutClosingStop(text) {
   return text.replace(/[.\s]+$/, "");
 }
+var REASON_LABELS = {
+  rationale: "rationale",
+  why_this_changed: "Why this changed",
+  section: "context section"
+};
+function reasonLine(summary, maxChars = MAX_WHY_CHARS) {
+  const why = summary.why;
+  if (!why)
+    return;
+  if (!why.recorded)
+    return "Why: no reason is recorded.";
+  const text = proseExcerpt([why.text], maxChars);
+  const said = why.by ? `; ${why.by}${why.on ? `, ${why.on}` : ""}` : "";
+  return `Why: ${withoutClosingStop(text)} (${REASON_LABELS[why.from]}${said}).`;
+}
 function requirementGroundingLines(requirementId, summarize, options = {}) {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
+  const whyChars = options.whyChars ?? MAX_WHY_CHARS;
   const requirement = summarize(requirementId);
   if (isRetiredStatus(requirement.status))
     return [];
@@ -1520,6 +1619,9 @@ function requirementGroundingLines(requirementId, summarize, options = {}) {
       lines.push(`${requirementId} must keep true: ${shown.map((claim) => truncate(claim, MAX_CLAIM)).join("; ")}${more}.`);
     }
   }
+  const why = whyChars > 0 ? reasonLine(requirement, whyChars) : undefined;
+  if (why)
+    lines.push(why);
   const adr = adrs[0];
   if (adr)
     lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
@@ -1557,6 +1659,30 @@ function requirementOwners(symbols, focus) {
   });
   return { owners, requirementIds };
 }
+var SNIPPET_LAYOUTS = [
+  {
+    requirements: MAX_REQUIREMENTS,
+    facts: MAX_GROUNDING,
+    whyChars: MAX_WHY_CHARS,
+    tests: true
+  },
+  {
+    requirements: 3,
+    facts: MAX_GROUNDING,
+    whyChars: MAX_WHY_CHARS,
+    tests: true
+  },
+  { requirements: 2, facts: 1, whyChars: MAX_WHY_CHARS, tests: true },
+  { requirements: 2, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
+  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
+  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: false },
+  { requirements: 1, facts: 1, whyChars: TIGHT_WHY_CHARS, tests: false }
+];
+function fitLayouts(compose, maxChars) {
+  const texts = SNIPPET_LAYOUTS.map(compose);
+  const fits = texts.find((text) => text.length <= maxChars);
+  return fits ?? truncate(texts.at(-1), maxChars);
+}
 function fileKnowledgeSnippet(input) {
   const { relativePath, symbols, surface, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
@@ -1570,42 +1696,48 @@ function fileKnowledgeSnippet(input) {
   if (owners.size === 0 && tests.length === 0 && executes.length === 0) {
     return;
   }
-  const lines = [
-    `Kibi knowledge for ${relativePath} (symbol manifest):`
-  ];
-  for (const requirementId of requirementIds.slice(0, MAX_REQUIREMENTS)) {
-    const symbolTitles = owners.get(requirementId);
-    lines.push(`- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
-  }
-  if (requirementIds.length > MAX_REQUIREMENTS) {
-    lines.push(`- +${requirementIds.length - MAX_REQUIREMENTS} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
-  }
   const leadId = requirementIds[0];
-  if (surface === "edit" && leadId) {
-    lines.push(...requirementGroundingLines(leadId, summarize));
-  }
-  if (tests.length > 0) {
-    lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
-  }
-  if (executes.length > 0) {
-    lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
-  }
   const primaryFocus = focus[0];
-  if (primaryFocus) {
-    const owner = primaryFocus.implements[0];
-    const verb = surface === "edit" ? "The edit is inside" : "These lines are inside";
-    lines.push(owner ? `${verb} ${primaryFocus.title}, which implements ${owner}.` : `${verb} ${primaryFocus.title}.`);
-  }
-  const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
-  const next = [
-    leadId ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text and why it exists` : undefined,
-    `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
-  ].filter((part) => part !== undefined);
-  lines.push(`Next layer: ${next.join("; ")}.`);
-  if (surface === "edit")
-    lines.push(impactCheckLine(relativePath));
-  return truncate(lines.join(`
-`), input.maxChars ?? MAX_SNIPPET_CHARS);
+  const compose = (layout) => {
+    const lines = [
+      `Kibi knowledge for ${relativePath} (symbol manifest):`
+    ];
+    for (const requirementId of requirementIds.slice(0, layout.requirements)) {
+      const symbolTitles = owners.get(requirementId);
+      lines.push(`- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
+    }
+    if (requirementIds.length > layout.requirements) {
+      lines.push(`- +${requirementIds.length - layout.requirements} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
+    }
+    const grounding = surface === "edit" && leadId ? requirementGroundingLines(leadId, summarize, {
+      maxFacts: layout.facts,
+      whyChars: layout.whyChars
+    }) : [];
+    lines.push(...grounding);
+    if (layout.tests && tests.length > 0) {
+      lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
+    }
+    if (layout.tests && executes.length > 0) {
+      lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
+    }
+    if (primaryFocus) {
+      const owner = primaryFocus.implements[0];
+      const verb = surface === "edit" ? "The edit is inside" : "These lines are inside";
+      lines.push(owner ? `${verb} ${primaryFocus.title}, which implements ${owner}.` : `${verb} ${primaryFocus.title}.`);
+    }
+    const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
+    const reasonShown = grounding.some((line) => line.startsWith("Why: "));
+    const next = [
+      leadId ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text${reasonShown ? "" : " and why it exists"}` : undefined,
+      `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
+    ].filter((part) => part !== undefined);
+    lines.push(`Next layer: ${next.join("; ")}.`);
+    if (surface === "edit")
+      lines.push(impactCheckLine(relativePath));
+    return lines.join(`
+`);
+  };
+  return fitLayouts(compose, input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 function editKnowledgeUpdate(input) {
   const { relativePath, symbols, summarize } = input;
@@ -1621,9 +1753,14 @@ function editKnowledgeUpdate(input) {
   }
   if (!leadId)
     return lines[0];
-  lines.push(...requirementGroundingLines(leadId, summarize));
-  lines.push(impactCheckLine(relativePath));
-  return truncate(lines.join(`
+  return fitLayouts((layout) => [
+    ...lines,
+    ...requirementGroundingLines(leadId, summarize, {
+      maxFacts: layout.facts,
+      whyChars: layout.whyChars
+    }),
+    impactCheckLine(relativePath)
+  ].join(`
 `), input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 function focusUpdate(relativePath, symbols, focus) {

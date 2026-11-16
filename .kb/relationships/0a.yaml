@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4abd2632dbde
+  - type: implements
+    from: SYM-snippets-reason-line
+    to: REQ-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:23.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d7f1e96679b
+  - type: covered_by
+    from: SYM-snippets-reason-line
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T16:00:34.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7da828f1e178
