@@ -1231,7 +1231,10 @@ describe("prove command setup", () => {
   });
 
   test("stops when the integrations cannot be read", async () => {
-    const h = harness({ integrations: { error: "bad file" } });
+    const h = harness({
+      integrations: { error: "bad file" },
+      tests: [proofTest("T-1", "web")],
+    });
     let caught: unknown;
     try {
       await proveCommand({ all: true }, { runtime: h.runtime });
@@ -1244,6 +1247,16 @@ describe("prove command setup", () => {
       retryable: false,
     });
     expect(h.closes).toEqual([{ status: "error", error: 1 }]);
+  });
+
+  test("reports an empty selection before reading the integrations", async () => {
+    const h = harness({ integrations: { error: "bad file" } });
+    expect(await proveCommand({ all: true }, { runtime: h.runtime })).toEqual({
+      exitCode: 0,
+    });
+    expect(h.stdout).toEqual([
+      '{"passed":0,"certified":0,"failed":0,"message":"no proof-bearing tests selected"}\n',
+    ]);
   });
 
   test("reports an empty selection", async () => {
