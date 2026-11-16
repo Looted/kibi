@@ -12,13 +12,19 @@ export class InputError extends Error {
   }
 }
 
+/**
+ * A failed operation. It is not retryable unless the caller says so: only a
+ * failure that the same call, repeated unchanged, may get past (a lock held
+ * by a live owner, an unexplained engine failure) sets `retryable`, so a
+ * refusal the agent must fix never invites a blind retry.
+ */
 export class OperationError extends Error {
   readonly exitCode = 1;
 
   constructor(
     readonly code: string,
     readonly detail: string,
-    readonly retryable = true,
+    readonly retryable = false,
   ) {
     super(detail);
     this.name = "OperationError";
@@ -44,6 +50,19 @@ export class KbRejection extends Error {
   ) {
     super(message);
   }
+}
+
+/**
+ * Whether a failure is a KB rejection, itself or as the cause of a wrapper,
+ * so the error envelope never offers to retry a refusal unchanged.
+ */
+export function isKbRejection(error: unknown): boolean {
+  let current = error;
+  for (let depth = 0; depth < 5 && current instanceof Error; depth += 1) {
+    if (current instanceof KbRejection) return true;
+    current = current.cause;
+  }
+  return false;
 }
 
 /**
@@ -113,8 +132,6 @@ export function codedErrorOf(error: unknown): CodedErrorFields | null {
     message:
       typeof candidate.detail === "string" ? candidate.detail : error.message,
     retryable:
-      typeof candidate.retryable === "boolean"
-        ? candidate.retryable
-        : candidate.name === "OperationError",
+      typeof candidate.retryable === "boolean" ? candidate.retryable : false,
   };
 }

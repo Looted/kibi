@@ -1092,7 +1092,7 @@ describe("executeProofExplain", () => {
     ).toStrictEqual({
       message: "Proof explain requires a Prolog runtime",
       code: "PROLOG_UNAVAILABLE",
-      retryable: true,
+      retryable: false,
     });
   });
 });
