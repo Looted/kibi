@@ -15,6 +15,7 @@ import {
 
 import {
   captureReminder,
+  ruleCaptureTemplate,
   signoffReminder,
 } from "kibi-agent-core/decision-guard";
 
@@ -1835,6 +1836,49 @@ describe("ZCode decision guard", () => {
     expect(again).not.toContain("recorded nothing in the knowledge base");
   });
 
+  test("a rule session gets the capture template after its first source edit, and Stop quotes the rule phrase", async () => {
+    const { event, fixture } = session();
+    await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    const write = {
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+    };
+    const first = expectAdditionalContext(await event(write), "PostToolUse");
+    expect(first).toContain(`\n\n${ruleCaptureTemplate("must not")}`);
+    expect(JSON.stringify(await event(write))).not.toContain(
+      "fill in this template",
+    );
+    const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
+    expect(reminder).toStartWith(captureReminder("must not"));
+    expect(reminder).not.toContain("when there was none");
+
+    // A non-source edit claims nothing, even after an earlier source edit
+    // that came before the rule was stated.
+    const docs = session();
+    await docs.event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(docs.fixture.cwd, "src/checkout.ts") },
+    });
+    await docs.event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    expect(
+      JSON.stringify(
+        await docs.event({
+          hook_event_name: "PostToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: path.join(docs.fixture.cwd, "README.md") },
+        }),
+      ),
+    ).not.toContain("fill in this template");
+  });
+
   test("Stop asks once for a signoff view after a requirement is written", async () => {
     const { event } = session();
     await event({
@@ -2318,9 +2362,10 @@ describe("ZCode hook runner exact decisions", () => {
     expect(await hook(dryRun, stop, QUIET)).toStrictEqual(
       context(
         "Stop",
-        [captureReminder(false), impactCheckReminder(["src/checkout.ts"])].join(
-          "\n",
-        ),
+        [
+          captureReminder(undefined),
+          impactCheckReminder(["src/checkout.ts"]),
+        ].join("\n"),
       ),
     );
   });
@@ -2330,7 +2375,7 @@ describe("ZCode hook runner exact decisions", () => {
     await hook(captureOnly, write(captureOnly, "src/checkout.ts"));
     await hook(captureOnly, impactCheck(["src/checkout.ts"]));
     expect(await hook(captureOnly, stop)).toStrictEqual(
-      context("Stop", captureReminder(false)),
+      context("Stop", captureReminder(undefined)),
     );
     expect(actions(captureOnly).at(-1)).toStrictEqual([
       "Stop",

@@ -468,3 +468,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc88b339da7c
+  - type: assumes
+    from: SCEN-claude-decision-capture-template
+    to: FACT-claude-capture-template-once
+    created_at: 2026-11-16T08:45:53.115Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-126b6f2bf781
+  - type: verified_by
+    from: SCEN-claude-decision-capture-template
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T08:45:53.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e9b5571267b

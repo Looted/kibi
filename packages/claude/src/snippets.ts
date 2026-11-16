@@ -14,6 +14,7 @@ export {
   firmEditContext,
   isRequirementUpsert,
   markDecisionFlag,
+  ruleCaptureTemplate,
   rulePromptNote,
   signoffReminder,
   statedRule,

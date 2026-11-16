@@ -9,6 +9,7 @@ import {
   captureReminder,
   claimCaptureReminder,
   claimDecisionFlag,
+  claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
   firmEditConfirmation,
@@ -24,7 +25,9 @@ import {
   removesOnlyDeadImplementsComments,
   removesTrailingDeadImplementsComment,
   requestWords,
+  ruleCaptureTemplate,
   rulePromptNote,
+  sessionRulePhrase,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
@@ -741,12 +744,47 @@ describe("statedRule and notes", () => {
     expect(rulePromptNote("never")).toStartWith(
       'Kibi: this request reads as a rule or decision (it says "never").',
     );
-    expect(captureReminder(true)).toStartWith(
-      "Kibi: a request this session read as a rule or decision",
+    expect(captureReminder("never")).toBe(
+      [
+        'Kibi: the person\'s request said "never", this session changed source files, and nothing was recorded in the knowledge base.',
+        'Record the rule behind "never" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "never" is not a rule.',
+      ].join("\n"),
     );
-    expect(captureReminder(false)).toStartWith(
-      "Kibi: this session changed source files and recorded nothing",
+    expect(captureReminder("never")).not.toContain("when there was none");
+    expect(captureReminder(undefined)).toBe(
+      [
+        "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line.",
+      ].join("\n"),
     );
+  });
+
+  test("the capture template quotes the phrase and is one kb_upsert payload", () => {
+    const [intro, payload, ...rest] = ruleCaptureTemplate("must").split("\n");
+    expect(rest).toEqual([]);
+    expect(intro).toBe(
+      'Kibi: the request said "must" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:',
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      type: "req",
+      id: "REQ-<short-name>",
+      properties: {
+        title: "<the rule in a few words>",
+        status: "open",
+        firmness: "firm",
+        origin: {
+          kind: "agent",
+          ref: "<the person's words and where they said them>",
+        },
+      },
+      document: { body: "<the rule as one shall or must sentence>" },
+      implementedBy: [
+        {
+          sourceFile: "<file you changed>",
+          symbol: "<function that enforces it>",
+        },
+      ],
+    });
   });
 });
 
@@ -836,7 +874,34 @@ describe("session markers", () => {
     expect(() => settleFirmRequirements(broken, ["REQ-a"])).not.toThrow();
     expect(() => holdRuleNote(broken, "never")).not.toThrow();
     expect(recordRequest(broken, "never log tokens")).toBe("never");
+    expect(sessionRulePhrase(broken)).toBe(undefined);
+    expect(claimRuleCaptureTemplate(broken)).toBe(undefined);
+    expect(sessionRulePhrase(noState)).toBe(undefined);
     expect(requestWords(broken)).toEqual([]);
+  });
+});
+
+describe("rule capture template", () => {
+  test("is given once, only after a source edit of a rule session with nothing recorded", () => {
+    const plain = session("plain");
+    recordRequest(plain, "Please add retry logic");
+    markDecisionFlag(plain, "source-edited");
+    expect(claimRuleCaptureTemplate(plain)).toBe(undefined);
+
+    const rule = session("rule");
+    recordRequest(rule, "Uploads must stay under 10 MB");
+    expect(claimRuleCaptureTemplate(rule)).toBe(undefined);
+    markDecisionFlag(rule, "source-edited");
+    expect(claimRuleCaptureTemplate(rule)).toBe(ruleCaptureTemplate("must"));
+    expect(claimRuleCaptureTemplate(rule)).toBe(undefined);
+
+    const recorded = session("recorded");
+    recordRequest(recorded, "Uploads must stay under 10 MB");
+    markDecisionFlag(recorded, "source-edited");
+    markDecisionFlag(recorded, "kb-recorded");
+    expect(claimRuleCaptureTemplate(recorded)).toBe(undefined);
+    // Recording first does not use up the template's one claim.
+    expect(hasDecisionFlag(recorded, "capture-template")).toBe(false);
   });
 });
 
@@ -852,9 +917,14 @@ describe("request memory", () => {
     expect(words).toContain("upload");
     expect(words).not.toContain("please");
 
+    expect(sessionRulePhrase(s)).toBe(undefined);
     expect(recordRequest(s, "Uploads must never exceed 10 MB")).toBe("must");
     expect(hasDecisionFlag(s, "rule-prompt")).toBe(true);
+    expect(sessionRulePhrase(s)).toBe("must");
     expect(requestWords(s)).toEqual(["upload", "exceed"]);
+    // A later prompt without a rule keeps the session's rule phrase.
+    recordRequest(s, "Please add retry logic");
+    expect(sessionRulePhrase(s)).toBe("must");
   });
 
   test("request words ignore missing, corrupt or non-array state", () => {

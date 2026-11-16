@@ -8,6 +8,7 @@ import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
@@ -18,6 +19,7 @@ import {
   markDecisionFlag,
   recordRequest,
   removesOnlyDeadImplementsComments,
+  sessionRulePhrase,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
@@ -380,6 +382,9 @@ export async function runHook(
           input.toolInput,
         );
         const ruleNote = takeRuleNote(session);
+        // Cursor's post-edit hook cannot add context either: the capture
+        // template waits for the pre-edit message after the first source edit.
+        const captureTemplate = claimRuleCaptureTemplate(session);
         const notice = firmNotice(
           cwd,
           linked,
@@ -406,7 +411,7 @@ export async function runHook(
         if (guidance) {
           rememberGuidedPath(stateDir, "pre-edit", relativePath);
         }
-        const parts = [ruleNote, notice, guidance].filter(
+        const parts = [ruleNote, captureTemplate, notice, guidance].filter(
           (part): part is string => part !== undefined,
         );
         trace.action = parts.length > 0 ? "edit_snippet" : "edit_silent";
@@ -605,7 +610,7 @@ export async function runHook(
         // Source changed and nothing was recorded: the follow-up asks for the
         // decision to be recorded, once per conversation.
         const capture = claimCaptureReminder(session)
-          ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
+          ? captureReminder(sessionRulePhrase(session))
           : undefined;
         // Requirements were written without a signoff view since: ask once.
         // A recorded requirement also counts as recorded knowledge, so this

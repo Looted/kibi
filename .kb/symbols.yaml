@@ -40768,6 +40768,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-agent-hosts-rule-phrase-detection
+      - type: executable_for
+        target: TEST-claude-edit-snippet-hook
   - id: SYM-test-kibi-scoped-check-output
     title: Scoped kb_check output suite
     status: active
@@ -41557,3 +41559,60 @@ symbols:
         target: TEST-kb-upsert-implemented-by
       - type: implements
         target: REQ-kb-upsert-implemented-by
+  - id: SYM-agent-core-rule-capture-template
+    title: ruleCaptureTemplate
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T08:46:03.177Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-agent-core-claim-rule-capture-template
+    title: claimRuleCaptureTemplate
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T08:46:07.245Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-agent-core-session-rule-phrase
+    title: sessionRulePhrase
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T08:46:10.990Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
