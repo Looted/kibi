@@ -181,13 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc17e5f6f1b3
-  - type: implements
-    from: SYM-staged-symbols-manifest-unrecordedDeclarations
-    to: REQ-check-reports-symbol-debt
-    created_at: 2026-11-16T05:45:47.105Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f6b5985c176
   - type: covered_by
     from: SYM-staged-symbols-manifest-unrecordedDeclarations
     to: TEST-check-reports-symbol-debt
@@ -258,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9b66cf3736c
+  - type: implements
+    from: SYM-staged-symbols-manifest-unrecordedDeclarations
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:55:33.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28bfaeb617b5
+  - type: assumes
+    from: SCEN-check-unscoped-budget
+    to: FACT-check-unscoped-budget
+    created_at: 2026-11-16T16:00:53.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b130e6296e77

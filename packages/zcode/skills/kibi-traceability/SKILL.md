@@ -4,7 +4,7 @@ description: "Maintain source-first requirement, scenario, test, symbol, and pro
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-traceability
-  version: 2.6.0
+  version: 2.7.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -98,7 +98,8 @@ so a loose link is wrong context, not harmless extra coverage.
   `missing_production_symbol_coverage`.
 - After link work, run the unfiltered `kb_check` and read `qualityDiagnostics`
   as well as `violations`; a check scoped by `rules` leaves out the full-KB
-  review findings.
+  review findings. A result over its size budget comes back `truncated` with
+  them as counts by id; `kibi check --format json` lists every one.
 
 ## Typed recovery and proof
 

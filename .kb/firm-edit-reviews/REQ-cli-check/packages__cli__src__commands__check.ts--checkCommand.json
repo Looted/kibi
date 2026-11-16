@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-cli-check",
+  "sourceFile": "packages/cli/src/commands/check.ts",
+  "symbol": "checkCommand",
+  "verdict": "keeps",
+  "note": "Still runs the rules with selection and staged focus and exits nonzero on violations; only the passing text becomes one line and --symbol-debt lists the debt.",
+  "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
+  "codeHash": "sha256:44f3964097a60eed42730877a0acb766c3d7986df46f3b791d3fade4d75eb598",
+  "startLine": 775,
+  "endLine": 1664,
+  "recordedAt": "2026-11-16T16:21:25.595Z"
+}

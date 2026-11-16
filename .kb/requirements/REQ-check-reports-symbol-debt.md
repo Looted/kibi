@@ -1,6 +1,6 @@
 ---
 title: Full kibi check reports symbol debt without blocking
-status: open
+status: closed
 priority: must
 required_evidence: tested
 semantic_text: kibi check run without a rule or file scope must report unrecorded declarations per file, for files that have at least one symbol record, and as a repository total as non-blocking output, and must include the total in JSON output.

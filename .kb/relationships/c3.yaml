@@ -580,3 +580,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4194f9c18f68
+  - type: assumes
+    from: SCEN-NEG-check-unscoped-budget-OVER-BUDGET
+    to: FACT-NEG-check-unscoped-budget-OVER-BUDGET
+    created_at: 2026-11-16T15:48:21.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b71d1a4b3cd

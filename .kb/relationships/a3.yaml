@@ -405,13 +405,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23ddfbc35ae8
-  - type: assumes
-    from: SCEN-check-reports-symbol-debt
-    to: FACT-check-reports-symbol-debt
-    created_at: 2026-11-16T05:33:58.167Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-798ac16da5cb
   - type: implements
     from: SYM-kibi-commit-review-skill-guidance
     to: REQ-kibi-commit-review-kb-staging
