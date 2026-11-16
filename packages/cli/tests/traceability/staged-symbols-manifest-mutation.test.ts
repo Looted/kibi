@@ -9,6 +9,7 @@ import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
   manifestRecordSourcePath,
+  unrecordedDeclarations,
 } from "../../src/traceability/staged-symbols-manifest.js";
 
 const SYMBOLS = "kb/symbols.yaml";
@@ -1021,5 +1022,163 @@ describe("assessStagedSymbolsManifest with a base", () => {
       path: SYMBOLS,
       coveredSourcePaths: [FILE],
     });
+  });
+  test("inherited gaps are listed sorted, judged ones are not repeated", () => {
+    const content = [
+      "const zeta = 1;",
+      "const alpha = 1;",
+      "function createTag() {",
+      "  return 1;",
+      "}",
+    ].join("\n");
+    const symbols = [
+      { ...baseSymbols[0], name: "zeta" },
+      { ...baseSymbols[0], name: "alpha", startLine: 2, endLine: 2 },
+      { ...baseSymbols[1], startLine: 3, endLine: 5 },
+    ];
+    const withOrphans = manifest(
+      rec("createTag", FILE),
+      rec("zz", FILE),
+      rec("aa", FILE),
+    );
+    const result = judge({
+      content,
+      symbols,
+      baseManifest: withOrphans,
+      stagedManifest: manifest(
+        rec("createTag", FILE),
+        rec("zz", FILE),
+        rec("aa", FILE),
+        rec("typo", FILE),
+      ),
+      base: { content, symbols },
+    });
+    expect(result.fileDetails?.[0]?.extra).toEqual(["typo"]);
+    expect(result.fileDetails?.[0]?.inherited).toEqual({
+      missing: [
+        { title: "alpha", line: 2 },
+        { title: "zeta", line: 1 },
+      ],
+      extra: ["aa", "zz"],
+    });
+  });
+
+  test("a coarse base record is not a record the commit removes", () => {
+    const coarse = { granularity_reason: "module-level-behavior" };
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: manifest(
+        rec("createTag", FILE),
+        rec("tagIdSchema", FILE, coarse),
+      ),
+      stagedManifest: recorded,
+    });
+    expect(result.state).toBe("fresh");
+    expect(result.fileDetails?.[0]?.inherited?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("a base title with one plain record among coarse ones is a record", () => {
+    const coarse = { granularity_reason: "module-level-behavior" };
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: manifest(
+        rec("createTag", FILE),
+        rec("tagIdSchema", FILE, coarse),
+        rec("tagIdSchema", FILE),
+      ),
+      stagedManifest: recorded,
+    });
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("a staged file without content compares as empty text", () => {
+    const result = judge({
+      content: "",
+      file: staged(FILE),
+      symbols: [baseSymbols[0], baseSymbols[1]],
+      baseManifest: recorded,
+      base: { content: "", symbols: baseSymbols },
+    });
+    expect(result.state).toBe("fresh");
+    expect(result.fileDetails?.[0]?.inherited?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("an untouched orphan record of a file without a base stays inherited", () => {
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: manifest(rec("createTag", FILE), rec("goneBefore", FILE)),
+      base: null,
+    });
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.extra).toEqual([]);
+    expect(result.fileDetails?.[0]?.inherited?.extra).toEqual(["goneBefore"]);
+  });
+});
+
+describe("unrecordedDeclarations", () => {
+  const FILE = "src/a.ts";
+  const analysis = (...symbols: object[]) =>
+    ({ symbols }) as unknown as SourceAnalysisResult;
+  const coarse = { granularity_reason: "module-level-behavior" };
+
+  test("declarations without a record of the file are listed by title", () => {
+    expect(
+      unrecordedDeclarations(
+        FILE,
+        analysis(
+          sym("zeta", 1),
+          sym("beta", 3),
+          sym("alpha", 5, { startLine: 5 }),
+        ),
+        [rec("beta", FILE), rec("zeta", "src/other.ts")],
+      ),
+    ).toEqual([
+      { title: "alpha", line: 5 },
+      { title: "zeta", line: 1 },
+    ]);
+  });
+
+  test("a file whose every record is coarse has none", () => {
+    expect(
+      unrecordedDeclarations(FILE, analysis(sym("a", 1), sym("b", 3)), [
+        rec("a", FILE, coarse),
+      ]),
+    ).toEqual([]);
+  });
+
+  test("a file without records lists every declaration", () => {
+    expect(unrecordedDeclarations(FILE, analysis(sym("a", 1)), [])).toEqual([
+      { title: "a", line: 1 },
+    ]);
+  });
+
+  test("a coarse title among plain records is not listed", () => {
+    expect(
+      unrecordedDeclarations(
+        FILE,
+        analysis(sym("a", 1), sym("b", 3), sym("c", 5)),
+        [rec("a", FILE, coarse), rec("b", FILE)],
+      ),
+    ).toEqual([{ title: "c", line: 5 }]);
+  });
+
+  test("a declaration without a line reads line 0", () => {
+    expect(
+      unrecordedDeclarations(
+        FILE,
+        analysis({ name: "a", kind: "function" }),
+        [],
+      ),
+    ).toEqual([{ title: "a", line: 0 }]);
   });
 });

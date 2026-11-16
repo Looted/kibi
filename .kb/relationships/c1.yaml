@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f9c3f7bb48
+  - type: implements
+    from: SYM-check-inheritedSymbolGapsOf
+    to: REQ-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dce13c69813
+  - type: covered_by
+    from: SYM-check-inheritedSymbolGapsOf
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b0b81d588a0
