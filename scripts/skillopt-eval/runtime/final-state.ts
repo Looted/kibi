@@ -422,7 +422,12 @@ export async function runIndependentFinalState(
     command: options.launch.command,
     args: [...options.launch.args],
     cwd: options.launch.cwd,
-    env: options.launch.env ?? stringEnvironment(process.env),
+    // The verifier reads the final state with any catalog tool, so its
+    // server lists the full profile whatever the agent's session lists.
+    env: {
+      ...(options.launch.env ?? stringEnvironment(process.env)),
+      KIBI_MCP_TOOLS: "full",
+    },
     stderr: "pipe",
   });
   const client = new Client({

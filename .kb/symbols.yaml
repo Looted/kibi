@@ -42335,3 +42335,16 @@ symbols:
         target: TEST-kibi-source-proof-kinds
       - type: implements
         target: REQ-kibi-env-reader-presence-tests
+  - id: SYM-skillopt-run-independent-final-state
+    title: runIndependentFinalState
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:30:08.766Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity

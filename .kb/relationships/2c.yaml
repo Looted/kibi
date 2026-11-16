@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55ef4c72ce70
+  - type: implements
+    from: SYM-skillopt-run-independent-final-state
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: 2026-11-16T20:30:09.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-818708ff86d9
+  - type: covered_by
+    from: SYM-skillopt-run-independent-final-state
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-11-16T20:30:09.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40ecb69045a5
