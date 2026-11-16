@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-behavioral-symbol-kinds",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts"
+    ]
+  ]
+}
