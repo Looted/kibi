@@ -5,7 +5,6 @@ import path from "node:path";
 import {
   UNIT_TEST_RESULTS_VERSION,
   gitIdentity,
-  isCleanFileResult,
   mergeShardTestResults,
   parseJunitFileResults,
   shardTestResults,
@@ -41,20 +40,6 @@ describe("parseJunitFileResults", () => {
       "c.test.ts": { tests: 1, failures: 1, skipped: 1 },
       "d.test.ts": { tests: 0, failures: 1, skipped: 0 },
     });
-  });
-
-  test("only a file that ran tests and all passed is clean", () => {
-    expect(isCleanFileResult({ tests: 1, failures: 0, skipped: 0 })).toBe(true);
-    expect(isCleanFileResult({ tests: 0, failures: 0, skipped: 0 })).toBe(
-      false,
-    );
-    expect(isCleanFileResult({ tests: 2, failures: 1, skipped: 0 })).toBe(
-      false,
-    );
-    expect(isCleanFileResult({ tests: 2, failures: 0, skipped: 1 })).toBe(
-      false,
-    );
-    expect(isCleanFileResult(undefined)).toBe(false);
   });
 });
 

@@ -43015,3 +43015,137 @@ symbols:
         target: TEST-check-quantity-duplicate
       - type: implements
         target: REQ-check-quantity-duplicate
+  - id: SYM-test-upsert-stale-siblings
+    title: stale siblings consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/stale-siblings.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:16:55.754Z
+    relationships:
+      - type: executable_for
+        target: TEST-upsert-stale-siblings
+  - id: SYM-test-upsert-sibling-requirements-unit
+    title: sibling requirements unit suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/sibling-requirements.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:16:58.284Z
+    relationships:
+      - type: executable_for
+        target: TEST-upsert-stale-siblings
+  - id: SYM-cli-sibling-requirements-sibling-requirement
+    title: SiblingRequirement
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:22.067Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-flags-stale-sibling-claim
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-cli-sibling-requirements-sibling-next-action
+    title: SiblingNextAction
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:25.331Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-cli-sibling-requirements-sibling-report
+    title: SiblingReport
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:28.713Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-cli-sibling-requirements-sibling-input
+    title: SiblingInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:31.922Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-dry-run-lists-siblings
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-cli-sibling-requirements-sibling-requirements
+    title: siblingRequirements
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:35.219Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-flags-stale-sibling-claim
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-core-kb-check-fact-contradiction
+    title: check_fact_contradiction
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:38.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-refuses-fact-contradiction
+  - id: SYM-core-kb-upsert-contradiction-baseline
+    title: upsert_contradiction_baseline
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:41.343Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-refuses-fact-contradiction
+  - id: SYM-core-kb-kb-stage-upserts
+    title: kb_stage_upserts
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:43.911Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-apply-plan-checks-contradictions-once

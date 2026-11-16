@@ -69,6 +69,7 @@ import {
   withStoredRequirementSemantics,
 } from "./requirement-semantics.js";
 import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
+import { siblingRequirements } from "./sibling-requirements.js";
 import {
   readFileTimes,
   restoreFileTimes,
@@ -1139,11 +1140,19 @@ export async function executeUpsert(
             workspaceRoot: context.workspaceRoot,
           })
         : [];
+    const siblings = siblingRequirements({
+      type: input.type,
+      id: input.id,
+      entity: writtenEntity,
+      before: created === 1 ? null : (priorEntity ?? writtenEntity),
+      workspaceRoot: context.workspaceRoot,
+    });
     const payload: UpsertPayload = {
       created,
       updated: changeKind === "updated" ? 1 : 0,
       relationships_created: validated.relationships.length,
       warnings: [
+        ...siblings.warnings,
         ...planRecoveryWarnings,
         ...(uncompiledSource !== undefined
           ? [
@@ -1182,6 +1191,9 @@ export async function executeUpsert(
       ...advisorReceipt(semantic.receipt),
       ...(inventoryApplied !== undefined ? { inventoryApplied } : {}),
       ...storedClaimKey(commitEntity ?? validated.entity),
+      ...(siblings.siblings.length > 0
+        ? { siblings: siblings.siblings, nextActions: siblings.nextActions }
+        : {}),
       ...(shardWarnings.length > 0
         ? {
             status: "committed_with_repairs" as const,
@@ -1191,6 +1203,7 @@ export async function executeUpsert(
               detail,
             })),
             nextActions: [
+              ...siblings.nextActions,
               {
                 operation: "kb_check",
                 reason:

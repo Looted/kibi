@@ -137,7 +137,7 @@ describe("canonical skills source", () => {
     const newCanonical = {
       "kibi-bootstrap": "3.21.0",
       "kibi-commit-review": "1.7.0",
-      "kibi-decisions": "1.13.0",
+      "kibi-decisions": "1.14.0",
       "kibi-freshness": "2.3.0",
       "kibi-provable-code": "1.0.0",
       "kibi-traceability": "2.6.0",

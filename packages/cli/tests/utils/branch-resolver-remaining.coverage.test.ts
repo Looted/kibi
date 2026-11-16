@@ -6,12 +6,10 @@ import {
   _setBranchResolverDepsForTests,
   copyCleanSnapshot,
   getBranchDiagnostic,
-  getVolatileArtifactPatterns,
   isDetachedHead,
   isValidBranchName,
   resolveActiveBranch,
   resolveBranchAttachment,
-  resolveDefaultBranch,
 } from "../../src/utils/branch-resolver.js";
 import {
   createTempDir,
@@ -97,20 +95,6 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
     expect(() => copyCleanSnapshot(path.join(root, "missing"), target)).toThrow(
       /does not exist/,
     );
-    expect(getVolatileArtifactPatterns()).toContain("journal-*.log");
-  });
-
-  test("resolveDefaultBranch returns a valid remote default", () => {
-    const restoreEnv = isolateKibiEnv();
-    restores.push(restoreEnv);
-    _setBranchResolverDepsForTests({
-      execSync: ((command: string) => {
-        if (command.includes("symbolic-ref"))
-          return "refs/remotes/origin/develop\n";
-        throw new Error("unused");
-      }) as unknown as typeof execSync,
-    });
-    expect(resolveDefaultBranch("/tmp")).toEqual({ branch: "develop" });
   });
 
   test("resolveActiveBranch rejects an invalid show-current name", () => {

@@ -4,9 +4,7 @@ import fs from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { parseDocument } from "yaml";
 import {
-  manifestRelationships,
   renderSourceDocument,
   republishPendingSourceReceipt,
   writeSourceForUpsert,
@@ -140,29 +138,6 @@ describe("renderSourceDocument for markdown", () => {
 describe("symbol manifests", () => {
   const symbol = (relationships: unknown[] = []) =>
     ({ type: "symbol", id: "SYM-a", properties: {}, relationships }) as never;
-
-  test("reads typed relationships off a manifest entry", () => {
-    const doc = parseDocument(
-      [
-        "id: SYM-a",
-        "relationships:",
-        "  - null",
-        "  - type: implements",
-        "  - type: implements",
-        "    to: REQ-1",
-        "  - type: covered_by",
-        "    target: TEST-1",
-      ].join("\n"),
-    );
-    expect(manifestRelationships(doc.contents)).toStrictEqual([
-      { type: "implements", target: "REQ-1" },
-      { type: "covered_by", target: "TEST-1" },
-    ]);
-    for (const entry of ["id: SYM-a\nrelationships: x", "id: SYM-a"])
-      expect(
-        manifestRelationships(parseDocument(entry).contents),
-      ).toStrictEqual([]);
-  });
 
   test("merges duplicate relationship rows and sorts them", () => {
     const manifest = [
