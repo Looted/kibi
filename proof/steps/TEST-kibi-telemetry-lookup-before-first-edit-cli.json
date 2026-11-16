@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-telemetry-lookup-before-first-edit-cli",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/consumer/telemetry-lookup-before-first-edit.test.ts"
+    ]
+  ]
+}

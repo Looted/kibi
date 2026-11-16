@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-mcp-apply-plan-async-preflight",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/mcp/tests/server/kb-apply-plan-async-preflight.test.ts"
+    ]
+  ]
+}

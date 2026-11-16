@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-dead-implements-comment-deletion",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "240000",
+      "./packages/agent-core/tests/decision-guard.test.ts",
+      "./packages/claude/tests/hook-runner.test.ts",
+      "./packages/codex/tests/hook-runner.test.ts",
+      "./packages/zcode/tests/hook-runner.test.ts"
+    ]
+  ]
+}

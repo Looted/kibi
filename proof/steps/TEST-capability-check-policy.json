@@ -1,0 +1,22 @@
+{
+  "test_id": "TEST-capability-check-policy",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/plugin-sdk/tests/check-policy.test.ts",
+      "./packages/cli/tests/public/check-policy-rules.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./packages/cli/tests/commands/check.test.ts",
+      "-t",
+      "an activated check policy"
+    ]
+  ]
+}

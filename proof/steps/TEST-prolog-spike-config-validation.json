@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-prolog-spike-config-validation",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./scripts/tests/swipl-spike-config.test.ts"
+    ]
+  ]
+}

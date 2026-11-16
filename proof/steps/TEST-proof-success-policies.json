@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-success-policies",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/proof-run-vocabulary.proof.test.ts"
+    ]
+  ]
+}

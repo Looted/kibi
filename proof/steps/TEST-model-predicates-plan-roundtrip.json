@@ -1,0 +1,16 @@
+{
+  "test_id": "TEST-model-predicates-plan-roundtrip",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/mcp/tests/predicate-plan-roundtrip.test.ts",
+      "./packages/cli/tests/operations/review-observation-plans.test.ts",
+      "./packages/cli/tests/operations/suggest-predicates-existing-grounding.test.ts"
+    ]
+  ]
+}

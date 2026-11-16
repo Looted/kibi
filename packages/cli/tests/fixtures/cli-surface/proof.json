@@ -90,17 +90,17 @@
         "description": "Run the declared steps of the proof-bearing tests kibi prove selected and write a per-test report, so a command integration fails only the tests whose own steps failed (use as the integration's command)",
         "arguments": [
           {
-            "name": "steps-file",
-            "description": "JSON array of {test_id, steps: [[argv...]]}",
+            "name": "steps-source",
+            "description": "A directory of <test_id>.json files, each one {test_id, steps: [[argv...]]}, or a JSON array file of them (default: proof/steps, else proof/steps.json)",
             "required": false,
             "variadic": false,
-            "default": "proof/steps.json"
+            "default": null
           }
         ],
         "options": [
           {
             "flags": "--test <id...>",
-            "description": "Run these tests' steps (default: KIBI_PROOF_TEST_IDS, else every test in the file)",
+            "description": "Run these tests' steps (default: KIBI_PROOF_TEST_IDS, else every test in the source)",
             "default": null,
             "mandatory": false
           }

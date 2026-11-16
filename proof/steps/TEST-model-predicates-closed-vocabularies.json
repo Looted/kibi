@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-model-predicates-closed-vocabularies",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/operations/predicate-binding-placeholders.test.ts"
+    ]
+  ]
+}

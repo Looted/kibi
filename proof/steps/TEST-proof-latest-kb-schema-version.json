@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-latest-kb-schema-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/latest-kb-schema-version.proof.test.ts"
+    ]
+  ]
+}

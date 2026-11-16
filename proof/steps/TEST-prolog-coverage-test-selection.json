@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-prolog-coverage-test-selection",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/core/tests/prolog-coverage-runner.test.ts"
+    ]
+  ]
+}

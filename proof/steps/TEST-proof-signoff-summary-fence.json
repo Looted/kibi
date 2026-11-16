@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-signoff-summary-fence",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/signoff-fences.proof.test.ts"
+    ]
+  ]
+}

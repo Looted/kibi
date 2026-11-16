@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-cli-kb-merge-driver",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/commands/merge-driver.test.ts",
+      "./packages/cli/tests/commands/merge-driver.property.test.ts"
+    ]
+  ]
+}

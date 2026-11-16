@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-evidence-levels-exhaustive",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/evidence-levels.proof.test.ts"
+    ]
+  ]
+}

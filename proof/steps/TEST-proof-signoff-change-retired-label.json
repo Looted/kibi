@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-signoff-change-retired-label",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/signoff-labels.proof.test.ts"
+    ]
+  ]
+}

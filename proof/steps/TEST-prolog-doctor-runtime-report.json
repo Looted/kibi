@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-prolog-doctor-runtime-report",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/commands/doctor-swipl-runtime.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-symbol-granularity-rule",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/check-rule-names.proof.test.ts"
+    ]
+  ]
+}

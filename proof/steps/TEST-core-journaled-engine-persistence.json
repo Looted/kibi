@@ -1,0 +1,25 @@
+{
+  "test_id": "TEST-core-journaled-engine-persistence",
+  "steps": [
+    [
+      "node",
+      "scripts/run-owned-engine-tests.mjs",
+      "--",
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/engine.test.ts"
+    ],
+    [
+      "node",
+      "scripts/run-owned-engine-tests.mjs",
+      "--",
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/cli/tests/engine-runtime-paths.test.ts"
+    ]
+  ]
+}

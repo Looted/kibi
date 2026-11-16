@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-signoff-format-env",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/signoff-format-setting.proof.test.ts"
+    ]
+  ]
+}

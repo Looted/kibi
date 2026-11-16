@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-bootstrap-aspect-max-words",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/bootstrap-aspect-limits.proof.test.ts"
+    ]
+  ]
+}
