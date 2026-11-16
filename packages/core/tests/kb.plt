@@ -9831,19 +9831,75 @@ test(locked_store_without_owner_reports_an_empty_owner, [setup(cleanup_test_kb),
                   kb_store_locked(OwnerJson, _, _)),
     assertion(OwnerJson == "").
 
-test(journal_graph_uri_is_the_file_uri_up_to_200_characters) :-
-    length(Codes, 193),
-    maplist(=(0'a), Codes),
-    atom_codes(Short, Codes),
-    kb:journal_expected_graph_uri(Short, ShortURI),
-    atom_concat('file://', Short, FileURI),
-    assertion(ShortURI == FileURI),
-    atom_concat(Short, b, Long),
-    kb:journal_expected_graph_uri(Long, LongURI),
-    sha_hash(Long, Hash, [algorithm(sha1)]),
+% 'file://' plus a leading '/' encode to 16 bytes ("file%3A%2F%2F%2F"), so a
+% directory of '/' and N letters encodes to 16 + N bytes; at most 247 fit.
+ks_graph_uri_is_file_uri(Directory) :-
+    kb:journal_expected_graph_uri(Directory, URI),
+    atom_concat('file://', Directory, URI).
+
+ks_graph_uri_is_digest(Directory) :-
+    kb:journal_expected_graph_uri(Directory, URI),
+    sha_hash(Directory, Hash, [algorithm(sha1)]),
     hash_atom(Hash, Digest),
-    atom_concat('urn:kibi:store:', Digest, DigestURI),
-    assertion(LongURI == DigestURI).
+    atom_concat('urn:kibi:store:', Digest, URI).
+
+ks_directory(Prefix, Count, Char, Suffix, Directory) :-
+    length(Chars, Count),
+    maplist(=(Char), Chars),
+    atomic_list_concat(Chars, Middle),
+    atomic_list_concat(['/', Prefix, Middle, Suffix], Directory).
+
+test(journal_graph_uri_is_the_file_uri_while_its_encoded_name_fits) :-
+    ks_directory('', 231, a, '', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)),
+    ks_directory('', 232, a, '', TooLong),
+    assertion(ks_graph_uri_is_digest(TooLong)).
+
+test(journal_graph_uri_counts_an_underscore_as_one_byte) :-
+    ks_directory('', 231, '_', '', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)).
+
+test(journal_graph_uri_counts_punctuation_as_three_bytes) :-
+    % 77 dashes encode to 231 bytes: the URI is short, the file name is not.
+    ks_directory('', 77, '-', '', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)),
+    ks_directory('', 78, '-', '', TooLong),
+    assertion(ks_graph_uri_is_digest(TooLong)).
+
+test(journal_graph_uri_counts_a_non_ascii_letter_as_three_bytes) :-
+    ks_directory('', 228, a, '\u00e9', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)),
+    ks_directory('', 229, a, '\u00e9', TooLong),
+    assertion(ks_graph_uri_is_digest(TooLong)).
+
+test(journal_graph_uri_counts_a_newline_as_six_bytes) :-
+    ks_directory('', 225, a, '\n', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)),
+    ks_directory('', 226, a, '\n', TooLong),
+    assertion(ks_graph_uri_is_digest(TooLong)).
+
+% A store under a deep workspace whose path is full of '-' and '/': the
+% file:// URI is at most 200 characters, but its encoded journal name exceeds
+% the 255-byte file name limit.  Writing to it used to abort SWI-Prolog.
+test(a_journaled_store_under_a_punctuated_path_saves_and_reloads, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Base),
+    atom_concat('file://', Base, BaseURI),
+    atom_length(BaseURI, BaseLength),
+    Room is 200 - BaseLength - 1,
+    Pairs is Room // 2,
+    length(Parts, Pairs),
+    maplist(=('x-'), Parts),
+    atomic_list_concat(Parts, Tail),
+    atomic_list_concat([Base, '/', Tail], Dir),
+    atom_concat('file://', Dir, FileURI),
+    atom_length(FileURI, URILength),
+    assertion(URILength =< 200),
+    assertion(ks_graph_uri_is_digest(Dir)),
+    ks_journaled_store_at(Dir, ks_assert(req, 'REQ-DEEP-PATH')),
+    kb_attach(Dir),
+    kb_entity_ids(Ids),
+    kb_detach,
+    assertion(Ids == ['REQ-DEEP-PATH']).
 
 test(journaled_attach_loads_legacy_entity_files_and_builds_the_index, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     ks_journaled_store(Dir),
