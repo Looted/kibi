@@ -21,15 +21,15 @@ id: TEST-staged-gate-inherited-symbol-gaps
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-b08f3e9dacfc96f16da42418
+    receipt_id: PR-44924a3823863ce0f03a6350
     test_id: TEST-staged-gate-inherited-symbol-gaps
     scope: end_to_end
     outcome: passed
-    code_snapshot: b441a6e8fcbbf95900ea594a22b66d3379943f5b04c9b75215f76c48ae417427
+    code_snapshot: 922722505874a39bf824680c85dc86f0274e2312643033c33145a58404c54cae
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T17:45:48.832Z'
-    finished_at: '2026-11-16T17:46:05.338Z'
-    artifact_digest: 99f233019f0b7b582eb00c80c3c53aeab874efc51d2107cd2c733ffaef147938
+    started_at: '2026-11-16T18:39:41.390Z'
+    finished_at: '2026-11-16T18:39:56.211Z'
+    artifact_digest: a46c076c878a9cd7299faf6f7fb80c36b6d29d9f621491bd0d74c492953f8c9f
     contract_hash: fc771d16f8ca1525d049d65635a3d2b0142ff0d044b957b38d05cd5405587b95
     binding_hash: 19e6b97ad73d7029ec6299450b1f1438a6281a601b7df12e27d339ee8696126c
     fingerprint: da264a35b7d6cf786f0914032f8583ce28cdef09c9defba3e08bfbd6244a2cc3

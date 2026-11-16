@@ -21,15 +21,15 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-2415d026e4c3be2e94e5d41e
+    receipt_id: PR-ff963486e3336b628c35eaef
     test_id: TEST-kb-upsert-derives-proposition-ledger
     scope: end_to_end
     outcome: passed
-    code_snapshot: b441a6e8fcbbf95900ea594a22b66d3379943f5b04c9b75215f76c48ae417427
+    code_snapshot: 922722505874a39bf824680c85dc86f0274e2312643033c33145a58404c54cae
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T17:44:01.684Z'
-    finished_at: '2026-11-16T17:44:04.870Z'
-    artifact_digest: 887ab8e21c2aabf9e9efb81bab75090e00f38da45636a4553f7006019870615e
+    started_at: '2026-11-16T18:38:09.098Z'
+    finished_at: '2026-11-16T18:38:11.461Z'
+    artifact_digest: 9bfb26c46106ab427dc7155b23b692b99ae45992b4809778fcefa74421e2dda8
     contract_hash: 949e4a1184f3f5ad435cf2b98477bbf44994d014829584c6360fd64161944c99
     binding_hash: b355da178a53e90f3683a77b0a0ebb761e6ebc02d602abfbbc7d2981d58013d2
     fingerprint: 1b06231972020efb17df89e13c48b6e7dec17db1ef56060cb18cec5ad0e24e2f
