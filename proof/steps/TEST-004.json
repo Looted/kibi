@@ -1,0 +1,19 @@
+{
+  "test_id": "TEST-004",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/cli-workflows.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/commands/check.test.ts",
+      "./packages/cli/tests/public/operations/check-helpers.test.ts",
+      "./packages/cli/tests/commands/check-impact-contract.test.ts"
+    ]
+  ]
+}

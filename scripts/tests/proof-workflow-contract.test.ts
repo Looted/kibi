@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { loadProofSteps } from "../run-proof-producer.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const integrations = JSON.parse(
@@ -16,9 +17,10 @@ const integrations = JSON.parse(
     targets?: string[];
   }>;
 };
-const steps = JSON.parse(
-  readFileSync(join(ROOT, "proof", "steps.json"), "utf8"),
-) as Array<{ test_id: string; steps: string[][] }>;
+const steps = loadProofSteps(ROOT) as Array<{
+  test_id: string;
+  steps: string[][];
+}>;
 const proofWorkflow = readFileSync(
   join(ROOT, ".github", "workflows", "proof.yml"),
   "utf8",

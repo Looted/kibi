@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-telemetry-preflight-age",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/telemetry-thresholds.proof.test.ts"
+    ]
+  ]
+}

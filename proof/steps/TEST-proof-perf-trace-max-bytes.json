@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-perf-trace-max-bytes",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/perf-trace-limits.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-canonical-scenarios-path",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/kb-entity-paths.proof.test.ts"
+    ]
+  ]
+}

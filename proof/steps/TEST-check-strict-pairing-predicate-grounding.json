@@ -1,0 +1,24 @@
+{
+  "test_id": "TEST-check-strict-pairing-predicate-grounding",
+  "steps": [
+    [
+      "swipl",
+      "-q",
+      "-s",
+      "packages/core/tests/kb.plt",
+      "-g",
+      "run_tests(checks_coverage_gaps:[check_strict_req_fact_pairing_reports_missing_property_counterpart,check_strict_req_fact_pairing_accepts_predicate_about_the_subject,check_strict_req_fact_pairing_reports_predicate_about_another_subject,check_strict_req_fact_pairing_accepts_predicate_subject_key,check_strict_req_fact_pairing_reads_subject_key_before_first_argument,check_strict_req_fact_pairing_accepts_named_subject_argument])",
+      "-t",
+      "halt"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/mcp/tests/predicate-plan-roundtrip.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-source-relationship-parity",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/source-relationship-parity.test.ts"
+    ]
+  ]
+}

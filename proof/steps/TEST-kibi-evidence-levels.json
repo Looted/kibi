@@ -1,0 +1,16 @@
+{
+  "test_id": "TEST-kibi-evidence-levels",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/cli-workflows.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/commands/signoff.test.ts",
+      "./packages/cli/tests/report/html-report.test.ts"
+    ]
+  ]
+}

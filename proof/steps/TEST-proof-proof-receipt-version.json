@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-proof-receipt-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/proof-protocol-versions.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-e2e-vscode-extension-lifecycle",
+  "steps": [
+    [
+      "bun",
+      "run",
+      "documentation/tests/e2e/vscode-extension-lifecycle.e2e.ts"
+    ]
+  ]
+}

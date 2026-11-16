@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-binding-word-limit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/binding-word-limit.proof.test.ts"
+    ]
+  ]
+}

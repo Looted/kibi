@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-telemetry-docs-link",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/telemetry-docs-link.proof.test.ts"
+    ]
+  ]
+}

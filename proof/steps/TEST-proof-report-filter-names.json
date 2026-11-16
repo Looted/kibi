@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-report-filter-names",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/report-filters-gates.proof.test.ts"
+    ]
+  ]
+}

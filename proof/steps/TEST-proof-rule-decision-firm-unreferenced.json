@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-rule-decision-firm-unreferenced",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/decision-firmness-rule-names.proof.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-cli-migrate-entity-type-backfill-exhaustive",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/entity-type-backfill.proof.test.ts"
+    ]
+  ]
+}

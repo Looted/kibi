@@ -384,6 +384,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-940d1555c7de
+  - type: assumes
+    from: SCEN-kibi-proof-steps-directory
+    to: FACT-default-proof-steps-path
+    created_at: 2026-11-16T07:29:35.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-322e7681911c
+  - type: assumes
+    from: SCEN-kibi-proof-steps-directory
+    to: FACT-proof-steps-file-name-mismatch-refused
+    created_at: 2026-11-16T07:29:35.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b79cfd3aa84
+  - type: verified_by
+    from: SCEN-kibi-proof-steps-directory
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T07:29:35.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06f181098b15
   - type: implements
     from: SYM-staged-declaration-declarationLocator
     to: REQ-staged-gate-changed-declaration-definition

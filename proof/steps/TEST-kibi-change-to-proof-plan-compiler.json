@@ -1,0 +1,22 @@
+{
+  "test_id": "TEST-kibi-change-to-proof-plan-compiler",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/operations/compile-intent.test.ts",
+      "./packages/cli/tests/operations/compile-intent-coverage.test.ts",
+      "./packages/cli/tests/operations/compile-intent-remaining.coverage.test.ts",
+      "./packages/cli/tests/operations/apply-plan-recovery-coverage.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/cli/tests/operations/workspace-path-alias.test.ts"
+    ]
+  ]
+}

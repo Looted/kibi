@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-agent-requirement-review-limit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/agent-review-limit.proof.test.ts"
+    ]
+  ]
+}
