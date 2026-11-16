@@ -21,15 +21,15 @@ id: TEST-search-answer-requirement-reasons
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f70893ede31709a86d6e90b9
+    receipt_id: PR-a746d7312a0fb555f0e3c111
     test_id: TEST-search-answer-requirement-reasons
     scope: end_to_end
     outcome: passed
-    code_snapshot: 60e2382ba8d895d33e25be145797d1d457311257c98bc812d509dcc972747ed9
+    code_snapshot: 7baf185385700cbc6052c693e2fdd4925358ed509447ee615fc111e64f05332f
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T12:16:51.976Z'
-    finished_at: '2026-11-16T12:17:04.041Z'
-    artifact_digest: f52ce62ae8148886c29c44032b38824412481c106fba8a313a47bb6fc4e7f83a
+    started_at: '2026-11-16T13:13:06.768Z'
+    finished_at: '2026-11-16T13:13:19.450Z'
+    artifact_digest: e4f77a906aa1e684445fb39a95a5822581d4edd4c055ac04ad54671493a1bc8c
     contract_hash: 52dfb01c7e4dc38f26ff1b9e54d30afdc01c27a2bc244bf4c618063e49fbc02d
     binding_hash: 089f087cd38f19b02e76782813444e5d38dcc1f3619576383890afdcad21a3ab
     fingerprint: 91f91298196d96e55a13d2c41a78833837832da7e4e53823ca35c05bcae96586

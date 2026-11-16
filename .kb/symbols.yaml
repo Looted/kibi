@@ -31414,6 +31414,8 @@ symbols:
         target: TEST-proof-search-answer-governing
       - type: covered_by
         target: TEST-proof-search-answer-max-bytes
+      - type: covered_by
+        target: TEST-proof-search-answer-reason-chars
       - type: implements
         target: REQ-kibi-search-answer-limits
   - id: SYM-proof-search-answer-max-bytes
@@ -41627,3 +41629,17 @@ symbols:
         target: TEST-search-answer-requirement-reasons
       - type: implements
         target: REQ-search-answer-gives-recorded-reason
+  - id: SYM-proof-search-answer-reason-chars
+    title: searchAnswerReasonCharsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-answer-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:12:54.061Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-search-answer-reason-chars
