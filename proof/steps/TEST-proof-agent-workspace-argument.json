@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-agent-workspace-argument",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/agent-workspace-keys.proof.test.ts"
+    ]
+  ]
+}

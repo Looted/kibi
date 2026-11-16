@@ -1,0 +1,30 @@
+{
+  "test_id": "TEST-kibi-tree-sitter-language-packs",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/tree-sitter-source-references.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/plugins/approved-source-consumer.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/plugins/language-pack-suggestion.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/plugins/language-pack-relevance.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/commands/check-staged-generated.test.ts"
+    ]
+  ]
+}

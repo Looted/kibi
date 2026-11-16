@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-e2e-briefs-retired",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/briefs-retired.test.ts"
+    ]
+  ]
+}

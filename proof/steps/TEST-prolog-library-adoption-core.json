@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-prolog-library-adoption-core",
+  "steps": [
+    [
+      "swipl",
+      "-q",
+      "-s",
+      "packages/core/tests/kb.plt",
+      "-g",
+      "run_tests([derived_chr_pilot,sparql_client_wrapper]),halt"
+    ]
+  ]
+}

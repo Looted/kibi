@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-builtin-symbol-source-extensions",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/builtin-symbol-source-extensions.proof.test.ts"
+    ]
+  ]
+}

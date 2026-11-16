@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-happy-path-gap",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./packages/cli/tests/consumer/happy-path-gap.test.ts"
+    ]
+  ]
+}

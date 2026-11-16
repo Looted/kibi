@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-search-answer-facts-per-requirement",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/search-answer-limits.proof.test.ts"
+    ]
+  ]
+}

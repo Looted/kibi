@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-mcp-default-tool-count",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/proofs/tool-catalog.proof.test.ts"
+    ]
+  ]
+}

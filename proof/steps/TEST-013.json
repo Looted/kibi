@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-013",
+  "steps": [
+    [
+      "swipl",
+      "-q",
+      "-g",
+      "load_test_files([]),run_tests(checks_coverage_gaps),halt",
+      "-t",
+      "halt",
+      "packages/core/tests/kb.plt"
+    ]
+  ]
+}

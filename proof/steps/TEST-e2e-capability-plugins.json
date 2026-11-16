@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-e2e-capability-plugins",
+  "steps": [
+    [
+      "bun",
+      "run",
+      "documentation/tests/e2e/capability-plugins.e2e.ts"
+    ]
+  ]
+}
