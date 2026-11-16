@@ -1364,12 +1364,32 @@
             "type": "string"
           }
         }
+      },
+      "implementedBy": {
+        "type": "array",
+        "minItems": 1,
+        "description": "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant). Kibi creates or reuses each symbol and links it with implements; an entry that resolves to no single granular declaration is refused with candidates.",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sourceFile", "symbol"],
+          "properties": {
+            "sourceFile": {
+              "type": "string",
+              "minLength": 1
+            },
+            "symbol": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
       }
     }
   },
   "requiresProlog": true,
   "effects": ["kb-write", "workspace-write"],
-  "execute": "[function executeUpsert]",
+  "execute": "[function executeUpsertRequest]",
   "resultVersion": "kibi.kb_upsert.v1",
   "outputSchema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1461,6 +1481,14 @@
                   "additionalProperties": true
                 },
                 "description": "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text."
+              },
+              "implementedBy": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Each implementedBy entry with the symbolId that implements the requirement and whether it was created."
               }
             }
           },
@@ -1506,6 +1534,13 @@
                 "additionalProperties": true
               },
               "inventoryApplied": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "implementedBy": {
                 "type": "array",
                 "items": {
                   "type": "object",

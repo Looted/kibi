@@ -3104,6 +3104,26 @@
             "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
             "type": "string"
           },
+          "implementedBy": {
+            "description": "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant). Kibi creates or reuses each symbol and links it with implements; an entry that resolves to no single granular declaration is refused with candidates.",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "sourceFile": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "symbol": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": ["sourceFile", "symbol"],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
           "plannedFacts": {
             "description": "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
             "items": {
@@ -4120,6 +4140,15 @@
                     },
                     "type": "array"
                   },
+                  "implementedBy": {
+                    "description": "Each implementedBy entry with the symbolId that implements the requirement and whether it was created.",
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "inventoryApplied": {
                     "description": "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text.",
                     "items": {
@@ -4182,6 +4211,14 @@
                   },
                   "errors": {
                     "items": {},
+                    "type": "array"
+                  },
+                  "implementedBy": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
                     "type": "array"
                   },
                   "inventoryApplied": {
