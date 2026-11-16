@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ef1beaa1103
+  - type: implements
+    from: SYM-subject-domain-read-subject-domain
+    to: REQ-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:10:28.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1559c194320f
+  - type: covered_by
+    from: SYM-subject-domain-read-subject-domain
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:10:28.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf50cedbb352

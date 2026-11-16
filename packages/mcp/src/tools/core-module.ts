@@ -1,6 +1,6 @@
 import path from "node:path";
 import { type PrologProcess, resolveKbPlPath } from "kibi-runtime";
-import { escapeAtomContent } from "kibi-runtime";
+import { escapeAtomContent, useCoreModuleGoal } from "kibi-runtime";
 import { getCoreModulePathOverride } from "../env.js";
 
 type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
@@ -47,13 +47,15 @@ export async function runJsonModuleQuery<T>(
   goal: string,
   errorLabel: string,
 ): Promise<T> {
-  const modulePath = escapeAtomContent(
-    resolveCorePlPath(fileName).replace(/\\/g, "/"),
-  );
+  // An explicit per-module override names the exact file to load; otherwise
+  // the module comes from the core the engine already runs.
+  const override = getCoreModulePathOverride(fileName);
+  const loadGoal =
+    override === undefined
+      ? useCoreModuleGoal(resolveCorePlPath(fileName))
+      : `use_module('${escapeAtomContent(override.replace(/\\/g, "/"))}')`;
   if (!isPrologProcess(prolog)) {
-    const mockedResult = await prolog.query(
-      `(use_module('${modulePath}'), ${goal})`,
-    );
+    const mockedResult = await prolog.query(`(${loadGoal}, ${goal})`);
     if (!mockedResult.success) {
       throw new Error(
         `${errorLabel} query failed: ${mockedResult.error || "Unknown error"}`,
@@ -80,8 +82,8 @@ export async function runJsonModuleQuery<T>(
   const oneShotCapable = prolog as unknown as { useOneShotMode?: boolean };
   prolog.invalidateCache();
   const result = oneShotCapable.useOneShotMode
-    ? await prolog.query(`(use_module('${modulePath}'), ${goal})`)
-    : await runInteractiveModuleQuery(prolog, modulePath, goal, errorLabel);
+    ? await prolog.query(`(${loadGoal}, ${goal})`)
+    : await runInteractiveModuleQuery(prolog, loadGoal, goal, errorLabel);
 
   if (!result.success) {
     throw new Error(
@@ -99,11 +101,11 @@ export async function runJsonModuleQuery<T>(
 
 async function runInteractiveModuleQuery(
   prolog: PrologProcess,
-  modulePath: string,
+  loadGoal: string,
   goal: string,
   errorLabel: string,
 ) {
-  const loadResult = await prolog.query(`use_module('${modulePath}')`);
+  const loadResult = await prolog.query(loadGoal);
   if (!loadResult.success) {
     throw new Error(
       `${errorLabel} module load failed: ${loadResult.error || "Unknown error"}`,

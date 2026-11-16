@@ -2,6 +2,8 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path, { join } from "node:path";
+import { resolveKbPlPath } from "../../../src/prolog.js";
+import { useCoreModuleGoal } from "../../../src/prolog/codec.js";
 import {
   AGENT_REQUIREMENT_UNAPPROVED_IMPLEMENTED_RULE,
   APPROVAL_CLOCK_SKEW_MS,
@@ -341,9 +343,11 @@ describe("readEvidenceFloorRows", () => {
     ).toStrictEqual([base]);
     const [goal] = prolog.goals;
     expect(goal).toEndWith(
-      `discovery.pl'), ${goalFor("strict_snapshot, _{}", "abc", "2026-01-02T03:04:05.000Z")})`,
+      `discovery.pl')), ${goalFor("strict_snapshot, _{}", "abc", "2026-01-02T03:04:05.000Z")})`,
     );
-    expect(goal).toStartWith("(use_module('");
+    expect(goal).toStartWith(
+      `(${useCoreModuleGoal(path.join(path.dirname(resolveKbPlPath()), "discovery.pl"))}, `,
+    );
   });
 
   test("opens the engine on demand and passes per-contract bindings", async () => {
@@ -358,7 +362,7 @@ describe("readEvidenceFloorRows", () => {
       ),
     ).toStrictEqual([]);
     expect(prolog.goals[0]).toEndWith(
-      `discovery.pl'), ${goalFor("per_contract, _{t: h}", "unknown", "then")})`,
+      `discovery.pl')), ${goalFor("per_contract, _{t: h}", "unknown", "then")})`,
     );
     const [[seen]] = (
       reporting.perContractTestBindings as unknown as {
