@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7d0007970e4
+  - type: assumes
+    from: SCEN-NEG-search-answer-reason-length-TOO-LONG
+    to: FACT-NEG-search-answer-reason-length-TOO-LONG
+    created_at: 2026-11-16T10:21:16.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7f8298fada4
+  - type: verified_by
+    from: SCEN-NEG-search-answer-reason-length-TOO-LONG
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T10:21:16.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5128211bb7d3
