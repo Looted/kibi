@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c3e0c0f7e27d
+  - type: assumes
+    from: SCEN-kb-merge-action-branch-moved
+    to: FACT-kb-merge-action-branch-moved
+    created_at: 2026-11-16T18:11:44.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea961ace70f9
+  - type: verified_by
+    from: SCEN-kb-merge-action-branch-moved
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:11:44.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92129f164b94

@@ -538,3 +538,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4194f9c18f68
+  - type: constrains
+    from: REQ-kb-merge-action-no-hooks
+    to: FACT-SUBJECT-kibi-ci-kb-merge-action
+    created_at: 2026-11-16T18:13:01.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9cf773b1ca5
+  - type: requires_property
+    from: REQ-kb-merge-action-no-hooks
+    to: FACT-kb-merge-action-no-hooks
+    created_at: 2026-11-16T18:13:01.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9d3df22efed
+  - type: specified_by
+    from: REQ-kb-merge-action-no-hooks
+    to: SCEN-kb-merge-action-no-hooks
+    created_at: 2026-11-16T18:13:01.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea05d1e34b26
+  - type: specified_by
+    from: REQ-kb-merge-action-no-hooks
+    to: SCEN-NEG-kb-merge-action-no-hooks-VIOLATED
+    created_at: 2026-11-16T18:13:02.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbc6efe19057
