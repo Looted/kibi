@@ -65,20 +65,20 @@ export type PolicyPredicateFact = Readonly<{
 
 /**
  * The head of a rule fact: an asserted `name(args)` when `asserted` (assert
- * modality, positive head). `args` holds each constant argument at its
- * position; a variable argument is left undefined.
+ * modality, positive head). `args` holds each constant argument by its
+ * position; a variable argument has no entry.
  */
 export type PolicyRuleHead = Readonly<{
   id: string;
   name: string;
-  args: readonly (string | undefined)[];
+  args: Readonly<Record<number, string | undefined>>;
   asserted: boolean;
 }>;
 
 /** A predicate name and its constant arguments a requirement is grounded in. */
 type Grounding = Readonly<{
   name: string;
-  args: readonly (string | undefined)[];
+  args: Readonly<Record<number, string | undefined>>;
 }>;
 
 export type CheckPolicyEvaluationInput = Readonly<{
@@ -492,29 +492,24 @@ export async function collectCheckPolicyViolations(
       "requires_rule relationships",
     )
   ).map(([from, to]) => [atom(from), atom(to)] as const);
-  // Every rule fact's head name, arity and constant arguments by position;
+  // Every rule fact's head name and constant arguments by position;
   // asserted is true for an assert rule with a positive head.
   const ruleHeads = (
     await rows(
       prolog,
-      "findall([F,Name,Arity,Constants,Asserted], (checks:stored_rule_fact(F, _, rule(_, Modality, atom(_, Name, Args, Polarity, _), _, _, _, _, _, _, _)), length(Args, Arity), findall([I,V], nth0(I, Args, const(V, _)), Constants), ((Modality == assert, Polarity == positive) -> Asserted = true ; Asserted = false)), Rows)",
+      "findall([F,Name,Constants,Asserted], (checks:stored_rule_fact(F, _, rule(_, Modality, atom(_, Name, Args, Polarity, _), _, _, _, _, _, _, _)), findall([I,V], nth0(I, Args, const(V, _)), Constants), ((Modality == assert, Polarity == positive) -> Asserted = true ; Asserted = false)), Rows)",
       "rule heads",
     )
-  ).map(([id, name, arity, constants, asserted]) => {
-    const args: (string | undefined)[] = Array.from({
-      length: Number(arity),
-    });
-    for (const pair of parsePrologValue(constants ?? "[]") as unknown[]) {
-      const [index, value] = pair as [unknown, unknown];
-      args[Number(index)] = String(value);
-    }
-    return {
-      id: atom(id),
-      name: atom(name),
-      args,
-      asserted: atom(asserted) === "true",
-    };
-  });
+  ).map(([id, name, constants, asserted]) => ({
+    id: atom(id),
+    name: atom(name),
+    args: Object.fromEntries(
+      (parsePrologValue(constants ?? "[]") as [unknown, unknown][]).map(
+        ([index, value]) => [Number(index), String(value)],
+      ),
+    ),
+    asserted: atom(asserted) === "true",
+  }));
 
   const symbols: PolicySymbol[] = symbolEntities.flatMap((entity) => {
     const id = String(entity.id ?? "");

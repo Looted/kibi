@@ -2031,6 +2031,23 @@ chk_grounded_req(predicate, 'FACT-PAY') :-
     chk_ent(fact, 'FACT-PAY', [fact_kind=predicate, predicate_name="pay", predicate_args=["cart"], canonical_key="pay(cart)"]),
     chk_rel(requires_predicate, 'REQ-RULE', 'FACT-PAY').
 
+% The grounding facts of a success scenario are the targets of its current
+% requirements' grounding links, and nothing for a requirement without one.
+test(scenario_grounding_facts_are_link_targets, Facts == [[], ['FACT-PAY']]) :-
+    findall(F,
+        (   member(Grounded, [false, true]),
+            chk_kb((
+                (   Grounded == true
+                ->  chk_grounded_req(predicate, _)
+                ;   chk_req('REQ-RULE')
+                ),
+                chk_scenario('SCEN-R', success, []),
+                chk_rule_link(specified),
+                checks:scenario_grounding_facts('SCEN-R', F)
+            ))
+        ),
+        Facts).
+
 chk_rule_link(none).
 chk_rule_link(specified) :- chk_rel(specified_by, 'REQ-RULE', 'SCEN-R').
 chk_rule_link(deny_assumed) :-
