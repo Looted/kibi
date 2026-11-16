@@ -361,9 +361,10 @@ function parseFormalTerm(formalRaw: string): FormalTerm | null {
     if (operation === "attach" && resource === "kb_store") {
       return { kind: "store_locked" };
     }
+    const action = permissionAction(operation, resource, args[2]);
     return {
       kind: "permission_denied",
-      action: permissionAction(operation, resource, args[2]),
+      ...(action !== undefined ? { action } : {}),
     };
   }
 
