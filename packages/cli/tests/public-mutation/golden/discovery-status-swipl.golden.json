@@ -30,6 +30,7 @@
     "state": "healthy",
     "path": "/ws/.kb/branches/kb-main"
   },
+  "sessionBrief": "Kibi records this repository's requirements and decisions with their reasons.\n- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.\n- When the person states a rule or makes a decision, record it with their reason (kb_upsert: who decided and why).\n- Before finishing, stage the change with its .kb files and run the commit check, `kibi check --staged`.\nA request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask.",
   "engineStatus": {
     "state": "unavailable",
     "errorCode": "swipl_not_found",

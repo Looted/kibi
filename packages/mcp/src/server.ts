@@ -19,6 +19,7 @@
 import { readFileSync } from "node:fs";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import { initializeDiagnosticMode } from "./diagnostics.js";
 import { loadDefaultEnvFile } from "./env.js";
 import { kibiReleaseForMcp, mcpServerTitle } from "./kibi-release.js";
@@ -43,13 +44,15 @@ const packageJson = JSON.parse(
 ) as { version: string };
 const VERSION = packageJson.version;
 
-const SERVER_INSTRUCTIONS = [
-  "Kibi is a branch-local requirements knowledge base for software traceability.",
-  "Start with kb_search (ask it a question; its answer layer names the governing requirements, facts, ADRs and tests), then kb_query for exact lookups before any mutation.",
-  "Model requirements as linked facts via kb_model (mode requirement) or kb_upsert (create endpoints before linking them); preflight writes with kb_upsert dryRun:true.",
-  "Mutate sequentially with kb_upsert and kb_delete; validate with kb_check during iteration and run an unfiltered kb_check before completion.",
-  "Confirm branch freshness with kb_status. For first-time repository setup, use the kibi-bootstrap prompt.",
-].join(" ");
+/**
+ * The initialize instructions: the shared session brief every host adapter
+ * opens with, then the MCP specifics. A host with no Kibi plugin (Gemini CLI,
+ * any MCP client) gets the same policy from here.
+ */
+export const SERVER_INSTRUCTIONS = sessionBriefWith([
+  "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_upsert writes; kb_check validates; kb_status reports freshness.",
+  "Workflow guidance: kb_skills with action load and id kibi-usage. For first-time repository setup, use the kibi-bootstrap prompt.",
+]);
 
 export async function startServer(): Promise<void> {
   keepStdoutForProtocol();

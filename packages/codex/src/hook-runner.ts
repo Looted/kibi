@@ -47,6 +47,7 @@ import {
   extractEditedPaths,
 } from "kibi-agent-core/path-policy";
 import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
   type Summarize,
   claimSnippetSlot,
@@ -68,6 +69,7 @@ import {
 } from "./hook-state.js";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
+  CODEX_SESSION_NOTE,
   DIRECT_KB_EDIT_WARNING,
   freshnessReminder,
   impactCheckReminder,
@@ -440,13 +442,14 @@ export async function runHook(
           { stateDir, sessionId: input.sessionId },
           "startup",
         );
-        const note = missingHooksNote(workspace.root);
-        if (note === null) return defaultResult();
         return {
           continue: true,
           hookSpecificOutput: {
             hookEventName: "SessionStart",
-            additionalContext: note,
+            additionalContext: sessionBriefWith([
+              CODEX_SESSION_NOTE,
+              missingHooksNote(workspace.root) ?? "",
+            ]),
           },
         };
       }

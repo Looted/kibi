@@ -3091,6 +3091,20 @@ function appendSessionEvents(dir, events) {
 `).join(""));
   } catch {}
 }
+// ../agent-core/dist/session-brief.js
+var SESSION_BRIEF_LINES = [
+  "Kibi records this repository's requirements and decisions with their reasons.",
+  "- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.",
+  "- When the person states a rule or makes a decision, record it with their reason (kb_upsert: who decided and why).",
+  "- Before finishing, stage the change with its .kb files and run the commit check, `kibi check --staged`.",
+  "A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask."
+];
+var SESSION_BRIEF = SESSION_BRIEF_LINES.join(`
+`);
+function sessionBriefWith(hostLines) {
+  return [SESSION_BRIEF, ...hostLines.filter((line) => line.length > 0)].join(`
+`);
+}
 
 // src/snippets.ts
 function searchTip(linkedFileCount) {
@@ -3098,16 +3112,9 @@ function searchTip(linkedFileCount) {
 }
 var DIRECT_KB_ACCESS_NOTE = "Kibi: .kb/ holds Kibi-managed knowledge. kb_query/kb_search read it and kb_upsert writes it while keeping the branch store, relationships, and validation consistent; direct file reads miss relationships and direct edits bypass validation.";
 function sessionStartContext(linkedFileCount) {
-  return [
-    `Kibi knowledge base is active in this workspace (${linkedFileCount} source files have requirement-linked symbols).`,
-    "Kibi hooks add short requirement/test snippets before reads and edits of linked files; kb_query returns the full detail.",
-    "A request that would make a recorded requirement or ADR false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask, change the code or the rule only when the person says so, and ask when unsure.",
-    "A file with no linked symbols gets a short note; no link is not no rule, so kb_search what it does (permissions, limits, data).",
-    "Recording new behavior (requirement, scenario, implements link) is part of the change and needs no permission.",
-    "Operations: kb_search (ask it a question; the answer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (mcp__plugin_kibi-claude_kibi__kb_*); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
-    "Workflow guidance: the kibi-claude:kibi-usage skill (also kb_skills with action load)."
-  ].join(`
-`);
+  return sessionBriefWith([
+    `Kibi hooks show requirement snippets before reads and edits of the ${linkedFileCount} linked source files. MCP tools: mcp__plugin_kibi-claude_kibi__kb_*; CLI peer: \`npx --no-install kibi <route> --input -\`. Guidance: the kibi-claude:kibi-usage skill.`
+  ]);
 }
 function stopReminder(paths) {
   const shown = paths.slice(0, 8);

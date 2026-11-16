@@ -328,6 +328,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-129e905bcd2c
+  - type: assumes
+    from: SCEN-NEG-session-brief-on-every-surface-OWN-TEXT
+    to: FACT-session-brief-host-own-text
+    created_at: 2026-11-16T16:34:51.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61a41dfed468
+  - type: assumes
+    from: SCEN-NEG-session-brief-on-every-surface-OWN-TEXT
+    to: FACT-session-brief-mcp-own-text
+    created_at: 2026-11-16T16:34:51.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6217756ff92
   - type: implements
     from: SYM-cli-quantity-layer-declared-distinct
     to: REQ-check-quantity-duplicate-distinct-from

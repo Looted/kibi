@@ -495,6 +495,7 @@ const BASE_DATA_SCHEMAS: Readonly<
     schemaStatus: recordValue,
     migrationPlan: recordValue,
     bootstrap: recordValue,
+    sessionBrief: stringValue,
   }),
   kb_find_gaps: objectData({
     rows: recordArray,
