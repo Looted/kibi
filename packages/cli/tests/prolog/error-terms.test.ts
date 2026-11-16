@@ -88,7 +88,9 @@ describe("parsePrologErrorTerm", () => {
       "error(permission_error(attach,kb,'/tmp/kb'),kb_attach/1)",
     );
     expect(record?.code).toBe("permission_denied");
-    expect(record?.message).toBe("Access denied or KB locked");
+    expect(record?.message).toBe(
+      "Prolog refused to attach kb; this is a permission_error, not a branch-store lock",
+    );
   });
 
   test("parses target entity existence errors with role", () => {

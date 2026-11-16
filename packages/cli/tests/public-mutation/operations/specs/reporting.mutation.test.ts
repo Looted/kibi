@@ -79,7 +79,11 @@ function context(extra: Partial<OperationContext> = {}): OperationContext {
 }
 
 /** The goal of an operation JSON query, without the module load. */
-const goalOf = (goal: string) => goal.replace(/^\(use_module\('[^']*'\), /, "");
+const goalOf = (goal: string) =>
+  goal.replace(
+    /^\(\\\+ \\\+ \(module_property\(kb, file\(KibiKbFile\)\) -> .*? ; use_module\('[^']*'\)\), /,
+    "",
+  );
 
 describe("withBranchName", () => {
   const attached = { branchAttachment: { kbBranch: "feature/x" } } as never;
@@ -139,7 +143,7 @@ describe("executeFindGaps", () => {
       "discovery:find_gaps_json('req', ['verified_by'], ['specified_by'], ['core'], 'docs/', 5, 2, JsonString))",
     ]);
     expect(prolog.goals[0]).toMatch(
-      /^\(use_module\('[^']*\/discovery\.pl'\), /,
+      /^\(\\\+ \\\+ \(module_property\(kb, file\(KibiKbFile\)\) -> .*? ; use_module\('[^']*\/discovery\.pl'\)\), /,
     );
   });
 
@@ -396,7 +400,7 @@ describe("readCoveragePages", () => {
       10,
     );
     expect(pagesOf(small)).toEqual(["page(10, 3)"]);
-    expect(small.goals[0]).toContain("/discovery.pl'), page(10, 3)");
+    expect(small.goals[0]).toContain("/discovery.pl')), page(10, 3)");
     const broken = engine(() => ({
       success: false,
       bindings: {},
@@ -667,7 +671,7 @@ describe("executeGraph", () => {
       await executeGraph({ seedIds: ["A"], depth }, context({ prolog }));
     expect(prolog.goals).toHaveLength(2);
     expect(prolog.goals[0]).toMatch(
-      /^\(use_module\('[^']*\/discovery\.pl'\), /,
+      /^\(\\\+ \\\+ \(module_property\(kb, file\(KibiKbFile\)\) -> .*? ; use_module\('[^']*\/discovery\.pl'\)\), /,
     );
   });
 

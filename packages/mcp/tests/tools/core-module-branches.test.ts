@@ -144,7 +144,7 @@ describe("runJsonModuleQuery branch coverage", () => {
       configurable: true,
     });
     prolog.query = mock(async (goal: string | string[]) => {
-      if (!Array.isArray(goal) && goal.startsWith("use_module(")) {
+      if (!Array.isArray(goal) && goal.startsWith("\\+ \\+ (module_property(kb")) {
         return fail("load boom");
       }
 
