@@ -41804,3 +41804,73 @@ symbols:
         target: TEST-engine-client-core-modules-from-engine
       - type: implements
         target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-test-upsert-reason-notes
+    title: kb_upsert reason note consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/upsert-reason-note.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:58:15.458Z
+    relationships:
+      - type: executable_for
+        target: TEST-upsert-reason-notes
+  - id: SYM-cli-reason-note-reason-notes
+    title: reasonNotes
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/reason-note.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:58:25.733Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-reason-notes
+      - type: implements
+        target: REQ-upsert-notes-missing-reason
+      - type: implements
+        target: REQ-upsert-quotes-older-reason
+  - id: SYM-cli-reason-note-reason-note-requirement-limit
+    title: REASON_NOTE_REQUIREMENT_LIMIT
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/reason-note.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:58:46.531Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-reason-notes
+      - type: implements
+        target: REQ-upsert-quotes-older-reason
+  - id: SYM-cli-reason-note-reason-note-input
+    title: ReasonNoteInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/reason-note.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:58:49.830Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-reason-notes
+      - type: implements
+        target: REQ-upsert-notes-missing-reason
+  - id: SYM-cli-search-answer-superseded-adr-statuses
+    title: SUPERSEDED_ADR_STATUSES
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:11:55.274Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: covered_by
+        target: TEST-upsert-reason-notes
+      - type: implements
+        target: REQ-search-answer-reason-source-order
+      - type: implements
+        target: REQ-upsert-notes-missing-reason
