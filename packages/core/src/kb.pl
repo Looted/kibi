@@ -98,7 +98,7 @@
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('units.pl', [canonical_quantity/6]).
-:- use_module('symbol_classification.pl', [inferred_role/2]).
+:- use_module('symbol_classification.pl', [non_behavioral_role/1, behavioral_kind/1]).
 :- use_module('intervals.pl', [numeric_constraints_satisfiable/2]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
@@ -3486,13 +3486,9 @@ linkless_non_behavioral_symbol(Symbol) :-
     kb_entity(Symbol, symbol, Props),
     memberchk(symbol_role=RawRole, Props),
     normalize_term_atom(RawRole, Role),
-    non_behavioral_symbol_role(Role),
+    non_behavioral_role(Role),
     \+ kb_relationship(implements, Symbol, _).
 
-non_behavioral_symbol_role(structural).
-non_behavioral_symbol_role('type-shape').
-non_behavioral_symbol_role(config).
-non_behavioral_symbol_role(module).
 
 %% production_symbol_covered_for_requirement(+Symbol, +Req)
 % Production coverage requires a covered_by edge and a canonical requirement/test path.
@@ -3581,7 +3577,7 @@ changed_symbol_missing_req(Symbol, MinLinks, Count) :-
 changed_symbol_link_exempt(Symbol) :-
     linkless_non_behavioral_symbol(Symbol),
     \+ (   changed_symbol_kind(Symbol, Kind),
-            inferred_role(Kind, behavioral)
+            behavioral_kind(Kind)
         ),
     \+ changed_symbol_callable(Symbol).
 

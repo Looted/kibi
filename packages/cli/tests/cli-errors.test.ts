@@ -4,6 +4,7 @@ import {
   KbRejection,
   OperationError,
   codedErrorOf,
+  isKbRejection,
   prefixedFailure,
 } from "../src/cli-errors.js";
 
@@ -19,7 +20,7 @@ describe("InputError and OperationError", () => {
     expect(error.retryable).toBe(false);
   });
 
-  test("OperationError is an exit-1 error, retryable unless told otherwise", () => {
+  test("OperationError is an exit-1 error, not retryable unless told so", () => {
     const error = new OperationError("ENGINE_DOWN", "engine stopped");
     expect(error).toBeInstanceOf(Error);
     expect(error.name).toBe("OperationError");
@@ -27,8 +28,8 @@ describe("InputError and OperationError", () => {
     expect(error.code).toBe("ENGINE_DOWN");
     expect(error.detail).toBe("engine stopped");
     expect(error.exitCode).toBe(1);
-    expect(error.retryable).toBe(true);
-    expect(new OperationError("X", "y", false).retryable).toBe(false);
+    expect(error.retryable).toBe(false);
+    expect(new OperationError("X", "y", true).retryable).toBe(true);
   });
 });
 
@@ -99,8 +100,11 @@ describe("codedErrorOf", () => {
     ).toStrictEqual({
       code: "X",
       message: "foreign message",
-      retryable: true,
+      retryable: false,
     });
+    expect(
+      codedErrorOf(foreign("OperationError", { code: "X", retryable: true })),
+    ).toStrictEqual({ code: "X", message: "foreign message", retryable: true });
     expect(
       codedErrorOf(
         foreign("InputError", { code: "X", detail: 5, retryable: "yes" }),
@@ -145,5 +149,43 @@ describe("KbRejection and prefixedFailure", () => {
       expect(plain.message).toBe(message);
       expect(plain.cause).toBe(error);
     }
+  });
+});
+
+describe("isKbRejection", () => {
+  test("finds a rejection itself or as a wrapper's cause", () => {
+    const rejection = new KbRejection("VALIDATION_FAILED", "refused");
+    expect(isKbRejection(rejection)).toBe(true);
+    expect(isKbRejection(new Error("wrapped", { cause: rejection }))).toBe(
+      true,
+    );
+    expect(
+      isKbRejection(
+        new Error("outer", {
+          cause: new Error("inner", { cause: rejection }),
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isKbRejection(prefixedFailure("Upsert execution failed: ", rejection)),
+    ).toBe(true);
+  });
+
+  test("anything else is not a rejection", () => {
+    expect(isKbRejection(new Error("plain"))).toBe(false);
+    expect(isKbRejection(new Error("x", { cause: "not an error" }))).toBe(
+      false,
+    );
+    expect(isKbRejection(new OperationError("X", "y"))).toBe(false);
+    expect(isKbRejection("VALIDATION_FAILED")).toBe(false);
+    expect(isKbRejection(undefined)).toBe(false);
+  });
+
+  test("stops after five wrappers", () => {
+    let wrapped: Error = new KbRejection("VALIDATION_FAILED", "deep");
+    for (let depth = 0; depth < 4; depth += 1)
+      wrapped = new Error(`w${depth}`, { cause: wrapped });
+    expect(isKbRejection(wrapped)).toBe(true);
+    expect(isKbRejection(new Error("w4", { cause: wrapped }))).toBe(false);
   });
 });

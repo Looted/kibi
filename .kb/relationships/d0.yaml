@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-380b395fe6cf
+  - type: validates
+    from: TEST-proof-advertised-description-limit
+    to: SCEN-mcp-short-field-descriptions
+    created_at: 2026-11-16T11:02:33.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6b6ee11d10a
