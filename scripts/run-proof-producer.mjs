@@ -84,31 +84,48 @@ function readStepsJson(file) {
 
 /**
  * Load the proof steps: one `<test_id>.json` file per test in proof/steps,
- * or proof/steps.json when that directory does not exist. A steps file whose
- * test_id differs from its file name is refused.
+ * or proof/steps.json when that directory does not exist. Both existing is
+ * ambiguous and refused. Only regular `*.json` files not starting with a dot
+ * are step files. A steps file whose test_id differs from its file name is
+ * refused.
  */
 export function loadProofSteps(workspaceRoot) {
   const directory = path.join(workspaceRoot, "proof", "steps");
+  const file = path.join(workspaceRoot, "proof", "steps.json");
   if (!existsSync(directory) || !statSync(directory).isDirectory())
-    return validateProofSteps(
-      readStepsJson(path.join(workspaceRoot, "proof", "steps.json")),
+    return validateProofSteps(readStepsJson(file));
+  if (existsSync(file)) {
+    throw new Error(
+      "run-proof-producer: both proof/steps/ and proof/steps.json exist; move each entry of proof/steps.json to proof/steps/<test_id>.json and delete it, or remove the proof/steps directory",
     );
-  const entries = readdirSync(directory)
-    .filter((name) => name.endsWith(".json"))
-    .sort()
-    .map((name) => {
-      const file = path.join(directory, name);
-      const value = readStepsJson(file);
-      const expected = name.slice(0, -".json".length);
-      // null, an array or a scalar declares no test_id.
-      const declared = value?.test_id;
-      if (declared !== expected) {
-        throw new Error(
-          `run-proof-producer: ${file} declares test_id ${JSON.stringify(declared)}; a proof steps file must hold one {test_id, steps} object whose test_id is its file name`,
-        );
-      }
-      return value;
-    });
+  }
+  const names = readdirSync(directory, { withFileTypes: true })
+    .filter(
+      (entry) =>
+        entry.isFile() &&
+        entry.name.endsWith(".json") &&
+        !entry.name.startsWith("."),
+    )
+    .map((entry) => entry.name)
+    .sort();
+  if (names.length === 0) {
+    throw new Error(
+      `run-proof-producer: no step files in ${directory}; add one <test_id>.json file per proof-bearing test`,
+    );
+  }
+  const entries = names.map((name) => {
+    const stepFile = path.join(directory, name);
+    const value = readStepsJson(stepFile);
+    const expected = name.slice(0, -".json".length);
+    // null, an array or a scalar declares no test_id.
+    const declared = value?.test_id;
+    if (declared !== expected) {
+      throw new Error(
+        `run-proof-producer: ${stepFile} declares test_id ${JSON.stringify(declared)}; a proof steps file must hold one {test_id, steps} object whose test_id is its file name`,
+      );
+    }
+    return value;
+  });
   return validateProofSteps(entries);
 }
 

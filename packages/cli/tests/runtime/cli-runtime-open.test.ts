@@ -672,15 +672,15 @@ describe("operations that require Prolog", () => {
     expect(engineCalls).toEqual([]);
   });
 
-  test("any other operation on a legacy store opens its engine as before", async () => {
+  test("any other engine-backed operation on a legacy store is refused and creates no hashed store", async () => {
     const root = fresh();
     onBranch();
     mkdirSync(legacyBranchStorePath(root, "main"), { recursive: true });
     const runtime = createCliRuntime({ workspaceRoot: root });
-    const context = await runtime.open(readSpec());
-    expect(context.branchAttachment?.migrationRequired).toBe(true);
-    expect(context.prolog).toBeDefined();
-    await runtime.close(context, { status: "success", result: null });
+    await expect(runtime.open(readSpec())).rejects.toThrow(
+      /^Legacy branch store .* for 'main' must be migrated before '.*' runs\. Preview the migration with 'kibi migrate', then apply it with 'kibi migrate --apply-safe <planHash>'\.$/,
+    );
+    expect(existsSync(branchStorePath(root, "main"))).toBe(false);
   });
 
   test("an injected port serves a plan apply on a legacy store as before", async () => {

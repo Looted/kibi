@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d80fd49c6e71
+  - type: assumes
+    from: SCEN-kibi-legacy-attachment-engine-refusal
+    to: FACT-kibi-legacy-store-not-recovered
+    created_at: 2026-11-16T20:45:39.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25e4f449011e
+  - type: assumes
+    from: SCEN-kibi-legacy-attachment-engine-refusal
+    to: FACT-kibi-legacy-store-no-hashed-store-created
+    created_at: 2026-11-16T20:45:39.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3b70f625f76

@@ -12,6 +12,6 @@ origin:
 id: SCEN-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
 type: scenario
 ---
-Given a pending-source receipt whose file was committed only on a branch that has since been deleted, when kibi sync runs, then the receipt is not retired and sync fails with "Pending source is missing" for that file.
+Given a pending-source receipt whose file was committed only on a branch that has since been deleted, when kibi sync runs, then the receipt is not retired and sync fails with "Pending source is missing" for that file. The same holds when another local branch has committed a different file at that path: only a committed blob whose bytes hash to the receipt's recorded hash counts as the receipt's file.
 
 documentation/tests/e2e/packed/pending-receipt-committed-elsewhere.test.ts exercises it through the installed CLI.

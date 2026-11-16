@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Packed end-to-end test documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts: in an installed project it moves the compiled store to its legacy literal path, previews the plan with kibi migrate --format json, checks that no hashed store exists, applies the plan's hash with kibi migrate --apply-safe, and checks that the legacy migration applied, only the hashed store remains and kibi query still returns the requirement.
+Packed end-to-end test documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts: in an installed project it moves the compiled store to its legacy literal path, then checks that kibi query, kibi check and kibi engine status are refused with directions to kibi migrate --apply-safe and create no hashed store. It previews the plan with kibi migrate --format json, checks that no hashed store exists and that the plan holds no branch store recovery, applies the plan's hash with kibi migrate --apply-safe, and checks that the legacy migration applied, no recovery ran, only the hashed store remains and kibi query still returns the requirement.

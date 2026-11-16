@@ -109,19 +109,34 @@ describe("pending-source receipts name their branch", () => {
     git(cwd, "commit -q --no-verify -m kept");
     git(cwd, "checkout -q main");
     const committed = committedOnLocalBranch(cwd);
-    expect(committed("docs/kept.md")).toBe(true);
-    expect(committed("docs")).toBe(false);
-    expect(committed("docs/absent.md")).toBe(false);
+    expect(committed("docs/kept.md", sha("kept\n"))).toBe(true);
+    expect(committed("docs", sha("kept\n"))).toBe(false);
+    expect(committed("docs/absent.md", sha("kept\n"))).toBe(false);
+  });
+
+  test("a path counts as committed only with the bytes the receipt recorded", () => {
+    const cwd = track(createGitWorkspace("main"));
+    mkdirSync(path.join(cwd, "docs"), { recursive: true });
+    writeFileSync(path.join(cwd, "docs", "kept.md"), "other\n");
+    git(cwd, "checkout -q -b feature");
+    git(cwd, "add docs/kept.md");
+    git(cwd, "commit -q --no-verify -m other");
+    git(cwd, "checkout -q main");
+    const committed = committedOnLocalBranch(cwd);
+    expect(committed("docs/kept.md", sha("kept\n"))).toBe(false);
+    expect(committed("docs/kept.md", sha("other\n"))).toBe(true);
   });
 
   test("outside Git, or when Git cannot answer, nothing is committed anywhere", () => {
-    expect(committedOnLocalBranch(track(createTempDir()))("a.md")).toBe(false);
+    expect(
+      committedOnLocalBranch(track(createTempDir()))("a.md", sha("a")),
+    ).toBe(false);
     const cwd = track(createGitWorkspace("main"));
     const committed = committedOnLocalBranch(cwd);
-    expect(committed("a.md")).toBe(false);
+    expect(committed("a.md", sha("a"))).toBe(false);
     rmSync(path.join(cwd, ".git"), { recursive: true, force: true });
     mkdirSync(path.join(cwd, ".git"));
-    expect(committed("a.md")).toBe(false);
+    expect(committed("a.md", sha("a"))).toBe(false);
   });
 
   test("a workspace without a branch checks every receipt", () => {
@@ -247,6 +262,44 @@ describe("sync leaves another branch's receipts alone", () => {
     await expect(
       discoverSourceFiles(cwd, { trackedOnly: true }),
     ).rejects.toThrow(/Pending source is missing/);
+  });
+
+  test("a different file at the same path on another branch does not stand in for a lost one", async () => {
+    const cwd = track(createGitWorkspace("main"));
+    const relative = ".kb/requirements/REQ-NEW-RULE.md";
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(path.join(cwd, relative), "authored\n");
+    writePendingSourceReceipt(cwd, relative, sha("authored\n"));
+    rmSync(path.join(cwd, relative));
+    git(cwd, "checkout -q -b other");
+    writeFileSync(path.join(cwd, relative), "someone else's\n");
+    git(cwd, `add ${relative}`);
+    git(cwd, "commit -q --no-verify -m other");
+    git(cwd, "checkout -q main");
+    expect(existsSync(path.join(cwd, relative))).toBe(false);
+    await expect(
+      discoverSourceFiles(cwd, { trackedOnly: true }),
+    ).rejects.toThrow(/Pending source is missing/);
+    expect(receipts(cwd)).toHaveLength(1);
+  });
+
+  test("a different shard at the same path on another branch does not stand in for a lost one", () => {
+    const cwd = track(createGitWorkspace("main"));
+    const relationshipsDir = path.join(cwd, ".kb", "relationships");
+    mkdirSync(relationshipsDir, { recursive: true });
+    writePendingSourceReceipt(
+      cwd,
+      ".kb/relationships/lost.yaml",
+      sha("mine\n"),
+    );
+    git(cwd, "checkout -q -b other");
+    writeFileSync(path.join(relationshipsDir, "lost.yaml"), "theirs\n");
+    git(cwd, "add .kb/relationships/lost.yaml");
+    git(cwd, "commit -q --no-verify -m theirs");
+    git(cwd, "checkout -q main");
+    expect(() => trackedRelationshipFiles(cwd, relationshipsDir)).toThrow(
+      /Pending source is missing/,
+    );
   });
 
   test("a shard committed on a feature branch without a sync there leaves main's relationship read alone", () => {

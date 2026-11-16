@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-466cc175812d
+  - type: implements
+    from: SYM-branch-resolver-legacy-attachment-refusal
+    to: REQ-kibi-legacy-attachment-engine-refusal
+    created_at: 2026-11-16T20:45:15.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfaead6d213b
+  - type: covered_by
+    from: SYM-branch-resolver-legacy-attachment-refusal
+    to: TEST-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-16T20:46:25.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70bb95bc78c8
