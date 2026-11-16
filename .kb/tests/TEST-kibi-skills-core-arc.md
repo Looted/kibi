@@ -20,15 +20,15 @@ id: TEST-kibi-skills-core-arc
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-d41a6343c099f691db237dbd
+    receipt_id: PR-ad3d0e141a1b6743093c4276
     test_id: TEST-kibi-skills-core-arc
     scope: end_to_end
     outcome: passed
-    code_snapshot: 2ce3e02394f4ef796c2481322cfbf7bff88ca58af2536e709e5097526a317e0b
+    code_snapshot: af8c0ae1629ad1ac71ae71c432d867d1d99c777c2d6113bdd30c631827085a7d
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T16:05:28.462Z'
-    finished_at: '2026-11-16T16:05:28.767Z'
-    artifact_digest: b37e36ee3eace09131b10bec38f1d1042944d893c16508b519d0af93c909db6c
+    started_at: '2026-11-16T16:23:45.569Z'
+    finished_at: '2026-11-16T16:23:46.425Z'
+    artifact_digest: 16b34ad223e91617669b379fce41fa57fb27663c659e75759b166b8d99686fb6
     contract_hash: 4a2b2ccb5d837ac53ec2fd646a5c90f453d5683313d4c9cb9941e702aa6cdb55
     binding_hash: 01132197d4ec56fd912ecfdadcc5879419e55679991aaf68a520096a75a3f0f1
     fingerprint: f020535163a1655c39eb2d91679b8b7c601a37a1cc558bcb5dcc214022e23c8b

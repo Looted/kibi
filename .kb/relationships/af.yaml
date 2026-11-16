@@ -323,15 +323,15 @@ relationships:
     id: rel-6f04763ea8e2
   - type: assumes
     from: SCEN-kibi-usage-core-arc
-    to: FACT-kibi-usage-core-arc-body
-    created_at: 2026-11-16T15:45:43.003Z
+    to: FACT-kibi-usage-body-core-arc-only
+    created_at: 2026-11-16T16:23:28.090Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-dc47130d86f2
+    id: rel-9023e309d001
   - type: assumes
     from: SCEN-kibi-usage-core-arc
-    to: FACT-kibi-usage-body-3400-chars
-    created_at: 2026-11-16T15:45:43.063Z
+    to: FACT-kibi-usage-body-under-budget
+    created_at: 2026-11-16T16:23:28.124Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-707fb710f661
+    id: rel-ce595018eef1
