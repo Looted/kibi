@@ -21,15 +21,15 @@ id: TEST-prolog-permission-error-names-refusal
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-2863d64ac979c96c13df012a
+    receipt_id: PR-0f76937790b48ec3696c0ef6
     test_id: TEST-prolog-permission-error-names-refusal
     scope: end_to_end
     outcome: passed
-    code_snapshot: e64c89ba1bfe89b606f6ae1e2a2eae4eb18fb3748c7d072a576780d49b821a2b
+    code_snapshot: bada3f6fe4690430122a9bffb02a12075e832c5154052c527acd6ea207e3250e
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T11:05:03.063Z'
-    finished_at: '2026-11-16T11:05:05.362Z'
-    artifact_digest: 0c8e716fd76ed6aa2876ecce942d781b3a349c7cd9694c10e2b65249747eedf8
+    started_at: '2026-11-16T12:11:53.829Z'
+    finished_at: '2026-11-16T12:11:56.119Z'
+    artifact_digest: 1ad1f124550f61e27df6a86e89b11fe7a9abc7fdd1b52db4e5a8d186421cfcfb
     contract_hash: 7d37ac17aac0364120d09247cbef71e9df9afb537f1f5e8aa36badca4ce5cb4a
     binding_hash: ad70b3dd369376d554334d1ae7daaf8ef421981756c743b3b3c947caa15ea4f3
     fingerprint: 70789e4b72b9ae62bd8f83fcc7d970ff6fca7435ea9e1fd3a22082a6c78499b6
