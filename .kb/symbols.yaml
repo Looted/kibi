@@ -6460,8 +6460,6 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-check-changed-commit-verdict
-      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
@@ -6469,8 +6467,6 @@ symbols:
         target: TEST-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-search-answer-hygiene
-      - type: implements
-        target: REQ-check-changed-commit-verdict
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-operation-find-gaps-spec
@@ -42001,11 +41997,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:29:02.401Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-changed-commit-verdict
-      - type: implements
-        target: REQ-check-changed-commit-verdict
+    relationships: []
   - id: SYM-changed-check-changed-gate-runner
     title: ChangedGateRunner
     sourceFile: packages/cli/src/public/operations/changed-check.ts
@@ -42014,11 +42006,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:29:07.256Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-changed-commit-verdict
-      - type: implements
-        target: REQ-check-changed-commit-verdict
+    relationships: []
   - id: SYM-changed-check-changed-check-content
     title: ChangedCheckContent
     sourceFile: packages/cli/src/public/operations/changed-check.ts
@@ -42027,11 +42015,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:29:10.894Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-changed-commit-verdict
-      - type: implements
-        target: REQ-check-changed-commit-verdict
+    relationships: []
   - id: SYM-changed-check-run-changed-gate
     title: runChangedGate
     sourceFile: packages/cli/src/public/operations/changed-check.ts
@@ -42091,11 +42075,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:29:28.934Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-changed-commit-verdict
-      - type: implements
-        target: REQ-check-changed-commit-verdict
+    relationships: []
   - id: SYM-changed-index-prepare-changed-index
     title: prepareChangedIndex
     sourceFile: packages/cli/src/traceability/changed-index.ts
@@ -42130,11 +42110,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:29:38.444Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-changed-commit-verdict
-      - type: implements
-        target: REQ-check-changed-commit-verdict
+    relationships: []
   - id: SYM-check-executor-check-execution-options
     title: CheckExecutionOptions
     sourceFile: packages/cli/src/public/operations/check-executor.ts
@@ -42143,11 +42119,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:29:43.613Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-changed-commit-verdict
-      - type: implements
-        target: REQ-check-changed-commit-verdict
+    relationships: []
   - id: SYM-finding-blocks-finding-blocks
     title: FindingBlocks
     sourceFile: packages/cli/src/public/operations/finding-blocks.ts
@@ -42156,11 +42128,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:30:01.171Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-finding-blocks
-      - type: implements
-        target: REQ-check-finding-blocks
+    relationships: []
   - id: SYM-finding-blocks-is-blocking-finding
     title: isBlockingFinding
     sourceFile: packages/cli/src/public/operations/finding-blocks.ts
@@ -42261,11 +42229,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:32:01.463Z
-    relationships:
-      - type: covered_by
-        target: TEST-staged-gate-scratch-store
-      - type: implements
-        target: REQ-staged-gate-scratch-store
+    relationships: []
   - id: SYM-evidence-floor-evidence-floor-options
     title: EvidenceFloorOptions
     sourceFile: packages/cli/src/public/operations/evidence-floor.ts
@@ -42274,11 +42238,7 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:32:07.317Z
-    relationships:
-      - type: covered_by
-        target: TEST-staged-gate-scratch-store
-      - type: implements
-        target: REQ-staged-gate-scratch-store
+    relationships: []
   - id: SYM-evidence-floor-read-requirement-proof-payload
     title: readRequirementProofPayload
     sourceFile: packages/cli/src/public/operations/evidence-floor.ts

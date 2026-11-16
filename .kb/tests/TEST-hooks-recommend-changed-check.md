@@ -1,6 +1,6 @@
 ---
 title: Host hooks recommend the changed check tests
-status: active
+status: passing
 priority: must
 verification_scope: end_to_end
 tags:

@@ -559,17 +559,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af860bd05e88
-  - type: implements
-    from: SYM-prolog-prolog-options
-    to: REQ-staged-gate-scratch-store
-    created_at: 2026-11-16T19:32:03.182Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eed57bed7d68
-  - type: covered_by
-    from: SYM-prolog-prolog-options
-    to: TEST-staged-gate-scratch-store
-    created_at: 2026-11-16T20:34:23.516Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-28f6860eba32

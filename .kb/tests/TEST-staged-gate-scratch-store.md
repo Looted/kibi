@@ -1,6 +1,6 @@
 ---
 title: Staged gate scratch store tests
-status: active
+status: passing
 priority: must
 verification_scope: end_to_end
 tags:

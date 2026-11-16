@@ -419,17 +419,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9540b52b5147
-  - type: implements
-    from: SYM-check-executor-check-input
-    to: REQ-check-changed-commit-verdict
-    created_at: 2026-11-16T19:29:39.627Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3a8775e82485
-  - type: covered_by
-    from: SYM-check-executor-check-input
-    to: TEST-check-changed-commit-verdict
-    created_at: 2026-11-16T20:34:09.352Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6fa8026c7373
