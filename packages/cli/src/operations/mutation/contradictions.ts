@@ -132,7 +132,8 @@ export function parseUpsertChangeKinds(
 /**
  * The error a failed store write throws: the formatted message, coded as a
  * rejection when the store refused the entity (a contradiction, an invalid
- * relationship) rather than failing itself.
+ * relationship, a relationship endpoint that does not exist) rather than
+ * failing itself.
  */
 export function upsertFailure(
   entityId: string,
@@ -142,6 +143,9 @@ export function upsertFailure(
   const message = formatUpsertError(entityId, raw, record);
   if (message.startsWith("Contradiction detected for ")) {
     return new KbRejection("SEMANTIC_CONTRADICTION", message);
+  }
+  if (record?.code === "entity_not_found" && record.role !== undefined) {
+    return new KbRejection("RELATIONSHIP_ENDPOINT_MISSING", message);
   }
   const invalidRelationship = record
     ? record.code === "invalid_relationship"
@@ -182,6 +186,13 @@ function formatStructuredUpsertError(
       return `Contradiction detected for requirement ${entityId}:\n${conflicts.join("\n")}\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one.${stageSuffix}`;
     }
     return `Contradiction detected for entity ${entityId}: This requirement conflicts with existing requirements. Add a supersedes relationship to the conflicting requirement, or deprecate the old requirement before creating the new one.${stageSuffix}`;
+  }
+  if (
+    record.code === "entity_not_found" &&
+    record.role !== undefined &&
+    record.entityId !== undefined
+  ) {
+    return `Failed to upsert entity ${entityId}: ${record.message}. Create ${record.entityId} first, or write both entities in the same kb_apply_plan, then retry${stageSuffix}`;
   }
   if (record.code === "invalid_relationship" && record.relationship) {
     return `Failed to upsert entity ${entityId}: ${formatInvalidRelationshipTuple(record.relationship)}${stageSuffix}`;

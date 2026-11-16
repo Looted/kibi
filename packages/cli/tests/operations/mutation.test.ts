@@ -561,7 +561,9 @@ describe("shared mutation operation specs", () => {
     );
     expect(second.structuredContent?.errors ?? []).toEqual([]);
     expect(second.structuredContent).toMatchObject({ valid: true });
-    expect(second.structuredContent?.inventoryApplied).toBeUndefined();
+    expect(
+      Object.hasOwn(second.structuredContent ?? {}, "inventoryApplied"),
+    ).toBe(false);
     expect(save).not.toHaveBeenCalled();
   });
 
@@ -855,6 +857,41 @@ describe("shared mutation operation specs", () => {
       expect.stringMatching(/^kb_commit_upsert\(/),
     );
     expect(save).not.toHaveBeenCalled();
+  });
+
+  test("upsert reports the inventory it filled in, and only then", async () => {
+    const { context } = createContext((goal): PrologQueryResult => {
+      if (goal.startsWith("kb_commit_upsert(")) {
+        return { success: true, bindings: { ChangeKind: "created" } };
+      }
+      return { success: false, bindings: {} };
+    });
+    const workspaceRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-filled-"));
+    try {
+      const filled = await upsertSpec.execute(
+        {
+          type: "req",
+          id: "REQ-FILLED-LEDGER",
+          properties: {
+            title: "OAuth support",
+            status: "open",
+            semantic_text:
+              "System must support OAuth2 authentication. Sessions must expire after 30 minutes.",
+          },
+        },
+        { ...context, workspaceRoot },
+      );
+      expect(filled.structuredContent?.inventoryApplied).toHaveLength(2);
+      const plain = await upsertSpec.execute(payload, {
+        ...context,
+        workspaceRoot,
+      });
+      expect(
+        Object.hasOwn(plain.structuredContent ?? {}, "inventoryApplied"),
+      ).toBe(false);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
   });
 
   test("upsert does not save when its atomic write fails", async () => {

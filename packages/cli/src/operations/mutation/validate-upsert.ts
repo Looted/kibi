@@ -255,7 +255,7 @@ type DryRunValidation = Readonly<{
   targetPath: string | undefined;
   storeWarnings: readonly string[];
   /** The inventory contract the server filled in, as the write reports it. */
-  inventoryApplied?: ValidateUpsertPayload["inventoryApplied"];
+  inventoryApplied?: ValidateUpsertPayload["inventoryApplied"] | undefined;
   /** The planned facts staged ahead of the payload, and the batch's what-if. */
   staged:
     | Readonly<{
@@ -361,9 +361,8 @@ async function validateWithStore(
     semantic: result.semantic,
     targetPath,
     storeWarnings: [...coverageWarnings, ...idStyleWarnings],
-    ...(result.inventoryApplied !== undefined
-      ? { inventoryApplied: result.inventoryApplied }
-      : {}),
+    // The payload leaves an undefined list out.
+    inventoryApplied: result.inventoryApplied,
     staged,
   };
 }

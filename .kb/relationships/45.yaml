@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac8e28c39bf5
+  - type: executable_for
+    from: SYM-test-cli-prove-empty-selection
+    to: TEST-cli-prove-empty-selection
+    created_at: 2026-11-16T13:35:48.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f548f5cf70d

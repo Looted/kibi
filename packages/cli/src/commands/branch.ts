@@ -129,8 +129,9 @@ export function legacyBranchMigrationApprovalHash(
   from: string,
   to: string,
 ): string | undefined {
-  if (!isValidBranchName(from) || !isValidBranchName(to)) return undefined;
-  if (!isSupportedLegacyBranchMigration(from, to)) return undefined;
+  // A supported migration keeps the branch name, so `from` names both ends.
+  if (!isSupportedLegacyBranchMigration(from, to) || !isValidBranchName(from))
+    return undefined;
   const sourcePath = legacyBranchStorePath(workspaceRoot, from);
   const targetPath = branchStorePath(workspaceRoot, to);
   if (!fs.existsSync(sourcePath) || fs.existsSync(targetPath)) return undefined;

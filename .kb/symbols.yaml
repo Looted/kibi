@@ -15284,7 +15284,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-prove-empty-selection
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-cli-prove-empty-selection
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-execute-ingest-proof
@@ -37520,7 +37524,11 @@ symbols:
       recorded_at: 2026-11-03T13:39:46.601Z
     relationships:
       - type: covered_by
+        target: TEST-kb-upsert-missing-endpoint-rejection
+      - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kb-upsert-missing-endpoint-rejection
       - type: implements
         target: REQ-kibi-telemetry-expected-outcomes
   - id: SYM-agent-core-telemetry-signals-countbucket
@@ -42100,3 +42108,56 @@ symbols:
         target: REQ-search-answer-reason-source-order
       - type: implements
         target: REQ-upsert-notes-missing-reason
+  - id: SYM-test-kb-upsert-missing-endpoint-rejection
+    title: Upsert store-refusal classification suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:43.768Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-missing-endpoint-rejection
+  - id: SYM-test-cli-prove-empty-selection
+    title: kibi prove command suite
+    status: active
+    sourceFile: packages/cli/tests/proof/prove-command.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:47.344Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-prove-empty-selection
+  - id: SYM-stryker-MUTATION_SHARDS
+    title: MUTATION_SHARDS
+    status: active
+    sourceFile: stryker.conf.mjs
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-check-policy-rules-PolicyRuleHead
+    title: PolicyRuleHead
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-source-authoring-writePendingSourceReceipt
+    title: writePendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-branch-scope
+      - type: implements
+        target: REQ-kibi-pending-receipt-branch-scope

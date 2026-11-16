@@ -433,3 +433,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74937eac1be9
+  - type: executable_for
+    from: SYM-test-kb-upsert-missing-endpoint-rejection
+    to: TEST-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:35:44.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c784fb6c1432
