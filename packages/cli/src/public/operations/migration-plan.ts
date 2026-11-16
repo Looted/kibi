@@ -895,6 +895,7 @@ export function buildActionsFromStatus(input: {
       // anyway, so these checks only narrow the types.
       // Stryker disable next-line ConditionalExpression
       typeof branch === "string" &&
+      // rationale: same type-only narrowing as the check above.
       // Stryker disable next-line ConditionalExpression
       typeof kbBranch === "string"
         ? legacyBranchMigrationApprovalHash(
