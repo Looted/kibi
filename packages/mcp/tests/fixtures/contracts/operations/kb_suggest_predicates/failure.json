@@ -33,7 +33,8 @@
             "type": "string"
           },
           "type": "array",
-          "uniqueItems": true
+          "uniqueItems": true,
+          "x-kibi-advertised-description": "Existing requirement logic_claims values; the guidance merges the new claim key into them."
         },
         "includeExistingSchemas": {
           "default": true,
@@ -63,7 +64,8 @@
         },
         "requirementId": {
           "description": "Optional existing requirement ID. When provided, the response includes a relationshipPlan describing the req -> fact requires_predicate link to attach after preserving existing requirement metadata.",
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Optional existing requirement ID; the response then plans its requires_predicate link."
         },
         "schemaId": {
           "description": "Optional exact reviewed predicate schema ID. When supplied, Kibi selects that schema instead of lexical rank order and fails closed if it is unavailable.",
@@ -81,7 +83,8 @@
         },
         "text": {
           "description": "Required prose requirement or claim to classify into ontology predicates. Example: 'When users navigate away, draft edits must auto-save.'.",
-          "type": "string"
+          "type": "string",
+          "x-kibi-advertised-description": "Required prose requirement or claim to classify into ontology predicates."
         },
         "workspaceRoot": {
           "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
