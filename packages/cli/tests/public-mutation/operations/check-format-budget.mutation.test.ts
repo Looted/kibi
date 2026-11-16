@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { QualityDiagnostic } from "../../../src/public/impact/types.js";
 import {
   type CheckStructuredContent,
   fitScopedCheckToBudget,
@@ -97,13 +98,14 @@ describe("fitScopedCheckToBudget", () => {
   });
 
   test("telemetry acceptance diagnostics are kept after the count", () => {
-    const finding = (id: string, category: string) => ({
-      id,
-      severity: "warning",
-      blocking: false,
-      category,
-      message: "m".repeat(400),
-    });
+    const finding = (id: string, category: string) =>
+      ({
+        id,
+        severity: "warning",
+        blocking: false,
+        category,
+        message: "m".repeat(400),
+      }) as unknown as QualityDiagnostic;
     const accepted = finding("telemetry_acceptance_passed", "telemetry");
     const input = content(1, {
       qualityDiagnostics: [
@@ -144,16 +146,18 @@ describe("fitScopedCheckToBudget", () => {
       migrationPlan: plan,
     } as unknown as Partial<CheckStructuredContent>);
     const budget = size(input) - 1;
-    const summarized = fitScopedCheckToBudget(input, budget) as Record<
-      string,
-      unknown
-    >;
+    const summarized = fitScopedCheckToBudget(
+      input,
+      budget,
+    ) as unknown as Record<string, unknown>;
     expect(summarized.migrationPlan).toBeUndefined();
     expect(summarized.migrationPlanSummary).toBeDefined();
-    const kept = fitScopedCheckToBudget(input, budget, true, true) as Record<
-      string,
-      unknown
-    >;
+    const kept = fitScopedCheckToBudget(
+      input,
+      budget,
+      true,
+      true,
+    ) as unknown as Record<string, unknown>;
     expect(kept.migrationPlan).toBe(plan);
     expect(kept.migrationPlanSummary).toBeUndefined();
   });
