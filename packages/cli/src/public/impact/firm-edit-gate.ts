@@ -71,8 +71,7 @@ export function reviewState(input: {
     file,
     input.symbol.name,
   ) as string;
-  const text = input.readReceipt(receiptPath);
-  const receipt = text === undefined ? undefined : parseFirmEditReceipt(text);
+  const receipt = parseFirmEditReceipt(input.readReceipt(receiptPath));
   if (
     receipt === undefined ||
     receipt.requirementId !== input.requirementId ||
@@ -90,7 +89,7 @@ export function reviewState(input: {
         );
   const mismatch = firmEditReceiptMismatch(receipt, {
     statement: input.statement,
-    ...(codeHash === undefined ? {} : { codeHash }),
+    codeHash,
   });
   if (mismatch !== undefined) return { state: mismatch, receipt };
   return receipt.verdict === "keeps"
@@ -185,9 +184,8 @@ export function createFirmEditGateDiagnostics(
       blocking: true,
       category: "requirement",
       entityId: id,
-      files: [
-        ...new Set(open.map(({ symbol }) => symbol.location.file)),
-      ].sort(),
+      // open is sorted by file, so the files come out sorted.
+      files: [...new Set(open.map(({ symbol }) => symbol.location.file))],
       docs: ["docs/entity-schema.md"],
       message: breaks
         ? `The change edits code that implements ${id}, a firm rule the person set, and the recorded review says the change breaks it: ${listed}. Statement: "${statement.replace(/\s+/g, " ").trim()}"`

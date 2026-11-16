@@ -6,6 +6,13 @@ import path from "node:path";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import { captureReminder } from "kibi-agent-core/decision-guard";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
   hashTelemetryId,
@@ -786,6 +793,47 @@ describe("Codex decision guard", () => {
     expect(first).toContain("Kibi knowledge for src/checkout.ts");
     expect(contextOf(await event(patch))).not.toContain(FIRM_NOTICE);
     expect(contextOf(await event(patch, "guard-2"))).toContain(FIRM_NOTICE);
+  });
+
+  test("a current keeps receipt for the edited code stops the firm-edit notice", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const content = fs.readFileSync(path.join(cwd, "src/checkout.ts"), "utf8");
+    const lines = content.split("\n").length;
+    writeFile(
+      cwd,
+      firmEditReceiptPath(
+        "REQ-checkout-rounding",
+        "src/checkout.ts",
+        "computeTotal",
+      ) as string,
+      serializeFirmEditReceipt({
+        version: FIRM_EDIT_RECEIPT_VERSION,
+        requirementId: "REQ-checkout-rounding",
+        sourceFile: "src/checkout.ts",
+        symbol: "computeTotal",
+        verdict: "keeps",
+        note: "Still rounds to cents.",
+        statementHash: firmEditStatementHash("Checkout totals round to cents"),
+        codeHash: firmEditCodeHash(content, 1, lines) as string,
+        startLine: 1,
+        endLine: lines,
+        recordedAt: "2026-11-16T00:00:00.000Z",
+      }),
+    );
+    const result = await runHook(
+      {
+        session_id: "receipt",
+        cwd,
+        hook_event_name: "PreToolUse",
+        tool_name: "apply_patch",
+        tool_input: { command: CHECKOUT_PATCH },
+      },
+      { pluginData },
+    );
+    expect(contextOf(result)).toContain("Kibi knowledge for src/checkout.ts");
+    expect(contextOf(result)).not.toContain(FIRM_NOTICE);
   });
 
   test("a patch that only deletes implements comments gets no firm-edit notice; the same patch with a code change does", async () => {

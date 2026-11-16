@@ -168,6 +168,9 @@ export async function analyzeChangedFileImpact(
       // A missing source file adds undefined, which names no file.
       .map((result) => result.sourceFile as string),
   );
+  const contentByFile = new Map(
+    sourceChanges.map((change) => [change.file, change.content]),
+  );
   // A snapshot holds every endpoint its symbols link to.
   const readRequirement = (id: string) =>
     snapshotKnowledge
@@ -198,8 +201,7 @@ export async function analyzeChangedFileImpact(
           }),
           ...createFirmEditGateDiagnostics({
             symbolsByFile,
-            readContent: (file) =>
-              sourceChanges.find((change) => change.file === file)?.content,
+            readContent: (file) => contentByFile.get(file),
             readRequirement,
             requirementChanged,
             readReceipt: (receiptPath) => {
@@ -208,10 +210,15 @@ export async function analyzeChangedFileImpact(
                   ? snapshot
                       .readGit(["show", `${snapshot.headTree}:${receiptPath}`])
                       .toString("utf8")
-                  : readFileSync(path.join(workspaceRoot, receiptPath), "utf8");
+                  : // rationale: with the empty encoding Bun returns a Buffer,
+                    // which the receipt parser's JSON.parse reads as the
+                    // same text.
+                    // Stryker disable next-line StringLiteral
+                    readFileSync(path.join(workspaceRoot, receiptPath), "utf8");
               } catch {
-                return undefined;
+                // A receipt that cannot be read counts as missing.
               }
+              return undefined;
             },
           }),
           ...createSymbolGranularityDiagnostics({

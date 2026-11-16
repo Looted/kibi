@@ -361,8 +361,16 @@ describe("createFirmEditGateDiagnostics", () => {
     const expire = symbol("expireKey");
     const [diagnostic] = gate([expire, RENDER], {
       readReceipt: receipts(receipt(expire, { verdict: "changes" })),
+      // The statement is quoted with its whitespace collapsed.
+      requirements: {
+        "REQ-key-expiry": req("REQ-key-expiry", {
+          semantic_text: ` ${STATEMENT.replace("expire ", "expire \n  ")}`,
+        }),
+      },
     });
     expect(diagnostic?.id).toBe("firm_edit_breaks_rule");
+    // Two symbols of one file name it once.
+    expect(diagnostic?.files).toEqual(["src/keys.ts"]);
     expect(diagnostic?.blocking).toBe(true);
     expect(diagnostic?.message).toBe(
       `The change edits code that implements REQ-key-expiry, a firm rule the person set, and the recorded review says the change breaks it: expireKey in src/keys.ts (reviewed as changing the rule); renderKey in src/keys.ts (no review recorded). Statement: "${STATEMENT}"`,

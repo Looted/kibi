@@ -38,7 +38,8 @@ export type FirmEditReceipt = {
 const REQUIREMENT_ID = /^REQ-[A-Za-z0-9._-]+$/;
 
 function sha256(text: string): string {
-  return `sha256:${createHash("sha256").update(text, "utf8").digest("hex")}`;
+  // A string is hashed as its UTF-8 bytes.
+  return `sha256:${createHash("sha256").update(text).digest("hex")}`;
 }
 
 /**
@@ -101,18 +102,22 @@ function isText(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
-/** A receipt read from its file's text; undefined when it is not one. */
+/**
+ * A receipt read from its file's text; undefined when there is no text or it
+ * is not one.
+ */
 export function parseFirmEditReceipt(
-  text: string,
+  text: string | undefined,
 ): FirmEditReceipt | undefined {
   let value: unknown;
   try {
-    value = JSON.parse(text);
+    value = JSON.parse(text as string);
   } catch {
-    return undefined;
+    // No text, or not JSON: value stays undefined, which has none of the
+    // fields.
   }
-  if (typeof value !== "object" || value === null) return undefined;
-  const receipt = value as Record<string, unknown>;
+  // A primitive has none of the fields, so only an object can pass.
+  const receipt = (value ?? {}) as Record<string, unknown>;
   if (
     receipt.version !== FIRM_EDIT_RECEIPT_VERSION ||
     !isText(receipt.requirementId) ||
@@ -142,9 +147,8 @@ export function serializeFirmEditReceipt(receipt: FirmEditReceipt): string {
     symbol: receipt.symbol,
     verdict: receipt.verdict,
     note: receipt.note,
-    ...(receipt.requestQuote === undefined
-      ? {}
-      : { requestQuote: receipt.requestQuote }),
+    // JSON.stringify leaves out a quote that is undefined.
+    requestQuote: receipt.requestQuote as string,
     statementHash: receipt.statementHash,
     codeHash: receipt.codeHash,
     startLine: receipt.startLine,
@@ -162,7 +166,11 @@ export function serializeFirmEditReceipt(receipt: FirmEditReceipt): string {
  */
 export function firmEditReceiptMismatch(
   receipt: FirmEditReceipt,
-  current: { statement: string; codeHash?: string; content?: string },
+  current: {
+    statement: string;
+    codeHash?: string | undefined;
+    content?: string | undefined;
+  },
 ): "statement-changed" | "code-changed" | undefined {
   if (receipt.statementHash !== firmEditStatementHash(current.statement))
     return "statement-changed";
@@ -177,13 +185,14 @@ export function firmEditReceiptMismatch(
 /**
  * A `reviewed` callback for `firmRequirementsTouched`: true when the
  * workspace holds a `keeps` receipt for the requirement and symbol that still
- * matches the requirement's statement and the code now in `sourceFile`.
+ * matches the requirement's statement (its prose, else its title) and the
+ * code now in `sourceFile`.
  * Any read or parse failure counts as not reviewed.
  */
 export function firmEditReviewed(
   workspaceRoot: string,
   sourceFile: string,
-  statementOf: (requirementId: string) => string | undefined,
+  summarize: (requirementId: string) => { statement?: string; title?: string },
 ): (requirementId: string, symbol: { title: string }) => boolean {
   let content: string | undefined;
   return (requirementId, symbol) => {
@@ -192,25 +201,36 @@ export function firmEditReviewed(
       sourceFile,
       symbol.title,
     );
-    const statement = statementOf(requirementId);
-    if (receiptPath === undefined || statement === undefined) return false;
-    try {
-      const receipt = parseFirmEditReceipt(
-        fs.readFileSync(path.join(workspaceRoot, receiptPath), "utf8"),
-      );
-      if (
-        receipt?.verdict !== "keeps" ||
-        receipt.requirementId !== requirementId ||
-        receipt.sourceFile !== sourceFile ||
-        receipt.symbol !== symbol.title
-      )
-        return false;
-      content ??= fs.readFileSync(path.join(workspaceRoot, sourceFile), "utf8");
-      return (
-        firmEditReceiptMismatch(receipt, { statement, content }) === undefined
-      );
-    } catch {
+    if (receiptPath === undefined) return false;
+    const receipt = parseFirmEditReceipt(
+      readText(path.join(workspaceRoot, receiptPath)),
+    );
+    if (
+      receipt?.verdict !== "keeps" ||
+      receipt.requirementId !== requirementId ||
+      receipt.sourceFile !== sourceFile ||
+      receipt.symbol !== symbol.title
+    )
       return false;
-    }
+    const summary = summarize(requirementId);
+    const statement = summary.statement ?? summary.title;
+    if (statement === undefined) return false;
+    content ??= readText(path.join(workspaceRoot, sourceFile));
+    return (
+      firmEditReceiptMismatch(receipt, { statement, content }) === undefined
+    );
   };
+}
+
+/** A file's text, or the empty string when it cannot be read. */
+function readText(file: string): string {
+  try {
+    return fs.readFileSync(file, "utf8");
+  } catch {
+    // An unreadable file is read as no text.
+  }
+  // rationale: an unreadable file yields no receipt and no code to match,
+  // whether it reads as the empty string or as any other text.
+  // Stryker disable next-line StringLiteral
+  return "";
 }

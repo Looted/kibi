@@ -918,9 +918,7 @@ const EFFECT_OVERRIDES: Readonly<
   },
   kb_check: {},
   kb_prepare_impact_review: {},
-  kb_review_firm_edit: {
-    "workspace-write": { destructive: false, retrySafety: "safe" },
-  },
+  kb_review_firm_edit: {},
   kb_compile_intent: {},
   kb_apply_plan: {
     "kb-write": { destructive: true, retrySafety: "unsafe" },

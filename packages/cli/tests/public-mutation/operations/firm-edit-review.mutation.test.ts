@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import {
   existsSync,
   mkdirSync,
@@ -17,6 +17,7 @@ import {
   parseFirmEditReceipt,
 } from "kibi-agent-core/firm-edit-review";
 import { KbRejection } from "../../../src/cli-errors.js";
+import * as maintenance from "../../../src/plugins/maintenance-source-analysis.js";
 import {
   type FirmEditReviewEntry,
   REVIEW_FIRM_EDIT_DEPS,
@@ -72,6 +73,7 @@ function workspace(): string {
     ".kb/requirements/REQ-old.md",
     requirement("REQ-old").replace("status: open", "status: superseded"),
   );
+  write(root, ".kb/requirements/REQ-other.md", requirement("REQ-other"));
   write(root, "src/keys.ts", SOURCE);
   return root;
 }
@@ -215,6 +217,29 @@ describe("executeReviewFirmEdit", () => {
     ]);
   });
 
+  test("names each requirement a changes verdict leaves blocked once", async () => {
+    const root = workspace();
+    const result = await executeReviewFirmEdit(
+      {
+        dryRun: true,
+        reviews: [
+          entry({ verdict: "changes" }),
+          entry({ symbol: "renderKey", verdict: "changes" }),
+          entry({
+            requirementId: "REQ-other",
+            symbol: "renderKey",
+            verdict: "changes",
+          }),
+        ],
+      },
+      context(root),
+      deps,
+    );
+    expect(result.content[0]?.text).toEndWith(
+      "ask them about REQ-key-expiry, REQ-other.",
+    );
+  });
+
   test("a second review of the same symbol replaces the first", async () => {
     const root = workspace();
     await executeReviewFirmEdit({ reviews: [entry()] }, context(root), deps);
@@ -317,6 +342,40 @@ describe("executeReviewFirmEdit", () => {
       "Two reviews name the same requirement and symbol (.kb/firm-edit-reviews/REQ-key-expiry/src__keys.ts--expireKey.json).",
     );
     expect(existsSync(path.join(root, ".kb/firm-edit-reviews"))).toBe(false);
+  });
+
+  test("the default deps analyze the file with the workspace's analysis service", async () => {
+    const root = workspace();
+    const extra = `${SOURCE}export function extraKey(): number {\n  return 1;\n}\n`;
+    const workspaceAnalysis = await maintenance
+      .createMaintenanceSourceAnalysisService(root)
+      .analyzeTextV2("src/keys.ts", extra);
+    const asked: string[] = [];
+    const spy = spyOn(
+      maintenance,
+      "createMaintenanceSourceAnalysisService",
+    ).mockImplementation(
+      (workspaceRoot: string) =>
+        ({
+          analyzeTextV2: async (file: string, text: string) => {
+            asked.push(`${workspaceRoot === root} ${file} ${text === SOURCE}`);
+            return workspaceAnalysis;
+          },
+        }) as unknown as ReturnType<
+          typeof maintenance.createMaintenanceSourceAnalysisService
+        >,
+    );
+    try {
+      const symbols = await REVIEW_FIRM_EDIT_DEPS.symbolsOf(
+        root,
+        "src/keys.ts",
+        SOURCE,
+      );
+      expect(symbols.map((entry) => entry.name)).toContain("extraKey");
+      expect(asked).toEqual(["true src/keys.ts true"]);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   test("the default deps read the symbols and links from the workspace", async () => {

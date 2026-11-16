@@ -1228,12 +1228,8 @@ export async function checkCommand(
           ...createSemanticReviewDiagnostics({ symbolsByFile }),
           ...createStagedEntityIdStyleDiagnostics(markdownFiles),
           ...createFirmEditGateDiagnostics({
-            symbolsByFile: new Map(
-              [...symbolsByFile].map(([file, symbols]) => [
-                file,
-                symbols.filter((symbol) => symbol.hunkRanges.length > 0),
-              ]),
-            ),
+            // The extractor keeps only the symbols a modified file's hunks touch.
+            symbolsByFile,
             readContent: (file) => sourceContentByFile.get(file),
             readRequirement: (id) =>
               snapshotEntities.find((result) => result.entity.id === id)

@@ -1544,7 +1544,7 @@ function firmEditNotice(where, requirements) {
   const one = requirements.length === 1;
   return [
     `Kibi: this edit changes ${where}, which implements ${one ? "a firm requirement" : "firm requirements"}, a rule the person set: ${shown.join("; ")}${more}.`,
-    `Unless the edit keeps ${one ? "that rule" : "those rules"}, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. ` + `After the edit, record your verdict for each edited symbol with kibi review-firm-edit ("keeps" or "changes"). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person's approval.`
+    `Unless the edit keeps ${one ? "that rule" : "those rules"}, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kibi review-firm-edit ("keeps" or "changes"). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person's approval.`
   ].join(`
 `);
 }
@@ -1670,7 +1670,7 @@ var FIRM_EDIT_REVIEWS_DIR = ".kb/firm-edit-reviews";
 var FIRM_EDIT_RECEIPT_VERSION = 1;
 var REQUIREMENT_ID = /^REQ-[A-Za-z0-9._-]+$/;
 function sha256(text) {
-  return `sha256:${createHash3("sha256").update(text, "utf8").digest("hex")}`;
+  return `sha256:${createHash3("sha256").update(text).digest("hex")}`;
 }
 function firmEditStatementHash(statement) {
   return sha256(statement.replace(/\s+/g, " ").trim());
@@ -1697,12 +1697,8 @@ function parseFirmEditReceipt(text) {
   let value;
   try {
     value = JSON.parse(text);
-  } catch {
-    return;
-  }
-  if (typeof value !== "object" || value === null)
-    return;
-  const receipt = value;
+  } catch {}
+  const receipt = value ?? {};
   if (receipt.version !== FIRM_EDIT_RECEIPT_VERSION || !isText(receipt.requirementId) || !REQUIREMENT_ID.test(receipt.requirementId) || !isText(receipt.sourceFile) || !isText(receipt.symbol) || receipt.verdict !== "keeps" && receipt.verdict !== "changes" || typeof receipt.note !== "string" || receipt.requestQuote !== undefined && typeof receipt.requestQuote !== "string" || !isText(receipt.statementHash) || !isText(receipt.codeHash) || !Number.isInteger(receipt.startLine) || !Number.isInteger(receipt.endLine) || typeof receipt.recordedAt !== "string")
     return;
   return receipt;
@@ -1713,23 +1709,28 @@ function firmEditReceiptMismatch(receipt, current) {
   const codeHash = current.codeHash ?? (current.content === undefined ? undefined : firmEditCodeHash(current.content, receipt.startLine, receipt.endLine));
   return codeHash === receipt.codeHash ? undefined : "code-changed";
 }
-function firmEditReviewed(workspaceRoot, sourceFile, statementOf) {
+function firmEditReviewed(workspaceRoot, sourceFile, summarize) {
   let content;
   return (requirementId, symbol) => {
     const receiptPath = firmEditReceiptPath(requirementId, sourceFile, symbol.title);
-    const statement = statementOf(requirementId);
-    if (receiptPath === undefined || statement === undefined)
+    if (receiptPath === undefined)
       return false;
-    try {
-      const receipt = parseFirmEditReceipt(fs5.readFileSync(path6.join(workspaceRoot, receiptPath), "utf8"));
-      if (receipt?.verdict !== "keeps" || receipt.requirementId !== requirementId || receipt.sourceFile !== sourceFile || receipt.symbol !== symbol.title)
-        return false;
-      content ??= fs5.readFileSync(path6.join(workspaceRoot, sourceFile), "utf8");
-      return firmEditReceiptMismatch(receipt, { statement, content }) === undefined;
-    } catch {
+    const receipt = parseFirmEditReceipt(readText2(path6.join(workspaceRoot, receiptPath)));
+    if (receipt?.verdict !== "keeps" || receipt.requirementId !== requirementId || receipt.sourceFile !== sourceFile || receipt.symbol !== symbol.title)
       return false;
-    }
+    const summary = summarize(requirementId);
+    const statement = summary.statement ?? summary.title;
+    if (statement === undefined)
+      return false;
+    content ??= readText2(path6.join(workspaceRoot, sourceFile));
+    return firmEditReceiptMismatch(receipt, { statement, content }) === undefined;
   };
+}
+function readText2(file) {
+  try {
+    return fs5.readFileSync(file, "utf8");
+  } catch {}
+  return "";
 }
 
 // ../agent-core/dist/hook-usage-log.js
@@ -3175,10 +3176,7 @@ function firmNotice(workspaceRoot, linked, focus, session, env, commentOnly) {
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly,
-    reviewed: firmEditReviewed(workspaceRoot, linked.relativePath, (id) => {
-      const summary = summarize(id);
-      return summary.statement ?? summary.title;
-    })
+    reviewed: firmEditReviewed(workspaceRoot, linked.relativePath, summarize)
   });
   if (ids.length === 0)
     return;

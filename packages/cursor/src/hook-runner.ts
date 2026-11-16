@@ -140,10 +140,7 @@ function firmNotice(
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly,
-    reviewed: firmEditReviewed(workspaceRoot, linked.relativePath, (id) => {
-      const summary = summarize(id);
-      return summary.statement ?? summary.title;
-    }),
+    reviewed: firmEditReviewed(workspaceRoot, linked.relativePath, summarize),
   });
   if (ids.length === 0) return undefined;
   settleFirmRequirements(session, ids);

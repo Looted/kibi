@@ -238,10 +238,7 @@ function firmNotice(
       wholeFile: focus === undefined,
       summarize,
       confirmed: settled,
-      reviewed: firmEditReviewed(workspaceRoot, target.relative, (id) => {
-        const summary = summarize(id);
-        return summary.statement ?? summary.title;
-      }),
+      reviewed: firmEditReviewed(workspaceRoot, target.relative, summarize),
       commentOnly: removesOnlyDeadImplementsComments(
         target.absolute,
         input.toolInput,

@@ -234,10 +234,11 @@ function firmEdit(
     wholeFile,
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
-    reviewed: firmEditReviewed(workspace.root, relativePath, (id) => {
-      const summary = workspace.summarize(id);
-      return summary.statement ?? summary.title;
-    }),
+    reviewed: firmEditReviewed(
+      workspace.root,
+      relativePath,
+      workspace.summarize,
+    ),
   });
   if (ids.length === 0) return undefined;
   return {

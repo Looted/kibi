@@ -739,6 +739,9 @@ describe("collectSignoffSummary with a scripted git", () => {
       ],
     ]);
     expect(working.notes).toStrictEqual([]);
+    expect(working.requirements[1]?.source).toBe(
+      ".kb/requirements/REQ-kept.md",
+    );
 
     // Staged, only what the index holds counts; an unchanged receipt is not
     // part of the change.

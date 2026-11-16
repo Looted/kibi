@@ -200,7 +200,7 @@ function readRelationships(workspaceRoot: string) {
 
 /**
  * The firm-edit receipts the change adds or rewrites, by requirement id, in
- * symbol order.
+ * the path order git lists them: by source file, then symbol.
  */
 function changedFirmEditReviews(
   workspaceRoot: string,
@@ -235,8 +235,7 @@ function changedFirmEditReviews(
     name.endsWith(".json"),
   )) {
     const content = currentContent(workspaceRoot, git, scope, file);
-    const receipt =
-      content === undefined ? undefined : parseFirmEditReceipt(content);
+    const receipt = parseFirmEditReceipt(content);
     if (receipt === undefined) continue;
     const list = byRequirement.get(receipt.requirementId) ?? [];
     list.push({
@@ -250,12 +249,6 @@ function changedFirmEditReviews(
     });
     byRequirement.set(receipt.requirementId, list);
   }
-  for (const list of byRequirement.values())
-    list.sort((left, right) =>
-      `${left.sourceFile}\0${left.symbol}`.localeCompare(
-        `${right.sourceFile}\0${right.symbol}`,
-      ),
-    );
   return byRequirement;
 }
 

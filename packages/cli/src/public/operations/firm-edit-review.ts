@@ -71,6 +71,10 @@ async function workspaceSymbols(
   const service = createMaintenanceSourceAnalysisService(workspaceRoot);
   const analysis = await service.analyzeTextV2(sourceFile, content);
   return extractSymbolsFromStagedFileAsync(
+    // rationale: with no hunks the extractor keeps every symbol whatever the
+    // status, and a placeholder hunk without line numbers is owned by every
+    // symbol, so either way it keeps them all.
+    // Stryker disable next-line StringLiteral, ArrayDeclaration
     { path: sourceFile, status: "M", content, hunkRanges: [] },
     createImpactManifestLookup(readImpactManifestResults(workspaceRoot)),
     { analyzeText: async () => analysis },
@@ -104,13 +108,12 @@ async function planReceipt(
     refuse(
       `${requirementId} is not a current firm requirement, so an edit of its code needs no review.`,
     );
-  const sourceFile = normalizeRepoRelativePath(workspaceRoot, entry.sourceFile);
-  const absolute =
-    sourceFile === null
-      ? null
-      : resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile);
-  if (sourceFile === null || absolute === null)
+  const outside = () =>
     refuse(`${entry.sourceFile} is not a file inside the workspace.`);
+  const sourceFile =
+    normalizeRepoRelativePath(workspaceRoot, entry.sourceFile) ?? outside();
+  const absolute =
+    resolveWorkspaceSourceAbsolute(workspaceRoot, sourceFile) ?? outside();
   let content: string;
   try {
     content = readFileSync(absolute, "utf8");

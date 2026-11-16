@@ -11,6 +11,13 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 import { analyzeChangedFileImpact } from "../../../src/public/impact/analyzer.js";
 import type { ChangedFileImpactOptions } from "../../../src/public/impact/types.js";
 import { expectGolden } from "../helpers/golden.js";
@@ -240,5 +247,63 @@ describe("working-tree impact", () => {
       sourceFiles: ["src/fresh.ts", "src/loose.ts", "src/upload.ts"],
     });
     expectGolden("analyzer-working-tree-named", portable(f.root, result));
+  });
+});
+
+describe("firm-edit reviews", () => {
+  const UPLOAD = "export function upload(): string {\n  return 'b';\n}\n";
+  const RECEIPT = firmEditReceiptPath(
+    "REQ-upload",
+    "src/upload.ts",
+    "upload",
+  ) as string;
+  const keeps = (content: string) =>
+    serializeFirmEditReceipt({
+      version: FIRM_EDIT_RECEIPT_VERSION,
+      requirementId: "REQ-upload",
+      sourceFile: "src/upload.ts",
+      symbol: "upload",
+      verdict: "keeps",
+      note: "Same name.",
+      statementHash: firmEditStatementHash("Uploads keep their name."),
+      codeHash: firmEditCodeHash(content, 1, 3) as string,
+      startLine: 1,
+      endLine: 3,
+      recordedAt: "2026-11-16T00:00:00.000Z",
+    });
+  const firmIds = (result: { impactDiagnostics: readonly { id: string }[] }) =>
+    result.impactDiagnostics
+      .map((entry) => entry.id)
+      .filter((id) => id.startsWith("firm_edit_"));
+
+  test("a staged edit counts the receipt the index holds, for the code staged", async () => {
+    const f = repo();
+    f.write("src/upload.ts", UPLOAD);
+    f.git("add", "-A");
+    const run = () =>
+      analyzeChangedFileImpact({ workspaceRoot: f.root, staged: true });
+    expect(firmIds(await run())).toEqual(["firm_edit_unreviewed"]);
+    f.write(RECEIPT, keeps(UPLOAD));
+    // Not staged yet, so it does not count.
+    expect(firmIds(await run())).toEqual(["firm_edit_unreviewed"]);
+    f.git("add", "-A");
+    expect(firmIds(await run())).toEqual([]);
+    // A receipt for other code does not match the staged code.
+    f.write(RECEIPT, keeps(BASE["src/upload.ts"] as string));
+    f.git("add", "-A");
+    expect(firmIds(await run())).toEqual(["firm_edit_unreviewed"]);
+  });
+
+  test("a working-tree edit counts the receipt on disk", async () => {
+    const f = repo();
+    f.write("src/upload.ts", UPLOAD);
+    const run = () =>
+      analyzeChangedFileImpact({
+        workspaceRoot: f.root,
+        includeWorkingTreeDiff: true,
+      });
+    expect(firmIds(await run())).toEqual(["firm_edit_unreviewed"]);
+    f.write(RECEIPT, keeps(UPLOAD));
+    expect(firmIds(await run())).toEqual([]);
   });
 });

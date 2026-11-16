@@ -158,6 +158,7 @@ describe("parse and serialize", () => {
       { ...valid, requirementId: 1 },
       { ...valid, requirementId: "SYM-a" },
       { ...valid, sourceFile: "" },
+      { ...valid, sourceFile: ["src/keys.ts"] },
       { ...valid, symbol: "" },
       { ...valid, verdict: "maybe" },
       { ...valid, note: 1 },
@@ -239,7 +240,9 @@ function store(root: string, value: FirmEditReceipt | string): void {
 
 describe("firmEditReviewed", () => {
   const statementOf = (id: string) =>
-    id === "REQ-key-expiry" ? STATEMENT : undefined;
+    id === "REQ-key-expiry"
+      ? { statement: STATEMENT, title: "Keys expire" }
+      : {};
   const expire = { title: "expireKey" };
 
   test("a current keeps receipt reviews the symbol", () => {
@@ -271,6 +274,20 @@ describe("firmEditReviewed", () => {
     store(root, receipt());
     expect(reviewed()("REQ-key-expiry", expire)).toBe(true);
     expect(reviewed()("REQ-unknown", expire)).toBe(false);
+    // Without the requirement's statement nothing can match.
+    expect(
+      firmEditReviewed(root, "src/keys.ts", () => ({}))(
+        "REQ-key-expiry",
+        expire,
+      ),
+    ).toBe(false);
+    // Without prose the title is the statement.
+    expect(
+      firmEditReviewed(root, "src/keys.ts", () => ({ title: STATEMENT }))(
+        "REQ-key-expiry",
+        expire,
+      ),
+    ).toBe(true);
     expect(reviewed()("SYM-not-a-requirement", expire)).toBe(false);
     fs.rmSync(path.join(root, "src/keys.ts"));
     expect(reviewed()("REQ-key-expiry", expire)).toBe(false);
@@ -334,5 +351,15 @@ describe("firmRequirementsTouched with receipts", () => {
         reviewed,
       }).ids,
     ).toEqual(["REQ-b"]);
+    // A symbol that does not implement the requirement needs no receipt.
+    expect(
+      firmRequirementsTouched({
+        symbols,
+        focus: undefined,
+        wholeFile: true,
+        summarize,
+        reviewed: (id, target) => id === "REQ-b" && target.title === "f",
+      }).ids,
+    ).toEqual(["REQ-a"]);
   });
 });
