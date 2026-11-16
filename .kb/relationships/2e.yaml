@@ -168,13 +168,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6240841ccbac
-  - type: validates
-    from: TEST-proof-scoped-check-budget
-    to: SCEN-kibi-scoped-check-output
-    created_at: 2026-11-16T11:01:42.819Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-376f8b5fba79
   - type: assumes
     from: SCEN-NEG-kb-upsert-implemented-by-UNRESOLVED
     to: FACT-NEG-kb-upsert-implemented-by-UNRESOLVED
@@ -189,3 +182,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43e1526a216d
+  - type: assumes
+    from: SCEN-check-quantity-duplicate-dangling-distinct
+    to: FACT-check-quantity-duplicate-dangling-distinct
+    created_at: 2026-11-16T16:10:35.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74d014c12026
+  - type: verified_by
+    from: SCEN-check-quantity-duplicate-dangling-distinct
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:35.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f34e71a4e5f0
+  - type: validates
+    from: TEST-proof-scoped-check-budget
+    to: SCEN-kibi-scoped-check-output
+    created_at: 2026-11-16T11:01:42.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-376f8b5fba79

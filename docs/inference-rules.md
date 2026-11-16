@@ -71,6 +71,16 @@ Comparisons of a variable with itself are decided exactly (`X < X` never holds, 
 
 The advisory `rule-key-arguments-missing` check lists opposing rule pairs that are `unresolved` only for this reason. For each condition predicate (namespace, name, arity) without `key_arguments`, it tries every candidate key set (each non-empty proper subset of the argument positions, for predicates of arity 2 to 6) on its own, and reports the predicate with the key sets that would decide the pair; when no single declaration does, it also tries declaring all of them keyed on every argument but the last. A pair that stays undecided whatever is declared (for example because of `X < Y`) is not reported. The finding is a prompt, not a proof: declare the keys only when the predicate really is single-valued per key.
 
+### One quantity under two keys
+
+Contradiction checks compare facts on one `subject_key` and `property_key`, so a limit recorded twice under two keys is never compared with itself: a change under one key leaves the other stating the old value and every check still passes. From KB schema 19 the canonical `quantity-duplicate` rule blocks that split. Two active `property_value` facts, each grounded by a current requirement through `requires_property`, state one quantity when all three hold:
+
+- their values are equal and comparable: numbers after unit canonicalization (`ms`, `s`, `min`, `h`; bytes, `kb`, `mb`) other than 0 and 1, or sets of at least two members. Booleans and strings are never compared;
+- their requirements are implemented (`implements` in `.kb/symbols.yaml`) by symbols in one source file;
+- one signal holds: the requirements share an implementing symbol, the proof of one fact reads its value (`proof_contract.value_source`) from a symbol that implements the other's requirement, or the property keys, or the claim texts, share at least half the content words of the shorter.
+
+A pair grounded by one requirement is not reported (`subject-key-identity` and `domain-redundancy` read those), and neither is a pair where either fact lists the other's `subject_key.property_key` under `distinct_from`. A `distinct_from` entry on a grounded value fact that names no active value fact is reported too, since it exempts nothing. To settle a pair, either ground both claims on one key (and move the facts scenarios assume on the old key with them), or add `distinct_from` and say in the fact's body how the two quantities differ.
+
 ### Unmodeled clauses are not "no conflict"
 
 The proof ladder's contradiction stage reports `status: unresolved` with `outcome: analysis_incomplete` (reason `unresolved_propositions`) when a requirement has semantic-inventory propositions that are not modeled, even if no conflict was found among the modeled ones. Absence of a conflict only means something once every clause is grounded.

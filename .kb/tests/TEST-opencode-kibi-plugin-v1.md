@@ -25,20 +25,20 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-dfc8870a9513eee8336c55fb
+    receipt_id: PR-40b84ac50c959bb3f68a42ee
     test_id: TEST-opencode-kibi-plugin-v1
     scope: end_to_end
     outcome: passed
-    code_snapshot: e2663d10a2e1a0b8fdd0d38e888ee46d8031436be2244a613e1c406fbfa714b0
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-30T19:49:18.754Z'
-    finished_at: '2026-10-30T19:49:28.200Z'
-    artifact_digest: 7785eca9868d6b2aa4be0bd1836b39620928e903b4709f4827cc56396c4455e9
-    contract_hash: 95a017a95da0a71e9960aaa651856c13c4fd2366f724507979f61222cc456a80
-    binding_hash: 8b473073cfd16fb214b3736cefea0f6d3abd89cb48d017b33360b7ddf4bc8bc2
-    fingerprint: 383b0bb3500edea66e225543df1452b730d0b6b1b55b59e22c33fb3faf09095f
+    code_snapshot: 05e0d24fa5c81791b656d46a9af810b6e962f357fcc4c02de2478221ec374bca
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-16T15:53:33.977Z'
+    finished_at: '2026-11-16T15:54:37.590Z'
+    artifact_digest: 14d75e0b17b92e5f50167b67f2038de17ca1334e917daa8b536f14f7b47090b0
+    contract_hash: fda6ee3d82151dd1cee4719e6d67b7b1ebb8eb7cc3d8f7d84715fb2eb44d56a6
+    binding_hash: 555b63ee78afbe6f1905d7750b0ed4468c900568fa084c2c9836d6fd360ba28b
+    fingerprint: 6cb6521f423fa548cc931afe9997c54414b79165051b87c6a8f369f58c41fd2e
     fingerprint_components:
-      contract: 95a017a95da0a71e9960aaa651856c13c4fd2366f724507979f61222cc456a80
+      contract: fda6ee3d82151dd1cee4719e6d67b7b1ebb8eb7cc3d8f7d84715fb2eb44d56a6
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -51,7 +51,7 @@ proof_receipts:
       - scripts/run-proof-producer.mjs
     run_outcome: passed
     proof_results:
-      - symbol_id: SYM-e2e-test-opencode-kibi-plugin-v1
+      - symbol_id: SYM-e2e-opencode-plugin
         target: default
         outcome: passed
         binding: aggregate_run

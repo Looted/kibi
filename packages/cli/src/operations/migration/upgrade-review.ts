@@ -189,12 +189,31 @@ export function upgradeReviewSummary(
   findings: ReadonlyMap<string, number> | null,
   review: DomainSubjectReview,
   pairCandidates: number,
+  quantityPairs = 0,
 ): string | null {
   if (findings !== null) {
     const total = [...findings.values()].reduce((sum, count) => sum + count, 0);
     if (total === 0) return null;
     return `Schema upgrade applied, but review work remains: kibi check reports ${total} blocking finding(s) the upgrade does not fix (${describeFindingCounts(findings)}). Run kibi check to list them. For the subject and pair review work, ${NEXT_STEPS.charAt(0).toLowerCase()}${NEXT_STEPS.slice(1)}`;
   }
-  if (!hasDomainSubjectReview(review) && pairCandidates === 0) return null;
-  return `Schema upgrade applied, but review work remains: the domain subject review above${pairCandidates > 0 ? ` and the related-requirement-unmodeled pairs of ${pairCandidates} requirement(s)` : ""}. Run kibi sync, then kibi check to list the findings. ${NEXT_STEPS}`;
+  if (
+    !hasDomainSubjectReview(review) &&
+    pairCandidates === 0 &&
+    quantityPairs === 0
+  )
+    return null;
+  const parts = [
+    ...(hasDomainSubjectReview(review)
+      ? ["the domain subject review above"]
+      : []),
+    ...(pairCandidates > 0
+      ? [
+          `the related-requirement-unmodeled pairs of ${pairCandidates} requirement(s)`,
+        ]
+      : []),
+    ...(quantityPairs > 0
+      ? [`${quantityPairs} quantity-duplicate pair(s) of value facts`]
+      : []),
+  ];
+  return `Schema upgrade applied, but review work remains: ${parts.join(" and ")}. Run kibi sync, then kibi check to list the findings. ${NEXT_STEPS}`;
 }

@@ -15,6 +15,7 @@ import {
   buildWhatIfAnalysisGoal,
   upsertFailure,
 } from "./contradictions.js";
+import { quantityWarnings } from "./quantity-warnings.js";
 import { validateRelationshipSources } from "./relationships.js";
 import { canonicalSourcePath, renderSourceWrite } from "./source-authoring.js";
 import { subjectLayerWarnings } from "./subject-warnings.js";
@@ -412,6 +413,13 @@ export async function executeValidateUpsert(
           targetPath,
         }),
         ...subjectWarnings,
+        ...quantityWarnings({
+          type: input.type,
+          id: input.id,
+          entity,
+          relationships: input.relationships ?? [],
+          workspaceRoot: context.workspaceRoot,
+        }),
       ],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: entity,
