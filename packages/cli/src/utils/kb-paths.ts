@@ -70,6 +70,8 @@ export const KB_PATHS = {
   symbolCoordinates: ".kb/symbol-coordinates.yaml",
   manifest: ".kb/manifest.json",
   relationships: ".kb/relationships",
+  /** One firm-edit review receipt (JSON) per requirement and symbol. */
+  firmEditReviews: ".kb/firm-edit-reviews",
 } as const;
 
 /** Derived runtime trees. Authored knowledge and relationship shards stay writable. */
@@ -136,6 +138,17 @@ export function isSymbolsManifestPath(repoRelativePath: string): boolean {
   return (
     repoRelativePath === KB_PATHS.symbolsManifest ||
     repoRelativePath === KB_PATHS.symbolCoordinates
+  );
+}
+
+/**
+ * True when the path is a firm-edit review receipt: Kibi metadata the staged
+ * gate reads, not source code to judge.
+ */
+export function isFirmEditReceiptPath(repoRelativePath: string): boolean {
+  const posix = toPosixRepoPath(repoRelativePath);
+  return (
+    posix.startsWith(`${KB_PATHS.firmEditReviews}/`) && posix.endsWith(".json")
   );
 }
 

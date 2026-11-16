@@ -399,6 +399,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b22adb4b2560
   - type: implements
+    from: SYM-cli-signoff-collect-summary
+    to: REQ-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:40.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86237a940b79
+  - type: covered_by
+    from: SYM-cli-signoff-collect-summary
+    to: TEST-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:40.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0892ad49271e
+  - type: implements
     from: SYM-core-kb-changedSymbolLinkExempt
     to: REQ-behavioral-kinds-keep-implements
     created_at: 2026-11-16T05:46:13.562Z

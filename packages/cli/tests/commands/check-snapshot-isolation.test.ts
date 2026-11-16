@@ -46,7 +46,7 @@ function fixture(): string {
   write(
     root,
     ".kb/requirements/REQ-snapshot.md",
-    "---\nid: REQ-snapshot\ntitle: Snapshot ownership\nstatus: open\n---\n\nThe test helper has an owner.\n",
+    "---\nid: REQ-snapshot\ntitle: Snapshot ownership\nstatus: open\nfirmness: default\n---\n\nThe test helper has an owner.\n",
   );
   write(root, "src/owned.test.ts", "export function owned() { return 1; }\n");
   write(root, ".kb/symbols.yaml", MANIFEST);

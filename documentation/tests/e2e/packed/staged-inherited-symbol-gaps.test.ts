@@ -128,6 +128,7 @@ if (RUN_NODE_TEST_SUITE) {
 id: REQ-TAGS-001
 title: Tag creation
 status: open
+firmness: default
 ---
 
 # Tag creation

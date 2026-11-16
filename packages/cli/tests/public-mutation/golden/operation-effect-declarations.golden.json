@@ -923,6 +923,50 @@
       "openWorld": false
     }
   ],
+  "kb_review_firm_edit": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    }
+  ],
   "kb_ingest_proof": [
     {
       "kind": "local-read",

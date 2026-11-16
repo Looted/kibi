@@ -1,5 +1,5 @@
 ---
-title: A Kibi catalog operation shall be one of the 24 operations the catalog names, by an exhaustive proof
+title: A Kibi catalog operation shall be one of the 25 operations the catalog names, by an exhaustive proof
 status: passing
 tags:
   - proof
@@ -19,7 +19,7 @@ proof_contract:
     symbol_id: SYM-operation-catalog
     field: name
   proves:
-    - CLAIM-9647A6984DF59611
+    - CLAIM-5D894E84FA104A78
 origin:
   kind: agent
   recorded_at: '2026-10-28T22:38:38.832Z'
@@ -27,20 +27,20 @@ id: TEST-proof-operation-catalog-names
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-435b7cfc316c9317d064eca5
+    receipt_id: PR-db0262878db12ada2def9a07
     test_id: TEST-proof-operation-catalog-names
     scope: unit
     outcome: passed
-    code_snapshot: 1619578ae16102858195e7fd455f112bc688d764b648588834ddbf2c07ed739b
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:40:04.961Z'
-    finished_at: '2026-10-28T22:40:05.161Z'
-    artifact_digest: bee14a746b7e34619bf20ca63971c6b711a630f0469d93b04e0f31c87a845cd6
-    contract_hash: c43501cb74f9542c0320377feaa084ca2471103c2b4be471acab600f429f9ef4
-    binding_hash: 6a0c376fd386e65b539f459002c99535e69863e177485540f2bb863e2aed224c
-    fingerprint: 4a1792ce021456924fdfa85477f0d1e502d4cfd372890fd5357b6aebb2afdf9b
+    code_snapshot: e1bd8a80fa17d4458d04cf69090de97f0009b437dd1fb759547530d10d7f6bf9
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-16T09:36:37.354Z'
+    finished_at: '2026-11-16T09:36:37.615Z'
+    artifact_digest: d72be8bc900378bcd3d188008ceb963e748d81119b236b9b95ee8aebc5280151
+    contract_hash: 3874a21052eff35dfbf97e418bb4e44a10758dfcfe0593b59c9822e417847005
+    binding_hash: f2bf1f806b2c7fe144159394431155d320b7c017c446e0a6deca031d791b923c
+    fingerprint: e62a504a72ce8de68b4f5c8423999c1cf7090183c70823ac33d33538e594a9d3
     fingerprint_components:
-      contract: c43501cb74f9542c0320377feaa084ca2471103c2b4be471acab600f429f9ef4
+      contract: 3874a21052eff35dfbf97e418bb4e44a10758dfcfe0593b59c9822e417847005
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -88,6 +88,7 @@ proof_receipts:
           - kb_delete
           - kb_check
           - kb_prepare_impact_review
+          - kb_review_firm_edit
           - kb_sparql_remote
           - kb_compile_intent
           - kb_apply_plan
@@ -133,6 +134,8 @@ proof_receipts:
           outcome: passed
         - member: kb_prepare_impact_review
           outcome: passed
+        - member: kb_review_firm_edit
+          outcome: passed
         - member: kb_sparql_remote
           outcome: passed
         - member: kb_compile_intent
@@ -141,9 +144,9 @@ proof_receipts:
           outcome: passed
         - member: kb_ingest_proof
           outcome: passed
-    certificate_digest: c9572fbea94ea7dd85a22f1ad71d24b15330dab81b26f7ac7359e149d6989e6f
+    certificate_digest: 6d8a5b203cc37b4be69c111a7e9eb545bf917a70f6782d3db1acfd21f0ad53e6
     claim_bindings:
-      - claim_key: CLAIM-9647A6984DF59611
+      - claim_key: CLAIM-5D894E84FA104A78
         requirement_id: REQ-kibi-operation-catalog-names
         fact_id: FACT-operation-catalog-names
         binding: derived
@@ -164,6 +167,7 @@ proof_receipts:
             - kb_plan_bootstrap
             - kb_prepare_impact_review
             - kb_query
+            - kb_review_firm_edit
             - kb_search
             - kb_semantic_advisor
             - kb_skills

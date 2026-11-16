@@ -59,7 +59,7 @@ describe("note texts", () => {
     ];
     for (const text of texts) expect(text.split("\n")).toHaveLength(2);
     expect(texts[0]?.split("\n")[1]).toStartWith(
-      "If the edit was declined or could not be confirmed, the requirement stands",
+      "If the person declined the edit, the requirement stands",
     );
     expect(texts[1]?.split("\n")[1]).toStartWith(
       "A rule the person states is project knowledge: kb_search shows",

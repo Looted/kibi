@@ -15,6 +15,7 @@ import {
   approvalNumbers,
   approvalSentence,
   awaitsApproval,
+  firmEditReviewLabel,
   proofLabel,
   questionKind,
   questionOpen,
@@ -133,6 +134,9 @@ function requirementCard(
     details.push(
       row("Changed code", escapeHtml(requirement.symbols.join(", "))),
     );
+  }
+  for (const review of requirement.firmEditReviews ?? []) {
+    details.push(row("Agent review", escapeHtml(firmEditReviewLabel(review))));
   }
   if (requirement.change !== "retired") {
     details.push(

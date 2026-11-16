@@ -300,3 +300,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9705b68aaf91
+  - type: constrains
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: FACT-SUBJ-kibi-firm-edit-review
+    created_at: 2026-11-16T07:00:13.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce1df83d0e2a
+  - type: requires_property
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: FACT-signoff-firm-edit-receipts-unlisted
+    created_at: 2026-11-16T07:00:14.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0871e65404c5
+  - type: specified_by
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: SCEN-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:14.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0778fe2d13c
+  - type: specified_by
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: SCEN-NEG-signoff-firm-edit-receipts-UNLISTED
+    created_at: 2026-11-16T07:00:14.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86a7487b5035
+  - type: verified_by
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: TEST-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:14.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c72d393721b
+  - type: relates_to
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T07:00:14.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52188e7ff7da

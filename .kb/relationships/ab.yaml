@@ -507,3 +507,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e2958117fb3
+  - type: executable_for
+    from: SYM-test-kibi-signoff-firm-edit-receipts
+    to: TEST-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:07.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b5e1b1ca92d
