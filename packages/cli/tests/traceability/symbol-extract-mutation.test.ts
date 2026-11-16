@@ -28,6 +28,7 @@ type Symbol = Readonly<{
   endLine: number;
   qualifiedName?: string;
   directiveText?: string;
+  callable?: boolean;
 }>;
 
 let sequence = 0;
@@ -336,6 +337,23 @@ describe("source comments", () => {
       sym("run", 1, 1, { directiveText }),
     ]);
     expect(symbol?.reqLinks).toStrictEqual([]);
+  });
+});
+
+describe("callable declarations", () => {
+  test("only a declaration the analyzer marks callable carries the flag", () => {
+    noManifests();
+    const symbols = extract(staged(freshPath()), [
+      sym("handler", 1, 1, { kind: "variable", callable: true }),
+      sym("schema", 2, 2, { kind: "variable", callable: false }),
+      sym("value", 3, 3, { kind: "variable" }),
+    ]);
+    expect(symbols.map((symbol) => [symbol.name, symbol.callable])).toEqual([
+      ["handler", true],
+      ["schema", undefined],
+      ["value", undefined],
+    ]);
+    expect(Object.hasOwn(symbols[1] as object, "callable")).toBe(false);
   });
 });
 
