@@ -3,6 +3,7 @@ import type {
   SemanticAdvisorReceiptSummary,
 } from "../semantic-advisor/types.js";
 import type { SagaRollbackFailure } from "./saga.js";
+import type { SiblingRequirement } from "./sibling-requirements.js";
 
 export type RelationshipInput = Readonly<Record<string, unknown>>;
 
@@ -128,6 +129,12 @@ export type UpsertPayload = {
     readonly afterHash: string | null;
     readonly created: boolean;
   }[];
+  /**
+   * For a value fact write that changes its value or creates it: the other
+   * current requirements on the same quantity, each also in warnings and
+   * nextActions.
+   */
+  readonly siblings?: readonly SiblingRequirement[];
   readonly contradictionCheck?: {
     readonly outcome: "no-conflict" | "skipped";
     readonly checked_req_id: string;
@@ -156,6 +163,19 @@ export type ValidateUpsertPayload = {
   readonly warnings: readonly string[];
   readonly semanticAdvisor: SemanticAdvisorReceipt | null;
   readonly normalizedPreview: Readonly<Record<string, unknown>> | null;
+  /**
+   * For a value fact dry run that would change its value or create it: the other
+   * current requirements on the same quantity, each also in warnings and
+   * nextActions.
+   */
+  readonly siblings?: readonly SiblingRequirement[];
+  /** One required kb_upsert per sibling requirement. */
+  readonly nextActions?: readonly {
+    readonly operation: string;
+    readonly input?: unknown;
+    readonly reason: string;
+    readonly required: boolean;
+  }[];
   /**
    * For a requirement sent without its inventory contract: the claims the
    * server recorded, each with its role and status, so the writer sees what

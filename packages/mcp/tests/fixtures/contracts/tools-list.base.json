@@ -4148,7 +4148,7 @@
                     "type": "array"
                   },
                   "implementedBy": {
-                    "description": "Each implementedBy entry with the symbolId that implements the requirement and whether it was created.",
+                    "description": "Each implementedBy entry's symbolId and whether it was created.",
                     "items": {
                       "additionalProperties": {},
                       "properties": {},
@@ -4157,7 +4157,7 @@
                     "type": "array"
                   },
                   "inventoryApplied": {
-                    "description": "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text.",
+                    "description": "Each claim recorded for a requirement sent without its inventory contract.",
                     "items": {
                       "additionalProperties": {},
                       "properties": {},
@@ -4182,6 +4182,14 @@
                     "additionalProperties": {},
                     "properties": {},
                     "type": "object"
+                  },
+                  "siblings": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
                   },
                   "sourceWrites": {
                     "items": {
@@ -4236,6 +4244,14 @@
                     },
                     "type": "array"
                   },
+                  "nextActions": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "normalizedPreview": {
                     "anyOf": [
                       {
@@ -4264,6 +4280,14 @@
                         "type": "null"
                       }
                     ]
+                  },
+                  "siblings": {
+                    "items": {
+                      "additionalProperties": {},
+                      "properties": {},
+                      "type": "object"
+                    },
+                    "type": "array"
                   },
                   "skippedEffects": {
                     "items": {
