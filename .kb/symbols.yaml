@@ -15282,7 +15282,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-prove-empty-selection
+      - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-cli-prove-empty-selection
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-execute-ingest-proof
@@ -37504,7 +37508,11 @@ symbols:
       recorded_at: 2026-11-03T13:39:46.601Z
     relationships:
       - type: covered_by
+        target: TEST-kb-upsert-missing-endpoint-rejection
+      - type: covered_by
         target: TEST-kibi-telemetry-expected-outcomes-cli
+      - type: implements
+        target: REQ-kb-upsert-missing-endpoint-rejection
       - type: implements
         target: REQ-kibi-telemetry-expected-outcomes
   - id: SYM-agent-core-telemetry-signals-countbucket
@@ -40901,46 +40909,6 @@ symbols:
         target: TEST-mcp-upsert-proof-field-stubs
       - type: implements
         target: REQ-mcp-upsert-proof-fields-advertised-as-stubs
-  - id: SYM-const-default-proof-steps-dir
-    title: DEFAULT_PROOF_STEPS_DIR
-    status: active
-    sourceFile: packages/cli/src/proof/step-runner.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:28:53.295Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proof-steps-directory
-      - type: covered_by
-        target: TEST-proof-default-proof-steps-path
-      - type: implements
-        target: REQ-kibi-proof-step-settings
-  - id: SYM-test-kibi-proof-steps-directory
-    title: Proof steps directory suite
-    status: active
-    sourceFile: packages/cli/tests/proof/step-runner-mutation.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:29:30.726Z
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-proof-steps-directory
-  - id: SYM-cli-load-proof-steps
-    title: loadProofSteps
-    status: active
-    sourceFile: packages/cli/src/proof/step-runner.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T07:29:41.514Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-proof-steps-directory
-      - type: implements
-        target: REQ-kibi-proof-step-settings
   - id: SYM-e2e-test-staged-gate-inherited-symbol-gaps
     title: staged-inherited-symbol-gaps.test
     status: active
@@ -41364,35 +41332,63 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T09:00:00.000Z
-  - id: SYM-stryker-MUTATION_SHARDS
-    title: MUTATION_SHARDS
+  - id: SYM-agent-core-rule-capture-template
+    title: ruleCaptureTemplate
     status: active
-    sourceFile: stryker.conf.mjs
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-  - id: SYM-check-policy-rules-PolicyRuleHead
-    title: PolicyRuleHead
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-  - id: SYM-source-authoring-writePendingSourceReceipt
-    title: writePendingSourceReceipt
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    sourceFile: packages/agent-core/src/decision-guard.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
+      recorded_at: 2026-11-16T08:46:03.177Z
     relationships:
       - type: covered_by
-        target: TEST-kibi-pending-receipt-branch-scope
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
       - type: implements
-        target: REQ-kibi-pending-receipt-branch-scope
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-agent-core-claim-rule-capture-template
+    title: claimRuleCaptureTemplate
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T08:46:07.245Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-agent-core-session-rule-phrase
+    title: sessionRulePhrase
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T08:46:10.990Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
   - id: SYM-test-mcp-short-field-descriptions
     title: Short MCP field description suite
     status: active
@@ -41431,6 +41427,31 @@ symbols:
         target: TEST-mcp-short-field-descriptions
       - type: implements
         target: REQ-mcp-short-field-descriptions
+  - id: SYM-test-kb-upsert-implemented-by
+    title: kb_upsert implementedBy suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:13:22.017Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-implemented-by
+  - id: SYM-cli-execute-upsert-request
+    title: executeUpsertRequest
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:14:10.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-implemented-by
+      - type: implements
+        target: REQ-kb-upsert-implemented-by
   - id: SYM-test-kibi-firm-edit-receipts
     title: Firm-edit receipt suite
     status: active
@@ -41546,88 +41567,70 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-firm-edit-confirmation
-  - id: SYM-test-kb-upsert-implemented-by
-    title: kb_upsert implementedBy suite
+  - id: SYM-const-default-proof-steps-dir
+    title: DEFAULT_PROOF_STEPS_DIR
     status: active
-    sourceFile: packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts
+    sourceFile: packages/cli/src/proof/step-runner.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T07:28:53.295Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-proof-steps-directory
+      - type: covered_by
+        target: TEST-proof-default-proof-steps-path
+      - type: implements
+        target: REQ-kibi-proof-step-settings
+  - id: SYM-test-kibi-proof-steps-directory
+    title: Proof steps directory suite
+    status: active
+    sourceFile: packages/cli/tests/proof/step-runner-mutation.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T07:13:22.017Z
+      recorded_at: 2026-11-16T07:29:30.726Z
     relationships:
       - type: executable_for
-        target: TEST-kb-upsert-implemented-by
-  - id: SYM-cli-execute-upsert-request
-    title: executeUpsertRequest
+        target: TEST-kibi-proof-steps-directory
+  - id: SYM-cli-load-proof-steps
+    title: loadProofSteps
     status: active
-    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    sourceFile: packages/cli/src/proof/step-runner.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T07:14:10.709Z
+      recorded_at: 2026-11-16T07:29:41.514Z
     relationships:
       - type: covered_by
-        target: TEST-kb-upsert-implemented-by
+        target: TEST-kibi-proof-steps-directory
       - type: implements
-        target: REQ-kb-upsert-implemented-by
-  - id: SYM-agent-core-rule-capture-template
-    title: ruleCaptureTemplate
+        target: REQ-kibi-proof-step-settings
+  - id: SYM-test-kb-upsert-missing-endpoint-rejection
+    title: Upsert store-refusal classification suite
     status: active
-    sourceFile: packages/agent-core/src/decision-guard.ts
+    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T08:46:03.177Z
+      recorded_at: 2026-11-16T13:35:43.768Z
     relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-decision-capture-nudges
-  - id: SYM-agent-core-claim-rule-capture-template
-    title: claimRuleCaptureTemplate
+      - type: executable_for
+        target: TEST-kb-upsert-missing-endpoint-rejection
+  - id: SYM-test-cli-prove-empty-selection
+    title: kibi prove command suite
     status: active
-    sourceFile: packages/agent-core/src/decision-guard.ts
+    sourceFile: packages/cli/tests/proof/prove-command.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T08:46:07.245Z
+      recorded_at: 2026-11-16T13:35:47.344Z
     relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-decision-capture-nudges
-  - id: SYM-agent-core-session-rule-phrase
-    title: sessionRulePhrase
-    status: active
-    sourceFile: packages/agent-core/src/decision-guard.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T08:46:10.990Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-decision-capture-nudges
+      - type: executable_for
+        target: TEST-cli-prove-empty-selection
   - id: SYM-cli-use-core-module-goal
     title: useCoreModuleGoal
     status: active
@@ -41932,3 +41935,32 @@ symbols:
         target: REQ-search-answer-reason-source-order
       - type: implements
         target: REQ-upsert-notes-missing-reason
+  - id: SYM-stryker-MUTATION_SHARDS
+    title: MUTATION_SHARDS
+    status: active
+    sourceFile: stryker.conf.mjs
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-check-policy-rules-PolicyRuleHead
+    title: PolicyRuleHead
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-source-authoring-writePendingSourceReceipt
+    title: writePendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-pending-receipt-branch-scope
+      - type: implements
+        target: REQ-kibi-pending-receipt-branch-scope
