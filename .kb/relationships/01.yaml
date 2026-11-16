@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80dca68ac5db
+  - type: implements
+    from: SYM-cli-search-answer-prose-excerpt
+    to: REQ-search-answer-reason-length
+    created_at: 2026-11-16T10:22:31.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1282cebc9234
+  - type: covered_by
+    from: SYM-cli-search-answer-prose-excerpt
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T10:22:31.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b5a26d31984

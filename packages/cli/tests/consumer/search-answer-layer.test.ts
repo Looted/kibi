@@ -578,3 +578,77 @@ links:
     expect(String(status.snapshotId)).not.toBe("missing");
   }, 300_000);
 });
+
+describe("recorded reasons in the search answer through the kibi CLI", () => {
+  test("each governing requirement carries its recorded reason or is marked as having none", () => {
+    const ws = createConsumerWorkspace("kibi-search-answer-why-");
+    workspace = ws;
+
+    ws.write(
+      ".kb/requirements/REQ-EXPORT-RETRY-FIELD.md",
+      doc(
+        `
+id: REQ-EXPORT-RETRY-FIELD
+title: Export retries stop after three attempts
+type: req
+status: open
+priority: must
+rationale: The export provider bans clients that retry more often.
+`,
+        "Export retries stop after three attempts.",
+      ),
+    );
+    ws.write(
+      ".kb/requirements/REQ-EXPORT-RETRY-SECTION.md",
+      doc(
+        `
+id: REQ-EXPORT-RETRY-SECTION
+title: Export retries wait one minute between attempts
+type: req
+status: open
+priority: must
+`,
+        "Export retries wait one minute between attempts.\n\n## Why\n\nFinance asked for spacing so retries do not double-bill.",
+      ),
+    );
+    ws.write(
+      ".kb/requirements/REQ-EXPORT-RETRY-BARE.md",
+      doc(
+        `
+id: REQ-EXPORT-RETRY-BARE
+title: Export retries log each attempt
+type: req
+status: open
+priority: should
+`,
+        "Export retries log each attempt.",
+      ),
+    );
+    ws.sync();
+
+    const result = ws.json(["search"], { query: "export retries attempts" });
+    const answer = (result.data as Json).answer as Json;
+    const why = Object.fromEntries(
+      (answer.governing as Array<{ id: string; why: Json }>).map((req) => [
+        req.id,
+        req.why,
+      ]),
+    );
+    expect(why).toEqual({
+      "REQ-EXPORT-RETRY-FIELD": {
+        recorded: true,
+        text: "The export provider bans clients that retry more often.",
+        from: "rationale",
+      },
+      "REQ-EXPORT-RETRY-SECTION": {
+        recorded: true,
+        text: "Finance asked for spacing so retries do not double-bill.",
+        from: "section",
+      },
+      "REQ-EXPORT-RETRY-BARE": { recorded: false },
+    });
+    expect(String(answer.note)).toContain(
+      "where why.recorded is false, say that no reason is recorded and do not supply one",
+    );
+  }, 300_000);
+});
