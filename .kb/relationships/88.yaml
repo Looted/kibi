@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-231f9feb18a3
+  - type: assumes
+    from: SCEN-NEG-search-answer-reason-source-order-WRONG-ORDER
+    to: FACT-NEG-search-answer-reason-source-order-WRONG-ORDER
+    created_at: 2026-11-16T10:21:15.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9503c7601a3f
+  - type: verified_by
+    from: SCEN-NEG-search-answer-reason-source-order-WRONG-ORDER
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T10:21:15.435Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa37d33c8aa9

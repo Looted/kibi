@@ -95,7 +95,10 @@ On the first page, intent mode also returns an answer layer in `data.answer`
   matched entity, each with `via` (how it was reached) and its linked `facts`,
   `scenarios`, `tests`, and `adrs`. A requirement with more linked facts than
   the answer lists carries `moreFacts` (`count` and the `kb_query` `ask` that
-  lists them all); never read a short `facts` list as the whole rule.
+  lists them all); never read a short `facts` list as the whole rule. Each
+  also carries `why`, its recorded reason: `{ recorded: true, text, from }`
+  (`from` is `rationale`, `why_this_changed`, `section` or `adr`, tried in
+  that order) or `{ recorded: false }`.
 - `rationale` — ADRs that explain the decisions.
 - `notGoverning` — superseded, retired or deprecated requirements, with `supersededBy`
   when known. Never read these as current policy; superseded entities are also

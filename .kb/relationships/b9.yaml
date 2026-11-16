@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ab3fa5ab880
+  - type: constrains
+    from: REQ-prolog-swipl-resolution-order
+    to: FACT-kibi-prolog-swipl-version-component
+    created_at: 2026-11-16T10:43:37.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e9c45eb5d74
+  - type: restates
+    from: REQ-prolog-swipl-resolution-order
+    to: REQ-prolog-swipl-minimum-version
+    created_at: 2026-11-16T10:43:37.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60e607b6d1d2

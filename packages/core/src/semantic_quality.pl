@@ -365,8 +365,9 @@ implication_witness_violation(Witness, violation(
 % are history, not live duplicates.  Facts that differ in operator
 % (the two bounds of a range) or in value (two requirements bounding the same
 % property differently) are distinct claims, which domain-contradictions and
-% domain-implication compare.  Each group is reported once, on its first fact
-% id.
+% domain-implication compare.  A group whose facts are each grounded by
+% requirements linked by restates or supersedes is a deliberate restatement
+% and is not reported.  Each group is reported once, on its first fact id.
 check_subject_key_identity(Violations) :-
     findall(Segment-ReqId, requirement_subject_segment(ReqId, Segment), SegmentPairs0),
     keysort(SegmentPairs0, SegmentPairs),
@@ -449,6 +450,7 @@ duplicate_property_fact_violations(Violations) :-
         ),
         (   member(key(SubjectKey, PropertyKey, Operator, Polarity, _)-FactIds, Groups),
             FactIds = [FirstId, _|_],
+            \+ duplicate_facts_restated(FactIds),
             length(FactIds, Count),
             atomic_list_concat(FactIds, ', ', FactText),
             format(string(Description),
@@ -458,6 +460,26 @@ duplicate_property_fact_violations(Violations) :-
         ),
         Violations
     ).
+
+%% duplicate_facts_restated(+FactIds)
+% True when every pair of the facts is grounded by two requirements linked by
+% restates or supersedes. A requirement that restates another in its own
+% words grounds its own fact (a fact carries the claim key of one wording),
+% so the twin on the same tuple is the restatement, not a claim minted twice.
+duplicate_facts_restated(FactIds) :-
+    forall(
+        (   append(_, [FactA|Rest], FactIds),
+            member(FactB, Rest)
+        ),
+        facts_restated(FactA, FactB)
+    ).
+
+facts_restated(FactA, FactB) :-
+    ground_link(ReqA, FactA),
+    ground_link(ReqB, FactB),
+    ReqA \== ReqB,
+    requirements_linked(ReqA, ReqB),
+    !.
 
 %% property_value_polarity(+Props, -Polarity)
 % The polarity of a property_value fact; an absent polarity means require.
