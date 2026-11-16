@@ -28,17 +28,17 @@ id: TEST-kibi-code-proof-kinds-typecheck
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-13c9f6823e7e6dc42a8246c3
+    receipt_id: PR-2ac970cd576799204c8251cc
     test_id: TEST-kibi-code-proof-kinds-typecheck
     scope: unit
     outcome: passed
-    code_snapshot: a53b64e2503a5f4d3d7c06143db681f7b397b0aa032324508a7f4f079979eb4f
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T13:40:23.565Z'
-    finished_at: '2026-10-28T13:40:25.277Z'
-    artifact_digest: 954bdbac4e51cf86350476ead276cebb8bfa745912943faaf04dab75474f9d2d
+    code_snapshot: 11f442c7ec4bb6d8777db81ff07ba6a13346fd4d39b9ff7058236e99adc44d21
+    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
+    started_at: '2026-11-16T12:23:37.996Z'
+    finished_at: '2026-11-16T12:23:56.702Z'
+    artifact_digest: 57a0a32e0d7704e27c251804647b7fbd6b59618c39cc94f5c0297939a79cad2b
     contract_hash: 5c5e6c891cebfed5cdaf90f417f85bc2be49c0b2b98c573d3a68e394e3fe5df2
-    binding_hash: 7f327f5bf1d7d330e4fcd4df69dae0ea6f85feac2cae1cb354f4339b7177c488
+    binding_hash: 9f4c521f1fc188ef5b26023b88bcb4b90713ff2147b9eaabde0be85f79b60d29
     fingerprint: 7b0d3807f8988e88403ec7d1583505fa629f273b63a58bc586447875e8b6832c
     fingerprint_components:
       contract: 5c5e6c891cebfed5cdaf90f417f85bc2be49c0b2b98c573d3a68e394e3fe5df2
@@ -70,12 +70,12 @@ proof_receipts:
         symbol_id: SYM-proof-kinds
       witness:
         path: packages/cli/tests/proofs/witness/proof-kind-levels.ts
-        sha256: c2a5b3a9bd3136ab98fb80d43b6f84baaa569f907b206cd033bd803546326d93
+        sha256: 0dcb3e79defb183bf10f07309f35ab49292aa18c1f55c30ff15a3d91b5e598ff
       compiler:
         name: tsc
         version: 5.9.3
       outcome: passed
-    certificate_digest: 2cd3ada745a61a77a6a5685aaa6a2df7860909e3c461aa0714606be14edb1c4c
+    certificate_digest: 02d70592d226a6caab929e530e3819e2c4fed81612dfa1e5792a5280c00f19be
     claim_bindings:
       - claim_key: CLAIM-AEDC5DE05A243DB4
         requirement_id: REQ-kibi-proof-kind-vocabulary
