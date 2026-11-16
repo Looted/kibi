@@ -5,6 +5,13 @@ import os from "node:os";
 import path from "node:path";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 
 import {
   captureReminder,
@@ -174,6 +181,37 @@ async function recordKbUpsert(
       tool_input: {},
     },
     { pluginData },
+  );
+}
+
+/** A current keeps receipt for computeTotal, spanning the whole file. */
+function writeKeepsReceipt(root: string): void {
+  const content = fs.readFileSync(path.join(root, "src/checkout.ts"), "utf8");
+  const lines = content.split("\n").length;
+  const file = path.join(
+    root,
+    firmEditReceiptPath(
+      "REQ-checkout-rounding",
+      "src/checkout.ts",
+      "computeTotal",
+    ) as string,
+  );
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(
+    file,
+    serializeFirmEditReceipt({
+      version: FIRM_EDIT_RECEIPT_VERSION,
+      requirementId: "REQ-checkout-rounding",
+      sourceFile: "src/checkout.ts",
+      symbol: "computeTotal",
+      verdict: "keeps",
+      note: "Still rounds to cents.",
+      statementHash: firmEditStatementHash("Checkout totals round to cents"),
+      codeHash: firmEditCodeHash(content, 1, lines) as string,
+      startLine: 1,
+      endLine: lines,
+      recordedAt: "2026-11-16T00:00:00.000Z",
+    }),
   );
 }
 
@@ -1680,6 +1718,14 @@ describe("ZCode decision guard", () => {
     expect(
       expectAdditionalContext(await event(edit, "s2"), "PreToolUse"),
     ).toStartWith(FIRM_NOTICE);
+  });
+
+  test("a current keeps receipt for the edited code stops the firm-edit notice", async () => {
+    const { event, edit, fixture } = session();
+    writeKeepsReceipt(fixture.cwd);
+    expect(JSON.stringify(await event(edit))).not.toContain(
+      "which implements a firm requirement",
+    );
   });
 
   test("a patch that only deletes implements comments gets no firm-edit notice; the same patch with a code change does", async () => {

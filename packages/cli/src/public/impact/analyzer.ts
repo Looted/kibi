@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import {
   createMaintenanceSourceAnalysisService,
@@ -17,6 +18,7 @@ import {
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
 } from "./diagnostics.js";
+import { createFirmEditGateDiagnostics } from "./firm-edit-gate.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
@@ -166,6 +168,18 @@ export async function analyzeChangedFileImpact(
       // A missing source file adds undefined, which names no file.
       .map((result) => result.sourceFile as string),
   );
+  const contentByFile = new Map(
+    sourceChanges.map((change) => [change.file, change.content]),
+  );
+  // A snapshot holds every endpoint its symbols link to.
+  const readRequirement = (id: string) =>
+    snapshotKnowledge
+      ? snapshotEntities.get(id)
+      : readWorkspaceRequirement(workspaceRoot, id);
+  const requirementChanged = (requirement: { source: string }) =>
+    snapshot
+      ? snapshot.inventory.some((file) => file.path === requirement.source)
+      : workspaceFileChanged(workspaceRoot, requirement.source);
   const impactDiagnostics =
     options.includeImpactDiagnostics === false
       ? []
@@ -182,17 +196,30 @@ export async function analyzeChangedFileImpact(
           ...createRequirementStatementDiagnostics({
             workspaceRoot,
             symbolsByFile,
-            // A snapshot holds every endpoint its symbols link to.
-            readRequirement: (id) =>
-              snapshotKnowledge
-                ? snapshotEntities.get(id)
-                : readWorkspaceRequirement(workspaceRoot, id),
-            requirementChanged: (requirement) =>
-              snapshot
-                ? snapshot.inventory.some(
-                    (file) => file.path === requirement.source,
-                  )
-                : workspaceFileChanged(workspaceRoot, requirement.source),
+            readRequirement,
+            requirementChanged,
+          }),
+          ...createFirmEditGateDiagnostics({
+            symbolsByFile,
+            readContent: (file) => contentByFile.get(file),
+            readRequirement,
+            requirementChanged,
+            readReceipt: (receiptPath) => {
+              try {
+                return snapshot
+                  ? snapshot
+                      .readGit(["show", `${snapshot.headTree}:${receiptPath}`])
+                      .toString("utf8")
+                  : // rationale: with the empty encoding Bun returns a Buffer,
+                    // which the receipt parser's JSON.parse reads as the
+                    // same text.
+                    // Stryker disable next-line StringLiteral
+                    readFileSync(path.join(workspaceRoot, receiptPath), "utf8");
+              } catch {
+                // A receipt that cannot be read counts as missing.
+              }
+              return undefined;
+            },
           }),
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeManifestResults,

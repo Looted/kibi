@@ -129,3 +129,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-232992485dfa
+  - type: assumes
+    from: SCEN-kibi-firm-edit-receipts
+    to: FACT-firm-edit-receipt-recorded
+    created_at: 2026-11-16T06:59:06.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7949d66456d9
+  - type: assumes
+    from: SCEN-kibi-firm-edit-receipts
+    to: FACT-firm-edit-receipt-stale
+    created_at: 2026-11-16T06:59:06.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb1efd7aac81
+  - type: verified_by
+    from: SCEN-kibi-firm-edit-receipts
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T06:59:06.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c0c991331c8

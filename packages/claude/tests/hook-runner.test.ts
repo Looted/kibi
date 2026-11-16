@@ -3,6 +3,13 @@ import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 
 import {
   CONFIRM_FIRM_EDITS_ENV,
@@ -1027,6 +1034,46 @@ describe("firm requirement confirmation", () => {
       (await raw("Edit", { ...removal, new_string: "  let total = 1;" }))
         .hookSpecificOutput?.permissionDecision,
     ).toBe("ask");
+  });
+
+  test("a current keeps receipt for the edited code is not put to the person", async () => {
+    const fixture = createKibiWorkspace();
+    const { raw } = firmSession(fixture);
+    const content = fs.readFileSync(
+      path.join(fixture.root, "src/checkout.ts"),
+      "utf8",
+    );
+    const lines = content.split("\n").length;
+    const receiptPath = path.join(
+      fixture.root,
+      firmEditReceiptPath(
+        "REQ-checkout-rounding",
+        "src/checkout.ts",
+        "computeTotal",
+      ) as string,
+    );
+    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+    fs.writeFileSync(
+      receiptPath,
+      serializeFirmEditReceipt({
+        version: FIRM_EDIT_RECEIPT_VERSION,
+        requirementId: "REQ-checkout-rounding",
+        sourceFile: "src/checkout.ts",
+        symbol: "computeTotal",
+        verdict: "keeps",
+        note: "Still rounds to cents.",
+        statementHash: firmEditStatementHash(
+          "Totals round half up to two decimals.",
+        ),
+        codeHash: firmEditCodeHash(content, 1, lines) as string,
+        startLine: 1,
+        endLine: lines,
+        recordedAt: "2026-11-16T00:00:00.000Z",
+      }),
+    );
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
   });
 
   test("once an edit was allowed the requirement is not asked about again; a declined edit is asked again", async () => {

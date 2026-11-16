@@ -328,3 +328,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e1dda6e1a032
+  - type: relates_to
+    from: REQ-agent-hosts-firm-edit-ask
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T07:01:16.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9d63abba54a
+  - type: specified_by
+    from: REQ-agent-hosts-firm-edit-ask
+    to: SCEN-agent-hosts-firm-edit-receipt
+    created_at: 2026-11-16T07:02:48.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54f36803a097
+  - type: verified_by
+    from: REQ-agent-hosts-firm-edit-ask
+    to: TEST-agent-hosts-firm-edit-receipt-notice
+    created_at: 2026-11-16T07:02:48.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55ef4c72ce70

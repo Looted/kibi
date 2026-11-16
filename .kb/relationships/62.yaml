@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b26e93ec59f8
+  - type: assumes
+    from: SCEN-NEG-signoff-firm-edit-receipts-UNLISTED
+    to: FACT-NEG-signoff-firm-edit-receipts-UNLISTED
+    created_at: 2026-11-16T07:00:12.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5b2d4501fd0
+  - type: verified_by
+    from: SCEN-NEG-signoff-firm-edit-receipts-UNLISTED
+    to: TEST-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:12.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24e673981ee6

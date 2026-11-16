@@ -1,26 +1,25 @@
 ---
 title: Codex, Cursor and ZCode pre-edit hooks ask before an edit of firm code
 status: open
-semantic_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent to ask the person before an edit that breaks that rule, once per requirement per session.
+semantic_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 5c1ededb1204df632125b393b9e5a149320d73e71b968168faee7aab99e92559
+semantic_source_hash: b53b4b90d6f2b211bcc9b773c14d2993fb1448b57d9516b736e3ad6c73d1c018
 semantic_inventory:
-  - claim_key: CLAIM-24C16C22D1A2FAC8
-    claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent to ask the person before an edit that breaks that rule, once per requirement per session
+  - claim_key: CLAIM-DD875FBC8AF85498
+    claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit
     role: normative
     status: modeled
     span:
       start: 0
-      end: 220
-    reason: Grounded by the linked fact with this claim key.
+      end: 274
 logic_claims:
-  - CLAIM-24C16C22D1A2FAC8
+  - CLAIM-DD875FBC8AF85498
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-04, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 2): "Approved"'
   approved_by: maintainer
-  recorded_at: '2026-11-04T18:20:35.769Z'
+  ref: 'Maintainer decision, 2026-11-16, approving the firm-edit receipt statements: "Yes, all of them"'
+  recorded_at: '2026-11-16T07:01:32.170Z'
 priority: should
 required_evidence: tested
 tags:
@@ -31,8 +30,10 @@ tags:
   - capture
 id: REQ-agent-hosts-firm-edit-ask
 type: req
+semantic_clauses:
+  - Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit.
 ---
-Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent to ask the person before an edit that breaks that rule, once per requirement per session.
+Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit.
 
 ## Context
 
@@ -42,8 +43,12 @@ The Claude Code plugin already asked before firm-requirement edits and asked for
 
 ## Why this changed
 
+Nov 16 2026: the notice now also tells the agent to record its keeps-or-changes verdict with kibi review-firm-edit, and it is skipped for a requirement whose touched code a current keeps receipt covers. The staged commit gate (REQ-kibi-staged-firm-edit-gate) reads that receipt on every host.
+
 Split from REQ-agent-hosts-decision-guard, which held three hook behaviors: the firm-edit ask, the rule prompt note and the stop capture. Each child is one of them.
 
 ## Source
+
+> Maintainer decision, 2026-11-16, approving the firm-edit receipt statements: "Yes, all of them"
 
 > Maintainer decision, 2026-11-04, approving the behavior splits of broad requirements in the KB gold-standard review (split batch 2): "Approved"

@@ -81,6 +81,7 @@ function createTrackedFixture(): FileMap {
 id: REQ-GREET-001
 title: Greeting behavior
 status: open
+firmness: default
 ---
 
 # Greeting behavior
@@ -150,6 +151,7 @@ function stageRequirementEvidence(root: string, note: string): void {
 id: REQ-GREET-001
 title: Greeting behavior
 status: open
+firmness: default
 ${semanticInventoryFrontmatter(note)}
 ---
 

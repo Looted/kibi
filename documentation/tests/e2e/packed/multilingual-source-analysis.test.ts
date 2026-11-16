@@ -522,6 +522,8 @@ async function runLanguageWorkflow(
         id: "REQ-source-analysis-v2-contract",
         title: "Staged multilingual source declarations have ownership",
         status: "active",
+        // Not a firm rule: the fixture edits its code without firm-edit receipts.
+        firmness: "default",
         created_at: "2026-09-26T00:00:00Z",
         updated_at: "2026-09-26T00:00:00Z",
         source: ".kb/requirements/REQ-source-analysis-v2-contract.md",
