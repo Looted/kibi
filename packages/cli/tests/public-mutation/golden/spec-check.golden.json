@@ -100,6 +100,11 @@
         "description": "When true, inspect staged source changes for impact diagnostics using the shared CLI impact analyzer without shelling out to kibi check.",
         "x-kibi-advertised-description": "When true, inspect staged source changes for impact diagnostics, as kibi check --staged does."
       },
+      "changed": {
+        "type": "boolean",
+        "description": "When true, run the commit gate (kibi check --staged) over the working tree plus the index, as a commit of every current change would be judged, without touching the real index; with sourceFiles, only those files and .kb are added. Returns commitAllowed and the gate's findings, each with blocks: \"commit\" when it refuses the commit or \"none\" when it is advice. Without changed, each finding carries blocks: \"merge\" (fails the full check run in CI), \"commit\" (a blocking impact diagnostic) or \"none\". Use after editing code, before finishing: it is the verdict git commit will give.",
+        "x-kibi-advertised-description": "When true, give the commit gate's verdict on every current change (commitAllowed, findings with blocks)."
+      },
       "includeWorkingTreeDiff": {
         "type": "boolean",
         "description": "When true, inspect current unstaged working-tree diffs for impact diagnostics. Pair with sourceFiles to scope the analysis.",
@@ -246,6 +251,31 @@
               "truncation": {
                 "type": "object",
                 "additionalProperties": true
+              },
+              "changed": {
+                "const": true,
+                "description": "Set by changed:true: the commit gate judged the working tree plus the index."
+              },
+              "commitAllowed": {
+                "type": "boolean",
+                "description": "changed:true only. True when a commit of these changes passes the commit gate."
+              },
+              "messages": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "staged": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "ownerFindings": {
+                "type": "array",
+                "items": {}
+              },
+              "operationalError": {
+                "type": "string"
               },
               "symbolDebt": {
                 "type": "object",

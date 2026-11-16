@@ -1067,6 +1067,31 @@
             "type": "object",
             "additionalProperties": true
           },
+          "changed": {
+            "const": true,
+            "description": "Set by changed:true: the commit gate judged the working tree plus the index."
+          },
+          "commitAllowed": {
+            "type": "boolean",
+            "description": "changed:true only. True when a commit of these changes passes the commit gate."
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "staged": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "ownerFindings": {
+            "type": "array",
+            "items": {}
+          },
+          "operationalError": {
+            "type": "string"
+          },
           "symbolDebt": {
             "type": "object",
             "additionalProperties": false,
