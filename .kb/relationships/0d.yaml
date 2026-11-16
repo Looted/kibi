@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-004229aceed3
+  - type: executable_for
+    from: SYM-proof-non-behavioral-symbol-roles
+    to: TEST-proof-non-behavioral-symbol-roles
+    created_at: 2026-11-16T11:03:57.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39b1e56443ff

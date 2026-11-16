@@ -26,6 +26,12 @@
     "module",
     "unknown"
   ],
+  "non_behavioral_roles": [
+    "structural",
+    "type-shape",
+    "config",
+    "module"
+  ],
   "role_inference": {
     "function": "behavioral",
     "class": "behavioral",

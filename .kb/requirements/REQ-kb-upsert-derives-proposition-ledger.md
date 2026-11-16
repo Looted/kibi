@@ -7,7 +7,7 @@ tags:
   - mutation
   - modeling
   - mcp
-semantic_text: kb_upsert must derive a requirement's ledger from its prose when the inventory check would refuse the write and the write sends none of semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims. A derived claim must be modeled only when a grounding link of the write targets a fact with its claim key. An unlinked derived claim must keep the status and subjects the write's semantic_inventory gives its claim key, otherwise those the stored ledger gives it. An assertive claim that neither classifies must be recorded as missing. A semantic_inventory entry whose claim key the prose does not state must be refused. A write that sends any of those four fields must be checked exactly as sent. A write the inventory check accepts must not be changed. The kb_upsert result must list each recorded claim's key, role, status and text. A committed kb_upsert must report the semantic advisor's verdict without its per-clause analysis.
+semantic_text: kb_upsert must derive a requirement's ledger from its prose when the inventory check would refuse the write and the write sends none of semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims. A derived claim must be modeled only when a grounding link of the write targets a fact with its claim key. An unlinked derived claim must keep the status and subjects the write's semantic_inventory gives its claim key, otherwise those the stored ledger gives it. An assertive claim that neither classifies must be recorded as missing. A semantic_inventory entry whose claim key the prose does not state must be refused. A write that sends any of those four fields must be checked exactly as sent. A write the inventory check accepts must not be changed. The kb_upsert result must list each recorded claim's key, role, status and text. A committed kb_upsert must report the semantic advisor's verdict without its per-clause analysis. The ledger fields whose presence makes a kb_upsert be checked as sent shall be semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims.
 semantic_clauses:
   - kb_upsert must derive a requirement's ledger from its prose when the inventory check would refuse the write and the write sends none of semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims.
   - A derived claim must be modeled only when a grounding link of the write targets a fact with its claim key.
@@ -18,9 +18,10 @@ semantic_clauses:
   - A write the inventory check accepts must not be changed.
   - The kb_upsert result must list each recorded claim's key, role, status and text.
   - A committed kb_upsert must report the semantic advisor's verdict without its per-clause analysis.
+  - The ledger fields whose presence makes a kb_upsert be checked as sent shall be semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: c67178a30bc1cf1c373a7b4ec5f209f3cd385468edc102049bbd336cee4bbed4
+semantic_source_hash: d97e099771132f63089e74532ab526873acd047fe5b60bd61bd486098857c507
 semantic_inventory:
   - claim_key: CLAIM-DFAD8D2664586FA4
     claim_text: kb_upsert must derive a requirement's ledger from its prose when the inventory check would refuse the write and the write sends none of semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims
@@ -85,6 +86,13 @@ semantic_inventory:
     span:
       start: 861
       end: 957
+  - claim_key: CLAIM-5519F3DAE9238E3D
+    claim_text: The ledger fields whose presence makes a kb_upsert be checked as sent shall be semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims
+    role: normative
+    status: modeled
+    span:
+      start: 959
+      end: 1126
 logic_claims:
   - CLAIM-DFAD8D2664586FA4
   - CLAIM-320FA9B472C8536C
@@ -95,6 +103,7 @@ logic_claims:
   - CLAIM-F3BBBE3D1887163C
   - CLAIM-3AD3F86F4349CD65
   - CLAIM-2204E041726276CF
+  - CLAIM-5519F3DAE9238E3D
 origin:
   kind: agent
   approved_by: maintainer
@@ -103,7 +112,7 @@ rationale: Agents sent requirement writes without the ledger, were refused with 
 id: REQ-kb-upsert-derives-proposition-ledger
 type: req
 ---
-kb_upsert must derive a requirement's ledger from its prose when the inventory check would refuse the write and the write sends none of semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims. A derived claim must be modeled only when a grounding link of the write targets a fact with its claim key. An unlinked derived claim must keep the status and subjects the write's semantic_inventory gives its claim key, otherwise those the stored ledger gives it. An assertive claim that neither classifies must be recorded as missing. A semantic_inventory entry whose claim key the prose does not state must be refused. A write that sends any of those four fields must be checked exactly as sent. A write the inventory check accepts must not be changed. The kb_upsert result must list each recorded claim's key, role, status and text. A committed kb_upsert must report the semantic advisor's verdict without its per-clause analysis.
+kb_upsert must derive a requirement's ledger from its prose when the inventory check would refuse the write and the write sends none of semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims. A derived claim must be modeled only when a grounding link of the write targets a fact with its claim key. An unlinked derived claim must keep the status and subjects the write's semantic_inventory gives its claim key, otherwise those the stored ledger gives it. An assertive claim that neither classifies must be recorded as missing. A semantic_inventory entry whose claim key the prose does not state must be refused. A write that sends any of those four fields must be checked exactly as sent. A write the inventory check accepts must not be changed. The kb_upsert result must list each recorded claim's key, role, status and text. A committed kb_upsert must report the semantic advisor's verdict without its per-clause analysis. The ledger fields whose presence makes a kb_upsert be checked as sent shall be semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims.
 
 ## Context
 
@@ -112,3 +121,5 @@ A requirement write had to carry its whole proposition ledger. When it did not, 
 ## Source
 
 Maintainer-approved statement (2026-11-15): "kb_upsert must derive a requirement's ledger from its prose when the inventory check would refuse the write and the write sends none of semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims. A derived claim must be modeled only when a grounding link of the write targets a fact with its claim key. An unlinked derived claim must keep the status and subjects the write's semantic_inventory gives its claim key, otherwise those the stored ledger gives it. An assertive claim that neither classifies must be recorded as missing. A semantic_inventory entry whose claim key the prose does not state must be refused. A write that sends any of those four fields must be checked exactly as sent. A write the inventory check accepts must not be changed. The kb_upsert result must list each recorded claim's key, role, status and text. A committed kb_upsert must report the semantic advisor's verdict without its per-clause analysis."
+
+Maintainer-approved addition (2026-11-16), naming the four fields as their own sentence so a certificate can prove the list: "The ledger fields whose presence makes a kb_upsert be checked as sent shall be semantic_inventory_version, semantic_source_field, semantic_source_hash and logic_claims."

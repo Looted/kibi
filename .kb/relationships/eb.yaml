@@ -244,6 +244,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-163386e93f05
+  - type: executable_for
+    from: SYM-proof-checked-as-sent-ledger-fields
+    to: TEST-proof-checked-as-sent-ledger-fields
+    created_at: 2026-11-16T11:03:14.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a8c5a1f399d
   - type: implements
     from: SYM-core-check-subject-key-identity
     to: REQ-check-restated-twin-facts
