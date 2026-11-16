@@ -42243,10 +42243,16 @@ symbols:
     title: PrologProcess
     status: active
     sourceFile: packages/cli/src/prolog.ts
-    symbol_role: structural
+    symbol_role: behavioral
     origin:
       kind: agent
       recorded_at: 2026-11-16T19:31:42.612Z
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
+      - type: implements
+        target: REQ-staged-gate-scratch-store
   - id: SYM-prolog-prolog-options
     title: PrologOptions
     sourceFile: packages/cli/src/prolog.ts
@@ -42977,3 +42983,16 @@ symbols:
         target: TEST-kibi-source-proof-kinds
       - type: implements
         target: REQ-kibi-env-reader-presence-tests
+  - id: SYM-changed-check-create-changed-gate-runner
+    title: createChangedGateRunner
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:41:23.930Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict
