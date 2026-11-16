@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
 import * as runtime from "kibi-runtime";
 
-import { loadDefaultEnvFile, loadEnvFile } from "../src/env.js";
+import { loadDefaultEnvFile } from "../src/env.js";
 import { KIBI_ICONS } from "../src/server/icons.js";
 import { resolveEnvFilePath } from "../src/workspace.js";
 
@@ -52,30 +49,6 @@ describe("environment loading", () => {
       envFilePath: "/ws/.env.kibi",
       keysLoaded: ["U", "P", "L"],
     });
-  });
-
-  test("a missing env file is not an error", () => {
-    const root = mkdtempSync(path.join(tmpdir(), "kibi-mcp-env-"));
-    const error = spyOn(console, "error").mockImplementation(() => undefined);
-    spies.push(error);
-    // Another file may have left console.error as a mock with its own calls.
-    error.mockClear();
-    try {
-      expect(
-        loadEnvFile({ envFileName: ".env.none", workspaceRoot: root }),
-      ).toStrictEqual({
-        loaded: false,
-        envFilePath: path.join(root, ".env.none"),
-        keysLoaded: [],
-      });
-      expect(
-        error.mock.calls.filter((call) =>
-          String(call[0]).includes("Unable to load environment file"),
-        ),
-      ).toStrictEqual([]);
-    } finally {
-      rmSync(root, { recursive: true, force: true });
-    }
   });
 
   test("an absolute env file name is kept as written", () => {

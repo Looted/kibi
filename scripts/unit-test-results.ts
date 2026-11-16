@@ -107,16 +107,6 @@ export function parseJunitFileResults(
   return results;
 }
 
-/** A file result the proof producer may reuse: it ran tests and all passed. */
-export function isCleanFileResult(result: FileTestResult | undefined): boolean {
-  return (
-    result !== undefined &&
-    result.tests > 0 &&
-    result.failures === 0 &&
-    result.skipped === 0
-  );
-}
-
 /** The commit and tracked-file state of `cwd`; unknown outside a git checkout. */
 export function gitIdentity(cwd = process.cwd()): GitIdentity {
   try {

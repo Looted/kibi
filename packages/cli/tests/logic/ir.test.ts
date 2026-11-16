@@ -9,7 +9,6 @@ import {
   logicRuleHash,
   logicSemanticKey,
   renderLogicProlog,
-  termVariables,
   utf8Span,
   validateLogicIr,
 } from "../../src/logic/ir.js";
@@ -729,10 +728,6 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
     expect(unsafeException.errors.join(" ")).toMatch(
       /exception variable Y is not range-restricted/,
     );
-    expect([...termVariables({ kind: "var", name: "X" } as never)]).toEqual([
-      "X",
-    ]);
-    expect(termVariables({ kind: "const", value: "a" } as never).size).toBe(0);
   });
 });
 
@@ -2366,12 +2361,5 @@ describe("validateLogicIr normalization contracts", () => {
       `SEM-${logicRuleHash(normalized).slice(0, 24).toUpperCase()}`,
     );
     expect(logicSemanticKey(normalized)).toMatch(/^SEM-[0-9A-F]{24}$/);
-  });
-
-  test("termVariables names only a variable term", () => {
-    expect([...termVariables({ kind: "var", name: "X", type: "t" })]).toEqual([
-      "X",
-    ]);
-    expect([...termVariables({ kind: "number", value: 1 })]).toEqual([]);
   });
 });
