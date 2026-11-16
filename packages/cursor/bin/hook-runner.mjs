@@ -1628,11 +1628,11 @@ function recordRequest(session, prompt) {
   return rule;
 }
 function sessionRulePhrase(session) {
+  let phrase = "";
   try {
-    return String(fs4.readFileSync(sessionPath(session, "rule-phrase"))) || undefined;
-  } catch {
-    return;
-  }
+    phrase = String(fs4.readFileSync(sessionPath(session, "rule-phrase")));
+  } catch {}
+  return phrase || undefined;
 }
 function claimRuleCaptureTemplate(session) {
   const phrase = sessionRulePhrase(session);

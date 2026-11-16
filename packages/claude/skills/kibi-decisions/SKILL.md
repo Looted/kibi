@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-decisions
   id: kibi-decisions
-  version: 1.11.0
+  version: 1.12.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
