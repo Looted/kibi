@@ -209,6 +209,10 @@ Timeout diagnostics include `stage=<name>` and the child PID. The stage is one o
 
 A tool that rejects its input with a Kibi error code, such as `kb_compile_intent` or `kb_model` mode `analyze` with a `clauses` entry that is not a verbatim fragment of the prose (`VALIDATION_FAILED`), returns `isError: true` with an error envelope in `structuredContent`: `status: "error"` and `error.code`, `error.message`, `error.retryable`. The CLI JSON route prints the same `error` for the same input (exit code 2 for input errors, 1 for operation errors). Branch on `error.code`, fix the input the message names, and call again; `retryable: false` means the same input fails again. The text content repeats the code: `Tool <name> failed: [<code>] <message>`.
 
+## Retrying a failed CLI JSON call (`retryable`)
+
+`error.retryable` says whether the same call, sent again unchanged, may succeed. A refusal is never retryable: a KB rejection (a validation failure, a contradiction, a firm-decision lock, a missing relationship endpoint), which the CLI JSON route reports as `OPERATION_FAILED`, and a refusal with its own code such as `SOURCE_PATH_INVALID`, `SOURCE_FORMAT_UNSUPPORTED`, `PROTOCOL_VALIDATION_FAILED` or `PROLOG_UNAVAILABLE`. Fix what the message names before calling again. `retryable: true` is kept for failures the same call may get past, such as `SOURCE_MUTATION_LOCK_TIMEOUT` while another writer holds the lock, or an `OPERATION_FAILED` that is not a rejection.
+
 ## Read stopped at its engine limit (`QUERY_LIMIT_EXCEEDED`)
 
 The read ran under `KIBI_ENGINE_READ_TIME_LIMIT_MS` or `KIBI_ENGINE_READ_INFERENCE_LIMIT` and was stopped before it computed an answer; `error.details.limitExceeded` names the `kind` (`time` or `inferences`) and the `limit`. Nothing was read partially and nothing was written. Narrow the request (a type, id, tag, or smaller page), or raise or unset the limit in the CLI or MCP server environment, then retry.

@@ -1,5 +1,5 @@
 import Ajv2020 from "ajv/dist/2020.js";
-import { InputError, OperationError } from "./cli-errors.js";
+import { InputError, OperationError, isKbRejection } from "./cli-errors.js";
 import { loadOperationSpec } from "./cli-operation-loader.js";
 import { isOperationName } from "./cli-operation-metadata.js";
 import { INTEGRATED_OPERATIONS } from "./cli-register-json.js";
@@ -213,15 +213,26 @@ export async function executeOperation(
     }
     if (error instanceof Error) {
       noteCliThrownError(error);
+      // A rejection refuses the input or the workspace state: the same call
+      // fails the same way until the agent fixes it. Any other failure is
+      // unexplained and may pass when repeated.
       return errorResult(
         catalogName,
-        new OperationError("OPERATION_FAILED", error.message),
+        new OperationError(
+          "OPERATION_FAILED",
+          error.message,
+          !isKbRejection(error),
+        ),
         spec,
       );
     }
     return errorResult(
       catalogName,
-      new OperationError("OPERATION_FAILED", "Operation failed unexpectedly."),
+      new OperationError(
+        "OPERATION_FAILED",
+        "Operation failed unexpectedly.",
+        true,
+      ),
       spec,
     );
   }
