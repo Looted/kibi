@@ -21,17 +21,17 @@ id: TEST-check-reports-symbol-debt
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-aead79ba95947d73766749bc
+    receipt_id: PR-c442a7d850f83f96ece0360a
     test_id: TEST-check-reports-symbol-debt
     scope: end_to_end
     outcome: passed
-    code_snapshot: 5434da306c269b06f3ab3332686aeca47fd3a0e8a998befaf06388d5c53900c8
+    code_snapshot: b441a6e8fcbbf95900ea594a22b66d3379943f5b04c9b75215f76c48ae417427
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T12:16:43.780Z'
-    finished_at: '2026-11-16T12:18:17.305Z'
-    artifact_digest: 18bc221c84bfdef0fd1b2db61bbc5f731cb456e0414e714a9ab13a65d1fd8b0f
+    started_at: '2026-11-16T17:44:08.387Z'
+    finished_at: '2026-11-16T17:45:45.366Z'
+    artifact_digest: 4e8a59ac683cd59e12502d42fe7e8b0b8b3beaedc24506532ed8cd3eeef6c16b
     contract_hash: 213ba1df2b7e8e432243f5a60abe2ad0cb478d462447d4f9f499211d4ccb9142
-    binding_hash: bb8b962121a5bd245b22b5a59fddc8eb8822acda1cc08ae29674d7aad55eb04f
+    binding_hash: c3692544b0dd419eee57f32bccb6ea60e2147acf89cbb9cc00973bc12d697c53
     fingerprint: cffbffa2c2ab0aa99686b627fb5184e2396dff68bee662c7f2ed7616030521d5
     fingerprint_components:
       contract: 213ba1df2b7e8e432243f5a60abe2ad0cb478d462447d4f9f499211d4ccb9142
