@@ -563,6 +563,8 @@ Return branch, snapshot, and freshness metadata for the attached KB, plus the de
 **Returns:**
 Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `proofSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v2` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove the proof stage. Receipt-only frontmatter edits do not change the v2 hash.
 
+`sessionBrief` is the Kibi session brief: search for the recorded intent before changing behaviour, record the person's decisions with their reason, run the commit check before finishing, and ask before a change that would make a recorded rule false. The host plugins add the same text at session start and the server returns it in its `initialize` instructions, so an agent on a host without hooks reads it too.
+
 The response also includes exact `branchAttachment` metadata, bounded sorted
 `staleReasons` (with affected entity IDs and truncation totals), and
 `proofSnapshotChanges`. Editor/config paths are reported as ordinary

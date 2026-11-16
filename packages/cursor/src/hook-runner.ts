@@ -38,6 +38,7 @@ import {
 } from "kibi-agent-core/hook-usage-log";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { classifyPath } from "kibi-agent-core/path-policy";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
   type LineRange,
   createEntitySummarizer,
@@ -331,10 +332,12 @@ export async function runHook(
             initialState.mcpState,
             workspaceTrusted,
           );
-          const context = [advisory, missingHooksNote(cwd)]
-            .filter((line): line is string => Boolean(line))
-            .join("\n");
-          return context ? { additional_context: context } : emptyResult();
+          return {
+            additional_context: sessionBriefWith([
+              advisory ?? "",
+              missingHooksNote(cwd) ?? "",
+            ]),
+          };
         }
 
       case "preToolUse": {

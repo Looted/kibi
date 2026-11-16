@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import { serverInstructions } from "../../src/server.js";
 import {
   BOOTSTRAP_TOOLS,
@@ -163,16 +164,14 @@ describe("MCP tool profile", () => {
     const full = serverInstructions();
     expect(full).toBe(
       [
-        "Kibi is a branch-local requirements knowledge base for software traceability.",
-        "Start with kb_search (ask it a question; its answer layer names the governing requirements, facts, ADRs and tests), then kb_query for exact lookups before any mutation.",
-        "Model requirements as linked facts via kb_model (mode requirement) or kb_upsert (create endpoints before linking them); preflight writes with kb_upsert dryRun:true.",
-        "Mutate sequentially with kb_upsert and kb_delete; validate with kb_check during iteration and run an unfiltered kb_check before completion.",
-        "Confirm branch freshness with kb_status. For first-time repository setup, use the kibi-bootstrap prompt.",
-      ].join(" "),
+        SESSION_BRIEF,
+        "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_upsert writes; kb_check validates; kb_status reports freshness.",
+        "Workflow guidance: kb_skills with action load and id kibi-usage. For first-time repository setup, use the kibi-bootstrap prompt.",
+      ].join("\n"),
     );
     const listed = serverInstructions(new Set(["kb_search", "kb_query"]));
     expect(listed).toBe(
-      `${full} This server lists kb_search, kb_query. The other Kibi operations (kb_status, kb_skills, kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_upsert, kb_delete, kb_check, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.`,
+      `${full}\nThis server lists kb_search, kb_query. The other Kibi operations (kb_status, kb_skills, kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_upsert, kb_delete, kb_check, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.`,
     );
     // An optional tool enabled by name is listed, so it is not sent to the CLI.
     const withSparql = serverInstructions(

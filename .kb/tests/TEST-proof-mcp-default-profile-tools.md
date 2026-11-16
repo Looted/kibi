@@ -26,15 +26,15 @@ id: TEST-proof-mcp-default-profile-tools
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-9c7884d18a838f594270bcf1
+    receipt_id: PR-94deceb8f511338c70c6fbff
     test_id: TEST-proof-mcp-default-profile-tools
     scope: unit
     outcome: passed
-    code_snapshot: 45bcc619c483ed0ef2d8e246f4a715a4e9684ee4d25622339e7dc798197ba4b4
+    code_snapshot: e2c40d42d8dd76f889eb95ae616cbeb2c38c0bf586612fa659b8ea469ecc482c
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T22:39:10.479Z'
-    finished_at: '2026-11-16T22:39:20.520Z'
-    artifact_digest: 1b3dd42b57940e3df9decc0ed893fe39b09cf1ea82c89ad834d1034f68d014fe
+    started_at: '2026-11-16T23:07:07.876Z'
+    finished_at: '2026-11-16T23:07:25.483Z'
+    artifact_digest: c76441d57826638b1dbbf1775267472540eb475414eb4eb4870b3b2b6a4c9468
     contract_hash: 748868771407641b861df786517892142442a0c3b8ea44be077cc0852193a0bb
     binding_hash: 85c678eef39cbce6800817a210aa4756379dd6276d1e585b3ccd1d8e298f7179
     fingerprint: cf699a7752c87deafdf3607c4138c003d36498517497afb65c7f8a1440476f82

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 
 import * as diagnostics from "../../src/diagnostics.js";
 import * as env from "../../src/env.js";
@@ -101,8 +102,13 @@ describe("startServer", () => {
       "kb_skills",
     ]);
     expect(inner._instructions).toBe(serverInstructions(listed));
-    expect(String(inner._instructions)).toStartWith(
-      "Kibi is a branch-local requirements knowledge base for software traceability.",
+    expect(inner._instructions).toBe(
+      [
+        SESSION_BRIEF,
+        "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_upsert writes; kb_check validates; kb_status reports freshness.",
+        "Workflow guidance: kb_skills with action load and id kibi-usage. For first-time repository setup, use the kibi-bootstrap prompt.",
+        "This server lists kb_search, kb_query, kb_upsert, kb_check, kb_status, kb_skills. The other Kibi operations (kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_delete, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.",
+      ].join("\n"),
     );
     expect(
       (tools.registerAllTools as unknown as { mock: { calls: unknown[][] } })

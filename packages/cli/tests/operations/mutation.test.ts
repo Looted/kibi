@@ -523,6 +523,81 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  test("partial semantic_inventory entries are completed from the prose", async () => {
+    const { context, save } = createContext((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction(")
+        ? { success: true, bindings: {} }
+        : { success: false, bindings: {} },
+    );
+    const text = "System must support OAuth2 authentication.";
+    const properties = {
+      title: "OAuth support",
+      status: "open",
+      semantic_text: text,
+    };
+    const [claim] = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-PARTIAL",
+        properties,
+        relationships: [],
+      },
+    }).receipt.propositions;
+    const sent = (status: string, id = "REQ-PARTIAL", extra = {}) =>
+      validateUpsertSpec.execute(
+        {
+          type: "req",
+          id,
+          properties: {
+            ...properties,
+            ...extra,
+            semantic_inventory: [
+              { claim_key: claim?.claim_key, status, subjects: ["oauth"] },
+            ],
+          },
+        },
+        context,
+      );
+    const result = await sent("ontology_gap");
+    expect(result.structuredContent?.errors ?? []).toEqual([]);
+    expect(result.structuredContent?.inventoryApplied).toEqual([
+      expect.objectContaining({
+        claim_key: claim?.claim_key,
+        status: "ontology_gap",
+      }),
+    ]);
+    expect(result.structuredContent?.normalizedPreview).toMatchObject({
+      semantic_inventory: [
+        expect.objectContaining({
+          claim_key: claim?.claim_key,
+          claim_text: claim?.claim_text,
+          status: "ontology_gap",
+          subjects: ["oauth"],
+        }),
+      ],
+    });
+    // An entry outside the partial shape is validated as a full entry.
+    const invalid = await sent("bogus");
+    expect(invalid.structuredContent).toMatchObject({ valid: false });
+    expect(invalid.structuredContent?.errors.join(" ")).toContain(
+      "must have required property 'claim_text'",
+    );
+    // Entries Kibi does not complete (the write sends a contract field) are
+    // validated as the entity they would be.
+    for (const extra of [
+      { semantic_source_field: "semantic_text" },
+      // A retired requirement is not current: Kibi derives no inventory.
+      { status: "retired", retired_reason: "Replaced." },
+    ]) {
+      const unfilled = await sent("ontology_gap", "REQ-PARTIAL-AS-SENT", extra);
+      expect(unfilled.structuredContent).toMatchObject({ valid: false });
+      expect(unfilled.structuredContent?.errors.join(" ")).toContain(
+        "must have required property 'claim_text'",
+      );
+    }
+    expect(save).not.toHaveBeenCalled();
+  });
+
   test("a requirement that sends part of its inventory is judged as sent", async () => {
     const { context, save } = createContext((goal) =>
       goal.startsWith("kb_preview_upsert_contradiction(")

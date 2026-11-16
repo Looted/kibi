@@ -327,7 +327,7 @@ describe("registerConfiguredTools, exact", () => {
   });
 
   test("upsert and delete run the shared executors with the session engine", async () => {
-    const upsert = stub(runtimeModule, "executeUpsert");
+    const upsert = stub(runtimeModule, "executeUpsertRequest");
     const del = stub(runtimeModule, "executeDelete");
     const { registered } = setup();
     const args = { id: "X" };

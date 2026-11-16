@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-init-gemini-instructions",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/commands/agent-instructions-mutation.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/commands/fresh-clone-setup.test.ts"
+    ]
+  ]
+}
