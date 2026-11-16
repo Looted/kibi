@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c466847fc104
+  - type: implements
+    from: SYM-cli-operation-field-reference
+    to: REQ-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:25.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e24247264e5e
+  - type: covered_by
+    from: SYM-cli-operation-field-reference
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:25.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e11f25c92380

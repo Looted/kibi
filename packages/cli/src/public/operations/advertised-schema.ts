@@ -1,16 +1,34 @@
 /**
  * Operation input schemas carry every field's full JSON Schema, which the
- * CLI JSON route and the MCP server validate input against. Some fields hold
- * large nested contracts that agents rarely author by hand (proof contracts
- * and receipts). Advertising them in full costs every MCP session the same
- * tens of thousands of tokens, so such a field is marked with
- * {@link ADVERTISED_SUMMARY} and advertised as a one-line stub instead. The
- * full contract still validates the input, and a rejection under a marked
- * field returns that field's full schema.
+ * CLI JSON route and the MCP server validate input against. Every MCP session
+ * pays for the advertised schemas, so three things are trimmed there:
+ *
+ * - A field holding a large nested contract that agents rarely author by
+ *   hand (proof contracts and receipts) is marked with
+ *   {@link ADVERTISED_SUMMARY} and advertised as a one-line stub. A rejection
+ *   under a marked field returns that field's full schema.
+ * - A field whose description runs long is marked with
+ *   {@link ADVERTISED_DESCRIPTION} and advertised with that short description;
+ *   the full one stays in the catalog and in the generated kibi-usage
+ *   resource `operation-fields`, which kb_skills reads.
+ * - A choice among string constants (`anyOf` of `{type, const}`) is
+ *   advertised as the equivalent `enum`.
+ *
+ * The full schema still validates the input.
  */
 
 /** Marks a schema node advertised as a stub; the value is its one-line summary. */
 export const ADVERTISED_SUMMARY = "x-kibi-advertised-summary";
+
+/**
+ * Marks a schema node whose description is advertised in short; the value is
+ * that short description, at most {@link ADVERTISED_DESCRIPTION_LIMIT}
+ * characters.
+ */
+export const ADVERTISED_DESCRIPTION = "x-kibi-advertised-description";
+
+/** The longest description the MCP server advertises for an input field. */
+export const ADVERTISED_DESCRIPTION_LIMIT = 120;
 
 type SchemaNode = Readonly<Record<string, unknown>>;
 
@@ -28,16 +46,50 @@ function stub(node: SchemaNode, summary: string): SchemaNode {
     : { type: "object", description: summary };
 }
 
-/** `schema` with every marked node replaced by its stub. */
+/** The constants of an `anyOf` whose every branch is a string constant. */
+function stringConstants(value: unknown): string[] | undefined {
+  if (!Array.isArray(value) || value.length === 0) return undefined;
+  const constants: string[] = [];
+  for (const branch of value) {
+    if (
+      !isNode(branch) ||
+      Object.keys(branch).length !== 2 ||
+      branch.type !== "string" ||
+      typeof branch.const !== "string"
+    )
+      return undefined;
+    constants.push(branch.const);
+  }
+  return constants;
+}
+
+/**
+ * `schema` as the MCP server advertises it: every stub-marked node replaced
+ * by its stub, every short description in place of its full one, and every
+ * choice among string constants as an `enum`.
+ */
 export function advertisedInputSchema<T>(schema: T): T {
   const walk = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(walk);
     if (!isNode(value)) return value;
     const summary = value[ADVERTISED_SUMMARY];
     if (typeof summary === "string") return stub(value, summary);
-    return Object.fromEntries(
-      Object.entries(value).map(([key, child]) => [key, walk(child)]),
-    );
+    const entries: [string, unknown][] = [];
+    for (const [key, child] of Object.entries(value)) {
+      if (key === ADVERTISED_DESCRIPTION) continue;
+      const constants = key === "anyOf" ? stringConstants(child) : undefined;
+      if (constants !== undefined) {
+        entries.push(["type", "string"], ["enum", constants]);
+      } else if (
+        key === "description" &&
+        typeof value[ADVERTISED_DESCRIPTION] === "string"
+      ) {
+        entries.push([key, value[ADVERTISED_DESCRIPTION]]);
+      } else {
+        entries.push([key, walk(child)]);
+      }
+    }
+    return Object.fromEntries(entries);
   };
   return walk(schema) as T;
 }

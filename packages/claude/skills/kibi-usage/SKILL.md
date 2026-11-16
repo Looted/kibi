@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: Kibi Usage
   id: kibi-usage
-  version: 2.49.1
+  version: 2.50.1
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -28,6 +28,7 @@ metadata:
     - resources/logic-ir.md
     - resources/kb-improvement.md
     - resources/kb-quality.md
+    - resources/operation-fields.md
 ---
 # Kibi Usage
 
@@ -73,6 +74,9 @@ printf '%s\n' '{"query":"checkout","limit":10}' | npx --no-install kibi search -
 
 Read `resources/operation-access.md` for the route, result version, effects,
 mutability, and Prolog requirements of each operation.
+The MCP tool list gives long field rules in one short line. Read
+`resources/operation-fields.md` for a field's full rule before relying on a
+detail the short line leaves out.
 
 ## Working in a git worktree or another directory
 

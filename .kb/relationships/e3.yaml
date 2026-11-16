@@ -398,3 +398,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80dc42c0ee10
+  - type: assumes
+    from: SCEN-mcp-short-field-descriptions
+    to: FACT-mcp-field-descriptions-over-limit
+    created_at: 2026-11-16T06:40:13.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-613f26238674
+  - type: assumes
+    from: SCEN-mcp-short-field-descriptions
+    to: FACT-mcp-field-descriptions-missing-from-skills
+    created_at: 2026-11-16T06:40:13.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a84d07fe1ff1
+  - type: verified_by
+    from: SCEN-mcp-short-field-descriptions
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:13.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fb304f8b994

@@ -25,6 +25,7 @@ import {
 } from "../symbol-repair-plan.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 import { readWorkspaceSnapshot } from "../workspace-snapshot.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 const ENTITY_TYPES = [
   "req",
@@ -217,6 +218,8 @@ export const findGapsSpec = {
         items: { type: "string" },
         description:
           "Relationship types the entity must have none of, in either direction, for example specified_by or verified_by. verified_by and validates satisfy each other.",
+        [ADVERTISED_DESCRIPTION]:
+          "Relationship types the entity must have none of, e.g. specified_by or verified_by.",
       },
       presentRelationships: {
         type: "array",
@@ -229,6 +232,8 @@ export const findGapsSpec = {
         items: { type: "string" },
         description:
           "Keep entities carrying any of these metadata tags. Bootstrap provenance stubs appear in rows only when this names bootstrap:provenance-stub.",
+        [ADVERTISED_DESCRIPTION]:
+          "Keep entities carrying any of these metadata tags.",
       },
       sourceFile: {
         type: "string",
@@ -532,6 +537,8 @@ export const coverageSpec = {
         default: "req",
         description:
           "Report shape: req gives per-requirement proof status and a repair plan, symbol gives per-symbol ownership coverage, type gives counts per entity type.",
+        [ADVERTISED_DESCRIPTION]:
+          "Report shape: req (proof status and repair plan), symbol (ownership coverage) or type (counts per type).",
       },
       tags: {
         type: "array",
@@ -553,6 +560,8 @@ export const coverageSpec = {
         },
         description:
           "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
+        [ADVERTISED_DESCRIPTION]:
+          "req mode: include only rows whose proofStatus is listed. The summary always covers the whole KB.",
       },
       includeTransitive: {
         type: "boolean",
@@ -673,6 +682,8 @@ export const graphSpec = {
         items: { type: "string" },
         description:
           "Relationship types to follow, for example specified_by, verified_by or implements. Omit to follow every relationship type.",
+        [ADVERTISED_DESCRIPTION]:
+          "Relationship types to follow, e.g. specified_by, verified_by or implements. Omit to follow every type.",
       },
       direction: {
         type: "string",
@@ -693,6 +704,8 @@ export const graphSpec = {
         items: { type: "string" },
         description:
           "Keep only nodes of these types (req, scenario, test, adr, flag, event, symbol, fact) in the result, and the edges between them. Traversal still passes through other types.",
+        [ADVERTISED_DESCRIPTION]:
+          "Keep only nodes of these types and the edges between them; traversal still passes through other types.",
       },
       maxNodes: {
         type: "integer",

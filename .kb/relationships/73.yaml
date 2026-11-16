@@ -342,3 +342,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ffc99178c035
+  - type: implements
+    from: SYM-cli-shortened-fields
+    to: REQ-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:29.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b662c3d5d88
+  - type: covered_by
+    from: SYM-cli-shortened-fields
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:29.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7d0007970e4

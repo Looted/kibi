@@ -10,6 +10,7 @@ import { publicCapabilityStamp } from "../../../plugins/compose-semantic-classif
 import { firstSentence } from "../../../utils/first-sentence.js";
 import type { OperationContext, PrologPort } from "../runtime-types.js";
 import type { OperationSpec } from "../types.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 type AnalysisInput = Parameters<
   typeof analyzeSemanticAdvisorInputWithPlugins
@@ -214,12 +215,16 @@ export const semanticAdvisorSpec = {
         items: { type: "string" },
         description:
           "Optional complete list of atomic requirement clauses supplied by the caller. Each clause must be a verbatim fragment of text (whitespace may differ); a clause that does not occur in text fails the call with VALIDATION_FAILED naming it. Use this for compound prose so every normative clause receives a stable claim key and independent grounding review.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional complete list of atomic clauses; each must be a verbatim fragment of text.",
       },
       interpretations: {
         type: "array",
         maxItems: 3,
         description:
           "Optional host-LLM typed kibi.logic.v1 interpretations. Kibi validates and canonicalizes them; raw Prolog is not accepted.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional typed kibi.logic.v1 interpretations from the host model; raw Prolog is not accepted.",
         items: {
           type: "object",
           required: ["claim_key", "claim_text", "ir"],
@@ -247,6 +252,8 @@ export const semanticAdvisorSpec = {
         default: "req",
         description:
           "Entity type context for analysis. Requirement, domain-fact, and supporting prose all receive a proposition ledger; only requirements receive deterministic modeling suggestions.",
+        [ADVERTISED_DESCRIPTION]:
+          "Entity type context for analysis; only requirements receive deterministic modeling suggestions.",
       },
       id: {
         type: "string",

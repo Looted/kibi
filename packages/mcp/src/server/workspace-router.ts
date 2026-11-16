@@ -68,7 +68,7 @@ export const WORKSPACE_ROOT_ARGUMENT = "workspaceRoot";
 export const WORKSPACE_ROOT_SCHEMA = {
   type: "string",
   description:
-    "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+    "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
 } as const;
 
 /** Mirror of the runtime's workspace env keys; any of them pins the server. */
