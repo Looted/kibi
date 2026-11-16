@@ -215,7 +215,7 @@ jobs:
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: >-
           bun run scripts/change-to-proof-eval.ts --repo-kb
-          documentation/evaluations/change-to-proof/repo-search-gold.v3.jsonl
+          documentation/evaluations/change-to-proof/repo-search-gold.v4.jsonl
           --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
 
       # Reworded questions the lexical ranker misses: with the repository's

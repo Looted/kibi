@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a41db5d45fa2
+  - type: assumes
+    from: SCEN-NEG-upsert-lists-sibling-requirements-UNLISTED
+    to: FACT-NEG-upsert-lists-sibling-requirements-UNLISTED
+    created_at: 2026-11-16T19:17:14.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-351d5feaa5b6
+  - type: verified_by
+    from: SCEN-NEG-upsert-lists-sibling-requirements-UNLISTED
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:14.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-343020e04d54

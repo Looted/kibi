@@ -538,3 +538,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-815eced38766
+  - type: implements
+    from: SYM-core-kb-check-fact-contradiction
+    to: REQ-upsert-refuses-fact-contradiction
+    created_at: 2026-11-16T19:17:39.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e31801b3f4ee
+  - type: covered_by
+    from: SYM-core-kb-check-fact-contradiction
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:39.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9917ffd35d5a
