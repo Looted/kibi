@@ -3,14 +3,16 @@ title: Symbol traceability and coverage judge behavioral symbols only
 status: open
 priority: must
 required_evidence: tested
-semantic_text: The symbol-traceability and symbol-coverage rules must not flag a symbol whose symbol_role is structural, type-shape, config or module and that has no implements link.
+semantic_text: The symbol-traceability and symbol-coverage rules must not flag a symbol whose symbol_role is structural, type-shape, config or module and that has no implements link. The non-behavioral symbol roles shall be structural, type-shape, config and module.
 semantic_clauses:
   - The symbol-traceability and symbol-coverage rules must not flag a symbol whose symbol_role is structural, type-shape, config or module and that has no implements link.
+  - The non-behavioral symbol roles shall be structural, type-shape, config and module.
 logic_claims:
   - CLAIM-776AC7F4344BC49C
+  - CLAIM-42CC2399770CE6B0
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 3e202daf2c62a9a8ba66c891ebf8f267df95cd01369c0a7776a1991f9b52787a
+semantic_source_hash: 71ffdbf7450f42fa137a2a255fbed10be9b789ea661b3b3025f4b5f8e3d9552f
 semantic_inventory:
   - claim_key: CLAIM-776AC7F4344BC49C
     claim_text: The symbol-traceability and symbol-coverage rules must not flag a symbol whose symbol_role is structural, type-shape, config or module and that has no implements link
@@ -19,7 +21,13 @@ semantic_inventory:
     span:
       start: 0
       end: 166
-    reason: Grounded by the linked fact with this claim key.
+  - claim_key: CLAIM-42CC2399770CE6B0
+    claim_text: The non-behavioral symbol roles shall be structural, type-shape, config and module
+    role: normative
+    status: modeled
+    span:
+      start: 168
+      end: 250
 tags:
   - symbols
   - traceability
@@ -32,7 +40,7 @@ origin:
 id: REQ-symbol-traceability-behavioral-only
 type: req
 ---
-The symbol-traceability and symbol-coverage rules must not flag a symbol whose symbol_role is structural, type-shape, config or module and that has no implements link.
+The symbol-traceability and symbol-coverage rules must not flag a symbol whose symbol_role is structural, type-shape, config or module and that has no implements link. The non-behavioral symbol roles shall be structural, type-shape, config and module.
 
 ## Context
 
@@ -41,3 +49,5 @@ A benchmark run of agents working in an onboarded open-source repository showed 
 ## Source
 
 > Maintainer, in review on 2026-11-16: approved this requirement statement in its reworded form.
+
+Maintainer-approved addition (2026-11-16), naming the set as its own sentence so a certificate can prove it: "The non-behavioral symbol roles shall be structural, type-shape, config and module."

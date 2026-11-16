@@ -7,10 +7,11 @@ tags:
   - mcp
   - skills
   - context-cost
-semantic_text: The MCP server must advertise each operation input field with a description of at most 120 characters. The full description of every operation input field must be readable through kb_skills.
+semantic_text: The MCP server must advertise each operation input field with a description of at most 120 characters. The full description of every operation input field must be readable through kb_skills. The advertised field description limit shall be 120 characters.
 semantic_clauses:
   - The MCP server must advertise each operation input field with a description of at most 120 characters.
   - The full description of every operation input field must be readable through kb_skills.
+  - The advertised field description limit shall be 120 characters.
 origin:
   kind: agent
   approved_by: maintainer
@@ -18,7 +19,7 @@ origin:
 rationale: Field descriptions were about 46,000 characters of the tool list every MCP session loads, while an agent needs most of them only for the field it is filling.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: ad4ef78ca29427e514de7484e559f89e96b0d542b111300b20806abf4ad07974
+semantic_source_hash: 7ee67b6356ec4aa6878abc871e8003b9e6337f707708ed42183fbcfe7e7d6395
 semantic_inventory:
   - claim_key: CLAIM-EE10A46F8437DC8F
     claim_text: The MCP server must advertise each operation input field with a description of at most 120 characters
@@ -34,13 +35,21 @@ semantic_inventory:
     span:
       start: 103
       end: 189
+  - claim_key: CLAIM-AF257391602037F6
+    claim_text: The advertised field description limit shall be 120 characters
+    role: normative
+    status: modeled
+    span:
+      start: 191
+      end: 253
 logic_claims:
   - CLAIM-EE10A46F8437DC8F
   - CLAIM-6FE4AFC8E9590AF7
+  - CLAIM-AF257391602037F6
 id: REQ-mcp-short-field-descriptions
 type: req
 ---
-The MCP server must advertise each operation input field with a description of at most 120 characters. The full description of every operation input field must be readable through kb_skills.
+The MCP server must advertise each operation input field with a description of at most 120 characters. The full description of every operation input field must be readable through kb_skills. The advertised field description limit shall be 120 characters.
 
 ## Context
 
@@ -49,3 +58,5 @@ Every MCP session loads the input schemas of all Kibi tools into the model's con
 ## Source
 
 Maintainer-approved statement (2026-11-16): "The MCP server must advertise each operation input field with a description of at most 120 characters. The full description of every operation input field must be readable through kb_skills."
+
+Maintainer-approved addition (2026-11-16), stating the limit as its own sentence so a certificate can prove it: "The advertised field description limit shall be 120 characters."
