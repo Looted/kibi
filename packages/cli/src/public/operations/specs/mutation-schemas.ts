@@ -177,9 +177,9 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "string",
       minLength: 1,
       description:
-        "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent; not part of the checked meaning.",
+        "Requirement-only. Why the requirement exists, in one or two sentences in the words of whoever stated the intent. Send it in the same write whenever they gave a reason, and never write one of your own; not part of the checked meaning.",
       [ADVERTISED_DESCRIPTION]:
-        "Requirement-only: why the requirement exists, from whoever stated the intent; not part of the checked meaning.",
+        "Requirement-only: why it exists, in the stater's words; send it in the same write when they gave one, never invent one.",
     },
     exempts_claims: {
       type: "array",
