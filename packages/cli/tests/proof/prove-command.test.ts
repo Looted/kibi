@@ -180,12 +180,34 @@ describe("proveCommand", () => {
 
   test("fails when proof integrations are missing", async () => {
     await withTempWorkspace(async (dir) => {
+      const extra = `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`;
       await expect(
+        proveCommand(
+          { all: true, workspaceRoot: dir },
+          {
+            runtime: fakeRuntime(dir, async () =>
+              resultsFor([entityRow("TEST-001", extra)]),
+            ),
+          },
+        ),
+      ).rejects.toThrow("No proof integration configuration");
+    });
+  });
+
+  test("reports an empty selection without proof integrations", async () => {
+    await withTempWorkspace(async (dir) => {
+      const { value, output } = await captureStdout(() =>
         proveCommand(
           { all: true, workspaceRoot: dir },
           { runtime: fakeRuntime(dir, async () => resultsFor([])) },
         ),
-      ).rejects.toThrow("No proof integration configuration");
+      );
+      expect(value.exitCode).toBe(0);
+      expect(JSON.parse(output)).toMatchObject({
+        passed: 0,
+        failed: 0,
+        message: "no proof-bearing tests selected",
+      });
     });
   });
 
