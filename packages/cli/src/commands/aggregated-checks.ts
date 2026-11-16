@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
-import { escapeAtom, toPrologAtom } from "../prolog/codec.js";
+import { toPrologAtom, useCoreModuleGoal } from "../prolog/codec.js";
 import type { Violation } from "./check.js";
 
 interface JsonViolation {
@@ -108,7 +108,7 @@ function aggregatedChecksQuery(
   const goal = `(   ${transport}
     ;   ${fileOnly}${answer}
     )`;
-  return `(use_module('${escapeAtom(checksPlPath)}'), ${ontologyQualityOverridesGoal()}, ${schemaScopedGoal(goal, schemaVersion)})`;
+  return `(${useCoreModuleGoal(checksPlPath)}, ${ontologyQualityOverridesGoal()}, ${schemaScopedGoal(goal, schemaVersion)})`;
 }
 
 /**

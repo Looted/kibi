@@ -7860,5 +7860,31 @@
         "documentation/tests/e2e/packed/check-symbol-debt.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-engine-client-core-modules-from-engine",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "130000",
+        "./packages/cli/tests/prolog/core-module-goal.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-permission-error-names-refusal",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/prolog/permission-error-message.e2e.test.ts",
+        "./packages/cli/tests/prolog/error-terms-parse.test.ts",
+        "./packages/cli/tests/prolog/error-terms.test.ts"
+      ]
+    ]
   }
 ]

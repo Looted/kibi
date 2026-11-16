@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31575a0f656f
+  - type: verified_by
+    from: SCEN-NEG-prolog-permission-error-names-refusal-SHOWN-AS-LOCK
+    to: TEST-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T09:59:49.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45422a599016
+  - type: assumes
+    from: SCEN-NEG-prolog-permission-error-names-refusal-SHOWN-AS-LOCK
+    to: FACT-NEG-prolog-permission-error-names-refusal-SHOWN-AS-LOCK
+    created_at: 2026-11-16T09:59:49.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df2269d52cd

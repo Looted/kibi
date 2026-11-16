@@ -20,7 +20,7 @@ import path from "node:path";
 import { rankSubjectCandidates } from "kibi-plugin-builtin";
 import { contextProse } from "../../entity-body-context.js";
 import { resolveKbPlPath } from "../../prolog.js";
-import { escapeAtom, toPrologAtom } from "../../prolog/codec.js";
+import { toPrologAtom, useCoreModuleGoal } from "../../prolog/codec.js";
 import { readAuthoredEntity } from "../../public/operations/entity-context.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import {
@@ -263,12 +263,12 @@ async function readUnpairedReviewPartners(
   withIds: readonly string[],
 ): Promise<string[]> {
   if (withIds.length === 0) return [];
-  const modulePath = escapeAtom(
+  const loadGoal = useCoreModuleGoal(
     path.join(path.dirname(resolveKbPlPath()), "domain_subjects.pl"),
   );
   const req = toPrologAtom(reqId);
   const result = await prolog.query(
-    `(use_module(library(http/json)), use_module('${modulePath}'), kb:current_req(${req}), findall(W, (member(W, [${withIds.map(toPrologAtom).join(",")}]), W \\== ${req}, kb:current_req(W), \\+ ( call(domain_subjects:requirement_subject_pair(${req}, W, _)) ; call(domain_subjects:requirement_subject_pair(W, ${req}, _)) ; kb:kb_relationship(relates_to, ${req}, W) ; kb:kb_relationship(relates_to, W, ${req}) )), Found), sort(Found, Unpaired), with_output_to(string(Json), json_write(current_output, Unpaired, [width(0)])))`,
+    `(use_module(library(http/json)), ${loadGoal}, kb:current_req(${req}), findall(W, (member(W, [${withIds.map(toPrologAtom).join(",")}]), W \\== ${req}, kb:current_req(W), \\+ ( call(domain_subjects:requirement_subject_pair(${req}, W, _)) ; call(domain_subjects:requirement_subject_pair(W, ${req}, _)) ; kb:kb_relationship(relates_to, ${req}, W) ; kb:kb_relationship(relates_to, W, ${req}) )), Found), sort(Found, Unpaired), with_output_to(string(Json), json_write(current_output, Unpaired, [width(0)])))`,
   );
   if (!result.success) return [];
   let parsed: unknown = result.bindings.Json;
