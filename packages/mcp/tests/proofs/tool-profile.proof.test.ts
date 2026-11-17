@@ -17,7 +17,7 @@ import {
  * checked against the constants, not the names here.
  */
 
-/** The core profile shall list the six core tools and kb_review_firm_edit. */
+/** The core profile shall list the seven core tools and kb_review_firm_edit. */
 export async function mcpDefaultProfileToolsCertificate(): Promise<CodeCertificate> {
   return exhaustiveCertificate({
     testId: "TEST-proof-mcp-default-profile-tools",
@@ -49,11 +49,12 @@ export async function mcpBootstrapToolsCertificate(): Promise<CodeCertificate> {
 }
 
 describe("the MCP default tool profile", () => {
-  test("the core profile lists the six core tools and kb_review_firm_edit", async () => {
+  test("the core profile lists the seven core tools and kb_review_firm_edit", async () => {
     writeCodeCertificate(await mcpDefaultProfileToolsCertificate());
     expect([...DEFAULT_PROFILE_TOOLS].sort()).toEqual([
       "kb_check",
       "kb_query",
+      "kb_record",
       "kb_review_firm_edit",
       "kb_search",
       "kb_skills",

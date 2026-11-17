@@ -321,6 +321,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2d0bb88a406e
+  - type: assumes
+    from: SCEN-staged-gate-scratch-store
+    to: FACT-staged-gate-scratch-store
+    created_at: 2026-11-16T20:33:43.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-391c42e24024
   - type: implements
     from: SYM-proof-required-job
     to: REQ-ci-required-check-aggregate

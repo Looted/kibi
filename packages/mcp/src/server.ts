@@ -63,7 +63,7 @@ export function serverInstructions(
   tools: readonly { name: string }[] = TOOLS,
 ): string {
   return sessionBriefWith([
-    "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_upsert writes; kb_check validates; kb_status reports freshness.",
+    "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_record records a stated rule; kb_upsert writes and models; kb_check validates; kb_status reports freshness.",
     "Workflow guidance: kb_skills with action load and id kibi-usage. For first-time repository setup, use the kibi-bootstrap prompt.",
     ...(listed === undefined
       ? []
@@ -93,7 +93,7 @@ export async function startServer(): Promise<void> {
   startMcpTelemetry();
 
   // The tool profile decides what the session lists; the knowledge base
-  // being empty adds the bootstrap tools to the default profile.
+  // being empty adds the bootstrap tools to the core profile.
   const workspaceRoot = resolveWorkspaceRoot();
   const listed = profileToolNames(
     resolveToolProfile(workspaceRoot),

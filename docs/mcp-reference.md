@@ -46,12 +46,12 @@ choice for any host (see [Diagnostic usage log](#diagnostic-usage-log-opt-in)).
 
 ### Tool list
 
-The catalog has 17 tools, and a session lists all of them unless the `core`
+The catalog has 18 tools, and a session lists all of them unless the `core`
 profile is chosen:
 
-- **full** (the default): all 17.
-- **core**: the six tools of every change, `kb_search`, `kb_query`,
-  `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`, plus
+- **full** (the default): all 18.
+- **core**: the seven tools of every change, `kb_search`, `kb_query`,
+  `kb_record`, `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`, plus
   `kb_review_firm_edit`, which records the firm-edit receipt that a blocking
   `kb_check` finding asks for. While the knowledge base holds no entity yet,
   `kb_plan_bootstrap` and `kb_apply_plan` are listed too. The `initialize`
@@ -65,7 +65,7 @@ the server environment, else the project's recorded choice
 `"mcpTools": "core"` in `.kb/setup.json` in a repository without one), else
 `full`. Claude Code and Codex load a tool's schema only when the agent first
 calls it, so the full list costs a name per tool there. On a host that loads
-every schema at the start, `core` saves about 35,000 characters per session,
+every schema at the start, `core` saves about 32,000 characters per session,
 but an agent there needs the project CLI for the other operations.
 
 `kb_upsert` advertises the 15 fields that capture a requirement or decision
@@ -76,12 +76,18 @@ symbol, test, proof and predicate fields stay valid input; the kibi-usage
 resource `operation-fields` (`kb_skills` with `action: "read"`) lists each
 one in full.
 
+Advertised schemas write a choice among strings as `enum` (in input and
+output schemas alike), which validates exactly what the equivalent `anyOf` of
+`const` branches would. `kb_check` advertises `rules` as plain strings rather
+than its long list of rule names; the server still checks every name and
+refuses an unknown one with `VALIDATION_FAILED`, listing the allowed names.
+
 | Area | Tools |
 |---|---|
 | Discovery and reporting | `kb_query`, `kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph` |
 | Skills | `kb_skills` |
 | Modeling (read-only) | `kb_model` |
-| Mutation and validation | `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_review_firm_edit`, `kb_ingest_proof` |
+| Mutation and validation | `kb_record`, `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_review_firm_edit`, `kb_ingest_proof` |
 | Planning and review | `kb_prepare_impact_review`, `kb_plan_bootstrap`, `kb_compile_intent`, `kb_apply_plan` |
 
 Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
@@ -908,6 +914,53 @@ Call `kb_upsert` with `dryRun: true` to validate a payload without mutating the 
 
 When invoked through MCP, the dry run also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
 
+### `kb_record`
+
+Record a rule the way it was stated, in one call. `kb_record` takes the rule
+and turns it into exactly one `kb_upsert` payload, which goes through the same
+schema validation, semantic advisor, firmness and approval checks and write
+path as a hand-written `kb_upsert` call; nothing is relaxed or defaulted past a
+check. It then runs `kb_check` with `changed: true` for the files the code
+names and returns that verdict. CLI: `kibi record --input -`.
+
+**Parameters:**
+- `statement`: the rule as one testable sentence. It becomes the body and
+  `semantic_text`; its first sentence, cut to 100 characters, is the title.
+- `why`: why the rule exists, in the words of whoever stated it
+  (`Reason not stated` when they gave none). Sent as `kb_upsert`'s `why`.
+- `saidBy`: `user` or `maintainer` (a `firm` requirement of `human` origin)
+  or `agent` (a `default` requirement of `agent` origin).
+- `quote` (optional): their words, recorded as `origin.ref`. A firm rule needs
+  one, so a `user` or `maintainer` rule without it is refused by `kb_upsert`'s
+  firmness check.
+- `code`: `[{ file, symbol }]`, the declarations that implement the rule,
+  sent as `implementedBy`.
+- `test` (optional): an existing test id, recorded as the requirement's
+  `verified_by` link and as each symbol's `coveredBy`.
+- `dryRun` (optional): return the payload and `kb_upsert`'s dry run; write
+  nothing and run no check.
+
+The requirement is always new and `open`: its id is `REQ-` and the first six
+words of the statement that are not filler, numbered from `-2` when that id is
+taken. `kb_record` never writes `origin.approved_by`. Any other field
+(facts, relationships, proof contracts, an update of an existing entity) is
+refused with `VALIDATION_FAILED` (rule `record_field_unsupported`), naming
+`kb_upsert` as the call that records it. A payload `kb_upsert`'s schema
+refuses is refused before anything is written, with its errors.
+
+**Returns:** `id`; `upsert`, the payload sent; `written`, `kb_upsert`'s
+result; `verdict`, the `kb_check` `changed: true` result (`commitAllowed`, each
+finding with `blocks`); `commitAllowed`; `status` when the write needed repair;
+and `nextActions`, the steps `kb_upsert` returned (a scenario, a test, a
+claim subject, `kibi prove`). On `dryRun` it returns `id`, `upsert`,
+`preview`, `valid`, `errors` and `dryRun: true`. If the check fails after the
+write, the error (`RECORD_VERDICT_FAILED`, retryable) says the requirement was
+written and which `kb_check` call gives the verdict.
+
+The result is the same as `kb_upsert` of `upsert` followed by `kb_check` with
+`changed: true` for the same files: the same entities, relationships and
+verdict.
+
 ### `kb_delete`
 
 Delete one or more entities by ID, or retract exact relationship triples. The
@@ -964,6 +1017,7 @@ Run KB validation rules after mutations. Agents can also opt into read-only chan
 - `sourceFiles` (optional): Repo-relative source paths to inspect for changed-file impact diagnostics. Without `rules`, it also scopes the result to those files (see below).
 - `includeMigrationPlan` (optional): With `sourceFiles`, return the full `migrationPlan` instead of `migrationPlanSummary`.
 - `staged` (optional): Inspect staged source changes when building impact diagnostics.
+- `changed` (optional): When `true`, give the commit gate's verdict on every current change before anything is staged: the call runs `kibi check --changed` (the `kibi check --staged` gate over the index plus the working tree, judged on a scratch copy of the index so the real index is never written) and returns `changed: true`, `commitAllowed`, `violations`, `diagnostics`, `qualityDiagnostics`, `messages` and, when the gate printed them, `staged`, `ownerFindings` and `operationalError`. With `sourceFiles`, only those files and `.kb` are added on top of the index. It runs as a child process, so the server's own environment never changes.
 - `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.
 - `includeImpactDiagnostics` (optional): Include changed-file diagnostics such as `symbol_granularity_violation`, `symbol_semantic_review_needed`, `source_file_unowned` and `requirement_statement_unverified` in structured output.
 - `maxDiagnostics` (optional): Cap returned impact diagnostics. Graph validation violations are not capped by this value.
@@ -982,6 +1036,8 @@ A `kb_check` with neither `rules` nor `sourceFiles` also returns `symbolDebt` (`
 A `kb_check` without `rules`, with or without `sourceFiles`, keeps its structured result within a 24,000-character budget: advisory `qualityDiagnostics` become counts by id first, then a `migrationPlan` becomes `migrationPlanSummary` (unless `includeMigrationPlan: true`), then blocking findings past the budget are listed by rule and entity id in `violationGroups`. `count` keeps the full number, every blocking rule stays named, and `truncated: true` with `truncation.hint` says the result was cut. A `rules` selection lists its findings in full; `kibi check --format json` lists every finding. The `symbolDebt` list, when asked for, comes on top of the budget.
 
 When diagnostic mode has produced `.kb/usage.log`, the unfiltered scan evaluates `kibi.telemetry-acceptance.v1` over its latest 200 events. It ranks advisor/preflight bypasses, edits of requirement-linked files that no lookup preceded (from host hook rows), source lookup misses, stalled proof-gap recovery, receipt gaps, and repeated mutation failures as `category: telemetry` recommendations. Diagnostic callers may supply opaque `session_id` and `actor_id` metadata; when both evidence records expose an identifier, advisor/preflight correlation requires equality and never borrows evidence across an explicit boundary. Stale or incomplete evidence stays `insufficient_evidence`; absence of observable fields is never interpreted as a pass. A missing log is skipped because MCP diagnostic logging is opt-in. Use the CLI-only `kibi usage-metrics --format json --require-acceptance` route when a hard completion gate is required, and `kibi usage-remediation --format json` for exact read-only repair evidence.
+
+Every finding carries `blocks`, what it stops: `"commit"` (the commit gate refuses a commit over it), `"merge"` (the full check fails over it, so CI refuses the merge) or `"none"` (advice). An unfiltered or rule-filtered check tags `violations` and `violationGroups` `merge`, blocking `qualityDiagnostics` `merge`, blocking `impactDiagnostics` `commit` and every other finding `none`; a `changed: true` check tags every violation `commit` and every other blocking finding `commit`. The envelope's `diagnostics` restate violations and carry no tag.
 
 Quality diagnostics use explicit `severity` and `blocking` fields. `severity: "review"` and `severity: "info"` are advisory and do not fail checks by default; `severity: "warning"` is still non-blocking unless `blocking: true`; `severity: "error"` or `blocking: true` is a hard failure signal. Existing hard violations remain in `violations[]` rather than being downgraded into the advisory lane.
 
@@ -1246,7 +1302,7 @@ as `--kb <name>`, and their JSON routes accept `kb` in the input.
 2. **Gather Context**: Use `kb_search` for discovery (ask it a direct question or decompose broad tasks into focused probes; read `data.answer` for the governing requirements) and `kb_query` for exact follow-up.
 3. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
 4. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
-5. **Check Source Impact**: After meaningful source edits, run `kb_check` with `sourceFiles`, `includeImpactDiagnostics: true`, and `includeWorkingTreeDiff: true` before deciding whether requirements/tests/symbol links need updates.
+5. **Check Source Impact**: After meaningful source edits, run `kb_check` with `changed: true` and the edited `sourceFiles`: it returns the verdict `git commit` will give, and findings with `blocks: "commit"` stop the commit. `includeImpactDiagnostics: true` with `includeWorkingTreeDiff: true` adds the edit's impact diagnostics without the gate's verdict.
 6. **Execute Changes**: Model prose with `kb_model`, preflight with `kb_upsert` and `dryRun: true`, then use `kb_upsert` to create/update entities and relationships.
 7. **Validate**: Run `kb_check` after structural changes. Use explicit `rules` during iteration for scoped validation; run an unfiltered `kb_check` before completion to include the full-KB `qualityDiagnostics[]` audit scan.
 8. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.

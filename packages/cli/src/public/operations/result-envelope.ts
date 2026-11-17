@@ -11,13 +11,64 @@ function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+const ENVELOPE_SEVERITIES = new Set(["info", "warning", "error"]);
+const ENVELOPE_TEXT_FIELDS = [
+  "code",
+  "category",
+  "suggestion",
+  "file",
+] as const;
+
+/**
+ * One diagnostic in the envelope's fixed shape (code, severity, message,
+ * detail, category, suggestion, file). A gate diagnostic names itself by
+ * `id` and its file by `path`; those become `code` and `file`, and every
+ * other field (blocking, blocks, requirementIds, evidencePaths, ...) moves
+ * into `detail`, so a caller keeps it without the envelope's schema
+ * refusing the result.
+ */
+export function envelopeDiagnostic(
+  entry: Record<string, unknown> & { message: string },
+): KibiResult["diagnostics"][number] {
+  const { message, severity, detail, id, path: filePath, ...rest } = entry;
+  const shaped: Record<string, unknown> = { message };
+  if (ENVELOPE_SEVERITIES.has(severity as string)) shaped.severity = severity;
+  else if (severity !== undefined) rest.severity = severity;
+  for (const field of ENVELOPE_TEXT_FIELDS) {
+    const value = rest[field];
+    if (typeof value === "string") {
+      shaped[field] = value;
+      delete rest[field];
+    }
+  }
+  if (shaped.code === undefined && typeof id === "string") shaped.code = id;
+  else if (id !== undefined) rest.id = id;
+  if (shaped.file === undefined && typeof filePath === "string")
+    shaped.file = filePath;
+  else if (filePath !== undefined) rest.path = filePath;
+  const extra = Object.keys(rest).length > 0;
+  if (detail !== undefined && !extra) shaped.detail = detail;
+  else if (extra)
+    shaped.detail =
+      detail === undefined
+        ? rest
+        : record(detail)
+          ? { ...rest, ...detail }
+          : { ...rest, detail };
+  return shaped as KibiResult["diagnostics"][number];
+}
+
 function diagnostics(value: unknown): KibiResult["diagnostics"] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((entry) => {
     if (typeof entry === "string")
       return [{ message: entry, severity: "warning" as const }];
     if (!record(entry) || typeof entry.message !== "string") return [];
-    return [entry as KibiResult["diagnostics"][number]];
+    return [
+      envelopeDiagnostic(
+        entry as Record<string, unknown> & { message: string },
+      ),
+    ];
   });
 }
 

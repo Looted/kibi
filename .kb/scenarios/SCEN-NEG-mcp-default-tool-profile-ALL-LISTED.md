@@ -11,4 +11,4 @@ tags:
 id: SCEN-NEG-mcp-default-tool-profile-ALL-LISTED
 type: scenario
 ---
-Given an MCP server that lists all 16 tools without the full profile, that leaves out the bootstrap tools on an empty knowledge base, or whose full profile still leaves ten tools unlisted, when its tool list is checked, then it is rejected.
+Given an MCP server that lists all 17 tools without the full profile, that leaves out the bootstrap tools on an empty knowledge base, or whose full profile still leaves ten tools unlisted, when its tool list is checked, then it is rejected.

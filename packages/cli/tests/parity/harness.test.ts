@@ -87,7 +87,7 @@ describe("semantic MCP/CLI operation parity", () => {
   }, 30_000);
 
   afterAll(() => {
-    expect(PARITY_CASES).toHaveLength(25);
+    expect(PARITY_CASES).toHaveLength(26);
   });
 
   for (const parityCase of PARITY_CASES) {

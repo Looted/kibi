@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0dba88fd05a3
+  - type: implements
+    from: SYM-record-record-spec
+    to: REQ-kb-record-capture
+    created_at: 2026-11-17T06:44:47.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5bf88906c56
+  - type: covered_by
+    from: SYM-record-record-spec
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:44:47.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbfea8d3d5aa

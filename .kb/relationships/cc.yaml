@@ -357,6 +357,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-ae8db99b1321
   - type: implements
+    from: SYM-cli-PrologProcess
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T20:42:07.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5938d45e32b1
+  - type: covered_by
+    from: SYM-cli-PrologProcess
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T20:42:08.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7504c0f931fb
+  - type: implements
     from: SYM-agent-core-read-firm-edit-receipt
     to: REQ-kibi-firm-edit-receipts
     created_at: 2026-11-16T21:22:59.637Z

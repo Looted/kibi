@@ -53,6 +53,7 @@ const MCP_TOOL_ORDER = [
   "kb_graph",
   "kb_model",
   "kb_upsert",
+  "kb_record",
   "kb_delete",
   "kb_check",
   "kb_review_firm_edit",
@@ -72,6 +73,7 @@ const MCP_TOOL_ORDER = [
 export const DEFAULT_PROFILE_TOOLS = [
   "kb_search",
   "kb_query",
+  "kb_record",
   "kb_upsert",
   "kb_check",
   "kb_status",
@@ -160,7 +162,7 @@ export function knowledgeBaseIsEmpty(workspaceRoot: string): boolean {
 
 /**
  * The catalog tools a session lists: every one in the `full` profile; the
- * core seven in the `core` profile, plus the bootstrap tools while the
+ * core eight in the `core` profile, plus the bootstrap tools while the
  * knowledge base is empty.
  */
 export function profileToolNames(
@@ -214,6 +216,7 @@ const TOOL_TITLES: Readonly<
   kb_graph: "Traverse Kibi graph",
   kb_sparql_remote: "Run a remote SPARQL query",
   kb_upsert: "Create or update Kibi entities",
+  kb_record: "Record a stated rule",
   kb_delete: "Delete a Kibi entity",
   kb_check: "Validate Kibi knowledge base",
   kb_review_firm_edit: "Record a firm-edit review",

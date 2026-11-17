@@ -89,6 +89,7 @@ const OPERATION_NAMES = [
   "kb_check",
   "kb_validate_upsert",
   "kb_upsert",
+  "kb_record",
   "kb_delete",
   "kb_model_requirement",
   "kb_suggest_predicates",
@@ -321,9 +322,9 @@ describe("mcp contract fixtures", () => {
       registered.map((tool) => [tool.name, tool]),
     );
 
-    // 17 agent-facing tools; kb_sparql_remote and kb_job_status register
+    // 18 agent-facing tools; kb_sparql_remote and kb_job_status register
     // only when KIBI_MCP_OPTIONAL_TOOLS names them.
-    expect(registered.map((tool) => tool.name)).toHaveLength(17);
+    expect(registered.map((tool) => tool.name)).toHaveLength(18);
     expect(registered.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
     );

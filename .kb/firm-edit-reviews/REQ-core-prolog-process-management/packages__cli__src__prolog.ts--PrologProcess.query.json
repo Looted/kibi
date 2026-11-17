@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-core-prolog-process-management",
+  "sourceFile": "packages/cli/src/prolog.ts",
+  "symbol": "PrologProcess.query",
+  "verdict": "keeps",
+  "note": "A process may now be told not to save after writes (the staged gate's throwaway store); queries, the cache bypass and read-after-write consistency are unchanged, and the default still saves.",
+  "statementHash": "sha256:1ce46b0cba8e8c6a95f47924d496776b9ab4911acbf16eab1525203ffaab6444",
+  "codeHash": "sha256:75805601b8193a39a24dbb5fe970adca36068c9aca6505b46cb7939613a67013",
+  "startLine": 403,
+  "endLine": 667,
+  "recordedAt": "2026-11-16T19:28:27.143Z"
+}

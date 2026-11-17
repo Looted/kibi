@@ -21,15 +21,15 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-a30ad15cbf189dd7501d8d9e
+    receipt_id: PR-8d8515d6a34935502338216f
     test_id: TEST-kibi-firm-edit-receipts
     scope: end_to_end
     outcome: passed
-    code_snapshot: 84a6fe37e5bb684e8e6f19943420ecc7e6817232bebc83407da028d1543f2d38
+    code_snapshot: 32ee33b73de52a5faea88037234ee6420cfcba340ad0940b4021a05c62fa772d
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-17T15:22:56.971Z'
-    finished_at: '2026-11-17T15:23:24.387Z'
-    artifact_digest: ce78500e0983ba24fd4d116cf2f79f93eeb2ebf4466db805713c774f47462672
+    started_at: '2026-11-17T15:59:22.767Z'
+    finished_at: '2026-11-17T15:59:52.308Z'
+    artifact_digest: d726c8bbe59883f7605cebf151f0d06c510206b7a8fd8ae71a29795e913194f7
     contract_hash: 38a432c1294f100d5eb4223ad32add98cc10c8e7d67fe6275694b5df801f0fa0
     binding_hash: 27167d5af140cfbd40d7022e36c7a9588bab88bce69f3efa3dc110345f34e4dc
     fingerprint: 31e7b4b4991cd7fceb0bbe7f2aa3e82dcfc5e645473f76c76636b623b8a16749

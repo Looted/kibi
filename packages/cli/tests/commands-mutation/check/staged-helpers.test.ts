@@ -345,10 +345,11 @@ describe("staged coverage rendering", () => {
     const [first, second] = io.logs().map((line) => JSON.parse(line));
     expect(first).toEqual({
       structuredContent: {
-        violations: [{ v: 1 }],
+        // Each staged finding says it stops the commit, or nothing.
+        violations: [{ v: 1, blocks: "commit" }],
         count: 1,
-        diagnostics: [{ id: "d" }],
-        qualityDiagnostics: [{ q: 1 }],
+        diagnostics: [{ id: "d", blocks: "none" }],
+        qualityDiagnostics: [{ q: 1, blocks: "none" }],
         staged: JSON.parse(JSON.stringify(staged)),
         messages: ["m"],
         operationalError: "boom",

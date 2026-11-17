@@ -21,6 +21,7 @@ const EXPECTED_CLI_NAMES = {
   kb_plan_bootstrap: "plan-bootstrap",
   kb_validate_upsert: "validate-upsert",
   kb_upsert: "upsert",
+  kb_record: "record",
   kb_delete: "delete",
   kb_check: "check",
   kb_sparql_remote: "sparql-remote",
@@ -54,9 +55,9 @@ const VALID_EFFECTS = new Set([
 ]);
 
 describe("public operation catalog", () => {
-  test("contains exactly the 25 unique operations and CLI routes", () => {
-    expect(OPERATION_CATALOG).toHaveLength(25);
-    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(25);
+  test("contains exactly the 26 unique operations and CLI routes", () => {
+    expect(OPERATION_CATALOG).toHaveLength(26);
+    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(26);
     expect(
       Object.fromEntries(
         OPERATION_CATALOG.map(({ name, cliName }) => [name, cliName]),

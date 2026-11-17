@@ -16,6 +16,7 @@
   "kb_plan_bootstrap",
   "kb_validate_upsert",
   "kb_upsert",
+  "kb_record",
   "kb_delete",
   "kb_check",
   "kb_prepare_impact_review",

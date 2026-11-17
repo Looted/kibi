@@ -924,6 +924,61 @@
       }
     ]
   },
+  "kb_record": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "upsert"],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "upsert": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "written": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "verdict": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "commitAllowed": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string"
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "dryRun": {
+        "const": true
+      },
+      "preview": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "valid": {
+        "type": "boolean"
+      },
+      "errors": {
+        "type": "array",
+        "items": {}
+      },
+      "skippedEffects": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
   "kb_delete": {
     "type": "object",
     "additionalProperties": false,
@@ -1112,6 +1167,31 @@
           "truncation": {
             "type": "object",
             "additionalProperties": true
+          },
+          "changed": {
+            "const": true,
+            "description": "Set by changed:true: the commit gate judged the working tree plus the index."
+          },
+          "commitAllowed": {
+            "type": "boolean",
+            "description": "changed:true only. True when a commit of these changes passes the commit gate."
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "staged": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "ownerFindings": {
+            "type": "array",
+            "items": {}
+          },
+          "operationalError": {
+            "type": "string"
           },
           "symbolDebt": {
             "type": "object",

@@ -14,6 +14,7 @@ export type OperationName =
   | "kb_sparql_remote"
   | "kb_semantic_advisor"
   | "kb_upsert"
+  | "kb_record"
   | "kb_validate_upsert"
   | "kb_delete"
   | "kb_check"
@@ -72,6 +73,9 @@ export type KibiResult<T = unknown> = {
     readonly severity?: "info" | "warning" | "error";
     readonly message: string;
     readonly detail?: unknown;
+    readonly category?: string;
+    readonly suggestion?: string;
+    readonly file?: string;
   }[];
   readonly nextActions: readonly {
     readonly operation: OperationName | string;

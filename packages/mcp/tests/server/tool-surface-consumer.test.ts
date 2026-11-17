@@ -6,6 +6,7 @@ import {
   readdirSync,
   realpathSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -34,6 +35,7 @@ const AGENT_FACING_TOOLS = [
   "kb_graph",
   "kb_model",
   "kb_upsert",
+  "kb_record",
   "kb_delete",
   "kb_check",
   "kb_review_firm_edit",
@@ -44,13 +46,14 @@ const AGENT_FACING_TOOLS = [
   "kb_ingest_proof",
 ];
 
-/** The core profile: the core six and the receipt tool, in catalog order. */
+/** The core profile: the core seven and the receipt tool, in catalog order. */
 const CORE_TOOLS = [
   "kb_query",
   "kb_search",
   "kb_status",
   "kb_skills",
   "kb_upsert",
+  "kb_record",
   "kb_check",
   "kb_review_firm_edit",
 ];
@@ -162,7 +165,7 @@ function requirementFiles(workspace: string): string[] {
 }
 
 describe("kibi-mcp consolidated tool surface", () => {
-  test("lists all 17 tools by default and the core tools in the core profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
+  test("lists all 18 tools by default and the core tools in the core profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
     const workspace = initWorkspace();
     const listed = await connect(workspace);
     expect((await listed.listTools()).tools.map((tool) => tool.name)).toEqual(
@@ -178,6 +181,7 @@ describe("kibi-mcp consolidated tool surface", () => {
       `This server lists ${[
         "kb_search",
         "kb_query",
+        "kb_record",
         "kb_upsert",
         "kb_check",
         "kb_status",
@@ -231,6 +235,28 @@ describe("kibi-mcp consolidated tool surface", () => {
       id: "REQ-consumer-dry-run",
     });
     expect(query.entities).toEqual([]);
+
+    // kb_record with dryRun returns the one kb_upsert payload it stands for
+    // and kb_upsert's dry run of it, and writes nothing; the CLI agrees.
+    writeFileSync(
+      path.join(workspace, "src-quota.ts"),
+      "export function capCalls(calls: string[]): string[] {\n  return calls.slice(0, 20);\n}\n",
+    );
+    const recordInput = {
+      statement: "The quota page must list at most twenty client calls.",
+      why: "Reason not stated",
+      saidBy: "agent",
+      code: [{ file: "src-quota.ts", symbol: "capCalls" }],
+      dryRun: true,
+    };
+    const recorded = await call(client, "kb_record", recordInput);
+    expect(recorded.dryRun).toBe(true);
+    expect(recorded.valid).toBe(true);
+    expect((recorded.upsert as Json).type).toBe("req");
+    expect(recorded.skippedEffects).toEqual(["kb-write", "workspace-write"]);
+    expect(requirementFiles(workspace)).toEqual(before);
+    const cliRecord = kibi(workspace, ["record"], recordInput);
+    expect((cliRecord.data as Json).upsert).toEqual(recorded.upsert);
   }, 180_000);
 
   test("a rejected input keeps its Kibi error code on MCP, as on the CLI JSON route", async () => {
@@ -302,13 +328,13 @@ describe("kibi-mcp consolidated tool surface", () => {
           JSON.stringify(tool.inputSchema).length,
         0,
       );
-    expect(size(tools)).toBeLessThanOrEqual(126_000);
-    expect(modelFacing(tools)).toBeLessThanOrEqual(63_000);
-    // The core profile of an empty KB lists nine tools at about half.
+    expect(size(tools)).toBeLessThanOrEqual(122_000);
+    expect(modelFacing(tools)).toBeLessThanOrEqual(62_000);
+    // The core profile of an empty KB lists ten tools at about half.
     const core = (await (await connect(workspace, CORE)).listTools()).tools;
     expect(core.map((tool) => tool.name)).toEqual(EMPTY_KB_TOOLS);
-    expect(size(core)).toBeLessThanOrEqual(67_000);
-    expect(modelFacing(core)).toBeLessThanOrEqual(36_000);
+    expect(size(core)).toBeLessThanOrEqual(64_000);
+    expect(modelFacing(core)).toBeLessThanOrEqual(35_000);
     const longDescriptions: string[] = [];
     const walk = (name: string, value: unknown): void => {
       if (Array.isArray(value)) {

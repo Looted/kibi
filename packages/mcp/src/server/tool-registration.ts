@@ -244,6 +244,12 @@ export function registerConfiguredTools<TProlog>(
       ),
   });
   register({
+    name: "kb_record",
+    // One kb_upsert payload, run through kb_upsert, then kb_check changed.
+    execute: async (context, args) =>
+      getSpec("kb_record").execute(args, withSessionProlog(context)),
+  });
+  register({
     name: "kb_delete",
     execute: async (context, args) =>
       executeDelete(args as unknown as DeleteArgs, withSessionProlog(context)),

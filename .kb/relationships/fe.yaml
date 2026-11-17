@@ -328,6 +328,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2dea1c135815
+  - type: implements
+    from: SYM-createTempKb
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T19:32:17.437Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-814587100e53
+  - type: covered_by
+    from: SYM-createTempKb
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:35:47.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08e3e200f689
   - type: validates
     from: TEST-check-staged-owner-block
     to: SCEN-check-staged-owner-block
@@ -349,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60760136e516
+  - type: assumes
+    from: SCEN-NEG-kb-record-capture-inputs-INPUT-DROPPED
+    to: FACT-NEG-kb-record-capture-inputs-INPUT-DROPPED
+    created_at: 2026-11-17T07:11:03.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a608e4df1997

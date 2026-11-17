@@ -36,7 +36,7 @@ describe("stopFollowupMessage", () => {
     ).toBe(
       [
         "Kibi: run impact-enabled kb_check after 1 edited source file.",
-        'Use kb_check({sourceFiles:["packages/core/src/kb.pl"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}).',
+        'Use kb_check({changed:true, sourceFiles:["packages/core/src/kb.pl"]}); findings with blocks:"commit" stop the commit.',
         "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
       ].join("\n"),
     );

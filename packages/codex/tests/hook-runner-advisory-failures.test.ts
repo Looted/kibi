@@ -86,7 +86,7 @@ describe("codex hook runner advisory failures", () => {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext:
-          'Kibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.',
+          'Kibi impact review: run kb_check({changed:true, sourceFiles:["src/a.ts"]}) while this edit is fresh; it gives the commit gate\'s verdict.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.',
       },
     });
   });

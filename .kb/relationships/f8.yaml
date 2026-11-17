@@ -174,13 +174,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-59b90337f475
-  - type: constrains
-    from: REQ-model-predicates-binding-word-limit
-    to: FACT-SUBJ-PREDICATE-SUGGESTION-PLAN
-    created_at: 2026-10-28T10:14:11.878Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a8a8abd91b08
   - type: executable_for
     from: SYM-proof-proof-contract-version
     to: TEST-proof-proof-contract-version
@@ -419,6 +412,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f2c61e9566fc
+  - type: implements
+    from: SYM-cli-PrologProcess-query
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T19:32:05.600Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7bda2d10097
+  - type: covered_by
+    from: SYM-cli-PrologProcess-query
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:35:38.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09ef922bd674
+  - type: constrains
+    from: REQ-model-predicates-binding-word-limit
+    to: FACT-SUBJ-PREDICATE-SUGGESTION-PLAN
+    created_at: 2026-10-28T10:14:11.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8a8abd91b08
   - type: restates
     from: REQ-model-predicates-binding-word-limit
     to: REQ-model-predicates-binding-clauses
