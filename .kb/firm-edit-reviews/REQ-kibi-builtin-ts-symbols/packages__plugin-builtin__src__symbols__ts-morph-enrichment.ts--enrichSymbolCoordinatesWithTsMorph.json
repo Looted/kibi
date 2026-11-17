@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-builtin-ts-symbols",
+  "sourceFile": "packages/plugin-builtin/src/symbols/ts-morph-enrichment.ts",
+  "symbol": "enrichSymbolCoordinatesWithTsMorph",
+  "verdict": "keeps",
+  "note": "Still parses with ts-morph, names methods Class.method and skips private members; only the project no longer loads lib declarations or resolves imports, and output is identical.",
+  "statementHash": "sha256:7af54592e92b459278076886e9e599dcb062a7eb23ff6a170a4159e01928d166",
+  "codeHash": "sha256:412a272fa5f63480221b247b81c53efb7f1b557142f5b274ce8090f9cdeb0fee",
+  "startLine": 81,
+  "endLine": 181,
+  "recordedAt": "2026-11-17T06:06:54.132Z"
+}

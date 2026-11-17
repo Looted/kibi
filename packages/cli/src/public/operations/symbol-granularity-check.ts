@@ -43,7 +43,7 @@ import {
 import type { PrologPort } from "./runtime-types.js";
 import {
   type SourceAnalysisCache,
-  openSourceAnalysisCache,
+  withSourceAnalysisCache,
 } from "./source-analysis-cache.js";
 
 /**
@@ -263,8 +263,11 @@ export async function collectSymbolGranularityViolations(
   prolog: Pick<PrologPort, "query">,
   workspaceRoot: string,
   rules: ReadonlySet<string>,
-  /** A branch store directory to keep parsed analyses in across runs. */
-  analysisCacheDir?: string,
+  /**
+   * A branch store directory to keep parsed analyses in across runs, or a
+   * cache the caller opened and saves.
+   */
+  analysisCache?: string | SourceAnalysisCache | null,
 ): Promise<Violation[]> {
   if (!rules.has(SYMBOL_GRANULARITY_RULE)) return [];
   const results = await loadSymbolResults(prolog, workspaceRoot);
@@ -276,8 +279,10 @@ export async function collectSymbolGranularityViolations(
     ...new Set(candidates.map((result) => result.sourceFile as string)),
   ];
   if (files.length === 0) return [];
-  const cache = openSourceAnalysisCache(analysisCacheDir, workspaceRoot);
-  const analyses = await analyzeFiles(files, results, workspaceRoot, cache);
-  cache?.save();
+  const analyses = await withSourceAnalysisCache(
+    analysisCache,
+    workspaceRoot,
+    (cache) => analyzeFiles(files, results, workspaceRoot, cache),
+  );
   return granularityViolations(candidates, analyses, workspaceRoot);
 }

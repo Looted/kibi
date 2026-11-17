@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-check-analysis-cache-shared",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "200000",
+      "./packages/cli/tests/public-mutation/operations/check-executor.mutation.test.ts",
+      "./packages/cli/tests/public/operations/source-analysis-cache.test.ts"
+    ]
+  ]
+}

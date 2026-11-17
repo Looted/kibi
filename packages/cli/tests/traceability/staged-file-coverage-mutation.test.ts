@@ -146,6 +146,81 @@ describe("analyzeStagedFileCoverage", () => {
     );
   });
 
+  test("reads every committed knowledge file in one batched blob read", () => {
+    const head: Record<string, string> = {
+      [SYMBOLS]: manifest({
+        id: "SYM-a",
+        source: "src/a.py",
+        links: ["REQ-a"],
+      }),
+      ".kb/requirements/REQ-a.md": req("REQ-a"),
+      ".kb/requirements/notes.txt": "not a requirement",
+      ".kb/relationships/r.yaml": relationships(),
+      ".kb/tests/T.md": req("TEST-a", "x", "test"),
+    };
+    const oid = (path: string) => `oid-${path}`;
+    const calls: string[][] = [];
+    const showReader = reader(head, calls);
+    const treeReader = (args: readonly string[]): Buffer => {
+      if (args.join(" ") === "ls-tree -r -z HEAD -- .kb") {
+        calls.push([...args]);
+        return Buffer.from(
+          Object.keys(head)
+            .map((path) => `100644 blob ${oid(path)}\t${path}\0`)
+            .join(""),
+        );
+      }
+      return showReader(args);
+    };
+    const reads: string[][] = [];
+    const readBlobs = (oids: readonly string[]) => {
+      reads.push([...oids]);
+      return new Map(
+        Object.entries(head).map(([path, content]) => [
+          oid(path),
+          Buffer.from(content),
+        ]),
+      );
+    };
+    const batched = analyzeStagedFileCoverage(
+      [staged("src/a.py")],
+      treeReader,
+      undefined,
+      readBlobs,
+    );
+    expect(calls).toStrictEqual([
+      ["rev-parse", "--verify", "HEAD"],
+      LS_TREE,
+      ["ls-tree", "-r", "-z", "HEAD", "--", ".kb"],
+    ]);
+    expect(reads).toStrictEqual([
+      [
+        oid(SYMBOLS),
+        oid(".kb/requirements/REQ-a.md"),
+        oid(".kb/relationships/r.yaml"),
+      ],
+    ]);
+    expect(batched).toStrictEqual(
+      analyzeStagedFileCoverage([staged("src/a.py")], reader(head)),
+    );
+  });
+
+  test("names the committed file a batched blob read did not return", () => {
+    const head = { [SYMBOLS]: manifest({ id: "SYM-a", source: "src/a.py" }) };
+    const treeReader = (args: readonly string[]): Buffer =>
+      args.join(" ") === "ls-tree -r -z HEAD -- .kb"
+        ? Buffer.from(`100644 blob abc\t${SYMBOLS}\0`)
+        : reader(head)(args);
+    expect(() =>
+      analyzeStagedFileCoverage(
+        [staged("src/a.py")],
+        treeReader,
+        undefined,
+        () => new Map(),
+      ),
+    ).toThrow(`git command failed: git show HEAD:${SYMBOLS} -> missing blob`);
+  });
+
   test("treats an unborn branch as having no committed knowledge", () => {
     const calls: string[][] = [];
     const result = analyzeStagedFileCoverage(

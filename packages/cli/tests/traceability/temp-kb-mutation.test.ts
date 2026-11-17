@@ -565,13 +565,12 @@ describe("createTempKb", () => {
 });
 
 describe("consultOverlay", () => {
-  test("consults the overlay and saves the KB", async () => {
+  test("consults the overlay without saving the scratch store", async () => {
     const fake = useFake();
     const ctx = await createTempKb();
     await consultOverlay(ctx);
     expect(fake.queries.at(-1)).toStrictEqual([
       `consult('${ctx.overlayPath}')`,
-      "kb_save",
     ]);
     await cleanupTempKb(ctx.tempDir);
   });
@@ -580,10 +579,7 @@ describe("consultOverlay", () => {
     const fake = useFake();
     const ctx = await createTempKb();
     await consultOverlay({ ...ctx, overlayPath: "/a'b.pl" });
-    expect(fake.queries.at(-1)).toStrictEqual([
-      "consult('/a''b.pl')",
-      "kb_save",
-    ]);
+    expect(fake.queries.at(-1)).toStrictEqual(["consult('/a''b.pl')"]);
     await cleanupTempKb(ctx.tempDir);
   });
 

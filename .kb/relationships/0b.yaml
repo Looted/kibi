@@ -370,6 +370,62 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-770db947c7b4
+  - type: assumes
+    from: SCEN-NEG-check-analysis-cache-shared-EVICTS
+    to: FACT-NEG-check-analysis-cache-shared-EVICTS
+    created_at: 2026-11-17T06:02:00.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81c6551b1ba5
+  - type: validates
+    from: TEST-check-analysis-cache-shared
+    to: SCEN-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:02.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77bc5a40a70b
+  - type: validates
+    from: TEST-check-analysis-cache-shared
+    to: SCEN-NEG-check-analysis-cache-shared-EVICTS
+    created_at: 2026-11-17T06:02:02.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c275b5ceb9b1
+  - type: specified_by
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: SCEN-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:25.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3eb779d7a2c3
+  - type: specified_by
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: SCEN-NEG-kibi-builtin-ts-syntactic-parse-RESOLVES
+    created_at: 2026-11-17T06:02:25.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ce723c67fa4
+  - type: verified_by
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: TEST-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:25.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-825b347d4338
+  - type: constrains
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: FACT-SUBJ-kibi-builtin-ts-symbols
+    created_at: 2026-11-17T06:02:25.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b24cbf1bd9f
+  - type: requires_property
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: FACT-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:25.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebc2abcc2350
   - type: implements
     from: SYM-record-record-id-base
     to: REQ-kb-record-capture

@@ -8353,7 +8353,139 @@ test(inventory_entries_reads_json_objects, []) :-
     assertion(is_dict(Entry)),
     assertion(get_dict(text, Entry, "a")).
 
+
+speedup_property_fixture :-
+    kb_assert_entity(fact, [
+        id='fact-speed-subject', title="Speed subject", status=active,
+        created_at="2026-02-20T00:00:00Z", updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="speed.subject"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-speed-limit', title="Speed limit", status=active,
+        created_at="2026-02-20T00:00:00Z", updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="speed.subject", property_key="limit",
+        operator=eq, value_type=int, value_int=2
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-SPEED-LIMIT', title="Speed limit is two", status=active,
+        created_at="2026-02-20T00:00:00Z", updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-SPEED-LIMIT', 'fact-speed-subject', []),
+    kb_assert_relationship(requires_property, 'REQ-SPEED-LIMIT', 'fact-speed-limit', []).
+
+live_property_facts(Facts) :-
+    findall(f(S, P, R, F, Fr, T),
+            checks:live_property_fact(S, P, R, F, Fr, T),
+            Facts0),
+    msort(Facts0, Facts).
+
+test(property_fact_index_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    speedup_property_fixture,
+    live_property_facts(Live),
+    assertion(Live = [f(_, _, 'REQ-SPEED-LIMIT', 'fact-speed-limit', _, _)]),
+    findall(f(S, P, R, F, Fr, T),
+            checks:current_property_fact(S, P, R, F, Fr, T), Indexed0),
+    msort(Indexed0, Indexed),
+    assertion(Indexed == Live),
+    kb:index_verification_key(property_fact_index, Key),
+    % The listing keeps one generation's rows plus its marker row.
+    aggregate_all(count, kb:kb_property_fact_index(Key, _, _, _, _, _, _), Rows),
+    assertion(Rows == 2),
+    assertion(\+ ( kb:kb_property_fact_index(Other, _, _, _, _, _, _), Other \== Key )),
+    % A planted row under the current key answers from the listing.
+    assertz(kb:kb_property_fact_index(Key, planted, prop, 'REQ-PLANTED', 'FACT-PLANTED', none, none)),
+    assertion(checks:current_property_fact(planted, prop, 'REQ-PLANTED', 'FACT-PLANTED', none, none)),
+    % The marker row is never a fact.
+    assertion(\+ checks:current_property_fact(_, _, -, _, _, _)),
+    % Inside a transaction the facts are read afresh.
+    memo_rollback(assertion(\+ checks:current_property_fact(planted, _, _, _, _, _))),
+    % A stale listing is rebuilt for the current generation.
+    retractall(kb:kb_property_fact_index(_, _, _, _, _, _, _)),
+    assertz(kb:kb_property_fact_index(stale_key, planted, prop, 'REQ-PLANTED', 'FACT-PLANTED', none, none)),
+    assertz(kb:kb_property_fact_index(stale_key, -, -, -, -, -, -)),
+    assertion(\+ checks:current_property_fact(planted, _, _, _, _, _)),
+    findall(f(S, P, R, F, Fr, T),
+            checks:current_property_fact(S, P, R, F, Fr, T), Rebuilt0),
+    msort(Rebuilt0, Rebuilt),
+    assertion(Rebuilt == Live),
+    assertion(\+ kb:kb_property_fact_index(stale_key, _, _, _, _, _, _)).
+
+test(property_fact_index_empty_listing_is_kept, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assertion(\+ checks:current_property_fact(_, _, _, _, _, _)),
+    kb:index_verification_key(property_fact_index, Key),
+    findall(R, kb:kb_property_fact_index(Key, _, _, R, _, _, _), Rows),
+    assertion(Rows == [-]),
+    kb_detach,
+    assertion(\+ kb:kb_property_fact_index(_, _, _, _, _, _, _)).
+
+test(property_fact_index_feeds_scenario_constraints, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    speedup_property_fixture,
+    live_property_facts([f(S, P, _, _, _, _)]),
+    checks:property_constraints('SCEN-NONE', [S-P], none, Indexed),
+    retractall(kb:kb_property_fact_index(_, _, _, _, _, _, _)),
+    memo_rollback(( checks:property_constraints('SCEN-NONE', [S-P], none, Live),
+                    nb_setval(speed_live_constraints, Live) )),
+    nb_getval(speed_live_constraints, Live),
+    assertion(Indexed =@= Live),
+    assertion(Indexed = [_]).
+
 :- end_tests(kb_memo_contracts).
+
+:- begin_tests(kb_speedup_equivalence).
+
+test(entity_id_to_uri_matches_formatted_text) :-
+    forall(member(Id, ['REQ-1', "REQ-2", 3, 4.5, f(x), "quote'd"]),
+           (   kb:entity_id_to_uri(Id, URI),
+               format(atom(Expected), 'kb:entity/~w', [Id]),
+               assertion(URI == Expected)
+           )).
+
+test(entity_type_reads_the_type_triple, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-TYPED', "Typed", open, []),
+    assertion(kb:kb_entity_type('REQ-TYPED', req)),
+    once(kb_entity('REQ-TYPED', Type, _)),
+    assertion(Type == req),
+    assertion(\+ kb:kb_entity_type('REQ-ABSENT', _)),
+    assertz(kb:entity(scenario, 'SCEN-LEGACY', "Legacy", [])),
+    call_cleanup(assertion(kb:kb_entity_type('SCEN-LEGACY', scenario)),
+                 retractall(kb:entity(_, 'SCEN-LEGACY', _, _))).
+
+test(entity_type_without_a_graph_reads_legacy_facts) :-
+    assertz(kb:entity(test, 'TEST-LEGACY-ONLY', "Legacy", [])),
+    call_cleanup(( assertion(kb:kb_entity_type('TEST-LEGACY-ONLY', test)),
+                   assertion(\+ kb:kb_entity_type('TEST-NOWHERE', _)) ),
+                 retractall(kb:entity(_, 'TEST-LEGACY-ONLY', _, _))).
+
+test(relationship_write_still_refuses_missing_endpoints, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-END', "End", open, []),
+    catch(kb_assert_relationship_no_audit(relates_to, 'REQ-END', 'REQ-GONE', []), E1, true),
+    assertion(E1 = error(existence_error(entity, 'REQ-GONE'), _)),
+    catch(kb_assert_relationship_no_audit(relates_to, 'REQ-GONE', 'REQ-END', []), E2, true),
+    assertion(E2 = error(existence_error(entity, 'REQ-GONE'), _)).
+
+test(test_coverage_is_the_same_from_either_end, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-COV-A', "Covered A", open, []),
+    assert_fixture_entity(req, 'REQ-COV-B', "Covered B", open, []),
+    assert_fixture_entity(scenario, 'SCEN-COV-A', "Scenario A", active, []),
+    assert_fixture_entity(scenario, 'SCEN-COV-B', "Scenario B", active, []),
+    assert_fixture_entity(test, 'TEST-COV', "Covering test", active, []),
+    kb_assert_relationship(specified_by, 'REQ-COV-A', 'SCEN-COV-A', []),
+    kb_assert_relationship(specified_by, 'REQ-COV-B', 'SCEN-COV-B', []),
+    kb_assert_relationship(validates, 'TEST-COV', 'SCEN-COV-A', []),
+    kb_assert_relationship(verified_by, 'SCEN-COV-B', 'TEST-COV', []),
+    findall(R, kb:test_covers_requirement('TEST-COV', R), FromTest0),
+    msort(FromTest0, FromTest),
+    findall(R, ( member(R, ['REQ-COV-A', 'REQ-COV-B']),
+                 kb:test_covers_requirement('TEST-COV', R) ), Bound),
+    findall(T-R, kb:test_covers_requirement(T, R), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(FromTest == ['REQ-COV-A', 'REQ-COV-B']),
+    assertion(Bound == ['REQ-COV-A', 'REQ-COV-B']),
+    assertion(Pairs == ['TEST-COV'-'REQ-COV-A', 'TEST-COV'-'REQ-COV-B']).
+
+:- end_tests(kb_speedup_equivalence).
 
 :- begin_tests(kb_conflict_pairing).
 
