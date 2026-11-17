@@ -115,7 +115,7 @@ describe("packed Codex plugin workspace opt-in", { concurrency: false }, () => {
         "packed plugin is missing dist/hook-runner.js",
       );
       assert.equal(
-        existsSync(join(pluginRoot, "dist", "hook-input.js")),
+        existsSync(join(pluginRoot, "dist", "hook-state.js")),
         true,
         "packed plugin is missing compiled hook modules",
       );

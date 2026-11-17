@@ -43,7 +43,7 @@ A Claude plugin workspace variable shall be KIBI_WORKSPACE, KIBI_PROJECT_ROOT or
 
 ## Context
 
-packages/claude/src/workspace-optin.ts decides which workspace the Claude Code plugin serves (REQ-claude-unowned-project-silence), and packages/agent-core/src/kb-mcp-tools.ts names the argument hosts pass it to Kibi tools in. Both are stated here so they are proved against the constants.
+packages/agent-core/src/workspace-optin.ts decides which workspace the Claude Code plugin serves (REQ-claude-unowned-project-silence), and the Codex and ZCode plugins use the same resolver; packages/agent-core/src/kb-mcp-tools.ts names the argument hosts pass it to Kibi tools in. Both are stated here so they are proved against the constants.
 
 ## Source
 
