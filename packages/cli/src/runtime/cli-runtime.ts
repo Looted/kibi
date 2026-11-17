@@ -30,6 +30,7 @@ import { ensureBranchStoreCompiled } from "../utils/auto-compile.js";
 import {
   type BranchAttachment,
   type BranchResolutionError,
+  legacyAttachmentRefusal,
   resolveReadBranchAttachment,
 } from "../utils/branch-resolver.js";
 import {
@@ -291,17 +292,22 @@ export function createCliRuntime(
       if (attachment.readOnly !== undefined) {
         console.warn(`[KIBI] ${attachment.readOnly.notice}`);
       }
+      const usesEngine = merged.prolog === undefined;
+      // The engine serves only the hashed store: any other engine-backed
+      // operation on a legacy attachment would create an empty one beside it.
+      if (
+        usesEngine &&
+        attachment.migrationRequired &&
+        spec.name !== LEGACY_MIGRATING_OPERATION
+      ) {
+        throw new Error(legacyAttachmentRefusal(attachment, spec.name));
+      }
       if (attachment.migrationRequired) {
         console.warn(
           `[KIBI] Legacy branch attachment: Git '${attachment.gitBranch}' is reading KB '${attachment.kbBranch}'. Migrate with 'kibi branch migrate --from ${attachment.kbBranch} --to ${attachment.gitBranch} --apply'; writes are blocked until then.`,
         );
       }
-      const usesEngine = merged.prolog === undefined;
-      if (
-        usesEngine &&
-        attachment.migrationRequired &&
-        spec.name === LEGACY_MIGRATING_OPERATION
-      ) {
+      if (usesEngine && attachment.migrationRequired) {
         return legacyMigratingContext(
           { ...contextBase, branchAttachment: attachment },
           async () => {

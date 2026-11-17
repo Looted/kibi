@@ -88,6 +88,41 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       it(
+        "refuses engine-backed commands until the legacy store is migrated",
+        { timeout: 180000 },
+        async (testContext) => {
+          if (!sandbox) {
+            testContext.skip("SWI-Prolog is unavailable");
+            return;
+          }
+          // Each of these used to start the engine, which created an empty
+          // hashed store beside the legacy one, answered from it, and left
+          // the branch with two stores no migration could reconcile.
+          for (const args of [
+            ["query", "req", "--format", "json"],
+            ["check"],
+            ["engine", "status"],
+          ]) {
+            const result = await kibi(sandbox, args);
+            assert.notStrictEqual(
+              result.exitCode,
+              0,
+              `${args.join(" ")}: ${result.stdout}${result.stderr}`,
+            );
+            assert.match(
+              `${result.stdout}${result.stderr}`,
+              /Legacy branch store .* must be migrated before .*kibi migrate --apply-safe <planHash>/,
+              args.join(" "),
+            );
+            assert.ok(
+              !existsSync(exactBranchStorePath(sandbox.repoDir, "develop")),
+              `${args.join(" ")} creates no hashed store`,
+            );
+          }
+        },
+      );
+
+      it(
         "applies the previewed legacy migration with --apply-safe",
         { timeout: 180000 },
         async (testContext) => {
@@ -121,6 +156,17 @@ if (RUN_NODE_TEST_SUITE) {
           assert.match(
             applied.stdout,
             new RegExp(`applied ${legacy?.id}: Applied legacy_branch_storage`),
+          );
+          // The migrated store is healthy: nothing recovers it afterwards.
+          assert.doesNotMatch(
+            `${applied.stdout}${applied.stderr}`,
+            /branch-store-recover|Recovered exact branch KB/,
+          );
+          assert.ok(
+            !plan.actions.some(
+              (action) => action.code === "damaged_exact_branch_store",
+            ),
+            preview.stdout,
           );
           assert.ok(!existsSync(legacyStore), "the legacy store is migrated");
           assert.deepStrictEqual(

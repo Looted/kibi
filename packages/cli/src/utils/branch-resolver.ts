@@ -417,6 +417,19 @@ export function detachedHeadWriteRefusal(
 }
 
 /**
+ * Refusal for an engine-backed operation while the branch is attached
+ * through a legacy literal-named store. The KB engine serves only the hashed
+ * store, so the operation would read and create an empty store beside the
+ * legacy one instead of the knowledge it holds.
+ */
+export function legacyAttachmentRefusal(
+  attachment: Pick<BranchAttachment, "gitBranch" | "storePath">,
+  operation: string,
+): string {
+  return `Legacy branch store ${attachment.storePath} for '${attachment.gitBranch}' must be migrated before '${operation}' runs. Preview the migration with 'kibi migrate', then apply it with 'kibi migrate --apply-safe <planHash>'.`;
+}
+
+/**
  * Resolve the storage namespace without treating any branch as canonical.
  * Literal branch-named stores are read-compatible legacy storage only. The
  * active Git identity always remains the exact branch name.
