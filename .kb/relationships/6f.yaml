@@ -342,13 +342,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8be92fe10d6e
-  - type: requires_property
-    from: REQ-check-quantity-duplicate-trivial-values
-    to: FACT-check-quantity-duplicate-trivial-numbers
-    created_at: 2026-11-17T05:59:31.932Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-184f8a0a0f36
   - type: implements
     from: SYM-check-executor-withSymbolDebtSummary
     to: REQ-check-symbol-debt-count
@@ -356,6 +349,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f50f89f3e57
+  - type: assumes
+    from: SCEN-ci-merge-train-admission
+    to: FACT-ci-merge-train-admission
+    created_at: 2026-11-17T11:40:06.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2dfe651a1de
+  - type: verified_by
+    from: SCEN-ci-merge-train-admission
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:06.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5888c0b360d
+  - type: requires_property
+    from: REQ-check-quantity-duplicate-trivial-values
+    to: FACT-check-quantity-duplicate-trivial-numbers
+    created_at: 2026-11-17T05:59:31.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-184f8a0a0f36
   - type: covered_by
     from: SYM-capture-max-related-requirements
     to: TEST-proof-kb-upsert-related-requirements-cap

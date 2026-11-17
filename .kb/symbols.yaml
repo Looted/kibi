@@ -45466,3 +45466,100 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-ci-proof-shards-join
+  - id: SYM-merge-train-refusal
+    title: refusal
+    status: active
+    sourceFile: actions/merge-train/merge-train.mts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:40:50.492Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-admission
+  - id: SYM-merge-train-plan
+    title: plan
+    status: active
+    sourceFile: actions/merge-train/merge-train.mts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:40:54.348Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-failure-bisect
+      - type: implements
+        target: REQ-ci-merge-train-lands-assembled-head
+  - id: SYM-merge-train-workflow
+    title: Advance the merge train job (.github/workflows/merge-train.yml)
+    status: active
+    sourceFile: .github/workflows/merge-train.yml
+    symbol_role: config
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:40:56.924Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-lands-assembled-head
+  - id: SYM-test-ci-merge-train
+    title: Merge train suite
+    status: active
+    sourceFile: scripts/tests/merge-train.test.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:40:59.133Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-merge-train
+  - id: SYM-ci-proof-reuse-train-assess
+    title: assessTrainProofReuse
+    status: active
+    sourceFile: scripts/ci-proof-reuse.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:50:21.426Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-proof-reuse-train-merge
+      - type: implements
+        target: REQ-ci-proof-reuse-train-merge
+  - id: SYM-test-ci-proof-reuse-train-merge
+    title: Merge train proof attestation and develop reuse suite
+    status: active
+    sourceFile: scripts/tests/ci-proof-reuse-main.coverage.test.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:50:24.222Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-proof-reuse-train-merge
