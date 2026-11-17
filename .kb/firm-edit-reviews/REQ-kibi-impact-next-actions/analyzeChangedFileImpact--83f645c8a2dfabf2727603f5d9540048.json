@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-impact-next-actions",
+  "sourceFile": "packages/cli/src/public/impact/analyzer.ts",
+  "symbol": "analyzeChangedFileImpact",
+  "verdict": "keeps",
+  "note": "Snapshot mode now builds the firm-edit gate options from the staged change; linked entities are still listed and each blocking diagnostic still carries a suggestion that clears it.",
+  "statementHash": "sha256:1e680d241efda0bec58c3490da18cdbd11aa54f2335203bc483cd6159d75741a",
+  "codeHash": "sha256:b924fe4155b031182fc7c033a3e3ffdd22306f9d695f22fa6f26ac6799ef177c",
+  "startLine": 46,
+  "endLine": 310,
+  "recordedAt": "2026-11-16T21:25:30.184Z"
+}

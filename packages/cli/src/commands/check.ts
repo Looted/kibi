@@ -53,6 +53,7 @@ import {
 } from "../public/impact-diagnostics.js";
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
 import { createFirmEditGateDiagnostics } from "../public/impact/firm-edit-gate.js";
+import { stagedFirmEditGateOptions } from "../public/impact/firm-edit-staged.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
 import { tagBlocks } from "../public/operations/finding-blocks.js";
@@ -1417,20 +1418,66 @@ export async function checkCommand(
           }),
           ...createSemanticReviewDiagnostics({ symbolsByFile }),
           ...createStagedEntityIdStyleDiagnostics(markdownFiles),
-          ...createFirmEditGateDiagnostics({
-            // The extractor keeps only the symbols a modified file's hunks touch.
-            symbolsByFile,
-            readContent: (file) => sourceContentByFile.get(file),
-            readRequirement: (id) =>
-              snapshotEntities.find((result) => result.entity.id === id)
-                ?.entity,
-            requirementChanged: (requirement) =>
-              snapshot.inventory.some(
-                (file) => file.path === requirement.source,
+          ...createFirmEditGateDiagnostics(
+            await stagedFirmEditGateOptions({
+              sourceFiles,
+              // Every declaration, each with the hunks it owns, so a symbol
+              // the change only removes lines from is still seen.
+              extractAll: (file) =>
+                extractSymbolsFromStagedFileAsync(
+                  { ...file, status: "A" },
+                  manifestLookup,
+                  {
+                    analyzeText: async () =>
+                      sourceAnalysis.get(file.path)?.after ?? null,
+                  },
+                ),
+              changedPaths: new Set(
+                snapshot.inventory.flatMap((file) =>
+                  file.oldPath === undefined
+                    ? [file.path]
+                    : [file.path, file.oldPath],
+                ),
               ),
-            readReceipt: (receiptPath) =>
-              readTreeFile(snapshot.headTree)(receiptPath) ?? undefined,
-          }),
+              knowledge: snapshotEntities,
+              readBaseKnowledge: () => {
+                try {
+                  return readSnapshotKnowledge(
+                    snapshot.readGit,
+                    snapshot.baseTree,
+                    snapshot.readBlobs,
+                  );
+                } catch {
+                  // Knowledge the base cannot compile names no removal.
+                  return [];
+                }
+              },
+              readChanged: (file) =>
+                readTreeFile(snapshot.headTree)(file) ?? undefined,
+              readBase: (file) =>
+                readTreeFile(snapshot.baseTree)(file) ?? undefined,
+              readContent: (file) => sourceContentByFile.get(file),
+              readReceipt: (receiptPath) =>
+                readTreeFile(snapshot.headTree)(receiptPath) ?? undefined,
+              hasUnstagedChanges: (file) => {
+                try {
+                  return (
+                    snapshot
+                      .readGit([
+                        "diff",
+                        "--name-only",
+                        "--",
+                        `:(literal)${file}`,
+                      ])
+                      .toString("utf8")
+                      .trim() !== ""
+                  );
+                } catch {
+                  return false;
+                }
+              },
+            }),
+          ),
         );
 
         // Run the Prolog rules over the staged knowledge: the minLinks

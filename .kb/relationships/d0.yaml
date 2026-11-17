@@ -342,6 +342,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7aa0f93baf43
+  - type: validates
+    from: TEST-proof-advertised-description-limit
+    to: SCEN-mcp-short-field-descriptions
+    created_at: 2026-11-16T11:02:33.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6b6ee11d10a
+  - type: implements
+    from: SYM-git-staged-parse-deletion-points
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:25:01.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2df9681b5cb
+  - type: covered_by
+    from: SYM-git-staged-parse-deletion-points
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:25:01.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4bc8158dfcf
   - type: implements
     from: SYM-mcp-knowledgeBaseIsEmpty
     to: REQ-mcp-default-tool-profile
@@ -356,13 +377,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-380b395fe6cf
-  - type: validates
-    from: TEST-proof-advertised-description-limit
-    to: SCEN-mcp-short-field-descriptions
-    created_at: 2026-11-16T11:02:33.185Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e6b6ee11d10a
   - type: assumes
     from: SCEN-NEG-upsert-flags-stale-sibling-claim-UNFLAGGED
     to: FACT-NEG-upsert-flags-stale-sibling-claim-UNFLAGGED
