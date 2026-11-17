@@ -42892,6 +42892,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-check-quantity-duplicate
+      - type: covered_by
+        target: TEST-proof-quantity-word-share
       - type: implements
         target: REQ-check-quantity-duplicate-pairing
   - id: SYM-cli-quantity-layer-quantity-value
@@ -44061,3 +44063,42 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T18:14:35.200Z
+  - id: SYM-proof-quantity-trivial-numbers
+    title: trivialNumbersCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/quantity-duplicate-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:00:06.171Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-quantity-trivial-numbers
+  - id: SYM-const-quantity-trivial-numbers
+    title: TRIVIAL_NUMBERS
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:00:09.652Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-quantity-trivial-numbers
+  - id: SYM-proof-quantity-word-share
+    title: quantityWordShareCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/quantity-duplicate-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:00:14.253Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-quantity-word-share

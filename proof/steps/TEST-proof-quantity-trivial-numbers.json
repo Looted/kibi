@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-quantity-trivial-numbers",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/quantity-duplicate-constants.proof.test.ts"
+    ]
+  ]
+}

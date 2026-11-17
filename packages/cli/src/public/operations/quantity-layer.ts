@@ -56,7 +56,7 @@ export const QUANTITY_LAYER_SCHEMA_VERSION = 19;
 export const QUANTITY_WORD_SHARE = 0.5;
 
 /** Numbers too common to say that two facts state one quantity. */
-const TRIVIAL_NUMBERS = new Set([0, 1]);
+export const TRIVIAL_NUMBERS: readonly number[] = [0, 1];
 
 /** The fewest members a set needs to count as a quantity of its own. */
 const MIN_SET_MEMBERS = 2;
@@ -177,7 +177,7 @@ export function quantityValue(
     const unitName = text(data.unit).toLowerCase();
     const scale = UNIT_SCALE[unitName];
     const canonical = scale ? value * scale[0] : value;
-    if (TRIVIAL_NUMBERS.has(value)) return null;
+    if (TRIVIAL_NUMBERS.includes(value)) return null;
     return {
       kind: "number",
       value: canonical,
