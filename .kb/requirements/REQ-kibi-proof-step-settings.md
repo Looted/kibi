@@ -3,10 +3,11 @@ title: Proof step and per-test report settings
 status: open
 priority: must
 firmness: default
-semantic_text: The default proof steps source shall be the proof/steps directory, with one file per proof-bearing test named after its test id, and proof/steps.json when that directory does not exist. A proof steps file whose test_id differs from its file name must be refused. The per-test proof report environment variable shall be KIBI_PROOF_TEST_REPORT. The per-test proof report version shall be kibi.proof-test-report.v1. A per-test proof report outcome shall be passed, failed, timed_out, errored or interrupted.
+semantic_text: The default proof steps source shall be the proof/steps directory, with one file per proof-bearing test named after its test id, and proof/steps.json when that directory does not exist. A proof steps file whose test_id differs from its file name must be refused. When both the proof/steps directory and proof/steps.json exist, the default proof steps source must be refused. The per-test proof report environment variable shall be KIBI_PROOF_TEST_REPORT. The per-test proof report version shall be kibi.proof-test-report.v1. A per-test proof report outcome shall be passed, failed, timed_out, errored or interrupted.
 semantic_clauses:
   - The default proof steps source shall be the proof/steps directory, with one file per proof-bearing test named after its test id, and proof/steps.json when that directory does not exist.
   - A proof steps file whose test_id differs from its file name must be refused.
+  - When both the proof/steps directory and proof/steps.json exist, the default proof steps source must be refused.
   - The per-test proof report environment variable shall be KIBI_PROOF_TEST_REPORT.
   - The per-test proof report version shall be kibi.proof-test-report.v1.
   - A per-test proof report outcome shall be passed, failed, timed_out, errored or interrupted.
@@ -14,12 +15,12 @@ tags:
   - proof
 origin:
   kind: agent
+  ref: 'Proposed amendment: refuse the default proof steps source when both proof/steps/ and proof/steps.json exist (a half-finished move otherwise ran only some tests and reported every step passed). Maintainer decision, 2026-11-17, approving the amended statement: "Approved".'
+  recorded_at: '2026-11-16T20:47:00.855Z'
   approved_by: maintainer
-  ref: 'Maintainer decision, 2026-11-16, approving the proof steps directory statement: "Yes, all of them"'
-  recorded_at: '2026-11-16T07:29:08.642Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: ce303345492d9123f47fa45d0c5d96370bc300e7bd80979ab79d82afc43f5468
+semantic_source_hash: acb551b8ef5030cdf2a142a75c37defff62f70bab27cb0b15c2f331215ae5282
 semantic_inventory:
   - claim_key: CLAIM-435BE68CBC8205AD
     claim_text: The default proof steps source shall be the proof/steps directory, with one file per proof-bearing test named after its test id, and proof/steps.json when that directory does not exist
@@ -35,30 +36,38 @@ semantic_inventory:
     span:
       start: 186
       end: 261
+  - claim_key: CLAIM-0B2C8A1ACC6421AD
+    claim_text: When both the proof/steps directory and proof/steps.json exist, the default proof steps source must be refused
+    role: condition
+    status: modeled
+    span:
+      start: 263
+      end: 373
   - claim_key: CLAIM-9B373E83EA0B0ACA
     claim_text: The per-test proof report environment variable shall be KIBI_PROOF_TEST_REPORT
     role: normative
     status: modeled
     span:
-      start: 263
-      end: 341
+      start: 375
+      end: 453
   - claim_key: CLAIM-EBFEB6B891A3FA1A
     claim_text: The per-test proof report version shall be kibi.proof-test-report.v1
     role: normative
     status: modeled
     span:
-      start: 343
-      end: 411
+      start: 455
+      end: 523
   - claim_key: CLAIM-C11CA176D75C6530
     claim_text: A per-test proof report outcome shall be passed, failed, timed_out, errored or interrupted
     role: normative
     status: modeled
     span:
-      start: 413
-      end: 503
+      start: 525
+      end: 615
 logic_claims:
   - CLAIM-435BE68CBC8205AD
   - CLAIM-FD5B11811D9BBC78
+  - CLAIM-0B2C8A1ACC6421AD
   - CLAIM-9B373E83EA0B0ACA
   - CLAIM-EBFEB6B891A3FA1A
   - CLAIM-C11CA176D75C6530
@@ -66,7 +75,7 @@ id: REQ-kibi-proof-step-settings
 type: req
 required_evidence: tested
 ---
-The default proof steps source shall be the proof/steps directory, with one file per proof-bearing test named after its test id, and proof/steps.json when that directory does not exist. A proof steps file whose test_id differs from its file name must be refused. The per-test proof report environment variable shall be KIBI_PROOF_TEST_REPORT. The per-test proof report version shall be kibi.proof-test-report.v1. A per-test proof report outcome shall be passed, failed, timed_out, errored or interrupted.
+The default proof steps source shall be the proof/steps directory, with one file per proof-bearing test named after its test id, and proof/steps.json when that directory does not exist. A proof steps file whose test_id differs from its file name must be refused. When both the proof/steps directory and proof/steps.json exist, the default proof steps source must be refused. The per-test proof report environment variable shall be KIBI_PROOF_TEST_REPORT. The per-test proof report version shall be kibi.proof-test-report.v1. A per-test proof report outcome shall be passed, failed, timed_out, errored or interrupted.
 
 ## Context
 

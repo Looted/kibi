@@ -159,6 +159,20 @@ export function createMcpRuntime<TProlog = PrologPort>(
             if (providedProlog !== undefined) return providedProlog;
             if (lazyProlog !== undefined)
               return session.adaptProlog(lazyProlog);
+            if (legacyMigrationApply) {
+              // The session engine serves only the hashed store; opening it
+              // before the plan's legacy action ran would create an empty
+              // store beside the legacy one.
+              const current = await resolveMcpAttachment(
+                context.workspaceRoot,
+                spec,
+              );
+              if (!("error" in current) && current.migrationRequired) {
+                throw new Error(
+                  `Legacy branch store for '${current.gitBranch}' is not migrated yet; approve its legacy_branch_storage action so it runs first.`,
+                );
+              }
+            }
             lazyProlog = await session.ensureProlog();
             sessionPrologs.set(operationContext, lazyProlog);
             return session.adaptProlog(lazyProlog);
