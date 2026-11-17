@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-kb-upsert-related-requirements-cap",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/related-requirements-cap.proof.test.ts"
+    ]
+  ]
+}
