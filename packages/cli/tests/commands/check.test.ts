@@ -3003,7 +3003,7 @@ links:
       const output = stdoutToString(result.stdout || result.stderr);
       // covered_by alone does NOT satisfy staged ownership gate
       expect(result.status).not.toBe(0);
-      expect(output).toContain("Traceability failed");
+      expect(output).toContain("[BLOCKS COMMIT] loginFlow (src/login.ts:1) has a symbol record but no requirement owns it.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -3093,8 +3093,7 @@ source: .kb/tests/TEST-E2E-LOGOUT.md
       const output = stdoutToString(result.stdout || result.stderr);
       // covered_by alone does NOT satisfy staged ownership gate
       expect(result.status).not.toBe(0);
-      expect(output).toContain("Traceability failed");
-      expect(output).toContain("implement");
+      expect(output).toContain("[BLOCKS COMMIT] logoutFlow (src/logout.ts:1) has a symbol record but no requirement owns it.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -3162,7 +3161,7 @@ source: .kb/tests/TEST-E2E-BARE.md
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).not.toBe(0);
-      expect(output).toContain("Traceability failed");
+      expect(output).toContain("[BLOCKS COMMIT] bareFunction (src/bare.ts:1) has a symbol record but no requirement owns it.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -3250,7 +3249,7 @@ links:
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).not.toBe(0);
-      expect(output).toContain("Traceability failed");
+      expect(output).toContain("[BLOCKS COMMIT] weakFunction (src/weak.ts:1) has a symbol record but no requirement owns it.");
     },
     TEST_TIMEOUT_MS,
   );

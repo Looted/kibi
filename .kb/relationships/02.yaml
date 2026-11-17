@@ -328,6 +328,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa333f9e3bea
+  - type: assumes
+    from: SCEN-NEG-kibi-commit-review-kb-staging-NEVER-OPEN
+    to: FACT-kibi-commit-review-guidance-never-open
+    created_at: 2026-11-16T15:45:34.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d7df4f70da7
   - type: constrains
     from: REQ-upsert-quantity-previous-value
     to: FACT-check-quantity-duplicate-subject

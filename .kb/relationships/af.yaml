@@ -321,3 +321,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f04763ea8e2
+  - type: assumes
+    from: SCEN-kibi-usage-core-arc
+    to: FACT-kibi-usage-body-core-arc-only
+    created_at: 2026-11-16T16:23:28.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9023e309d001
+  - type: assumes
+    from: SCEN-kibi-usage-core-arc
+    to: FACT-kibi-usage-body-under-budget
+    created_at: 2026-11-16T16:23:28.124Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce595018eef1

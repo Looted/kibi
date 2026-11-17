@@ -152,8 +152,10 @@ describe("kibi check --staged on a partially recorded file", () => {
       git(tmpDir, "add src/tags.ts");
       const result = kibi(tmpDir, ["check", "--staged"]);
       expect(result.status).toBe(1);
-      expect(result.output).toContain("symbols_manifest_stale");
-      expect(result.output).toContain("Not in .kb/symbols.yaml: deleteTag");
+      expect(result.output).toContain(
+        "[BLOCKS COMMIT] deleteTag (src/tags.ts:",
+      );
+      expect(result.output).not.toContain("[BLOCKS COMMIT] tagIdSchema");
       expect(result.output).not.toContain("tagIdSchema (line");
     },
     TEST_TIMEOUT_MS,
@@ -222,9 +224,8 @@ describe("kibi check --staged on a partially recorded file", () => {
       git(tmpDir, "add src/tags.ts");
       const result = kibi(tmpDir, ["check", "--staged"]);
       expect(result.status).toBe(1);
-      expect(result.output).toContain("Traceability failed");
-      expect(result.output).toContain("deleteTag");
-      expect(result.output).toContain("tagHandler");
+      expect(result.output).toContain("[BLOCKS COMMIT] deleteTag");
+      expect(result.output).toContain("[BLOCKS COMMIT] tagHandler");
     },
     TEST_TIMEOUT_MS,
   );

@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c764b6111999
+  - type: implements
+    from: SYM-cli-execute-upsert-request
+    to: REQ-kb-upsert-implemented-by-covered-by
+    created_at: 2026-11-16T16:50:03.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-473d0bff8544

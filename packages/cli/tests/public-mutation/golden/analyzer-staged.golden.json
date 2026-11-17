@@ -94,7 +94,10 @@
       "files": ["src/edit.ts"],
       "docs": ["docs/symbol-traceability-taxonomy.md"],
       "message": "Changed behavioral symbol edit needs semantic review against linked Kibi coverage: REQ-edited",
-      "suggestion": "Use kb_search and kb_query for src/edit.ts, then verify that REQ-edited actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh."
+      "suggestion": "Use kb_search and kb_query for src/edit.ts, then verify that REQ-edited actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.",
+      "evidence": {
+        "symbol": "edit"
+      }
     },
     {
       "id": "symbol_semantic_review_needed",
@@ -104,7 +107,10 @@
       "files": ["src/loose.ts"],
       "docs": ["docs/symbol-traceability-taxonomy.md"],
       "message": "Changed behavioral symbol loose is in a file no requirement owns, so no recorded intent covers the behavior it has after this change",
-      "suggestion": "If the change adds or alters behavior, record it as part of this change; that is part of finishing it, not a separate request, so it needs no permission: kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/loose.ts\"}]}) for a requirement that already describes it and link loose to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead."
+      "suggestion": "If the change adds or alters behavior, record it as part of this change; that is part of finishing it, not a separate request, so it needs no permission: kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/loose.ts\"}]}) for a requirement that already describes it and link loose to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead.",
+      "evidence": {
+        "symbol": "loose"
+      }
     },
     {
       "id": "symbol_semantic_review_needed",
@@ -114,7 +120,10 @@
       "files": ["src/renamed.ts"],
       "docs": ["docs/symbol-traceability-taxonomy.md"],
       "message": "Changed behavioral symbol second is in a file no requirement owns, so no recorded intent covers the behavior it has after this change",
-      "suggestion": "If the change adds or alters behavior, record it as part of this change; that is part of finishing it, not a separate request, so it needs no permission: kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/renamed.ts\"}]}) for a requirement that already describes it and link second to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead."
+      "suggestion": "If the change adds or alters behavior, record it as part of this change; that is part of finishing it, not a separate request, so it needs no permission: kb_search({query:\"<the behavior>\", sourceLocations:[{path:\"src/renamed.ts\"}]}) for a requirement that already describes it and link second to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead.",
+      "evidence": {
+        "symbol": "second"
+      }
     },
     {
       "id": "symbol_semantic_review_needed",
@@ -124,7 +133,10 @@
       "files": ["src/store.ts"],
       "docs": ["docs/symbol-traceability-taxonomy.md"],
       "message": "Changed behavioral symbol Store.save needs semantic review against linked Kibi coverage: linked requirements/tests",
-      "suggestion": "Use kb_search and kb_query for src/store.ts, then verify that linked requirements/tests actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh."
+      "suggestion": "Use kb_search and kb_query for src/store.ts, then verify that linked requirements/tests actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.",
+      "evidence": {
+        "symbol": "Store.save"
+      }
     },
     {
       "id": "symbol_semantic_review_needed",
@@ -134,7 +146,10 @@
       "files": ["src/upload.ts"],
       "docs": ["docs/symbol-traceability-taxonomy.md"],
       "message": "Changed behavioral symbol upload needs semantic review against linked Kibi coverage: REQ-upload",
-      "suggestion": "Use kb_search and kb_query for src/upload.ts, then verify that REQ-upload actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh."
+      "suggestion": "Use kb_search and kb_query for src/upload.ts, then verify that REQ-upload actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.",
+      "evidence": {
+        "symbol": "upload"
+      }
     },
     {
       "id": "symbol_semantic_review_needed",
@@ -144,7 +159,10 @@
       "files": ["src/upload.ts"],
       "docs": ["docs/symbol-traceability-taxonomy.md"],
       "message": "Changed behavioral symbol extra needs semantic review against linked Kibi coverage: linked requirements/tests",
-      "suggestion": "Use kb_search and kb_query for src/upload.ts, then verify that linked requirements/tests actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh."
+      "suggestion": "Use kb_search and kb_query for src/upload.ts, then verify that linked requirements/tests actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.",
+      "evidence": {
+        "symbol": "extra"
+      }
     }
   ],
   "sourceFiles": [

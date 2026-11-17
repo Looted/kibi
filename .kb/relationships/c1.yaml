@@ -188,34 +188,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f9c3f7bb48
-  - type: implements
-    from: SYM-staged-symbols-manifest-unrecordedDeclarations
-    to: REQ-check-symbol-debt-count
-    created_at: 2026-11-16T15:55:33.898Z
+  - type: executable_for
+    from: SYM-test-skills-core-arc
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:37:05.457Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-28bfaeb617b5
-  - type: assumes
-    from: SCEN-check-unscoped-budget
-    to: FACT-check-unscoped-budget
-    created_at: 2026-11-16T16:00:53.192Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b130e6296e77
-  - type: implements
-    from: SYM-check-inheritedSymbolGapsOf
-    to: REQ-staged-gate-reports-inherited-symbol-gaps
-    created_at: 2026-11-16T09:21:37.884Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0dce13c69813
-  - type: covered_by
-    from: SYM-check-inheritedSymbolGapsOf
-    to: TEST-staged-gate-inherited-symbol-gaps
-    created_at: 2026-11-16T09:21:37.897Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b0b81d588a0
+    id: rel-137ed8698acb
   - type: constrains
     from: REQ-check-restated-twin-facts
     to: FACT-check-duplicate-value-facts-subject
@@ -244,6 +223,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-466cc175812d
+  - type: implements
+    from: SYM-check-inheritedSymbolGapsOf
+    to: REQ-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dce13c69813
+  - type: covered_by
+    from: SYM-check-inheritedSymbolGapsOf
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b0b81d588a0
   - type: covered_by
     from: SYM-cli-quantity-layer-quantity-inputs
     to: TEST-check-quantity-duplicate
@@ -258,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9b66cf3736c
+  - type: implements
+    from: SYM-staged-symbols-manifest-unrecordedDeclarations
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:55:33.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28bfaeb617b5
+  - type: assumes
+    from: SCEN-check-unscoped-budget
+    to: FACT-check-unscoped-budget
+    created_at: 2026-11-16T16:00:53.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b130e6296e77

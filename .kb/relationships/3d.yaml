@@ -314,6 +314,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82035f5d8c2c
+  - type: implements
+    from: SYM-owner-findings-covering-tests
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T16:49:30.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01a7971a27a5
+  - type: covered_by
+    from: SYM-owner-findings-covering-tests
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T16:49:30.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-859c0d5e6ca2
+  - type: covered_by
+    from: SYM-const-staged-passing-review-states
+    to: TEST-proof-staged-passing-review-states
+    created_at: 2026-11-16T11:04:48.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95c86c277fda
   - type: executable_for
     from: SYM-kb-merge-fixture-fixture-ws
     to: TEST-kb-merge-action
@@ -328,10 +349,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ae62690ea75
-  - type: covered_by
-    from: SYM-const-staged-passing-review-states
-    to: TEST-proof-staged-passing-review-states
-    created_at: 2026-11-16T11:04:48.397Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-95c86c277fda

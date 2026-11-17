@@ -63,7 +63,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
         "typed relationship applied",
-        "symbol readback after write",
+        "symbol queried before write",
         "final check executed",
       ],
       forbiddenActions: ["delete during safe mutation", "direct .kb edit"],

@@ -461,3 +461,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2626fca4342
+  - type: constrains
+    from: REQ-requirement-reason-skips-change-notes
+    to: FACT-search-answer-reasons-subject
+    created_at: 2026-11-16T17:36:51.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42a34b5c9341
+  - type: requires_property
+    from: REQ-requirement-reason-skips-change-notes
+    to: FACT-requirement-reason-change-notes
+    created_at: 2026-11-16T17:36:51.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a5730a4dc11
+  - type: specified_by
+    from: REQ-requirement-reason-skips-change-notes
+    to: SCEN-requirement-reason-skips-change-notes
+    created_at: 2026-11-16T17:36:51.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8532aba3aac4
+  - type: specified_by
+    from: REQ-requirement-reason-skips-change-notes
+    to: SCEN-NEG-requirement-reason-change-notes-QUOTED
+    created_at: 2026-11-16T17:36:51.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a234ad18b1d4

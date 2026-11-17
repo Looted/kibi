@@ -22,6 +22,9 @@ const SENTINEL = "<!-- kibi-opencode -->";
 
 // ── Token budget enforcement ───────────────────────────────────────────
 export const MAX_BULLETS = 5;
+/** Characters of the lead requirement's reason in the edit bullet. */
+const OPENCODE_WHY_CHARS = 120;
+
 const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
 
 function countWords(text: string): number {
@@ -267,15 +270,15 @@ function sourceLinkBullets(
   const linkedIds = getSourceLinkedRequirementIds(workspaceRoot, absEdited);
   const leadId = linkedIds[0];
   if (leadId === undefined) return [];
-  // What the lead requirement must keep true and the decision behind it,
-  // from the shared kibi-agent-core projection. One fact keeps the bullet
-  // inside the prompt's word budget; retired requirements contribute
-  // nothing.
+  // What the lead requirement must keep true, why it exists and the
+  // decision behind it, from the shared kibi-agent-core projection. One fact
+  // and a short reason keep the bullet inside the prompt's word budget;
+  // retired requirements contribute nothing.
   // The knowledge readers behind it catch their own I/O errors.
   const grounding = requirementGroundingLines(
     leadId,
     createEntitySummarizer(workspaceRoot),
-    { maxFacts: 1 },
+    { maxFacts: 1, whyChars: OPENCODE_WHY_CHARS },
   );
   return [
     ...(grounding.length > 0 ? [`- ${grounding.join(" ")}`] : []),

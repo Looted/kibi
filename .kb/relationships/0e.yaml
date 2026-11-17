@@ -531,3 +531,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a2374b067ab
+  - type: constrains
+    from: REQ-agent-core-edit-snippet-why
+    to: FACT-edit-snippet-reason-subject
+    created_at: 2026-11-16T15:55:02.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aa117ab61c7
+  - type: requires_property
+    from: REQ-agent-core-edit-snippet-why
+    to: FACT-edit-snippet-why-line
+    created_at: 2026-11-16T15:55:02.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97943fc38978
+  - type: specified_by
+    from: REQ-agent-core-edit-snippet-why
+    to: SCEN-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:02.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecd66e3a09ff
+  - type: specified_by
+    from: REQ-agent-core-edit-snippet-why
+    to: SCEN-NEG-agent-core-edit-snippet-why-MISSING
+    created_at: 2026-11-16T15:55:02.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e89f1837a05d
