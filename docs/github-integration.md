@@ -363,6 +363,80 @@ runners have. Outside GitHub Actions the same logic is
 `actions/kb-merge/kb-merge.sh`, configured through `KB_MERGE_*` environment
 variables described at the top of the script.
 
+## Land pull requests in a merge train
+
+Merging pull requests one at a time, each re-proven against the latest default
+branch, takes one full proof run per pull request. The **Kibi merge train**
+action proves a batch once. Every commit it adds to the default branch's
+first-parent history is a merge commit whose tree is exactly the tree its
+checks passed on.
+
+### How it works
+
+- **Boarding.** A person adds the `train` label to a pull request. A pull
+  request boards only when it carries the label, is not a draft, comes from
+  this repository, and every check in `checks` passed on its current head.
+  Pull requests board in pull request number order, up to `max` per train.
+- **Assembly.** From the default branch tip, the action merges each boarded
+  head into a `merge-train/<id>` branch with `kibi merge-driver`. After each
+  merge it runs `kibi sync`, refuses a sync that rewrites a tracked file, and
+  runs the `check` command. A pull request that conflicts or fails is ejected
+  with a comment before any expensive run. The branch is opened as a pull
+  request into the default branch, so your usual workflows run on it.
+- **Landing.** The train merges, as a merge commit, only when every check in
+  `checks` passed on the exact head it assembled and the default branch has
+  not moved since. The default branch then has the proven tree, and GitHub
+  marks each boarded pull request merged.
+- **Failure.** A failed train re-runs its failed jobs once. If it fails again,
+  it is closed and each half is proven as its own train. Only a train of one
+  pull request that fails twice ejects that pull request, so no pull request
+  is removed without evidence that it fails.
+- **Moves.** A train is closed and assembled again on the new tip when the
+  default branch moves, its branch moves, or a member loses its label or its
+  passing checks.
+
+Each run takes one step and exits. Run it when your check workflows finish,
+when the label is added, and on a schedule as a backstop, as the example does.
+
+### Set it up
+
+1. Copy [docs/examples/github/kibi-merge-train.yml](examples/github/kibi-merge-train.yml)
+   to `.github/workflows/kibi-merge-train.yml`. Pin the action to a full
+   commit SHA of `Looted/kibi`.
+2. Set `checks` to the checks your ruleset requires. One aggregate job per
+   workflow that needs every other job and fails on a failed, skipped or
+   cancelled one is easiest, because a renamed or split job then never leaves
+   the ruleset waiting.
+3. Save a token as `KIBI_MERGE_TOKEN`: a fine-grained personal access token or
+   GitHub App token limited to the repository, with **Contents**,
+   **Pull requests**, **Issues**, **Actions** and **Workflows** set to read
+   and write. Pull requests and pushes made with the default `GITHUB_TOKEN`
+   start no workflows, so the train's checks would never run.
+4. In the default branch's ruleset, require the checks, but do not enable
+   "Require branches to be up to date before merging": the train already
+   proves the exact tree that lands. To make the train the only way in,
+   restrict updates to the default branch to the train's token identity.
+
+### Action reference
+
+`uses: Looted/kibi/actions/merge-train@<commit SHA>`
+
+| Input | Default | Meaning |
+| --- | --- | --- |
+| `base` | repository default branch | Branch the trains merge into. |
+| `checks` | required | Required check names, comma or newline separated. |
+| `label` | `train` | Label that boards a pull request. |
+| `max` | `8` | Most pull requests in one train. |
+| `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. `""` skips `kibi sync`. |
+| `check` | `$KIBI check` | Shell command run in the train after each merge. `$KIBI` and `$KIBI_BRANCH` are set. `""` runs none. |
+| `prefix` | `merge-train/` | Branch prefix of train branches. |
+| `github-token` | `github.token` | Token `gh` uses. |
+
+The action needs Node.js 22.6 or newer, `git` and `gh`. Outside GitHub
+Actions the same logic is `actions/merge-train/merge-train.mts`, configured
+through the `MERGE_TRAIN_*` environment variables described at the top of the
+file.
+
 ## Troubleshooting
 
 **The workflow succeeds but `https://OWNER.github.io/REPOSITORY/kibi-report/` is 404.**

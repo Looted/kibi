@@ -1,0 +1,80 @@
+name: Kibi merge train
+description: >-
+  Land labelled pull requests in batches: merge them into one train branch
+  with kibi merge-driver, prove the train once as a pull request, and merge it
+  only when its required checks passed on the exact head it assembled.
+author: Kibi
+
+branding:
+  icon: git-merge
+  color: green
+
+inputs:
+  base:
+    description: Base branch the trains merge into. Defaults to the repository's default branch.
+    required: false
+    default: ""
+  checks:
+    description: >-
+      Required check names, comma or newline separated. A pull request boards
+      only when these passed on its current head, and a train merges only when
+      they passed on its assembled head.
+    required: true
+  label:
+    description: Label that boards a pull request.
+    required: false
+    default: train
+  max:
+    description: Most pull requests in one train.
+    required: false
+    default: "8"
+  kibi:
+    description: >-
+      Command that runs the base branch's Kibi, for example
+      "node_modules/.bin/kibi". A relative path is resolved from the workspace.
+      Empty skips kibi sync after each merge.
+    required: false
+    default: node_modules/.bin/kibi
+  check:
+    description: >-
+      Shell command run in the train after each pull request is merged into
+      it; a pull request that fails it is ejected before the train is pushed.
+      $KIBI and $KIBI_BRANCH are set. Use "" to run no check.
+    required: false
+    default: "$KIBI check"
+  prefix:
+    description: Branch prefix of train branches.
+    required: false
+    default: merge-train/
+  github-token:
+    description: >-
+      Token gh uses to read pull requests and checks, open and merge trains,
+      comment, remove labels and re-run failed jobs. Pull requests opened with
+      the default GITHUB_TOKEN start no workflows, so use a token that does.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        GH_REPO: ${{ github.repository }}
+        MERGE_TRAIN_BASE: ${{ inputs.base || github.event.repository.default_branch }}
+        MERGE_TRAIN_CHECKS: ${{ inputs.checks }}
+        MERGE_TRAIN_LABEL: ${{ inputs.label }}
+        MERGE_TRAIN_MAX: ${{ inputs.max }}
+        MERGE_TRAIN_KIBI_INPUT: ${{ inputs.kibi }}
+        MERGE_TRAIN_CHECK: ${{ inputs.check }}
+        MERGE_TRAIN_PREFIX: ${{ inputs.prefix }}
+      run: |
+        set -euo pipefail
+        kibi="$MERGE_TRAIN_KIBI_INPUT"
+        first="${kibi%% *}"
+        if [ -n "$kibi" ] && [ "${first#/}" = "$first" ] && [ -e "$first" ]; then
+          kibi="$PWD/$kibi"
+        fi
+        # Node 22.6 or newer runs the TypeScript source by stripping types.
+        MERGE_TRAIN_KIBI="$kibi" node --experimental-strip-types --no-warnings "$GITHUB_ACTION_PATH/merge-train.mts"

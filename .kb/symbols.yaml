@@ -44745,3 +44745,69 @@ symbols:
         target: TEST-proof-claude-workspace-env-keys
       - type: implements
         target: REQ-agent-workspace-opt-in-keys
+  - id: SYM-merge-train-refusal
+    title: refusal
+    status: active
+    sourceFile: actions/merge-train/merge-train.mts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:40:50.492Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-admission
+  - id: SYM-merge-train-plan
+    title: plan
+    status: active
+    sourceFile: actions/merge-train/merge-train.mts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:40:54.348Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-failure-bisect
+      - type: implements
+        target: REQ-ci-merge-train-lands-assembled-head
+  - id: SYM-merge-train-workflow
+    title: Advance the merge train job (.github/workflows/merge-train.yml)
+    status: active
+    sourceFile: .github/workflows/merge-train.yml
+    symbol_role: config
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:40:56.924Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-lands-assembled-head
+  - id: SYM-test-ci-merge-train
+    title: Merge train suite
+    status: active
+    sourceFile: scripts/tests/merge-train.test.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:40:59.133Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-merge-train

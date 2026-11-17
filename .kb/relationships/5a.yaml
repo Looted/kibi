@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-afa5149d4dd1
+  - type: assumes
+    from: SCEN-ci-merge-train-lands-assembled-head
+    to: FACT-ci-merge-train-lands-assembled-head
+    created_at: 2026-11-17T11:40:08.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f38e7c15d68
+  - type: verified_by
+    from: SCEN-ci-merge-train-lands-assembled-head
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:08.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2abcc28a7503

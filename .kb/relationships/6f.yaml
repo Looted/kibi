@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f50f89f3e57
+  - type: assumes
+    from: SCEN-ci-merge-train-admission
+    to: FACT-ci-merge-train-admission
+    created_at: 2026-11-17T11:40:06.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2dfe651a1de
+  - type: verified_by
+    from: SCEN-ci-merge-train-admission
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:06.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5888c0b360d

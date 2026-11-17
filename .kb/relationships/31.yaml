@@ -605,3 +605,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a267f0fefa38
+  - type: assumes
+    from: SCEN-NEG-ci-merge-train-admission-VIOLATED
+    to: FACT-NEG-ci-merge-train-admission-VIOLATED
+    created_at: 2026-11-17T11:40:07.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02ca87c3196f
+  - type: verified_by
+    from: SCEN-NEG-ci-merge-train-admission-VIOLATED
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:07.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fb9d28f6089
