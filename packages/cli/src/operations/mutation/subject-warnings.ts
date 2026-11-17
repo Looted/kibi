@@ -176,6 +176,50 @@ function informativeTitle(subjectKey: string, title: string | undefined) {
   return words(title ?? "").some((word) => !keyWords.has(word));
 }
 
+/** An unmodeled claim that names no subjects, with the existing subjects its words suggest. */
+export type ClaimSubjectGap = Readonly<{
+  claimKey: string;
+  claimText: string;
+  /** Subject keys, closest first. */
+  candidates: readonly string[];
+  /** How each candidate reads in a note: its key, and its title when that says more. */
+  labels: readonly string[];
+}>;
+
+/**
+ * The claims of a requirement entity that claim-subject-missing reports,
+ * each with up to three existing subjects its words suggest.
+ */
+export async function claimSubjectGaps(
+  entity: Readonly<Record<string, unknown>>,
+  prolog: Pick<PrologPort, "query">,
+): Promise<ClaimSubjectGap[]> {
+  const missing = inventory(entity).filter(claimNeedsSubjects);
+  if (missing.length === 0) return [];
+  const vocabulary = (await readSubjectVocabulary(prolog as PrologPort)).filter(
+    (entry) => entry.reqDerived !== true,
+  );
+  return missing.map((entry) => {
+    const ranked = rankSubjectCandidates(text(entry.claim_text), vocabulary, {
+      limit: SUGGESTED_SUBJECTS,
+    });
+    return {
+      claimKey: text(entry.claim_key),
+      claimText: text(entry.claim_text),
+      candidates: ranked.map((candidate) => candidate.subjectKey),
+      labels: ranked.map(
+        (candidate) =>
+          `${candidate.subjectKey}${informativeTitle(candidate.subjectKey, candidate.title) ? ` ("${candidate.title}")` : ""}`,
+      ),
+    };
+  });
+}
+
+/** How every claim-subject-missing note on `id` starts. */
+export function claimSubjectMissingPrefix(id: string): string {
+  return `claim-subject-missing: ${id} is recorded;`;
+}
+
 async function requirementWarnings(
   id: string,
   entity: Readonly<Record<string, unknown>>,
@@ -183,24 +227,10 @@ async function requirementWarnings(
   workspaceRoot: string,
 ): Promise<string[]> {
   const warnings: string[] = [];
-  const missing = inventory(entity).filter(claimNeedsSubjects);
-  if (missing.length > 0) {
-    const vocabulary = (
-      await readSubjectVocabulary(prolog as PrologPort)
-    ).filter((entry) => entry.reqDerived !== true);
-    for (const entry of missing) {
-      const suggestions = rankSubjectCandidates(
-        text(entry.claim_text),
-        vocabulary,
-        { limit: SUGGESTED_SUBJECTS },
-      ).map(
-        (candidate) =>
-          `${candidate.subjectKey}${informativeTitle(candidate.subjectKey, candidate.title) ? ` ("${candidate.title}")` : ""}`,
-      );
-      warnings.push(
-        `claim-subject-missing: ${id} is recorded; its inventory claim ${text(entry.claim_key)} ("${text(entry.claim_text)}") is not modeled and names no subjects yet, which kb_check reports until it does, and Kibi cannot pair it with the other requirements on its subjects until then. Next: add subjects: [<subject_key>, ...] to that entry${suggestions.length > 0 ? `; existing subjects its words suggest: ${suggestions.join(", ")}` : ""}. Define a missing subject as a subject fact first.`,
-      );
-    }
+  for (const gap of await claimSubjectGaps(entity, prolog)) {
+    warnings.push(
+      `${claimSubjectMissingPrefix(id)} its inventory claim ${gap.claimKey} ("${gap.claimText}") is not modeled and names no subjects yet, which kb_check reports until it does, and Kibi cannot pair it with the other requirements on its subjects until then. Next: add subjects: [<subject_key>, ...] to that entry${gap.labels.length > 0 ? `; existing subjects its words suggest: ${gap.labels.join(", ")}` : ""}. Define a missing subject as a subject fact first.`,
+    );
   }
   const subjectKeys = anchoredSubjects(entity).slice(0, MAX_SUBJECTS_REPORTED);
   const withIds = pairReviewPartners(entity);

@@ -335,3 +335,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a40b6d249bf
+  - type: assumes
+    from: SCEN-kibi-env-workspace-file-provider-keys
+    to: FACT-env-workspace-files-non-provider-kibi-keys
+    created_at: 2026-11-16T20:40:39.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41a7016c18c9
+  - type: assumes
+    from: SCEN-kibi-env-workspace-file-provider-keys
+    to: FACT-env-workspace-files-process-variables
+    created_at: 2026-11-16T20:40:39.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be05bb0a8de0
+  - type: assumes
+    from: SCEN-kibi-env-workspace-file-provider-keys
+    to: FACT-env-workspace-files-ignored-key-report
+    created_at: 2026-11-16T20:40:39.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5afa8ddeceb
+  - type: assumes
+    from: SCEN-kibi-env-workspace-file-provider-keys
+    to: FACT-env-user-and-process-env-unrestricted
+    created_at: 2026-11-16T20:40:39.458Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-627c136d50f1
+  - type: verified_by
+    from: SCEN-kibi-env-workspace-file-provider-keys
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:40:39.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84c6547bd7f8

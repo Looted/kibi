@@ -23,6 +23,7 @@ import {
   settledFirmRequirements,
   signoffReminder,
   startDecisionSession,
+  statedReason,
 } from "kibi-agent-core/decision-guard";
 import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import {
@@ -404,7 +405,10 @@ export async function runHook(
           rule === undefined ? "prompt_silent" : "prompt_rule_note";
         return rule === undefined
           ? defaultResult()
-          : contextResult(input.event, rulePromptNote(rule));
+          : contextResult(
+              input.event,
+              rulePromptNote(rule, statedReason(input.prompt)),
+            );
       }
 
       case "PreToolUse": {

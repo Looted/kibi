@@ -34,6 +34,12 @@ export type UpsertInput = {
    * (created when the KB has none for that declaration).
    */
   readonly implementedBy?: readonly ImplementedByInput[];
+  /**
+   * Requirement upserts only: why the requirement exists, in the words of
+   * the person who asked. Recorded as `rationale` and as the body's reason
+   * section, with origin.ref as its Source.
+   */
+  readonly why?: string;
   readonly _skipContradictionCheck?: boolean;
   readonly _requestId?: string;
 };
@@ -118,9 +124,19 @@ export type UpsertPayload = {
   }[];
   readonly nextActions?: readonly {
     readonly operation: string;
+    /** The check rule the step clears, when it clears one. */
+    readonly code?: string;
     readonly input?: unknown;
     readonly reason: string;
     readonly required: boolean;
+  }[];
+  /**
+   * For a written requirement: other current requirements on the same terms,
+   * so one this write replaces can be superseded.
+   */
+  readonly relatedRequirements?: readonly {
+    readonly id: string;
+    readonly statement: string;
   }[];
   readonly sourceWrites?: readonly {
     readonly path: string;

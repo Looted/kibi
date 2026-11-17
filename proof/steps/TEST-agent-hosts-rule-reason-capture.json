@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-agent-hosts-rule-reason-capture",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/agent-core/tests/decision-guard.test.ts",
+      "./packages/claude/tests/hook-runner.test.ts",
+      "./packages/claude/tests/workspace-state.test.ts",
+      "./packages/codex/tests/hook-runner.test.ts",
+      "./packages/cursor/tests/hook-runner.test.ts",
+      "./packages/zcode/tests/hook-runner.test.ts"
+    ]
+  ]
+}
