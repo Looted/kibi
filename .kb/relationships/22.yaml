@@ -524,3 +524,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8610ab4f6947
+  - type: assumes
+    from: SCEN-NEG-core-snapshot-triples-held-once-HELD-TWICE
+    to: FACT-NEG-core-snapshot-triples-held-once-HELD-TWICE
+    created_at: 2026-11-17T09:08:07.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-528a1a8d2c9b

@@ -37,6 +37,7 @@ import {
   inspectBranchStore,
   storeLockJournalReason,
   storeLockTakeoverReason,
+  storeRepairReason,
   uncompiledBranchStoreReason,
 } from "../../utils/branch-store.js";
 import { confirmSourceNewerReasons } from "../../utils/content-freshness.js";
@@ -1382,6 +1383,12 @@ export async function executeStatus(
     const lockReason = storeLockJournalReason(store.path);
     // A stale-lock takeover heals itself; report it without making the KB stale.
     const takeoverNotice = storeLockTakeoverReason(store.path);
+    // A duplicate-triple repair on attach has already fixed the store.
+    const repairNotice = storeRepairReason(store.path);
+    const notices = [
+      ...(takeoverNotice ? [takeoverNotice] : []),
+      ...(repairNotice ? [repairNotice] : []),
+    ];
     const compilerReason = compilerFingerprintReason(store.path);
     // A source the last sync could not extract is missing from the store
     // even when every compiled file is current.
@@ -1438,7 +1445,7 @@ export async function executeStatus(
       // The session brief every host opens with, for an agent whose host
       // has no Kibi plugin and only calls kb_status.
       sessionBrief: SESSION_BRIEF,
-      ...(takeoverNotice ? { notices: [takeoverNotice] } : {}),
+      ...(notices.length > 0 ? { notices } : {}),
       ...(engineStatus ? { engineStatus } : {}),
       staleReasons,
       staleReasonCount: staleReasons.length,
@@ -1609,7 +1616,7 @@ export async function executeStatus(
       content: [
         {
           type: "text",
-          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String((storeReason as NonNullable<typeof storeReason>).detail)} Run kibi sync.` : ""}${takeoverNotice ? `. Note: ${String(takeoverNotice.detail)}` : ""}`,
+          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String((storeReason as NonNullable<typeof storeReason>).detail)} Run kibi sync.` : ""}${notices.map((notice) => `. Note: ${String(notice.detail)}`).join("")}`,
         },
       ],
       structuredContent: statusWithPlan,

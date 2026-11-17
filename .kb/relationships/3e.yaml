@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2084a91fc200
+  - type: implements
+    from: SYM-check-store-snapshot-count-store
+    to: REQ-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:11:45.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b986c1762adc
+  - type: covered_by
+    from: SYM-check-store-snapshot-count-store
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:11:45.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcf97a496296
