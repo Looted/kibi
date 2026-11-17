@@ -1,0 +1,96 @@
+name: Store integrity sampling (diagnostics)
+
+# Throwaway: samples sync + check twenty times in parallel to catch the
+# intermittent in-memory store mismatch. Not for develop.
+on:
+  push:
+    branches: [claude/project-thread-rtyvm9-store-diag]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  KIBI_TELEMETRY: "0"
+  KIBI_CLI: ./packages/cli/bin/kibi
+  KIBI_BRANCH: ${{ github.ref_name }}
+  KIBI_STORE_DIAG_LOG: ${{ github.workspace }}/../kibi-store-diag/writes.log
+  KIBI_ENGINE_STDERR_LOG: ${{ github.workspace }}/../kibi-store-diag/engine-stderr.log
+
+jobs:
+  swipl-bundle:
+    name: Bundled SWI-Prolog
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
+  sample:
+    name: Sample ${{ matrix.sample }}
+    needs: [swipl-bundle]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: "1.4.4"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "26.7.0"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Bootstrap Ubuntu packages
+        run: bash scripts/ci-apt-bootstrap.sh bubblewrap z3 swi-prolog-nox
+
+      - name: Install SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
+        with:
+          verify-resolver: 'true'
+
+      - name: Build
+        run: bun run build
+
+      - name: Reject generated manifest drift
+        run: bun packages/cli/bin/kibi check-generated --staged
+
+      - name: Sync, compare the store and check
+        id: integrity
+        run: |
+          mkdir -p "$(dirname "$KIBI_STORE_DIAG_LOG")"
+          bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-sync.json"
+          bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-check.json"
+
+      - name: Collect the branch store
+        if: ${{ failure() && steps.integrity.outcome == 'failure' }}
+        run: |
+          out="${RUNNER_TEMP}/kibi-branch-store"
+          mkdir -p "$out/runtime"
+          diag="$(dirname "$KIBI_STORE_DIAG_LOG")"
+          if [ -d "$diag" ]; then cp -a "$diag" "$out/diag"; fi
+          if [ -d .kb/branches ]; then cp -a .kb/branches "$out/branches"; fi
+          for dir in "${KIBI_RUNTIME_DIR:-}" "${XDG_RUNTIME_DIR:-}" /tmp/kibi-runtime; do
+            if [ -n "$dir" ] && [ -d "$dir" ]; then
+              find "$dir" -maxdepth 1 -type f -name 'kibi-*' -exec cp -p {} "$out/runtime/" \;
+            fi
+          done
+
+      - name: Upload the branch store
+        if: ${{ failure() && steps.integrity.outcome == 'failure' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kibi-branch-store-${{ matrix.sample }}
+          path: ${{ runner.temp }}/kibi-branch-store
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
