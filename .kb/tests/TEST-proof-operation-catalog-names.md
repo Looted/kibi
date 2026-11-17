@@ -19,7 +19,7 @@ proof_contract:
     symbol_id: SYM-operation-catalog
     field: name
   proves:
-    - CLAIM-5D894E84FA104A78
+    - CLAIM-E336EB29BBCA15CD
 origin:
   kind: agent
   recorded_at: '2026-10-28T22:38:38.832Z'
@@ -27,20 +27,20 @@ id: TEST-proof-operation-catalog-names
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-db0262878db12ada2def9a07
+    receipt_id: PR-7ef64e3fbfde0434b7f72a5b
     test_id: TEST-proof-operation-catalog-names
     scope: unit
     outcome: passed
-    code_snapshot: e1bd8a80fa17d4458d04cf69090de97f0009b437dd1fb759547530d10d7f6bf9
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T09:36:37.354Z'
-    finished_at: '2026-11-16T09:36:37.615Z'
-    artifact_digest: d72be8bc900378bcd3d188008ceb963e748d81119b236b9b95ee8aebc5280151
-    contract_hash: 3874a21052eff35dfbf97e418bb4e44a10758dfcfe0593b59c9822e417847005
-    binding_hash: f2bf1f806b2c7fe144159394431155d320b7c017c446e0a6deca031d791b923c
-    fingerprint: e62a504a72ce8de68b4f5c8423999c1cf7090183c70823ac33d33538e594a9d3
+    code_snapshot: df84fc91d0f807889519f20a576fcd787807fc96a14d6cb59f83a53eb62a9ce7
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-17T07:48:28.802Z'
+    finished_at: '2026-11-17T07:48:29.021Z'
+    artifact_digest: 8afef1494d1fb97d7c07e2e5e1c176d8518bb55ef127adaf5e0de489b8cc535d
+    contract_hash: 9c8b13fc42fd0f82cf59713a376c612ea969bd3721a88c628ba4c40a1ca2f92f
+    binding_hash: a19d1b05c01f4ff57817e082b3542e89a931aa25c3ffd384f60f69d3e01c715c
+    fingerprint: 30775271e4d703616fc247a89429b5dab1bc5ed552919c8ff45bfa24c2aacbc0
     fingerprint_components:
-      contract: 3874a21052eff35dfbf97e418bb4e44a10758dfcfe0593b59c9822e417847005
+      contract: 9c8b13fc42fd0f82cf59713a376c612ea969bd3721a88c628ba4c40a1ca2f92f
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -85,6 +85,7 @@ proof_receipts:
           - kb_plan_bootstrap
           - kb_validate_upsert
           - kb_upsert
+          - kb_record
           - kb_delete
           - kb_check
           - kb_prepare_impact_review
@@ -128,6 +129,8 @@ proof_receipts:
           outcome: passed
         - member: kb_upsert
           outcome: passed
+        - member: kb_record
+          outcome: passed
         - member: kb_delete
           outcome: passed
         - member: kb_check
@@ -144,9 +147,9 @@ proof_receipts:
           outcome: passed
         - member: kb_ingest_proof
           outcome: passed
-    certificate_digest: 6d8a5b203cc37b4be69c111a7e9eb545bf917a70f6782d3db1acfd21f0ad53e6
+    certificate_digest: 9fa73b4f57239ad72dc2577420c2b4c270ace4c4799d94c6c94fbb6405a20245
     claim_bindings:
-      - claim_key: CLAIM-5D894E84FA104A78
+      - claim_key: CLAIM-E336EB29BBCA15CD
         requirement_id: REQ-kibi-operation-catalog-names
         fact_id: FACT-operation-catalog-names
         binding: derived
@@ -167,6 +170,7 @@ proof_receipts:
             - kb_plan_bootstrap
             - kb_prepare_impact_review
             - kb_query
+            - kb_record
             - kb_review_firm_edit
             - kb_search
             - kb_semantic_advisor

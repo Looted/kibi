@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   KIBI_WORKSPACE_ARGUMENT,
   canonicalKbToolName,
+  effectiveKbOperation,
   extractKbMcpToolCall,
   extractKbMcpToolName,
   hostKbOperation,
@@ -209,6 +210,38 @@ describe("extractKbMcpToolCall", () => {
     );
   });
 
+  test("kb_record is a kb_upsert write, and its dry run validation only", () => {
+    expect(extractKbMcpToolCall("mcp__kibi__kb_record", {})?.toolName).toBe(
+      "kb_upsert",
+    );
+    expect(
+      extractKbMcpToolCall("kb_record", { arguments: { dryRun: true } })
+        ?.toolName,
+    ).toBe("kb_validate_upsert");
+    expect(
+      extractKbMcpToolCall("CallMcpTool", {
+        arguments: { name: "kb_record", dryRun: true },
+      })?.toolName,
+    ).toBe("kb_validate_upsert");
+    expect(
+      extractKbMcpToolCall("CallMcpTool", { args: { name: "kb_record" } })
+        ?.toolName,
+    ).toBe("kb_upsert");
+    expect(effectiveKbOperation("kb_record", {})).toBe("kb_upsert");
+    expect(effectiveKbOperation("kb_record", { dryRun: true })).toBe(
+      "kb_validate_upsert",
+    );
+    expect(effectiveKbOperation("kb_upsert", { dryRun: false })).toBe(
+      "kb_upsert",
+    );
+    expect(effectiveKbOperation("kb_delete", { dryRun: true })).toBe(
+      "kb_delete",
+    );
+    expect(effectiveKbOperation("kb_record", { dryRun: "true" })).toBe(
+      "kb_upsert",
+    );
+  });
+
   test("a tool named only inside the arguments", () => {
     expect(
       extractKbMcpToolCall("CallMcpTool", {
@@ -255,6 +288,7 @@ describe("CLI and host operations", () => {
       "find-gaps": "kb_find_gaps",
       gaps: "kb_find_gaps",
       upsert: "kb_upsert",
+      record: "kb_upsert",
       sync: "kb_sync",
     };
     for (const [route, operation] of Object.entries(routes)) {

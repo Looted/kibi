@@ -313,7 +313,7 @@ describe("MCP Server", () => {
     await killServer(proc);
   });
 
-  test("lists the six core tools by default in a workspace with knowledge", async () => {
+  test("lists the seven core tools by default in a workspace with knowledge", async () => {
     // This repository's own knowledge base is not empty, so the bootstrap
     // tools stay out too.
     const proc = startServer();
@@ -340,6 +340,7 @@ describe("MCP Server", () => {
         "kb_status",
         "kb_skills",
         "kb_upsert",
+        "kb_record",
         "kb_check",
       ]);
     } finally {
@@ -373,7 +374,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(16);
+    expect(tools.length).toBe(17);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -384,6 +385,7 @@ describe("MCP Server", () => {
       "kb_graph",
       "kb_model",
       "kb_upsert",
+      "kb_record",
       "kb_delete",
       "kb_check",
       "kb_prepare_impact_review",

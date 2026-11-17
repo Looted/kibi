@@ -1712,12 +1712,12 @@ function statedReason(prompt) {
   return;
 }
 function reasonLine2(reason) {
-  return `The request gives its reason ("${reason}"): put that reason in the requirement's why field, in the person's words.`;
+  return `The request gives its reason ("${reason}"): put that reason in the why field, in the person's words.`;
 }
 function rulePromptNote(phrase, reason) {
   return [
     `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
-    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it.",
+    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new rule is recorded with kb_record (the statement, the person's reason, saidBy user and the code that enforces it; a changed one with kb_upsert) as part of this change, not after it.",
     ...reason === undefined ? [] : [reasonLine2(reason)]
   ].join(`
 `);
@@ -1725,41 +1725,29 @@ function rulePromptNote(phrase, reason) {
 function captureReminder(rulePhrase) {
   return rulePhrase === undefined ? [
     "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line."
+    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line."
   ].join(`
 `) : [
     `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
-    `Record the rule behind "${rulePhrase}" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`
+    `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`
   ].join(`
 `);
 }
 function ruleCaptureTemplate(rulePhrase, reason) {
   const template = {
-    type: "req",
-    id: "REQ-<short-name>",
-    properties: {
-      title: "<the rule in a few words>",
-      status: "open",
-      firmness: "firm",
-      origin: {
-        kind: "agent",
-        ref: "<the person's words and where they said them>"
-      }
-    },
-    document: { body: "<the rule as one shall or must sentence>" },
+    statement: "<the rule as one shall or must sentence>",
     why: reason === undefined ? "<why the person wants it, in their words; 'Reason not stated' if they gave none>" : "<the person's reason, in their words>",
-    implementedBy: [
-      {
-        sourceFile: "<file you changed>",
-        symbol: "<function that enforces it>"
-      }
+    saidBy: "user",
+    quote: "<the person's words, quoted>",
+    code: [
+      { file: "<file you changed>", symbol: "<function that enforces it>" }
     ]
   };
   return [
-    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
+    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:`,
     JSON.stringify(template),
     ...reason === undefined ? [] : [reasonLine2(reason)],
-    "Then follow the nextActions the result returns."
+    "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert."
   ].join(`
 `);
 }
@@ -1924,7 +1912,10 @@ function record(value) {
 function isRequirementUpsert(toolInput) {
   const input = record(toolInput);
   const args = record(input?.arguments) ?? record(input?.args) ?? input;
-  return args?.type === "req" && args.dryRun !== true;
+  const recorded = typeof args?.statement === "string" && typeof args.saidBy === "string";
+  if (!args || args.type !== "req" && !recorded)
+    return false;
+  return args.dryRun !== true;
 }
 function mtimeMs(file) {
   let time = Number.NaN;
@@ -2064,6 +2055,10 @@ function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
   const base = isRecord2(toolInput) ? toolInput : {};
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
+function effectiveKbOperation(operation, payload) {
+  const write = operation === "kb_record" ? "kb_upsert" : operation;
+  return write === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : write;
+}
 function resolveKibiInterface(mcpState, workspaceTrusted) {
   if (mcpState === "observed") {
     return "mcp";
@@ -2077,12 +2072,14 @@ function extractKbMcpToolCall(toolName, toolInput) {
   if (!name?.startsWith("kb_")) {
     const nested = input.arguments ?? input.args;
     const nestedTool = isRecord2(nested) ? readString(nested, TOOL_NAME_KEYS) : undefined;
-    return nestedTool?.startsWith("kb_") ? { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] } : undefined;
+    return nestedTool?.startsWith("kb_") ? {
+      toolName: effectiveKbOperation(nestedTool, nested),
+      impactCheckRun: false,
+      sourceFiles: []
+    } : undefined;
   }
   const payload = readRecord(input, ["arguments", "args"]) ?? input;
-  if (name === "kb_upsert" && readBoolean(payload, ["dryRun"]) === true) {
-    name = "kb_validate_upsert";
-  }
+  name = effectiveKbOperation(name, payload);
   const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
   return {
     toolName: name,
@@ -2107,6 +2104,7 @@ var KIBI_CLI_ROUTES = {
   "find-gaps": "kb_find_gaps",
   gaps: "kb_find_gaps",
   upsert: "kb_upsert",
+  record: "kb_upsert",
   sync: "kb_sync"
 };
 function kibiCliOperation(command) {
@@ -2878,7 +2876,7 @@ function readPackageVersion(packageJsonPath) {
 var SESSION_BRIEF_LINES = [
   "Kibi records this repository's requirements and decisions with their reasons.",
   "- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.",
-  "- When the person states a rule or makes a decision, record it with their reason (kb_upsert: who decided and why).",
+  "- When the person states a rule, record it with their reason (kb_record); a decision goes through kb_upsert.",
   "- Before finishing, stage the change with its .kb files and run the commit check, `kibi check --staged`.",
   "A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask."
 ];

@@ -23,6 +23,7 @@ per operation. Effects are authoritative for mutability and adapter annotations.
 | `kb_plan_bootstrap` | `plan-bootstrap` | --input JSON | read | no | workspace-read | peer; capability-selected | kibi.kb_plan_bootstrap.v1 | no | safe | no | yes |
 | `kb_validate_upsert` | `validate-upsert` | --input JSON | read | yes | kb-read | peer; capability-selected | kibi.kb_validate_upsert.v1 | no | safe | no | yes |
 | `kb_upsert` | `upsert` | --input JSON | write | yes | kb-write, workspace-write | peer; capability-selected | kibi.kb_upsert.v1 | yes | unsafe | no | yes |
+| `kb_record` | `record` | --input JSON | write | yes | kb-write, workspace-write | peer; capability-selected | kibi.kb_record.v1 | yes | unsafe | no | yes |
 | `kb_delete` | `delete` | --input JSON | write | yes | kb-write, workspace-write | peer; capability-selected | kibi.kb_delete.v1 | yes | unsafe | no | yes |
 | `kb_check` | `check` | --input JSON or flags | read | yes | kb-read, workspace-read | peer; capability-selected | kibi.kb_check.v1 | no | safe | no | yes |
 | `kb_prepare_impact_review` | `prepare-impact-review` | --input JSON | read | no | workspace-read, kb-read | peer; capability-selected | kibi.kb_prepare_impact_review.v1 | no | safe | no | yes |
@@ -34,10 +35,11 @@ per operation. Effects are authoritative for mutability and adapter annotations.
 
 ## MCP tools versus catalog operations
 
-The MCP catalog has 16 tools. A session lists six of them (`kb_search`,
-`kb_query`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills`) unless the
-`full` profile is chosen (`KIBI_MCP_TOOLS=full`); the others run through their
-CLI routes with the same input. Most tools carry their catalog operation name; the
+The MCP catalog has 17 tools. A session lists seven of them (`kb_search`,
+`kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`,
+`kb_skills`) unless the `full` profile is chosen (`KIBI_MCP_TOOLS=full`); the
+others run through their CLI routes with the same input. Most tools carry their
+catalog operation name; the
 operations below are reached through a consolidated MCP call instead, while the
 CLI keeps their dedicated routes. Result payloads (for example
 `recommended_tools`, `suggested_next_tool`, or repair-plan steps) still name

@@ -20,6 +20,7 @@
 // plugin builds KibiEventEnv once per instance; hooks.event dispatches to
 // these functions. All plugin-instance state is reached through the env.
 
+import { effectiveKbOperation } from "kibi-agent-core/kb-mcp-tools";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
 import { analyzeCodeFile } from "./comment-analysis.js";
 import { getFileLinkedTargetsByType } from "./file-entity-links.js";
@@ -166,10 +167,8 @@ export function handleKbToolEvent(
       (props.call as Record<string, unknown> | undefined)?.args) as
       | Record<string, unknown>
       | undefined;
-    const evidenceTool =
-      toolName === "kb_upsert" && args?.dryRun === true
-        ? "kb_validate_upsert"
-        : toolName;
+    // kb_record is a kb_upsert write; a dry run of either only validates.
+    const evidenceTool = effectiveKbOperation(toolName, args ?? {});
     try {
       env.freshnessStore.recordToolEvidence(scope, evidenceTool);
       env.log.info("kb-freshness.tool-evidence", {

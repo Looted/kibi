@@ -38,12 +38,13 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_ingest_proof` | `kibi ingest-proof --input <file|->` |
 | `kb_validate_upsert` | `kibi validate-upsert --input <file|->` |
 | `kb_upsert` | `kibi upsert --input <file|->` |
+| `kb_record` | `kibi record --input <file|->` |
 | `kb_delete` | `kibi delete --input <file|->` |
 | `kb_check` | `kibi check --input <file|->` |
 | `kb_sparql_remote` | `kibi sparql-remote --input <file|->` |
 
-The MCP catalog has 16 tools rather than one per operation, and a session
-lists six of them unless the `full` profile is chosen (see the
+The MCP catalog has 17 tools rather than one per operation, and a session
+lists seven of them unless the `full` profile is chosen (see the
 [MCP reference](mcp-reference.md#tool-list)); the rest run through the routes
 above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
 `kb_skills` and `kb_model`, and the narrower routes stay available:
@@ -68,6 +69,13 @@ above with the same input. The consolidated routes `kibi skill` and `kibi model`
   first, so a grounding link to a fact that does not exist yet validates and
   the contradiction preview sees the KB as it would be after the batch
   (`stagedFacts`, `whatIf`). `plannedFacts` without `dryRun` is rejected.
+- `kibi record` records a stated rule (`statement`, `why`, `saidBy`,
+  `quote`, `code`, `test`) as one `kibi upsert` payload, then runs
+  `kibi check --changed` over the files `code` names and returns the payload,
+  the write result, the verdict (`commitAllowed`, findings with `blocks`) and
+  the remaining `nextActions`. `"dryRun": true` returns the payload and writes
+  nothing. Other fields are refused with a pointer to `kibi upsert`. See the
+  [MCP reference](mcp-reference.md#kb_record).
 - `kibi delete` accepts `"dryRun": true`: a relationship or direct entity
   delete runs its preflight, writes nothing, and returns `outcome: "dry_run"`
   with `wouldDelete`, the `sourceWrites` a commit would make, and
@@ -92,6 +100,7 @@ above with the same input. The consolidated routes `kibi skill` and `kibi model`
 printf '%s\n' '{"action":"load","id":"kibi-usage"}' | kibi skill --input -
 printf '%s\n' '{"mode":"predicates","text":"Admins may export audit logs."}' | kibi model --input -
 printf '%s\n' '{"type":"req","id":"REQ-auth-session-timeout","properties":{"title":"Session timeout","status":"open"},"dryRun":true}' | kibi upsert --input -
+printf '%s\n' '{"statement":"Sessions must expire after 30 idle minutes.","why":"Reason not stated","saidBy":"agent","code":[{"file":"src/session.ts","symbol":"expire"}],"dryRun":true}' | kibi record --input -
 ```
 
 See the [MCP reference](mcp-reference.md#catalog-operations-mcp-calls-and-cli-routes)

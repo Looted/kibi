@@ -89,6 +89,19 @@ describe("Kibi MCP usage", () => {
     );
   });
 
+  test("kb_record is reported as the kb_upsert it runs, its dry run as validation", () => {
+    expect(
+      extractMcpKbUsage("mcp__plugin_kibi-claude_kibi__kb_record", {
+        statement: "Totals stay positive.",
+        saidBy: "user",
+      })?.operation,
+    ).toBe("kb_upsert");
+    expect(
+      extractMcpKbUsage("kb_record", { arguments: { dryRun: true } })
+        ?.operation,
+    ).toBe("kb_validate_upsert");
+  });
+
   test("empty and non-string values are dropped", () => {
     expect(
       extractMcpKbUsage("kb_query", {

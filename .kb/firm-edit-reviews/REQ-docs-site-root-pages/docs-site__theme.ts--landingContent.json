@@ -4,10 +4,10 @@
   "sourceFile": "docs-site/theme.ts",
   "symbol": "landingContent",
   "verdict": "keeps",
-  "note": "Merged landing copy from develop and this branch; the landing page is still built from docs/ and published at the Pages root.",
+  "note": "Only landing copy changed: develop's copy merged with the kb_record sentence; the root pages still render the same sections and publish as the statement says.",
   "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
-  "codeHash": "sha256:326c944f31dbdd8964cd6b6732ed4f66c5665a26b4ee2edbb6899cbba341477b",
+  "codeHash": "sha256:6d68e872eb93da746ba90eab624545a6209f6ae7451ee9a123baefeac323e014",
   "startLine": 1447,
   "endLine": 1833,
-  "recordedAt": "2026-11-17T08:26:06.200Z"
+  "recordedAt": "2026-11-17T08:42:47.456Z"
 }

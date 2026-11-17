@@ -46,16 +46,16 @@ choice for any host (see [Diagnostic usage log](#diagnostic-usage-log-opt-in)).
 
 ### Tool list
 
-The catalog has 16 tools. A session lists only part of it unless the `full`
+The catalog has 17 tools. A session lists only part of it unless the `full`
 profile is chosen:
 
-- **default**: the six tools of every change, `kb_search`, `kb_query`,
-  `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`. While the
+- **default**: the seven tools of every change, `kb_search`, `kb_query`,
+  `kb_record`, `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`. While the
   knowledge base holds no entity yet, `kb_plan_bootstrap` and `kb_apply_plan`
   are listed too. The `initialize` instructions name the tools left out;
   each of them runs through the project CLI with the same input
   (`npx --no-install kibi <command>`, JSON routes with `--input -`).
-- **full**: all 16.
+- **full**: all 17.
 
 The profile comes from `kibi-mcp --tools <default|full>`, else
 `KIBI_MCP_TOOLS` in the server environment, else the project's recorded
@@ -71,12 +71,18 @@ symbol, test, proof and predicate fields stay valid input; the kibi-usage
 resource `operation-fields` (`kb_skills` with `action: "read"`) lists each
 one in full.
 
+Advertised schemas write a choice among strings as `enum` (in input and
+output schemas alike), which validates exactly what the equivalent `anyOf` of
+`const` branches would. `kb_check` advertises `rules` as plain strings rather
+than its long list of rule names; the server still checks every name and
+refuses an unknown one with `VALIDATION_FAILED`, listing the allowed names.
+
 | Area | Tools |
 |---|---|
 | Discovery and reporting | `kb_query`, `kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph` |
 | Skills | `kb_skills` |
 | Modeling (read-only) | `kb_model` |
-| Mutation and validation | `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_ingest_proof` |
+| Mutation and validation | `kb_record`, `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_ingest_proof` |
 | Planning and review | `kb_prepare_impact_review`, `kb_plan_bootstrap`, `kb_compile_intent`, `kb_apply_plan` |
 
 Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
@@ -902,6 +908,53 @@ Call `kb_upsert` with `dryRun: true` to validate a payload without mutating the 
 `plannedFacts` (dry run only) stages fact writes that have not happened yet: pass the `applyPlan` entries `kb_model` returned (`type`, `id`, `properties`, optional `relationships`). The planned facts are validated in order, each against the KB plus the facts before it, exactly as `kb_apply_plan` validates a plan's steps, so the payload's `requires_predicate` or `requires_property` target resolves and its `claim_key` is read from the plan instead of failing with `logical grounding target … must declare a claim_key`. The contradiction preview then stages the planned facts and the payload together in one rolled-back transaction and compares the witnesses with the current KB's: a contradiction or infeasible scenario the batch would introduce is refused with `Contradiction detected for requirement … (stage=contradiction_check, plannedFacts staged)` and the witness reason (for example `Decision conflict on default:permission_rule(coach,read,unassigned_analysis_request)`); otherwise the result adds `stagedFacts` (the planned ids in order) and `whatIf` (`introduced`, `removed`, `unchanged` witnesses). A planned entry that is not a `fact`, reuses the payload's id or fails its own validation is reported as `planned fact <id> is invalid: …`. `plannedFacts` on a real write is rejected: write the facts first, with `kb_upsert` or the `kb_model` plan through `kb_apply_plan`.
 
 When invoked through MCP, the dry run also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
+
+### `kb_record`
+
+Record a rule the way it was stated, in one call. `kb_record` takes the rule
+and turns it into exactly one `kb_upsert` payload, which goes through the same
+schema validation, semantic advisor, firmness and approval checks and write
+path as a hand-written `kb_upsert` call; nothing is relaxed or defaulted past a
+check. It then runs `kb_check` with `changed: true` for the files the code
+names and returns that verdict. CLI: `kibi record --input -`.
+
+**Parameters:**
+- `statement`: the rule as one testable sentence. It becomes the body and
+  `semantic_text`; its first sentence, cut to 100 characters, is the title.
+- `why`: why the rule exists, in the words of whoever stated it
+  (`Reason not stated` when they gave none). Sent as `kb_upsert`'s `why`.
+- `saidBy`: `user` or `maintainer` (a `firm` requirement of `human` origin)
+  or `agent` (a `default` requirement of `agent` origin).
+- `quote` (optional): their words, recorded as `origin.ref`. A firm rule needs
+  one, so a `user` or `maintainer` rule without it is refused by `kb_upsert`'s
+  firmness check.
+- `code`: `[{ file, symbol }]`, the declarations that implement the rule,
+  sent as `implementedBy`.
+- `test` (optional): an existing test id, recorded as the requirement's
+  `verified_by` link and as each symbol's `coveredBy`.
+- `dryRun` (optional): return the payload and `kb_upsert`'s dry run; write
+  nothing and run no check.
+
+The requirement is always new and `open`: its id is `REQ-` and the first six
+words of the statement that are not filler, numbered from `-2` when that id is
+taken. `kb_record` never writes `origin.approved_by`. Any other field
+(facts, relationships, proof contracts, an update of an existing entity) is
+refused with `VALIDATION_FAILED` (rule `record_field_unsupported`), naming
+`kb_upsert` as the call that records it. A payload `kb_upsert`'s schema
+refuses is refused before anything is written, with its errors.
+
+**Returns:** `id`; `upsert`, the payload sent; `written`, `kb_upsert`'s
+result; `verdict`, the `kb_check` `changed: true` result (`commitAllowed`, each
+finding with `blocks`); `commitAllowed`; `status` when the write needed repair;
+and `nextActions`, the steps `kb_upsert` returned (a scenario, a test, a
+claim subject, `kibi prove`). On `dryRun` it returns `id`, `upsert`,
+`preview`, `valid`, `errors` and `dryRun: true`. If the check fails after the
+write, the error (`RECORD_VERDICT_FAILED`, retryable) says the requirement was
+written and which `kb_check` call gives the verdict.
+
+The result is the same as `kb_upsert` of `upsert` followed by `kb_check` with
+`changed: true` for the same files: the same entities, relationships and
+verdict.
 
 ### `kb_delete`
 

@@ -16209,11 +16209,15 @@ symbols:
     granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
+        target: TEST-agent-hosts-first-write-record
+      - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1-coverage
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-agent-hosts-first-write-record
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-handleFileLifecycleEvent
@@ -18879,10 +18883,14 @@ symbols:
     sourceFile: packages/claude/src/kb-tools.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-claude-stop-reminder-and-firm-ask
+      - type: covered_by
+        target: TEST-agent-hosts-first-write-record
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-first-write-record
+      - type: implements
+        target: REQ-claude-stop-reminder-and-firm-ask
   - id: SYM-claude-extractCliKbUsage
     title: extractCliKbUsage
     status: active
@@ -26569,8 +26577,8 @@ symbols:
       kind: agent
       recorded_at: 2026-10-14T16:59:49.521Z
     relationships:
-      - type: implements
-        target: REQ-agent-hosts-stop-capture
+      - type: covered_by
+        target: TEST-agent-hosts-first-write-record
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
       - type: covered_by
@@ -26579,6 +26587,8 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-stop-capture
       - type: implements
         target: REQ-claude-decision-capture-nudges
   - id: SYM-agent-core-candidates-requesttopicwords
@@ -28083,10 +28093,14 @@ symbols:
       kind: agent
       recorded_at: 2026-10-23T10:44:22.627Z
     relationships:
-      - type: implements
-        target: REQ-kibi-signoff-host-rendering-and-ask
+      - type: covered_by
+        target: TEST-agent-hosts-first-write-record
       - type: covered_by
         target: TEST-kibi-signoff-views
+      - type: implements
+        target: REQ-agent-hosts-first-write-record
+      - type: implements
+        target: REQ-kibi-signoff-host-rendering-and-ask
   - id: SYM-agent-core-signoff-reminder
     title: signoffReminder
     status: active
@@ -41657,6 +41671,8 @@ symbols:
       recorded_at: 2026-11-16T08:46:03.177Z
     relationships:
       - type: covered_by
+        target: TEST-agent-hosts-first-write-record
+      - type: covered_by
         target: TEST-agent-hosts-rule-reason-capture
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
@@ -44272,7 +44288,11 @@ symbols:
       recorded_at: 2026-11-16T20:00:00.000Z
     relationships:
       - type: covered_by
+        target: TEST-agent-hosts-first-write-record
+      - type: covered_by
         target: TEST-proof-mcp-default-profile-tools
+      - type: implements
+        target: REQ-agent-hosts-first-write-record
   - id: SYM-mcp-BOOTSTRAP_TOOLS
     title: BOOTSTRAP_TOOLS
     status: active
@@ -45588,3 +45608,170 @@ symbols:
         target: TEST-core-journal-file-name-fits
       - type: implements
         target: REQ-core-journal-file-name-fits
+  - id: SYM-test-agent-hosts-first-write-record
+    title: kb_record first write suite
+    status: active
+    sourceFile: packages/agent-core/tests/decision-guard.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:43:35.504Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hosts-first-write-record
+  - id: SYM-test-kb-record-equivalence
+    title: kb_record equivalence suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/record-equivalence.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:43:40.817Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-record
+  - id: SYM-record-record-upsert-payload
+    title: recordUpsertPayload
+    sourceFile: packages/cli/src/operations/mutation/record.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:44:22.816Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture
+      - type: implements
+        target: REQ-kb-record-upsert-equivalence
+  - id: SYM-record-record-title
+    title: recordTitle
+    sourceFile: packages/cli/src/operations/mutation/record.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:44:27.558Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture
+  - id: SYM-record-record-id-base
+    title: recordIdBase
+    sourceFile: packages/cli/src/operations/mutation/record.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:44:32.322Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture
+  - id: SYM-record-free-record-id
+    title: freeRecordId
+    sourceFile: packages/cli/src/operations/mutation/record.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:44:36.862Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture
+  - id: SYM-record-execute-execute-record
+    title: executeRecord
+    sourceFile: packages/cli/src/operations/mutation/record-execute.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:44:42.397Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture
+      - type: implements
+        target: REQ-kb-record-upsert-equivalence
+  - id: SYM-record-record-spec
+    title: recordSpec
+    sourceFile: packages/cli/src/public/operations/specs/record.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:44:46.678Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-capture
+  - id: SYM-kb-mcp-tools-effective-kb-operation
+    title: effectiveKbOperation
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:45:29.363Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-first-write-record
+      - type: implements
+        target: REQ-agent-hosts-first-write-record
+  - id: SYM-record-execute-record-deps
+    title: RECORD_DEPS
+    sourceFile: packages/cli/src/operations/mutation/record-execute.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:46:28.130Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-upsert-equivalence
+  - id: SYM-record-assert-record-fields
+    title: assertRecordFields
+    sourceFile: packages/cli/src/operations/mutation/record.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:46:37.585Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-modeling-stays-upsert
+  - id: SYM-record-record-fields
+    title: RECORD_FIELDS
+    sourceFile: packages/cli/src/operations/mutation/record.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:46:40.845Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-record
+      - type: implements
+        target: REQ-kb-record-modeling-stays-upsert
+  - id: SYM-advertised-schema-advertised-open
+    title: ADVERTISED_OPEN
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T07:22:55.756Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-short-field-descriptions

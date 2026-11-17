@@ -82,6 +82,59 @@ describe("jsonSchemaToZod, exact", () => {
     expect(ok(jsonSchemaToZod({ enum: "a", type: "string" }), "z")).toBe(true);
   });
 
+  test("a choice among strings is published and checked as a string enum", () => {
+    const published = (schema: unknown) =>
+      (
+        jsonSchemaToZod(schema) as unknown as { toJSONSchema(): unknown }
+      ).toJSONSchema();
+    const fromEnum = jsonSchemaToZod({ enum: ["a", "b"], description: "e" });
+    expect(published({ enum: ["a", "b"] })).toMatchObject({
+      type: "string",
+      enum: ["a", "b"],
+    });
+    expect(ok(fromEnum, "a")).toBe(true);
+    expect(ok(fromEnum, "c")).toBe(false);
+    expect(fromEnum.description).toBe("e");
+    // A description that is not text, or is empty, is not carried over.
+    for (const description of [5, ""]) {
+      expect(
+        jsonSchemaToZod({ enum: ["a", "b"], description }).description,
+      ).toBeUndefined();
+      expect(
+        jsonSchemaToZod({
+          anyOf: [{ const: "a" }, { const: "b" }],
+          description,
+        }).description,
+      ).toBeUndefined();
+    }
+    const fromConsts = jsonSchemaToZod({
+      anyOf: [{ type: "string", const: "x" }, { const: "y" }],
+      description: "c",
+    });
+    expect(
+      published({
+        anyOf: [{ type: "string", const: "x" }, { const: "y" }],
+      }),
+    ).toMatchObject({ type: "string", enum: ["x", "y"] });
+    expect(ok(fromConsts, "y")).toBe(true);
+    expect(ok(fromConsts, "z")).toBe(false);
+    expect(fromConsts.description).toBe("c");
+    expect(
+      jsonSchemaToZod({ anyOf: [{ const: "x" }, { const: "y" }] }).description,
+    ).toBeUndefined();
+    // Repeated values, a lone value, or a branch with more than a string
+    // constant stay a union of literals.
+    for (const schema of [
+      { enum: ["a", "a"] },
+      { anyOf: [{ const: "x" }, { const: "x" }] },
+      { anyOf: [{ const: "x" }, { const: "y", description: "d" }] },
+      { anyOf: [{ const: "x" }, { type: "number", const: "y" }] },
+      { anyOf: [{ const: "x" }, { const: 1 }] },
+      { anyOf: [{ type: "string", const: "x" }, null] },
+    ])
+      expect(JSON.stringify(published(schema))).not.toContain('"enum"');
+  });
+
   test("anyOf becomes a union and keeps its description", () => {
     const schema = jsonSchemaToZod({
       anyOf: [{ type: "string" }, { type: "number" }],

@@ -314,3 +314,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d6dbe9a51be4
+  - type: assumes
+    from: SCEN-agent-hosts-first-write-record
+    to: FACT-mcp-default-profile-lists-kb-record
+    created_at: 2026-11-17T06:42:48.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab1953cf00b5
+  - type: assumes
+    from: SCEN-agent-hosts-first-write-record
+    to: FACT-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:42:48.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40c569849040

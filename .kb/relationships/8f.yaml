@@ -140,6 +140,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-eec4ea9a3ff4
   - type: implements
+    from: SYM-record-record-fields
+    to: REQ-kb-record-modeling-stays-upsert
+    created_at: 2026-11-17T06:46:41.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73ecd71e747d
+  - type: covered_by
+    from: SYM-record-record-fields
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:46:41.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9ef8f721f99
+  - type: implements
     from: SYM-ci-proof-search-gate-steps
     to: REQ-ci-proof-search-gates-before-prove
     created_at: 2026-11-17T10:51:43.313Z

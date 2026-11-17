@@ -21,18 +21,18 @@ origin:
 id: TEST-mcp-conditional-input-validation
 type: test
 proof_receipts:
-  - version: kibi.proof-receipt.v1
-    receipt_id: PR-c18ce53738daa08806d55522
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-a059665cf2bb7743dcf08e8b
     test_id: TEST-mcp-conditional-input-validation
     scope: end_to_end
     outcome: passed
-    code_snapshot: cc8892f6b26a6bce333fed4ab83d38c5adac2b6948a74264981d91f29d4edfb0
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-07T12:45:45.442Z'
-    finished_at: '2026-10-07T12:45:45.988Z'
-    artifact_digest: f0d97eee3bad45ced2bedbeea72d4e5fd4f2856f14dddab73e96117574c52d8d
+    code_snapshot: df84fc91d0f807889519f20a576fcd787807fc96a14d6cb59f83a53eb62a9ce7
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-17T07:51:06.675Z'
+    finished_at: '2026-11-17T07:51:06.923Z'
+    artifact_digest: df4a3670382a11cc1346f58fa45b0bf0952f8ea6c4c1f5cbf6a14dfa78e1ec61
     contract_hash: 5936fd5180e00a78f915f92902ea8b609f574c90156203cb039533e695442c15
-    binding_hash: 4bdaf7404b3b1f1f008380d96d29dbb43002f30c7cf20ab86078c3c68f3c0af5
+    binding_hash: 8a4fd43b75e6118624380784158244b180d04db203670b5cf08c911df4638659
     fingerprint: 4456179b364efd933a87b8d664061df1e6c607c6c415a8d1b8e6ec0563411d5b
     fingerprint_components:
       contract: 5936fd5180e00a78f915f92902ea8b609f574c90156203cb039533e695442c15
@@ -54,6 +54,8 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+    kind: e2e
+    evidence_level: tested
 ---
 Converts the published kb_upsert inputSchema with the MCP converter and checks that observation, meta, subject, property_value and predicate facts with claim_text pass without claim_key, claim_key still requires claim_text, and the condition evaluator handles not, properties, enum, const, type, oneOf and boolean schemas (packages/mcp/tests/server/kb-upsert-claim-conditional.test.ts).
 

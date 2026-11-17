@@ -80,6 +80,7 @@ const TOOL_NAMES = [
   "kb_graph",
   "kb_model",
   "kb_upsert",
+  "kb_record",
   "kb_delete",
   "kb_check",
   "kb_prepare_impact_review",

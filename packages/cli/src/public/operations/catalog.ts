@@ -20,6 +20,7 @@ import {
 } from "./specs/mutation.js";
 import { applyPlanSpec, compileIntentSpec } from "./specs/planning.js";
 import { ingestProofSpec } from "./specs/proof.js";
+import { recordSpec } from "./specs/record.js";
 import { coverageSpec, findGapsSpec, graphSpec } from "./specs/reporting.js";
 import { semanticAdvisorSpec } from "./specs/semantic.js";
 import {
@@ -52,6 +53,7 @@ export const OPERATION_CATALOG = [
   planBootstrapSpec,
   validateUpsertSpec,
   upsertSpec,
+  recordSpec,
   deleteSpec,
   checkSpec,
   prepareImpactReviewSpec,
