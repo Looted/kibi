@@ -483,7 +483,7 @@ async function committedSnapshot(sha: string): Promise<string> {
  * hash differently, no proof of that commit can match, so the caller runs the
  * full proof at once instead of waiting for develop's own run to finish.
  */
-async function provenTreeCanMatch(
+export async function provenTreeCanMatch(
   provenSha: string,
   mergeSha: string,
 ): Promise<boolean> {

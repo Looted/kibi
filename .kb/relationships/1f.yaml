@@ -349,3 +349,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-741db8092550
+  - type: constrains
+    from: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    to: FACT-SUBJECT-kibi-ci-proof-reuse-wait
+    created_at: 2026-11-17T10:51:21.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa9f7b0fcbb
+  - type: requires_property
+    from: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    to: FACT-ci-proof-reuse-no-wait-on-changed-tree
+    created_at: 2026-11-17T10:51:21.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-038861fcc3b1
+  - type: specified_by
+    from: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    to: SCEN-ci-proof-reuse-no-wait-on-changed-tree
+    created_at: 2026-11-17T10:51:21.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dae402f3bd4
+  - type: specified_by
+    from: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    to: SCEN-NEG-ci-proof-reuse-no-wait-on-changed-tree-VIOLATED
+    created_at: 2026-11-17T10:51:21.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e338f110559
