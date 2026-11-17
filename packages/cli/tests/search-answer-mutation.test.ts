@@ -39,7 +39,7 @@ import {
 const EDGE_RELS =
   "specified_by,verified_by,validates,assumes,implements,constrains,requires_property,requires_predicate,requires_rule,supersedes,relates_to,exempts";
 const ROW_KEY_LIST =
-  "'id','title','status','fact_kind','approved_by','firmness','rationale','origin','source','sourceFile','predicate_namespace','predicate_name','predicate_args','polarity','subject_key','property_key','operator','value_type','value_string','value_int','value_number','value_bool','value_set','unit'";
+  "'id','title','status','fact_kind','approved_by','firmness','rationale','semantic_text','origin','source','sourceFile','predicate_namespace','predicate_name','predicate_args','polarity','subject_key','property_key','operator','value_type','value_string','value_int','value_number','value_bool','value_set','unit'";
 
 function edgesQuery(ids: readonly string[]): string {
   return `kb_relationship_edges([${EDGE_RELS}], [${ids.map((id) => `'${id}'`).join(",")}], Edges)`;

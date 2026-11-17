@@ -167,7 +167,7 @@ export const searchSpec = {
   name: "kb_search",
   cliName: "search",
   description:
-    "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+    "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     required: ["query"],
@@ -279,9 +279,9 @@ export const searchSpec = {
         enum: ["summary", "full"],
         default: "summary",
         description:
-          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need.",
+          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, each result's evidence graph paths and each answer fact's kb_query call, or follow up with kb_query for the exact entities you need.",
         [ADVERTISED_DESCRIPTION]:
-          "Optional result detail: 'summary' (metadata and snippet) or 'full' (complete entity bodies).",
+          "Optional result detail: 'summary' (metadata, snippet) or 'full' (also bodies, graph paths, fact kb_query calls).",
       },
     },
   },

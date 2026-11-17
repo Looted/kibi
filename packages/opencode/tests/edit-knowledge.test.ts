@@ -28,7 +28,10 @@ function write(root: string, relativePath: string, content: string): void {
 }
 
 /** Workspace whose checkout code implements a grounded requirement. */
-function linkedWorkspace(requirementStatus = "open"): string {
+function linkedWorkspace(
+  requirementStatus = "open",
+  rationale = "Finance reconciles every order to the cent.",
+): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-oc-edit-"));
   roots.push(root);
   write(
@@ -47,7 +50,7 @@ function linkedWorkspace(requirementStatus = "open"): string {
   write(
     root,
     ".kb/requirements/REQ-checkout-rounding.md",
-    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - type: constrains\n    target: FACT-checkout-total\n  - ADR-money-as-decimal\n---\n`,
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - type: constrains\n    target: FACT-checkout-total\n  - ADR-money-as-decimal\nrationale: ${rationale}\n---\n`,
   );
   write(
     root,
@@ -88,11 +91,23 @@ describe("edit guidance grounding", () => {
     assert.match(prompt, /- Existing Kibi links: REQ-checkout-rounding\n/);
     assert.ok(
       prompt.includes(
-        "- REQ-checkout-rounding must keep true: Totals round half up to two decimals. Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
+        "- REQ-checkout-rounding must keep true: Totals round half up to two decimals. Why: Finance reconciles every order to the cent (rationale). Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       ),
       prompt,
     );
     // The grounding bullet stays inside the prompt's word budget.
+    assert.ok(wordCount(prompt) <= 120, `${wordCount(prompt)} words`);
+  });
+
+  test("a long reason is cut to 120 characters inside the word budget", () => {
+    const sentence = "Finance reconciles every order to the cent before payout";
+    const prompt = editPrompt(
+      linkedWorkspace("open", `${sentence}. ${sentence}. ${sentence}.`),
+    );
+    assert.ok(
+      prompt.includes(`Why: ${sentence}. ${sentence} (rationale). Decision:`),
+      prompt,
+    );
     assert.ok(wordCount(prompt) <= 120, `${wordCount(prompt)} words`);
   });
 

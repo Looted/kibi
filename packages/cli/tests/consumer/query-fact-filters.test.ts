@@ -316,9 +316,23 @@ links:
     expect(exact.count).toBe(1);
     expect(exact.factQuery).toBeUndefined();
 
-    // kb_search answers point at the same typed facts with their claim and ask call.
-    const search = payload(
+    // kb_search answers point at the same typed facts with their claim, and
+    // with fields full the ask call too.
+    const summary = payload(
       ws.json(["search"], { query: "user holds at most two roles" }),
+    );
+    const summaryFact = (
+      (((summary.answer as Json | undefined)?.governing ?? []) as Json[]).find(
+        (row) => row.id === "REQ-ROLE-LIMIT",
+      )?.facts as Json[] | undefined
+    )?.find((fact) => fact.id === "FACT-ROLE-LIMIT");
+    expect(summaryFact?.claim).toBe("user.role_assignment max_roles lte 2");
+    expect(summaryFact?.ask).toBeUndefined();
+    const search = payload(
+      ws.json(["search"], {
+        query: "user holds at most two roles",
+        fields: "full",
+      }),
     );
     const governing = ((search.answer as Json | undefined)?.governing ??
       []) as Json[];

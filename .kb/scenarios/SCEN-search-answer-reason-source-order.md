@@ -12,4 +12,4 @@ origin:
 id: SCEN-search-answer-reason-source-order
 type: scenario
 ---
-A requirement with a rationale field and a Why section reports the field; one with Why this changed and Why sections reports Why this changed; one with only a linked ADR reports the ADR's decision.
+A requirement with a rationale field and a Why section reports the field; one with Why and Why this changed sections reports the Why section; one whose Why section says no reason was stated reports Why this changed; one with only a linked ADR reports the ADR's decision.

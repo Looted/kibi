@@ -5,12 +5,15 @@ import os from "node:os";
 import path from "node:path";
 
 import {
+  MAX_REASON_CHARS,
   buildKnowledgeIndex,
   loadKnowledgeIndex,
   manifestStateOf,
+  proseExcerpt,
   readEntitySummary,
   scanSymbolCoordinates,
   scanSymbolsManifest,
+  withoutChangeNotes,
 } from "../src/knowledge-index";
 
 const roots: string[] = [];
@@ -1146,28 +1149,63 @@ describe("readEntitySummary", () => {
     expect(readEntitySummary(root, "SCEN-2")).toStrictEqual({ id: "SCEN-2" });
   });
 
-  test("only the first 8 KiB of a document is read", () => {
+  test("only the first 8 KiB of a document is read, 64 KiB of a requirement", () => {
     const root = tempDir();
-    const filler = `x: ${"y".repeat(8200)}`;
+    const filler = (size: number) => `x: ${"y".repeat(size)}`;
     write(
       root,
-      ".kb/requirements/REQ-1.md",
-      `---\ntitle: early\n${filler}\nstatus: late\n---\n`,
+      ".kb/adr/ADR-1.md",
+      `---\ntitle: early\n${filler(8200)}\nstatus: late\n---\n`,
     );
     write(
       root,
-      ".kb/requirements/REQ-2.md",
+      ".kb/adr/ADR-2.md",
       `---\ntitle: t\n${"z".repeat(8170)}\n---\nBody.\n`,
+    );
+    expect(readEntitySummary(root, "ADR-1")).toStrictEqual({
+      id: "ADR-1",
+      title: "early",
+    });
+    expect(readEntitySummary(root, "ADR-2")).toStrictEqual({
+      id: "ADR-2",
+      title: "t",
+      firmness: "firm",
+    });
+    // A requirement is read past 8 KiB, so a Why section after a long
+    // front matter is seen.
+    write(
+      root,
+      ".kb/requirements/REQ-1.md",
+      `---\ntitle: early\n${filler(8200)}\nstatus: late\n---\nBody.\n\n## Why\n\nBecause.\n`,
     );
     expect(readEntitySummary(root, "REQ-1")).toStrictEqual({
       id: "REQ-1",
       title: "early",
+      status: "late",
+      firmness: "firm",
+      statement: "Body.",
+      why: { recorded: true, text: "Because.", from: "section" },
     });
+    write(
+      root,
+      ".kb/requirements/REQ-2.md",
+      `---\ntitle: early\n${filler(65600)}\nstatus: late\n---\n`,
+    );
     expect(readEntitySummary(root, "REQ-2")).toStrictEqual({
       id: "REQ-2",
+      title: "early",
+    });
+    // A body cut off at the limit is not read as recording no reason.
+    write(
+      root,
+      ".kb/requirements/REQ-3.md",
+      `---\ntitle: t\n${"z".repeat(65510)}\n---\nBody.\n\n## Why\n\n${"w ".repeat(100)}\n`,
+    );
+    expect(readEntitySummary(root, "REQ-3")).toStrictEqual({
+      id: "REQ-3",
       title: "t",
       firmness: "firm",
-      statement: "Body",
+      statement: "Body.",
     });
   });
 
@@ -1580,6 +1618,7 @@ describe("readEntitySummary", () => {
       id: "REQ-3",
       title: "t",
       firmness: "firm",
+      why: { recorded: false },
     });
     expect(statement("REQ-4")).toBe("####### not a heading");
     expect(statement("REQ-5")).toBe("#tag line");
@@ -1910,6 +1949,7 @@ describe("entity summary edge cases", () => {
       id: "REQ-1",
       title: "t",
       firmness: "firm",
+      why: { recorded: false },
     });
   });
 
@@ -1966,4 +2006,293 @@ describe("entity summary edge cases", () => {
       expect(fs.readdirSync("/proc/self/fd").length).toBe(before);
     },
   );
+});
+
+describe("a requirement summary's recorded reason", () => {
+  const why = (front: string, body = "") => {
+    const root = tempDir();
+    write(
+      root,
+      ".kb/requirements/REQ-1.md",
+      `---\ntitle: t\n${front}---\n${body}`,
+    );
+    return readEntitySummary(root, "REQ-1").why;
+  };
+
+  test("the rationale field comes first, plain or as a block", () => {
+    expect(
+      why("rationale: Finance reconciles.\n", "S.\n\n## Why\n\nOther.\n"),
+    ).toEqual({
+      recorded: true,
+      text: "Finance reconciles.",
+      from: "rationale",
+    });
+    expect(why("rationale: >-\n  Support asked\n  for it.\n")).toEqual({
+      recorded: true,
+      text: "Support asked for it.",
+      from: "rationale",
+    });
+  });
+
+  test("then a Why, Rationale or Context section, then Why this changed", () => {
+    expect(
+      why(
+        "",
+        "S.\n\n## Why this changed\n\nThe limit moved.\n\n## Why\n\nAudits.\n",
+      ),
+    ).toEqual({ recorded: true, text: "Audits.", from: "section" });
+    expect(
+      why(
+        "",
+        "S.\n\n## Why\n\nReason not stated.\n\n## Why this changed\n\nThe **limit** moved.\n",
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "The limit moved.",
+      from: "why_this_changed",
+    });
+    for (const heading of ["## Why", "### Rationale", "# Context and source"])
+      expect(
+        why(
+          "",
+          `S.\n\n## Source\n\nx\n\n${heading}\n\n- Users [churned](u) at \`checkout\`.\n`,
+        ),
+      ).toEqual({
+        recorded: true,
+        text: "Users churned at checkout.",
+        from: "section",
+      });
+  });
+
+  test("an empty section, a fenced heading or 'Reason not stated' records none", () => {
+    expect(
+      why(
+        "rationale: ''\n",
+        "S.\n\n## Why\n\n\n## Context\n\nReason not stated.\n",
+      ),
+    ).toEqual({
+      recorded: false,
+    });
+    expect(why("", "S.\n\n```\n## Why\nfenced\n```\n")).toEqual({
+      recorded: false,
+    });
+    expect(why("", "S.\n\n~~~\n## Why\n~~~\n\n## Why\n\nReal.\n")).toEqual({
+      recorded: true,
+      text: "Real.",
+      from: "section",
+    });
+    expect(why("", "| a | b |\n\n## Why\n\n| only | a table |\n")).toEqual({
+      recorded: false,
+    });
+  });
+
+  test("who it came from and when, from the origin", () => {
+    const origin = (lines: string) => why(`origin:\n${lines}rationale: R.\n`);
+    expect(
+      origin(
+        "  kind: agent\n  approved_by: maintainer\n  recorded_at: '2026-11-11T05:45:01.592Z'\n",
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "R.",
+      from: "rationale",
+      by: "maintainer",
+      on: "2026-11-11",
+    });
+    expect(origin("  kind: human\n  recorded_at: 2026-10-27\n")).toEqual({
+      recorded: true,
+      text: "R.",
+      from: "rationale",
+      by: "human",
+      on: "2026-10-27",
+    });
+    expect(origin("  kind: import\n  recorded_at: soon\n")).toEqual({
+      recorded: true,
+      text: "R.",
+      from: "rationale",
+      by: "import",
+    });
+    expect(
+      origin(
+        "  kind: migration\n  approved_by: maintainer\n  recorded_at: 2026-10-04\n",
+      ),
+    ).toEqual({ recorded: true, text: "R.", from: "rationale" });
+    expect(why("rationale: R.\n")).toEqual({
+      recorded: true,
+      text: "R.",
+      from: "rationale",
+    });
+    // Origin fields outside the origin block are not the origin's.
+    expect(
+      why("approved_by: x\nrecorded_at: 2026-01-01\nrationale: R.\n"),
+    ).toEqual({
+      recorded: true,
+      text: "R.",
+      from: "rationale",
+    });
+  });
+
+  test("only a requirement with a closed front matter has one", () => {
+    const root = tempDir();
+    write(
+      root,
+      ".kb/adr/ADR-1.md",
+      "---\ntitle: t\nrationale: R.\n---\n## Why\n\nW.\n",
+    );
+    write(root, ".kb/requirements/REQ-2.md", "---\ntitle: t\nrationale: R.\n");
+    expect(readEntitySummary(root, "ADR-1").why).toBeUndefined();
+    expect(readEntitySummary(root, "REQ-2").why).toBeUndefined();
+  });
+
+  test("a long reason keeps its opening sentences within the limit", () => {
+    expect(MAX_REASON_CHARS).toBe(280);
+    const text = `${"a".repeat(150)}. ${"b".repeat(150)}.`;
+    expect(why(`rationale: ${text}\n`)).toEqual({
+      recorded: true,
+      text: `${"a".repeat(150)}.`,
+      from: "rationale",
+    });
+    const run = "c".repeat(400);
+    const cut = why(`rationale: ${run}\n`);
+    expect(cut).toEqual({
+      recorded: true,
+      text: `${"c".repeat(279)}…`,
+      from: "rationale",
+    });
+  });
+
+  test("a heading or fence starts its line; headings name the section exactly", () => {
+    const section = (body: string) => why("", `S.\n\n${body}`);
+    // Neither a fence marker nor a hash inside a line opens anything.
+    expect(section("## Why\n\nStrike~~~ stays as text.\n")).toEqual({
+      recorded: true,
+      text: "Strike~~~ stays as text.",
+      from: "section",
+    });
+    expect(section("## Why\n\nC# keeps it.\n")).toEqual({
+      recorded: true,
+      text: "C# keeps it.",
+      from: "section",
+    });
+    expect(section("## Why\n\nSee issue # 42 for it.\n")).toEqual({
+      recorded: true,
+      text: "See issue # 42 for it.",
+      from: "section",
+    });
+    expect(section("##   Why\n\nSpaced.\n")).toEqual({
+      recorded: true,
+      text: "Spaced.",
+      from: "section",
+    });
+    // A heading that only ends in a reason word is not a reason section.
+    expect(section("## Note on why this changed\n\nNo.\n")).toEqual({
+      recorded: false,
+    });
+    expect(section("## Historical context\n\nNo.\n")).toEqual({
+      recorded: false,
+    });
+    // Only a section that opens with it says no reason was stated.
+    expect(
+      section("## Why\n\nThe reason not stated before was cost.\n"),
+    ).toEqual({
+      recorded: true,
+      text: "The reason not stated before was cost.",
+      from: "section",
+    });
+    // A section of blank lines holds no reason; the next one is tried.
+    expect(section("## Why\n\n  \n## Context\n\nReal.\n")).toEqual({
+      recorded: true,
+      text: "Real.",
+      from: "section",
+    });
+    // A comment in the front matter is not a body heading.
+    expect(why("# Why: a comment\nnote: n\n", "S.\n")).toEqual({
+      recorded: false,
+    });
+  });
+
+  test("split and supersede notes are not a reason", () => {
+    expect(
+      why(
+        "",
+        "S.\n\n## Why this changed\n\nSplit from REQ-B, which held two rules.\n\n## Context\n\nAudits need cents.\n",
+      ),
+    ).toEqual({ recorded: true, text: "Audits need cents.", from: "section" });
+    expect(
+      why(
+        "",
+        "S.\n\n## Why\n\nSuperseded by REQ-C.\n\n## Context\n\nAudits need cents.\n",
+      ),
+    ).toEqual({ recorded: true, text: "Audits need cents.", from: "section" });
+    expect(
+      why(
+        "",
+        "S.\n\n## Why this changed\n\n- Replaces REQ-D.\n- The audit failed.\n",
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "The audit failed.",
+      from: "why_this_changed",
+    });
+    expect(why("", "S.\n\n## Why\n\n> Replaced by REQ-F.\n")).toEqual({
+      recorded: false,
+    });
+    expect(
+      why("rationale: Split from REQ-B.\n", "S.\n\n## Why\n\nReal.\n"),
+    ).toEqual({ recorded: true, text: "Real.", from: "section" });
+    expect(
+      withoutChangeNotes([
+        "It was split from REQ-B because it held two rules.",
+        "Splitting from REQ-B helped.",
+        "Split fromREQ-B",
+        "  - Supersedes REQ-C.",
+        ">Replaced by REQ-D.",
+        "*Replaces REQ-E",
+        "",
+        "Kept.",
+      ]),
+    ).toEqual([
+      "It was split from REQ-B because it held two rules.",
+      "Splitting from REQ-B helped.",
+      "Split fromREQ-B",
+      "",
+      "Kept.",
+    ]);
+  });
+
+  test("origin dates and approvers are read from their own keys", () => {
+    expect(
+      why(
+        "origin:\n  kind: agent\n  ref: Ticket approved_by: someone\n  recorded_at: before 2026-11-11\nrationale: R.\n",
+      ),
+    ).toEqual({ recorded: true, text: "R.", from: "rationale", by: "agent" });
+    expect(
+      why("origin:\n  kind: agent\n  approved_by:  Ann Lee\nrationale: R.\n"),
+    ).toEqual({ recorded: true, text: "R.", from: "rationale", by: "Ann Lee" });
+  });
+
+  test("prose excerpts drop Markdown markers and count characters, not bytes", () => {
+    expect(proseExcerpt(["> **Bold** quote", "1) item", "* star"], 100)).toBe(
+      "Bold quote item star",
+    );
+    expect(proseExcerpt(["", "  "], 10)).toBeUndefined();
+    expect(proseExcerpt(["ééééé"], 5)).toBe("ééééé");
+    expect(proseExcerpt(["éééééé"], 5)).toBe("éééé…");
+    expect(proseExcerpt(["One. Two. Three."], 9)).toBe("One. Two.");
+    expect(proseExcerpt(["One! Two? Three."], 10)).toBe("One! Two?");
+    // List and quote markers only at the start of a line, links kept as
+    // their text, table rows (even indented) left out, runs of blanks folded.
+    expect(proseExcerpt(["Well- known fix."], 100)).toBe("Well- known fix.");
+    expect(proseExcerpt(["10. Tenth"], 100)).toBe("Tenth");
+    expect(proseExcerpt([">quoted", "a > b", "x>y holds."], 100)).toBe(
+      "quoted a > b x>y holds.",
+    );
+    expect(proseExcerpt(["See [the long guide](https://e.x/a)."], 100)).toBe(
+      "See the long guide.",
+    );
+    expect(
+      proseExcerpt(["  | a | b |", "| a | b", "Ends in a pipe |"], 100),
+    ).toBe("Ends in a pipe |");
+    expect(proseExcerpt(["Two  spaces."], 100)).toBe("Two spaces.");
+  });
 });

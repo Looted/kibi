@@ -92,13 +92,16 @@ On the first page, intent mode also returns an answer layer in `data.answer`
 (`kibi.search-answer.v1`; turn it off with `answer: false`):
 
 - `governing` — current requirements matched by the query or linked to a
-  matched entity, each with `via` (how it was reached) and its linked `facts`,
-  `scenarios`, `tests`, and `adrs`. A requirement with more linked facts than
+  matched entity, each with `via` (how it was reached), its `statement`, and
+  its linked `facts`, `scenarios`, `tests`, and `adrs`. A requirement with more linked facts than
   the answer lists carries `moreFacts` (`count` and the `kb_query` `ask` that
   lists them all); never read a short `facts` list as the whole rule. Each
   also carries `why`, its recorded reason: `{ recorded: true, text, from }`
-  (`from` is `rationale`, `why_this_changed`, `section` or `adr`, tried in
-  that order) or `{ recorded: false }`.
+  (`from` is `rationale`, `section`, `why_this_changed` or `adr`, tried in
+  that order, split and supersede notes skipped; `said` gives who it came
+  from and when) or
+  `{ recorded: false }`. A fact's `kb_query` call (`ask`) and each result's
+  graph paths come only with `fields: "full"`.
 - `rationale` — ADRs that explain the decisions.
 - `notGoverning` — superseded, retired or deprecated requirements, with `supersededBy`
   when known. Never read these as current policy; superseded entities are also

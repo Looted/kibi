@@ -726,9 +726,42 @@ export type EntitySummary = {
   links?: EntityLink[];
   /** Requirement prose: `semantic_text`, else the body's first paragraph. */
   statement?: string;
+  /**
+   * A requirement's recorded reason (see EntityReason). Absent for other
+   * entities and when the document could not be read whole.
+   */
+  why?: EntityReason;
   /** The claim a fact models, from its typed front matter fields. */
   claim?: FactClaim;
 };
+
+/**
+ * Why a requirement is what it is, as its document records it: the
+ * `rationale` field, else a Why, Rationale or Context section (one that says
+ * "Reason not stated" holds none), else the "Why this changed" section, with
+ * lines that only note a split or supersede skipped, as at most MAX_REASON_CHARS characters of plain prose. `by` and `on`
+ * say who it came from and when, read from the origin: the approver
+ * (`approved_by`), else the origin's kind (`human`, `agent` or `import`),
+ * and the date the origin was recorded; a migration origin names neither.
+ * `recorded: false` means none of them holds a reason.
+ */
+export type EntityReason =
+  | {
+      recorded: true;
+      text: string;
+      from: "rationale" | "why_this_changed" | "section";
+      by?: string;
+      on?: string;
+    }
+  | { recorded: false };
+
+/** Characters of a recorded reason a summary keeps. */
+export const MAX_REASON_CHARS = 280;
+
+/** Bytes of a requirement document read for its summary and reason. */
+const REQUIREMENT_READ_BYTES = 65536;
+/** Bytes of any other entity's document read for its summary. */
+const ENTITY_READ_BYTES = 8192;
 
 /** A fact's typed fields, as authored; absent fields are left out. */
 export type FactClaim = {
@@ -744,9 +777,10 @@ export type FactClaim = {
 
 /** Front matter scalars a summary keeps, by field name. */
 const SUMMARY_SCALARS: Readonly<
-  Record<string, Exclude<keyof FactClaim, "values"> | "statement">
+  Record<string, Exclude<keyof FactClaim, "values"> | "statement" | "rationale">
 > = {
   semantic_text: "statement",
+  rationale: "rationale",
   fact_kind: "factKind",
   subject_key: "subjectKey",
   property_key: "propertyKey",
@@ -785,6 +819,114 @@ function readScalar(
   const joined = parts.join(" ");
   return { value: block ? joined : unquote(joined), last };
 }
+
+/**
+ * Markdown prose as plain text: the opening whole sentences that fit in
+ * `maxChars` characters, or the first sentence clipped with an ellipsis.
+ * Undefined when the text holds no prose.
+ */
+export function proseExcerpt(
+  lines: readonly string[],
+  maxChars: number,
+): string | undefined {
+  const prose = lines
+    .map((line) =>
+      line
+        .replace(/^\s*(?:[-*+]|\d+[.)])\s/, "")
+        .replace(/^\s*>\s?/, "")
+        .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+        .replace(/\*\*|__|`/g, "")
+        .trim(),
+    )
+    .filter((line) => !line.startsWith("|"))
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!prose) return undefined;
+  let excerpt = "";
+  for (const sentence of prose.split(/(?<=[.!?]) /)) {
+    const next = `${excerpt} ${sentence}`.trim();
+    if (excerpt !== "" && Array.from(next).length > maxChars) break;
+    excerpt = next;
+  }
+  const chars = Array.from(excerpt);
+  return chars.length <= maxChars
+    ? excerpt
+    : `${chars.slice(0, maxChars - 1).join("")}…`;
+}
+
+/** A section saying the person gave no reason records none. */
+const NO_REASON_STATED = /^reason not stated\b/i;
+
+/** Body sections that record a reason, in the order they are tried. */
+const REASON_SECTIONS: readonly [RegExp, "why_this_changed" | "section"][] = [
+  [/^(?:rationale|why(?! this changed)|context)\b/, "section"],
+  [/^why this changed\b/, "why_this_changed"],
+];
+
+/**
+ * A line that only records how a requirement was split or superseded
+ * ("Split from REQ-…", "Superseded by …"): it says where the text came
+ * from, not why the rule exists.
+ */
+const CHANGE_NOTE =
+  /^(?:[-*+>]\s*)?(?:split from|superseded by|supersedes|replaces|replaced by)\s/i;
+
+/** Markdown lines without the lines that are only split or supersede notes. */
+export function withoutChangeNotes(lines: readonly string[]): string[] {
+  return lines.filter((line) => !CHANGE_NOTE.test(line.trim()));
+}
+
+/**
+ * A requirement's recorded reason from its `rationale` field, else the first
+ * reason section of its body (fenced code skipped) that holds prose besides
+ * split or supersede notes.
+ */
+function recordedReason(
+  rationale: string | undefined,
+  body: readonly string[],
+):
+  | { text: string; from: "rationale" | "why_this_changed" | "section" }
+  | undefined {
+  const field = proseExcerpt(
+    withoutChangeNotes([rationale ?? ""]),
+    MAX_REASON_CHARS,
+  );
+  if (field) return { text: field, from: "rationale" };
+  // rationale: a placeholder entry in place of the empty list is a string,
+  // whose one-character name matches no reason heading.
+  // Stryker disable next-line ArrayDeclaration
+  const sections: [string, string[]][] = [];
+  let current: string[] | undefined;
+  let fenced = false;
+  for (const line of body) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    const heading = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
+    if (heading) {
+      current = [];
+      sections.push([(heading[1] as string).toLowerCase(), current]);
+      continue;
+    }
+    current?.push(line);
+  }
+  for (const [pattern, from] of REASON_SECTIONS) {
+    const text = sections
+      .filter(([name]) => pattern.test(name))
+      .map(([, content]) =>
+        proseExcerpt(withoutChangeNotes(content), MAX_REASON_CHARS),
+      )
+      .find((prose) => prose !== undefined && !NO_REASON_STATED.test(prose));
+    if (text) return { text, from };
+  }
+  return undefined;
+}
+
+/** Origin kinds that name who a reason came from. */
+const SPEAKING_ORIGINS = new Set(["human", "agent", "import"]);
 
 /** The first prose paragraph of a Markdown body, headings skipped; "" if none. */
 function firstParagraph(lines: readonly string[]): string {
@@ -876,15 +1018,21 @@ export function readEntitySummary(
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId)) return { id: entityId };
 
+  const requirement = lane[1] === "requirements";
   let head: string;
+  // A requirement is read further, so its reason sections are seen.
+  let whole: boolean;
   try {
     const descriptor = fs.openSync(
       path.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`),
       "r",
     );
     try {
-      const buffer = Buffer.alloc(8192);
+      const buffer = Buffer.alloc(
+        requirement ? REQUIREMENT_READ_BYTES : ENTITY_READ_BYTES,
+      );
       const bytes = fs.readSync(descriptor, buffer, 0, buffer.length, 0);
+      whole = bytes < buffer.length;
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
       fs.closeSync(descriptor);
@@ -903,6 +1051,8 @@ export function readEntitySummary(
   let inValueSet = false;
   let inOrigin = false;
   let originKind: string | undefined;
+  const origin: { approved_by?: string; recorded_at?: string } = {};
+  let rationale: string | undefined;
   let closed = false;
   let bodyStart = lines.length;
   let pending: PendingLink | undefined;
@@ -922,6 +1072,7 @@ export function readEntitySummary(
       const { value, last } = readScalar(lines, index, scalar[2]);
       if (value !== "") {
         if (scalarField === "statement") summary.statement = value;
+        else if (scalarField === "rationale") rationale = value;
         else claim[scalarField] = value;
       }
       index = last;
@@ -949,6 +1100,13 @@ export function readEntitySummary(
     if (flowOrigin) originKind = flowOrigin[1];
     const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
     if (nestedKind) originKind = nestedKind[1];
+    const originField = inOrigin
+      ? /^\s+(approved_by|recorded_at):(.+)/.exec(line)
+      : null;
+    if (originField)
+      origin[originField[1] as "approved_by" | "recorded_at"] = unquote(
+        originField[2] as string,
+      );
     if (/^\S/.test(line)) inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)/.exec(line);
     if (match?.[1] === "title" && match[2]) summary.title = unquote(match[2]);
@@ -1004,9 +1162,25 @@ export function readEntitySummary(
   if (links.length > 0) summary.links = links;
   if (values.length > 0) claim.values = values;
   if (Object.keys(claim).length > 0) summary.claim = claim;
-  if (summary.statement === undefined && lane[1] === "requirements" && closed) {
+  if (summary.statement === undefined && requirement && closed) {
     const paragraph = firstParagraph(lines.slice(bodyStart));
     if (paragraph) summary.statement = paragraph;
+  }
+  if (requirement && closed) {
+    const reason = recordedReason(rationale, lines.slice(bodyStart));
+    if (reason) {
+      const speaking = SPEAKING_ORIGINS.has(String(originKind));
+      const by = origin.approved_by || (speaking ? originKind : undefined);
+      const on = /^\d{4}-\d{2}-\d{2}/.exec(String(origin.recorded_at))?.[0];
+      summary.why = {
+        recorded: true,
+        ...reason,
+        ...(speaking && by ? { by } : {}),
+        ...(speaking && by && on ? { on } : {}),
+      };
+    } else if (whole) {
+      summary.why = { recorded: false };
+    }
   }
   return summary;
 }

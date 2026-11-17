@@ -30,7 +30,7 @@
   "kibi-usage/resources/kb-quality.md": "649424fe275dc1a1371947c595cf8584c733782ab773b7968f2d53be9632fab4",
   "kibi-usage/resources/logic-ir.md": "0e8ce8aad07433ab4803ec169149ff6c4e1cf8cf010af18fa6fd67862d9be807",
   "kibi-usage/resources/operation-access.md": "3b32a7c6468416278cbda683c4d33a65fffade39a30ce13b9bb58b624a707d42",
-  "kibi-usage/resources/operation-fields.md": "00625d22d34450b82030be5a5fb94469cab674a0f518e1eb6c4b06ae8a7dc68f",
+  "kibi-usage/resources/operation-fields.md": "83b909ee536d570077cf820c0decb547deafe25d5e6c170a23107174164a5280",
   "kibi-usage/resources/predicate-ontology.md": "4a7dc0d3de6ace19395729624dbd004c7071ae1ce85328c6138b0750204f8c66",
   "kibi-usage/resources/prolog-proofs.md": "b630f1edf32c4d14dbd096deb15c370f6ce05dede8aa9cda4fbf294d8668f164",
   "kibi-usage/resources/proof.md": "3145eb50884ec49ecb9ffbfc38249ec35f52e2a13b66dbec1ffa1cebc6e59b81",
@@ -42,5 +42,5 @@
   "kibi-usage/resources/second-agent-edits.md": "9284a482cbf3c01992515d66b3a388139be7b14bdd138cf4785a3cdcd75d8f26",
   "kibi-usage/resources/source-authoring.md": "ae259237ce41fe5b86474a64da7be864cbe77af634e9d2cd2c1339dae66d1ab2",
   "kibi-usage/resources/ui-requirements.md": "f99c2a9a73bbb7bd92ce1f231db3056d544588be149a5b0d3f7cc6f28bc9eee9",
-  "kibi-usage/resources/workflows.md": "f435ec1306ce0797206b2b33f0638329d5f320a2cca03bc5c992a79ea794ba81"
+  "kibi-usage/resources/workflows.md": "e8ab0333ebac5f49bb7a711e76ece2d18205943631d332b1b5dad3d8cfaa9d81"
 }

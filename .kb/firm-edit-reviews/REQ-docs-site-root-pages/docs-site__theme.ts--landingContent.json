@@ -4,10 +4,10 @@
   "sourceFile": "docs-site/theme.ts",
   "symbol": "landingContent",
   "verdict": "keeps",
-  "note": "Only one sentence of landing copy changes to name kibi check --symbol-debt; publishing and link checks are untouched.",
+  "note": "Only landing copy changed: what kb_search returns and the kibi check --symbol-debt sentence; the root pages still render the same sections and links.",
   "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
-  "codeHash": "sha256:6ee674a4ded60714ec3fa43bf91e9089c1da5628672cdd16e2be9ec23813eab8",
+  "codeHash": "sha256:603373a8980357690ea3136c50af97d94b5bc4eb4fe71a68ea257b5d729641f7",
   "startLine": 1447,
   "endLine": 1833,
-  "recordedAt": "2026-11-16T16:21:25.595Z"
+  "recordedAt": "2026-11-16T23:52:32.393Z"
 }
