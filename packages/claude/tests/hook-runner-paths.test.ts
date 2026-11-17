@@ -776,6 +776,7 @@ describe("firm requirement confirmation", () => {
       path: "src/checkout.ts",
       ids: ["REQ-checkout-rounding"],
       at: expect.any(Number),
+      edit: expect.stringMatching(/^[0-9a-f]{64}$/),
     });
   });
 

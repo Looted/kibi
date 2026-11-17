@@ -1096,6 +1096,12 @@ describe("firm requirement confirmation", () => {
     expect(
       (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
     ).toBeUndefined();
+    // It judged the code before that edit, so another edit of the same
+    // symbol is asked about.
+    expect(
+      (await raw("Edit", { ...editTotal, new_string: "  let total = 2;" }))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
     // A new session editing the symbol is asked again.
     expect(
       (await firmSession(fixture, "later").raw("Edit", editTotal))

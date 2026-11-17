@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
+import { createHash as createHash7 } from "node:crypto";
 import os2 from "node:os";
 import path14 from "node:path";
 import { pathToFileURL } from "node:url";
@@ -3351,6 +3352,7 @@ function emptySessionState() {
     ruleReason: undefined,
     firmAsked: new Map,
     firmAskedAt: new Map,
+    firmAskedEdit: new Map,
     firmConfirmed: new Set,
     sourceEdited: false,
     kbRecorded: false
@@ -3412,6 +3414,11 @@ function applyEvent(state, event) {
       if (event.at !== undefined)
         for (const id of event.ids)
           state.firmAskedAt.set(id, event.at);
+      for (const id of event.ids)
+        if (event.edit === undefined)
+          state.firmAskedEdit.delete(id);
+        else
+          state.firmAskedEdit.set(id, event.edit);
       return;
     case "context_reset":
       state.shownRead.clear();
@@ -3549,7 +3556,10 @@ function isExplored(state, relativePath) {
 function requirementIds(symbols) {
   return implementedRequirementIds(symbols);
 }
-function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace) {
+function editFingerprint(toolName, toolInput) {
+  return createHash7("sha256").update(JSON.stringify([toolName ?? null, toolInput ?? null])).digest("hex");
+}
+function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace, edit) {
   if (!workspace.confirmFirm)
     return;
   const { ids, symbol } = firmRequirementsTouched({
@@ -3558,19 +3568,26 @@ function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace) {
     wholeFile,
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
-    reviewed: firmEditReviewed(workspace.root, relativePath, (id) => state.firmAskedAt.get(id))
+    reviewed: firmEditReviewed(workspace.root, relativePath, (id) => state.firmAskedEdit.get(id) === edit ? state.firmAskedAt.get(id) : undefined)
   });
   if (ids.length === 0)
     return;
   return {
     path: relativePath,
     where: symbol ? `${symbol.title} in ${relativePath}` : relativePath,
-    ids
+    ids,
+    edit
   };
 }
 function withFirmConfirmation(output, firm, workspace, trace) {
   appendSessionEvents(workspace.stateDir, [
-    { kind: "firm_asked", path: firm.path, ids: firm.ids, at: Date.now() }
+    {
+      kind: "firm_asked",
+      path: firm.path,
+      ids: firm.ids,
+      at: Date.now(),
+      edit: firm.edit
+    }
   ]);
   trace.action = "edit_firm_ask";
   trace.requirementIds = firm.ids;
@@ -3655,7 +3672,7 @@ function preToolUse(input, workspace, trace = {}) {
   }
   trace.action = "edit_silent";
   const focus = toolName === "Edit" || toolName === "MultiEdit" ? editFocus2(target.absolute, input.toolInput) : undefined;
-  const firm = removesOnlyDeadImplementsComments(target.absolute, input.toolInput, input.cwd ?? workspace.root) ? undefined : firmEdit(relativePath, symbols, focus, toolName === "Write", state, workspace);
+  const firm = removesOnlyDeadImplementsComments(target.absolute, input.toolInput, input.cwd ?? workspace.root) ? undefined : firmEdit(relativePath, symbols, focus, toolName === "Write", state, workspace, editFingerprint(toolName, input.toolInput));
   const output = editPreToolUse(relativePath, kind, symbols, focus, state, workspace, events, emit);
   return firm ? withFirmConfirmation(output, firm, workspace, trace) : output;
 }
@@ -3743,7 +3760,7 @@ function bashPreToolUse(input, workspace, state, trace) {
     if (!target || classifyPath2(target.relative) !== "source")
       return;
     const symbols = symbolsFor(workspace, target.relative);
-    return firmEdit(target.relative, symbols, undefined, true, state, workspace);
+    return firmEdit(target.relative, symbols, undefined, true, state, workspace, editFingerprint("Bash", command));
   }).find((candidate) => candidate !== undefined);
   const output = bashContext(input, workspace, state, trace, command, edited, events, emit);
   return firm ? withFirmConfirmation(output, firm, workspace, trace) : output;

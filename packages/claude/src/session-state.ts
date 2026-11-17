@@ -48,9 +48,16 @@ export type SessionEvent =
   /**
    * An edit of `path` was put to the person because it changes code that
    * implements these firm requirements, at `at` (epoch milliseconds; absent
-   * in older journals).
+   * in older journals). `edit` fingerprints the asked edit (absent in older
+   * journals), so a receipt lets only that edit through.
    */
-  | { kind: "firm_asked"; path: string; ids: string[]; at?: number };
+  | {
+      kind: "firm_asked";
+      path: string;
+      ids: string[];
+      at?: number;
+      edit?: string;
+    };
 
 export type SessionState = {
   shownRead: Set<string>;
@@ -78,6 +85,11 @@ export type SessionState = {
    * retried edit through.
    */
   firmAskedAt: Map<string, number>;
+  /**
+   * The fingerprint of the edit last put to the person for each firm
+   * requirement: a keeps receipt lets only a retry of that edit through.
+   */
+  firmAskedEdit: Map<string, string>;
   /** Firm requirements the person let an edit change this session. */
   firmConfirmed: Set<string>;
   /** True once any source file was changed this session. */
@@ -129,6 +141,7 @@ export function emptySessionState(): SessionState {
     ruleReason: undefined,
     firmAsked: new Map(),
     firmAskedAt: new Map(),
+    firmAskedEdit: new Map(),
     firmConfirmed: new Set(),
     sourceEdited: false,
     kbRecorded: false,
@@ -194,6 +207,9 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       ]);
       if (event.at !== undefined)
         for (const id of event.ids) state.firmAskedAt.set(id, event.at);
+      for (const id of event.ids)
+        if (event.edit === undefined) state.firmAskedEdit.delete(id);
+        else state.firmAskedEdit.set(id, event.edit);
       return;
     case "context_reset":
       // Snippets, notices and Kibi lookups shown before the reset are no
