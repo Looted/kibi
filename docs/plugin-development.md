@@ -416,6 +416,9 @@ printf '%s\n' 'TYPESAFE_API_KEY=...' >> ~/.config/kibi/env
 
   Optional project override: `<workspace>/.env.kibi`. Process env wins;
   `KIBI_ENV_FILE` replaces the project path; legacy `.env` fills gaps only.
+  Those workspace files may set only provider secrets and `KIBI_JEV_*`
+  settings; Kibi ignores other `KIBI_*` keys and process variables there (see
+  [Environment files](cli-reference.md#environment-files)).
   Never store the key in `package.json`. Restart long-running MCP after changes.
 - Optional `KIBI_JEV_MODEL` (default `jev-latest`; empty or whitespace is unset)
 - Optional `KIBI_JEV_TIMEOUT_MS`, a positive integer of at most 120000. Malformed values fail with a provider diagnostic that includes the effective model and not the API key

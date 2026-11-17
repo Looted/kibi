@@ -279,6 +279,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b41f013d6956
+  - type: implements
+    from: SYM-types-upsert-payload
+    to: REQ-kb-upsert-requirement-why
+    created_at: 2026-11-16T16:40:09.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1444a183ef95
+  - type: covered_by
+    from: SYM-types-upsert-payload
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:06.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82cd3c10afa5
   - type: specified_by
     from: REQ-check-unscoped-budget
     to: SCEN-check-unscoped-budget

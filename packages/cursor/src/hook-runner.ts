@@ -24,6 +24,7 @@ import {
   settledFirmRequirements,
   signoffReminder,
   startDecisionSession,
+  statedReason,
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
 import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
@@ -433,7 +434,8 @@ export async function runHook(
         // waits for the next pre-edit message.
         if (kibiReady && input.prompt) {
           const rule = recordRequest(session, input.prompt);
-          if (rule !== undefined) holdRuleNote(session, rule);
+          if (rule !== undefined)
+            holdRuleNote(session, rule, statedReason(input.prompt));
           trace.action =
             rule === undefined ? "prompt_silent" : "prompt_rule_note";
         }
