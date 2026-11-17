@@ -1421,7 +1421,20 @@ export async function checkCommand(
           ...createStagedEntityIdStyleDiagnostics(markdownFiles),
           ...createFirmEditGateDiagnostics(
             await stagedFirmEditGateOptions({
-              sourceFiles,
+              // A deleted source file removes every declaration it held.
+              sourceFiles: [
+                ...sourceFiles,
+                ...stagedInventory
+                  .filter(
+                    (file) =>
+                      file.status === "D" && file.disposition !== "skipped",
+                  )
+                  .map((file) => ({
+                    path: file.path,
+                    status: file.status,
+                    hunkRanges: [],
+                  })),
+              ],
               // Every declaration, each with the hunks it owns, so a symbol
               // the change only removes lines from is still seen.
               extractAll: (file) =>
@@ -1433,6 +1446,19 @@ export async function checkCommand(
                       sourceAnalysis.get(file.path)?.after ?? null,
                   },
                 ),
+              extractBase: async (file) => {
+                const basePath = file.oldPath ?? file.path;
+                const content = readTreeFile(snapshot.baseTree)(basePath);
+                if (content === null) return [];
+                return extractSymbolsFromStagedFileAsync(
+                  { ...file, path: basePath, content, status: "A" },
+                  manifestLookup,
+                  {
+                    analyzeText: async () =>
+                      sourceAnalysis.get(file.path)?.before ?? null,
+                  },
+                );
+              },
               changedPaths: new Set(
                 snapshot.inventory.flatMap((file) =>
                   file.oldPath === undefined

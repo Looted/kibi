@@ -51,10 +51,11 @@ function options(
     ] as StagedFile[],
     extractAll: async (file) =>
       [{ name: `all-${file.path}` }] as unknown as ExtractedSymbol[],
+    extractBase: async () => [],
     changedPaths: new Set(["src/a.ts"]),
     knowledge: [result(requirement())],
     readBaseKnowledge: () => {
-      throw new Error("not read without a manifest change");
+      throw new Error("not read without a manifest or shard change");
     },
     readChanged: (file) => files[file],
     readBase: (file) => files[file],
@@ -103,6 +104,116 @@ describe("stagedFirmEditGateOptions", () => {
     }
   });
 
+  test("a kept record whose declaration the change removes is judged as removed", async () => {
+    const record = (title: string, file: string, to = "REQ-a") =>
+      result(
+        { id: `SYM-${title}`, type: "symbol", title },
+        [
+          { type: "implements", from: `SYM-${title}`, to },
+          { type: "implements", from: `SYM-${title}`, to },
+        ],
+        file,
+      );
+    const sourceFiles = [
+      { path: "src/a.ts", status: "M", hunkRanges: [], content: "x" },
+      { path: "src/gone.ts", status: "D", hunkRanges: [] },
+      {
+        path: "src/new.ts",
+        oldPath: "src/old.ts",
+        status: "R",
+        hunkRanges: [],
+        content: "z",
+      },
+    ] as StagedFile[];
+    const knowledge = [
+      result(requirement()),
+      // Still declared where its record points: not removed.
+      record("kept", "src/a.ts"),
+      // No longer declared, or no longer exported.
+      record("hidden", "src/a.ts"),
+      // Not declared before the change either: an undetected form.
+      record("unseen", "src/a.ts"),
+      // A record that implements no requirement is not firm code.
+      result(
+        { id: "SYM-plain", type: "symbol", title: "plain" },
+        [{ type: "implements", from: "SYM-plain", to: "FACT-x" }],
+        "src/a.ts",
+      ),
+      // Its file is deleted.
+      record("dropped", "src/gone.ts"),
+      // Its file is renamed away from the record.
+      record("stray", "src/old.ts"),
+    ];
+    const asked: string[] = [];
+    const gate = await options({
+      sourceFiles,
+      knowledge,
+      extractAll: async (file) =>
+        (file.path === "src/a.ts"
+          ? [{ name: "kept" }, { name: "plain" }]
+          : [{ name: "stray" }]) as unknown as ExtractedSymbol[],
+      extractBase: async (file) => {
+        asked.push(file.oldPath ?? file.path);
+        return [
+          { name: "kept" },
+          { name: "hidden" },
+          { name: "plain" },
+          { name: "dropped" },
+          { name: "stray" },
+        ] as unknown as ExtractedSymbol[];
+      },
+    });
+    expect(gate.removedSymbols).toEqual([
+      { sourceFile: "src/a.ts", symbol: "hidden", requirementIds: ["REQ-a"] },
+      {
+        sourceFile: "src/gone.ts",
+        symbol: "dropped",
+        requirementIds: ["REQ-a"],
+      },
+      { sourceFile: "src/old.ts", symbol: "stray", requirementIds: ["REQ-a"] },
+    ]);
+    expect(asked).toEqual(["src/a.ts", "src/gone.ts", "src/old.ts"]);
+
+    // A record the change moves to the renamed file, which declares it, is
+    // not removed; the base is read once, from the changed manifest.
+    let reads = 0;
+    const moved = await options({
+      sourceFiles: [sourceFiles[2] as StagedFile],
+      knowledge: [result(requirement()), record("stray", "src/new.ts")],
+      changedPaths: new Set([".kb/symbols.yaml"]),
+      readBaseKnowledge: () => {
+        reads += 1;
+        return [record("stray", "src/old.ts")];
+      },
+      extractAll: async () =>
+        [{ name: "stray" }] as unknown as ExtractedSymbol[],
+      extractBase: async () =>
+        [{ name: "stray" }] as unknown as ExtractedSymbol[],
+    });
+    expect(moved.removedSymbols).toEqual([]);
+    expect(reads).toBe(1);
+
+    // A shard change reads the base too; a file with no firm record there
+    // is not extracted.
+    asked.length = 0;
+    reads = 0;
+    const shard = await options({
+      changedPaths: new Set([".kb/relationships/ab.yaml"]),
+      readBaseKnowledge: () => {
+        reads += 1;
+        return [record("hidden", "src/a.ts")];
+      },
+      knowledge: [result(requirement())],
+      extractBase: async (file) => {
+        asked.push(file.path);
+        return [];
+      },
+    });
+    expect(shard.removedSymbols).toEqual([]);
+    expect(reads).toBe(1);
+    expect(asked).toEqual([]);
+  });
+
   test("a requirement counts as restated only when its statement, status or supersede changed", async () => {
     const changed = async (
       base: string | undefined,
@@ -113,6 +224,7 @@ describe("stagedFirmEditGateOptions", () => {
         await options({
           readChanged: (file) => (file === REQ ? now : undefined),
           readBase: (file) => (file === REQ ? base : undefined),
+          readBaseKnowledge: () => [],
           ...extra,
         })
       ).requirementChanged(requirement());

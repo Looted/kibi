@@ -97,6 +97,8 @@ export type ReviewFirmEditDeps = {
   ) => readonly IndexedSymbol[];
   /** The authored knowledge at HEAD; empty without a HEAD commit. */
   headKnowledge: (workspaceRoot: string) => readonly ExtractionResult[];
+  /** A file's text at HEAD; undefined when it is not there. */
+  readHead: (workspaceRoot: string, relativePath: string) => string | undefined;
   now: () => Date;
 };
 
@@ -139,6 +141,20 @@ function readStagedFile(
   return undefined;
 }
 
+function readHeadFile(
+  workspaceRoot: string,
+  relativePath: string,
+): string | undefined {
+  try {
+    return gitIn(workspaceRoot)(["show", `HEAD:${relativePath}`]).toString(
+      "utf8",
+    );
+  } catch {
+    // Not at HEAD, or no HEAD commit.
+  }
+  return undefined;
+}
+
 function readHeadKnowledge(workspaceRoot: string): readonly ExtractionResult[] {
   try {
     return readSnapshotKnowledge(gitIn(workspaceRoot), "HEAD");
@@ -154,6 +170,7 @@ export const REVIEW_FIRM_EDIT_DEPS: ReviewFirmEditDeps = {
   indexedSymbols: (workspaceRoot, sourceFile) =>
     loadKnowledgeIndex(workspaceRoot).files[sourceFile] ?? [],
   headKnowledge: readHeadKnowledge,
+  readHead: readHeadFile,
   now: () => new Date(),
 };
 
@@ -187,12 +204,13 @@ async function reviewedCode(input: {
 }): Promise<ReviewedCode> {
   const { workspaceRoot, requirementId, sourceFile, name, content, deps } =
     input;
-  const implementing =
+  const declared =
     content === undefined
       ? []
-      : (await deps.symbolsOf(workspaceRoot, sourceFile, content)).filter(
-          (symbol) => implementedRequirementIds(symbol).includes(requirementId),
-        );
+      : await deps.symbolsOf(workspaceRoot, sourceFile, content);
+  const implementing = declared.filter((symbol) =>
+    implementedRequirementIds(symbol).includes(requirementId),
+  );
   const symbol = implementing.find((candidate) => candidate.name === name);
   if (symbol !== undefined)
     return {
@@ -205,6 +223,23 @@ async function reviewedCode(input: {
       startLine: symbol.location.startLine,
       endLine: symbol.location.endLine,
     };
+  // A declaration HEAD has that the file no longer declares (the file is
+  // deleted, emptied or moved, or the declaration is gone or no longer
+  // exported) is reviewed as removed, as the commit gate judges it.
+  if (!declared.some((candidate) => candidate.name === name)) {
+    const head = deps.readHead(workspaceRoot, sourceFile);
+    if (
+      head !== undefined &&
+      (await deps.symbolsOf(workspaceRoot, sourceFile, head)).some(
+        (candidate) => candidate.name === name,
+      )
+    )
+      return {
+        codeHash: FIRM_EDIT_REMOVED_CODE_HASH,
+        startLine: 0,
+        endLine: 0,
+      };
+  }
   const indexed = deps
     .indexedSymbols(workspaceRoot, sourceFile)
     .filter((candidate) => candidate.implements.includes(requirementId));
