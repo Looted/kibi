@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d2ba36fc27e
+  - type: assumes
+    from: SCEN-core-journal-file-name-short-path-keeps-file-uri
+    to: FACT-core-journal-file-name-max-bytes
+    created_at: 2026-11-17T06:00:21.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa146af88027
+  - type: verified_by
+    from: SCEN-core-journal-file-name-short-path-keeps-file-uri
+    to: TEST-core-journal-file-name-fits
+    created_at: 2026-11-17T06:00:21.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d632ca1b169b
+  - type: assumes
+    from: SCEN-core-journal-file-name-short-path-keeps-file-uri
+    to: FACT-core-file-uri-kept-only-when-it-fits
+    created_at: 2026-11-17T06:04:16.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df04eeffec3b
+  - type: assumes
+    from: SCEN-core-journal-file-name-short-path-keeps-file-uri
+    to: FACT-core-store-graph-uri-fallback-form
+    created_at: 2026-11-17T06:04:16.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-669f2343c9f8
