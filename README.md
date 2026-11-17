@@ -294,7 +294,7 @@ flowchart LR
 
 For a requirement to be tested end to end rather than merely documented:
 
-- Every behavioral production symbol must trace to the requirement it implements. A schema constant or type can be recorded with a non-behavioral `symbol_role` and no link.
+- Every behavioral production symbol must trace to the requirement it implements. A schema constant or type can be recorded with a non-behavioral `symbol_role` and no link. When the pre-commit hook refuses a new declaration that nothing owns, it prints one block for it: the requirements the rest of its file implements, each with a paste-ready `kb_upsert` input (`implementedBy` with `coveredBy`), and Kibi never picks one.
 - Every normative requirement clause must be modeled as typed facts or stay explicitly unresolved.
 - Requirements must be specified by scenarios, and tests must verify those scenarios. A success scenario that assumes something a current requirement forbids blocks proof.
 - Executable test symbols must identify the code that actually performs the verification.

@@ -371,19 +371,19 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e4d717ab872d
   - type: implements
-    from: SYM-check-format-symbol-debt-count
-    to: REQ-check-symbol-debt-count
-    created_at: 2026-11-16T15:52:29.270Z
+    from: SYM-owner-findings-collect-owner-findings
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T16:49:16.513Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-7efa49e80cc1
+    id: rel-b67a058a3245
   - type: covered_by
-    from: SYM-check-format-symbol-debt-count
-    to: TEST-check-reports-symbol-debt
-    created_at: 2026-11-16T15:56:31.028Z
+    from: SYM-owner-findings-collect-owner-findings
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T16:49:16.540Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-9dcf48993edf
+    id: rel-1b396b8faa18
   - type: executable_for
     from: SYM-kb-merge-fixture-fixture-run
     to: TEST-kb-merge-action
@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76f1221f6394
+  - type: implements
+    from: SYM-check-format-symbol-debt-count
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:52:29.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7efa49e80cc1
+  - type: covered_by
+    from: SYM-check-format-symbol-debt-count
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T15:56:31.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dcf48993edf
