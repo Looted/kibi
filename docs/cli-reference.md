@@ -1545,6 +1545,37 @@ kibi skills read kibi-usage resources/fact-lanes.md --format text
 - Generic MCP/CLI agents should start with [generic-agent onboarding](generic-agent-onboarding.md) and load `kibi-usage`. Do not copy a long prompt as a substitute for skill discovery.
 - The JSON routes `skills-list`, `skills-load`, `skills-read`, and the consolidated `skill` route (`{"action":"list"|"load"|"read", ...}`) back the MCP `kb_skills` tool.
 
+## Environment files
+
+Before a command runs, the CLI and the MCP server load the same env files.
+Non-empty process variables win; then the project file `<workspace>/.env.kibi`
+(or the file `KIBI_ENV_FILE` names), then the user file
+`~/.config/kibi/env` (`$XDG_CONFIG_HOME/kibi/env`), then the legacy
+`<workspace>/.env`, which only fills gaps. Blank values count as unset.
+
+The project and legacy files are workspace files: a cloned repository controls
+them. They may set provider secrets (any key outside the `KIBI_` namespace,
+such as `TYPESAFE_API_KEY`) and provider settings (`KIBI_JEV_*`). Kibi ignores
+every other key there:
+
+- any other `KIBI_*` key, including executable and module paths
+  (`KIBI_NODE_PATH`, `KIBI_SWIPL`, `KIBI_KB_PL_PATH`, `KIBI_<MODULE>_PATH`),
+  runtime and log locations (`KIBI_RUNTIME_DIR`, diagnostic log paths),
+  `KIBI_ENV_FILE`, workspace and branch selection (`KIBI_WORKSPACE`,
+  `KIBI_PROJECT_ROOT`, `KIBI_ROOT`, `KIBI_BRANCH`, `KIBI_KB_DEPENDENCY`), proof
+  commands (`KIBI_PROOF_*`) and safety switches such as
+  `KIBI_CONFIRM_FIRM_EDITS`;
+- process variables: `PATH`, `HOME`, `USERPROFILE`, `TMPDIR`, `TMP`, `TEMP`,
+  `SHELL`, `SWI_HOME_DIR`, `BASH_ENV`, `EDITOR` and the like, and the families
+  `NODE_*`, `NPM_CONFIG_*`, `BUN_*`, `LD_*`, `DYLD_*`, `GIT_*`, `SSH_*`,
+  `XDG_*`, `PYTHON*`, `SWIPL*`, `SSL_CERT_*`, `MALLOC_*` and the proxy
+  variables (matched in any letter case).
+
+Each command prints the ignored key names once on stderr, never their values.
+Set those keys in the process environment or in the user file, which Kibi
+applies unfiltered. The policy is `isWorkspaceEnvKeyAllowed` in
+`packages/cli/src/env/workspace-env-policy.ts`.
+
 ## Workspace selection
 
 The CLI runs in the current directory. The MCP server answers from the

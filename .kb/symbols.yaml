@@ -18026,14 +18026,18 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-kibi-env-bootstrap-shared
       - type: covered_by
         target: TEST-cli-doctor-workflows
       - type: covered_by
         target: TEST-cli-env-bootstrap
       - type: covered_by
         target: TEST-e2e-kibi-env-bootstrap
+      - type: covered_by
+        target: TEST-kibi-env-workspace-file-key-policy
+      - type: implements
+        target: REQ-kibi-env-bootstrap-shared
+      - type: implements
+        target: REQ-kibi-env-workspace-file-key-policy
   - id: SYM-env-bootstrap-inspect-secret-source
     title: inspectSecretSource
     sourceFile: packages/cli/src/env/bootstrap.ts
@@ -44346,3 +44350,40 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T18:14:35.200Z
+  - id: SYM-test-kibi-env-workspace-file-key-policy
+    title: Workspace env key policy suite
+    status: active
+    sourceFile: packages/cli/tests/env/workspace-env-policy.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:33:18.209Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-env-workspace-file-key-policy
+  - id: SYM-test-mcp-env-workspace-file-key-policy
+    title: MCP workspace env key policy suite
+    status: active
+    sourceFile: packages/mcp/tests/env-workspace-policy.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:33:23.453Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-env-workspace-file-key-policy
+  - id: SYM-env-workspace-policy-is-key-allowed
+    title: isWorkspaceEnvKeyAllowed
+    status: active
+    sourceFile: packages/cli/src/env/workspace-env-policy.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:34:33.646Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-env-workspace-file-key-policy
+      - type: implements
+        target: REQ-kibi-env-workspace-file-key-policy
