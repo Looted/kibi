@@ -90,8 +90,8 @@ the rule for that code.
 - `kb_query` the candidate requirement and read its statement. Link the
   symbol only when its body decides that behavior.
 - A new function that decides something no requirement states is a new
-  behavior: record the requirement and scenario (`kibi-usage`, Safe
-  workflow), then link.
+  behavior: record the requirement and scenario (`kibi-usage`, step
+  3, Record), then link.
 - A helper split out of an owned function serves the same behavior: link it
   to that function's requirement and say so in the report. If that takes the
   requirement past 8 implementing symbols, do not move the link to a
