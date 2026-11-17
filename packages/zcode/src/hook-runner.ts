@@ -25,7 +25,6 @@ import {
   startDecisionSession,
   statedReason,
 } from "kibi-agent-core/decision-guard";
-import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import {
   type HookTrace,
   appendHookUsage,
@@ -248,7 +247,6 @@ function firmNotice(
       wholeFile: focus === undefined,
       summarize,
       confirmed: settled,
-      reviewed: firmEditReviewed(workspaceRoot, target.relative, summarize),
       commentOnly: removesOnlyDeadImplementsComments(
         target.absolute,
         input.toolInput,

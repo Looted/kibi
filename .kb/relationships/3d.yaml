@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ae62690ea75
+  - type: validates
+    from: TEST-proof-quantity-trivial-numbers
+    to: SCEN-check-quantity-duplicate-trivial-values
+    created_at: 2026-11-17T06:00:04.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cac5d87e57b2

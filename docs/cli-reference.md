@@ -819,16 +819,23 @@ filled and the note left empty.
 kibi review-firm-edit --input <path|->
 ```
 
-**Input:** `{"reviews":[{"requirementId", "sourceFile", "symbol", "verdict": "keeps"|"changes", "note", "requestQuote"?}], "dryRun"?}`.
-`symbol` is the name `kibi check` gives (`expireKey`, `KeyStore.rotate`) and
-must carry an `implements` link to the requirement; `note` says in one line
+**Input:** `{"reviews":[{"requirementId", "sourceFile", "symbol", "verdict": "keeps"|"changes", "note", "requestQuote"?}], "dryRun"?, "staged"?}`.
+`symbol` is the name `kibi check` gives (`expireKey`, `KeyStore.rotate`, or
+a coarse `.kb/symbols.yaml` title such as `boot module`, bound to its source
+coordinates) and must carry an `implements` link to the requirement; a symbol
+the change removed is reviewed through its record at HEAD. With
+`"staged": true` the code and the requirement are read from the Git index, as
+`kibi check --staged` reads them, so a file with further unstaged edits can
+still be reviewed; `note` says in one line
 why the change keeps or changes the rule. The requirement must be current and
 firm. Every entry is validated before any receipt is written, and a refusal
 (`VALIDATION_FAILED`, rule `firm_edit_review_invalid`) writes nothing.
 
 **Receipts:** each entry writes
-`.kb/firm-edit-reviews/<REQ-id>/<file>--<symbol>.json`, replacing an earlier
-receipt for the same requirement and symbol. A receipt holds the verdict,
+`.kb/firm-edit-reviews/<REQ-id>/<symbol>--<hash>.json` (the hash covers the
+source file and symbol), replacing an earlier receipt for the same
+requirement and symbol, including one an earlier release wrote as
+`<file>--<symbol>.json`. A receipt holds the verdict,
 the note, a hash of the requirement's statement and a hash of the symbol's
 code as they are when it is recorded. It stops matching when the statement
 changes, when the requirement is superseded or retired, or when the symbol's
@@ -844,9 +851,10 @@ index.
 
 A receipt is the agent's judgment, never the person's approval; `kibi
 signoff` shows it as such. Hooks read receipts too: the Claude Code
-PreToolUse hook skips its firm-edit question when a current `keeps` receipt
-covers every edited symbol, and the Codex, Cursor and ZCode notices name this
-command. `KIBI_CONFIRM_FIRM_EDITS=0` turns off only the hook question, never
+PreToolUse hook lets the retry of an edit it asked about through when a
+`keeps` receipt recorded after the question covers every edited symbol (a
+receipt from an earlier session never skips the question), and the Codex,
+Cursor and ZCode notices name this command. `KIBI_CONFIRM_FIRM_EDITS=0` turns off only the hook question, never
 the staged gate.
 
 **Example:**

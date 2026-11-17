@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { firmEditReceiptPath } from "kibi-agent-core/firm-edit-review";
 import {
   type ConsumerWorkspace,
   type Json,
@@ -13,6 +14,7 @@ afterEach(() => {
 
 const STATEMENT = "API keys must expire ninety days after they are created.";
 const SOURCE = `export function expireKey(createdAt: number, now: number): boolean {
+  if (createdAt < 0) return true;
   return now - createdAt > 90 * 86_400_000;
 }
 `;
@@ -53,8 +55,13 @@ function firmFindings(workspace: ConsumerWorkspace): Json[] {
   );
 }
 
-function review(workspace: ConsumerWorkspace, verdict: "keeps" | "changes") {
+function review(
+  workspace: ConsumerWorkspace,
+  verdict: "keeps" | "changes",
+  staged = false,
+) {
   return workspace.json(["review-firm-edit"], {
+    ...(staged ? { staged: true } : {}),
     reviews: [
       {
         requirementId: "REQ-key-expiry",
@@ -86,8 +93,11 @@ describe("firm-edit receipts through the real CLI", () => {
 
     const recorded = review(workspace, "keeps");
     expect(recorded.status, JSON.stringify(recorded)).toBe("success");
-    const receiptPath =
-      ".kb/firm-edit-reviews/REQ-key-expiry/src__keys.ts--expireKey.json";
+    const receiptPath = firmEditReceiptPath(
+      "REQ-key-expiry",
+      "src/keys.ts",
+      "expireKey",
+    ) as string;
     expect(JSON.parse(workspace.read(receiptPath)).verdict).toBe("keeps");
     // The receipt counts once it is staged with the change.
     expect(firmFindings(workspace)).toHaveLength(1);
@@ -111,6 +121,54 @@ describe("firm-edit receipts through the real CLI", () => {
       "expireKey in src/keys.ts: the agent judged that the change changes the rule",
     );
     expect(signoff).toContain("judged by the agent, not approved by you");
+  }, 120_000);
+
+  test("removed lines, a removed symbol and an edit beside a note are all gated", () => {
+    const workspace = firmWorkspace();
+    // A change that only removes lines inside the symbol.
+    workspace.write(
+      "src/keys.ts",
+      SOURCE.replace("  if (createdAt < 0) return true;\n", ""),
+    );
+    workspace.git("add", "src/keys.ts");
+    expect(firmFindings(workspace).map((entry) => entry.id)).toEqual([
+      "firm_edit_unreviewed",
+    ]);
+    // A note on the requirement does not restate it.
+    workspace.write(
+      ".kb/requirements/REQ-key-expiry.md",
+      `${workspace.read(".kb/requirements/REQ-key-expiry.md")}\n## Notes\n\nSee the key service for more about this rule.\n`,
+    );
+    workspace.git("add", ".kb/requirements/REQ-key-expiry.md");
+    expect(firmFindings(workspace)).toHaveLength(1);
+    workspace.git("reset", "-q", "--hard");
+    // Removing the symbol and its record needs a review of the removal.
+    workspace.write("src/keys.ts", "export const unrelated = 1;\n");
+    workspace.write(".kb/symbols.yaml", "symbols: []\n");
+    workspace.git("add", "-A");
+    expect(String(firmFindings(workspace)[0]?.message)).toContain(
+      "expireKey in src/keys.ts (removed, no review recorded)",
+    );
+    expect(review(workspace, "keeps").status).toBe("success");
+    workspace.git("add", "-A");
+    expect(firmFindings(workspace)).toEqual([]);
+  }, 120_000);
+
+  test("with unstaged edits in the file, a staged review clears the staged change", () => {
+    const workspace = firmWorkspace();
+    workspace.write("src/keys.ts", SOURCE.replace("90", "91"));
+    workspace.git("add", "src/keys.ts");
+    workspace.write(
+      "src/keys.ts",
+      SOURCE.replace("90", "91").replace("< 0", "<= 0"),
+    );
+    const [finding] = firmFindings(workspace);
+    expect(finding?.evidence).toMatchObject({
+      reviewInput: { staged: true },
+    });
+    expect(review(workspace, "keeps", true).status).toBe("success");
+    workspace.git("add", ".kb/firm-edit-reviews");
+    expect(firmFindings(workspace)).toEqual([]);
   }, 120_000);
 
   test("refuses a review of a requirement that is not firm", () => {

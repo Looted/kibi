@@ -815,7 +815,7 @@ describe("Codex decision guard", () => {
     expect(contextOf(await event(patch, "guard-2"))).toContain(FIRM_NOTICE);
   });
 
-  test("a current keeps receipt for the edited code stops the firm-edit notice", async () => {
+  test("a keeps receipt from an earlier session does not stop the firm-edit notice in a new session", async () => {
     const cwd = linkedWorkspace();
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(pluginData);
@@ -853,7 +853,7 @@ describe("Codex decision guard", () => {
       { pluginData },
     );
     expect(contextOf(result)).toContain("Kibi knowledge for src/checkout.ts");
-    expect(contextOf(result)).not.toContain(FIRM_NOTICE);
+    expect(contextOf(result)).toContain(FIRM_NOTICE);
   });
 
   test("a patch that only deletes implements comments gets no firm-edit notice; the same patch with a code change does", async () => {

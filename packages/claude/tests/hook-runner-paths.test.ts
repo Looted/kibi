@@ -770,10 +770,12 @@ describe("firm requirement confirmation", () => {
     expect(output.hookSpecificOutput?.permissionDecisionReason).toContain(
       "src/checkout.ts",
     );
-    expect(h.journal().at(-1)).toStrictEqual({
+    const asked = h.journal().at(-1);
+    expect(asked).toStrictEqual({
       kind: "firm_asked",
       path: "src/checkout.ts",
       ids: ["REQ-checkout-rounding"],
+      at: expect.any(Number),
     });
   });
 
