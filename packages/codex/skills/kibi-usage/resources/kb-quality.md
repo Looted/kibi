@@ -150,7 +150,7 @@ the symbol threshold:
 ## Hygiene
 
 - A requirement whose behavior no longer exists is `status: retired` with a
-  `retired_reason`, not `closed` (see Second-agent edits, recipe 3). `closed`
+  `retired_reason`, not `closed` (see `resources/second-agent-edits.md`, recipe 3). `closed`
   still governs search and hooks.
 - Relink or archive (`status: deprecated`) every active fact, scenario and
   test owned only by closed or retired requirements, and every property or

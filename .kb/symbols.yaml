@@ -4683,7 +4683,13 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+      - type: implements
+        target: REQ-kibi-usage-core-arc
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
   - id: SYM-kibi-usage-workflows-guidance
@@ -44080,3 +44086,99 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T18:14:35.200Z
+  - id: SYM-test-skills-core-arc
+    title: skills-core-arc.test
+    status: active
+    sourceFile: packages/cli/tests/skills-core-arc.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-skills-core-arc
+  - id: SYM-kibi-commit-review-skill-guidance
+    title: kibi-commit-review
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-commit-review/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-commit-review-kb-staging
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-decisions-skill-guidance
+    title: kibi-decisions
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-decisions/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-freshness-skill-guidance
+    title: kibi-freshness
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-freshness/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-traceability-skill-guidance
+    title: kibi-traceability
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-traceability/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-skillopt-queriedBeforeWrite
+    title: queriedBeforeWrite
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-skillopt-OBJECTIVE_WORKFLOWS
+    title: OBJECTIVE_WORKFLOWS
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual

@@ -194,7 +194,7 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 
 Every surface opens a session with the same short brief: search for the recorded intent before changing behaviour, record the person's decisions with their reason, run the commit check before finishing, and treat a request that would make a recorded rule false as a question. The host plugins add it at session start, and the MCP server returns it in its `initialize` instructions and in `kb_status`, so an MCP client without hooks reads it too.
 
-Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and a small set of MCP tools does the rest:
+Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and a small set of MCP tools does the rest. The main skill, `kibi-usage`, is a short arc of about 3k characters (search for prior intent, edit, record the decision, check, commit); its topic guidance, such as modeling claims or changing someone else's KB, loads only when the task needs it:
 
 - **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements with what each says and why it exists (its recorded reason, who gave it and when), the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.
