@@ -248,7 +248,7 @@ describe("journaled engine", () => {
   test("creates journal metadata and supports explicit compaction", async () => {
     const root = tempRoot();
     await ensureJournaledBranchStoreAsync(
-      path.join(root, ".kb", "branches", "main"),
+      ensureBranchStoreManifest(root, "main"),
     );
     const client = new EngineClient({
       workspaceRoot: root,

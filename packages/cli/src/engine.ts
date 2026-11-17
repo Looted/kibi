@@ -75,6 +75,7 @@ import { isValidBranchName } from "./utils/branch-resolver.js";
 import {
   branchStorePath,
   ensureBranchStoreManifest,
+  unmigratedLegacyStoreRefusal,
 } from "./utils/branch-store-locator.js";
 import { canonicalFilesystemPath } from "./utils/canonical-path.js";
 
@@ -1072,6 +1073,13 @@ export class EngineClient {
 
   async start(allowSpawn = true): Promise<void> {
     const wasConnected = this.isRunning();
+    if (!wasConnected) {
+      const refusal = unmigratedLegacyStoreRefusal(
+        this.workspaceRoot,
+        this.branch,
+      );
+      if (refusal !== null) throw new Error(refusal);
+    }
     for (let attempt = 0; ; attempt += 1) {
       await this.connect(allowSpawn);
       if (wasConnected || this.socket === null) return;
@@ -2003,6 +2011,12 @@ export async function runEngineDaemon(requestedOptions: {
     ...requestedOptions,
     workspaceRoot: canonicalFilesystemPath(requestedOptions.workspaceRoot),
   };
+  // Never materialize a hashed store beside an unmigrated legacy one.
+  const legacyRefusal = unmigratedLegacyStoreRefusal(
+    options.workspaceRoot,
+    options.branch,
+  );
+  if (legacyRefusal !== null) throw new Error(legacyRefusal);
   const branchPath = ensureBranchStoreManifest(
     options.workspaceRoot,
     options.branch,

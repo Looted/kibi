@@ -131,6 +131,23 @@ export function legacyBranchStorePath(
   return path.join(branchStoresRoot(workspaceRoot), branch);
 }
 
+/**
+ * Refusal for opening the KB engine on a branch whose only store is a legacy
+ * literal-named one. The engine serves only the hashed store, so starting it
+ * would create an empty store beside the legacy one, answer from it, and
+ * leave the branch with two stores that no migration can reconcile. Returns
+ * null when the hashed store exists or there is no legacy store.
+ */
+export function unmigratedLegacyStoreRefusal(
+  workspaceRoot: string,
+  branch: string,
+): string | null {
+  const legacyPath = legacyBranchStorePath(workspaceRoot, branch);
+  if (existsSync(branchStorePath(workspaceRoot, branch))) return null;
+  if (!existsSync(legacyPath)) return null;
+  return `Legacy branch store ${legacyPath} for '${branch}' must be migrated before the KB engine opens it. Preview the migration with 'kibi migrate', then apply it with 'kibi migrate --apply-safe <planHash>'.`;
+}
+
 export function isDirectory(pathname: string): boolean {
   try {
     return statSync(pathname).isDirectory();

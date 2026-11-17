@@ -29,6 +29,7 @@
 
 import { spawn } from "node:child_process";
 import {
+  existsSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -114,14 +115,33 @@ function isDirectory(target: string): boolean {
 }
 
 /**
+ * The step files of a steps directory: regular `*.json` files whose name
+ * does not start with a dot (editor and AppleDouble `._*` files are not
+ * step files).
+ */
+function stepFileNames(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true })
+    .filter(
+      (entry) =>
+        entry.isFile() &&
+        entry.name.endsWith(".json") &&
+        !entry.name.startsWith("."),
+    )
+    .map((entry) => entry.name)
+    .sort();
+}
+
+/**
  * The entries of a steps directory: each `<test_id>.json` file holds one
  * `{test_id, steps}` object, and a file whose test_id differs from its name
  * is refused so two tests can never share or shadow a file.
  */
 function readStepsDirectory(directory: string): unknown[] {
-  const files = readdirSync(directory)
-    .filter((name) => name.endsWith(".json"))
-    .sort();
+  const files = stepFileNames(directory);
+  if (files.length === 0)
+    fail(
+      `no step files in ${directory}; add one <test_id>.json file per proof-bearing test`,
+    );
   return files.map((name) => {
     const value = readJson(path.join(directory, name));
     const expected = name.slice(0, -".json".length);
@@ -137,18 +157,25 @@ function readStepsDirectory(directory: string): unknown[] {
 
 /**
  * The validated steps of a source: the given path, a directory or a file, or
- * by default the proof/steps directory, else proof/steps.json.
+ * by default the proof/steps directory, else proof/steps.json. When both
+ * defaults exist the source is ambiguous (a half-finished move would run
+ * only some tests), so it is refused.
  */
 export function loadProofSteps(
   workspaceRoot: string,
   stepsPath?: string,
 ): ProofStepEntry[] {
   const directory = path.resolve(workspaceRoot, DEFAULT_PROOF_STEPS_DIR);
+  const file = path.resolve(workspaceRoot, DEFAULT_PROOF_STEPS_PATH);
+  if (stepsPath === undefined && isDirectory(directory) && existsSync(file))
+    fail(
+      `both ${DEFAULT_PROOF_STEPS_DIR}/ and ${DEFAULT_PROOF_STEPS_PATH} exist; move each entry of ${DEFAULT_PROOF_STEPS_PATH} to ${DEFAULT_PROOF_STEPS_DIR}/<test_id>.json and delete it, or remove the ${DEFAULT_PROOF_STEPS_DIR} directory`,
+    );
   const source =
     stepsPath === undefined
       ? isDirectory(directory)
         ? directory
-        : path.resolve(workspaceRoot, DEFAULT_PROOF_STEPS_PATH)
+        : file
       : path.resolve(workspaceRoot, stepsPath);
   return validateProofSteps(
     isDirectory(source) ? readStepsDirectory(source) : readJson(source),
