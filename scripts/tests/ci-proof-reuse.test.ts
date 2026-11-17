@@ -487,12 +487,16 @@ if (args[0] === "api") {
         }),
       ).mode,
     ).toBe("execute");
+    // The changed merge's committed tree already differs from develop's, so
+    // the gate runs full proof without waiting on or looking up develop's run.
+    writeFileSync(path.join(fixture, "runs.json"), "not JSON");
     expect(runGate(changedBase, changedMerge)).toMatchObject({
       mode: "execute",
-      reason: "canonical Kibi snapshots differ",
+      reason:
+        "the merge changes files the proven snapshot covers; no develop proof can match",
     });
-    writeFileSync(path.join(fixture, "runs.json"), "not JSON");
-    const failedLookup = runGate(changedBase, changedMerge);
+    git(root, "checkout", "-q", "--detach", mergedSha);
+    const failedLookup = runGate(masterBase, mergedSha);
     expect(failedLookup.mode).toBe("execute");
     expect(failedLookup.reason).toContain("reuse lookup failed");
   });

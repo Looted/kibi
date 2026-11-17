@@ -510,3 +510,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44a9a123ea95
+  - type: executable_for
+    from: SYM-test-ci-required-checks-workflow-contract
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:40.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16c4e328bda9
