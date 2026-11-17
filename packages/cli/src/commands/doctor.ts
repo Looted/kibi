@@ -1073,7 +1073,11 @@ function checkBranchStore(): DoctorCheckResult {
     return {
       passed: false,
       message: `Store for ${branch} is ${store.state}: ${store.detail ?? store.errorCode ?? "requires recovery"}`,
-      remediation: "Run: kibi branch recover, then kibi branch recover --apply",
+      // A legacy literal-named store is migrated, not recovered.
+      remediation:
+        store.errorCode === "legacy_branch_store"
+          ? "Run: kibi migrate, then kibi migrate --apply-safe <planHash>"
+          : "Run: kibi branch recover, then kibi branch recover --apply",
       details,
     };
   }

@@ -44,10 +44,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-legacy-attachment-engine-refusal
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
   - id: SYM-kibi-migrate-plan-command
     title: migratePlanCommand
     sourceFile: packages/cli/src/commands/migrate.ts
@@ -832,12 +836,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-engine-single-writer-protocol
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
       - type: covered_by
         target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-kibi-engine-single-writer-protocol
   - id: SYM-cli-engine-client-query
     title: EngineClient.query
     sourceFile: packages/cli/src/engine.ts
@@ -968,8 +972,6 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-engine-single-writer-protocol
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
       - type: covered_by
@@ -980,6 +982,8 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-engine-daemon-package-versions
+      - type: implements
+        target: REQ-kibi-engine-single-writer-protocol
   - id: SYM-cli-engine-commands
     title: storageCompactCommand
     sourceFile: packages/cli/src/commands/engine.ts
@@ -44477,3 +44481,29 @@ symbols:
         target: TEST-kibi-env-workspace-file-key-policy
       - type: implements
         target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-branch-store-locator-unmigrated-legacy-store-refusal
+    title: unmigratedLegacyStoreRefusal
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:45:09.394Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-legacy-attachment-engine-refusal
+  - id: SYM-branch-resolver-legacy-attachment-refusal
+    title: legacyAttachmentRefusal
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:45:14.032Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-legacy-attachment-engine-refusal

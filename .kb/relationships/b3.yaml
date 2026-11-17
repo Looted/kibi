@@ -405,6 +405,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe0e27930f8e
+  - type: requires_property
+    from: REQ-kibi-proof-step-settings
+    to: FACT-proof-steps-ambiguous-default-source-refused
+    created_at: 2026-11-16T20:47:00.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe3e9d4786c6
   - type: implements
     from: SYM-knowledge-index-entity-reason
     to: REQ-agent-core-edit-snippet-why
