@@ -1,12 +1,12 @@
 ---
-title: 'The fallback store graph URI is urn:kibi:store: and a SHA-1 hex digest'
+title: 'The fallback store graph URI starts with urn:kibi:store: followed by the SHA-1 of the store directory'
 status: active
 fact_kind: property_value
 subject_key: kibi.core.store_graph_uri
-property_key: fallback_uri
-operator: matches
+property_key: fallback_uri_prefix
+operator: eq
 value_type: string
-value_string: urn:kibi:store:[0-9a-f]{40}
+value_string: 'urn:kibi:store:'
 claim_text: otherwise it uses `urn:kibi:store:<sha1 of the store directory>`
 text_ref: REQ-core-journal-file-name-fits
 tags:
