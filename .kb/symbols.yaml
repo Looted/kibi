@@ -26382,8 +26382,12 @@ symbols:
         target: TEST-agent-core-edit-snippets
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-closed-firm-requirement-guards
       - type: implements
         target: REQ-agent-core-edit-snippets
+      - type: implements
+        target: REQ-pre-edit-hooks-kibi-check-staged
   - id: SYM-bootstrap-find-restatement
     title: findRestatement
     status: active
@@ -46084,3 +46088,28 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-17T19:14:32.625Z
+  - id: SYM-test-closed-firm-requirement-guards
+    title: Snippets contract suite
+    status: active
+    sourceFile: packages/agent-core/tests/snippets-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T19:21:26.840Z
+    relationships:
+      - type: executable_for
+        target: TEST-closed-firm-requirement-guards
+  - id: SYM-firm-edit-gate-is-current-firm-requirement
+    symbol_role: behavioral
+    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
+    title: isCurrentFirmRequirement
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T19:19:18.360Z
+    relationships:
+      - type: covered_by
+        target: TEST-closed-firm-requirement-guards
+      - type: implements
+        target: REQ-pre-edit-hooks-kibi-check-staged

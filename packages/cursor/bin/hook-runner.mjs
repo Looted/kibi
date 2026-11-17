@@ -1367,7 +1367,7 @@ function formatList(items, limit) {
   const shown = items.slice(0, limit).join(", ");
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
-var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
+var RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
 function isRetiredStatus(status) {
   return RETIRED_STATUS.test(String(status));
 }

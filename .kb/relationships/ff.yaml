@@ -531,3 +531,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c156cf69eeb3
+  - type: implements
+    from: SYM-agent-core-snippets-isretiredstatus
+    to: REQ-pre-edit-hooks-kibi-check-staged
+    created_at: 2026-11-17T19:22:34.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90fd7525d882
+  - type: covered_by
+    from: SYM-agent-core-snippets-isretiredstatus
+    to: TEST-closed-firm-requirement-guards
+    created_at: 2026-11-17T19:22:34.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f284afb16ca2

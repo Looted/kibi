@@ -131,9 +131,15 @@ function formatList(items: readonly string[], limit: number): string {
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
 
-const RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
+const RETIRED_STATUS =
+  /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
 
-/** True for a status that marks an entity as no longer current policy. */
+/**
+ * True for a status that marks an entity as no longer current policy. The
+ * hooks and the commit gate share it, so they agree on which firm
+ * requirements still guard their code. `closed` is not retired: a closed
+ * requirement is done and still governs.
+ */
 export function isRetiredStatus(status: string | undefined): boolean {
   // `String(undefined)` is "undefined", which names no retired status.
   return RETIRED_STATUS.test(String(status));
