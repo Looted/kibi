@@ -619,3 +619,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8fb9d28f6089
+  - type: implements
+    from: SYM-agent-core-firm-edit-receipt-path
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:22:47.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-150d62f61c1a
+  - type: covered_by
+    from: SYM-agent-core-firm-edit-receipt-path
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:22:47.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2b61fd180ec

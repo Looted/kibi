@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -12,11 +13,17 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
+  FIRM_EDIT_REMOVED_CODE_HASH,
   firmEditCodeHash,
+  firmEditLegacyReceiptPath,
+  firmEditReceiptPath,
   firmEditStatementHash,
   parseFirmEditReceipt,
+  serializeFirmEditReceipt,
 } from "kibi-agent-core/firm-edit-review";
+import type { IndexedSymbol } from "kibi-agent-core/knowledge-index";
 import { KbRejection } from "../../../src/cli-errors.js";
+import type { ExtractionResult } from "../../../src/extractors/markdown.js";
 import * as maintenance from "../../../src/plugins/maintenance-source-analysis.js";
 import {
   type FirmEditReviewEntry,
@@ -106,8 +113,16 @@ const deps: ReviewFirmEditDeps = {
     calls.push(`${sourceFile}:${content.length}`);
     return SYMBOLS;
   },
+  readStaged: () => undefined,
+  indexedSymbols: () => [],
+  headKnowledge: () => [],
   now: () => new Date("2026-11-16T10:00:00.000Z"),
 };
+
+const receiptFile = (symbolName: string, requirementId = "REQ-key-expiry") =>
+  firmEditReceiptPath(requirementId, "src/keys.ts", symbolName) as string;
+const receiptName = (symbolName: string) =>
+  path.basename(receiptFile(symbolName));
 
 function context(root: string): OperationContext {
   return { workspaceRoot: root } as OperationContext;
@@ -127,9 +142,10 @@ function entry(extra: Partial<FirmEditReviewEntry> = {}): FirmEditReviewEntry {
 async function refusal(
   root: string,
   reviews: FirmEditReviewEntry[],
+  withDeps: ReviewFirmEditDeps = deps,
 ): Promise<string> {
   try {
-    await executeReviewFirmEdit({ reviews }, context(root), deps);
+    await executeReviewFirmEdit({ reviews }, context(root), withDeps);
   } catch (error) {
     expect(error).toBeInstanceOf(KbRejection);
     const rejection = error as KbRejection;
@@ -166,10 +182,8 @@ describe("executeReviewFirmEdit", () => {
       `src/keys.ts:${SOURCE.length}`,
       `src/keys.ts:${SOURCE.length}`,
     ]);
-    const expirePath =
-      ".kb/firm-edit-reviews/REQ-key-expiry/src__keys.ts--expireKey.json";
-    const renderPath =
-      ".kb/firm-edit-reviews/REQ-key-expiry/src__keys.ts--renderKey.json";
+    const expirePath = receiptFile("expireKey");
+    const renderPath = receiptFile("renderKey");
     const expire = {
       version: 1,
       requirementId: "REQ-key-expiry",
@@ -197,7 +211,7 @@ describe("executeReviewFirmEdit", () => {
       readdirSync(
         path.join(root, ".kb/firm-edit-reviews/REQ-key-expiry"),
       ).sort(),
-    ).toEqual(["src__keys.ts--expireKey.json", "src__keys.ts--renderKey.json"]);
+    ).toEqual([receiptName("expireKey"), receiptName("renderKey")].sort());
     expect(result.structuredContent).toEqual({
       dryRun: false,
       receipts: [
@@ -248,16 +262,224 @@ describe("executeReviewFirmEdit", () => {
       context(root),
       deps,
     );
-    const file = path.join(
-      root,
-      ".kb/firm-edit-reviews/REQ-key-expiry/src__keys.ts--expireKey.json",
-    );
+    const file = path.join(root, receiptFile("expireKey"));
     expect(parseFirmEditReceipt(readFileSync(file, "utf8"))?.note).toBe(
       "Rechecked.",
     );
-    expect(readdirSync(path.dirname(file))).toEqual([
-      "src__keys.ts--expireKey.json",
+    expect(readdirSync(path.dirname(file))).toEqual([receiptName("expireKey")]);
+  });
+
+  test("a review replaces the receipt an earlier release wrote for the pair", async () => {
+    const root = workspace();
+    const legacy = firmEditLegacyReceiptPath(
+      "REQ-key-expiry",
+      "src/keys.ts",
+      "expireKey",
+    ) as string;
+    const legacyRender = firmEditLegacyReceiptPath(
+      "REQ-key-expiry",
+      "src/keys.ts",
+      "renderKey",
+    ) as string;
+    const old = {
+      version: 1 as const,
+      requirementId: "REQ-key-expiry",
+      sourceFile: "src/keys.ts",
+      symbol: "expireKey",
+      verdict: "keeps" as const,
+      note: "old",
+      statementHash: "sha256:old",
+      codeHash: "sha256:old",
+      startLine: 1,
+      endLine: 3,
+      recordedAt: "2026-11-01T00:00:00.000Z",
+    };
+    write(root, legacy, serializeFirmEditReceipt(old));
+    // A legacy file holding another pair's receipt is left alone.
+    write(
+      root,
+      legacyRender,
+      serializeFirmEditReceipt({ ...old, sourceFile: "src/key_s.ts" }),
+    );
+    await executeReviewFirmEdit(
+      { reviews: [entry(), entry({ symbol: "renderKey" })] },
+      context(root),
+      deps,
+    );
+    expect(existsSync(path.join(root, legacy))).toBe(false);
+    expect(existsSync(path.join(root, legacyRender))).toBe(true);
+    expect(existsSync(path.join(root, receiptFile("expireKey")))).toBe(true);
+  });
+
+  test("a source path too long for one flat file name still gets a receipt", async () => {
+    const root = workspace();
+    const long = `src/${"a".repeat(120)}/${"b".repeat(140)}/keys.ts`;
+    write(root, long, SOURCE);
+    const result = await executeReviewFirmEdit(
+      { reviews: [entry({ sourceFile: long })] },
+      context(root),
+      deps,
+    );
+    const written = (
+      result.structuredContent as { receipts: { path: string }[] }
+    ).receipts[0]?.path as string;
+    expect(written).toBe(
+      firmEditReceiptPath("REQ-key-expiry", long, "expireKey") as string,
+    );
+    expect(existsSync(path.join(root, written))).toBe(true);
+  });
+
+  test("a coarse symbol is bound to its manifest coordinates, as the hooks index it", async () => {
+    const root = workspace();
+    const coarse = (extra: Partial<IndexedSymbol>): ReviewFirmEditDeps => ({
+      ...deps,
+      indexedSymbols: (_root, sourceFile) =>
+        sourceFile === "src/keys.ts"
+          ? [
+              {
+                id: "SYM-keys-module",
+                title: "keys module",
+                implements: ["REQ-key-expiry"],
+                coveredBy: [],
+                executableFor: [],
+                ...extra,
+              },
+            ]
+          : [],
+    });
+    const result = await executeReviewFirmEdit(
+      { reviews: [entry({ symbol: "keys module" })] },
+      context(root),
+      coarse({ line: 5, endLine: 7 }),
+    );
+    expect(
+      (result.structuredContent as { receipts: Record<string, unknown>[] })
+        .receipts[0],
+    ).toMatchObject({
+      symbol: "keys module",
+      codeHash: firmEditCodeHash(SOURCE, 5, 7),
+      startLine: 5,
+      endLine: 7,
+    });
+    expect(
+      await refusal(
+        root,
+        [entry({ symbol: "keys module" })],
+        coarse({ line: 5 }),
+      ),
+    ).toBe(
+      "keys module in src/keys.ts has no source coordinates to bind the review to; run kibi sync and record the review again.",
+    );
+    expect(
+      await refusal(
+        root,
+        [entry({ symbol: "keys module" })],
+        coarse({ line: 5, endLine: 99 }),
+      ),
+    ).toBe(
+      "keys module in src/keys.ts has no source coordinates to bind the review to; run kibi sync and record the review again.",
+    );
+    expect(
+      await refusal(
+        root,
+        [entry({ symbol: "other" })],
+        coarse({ line: 5, endLine: 7 }),
+      ),
+    ).toBe(
+      "other in src/keys.ts does not implement REQ-key-expiry. Symbols there that implement it: expireKey, renderKey, keys module.",
+    );
+  });
+
+  test("a symbol the workspace removed since HEAD is reviewed as removed", async () => {
+    const root = workspace();
+    const record = (
+      title: string,
+      sourceFile: string,
+      to = "REQ-key-expiry",
+    ): ExtractionResult =>
+      ({
+        entity: {
+          id: `SYM-${title}`,
+          type: "symbol",
+          title,
+          source: ".kb/symbols.yaml",
+        },
+        relationships: [{ type: "implements", from: `SYM-${title}`, to }],
+        sourceFile,
+      }) as ExtractionResult;
+    const removed: ReviewFirmEditDeps = {
+      ...deps,
+      headKnowledge: () => [
+        record("dropKey", "src/keys.ts"),
+        record("goneFile", "src/gone.ts"),
+        record("otherRule", "src/keys.ts", "REQ-other"),
+      ],
+    };
+    const result = await executeReviewFirmEdit(
+      {
+        reviews: [
+          entry({ symbol: "dropKey" }),
+          entry({ symbol: "goneFile", sourceFile: "src/gone.ts" }),
+        ],
+      },
+      context(root),
+      removed,
+    );
+    expect(
+      (
+        result.structuredContent as { receipts: Record<string, unknown>[] }
+      ).receipts.map((receipt) => [
+        receipt.symbol,
+        receipt.codeHash,
+        receipt.startLine,
+        receipt.endLine,
+      ]),
+    ).toEqual([
+      ["dropKey", FIRM_EDIT_REMOVED_CODE_HASH, 0, 0],
+      ["goneFile", FIRM_EDIT_REMOVED_CODE_HASH, 0, 0],
     ]);
+    // A record HEAD has for another requirement, or another file, is not it.
+    expect(
+      await refusal(root, [entry({ symbol: "otherRule" })], removed),
+    ).toContain("otherRule in src/keys.ts does not implement REQ-key-expiry.");
+    expect(
+      await refusal(
+        root,
+        [entry({ symbol: "dropKey", sourceFile: "src/gone.ts" })],
+        removed,
+      ),
+    ).toBe("src/gone.ts cannot be read.");
+  });
+
+  test("staged reviews read the code and the requirement from the index", async () => {
+    const root = workspace();
+    const staged = SOURCE.replace("90", "91");
+    const read: string[] = [];
+    const fromIndex: ReviewFirmEditDeps = {
+      ...deps,
+      readStaged: (_root, file) => {
+        read.push(file);
+        return file === "src/keys.ts"
+          ? staged
+          : requirement("REQ-key-expiry").replace(
+              `semantic_text: ${STATEMENT}`,
+              "semantic_text: Keys expire in the index.",
+            );
+      },
+    };
+    const result = await executeReviewFirmEdit(
+      { staged: true, reviews: [entry()] },
+      context(root),
+      fromIndex,
+    );
+    expect(read).toEqual(["src/keys.ts", ".kb/requirements/REQ-key-expiry.md"]);
+    expect(
+      (result.structuredContent as { receipts: Record<string, unknown>[] })
+        .receipts[0],
+    ).toMatchObject({
+      codeHash: firmEditCodeHash(staged, 1, 3),
+      statementHash: firmEditStatementHash("Keys expire in the index."),
+    });
   });
 
   test("a dry run previews the receipts and writes nothing", async () => {
@@ -339,7 +561,7 @@ describe("executeReviewFirmEdit", () => {
       "The review of renderKey for REQ-key-expiry needs a note saying why the change keeps or changes the rule.",
     );
     expect(await refusal(root, [entry(), entry({ verdict: "changes" })])).toBe(
-      "Two reviews name the same requirement and symbol (.kb/firm-edit-reviews/REQ-key-expiry/src__keys.ts--expireKey.json).",
+      `Two reviews name the same requirement and symbol (${receiptFile("expireKey")}).`,
     );
     expect(existsSync(path.join(root, ".kb/firm-edit-reviews"))).toBe(false);
   });
@@ -422,5 +644,58 @@ describe("executeReviewFirmEdit", () => {
       (result.structuredContent as { receipts: { symbol: string }[] })
         .receipts[0]?.symbol,
     ).toBe("expireKey");
+  });
+
+  test("the default deps read the index, the Git index and HEAD", async () => {
+    const root = workspace();
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: root, stdio: "ignore" });
+    expect(
+      REVIEW_FIRM_EDIT_DEPS.readStaged(root, "src/keys.ts"),
+    ).toBeUndefined();
+    expect(REVIEW_FIRM_EDIT_DEPS.headKnowledge(root)).toEqual([]);
+    git("init", "-q");
+    write(
+      root,
+      ".kb/symbols.yaml",
+      [
+        "symbols:",
+        "  - id: SYM-keys-module",
+        "    title: keys module",
+        "    sourceFile: src/keys.ts",
+        "    sourceLine: 5",
+        "    sourceEndLine: 7",
+        "    relationships:",
+        "      - type: implements",
+        "        target: REQ-key-expiry",
+        "",
+      ].join("\n"),
+    );
+    git("add", "src/keys.ts", ".kb");
+    expect(REVIEW_FIRM_EDIT_DEPS.readStaged(root, "src/keys.ts")).toBe(SOURCE);
+    expect(
+      REVIEW_FIRM_EDIT_DEPS.indexedSymbols(root, "src/keys.ts").map(
+        (indexed) => [indexed.title, indexed.line, indexed.endLine],
+      ),
+    ).toEqual([["keys module", 5, 7]]);
+    expect(REVIEW_FIRM_EDIT_DEPS.indexedSymbols(root, "src/none.ts")).toEqual(
+      [],
+    );
+    git(
+      "-c",
+      "user.name=t",
+      "-c",
+      "user.email=t@t",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "-qm",
+      "base",
+    );
+    expect(
+      REVIEW_FIRM_EDIT_DEPS.headKnowledge(root)
+        .filter((result) => result.entity.type === "symbol")
+        .map((result) => result.entity.id),
+    ).toEqual(["SYM-keys-module"]);
   });
 });

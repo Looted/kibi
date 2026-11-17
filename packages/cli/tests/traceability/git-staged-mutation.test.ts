@@ -8,6 +8,7 @@ import {
   type StagedPath,
   getStagedFiles,
   getStagedInventory,
+  parseDeletionPoints,
   parseHunksFromDiff,
   parseNameStatusNull,
   supportedStagedFiles,
@@ -100,6 +101,23 @@ describe("parseNameStatusNull", () => {
       { status: "M", parts: ["a"] },
     ]);
     expect(parseNameStatusNull("R100\0")).toStrictEqual([]);
+  });
+});
+
+describe("parseDeletionPoints", () => {
+  test("names the new-file line after each hunk that only removes lines", () => {
+    expect(
+      parseDeletionPoints(
+        [
+          "@@ -3,2 +2,0 @@ f()",
+          "@@ -1 +0,0 @@",
+          "@@ -9 +8,2 @@",
+          "@@ -12,0 +14 @@",
+          " @@ -20 +19,0 @@ indented is not a header",
+        ].join("\n"),
+      ),
+    ).toStrictEqual([2, 0]);
+    expect(parseDeletionPoints("")).toStrictEqual([]);
   });
 });
 
