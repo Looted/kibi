@@ -61,7 +61,7 @@ function hasGitBoundary(directory) {
 }
 
 /**
- * Mirror of packages/codex/src/workspace-optin.ts. A workspace is opted in
+ * Mirror of packages/agent-core/src/workspace-optin.ts. A workspace is opted in
  * only when its Kibi project root owns `.kb/manifest.json`; the walk stops at
  * the `.git` boundary so unrelated enclosing repositories never leak opt-in.
  */

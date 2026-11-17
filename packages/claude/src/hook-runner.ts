@@ -3,14 +3,14 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import {
   commandEditPaths,
   commandFilePaths,
   filesChangedSince,
   isSearchCommand,
 } from "./bash-command.js";
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
-import type { HookInput } from "./hook-input.js";
+import { type HookInput, parseHookInput } from "./hook-input.js";
 
 import {
   hasKibiPreCommitGate,
@@ -35,6 +35,7 @@ import {
 
 export { CONFIRM_FIRM_EDITS_ENV };
 import { skillLoadTrace } from "kibi-agent-core/hook-usage-log";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   type KbUsage,
   extractCliKbUsage,
@@ -89,7 +90,6 @@ import {
   flushHookTelemetry,
   hookTelemetryEnabled,
 } from "./usage-log.js";
-import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ContextEvent =
   | "SessionStart"
