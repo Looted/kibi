@@ -735,3 +735,25 @@ jobs:
           --oracle-swipl /usr/bin/swipl
           --require-oracle
           --cases 200000
+
+  # The one CI check a ruleset requires. It needs every other job, runs even
+  # when one fails or is skipped, and passes only when all of them succeeded,
+  # so renaming or splitting a job never leaves the ruleset requiring a check
+  # that no longer reports.
+  ci-required:
+    name: ci-required
+    if: ${{ always() && github.actor != 'nektos/act' }}
+    needs: [ci-typecheck-build, swipl-bundle, ci-unit-coverage, ci-unit-coverage-merge, ci-integration, ci-package-contract, packed-e2e-cli-regression, packed-e2e-mcp-regression, packed-e2e-tarball-verify, packed-e2e-branch-workflow, packed-e2e-windows-system-swipl, prolog-unit-coverage, lean-intervals-proof]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every CI job to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          failed="$(jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"' <<<"$RESULTS")"
+          if [ -n "$failed" ]; then
+            echo "::error::These CI jobs did not succeed:"
+            echo "$failed"
+            exit 1
+          fi

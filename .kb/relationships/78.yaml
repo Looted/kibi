@@ -314,3 +314,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f926701ee6c3
+  - type: constrains
+    from: REQ-ci-proof-search-gates-before-prove
+    to: FACT-SUBJECT-kibi-ci-proof-workflow
+    created_at: 2026-11-17T10:51:24.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-828562b6d94e
+  - type: requires_property
+    from: REQ-ci-proof-search-gates-before-prove
+    to: FACT-ci-proof-search-gates-before-prove
+    created_at: 2026-11-17T10:51:24.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26edd3679d10
+  - type: specified_by
+    from: REQ-ci-proof-search-gates-before-prove
+    to: SCEN-ci-proof-search-gates-before-prove
+    created_at: 2026-11-17T10:51:24.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17238a3267a2
+  - type: specified_by
+    from: REQ-ci-proof-search-gates-before-prove
+    to: SCEN-NEG-ci-proof-search-gates-before-prove-VIOLATED
+    created_at: 2026-11-17T10:51:24.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1b63941b9b4

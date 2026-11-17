@@ -583,6 +583,84 @@ describe("ci-proof-reuse decide", () => {
   });
 });
 
+describe("ci-proof-reuse decide before waiting", () => {
+  function snapshotByTree(): void {
+    // A tree's snapshot here is whether it holds b.txt, the file the PR adds.
+    snapshotSpy.mockImplementation(
+      async (root: string) =>
+        ({
+          version: SNAPSHOT_VERSION,
+          hash: (existsSync(path.join(root, "b.txt")) ? "e" : "f").repeat(64),
+          dirty: false,
+        }) as never,
+    );
+  }
+
+  test("runs full proof at once when the merge changes snapshot files", async () => {
+    const repo = makeRepo();
+    process.chdir(repo.root);
+    snapshotByTree();
+    const fixture = makeFixture(repo.base);
+    const decision = await decide(repo, fixture, {
+      PR_BASE_REF: "develop",
+      PR_HEAD_BRANCH: "feature",
+    });
+    expect(decision).toStrictEqual({
+      version: "kibi.ci-proof-decision.v1",
+      mode: "execute",
+      reason:
+        "the merge changes files the proven snapshot covers; no develop proof can match",
+      mergeSnapshot: "e".repeat(64),
+    });
+    // No GitHub lookup ran: nothing waited on develop's proof.
+    expect(existsSync(path.join(fixture.dir, "runs-wait.count"))).toBe(false);
+    expect(git(repo.root, "worktree", "list").split("\n")).toHaveLength(1);
+  });
+
+  test("still waits when the committed trees hash the same", async () => {
+    const repo = makeRepo();
+    process.chdir(repo.root);
+    snapshotByTree();
+    const fixture = makeFixture(repo.head);
+    writeJson(
+      fixture.dir,
+      "attestation",
+      attestationFor(repo.head, "e".repeat(64)),
+    );
+    // A master PR from develop: develop's head and the merge hold the same files.
+    const decision = await decide(repo, fixture);
+    expect(decision.mode).toBe("reused");
+    expect(existsSync(path.join(fixture.dir, "runs-wait.count"))).toBe(true);
+  });
+
+  test("fetches the proven commit into a shallow checkout", async () => {
+    const repo = makeRepo();
+    const shallow = temp("kibi-proof-main-shallow-");
+    execFileSync("git", [
+      "clone",
+      "-q",
+      "--depth=1",
+      "--branch=master",
+      `file://${repo.root}`,
+      shallow,
+    ]);
+    process.chdir(shallow);
+    snapshotByTree();
+    expect(() =>
+      git(shallow, "cat-file", "-e", `${repo.base}^{commit}`),
+    ).toThrow();
+    const fixture = makeFixture(repo.base);
+    const decision = await decide(repo, fixture, {
+      PR_BASE_REF: "develop",
+      PR_HEAD_BRANCH: "feature",
+    });
+    expect(decision.reason).toBe(
+      "the merge changes files the proven snapshot covers; no develop proof can match",
+    );
+    git(shallow, "cat-file", "-e", `${repo.base}^{commit}`);
+  });
+});
+
 describe("ci-proof-reuse provenance details", () => {
   const head = "a".repeat(40);
   const base = "b".repeat(40);

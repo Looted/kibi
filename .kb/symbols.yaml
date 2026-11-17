@@ -45477,3 +45477,100 @@ symbols:
         target: TEST-kibi-staged-firm-edit-gate
       - type: implements
         target: REQ-kibi-staged-firm-edit-gate
+  - id: SYM-ci-proof-reuse-tree-precheck
+    title: provenTreeCanMatch
+    status: active
+    sourceFile: scripts/ci-proof-reuse.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T10:51:33.360Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-proof-reuse-decide-before-wait
+      - type: implements
+        target: REQ-ci-proof-reuse-no-wait-on-changed-tree
+  - id: SYM-test-ci-proof-reuse-decide-before-wait
+    title: Proof reuse decide-before-wait suite
+    status: active
+    sourceFile: scripts/tests/ci-proof-reuse-main.coverage.test.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T10:51:36.192Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-proof-reuse-decide-before-wait
+  - id: SYM-test-ci-required-checks-workflow-contract
+    title: Required checks workflow contract suite
+    status: active
+    sourceFile: scripts/tests/required-checks-workflow-contract.test.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T10:51:39.487Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-required-checks-workflow-contract
+  - id: SYM-ci-proof-search-gate-steps
+    title: kb_search gold-set gate steps (.github/workflows/proof.yml)
+    status: active
+    sourceFile: .github/workflows/proof.yml
+    symbol_role: config
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T10:51:42.489Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-ci-required-checks-workflow-contract
+      - type: implements
+        target: REQ-ci-proof-search-gates-before-prove
+  - id: SYM-ci-required-job
+    title: ci-required job (.github/workflows/ci.yml)
+    status: active
+    sourceFile: .github/workflows/ci.yml
+    symbol_role: config
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T10:51:44.552Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-ci-required-checks-workflow-contract
+      - type: implements
+        target: REQ-ci-required-check-aggregate
+  - id: SYM-proof-required-job
+    title: proof-required job (.github/workflows/proof.yml)
+    status: active
+    sourceFile: .github/workflows/proof.yml
+    symbol_role: config
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T10:51:46.516Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-ci-required-checks-workflow-contract
+      - type: implements
+        target: REQ-ci-required-check-aggregate

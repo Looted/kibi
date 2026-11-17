@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92a3ba8fbfa3
+  - type: implements
+    from: SYM-ci-proof-reuse-tree-precheck
+    to: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    created_at: 2026-11-17T10:51:34.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30d88430b7c4
+  - type: covered_by
+    from: SYM-ci-proof-reuse-tree-precheck
+    to: TEST-ci-proof-reuse-decide-before-wait
+    created_at: 2026-11-17T10:51:34.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a38975eafbf5

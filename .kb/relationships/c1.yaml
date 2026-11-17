@@ -279,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b130e6296e77
+  - type: assumes
+    from: SCEN-ci-required-check-aggregate
+    to: FACT-ci-required-check-aggregate
+    created_at: 2026-11-17T10:51:18.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d670c63d4840
+  - type: verified_by
+    from: SCEN-ci-required-check-aggregate
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:18.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ce44c041df
