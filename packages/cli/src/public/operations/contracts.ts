@@ -495,6 +495,7 @@ const BASE_DATA_SCHEMAS: Readonly<
     schemaStatus: recordValue,
     migrationPlan: recordValue,
     bootstrap: recordValue,
+    sessionBrief: stringValue,
   }),
   kb_find_gaps: objectData({
     rows: recordArray,
@@ -657,6 +658,8 @@ const BASE_DATA_SCHEMAS: Readonly<
     stagedFacts: stringArray,
     whatIf: recordValue,
     inventoryApplied: recordArray,
+    siblings: recordArray,
+    nextActions: recordArray,
   }),
   kb_upsert: {
     description:
@@ -678,15 +681,16 @@ const BASE_DATA_SCHEMAS: Readonly<
         nextActions: recordArray,
         sourceWrites: recordArray,
         contradictionCheck: recordValue,
+        siblings: recordArray,
         inventoryApplied: {
           ...recordArray,
           description:
-            "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text.",
+            "Each claim recorded for a requirement sent without its inventory contract.",
         },
         implementedBy: {
           ...recordArray,
           description:
-            "Each implementedBy entry with the symbolId that implements the requirement and whether it was created.",
+            "Each implementedBy entry's symbolId and whether it was created.",
         },
       }),
       objectData(
@@ -702,6 +706,8 @@ const BASE_DATA_SCHEMAS: Readonly<
           whatIf: recordValue,
           inventoryApplied: recordArray,
           implementedBy: recordArray,
+          siblings: recordArray,
+          nextActions: recordArray,
           dryRun: { const: true },
           skippedEffects: stringArray,
         },
@@ -766,6 +772,7 @@ const BASE_DATA_SCHEMAS: Readonly<
           ...objectData(
             {
               total: integerValue,
+              fileCount: integerValue,
               files: {
                 type: "array",
                 items: objectData(
@@ -774,10 +781,10 @@ const BASE_DATA_SCHEMAS: Readonly<
                 ),
               },
             },
-            ["total", "files"],
+            ["total", "fileCount"],
           ),
           description:
-            "Unscoped checks only. Declarations without a symbol record in source files that have at least one record. Non-blocking: the staged gate judges them only when a commit adds or changes them.",
+            "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them.",
         },
       }),
       jobReceiptData,

@@ -1,0 +1,25 @@
+{
+  "test_id": "TEST-cli-help-command-summaries",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/cli-operation-metadata.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/cli-register-json-mutation.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/cli-register-foundation.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/cli-register-reporting.test.ts"
+    ]
+  ]
+}

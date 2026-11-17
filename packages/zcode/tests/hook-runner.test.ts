@@ -1538,7 +1538,7 @@ function linkedWorkspace(requirementStatus = "open") {
   writeFile(
     fixture.cwd,
     ".kb/requirements/REQ-checkout-rounding.md",
-    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_predicate\n    target: FACT-total-rounding-cents\n  - type: relates_to\n    target: ADR-money-as-decimal\n---\n`,
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_predicate\n    target: FACT-total-rounding-cents\n  - type: relates_to\n    target: ADR-money-as-decimal\nrationale: Finance reconciles every order to the cent.\n---\n`,
   );
   writeFile(
     fixture.cwd,
@@ -1590,6 +1590,9 @@ describe("ZCode pre-edit knowledge", () => {
     );
     expect(context).toContain(
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
+    );
+    expect(context).toContain(
+      "\nWhy: Finance reconciles every order to the cent (rationale).\n",
     );
     expect(context).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
@@ -1834,6 +1837,30 @@ describe("ZCode decision guard", () => {
     await event(write);
     const again = expectReminder(await event({ hook_event_name: "Stop" }));
     expect(again).not.toContain("recorded nothing in the knowledge base");
+  });
+
+  test("a new session without an id is not silenced by an earlier one's markers", async () => {
+    const { event, fixture } = session();
+    const anonymous = (payload: Record<string, unknown>) => event(payload, "");
+    const write = {
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+    };
+    await anonymous({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    await anonymous(write);
+    expect(
+      expectReminder(await anonymous({ hook_event_name: "Stop" })),
+    ).toStartWith(captureReminder("must not"));
+    // A new session starts clean: no stale rule phrase, and it is asked.
+    await anonymous({ hook_event_name: "SessionStart" });
+    await anonymous(write);
+    expect(
+      expectReminder(await anonymous({ hook_event_name: "Stop" })),
+    ).toStartWith(captureReminder(undefined));
   });
 
   test("a rule session gets the capture template after its first source edit, and Stop quotes the rule phrase", async () => {

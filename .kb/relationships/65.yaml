@@ -216,3 +216,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f868adb96d4e
+  - type: assumes
+    from: SCEN-mcp-structured-text-codex
+    to: FACT-codex-discovery-text-alone
+    created_at: 2026-11-16T17:22:06.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b850d58d6e62
+  - type: assumes
+    from: SCEN-mcp-structured-text-codex
+    to: FACT-cursor-gemini-discovery-data-copy
+    created_at: 2026-11-16T17:22:06.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c791cebd126
+  - type: assumes
+    from: SCEN-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
+    to: FACT-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
+    created_at: 2026-11-16T16:10:33.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63bd6b35bb7b
+  - type: verified_by
+    from: SCEN-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:33.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23a629e51d38

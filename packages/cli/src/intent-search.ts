@@ -66,7 +66,11 @@ export type IntentSearchEvidence = Readonly<{
   normalizedScore: number;
   matchedFacets: readonly string[];
   sourceMatches: readonly IntentSourceMatch[];
-  graphPaths: readonly IntentGraphPath[];
+  /**
+   * Traceability paths that reached the entity. kb_search returns them only
+   * with `fields: "full"`.
+   */
+  graphPaths?: readonly IntentGraphPath[];
   abstentionEligible: boolean;
 }>;
 

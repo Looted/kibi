@@ -641,6 +641,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d9c856f3242a
   - type: implements
+    from: SYM-cli-register-reporting-commands
+    to: REQ-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:22.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57a995f01056
+  - type: covered_by
+    from: SYM-cli-register-reporting-commands
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:22.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a59ada73c446
+  - type: implements
     from: SYM-kb-merge-action-candidates
     to: REQ-kb-merge-action-skip-forks
     created_at: 2026-11-16T18:22:42.805Z
@@ -654,3 +668,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a016d9a35050
+  - type: constrains
+    from: REQ-session-brief-on-every-surface
+    to: FACT-SUBJECT-kibi-session-brief
+    created_at: 2026-11-16T16:35:10.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e8f790cb8be
+  - type: requires_property
+    from: REQ-session-brief-on-every-surface
+    to: FACT-session-brief-host-adapters-open-with-brief
+    created_at: 2026-11-16T16:35:10.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9231c2a02e2b
+  - type: requires_property
+    from: REQ-session-brief-on-every-surface
+    to: FACT-session-brief-mcp-surfaces-carry-brief
+    created_at: 2026-11-16T16:35:10.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42fe5adcf8b8
+  - type: specified_by
+    from: REQ-session-brief-on-every-surface
+    to: SCEN-session-brief-on-every-surface
+    created_at: 2026-11-16T16:35:10.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01f7e1ca802e
+  - type: specified_by
+    from: REQ-session-brief-on-every-surface
+    to: SCEN-NEG-session-brief-on-every-surface-OWN-TEXT
+    created_at: 2026-11-16T16:35:10.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3991cd976eda
+  - type: implements
+    from: SYM-search-answer-search-answer-options
+    to: REQ-search-compact-evidence
+    created_at: 2026-11-16T15:56:28.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bad2f610989
+  - type: covered_by
+    from: SYM-search-answer-search-answer-options
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T16:00:00.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-242dee0e6085

@@ -16,6 +16,8 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import path from "node:path";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { advertisedInputSchema, getSpec } from "kibi-runtime";
 import type { OperationName } from "kibi-runtime";
@@ -59,6 +61,113 @@ const MCP_TOOL_ORDER = [
   "kb_apply_plan",
   "kb_ingest_proof",
 ] as const satisfies readonly OperationName[];
+
+/**
+ * The tools a session lists unless the `full` profile is chosen: the ones an
+ * agent uses on every change. Every other operation stays on the CLI peer
+ * route (`kibi <route> --input -`) and in the `full` profile.
+ */
+export const DEFAULT_PROFILE_TOOLS = [
+  "kb_search",
+  "kb_query",
+  "kb_upsert",
+  "kb_check",
+  "kb_status",
+  "kb_skills",
+] as const satisfies readonly OperationName[];
+
+/** Listed in the default profile too while the knowledge base is empty. */
+export const BOOTSTRAP_TOOLS = [
+  "kb_plan_bootstrap",
+  "kb_apply_plan",
+] as const satisfies readonly OperationName[];
+
+export const TOOL_PROFILES = ["default", "full"] as const;
+export type ToolProfile = (typeof TOOL_PROFILES)[number];
+
+const TOOL_PROFILE_ENV = "KIBI_MCP_TOOLS";
+
+function isToolProfile(value: unknown): value is ToolProfile {
+  return (TOOL_PROFILES as readonly unknown[]).includes(value);
+}
+
+/**
+ * The JSON value in a file as an object to read fields from: a missing or
+ * malformed file, or a value that is not an object, has no fields.
+ */
+function readJsonFields(file: string): Record<string, unknown> {
+  try {
+    return Object(JSON.parse(readFileSync(file).toString()));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * The profile a project records next to its other Kibi setup choices:
+ * `kibi.mcpTools` in the root package.json, else `mcpTools` in
+ * `.kb/setup.json`.
+ */
+function recordedToolProfile(workspaceRoot: string): ToolProfile | undefined {
+  const fromPackage = Object(
+    readJsonFields(path.join(workspaceRoot, "package.json")).kibi,
+  ).mcpTools;
+  if (isToolProfile(fromPackage)) return fromPackage;
+  const fromSetup = readJsonFields(
+    path.join(workspaceRoot, ".kb", "setup.json"),
+  ).mcpTools;
+  return isToolProfile(fromSetup) ? fromSetup : undefined;
+}
+
+/**
+ * The tool profile for this server: `KIBI_MCP_TOOLS` (which `kibi-mcp
+ * --tools <profile>` sets) when it names one, else the project's recorded
+ * choice, else `default`.
+ */
+export function resolveToolProfile(
+  workspaceRoot: string,
+  env: NodeJS.ProcessEnv = process.env,
+): ToolProfile {
+  const requested = env[TOOL_PROFILE_ENV]?.trim().toLowerCase();
+  if (isToolProfile(requested)) return requested;
+  return recordedToolProfile(workspaceRoot) ?? "default";
+}
+
+/** Whether the workspace's `.kb/` holds no entity yet (or does not exist). */
+export function knowledgeBaseIsEmpty(workspaceRoot: string): boolean {
+  const lanes = [
+    "requirements",
+    "scenarios",
+    "tests",
+    "facts",
+    "adr",
+    "flags",
+    "events",
+  ];
+  return !lanes.some((lane) => {
+    const dir = path.join(workspaceRoot, ".kb", lane);
+    return (
+      statSync(dir, { throwIfNoEntry: false })?.isDirectory() === true &&
+      readdirSync(dir).some((file) => file.endsWith(".md"))
+    );
+  });
+}
+
+/**
+ * The catalog tools a session lists: every one in the `full` profile; the
+ * default six otherwise, plus the bootstrap tools while the knowledge base
+ * is empty.
+ */
+export function profileToolNames(
+  profile: ToolProfile,
+  kbEmpty: boolean,
+): ReadonlySet<string> | undefined {
+  if (profile === "full") return undefined;
+  return new Set<string>([
+    ...DEFAULT_PROFILE_TOOLS,
+    ...(kbEmpty ? BOOTSTRAP_TOOLS : []),
+  ]);
+}
 
 /** Tools registered only when named in KIBI_MCP_OPTIONAL_TOOLS. */
 export const OPTIONAL_TOOL_NAMES = [

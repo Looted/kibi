@@ -53,6 +53,7 @@ import {
   withPlanRecoveryNotes,
 } from "./plan-apply-journal.js";
 import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
+import { quantityWarnings } from "./quantity-warnings.js";
 import { reasonNotes } from "./reason-note.js";
 import {
   existingRelationships,
@@ -62,12 +63,14 @@ import {
   validateSupersedesSourceHistory,
 } from "./relationships.js";
 import {
+  CONTRACT_FIELDS,
   type ServerInventoryEntry,
   assertStoredRequirementBoundary,
   withServerSemanticInventory,
   withStoredRequirementSemantics,
 } from "./requirement-semantics.js";
 import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
+import { siblingRequirements } from "./sibling-requirements.js";
 import {
   readFileTimes,
   restoreFileTimes,
@@ -99,7 +102,10 @@ import {
   authoredEntityLookup,
   readUncompiledAuthoredSource,
 } from "./uncompiled-source.js";
-import { validateUpsertInput } from "./validation.js";
+import {
+  isPartialSemanticInventory,
+  validateUpsertInput,
+} from "./validation.js";
 import {
   scenarioCoverageWarnings,
   symbolCoverageWarnings,
@@ -424,6 +430,36 @@ export type UpsertValidation = Readonly<{
 }>;
 
 /**
+ * Whether a requirement write sends semantic_inventory entries in the
+ * partial shape ({claim_key, status, subjects}) and none of the contract
+ * fields, so Kibi derives the rest of the inventory from the prose.
+ */
+function sendsPartialInventory(payload: UpsertInput): boolean {
+  if (payload.type !== "req") return false;
+  const properties = payload.properties ?? {};
+  return (
+    !CONTRACT_FIELDS.some((field) => properties[field] !== undefined) &&
+    isPartialSemanticInventory(properties.semantic_inventory)
+  );
+}
+
+/**
+ * Schema validation of a write as sent. Partial inventory entries are not
+ * yet entity fields: the rest of the write is validated, and the entity is
+ * validated whole once Kibi has filled the inventory in.
+ */
+function validateSent(
+  input: UpsertInput,
+  now: Date,
+  partialInventory: boolean,
+): ValidatedUpsert {
+  if (!partialInventory) return validateUpsertInput(input, now);
+  const { semantic_inventory: _entries, ...properties } =
+    input.properties ?? {};
+  return validateUpsertInput({ ...input, properties }, now);
+}
+
+/**
  * The complete validation an upsert passes before its first write: schema,
  * append-only proof receipts, relationship sources, symbol granularity,
  * strict-lane pairing, live relationship targets, supersedes direction,
@@ -440,7 +476,8 @@ export async function validateUpsertForCommit(
   const prolog = requireProlog(context);
   const staged = options.staged;
   // The payload must be valid on its own before the store is read.
-  const checked = validateUpsertInput(payload, context.clock());
+  const partialInventory = sendsPartialInventory(payload);
+  const checked = validateSent(payload, context.clock(), partialInventory);
   validateRelationshipSources(payload.id, checked.relationships);
   // Symbol granularity of a payload that names its source file reads only the
   // payload and that file, so it runs before the store is read.
@@ -485,7 +522,9 @@ export async function validateUpsertForCommit(
       ? await withStoredOmittedProperties(withSemantics, lookup, staged)
       : withSemantics;
   let validated =
-    input === payload ? checked : validateUpsertInput(input, context.clock());
+    input === payload
+      ? checked
+      : validateSent(input, context.clock(), partialInventory);
   if (uncompiledSource !== null)
     lookup = {
       ...lookup,
@@ -506,7 +545,7 @@ export async function validateUpsertForCommit(
         ...input,
         properties: { ...input.properties, ...kept },
       };
-      validated = validateUpsertInput(input, context.clock());
+      validated = validateSent(input, context.clock(), partialInventory);
     }
   }
   const relationships = await effectiveRelationships(
@@ -582,6 +621,9 @@ export async function validateUpsertForCommit(
     semantic = await boundary(input);
     inventoryApplied = server.applied;
   }
+  // Partial entries Kibi did not complete are judged as the entity they are.
+  if (partialInventory && inventoryApplied === undefined)
+    validated = validateUpsertInput(input, context.clock());
   await assertLogicalGroundingClaimKeys(
     prolog,
     { ...input, relationships },
@@ -829,6 +871,18 @@ export async function executeUpsert(
     relationshipCount = validated.relationships.length;
     semanticAdvisor = semantic.receipt;
     const sourceScope = await sourceWriteScope(input, context);
+    // Which requires_property links a requirement write adds is known only
+    // before the write, so its quantity warnings are read now.
+    const requirementQuantityWarnings =
+      input.type === "req"
+        ? quantityWarnings({
+            type: input.type,
+            id: input.id,
+            entity: validated.entity,
+            relationships: validated.relationships,
+            workspaceRoot: context.workspaceRoot,
+          })
+        : [];
     if (sourceScope !== null) {
       priorEntity = sourceScope.existing;
       priorEntityRead = true;
@@ -1126,11 +1180,19 @@ export async function executeUpsert(
             workspaceRoot: context.workspaceRoot,
           })
         : [];
+    const siblings = siblingRequirements({
+      type: input.type,
+      id: input.id,
+      entity: writtenEntity,
+      before: created === 1 ? null : (priorEntity ?? writtenEntity),
+      workspaceRoot: context.workspaceRoot,
+    });
     const payload: UpsertPayload = {
       created,
       updated: changeKind === "updated" ? 1 : 0,
       relationships_created: validated.relationships.length,
       warnings: [
+        ...siblings.warnings,
         ...planRecoveryWarnings,
         ...(uncompiledSource !== undefined
           ? [
@@ -1152,6 +1214,16 @@ export async function executeUpsert(
           sourceWrite?.receipt.path,
         ),
         ...subjectWarnings,
+        ...(input.type === "req"
+          ? requirementQuantityWarnings
+          : quantityWarnings({
+              type: input.type,
+              id: input.id,
+              entity: writtenEntity,
+              before: priorEntity ?? writtenEntity,
+              relationships: validated.relationships,
+              workspaceRoot: context.workspaceRoot,
+            })),
         ...requirementReasonNotes,
         ...shardWarnings,
         ...coordinateWarnings,
@@ -1159,6 +1231,9 @@ export async function executeUpsert(
       ...advisorReceipt(semantic.receipt),
       ...(inventoryApplied !== undefined ? { inventoryApplied } : {}),
       ...storedClaimKey(commitEntity ?? validated.entity),
+      ...(siblings.siblings.length > 0
+        ? { siblings: siblings.siblings, nextActions: siblings.nextActions }
+        : {}),
       ...(shardWarnings.length > 0
         ? {
             status: "committed_with_repairs" as const,
@@ -1168,6 +1243,7 @@ export async function executeUpsert(
               detail,
             })),
             nextActions: [
+              ...siblings.nextActions,
               {
                 operation: "kb_check",
                 reason:

@@ -455,18 +455,3 @@ export function writeSyncCache(
     "utf8",
   );
 }
-
-export function copySyncCache(
-  livePath: string,
-  stagingPath: string,
-  deps?: Partial<SyncCacheDeps>,
-): void {
-  const resolved = resolveDeps(deps);
-  const liveCachePath = path.join(livePath, "sync-cache.json");
-  const stagingCachePath = path.join(stagingPath, "sync-cache.json");
-
-  if (resolved.existsSync(liveCachePath)) {
-    const cacheContent = resolved.readFileSync(liveCachePath, "utf8");
-    resolved.writeFileSync(stagingCachePath, cacheContent, "utf8");
-  }
-}

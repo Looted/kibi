@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-98d6cc59936f
+  - type: implements
+    from: SYM-cli-register-foundation-commands
+    to: REQ-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:06.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aebf9a756382
+  - type: covered_by
+    from: SYM-cli-register-foundation-commands
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:06.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4280c613822

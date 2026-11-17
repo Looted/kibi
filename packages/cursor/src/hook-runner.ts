@@ -23,6 +23,7 @@ import {
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  startDecisionSession,
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
 import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
@@ -38,6 +39,7 @@ import {
 } from "kibi-agent-core/hook-usage-log";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { classifyPath } from "kibi-agent-core/path-policy";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
   type LineRange,
   createEntitySummarizer,
@@ -315,6 +317,7 @@ export async function runHook(
     switch (input.event) {
       case "sessionStart":
         trace.action = "session_start";
+        startDecisionSession(session, "startup");
         if (!kibiReady) {
           const advisory = interfaceAdvisory(
             initialState.mcpState,
@@ -331,10 +334,12 @@ export async function runHook(
             initialState.mcpState,
             workspaceTrusted,
           );
-          const context = [advisory, missingHooksNote(cwd)]
-            .filter((line): line is string => Boolean(line))
-            .join("\n");
-          return context ? { additional_context: context } : emptyResult();
+          return {
+            additional_context: sessionBriefWith([
+              advisory ?? "",
+              missingHooksNote(cwd) ?? "",
+            ]),
+          };
         }
 
       case "preToolUse": {
@@ -382,9 +387,12 @@ export async function runHook(
           input.toolInput,
         );
         const ruleNote = takeRuleNote(session);
-        // Cursor's post-edit hook cannot add context either: the capture
-        // template waits for the pre-edit message after the first source edit.
-        const captureTemplate = claimRuleCaptureTemplate(session);
+        // The capture template rides on the first source pre-edit of a rule
+        // session, so a session with one edit gets it too.
+        const captureTemplate = claimRuleCaptureTemplate(
+          session,
+          isSourceImpactRelevantPath(relativePath),
+        );
         const notice = firmNotice(
           cwd,
           linked,

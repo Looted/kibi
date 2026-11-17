@@ -833,8 +833,12 @@ var ENTITY_LANES = [
   ["EVT-", "events"]
 ];
 var SAFE_ENTITY_ID = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+var MAX_REASON_CHARS = 280;
+var REQUIREMENT_READ_BYTES = 65536;
+var ENTITY_READ_BYTES = 8192;
 var SUMMARY_SCALARS = {
   semantic_text: "statement",
+  rationale: "rationale",
   fact_kind: "factKind",
   subject_key: "subjectKey",
   property_key: "propertyKey",
@@ -863,6 +867,59 @@ function readScalar(lines, index, raw) {
   const joined = parts.join(" ");
   return { value: block ? joined : unquote2(joined), last };
 }
+function proseExcerpt(lines, maxChars) {
+  const prose = lines.map((line) => line.replace(/^\s*(?:[-*+]|\d+[.)])\s/, "").replace(/^\s*>\s?/, "").replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\*\*|__|`/g, "").trim()).filter((line) => !line.startsWith("|")).join(" ").replace(/\s+/g, " ").trim();
+  if (!prose)
+    return;
+  let excerpt = "";
+  for (const sentence of prose.split(/(?<=[.!?]) /)) {
+    const next = `${excerpt} ${sentence}`.trim();
+    if (excerpt !== "" && Array.from(next).length > maxChars)
+      break;
+    excerpt = next;
+  }
+  const chars = Array.from(excerpt);
+  return chars.length <= maxChars ? excerpt : `${chars.slice(0, maxChars - 1).join("")}…`;
+}
+var NO_REASON_STATED = /^reason not stated\b/i;
+var REASON_SECTIONS = [
+  [/^(?:rationale|why(?! this changed)|context)\b/, "section"],
+  [/^why this changed\b/, "why_this_changed"]
+];
+var CHANGE_NOTE = /^(?:[-*+>]\s*)?(?:split from|superseded by|supersedes|replaces|replaced by)\s/i;
+function withoutChangeNotes(lines) {
+  return lines.filter((line) => !CHANGE_NOTE.test(line.trim()));
+}
+function recordedReason(rationale, body) {
+  const field = proseExcerpt(withoutChangeNotes([rationale ?? ""]), MAX_REASON_CHARS);
+  if (field)
+    return { text: field, from: "rationale" };
+  const sections = [];
+  let current;
+  let fenced = false;
+  for (const line of body) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced)
+      continue;
+    const heading = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
+    if (heading) {
+      current = [];
+      sections.push([heading[1].toLowerCase(), current]);
+      continue;
+    }
+    current?.push(line);
+  }
+  for (const [pattern, from] of REASON_SECTIONS) {
+    const text = sections.filter(([name]) => pattern.test(name)).map(([, content]) => proseExcerpt(withoutChangeNotes(content), MAX_REASON_CHARS)).find((prose) => prose !== undefined && !NO_REASON_STATED.test(prose));
+    if (text)
+      return { text, from };
+  }
+  return;
+}
+var SPEAKING_ORIGINS = new Set(["human", "agent", "import"]);
 function firstParagraph(lines) {
   const paragraph = [];
   for (const line of lines) {
@@ -920,12 +977,15 @@ function readEntitySummary(workspaceRoot, entityId) {
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId))
     return { id: entityId };
+  const requirement = lane[1] === "requirements";
   let head;
+  let whole;
   try {
     const descriptor = fs3.openSync(path4.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`), "r");
     try {
-      const buffer = Buffer.alloc(8192);
+      const buffer = Buffer.alloc(requirement ? REQUIREMENT_READ_BYTES : ENTITY_READ_BYTES);
       const bytes = fs3.readSync(descriptor, buffer, 0, buffer.length, 0);
+      whole = bytes < buffer.length;
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
       fs3.closeSync(descriptor);
@@ -944,6 +1004,8 @@ function readEntitySummary(workspaceRoot, entityId) {
   let inValueSet = false;
   let inOrigin = false;
   let originKind;
+  const origin = {};
+  let rationale;
   let closed = false;
   let bodyStart = lines.length;
   let pending;
@@ -961,6 +1023,8 @@ function readEntitySummary(workspaceRoot, entityId) {
       if (value !== "") {
         if (scalarField === "statement")
           summary.statement = value;
+        else if (scalarField === "rationale")
+          rationale = value;
         else
           claim[scalarField] = value;
       }
@@ -991,6 +1055,9 @@ function readEntitySummary(workspaceRoot, entityId) {
     const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
     if (nestedKind)
       originKind = nestedKind[1];
+    const originField = inOrigin ? /^\s+(approved_by|recorded_at):(.+)/.exec(line) : null;
+    if (originField)
+      origin[originField[1]] = unquote2(originField[2]);
     if (/^\S/.test(line))
       inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)/.exec(line);
@@ -1047,10 +1114,26 @@ function readEntitySummary(workspaceRoot, entityId) {
     claim.values = values;
   if (Object.keys(claim).length > 0)
     summary.claim = claim;
-  if (summary.statement === undefined && lane[1] === "requirements" && closed) {
+  if (summary.statement === undefined && requirement && closed) {
     const paragraph = firstParagraph(lines.slice(bodyStart));
     if (paragraph)
       summary.statement = paragraph;
+  }
+  if (requirement && closed) {
+    const reason = recordedReason(rationale, lines.slice(bodyStart));
+    if (reason) {
+      const speaking = SPEAKING_ORIGINS.has(String(originKind));
+      const by = origin.approved_by || (speaking ? originKind : undefined);
+      const on = /^\d{4}-\d{2}-\d{2}/.exec(String(origin.recorded_at))?.[0];
+      summary.why = {
+        recorded: true,
+        ...reason,
+        ...speaking && by ? { by } : {},
+        ...speaking && by && on ? { on } : {}
+      };
+    } else if (whole) {
+      summary.why = { recorded: false };
+    }
   }
   return summary;
 }
@@ -1319,6 +1402,9 @@ var MAX_TESTS = 3;
 var MAX_TITLE = 80;
 var MAX_GROUNDING = 2;
 var MAX_CLAIM = 160;
+var MAX_WHY_CHARS = 240;
+var SHORT_WHY_CHARS = 160;
+var TIGHT_WHY_CHARS = 100;
 var MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 var MAX_SNIPPET_CHARS = 1200;
 function truncate(text, limit) {
@@ -1496,8 +1582,24 @@ function groundingText(summary) {
 function withoutClosingStop(text) {
   return text.replace(/[.\s]+$/, "");
 }
+var REASON_LABELS = {
+  rationale: "rationale",
+  why_this_changed: "Why this changed",
+  section: "context section"
+};
+function reasonLine(summary, maxChars = MAX_WHY_CHARS) {
+  const why = summary.why;
+  if (!why)
+    return;
+  if (!why.recorded)
+    return "Why: no reason is recorded.";
+  const text = proseExcerpt([why.text], maxChars);
+  const said = why.by ? `; ${why.by}${why.on ? `, ${why.on}` : ""}` : "";
+  return `Why: ${withoutClosingStop(text)} (${REASON_LABELS[why.from]}${said}).`;
+}
 function requirementGroundingLines(requirementId, summarize, options = {}) {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
+  const whyChars = options.whyChars ?? MAX_WHY_CHARS;
   const requirement = summarize(requirementId);
   if (isRetiredStatus(requirement.status))
     return [];
@@ -1520,6 +1622,9 @@ function requirementGroundingLines(requirementId, summarize, options = {}) {
       lines.push(`${requirementId} must keep true: ${shown.map((claim) => truncate(claim, MAX_CLAIM)).join("; ")}${more}.`);
     }
   }
+  const why = whyChars > 0 ? reasonLine(requirement, whyChars) : undefined;
+  if (why)
+    lines.push(why);
   const adr = adrs[0];
   if (adr)
     lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
@@ -1557,6 +1662,30 @@ function requirementOwners(symbols, focus) {
   });
   return { owners, requirementIds };
 }
+var SNIPPET_LAYOUTS = [
+  {
+    requirements: MAX_REQUIREMENTS,
+    facts: MAX_GROUNDING,
+    whyChars: MAX_WHY_CHARS,
+    tests: true
+  },
+  {
+    requirements: 3,
+    facts: MAX_GROUNDING,
+    whyChars: MAX_WHY_CHARS,
+    tests: true
+  },
+  { requirements: 2, facts: 1, whyChars: MAX_WHY_CHARS, tests: true },
+  { requirements: 2, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
+  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
+  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: false },
+  { requirements: 1, facts: 1, whyChars: TIGHT_WHY_CHARS, tests: false }
+];
+function fitLayouts(compose, maxChars) {
+  const texts = SNIPPET_LAYOUTS.map(compose);
+  const fits = texts.find((text) => text.length <= maxChars);
+  return fits ?? truncate(texts.at(-1), maxChars);
+}
 function fileKnowledgeSnippet(input) {
   const { relativePath, symbols, surface, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
@@ -1570,42 +1699,48 @@ function fileKnowledgeSnippet(input) {
   if (owners.size === 0 && tests.length === 0 && executes.length === 0) {
     return;
   }
-  const lines = [
-    `Kibi knowledge for ${relativePath} (symbol manifest):`
-  ];
-  for (const requirementId of requirementIds.slice(0, MAX_REQUIREMENTS)) {
-    const symbolTitles = owners.get(requirementId);
-    lines.push(`- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
-  }
-  if (requirementIds.length > MAX_REQUIREMENTS) {
-    lines.push(`- +${requirementIds.length - MAX_REQUIREMENTS} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
-  }
   const leadId = requirementIds[0];
-  if (surface === "edit" && leadId) {
-    lines.push(...requirementGroundingLines(leadId, summarize));
-  }
-  if (tests.length > 0) {
-    lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
-  }
-  if (executes.length > 0) {
-    lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
-  }
   const primaryFocus = focus[0];
-  if (primaryFocus) {
-    const owner = primaryFocus.implements[0];
-    const verb = surface === "edit" ? "The edit is inside" : "These lines are inside";
-    lines.push(owner ? `${verb} ${primaryFocus.title}, which implements ${owner}.` : `${verb} ${primaryFocus.title}.`);
-  }
-  const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
-  const next = [
-    leadId ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text and why it exists` : undefined,
-    `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
-  ].filter((part) => part !== undefined);
-  lines.push(`Next layer: ${next.join("; ")}.`);
-  if (surface === "edit")
-    lines.push(impactCheckLine(relativePath));
-  return truncate(lines.join(`
-`), input.maxChars ?? MAX_SNIPPET_CHARS);
+  const compose = (layout) => {
+    const lines = [
+      `Kibi knowledge for ${relativePath} (symbol manifest):`
+    ];
+    for (const requirementId of requirementIds.slice(0, layout.requirements)) {
+      const symbolTitles = owners.get(requirementId);
+      lines.push(`- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
+    }
+    if (requirementIds.length > layout.requirements) {
+      lines.push(`- +${requirementIds.length - layout.requirements} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
+    }
+    const grounding = surface === "edit" && leadId ? requirementGroundingLines(leadId, summarize, {
+      maxFacts: layout.facts,
+      whyChars: layout.whyChars
+    }) : [];
+    lines.push(...grounding);
+    if (layout.tests && tests.length > 0) {
+      lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
+    }
+    if (layout.tests && executes.length > 0) {
+      lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
+    }
+    if (primaryFocus) {
+      const owner = primaryFocus.implements[0];
+      const verb = surface === "edit" ? "The edit is inside" : "These lines are inside";
+      lines.push(owner ? `${verb} ${primaryFocus.title}, which implements ${owner}.` : `${verb} ${primaryFocus.title}.`);
+    }
+    const location = primaryFocus ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}` : `{path:${jsonString(relativePath)}}`;
+    const reasonShown = grounding.some((line) => line.startsWith("Why: "));
+    const next = [
+      leadId ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text${reasonShown ? "" : " and why it exists"}` : undefined,
+      `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`
+    ].filter((part) => part !== undefined);
+    lines.push(`Next layer: ${next.join("; ")}.`);
+    if (surface === "edit")
+      lines.push(impactCheckLine(relativePath));
+    return lines.join(`
+`);
+  };
+  return fitLayouts(compose, input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 function editKnowledgeUpdate(input) {
   const { relativePath, symbols, summarize } = input;
@@ -1621,9 +1756,14 @@ function editKnowledgeUpdate(input) {
   }
   if (!leadId)
     return lines[0];
-  lines.push(...requirementGroundingLines(leadId, summarize));
-  lines.push(impactCheckLine(relativePath));
-  return truncate(lines.join(`
+  return fitLayouts((layout) => [
+    ...lines,
+    ...requirementGroundingLines(leadId, summarize, {
+      maxFacts: layout.facts,
+      whyChars: layout.whyChars
+    }),
+    impactCheckLine(relativePath)
+  ].join(`
 `), input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 function focusUpdate(relativePath, symbols, focus) {
@@ -1806,22 +1946,55 @@ function firmEditContext(ids) {
 `);
 }
 var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
-var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please)\s+|\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+)(never|always)\b/i;
+var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please|also|let['’]?s|let us)\s+)(never|always)\b(?!-)(?!\s+mind\b)/i;
+var ASKING_ADVERB = /(?:\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+|\b(?:remember|need|want|be sure|try) to\s+|\b(?:may|shall|can)\s+(?=never)|\b(?:we|you)\s+(?=(?:never|always)\s+(?:want|need) to\b))(never|always)\b(?!-)/i;
+var DESCRIBING_NEXT_WORD = /^\s+(?:a|an|the|have been|has|had|been|was|were|is|are|am|did|does|\w+ed|\w*[^s\W]s)\b/i;
 var REQUEST_QUESTION = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i;
-var CODE_SPANS = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
+var ASKS_TO_BE_TOLD = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\s+(?:tell|explain|show)\b/i;
+var CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
+var LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
+var EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
+function requestLines(text) {
+  const lines = [];
+  let previous = "blank";
+  for (const line of text.split(`
+`)) {
+    if (/^(?: {4}|\t)/.test(line) && previous !== "text") {
+      previous = "code";
+      continue;
+    }
+    previous = line.trim() === "" ? "blank" : "text";
+    if (/^\s*>/.test(line))
+      continue;
+    lines.push(line.trim().replace(LINE_MARKERS, "").replace(EMPHASIS, ""));
+  }
+  return lines;
+}
 function requestSentences(prompt) {
-  return prompt.replace(CODE_SPANS, " ").split(/(?<=[.!?])\s|\n/).map((sentence) => sentence.trim());
+  return requestLines(prompt.replace(CODE_SPANS, " ")).flatMap((line) => line.split(/(?<=[.!?])\s/)).map((sentence) => sentence.trim());
+}
+function instructingAdverb(sentence) {
+  const asked = ASKING_ADVERB.exec(sentence);
+  if (asked)
+    return asked[1].toLowerCase();
+  const pattern = new RegExp(IMPERATIVE_ADVERB.source, "gi");
+  for (const match of sentence.matchAll(pattern)) {
+    const rest = sentence.slice(match.index + match[0].length);
+    if (!DESCRIBING_NEXT_WORD.test(rest))
+      return match[1].toLowerCase();
+  }
+  return;
 }
 function statedRule(prompt) {
   for (const sentence of requestSentences(prompt)) {
-    if (sentence.endsWith("?") && !REQUEST_QUESTION.test(sentence))
+    if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
       continue;
     const match = RULE_PHRASES.exec(sentence);
     if (match)
       return match[0].toLowerCase();
-    const adverb = IMPERATIVE_ADVERB.exec(sentence);
+    const adverb = instructingAdverb(sentence);
     if (adverb)
-      return adverb[1].toLowerCase();
+      return adverb;
   }
   return;
 }
@@ -1856,7 +2029,17 @@ function ruleCaptureTemplate(rulePhrase) {
         ref: "<the person's words and where they said them>"
       }
     },
-    document: { body: "<the rule as one shall or must sentence>" },
+    document: {
+      body: `<the rule as one shall or must sentence>
+
+## Context
+
+<who asked for the rule and why, in their words; write 'Reason not stated' when they gave no reason>
+
+## Source
+
+<the person's words, verbatim>`
+    },
     implementedBy: [
       {
         sourceFile: "<file you changed>",
@@ -1866,15 +2049,82 @@ function ruleCaptureTemplate(rulePhrase) {
   };
   return [
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
-    JSON.stringify(template)
+    JSON.stringify(template),
+    "kb_check then asks for a scenario and a test that prove the rule; add them in this change or name them as still to do in the final report."
   ].join(`
 `);
 }
-function sessionPath(session, name) {
+var UNATTRIBUTED = "unattributed";
+var UNATTRIBUTED_IDLE_MS = 2 * 60 * 60 * 1000;
+var STALE_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
+function sessionKey(session) {
+  return createHash2("sha256").update(session.sessionId?.trim() || UNATTRIBUTED).digest("hex").slice(0, 32);
+}
+function guardRoot(session) {
   if (!session.stateDir)
     throw new Error;
-  const key = createHash2("sha256").update(session.sessionId?.trim() || "unattributed").digest("hex").slice(0, 32);
-  return path6.join(session.stateDir, "decision-guard", key, name);
+  return path6.join(session.stateDir, "decision-guard");
+}
+function sessionPath(session, name) {
+  return path6.join(guardRoot(session), sessionKey(session), name);
+}
+function newestOf(files) {
+  let newest = Number.NaN;
+  for (const file of files) {
+    try {
+      const time = fs6.statSync(file).mtimeMs;
+      if (!(time <= newest))
+        newest = time;
+    } catch {}
+  }
+  return newest;
+}
+function markerFiles(dir) {
+  try {
+    return fs6.readdirSync(dir).map((name) => path6.join(dir, name));
+  } catch {
+    return [];
+  }
+}
+function removeQuietly(target) {
+  try {
+    fs6.rmSync(target, { recursive: true, force: true });
+  } catch {}
+}
+function startDecisionSession(session, cause, options = {}) {
+  const now = options.now ?? Date.now();
+  const hostFiles = options.hostFiles ?? [];
+  let root;
+  try {
+    root = guardRoot(session);
+  } catch {
+    return false;
+  }
+  const own = sessionKey(session);
+  let dropped = false;
+  if (!session.sessionId?.trim() && cause !== "resume") {
+    const files = [...markerFiles(path6.join(root, own)), ...hostFiles];
+    dropped = cause === "startup" || newestOf(files) < now - UNATTRIBUTED_IDLE_MS;
+    if (dropped) {
+      for (const file of files)
+        removeQuietly(file);
+    }
+  }
+  if (cause === "prompt")
+    return dropped;
+  let keys = [];
+  try {
+    keys = fs6.readdirSync(root);
+  } catch {}
+  for (const key of keys) {
+    if (key === own)
+      continue;
+    const dir = path6.join(root, key);
+    if (!(newestOf(markerFiles(dir)) >= now - STALE_SESSION_MS)) {
+      removeQuietly(dir);
+    }
+  }
+  return dropped;
 }
 function touchMarker(file, flag) {
   fs6.mkdirSync(path6.dirname(file), { recursive: true });
@@ -2810,7 +3060,10 @@ function usageFromPayload(operation, payload) {
 }
 function extractMcpKbUsage(toolName, toolInput) {
   const operation = canonicalKbOperation(toolName);
-  return operation ? usageFromPayload(operation, payloadOf(toolInput)) : undefined;
+  if (!operation)
+    return;
+  const payload = payloadOf(toolInput);
+  return usageFromPayload(operation === "kb_upsert" && payload.dryRun === true ? "kb_validate_upsert" : operation, payload);
 }
 function isVerifiedGitCommit(command) {
   const gitCommit = /(?:^|[\s;&|(])git(?:\s+-[Cc]\s+\S+|\s+--?[\w-]+(?:=\S+)?)*\s+commit(?=\s|$|[;&|)])/;
@@ -2948,6 +3201,9 @@ function applyEvent(state, event) {
       return;
   }
 }
+function sessionJournal(dir) {
+  return dir ? [path11.join(dir, JOURNAL)] : [];
+}
 function loadSessionState(dir) {
   const state = emptySessionState();
   if (!dir)
@@ -2975,6 +3231,20 @@ function appendSessionEvents(dir, events) {
 `).join(""));
   } catch {}
 }
+// ../agent-core/dist/session-brief.js
+var SESSION_BRIEF_LINES = [
+  "Kibi records this repository's requirements and decisions with their reasons.",
+  "- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.",
+  "- When the person states a rule or makes a decision, record it with their reason (kb_upsert: who decided and why).",
+  "- Before finishing, stage the change with its .kb files and run the commit check, `kibi check --staged`.",
+  "A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask."
+];
+var SESSION_BRIEF = SESSION_BRIEF_LINES.join(`
+`);
+function sessionBriefWith(hostLines) {
+  return [SESSION_BRIEF, ...hostLines.filter((line) => line.length > 0)].join(`
+`);
+}
 
 // src/snippets.ts
 function searchTip(linkedFileCount) {
@@ -2982,16 +3252,9 @@ function searchTip(linkedFileCount) {
 }
 var DIRECT_KB_ACCESS_NOTE = "Kibi: .kb/ holds Kibi-managed knowledge. kb_query/kb_search read it and kb_upsert writes it while keeping the branch store, relationships, and validation consistent; direct file reads miss relationships and direct edits bypass validation.";
 function sessionStartContext(linkedFileCount) {
-  return [
-    `Kibi knowledge base is active in this workspace (${linkedFileCount} source files have requirement-linked symbols).`,
-    "Kibi hooks add short requirement/test snippets before reads and edits of linked files; kb_query returns the full detail.",
-    "A request that would make a recorded requirement or ADR false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask, change the code or the rule only when the person says so, and ask when unsure.",
-    "A file with no linked symbols gets a short note; no link is not no rule, so kb_search what it does (permissions, limits, data).",
-    "Recording new behavior (requirement, scenario, implements link) is part of the change and needs no permission.",
-    "Operations: kb_search (ask it a question; the answer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (mcp__plugin_kibi-claude_kibi__kb_*); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
-    "Workflow guidance: the kibi-claude:kibi-usage skill (also kb_skills with action load)."
-  ].join(`
-`);
+  return sessionBriefWith([
+    `Kibi hooks show requirement snippets before reads and edits of the ${linkedFileCount} linked source files. MCP tools: mcp__plugin_kibi-claude_kibi__kb_*; CLI peer: \`npx --no-install kibi <route> --input -\`. Guidance: the kibi-claude:kibi-usage skill.`
+  ]);
 }
 function stopReminder(paths) {
   const shown = paths.slice(0, 8);
@@ -3502,6 +3765,7 @@ function stop(input, workspace, trace = {}) {
 function userPromptSubmit(input, workspace, trace) {
   const prompt = input.prompt ?? "";
   const rule = statedRule(prompt);
+  startDecisionSession({ stateDir: workspace.stateDir, sessionId: input.sessionId }, "prompt", { hostFiles: sessionJournal(workspace.stateDir) });
   appendSessionEvents(workspace.stateDir, [
     {
       kind: "prompt",
@@ -3557,8 +3821,9 @@ async function runHook(rawInput, environment = {}) {
 }
 function dispatchHook(input, workspace, trace) {
   switch (input.event) {
-    case "SessionStart":
+    case "SessionStart": {
       trace.action = "session_start";
+      startDecisionSession({ stateDir: workspace.stateDir, sessionId: input.sessionId }, input.source === "resume" || input.source === "compact" ? "resume" : "startup", { hostFiles: sessionJournal(workspace.stateDir) });
       if (input.source === "compact" || input.source === "clear") {
         appendSessionEvents(workspace.stateDir, [{ kind: "context_reset" }]);
       }
@@ -3567,6 +3832,7 @@ function dispatchHook(input, workspace, trace) {
         missingHooksNote(workspace.root)
       ].filter((line) => line !== null).join(`
 `));
+    }
     case "UserPromptSubmit":
       return userPromptSubmit(input, workspace, trace);
     case "PreToolUse": {

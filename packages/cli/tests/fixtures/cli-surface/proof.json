@@ -3,6 +3,7 @@
     "name": "prove",
     "aliases": [],
     "description": "Run the configured proof producers and ingest valid kibi.proof-run.v1 evidence",
+    "summary": "",
     "arguments": [],
     "options": [
       {
@@ -54,6 +55,7 @@
     "name": "proof",
     "aliases": [],
     "description": "Inspect proof integration and maintain proof evidence",
+    "summary": "",
     "arguments": [],
     "options": [],
     "commands": [
@@ -61,6 +63,7 @@
         "name": "inspect",
         "aliases": [],
         "description": "Detect test infrastructure, propose a proof integration and return the reviewed plan that writes .kb/proof/integrations.json",
+        "summary": "",
         "arguments": [],
         "options": [
           {
@@ -88,6 +91,7 @@
         "name": "run-steps",
         "aliases": [],
         "description": "Run the declared steps of the proof-bearing tests kibi prove selected and write a per-test report, so a command integration fails only the tests whose own steps failed (use as the integration's command)",
+        "summary": "",
         "arguments": [
           {
             "name": "steps-source",
@@ -111,6 +115,7 @@
         "name": "explain",
         "aliases": [],
         "description": "Project one requirement or symbol proof, labeling required_proofs, executable_for, and covered_by separately",
+        "summary": "",
         "arguments": [
           {
             "name": "id",
@@ -146,6 +151,7 @@
         "name": "prune",
         "aliases": [],
         "description": "Shrink each test's proof_receipts history to its newest entries (re-proving the same snapshot appends duplicates; prune removes the superseded ones)",
+        "summary": "",
         "arguments": [],
         "options": [
           {
@@ -167,6 +173,7 @@
         "name": "compact",
         "aliases": [],
         "description": "Drop superseded proof receipts while keeping every receipt that decides current proof (newest per scope and contract for the live snapshot and current binding, plus the newest and newest passing receipt); coverage results are unchanged",
+        "summary": "",
         "arguments": [],
         "options": [
           {
@@ -194,6 +201,7 @@
         "name": "migrate-legacy",
         "aliases": [],
         "description": "Remove legacy verification_receipts blocks from test documents that already carry a proof_contract",
+        "summary": "",
         "arguments": [],
         "options": [
           {

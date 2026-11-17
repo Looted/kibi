@@ -2,7 +2,7 @@
 id: kibi-decisions
 name: kibi-decisions
 description: "Use when the person states a rule or decision (must, never, always, from now on, we decided), when a Kibi hook asks to confirm or warns about an edit to code that implements a firm requirement, when the Stop hook says source files changed but nothing was recorded, when kb_check quotes requirement_statement_unverified, or when a request conflicts with a recorded requirement or ADR. Covers reading firmness and origin, recording a person's rule as firm with origin.ref, superseding with a Why this changed section, the kb_compile_intent unresolved/reviewCandidates/conflictReviews loop, asking before overriding a firm rule, putting decisions to the person as one numbered kibi signoff --questions view, and getting a batch of statement changes, splits, reasons or retirements approved during a knowledge base cleanup."
-version: 1.13.0
+version: 1.14.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -105,6 +105,10 @@ name the missing capability. Never read or edit `.kb/` files directly.
   quoting their words and where they said them, a sectioned `document.body`,
   a scenario, and an `implements` link from the code that enforces it. Use
   `kb_compile_intent` first when the rule may touch several requirements.
+  When the person said why, put their reason in `rationale`, in their words,
+  in that same write. When they gave none, leave `rationale` out and never
+  write a reason of your own; a `kb_upsert` note asking for the reason is
+  answered by asking the person, not by inventing one.
   A firm rule needs `tested` evidence by default, so `kb_check`'s
   `evidence-floor` rule fails on it until an end-to-end test proves its
   scenario. When the change includes that test, give it a proof contract and
@@ -120,7 +124,21 @@ name the missing capability. Never read or edit `.kb/` files directly.
   `## Why this changed` section of at least 12 words naming their instruction
   and answering the old reasoning, old one `status: closed` in the same
   change). For a wording correction they asked for in place, update it with a
-  new `origin.ref` to those words instead.
+  new `origin.ref` to those words instead. When the change moves a value the
+  rule is grounded on and the rule already records a reason, the note on the
+  write quotes it: ask whether it still holds, and record the person's new
+  reason in their words.
+- **A value change lists other requirements (`siblings`):** a `kb_upsert` of a
+  value fact returns every other current requirement on that quantity, each
+  as a warning and a required `nextActions` entry; `statesOldValue` marks a
+  claim that still says the old value. Update a `default` or `exploratory`
+  sibling in the same change, with the person's words as `origin.ref` and
+  their reason, and update the tests that pin the old value. Ask the person
+  before touching a `firm` sibling. When their change does not cover a
+  sibling, supersede or scope the requirements so they no longer constrain
+  one quantity. A fact write refused with `SEMANTIC_CONTRADICTION` names the
+  requirements it would make conflict: send the fact and the change to those
+  requirements together in one `kb_apply_plan`, or ask which one holds.
 - **You only prefer another approach:** a preference is not evidence. Propose
   it; do not supersede.
 - **A cleanup needs many decisions** (statements reworded by a split,
@@ -171,7 +189,7 @@ cite new words. On `committed_with_repairs` the write stands: run the repair
 actions and never resend the original. Kibi authors tracked files but never
 Git-stages or commits them.
 
-Validation is not completion. When a request conflicts with a recorded rule and you stop to ask, first kb_query that rule by id. Then make the conflict itself the verdict of your final answer: name the rule's id and what it requires, keep the answer format the request asked for (including any verdict field), and add your question after that. Asking the person, or showing a questions view, never takes the place of that verdict. When you record a stated rule or apply a kb_compile_intent plan, keep the actual target ids and the intended edges. Discover and kb_query each target, check each payload with kb_upsert and dryRun: true, then send that same payload as the real kb_upsert. Read the result back by exact id before kb_check. A dry run or kb_model output only validates; it records nothing. A stated rule is recorded only once the requirement, its scenario and the enforcing symbol's implements link have actually been written, followed by kb_check. Separate payloads may need several writes in sequence. Never resend a write that already committed, and handle refusals or repairs as the typed-result rules above say. After you apply a plan, make sure the new requirement is firm, with origin.ref quoting the person's words. A must-priority requirement also needs a scenario through specified_by. Leave compatible recorded rules unchanged. Rerun kb_check after each fix until it reports nothing about the new requirement, and only then report the work as done.
+Validation is not completion. When a request conflicts with a recorded rule and you stop to ask, first kb_query that rule by id. Then make the conflict itself the verdict of your final answer: name the rule's id and what it requires, keep the answer format the request asked for (including any verdict field), and add your question after that. Asking the person, or showing a questions view, never takes the place of that verdict. When you record a stated rule or apply a kb_compile_intent plan, keep the actual target ids and the intended edges. Discover and kb_query each target, then send each payload with kb_upsert; its result reports what was written and its typed nextActions, so no read-back is needed. A dry run (dryRun: true) is an optional preview: it, like kb_model output, records nothing. A stated rule is recorded only once the requirement, its scenario and the enforcing symbol's implements link have actually been written, followed by kb_check. Separate payloads may need several writes in sequence. Never resend a write that already committed, and handle refusals or repairs as the typed-result rules above say. After you apply a plan, make sure the new requirement is firm, with origin.ref quoting the person's words. A must-priority requirement also needs a scenario through specified_by. Leave compatible recorded rules unchanged. Rerun kb_check after each fix until it reports nothing about the new requirement, and only then report the work as done.
 
 ## Report
 

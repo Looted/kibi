@@ -1053,6 +1053,60 @@ kb_commit_relationships_no_audit([
     kb_assert_relationship_no_audit(RelType, FromId, ToId, Metadata),
     kb_commit_relationships_no_audit(Rest).
 
+%% upsert_contradiction_baseline(+Type, +Id, +Relationships, +SkipContradiction, -Baseline)
+% Read before an upsert mutates anything. For a fact write that runs the
+% contradiction check, Baseline is fact_baseline(Reqs, Pairs): the
+% requirements linked to the fact now or by Relationships, and the
+% contradicting pairs they are already part of. A write is refused only for
+% a pair it introduces, so a contradiction the KB already holds (kb_check's
+% finding) never blocks an unrelated edit of the fact. Any other write has
+% Baseline none.
+upsert_contradiction_baseline(fact, Id, Relationships, false, fact_baseline(Reqs, Pairs)) :-
+    !,
+    fact_linked_reqs(Id, Relationships, Reqs),
+    linked_req_conflict_pairs(Reqs, Pairs).
+upsert_contradiction_baseline(_, _, _, _, none).
+
+fact_req_link_type(requires_property).
+fact_req_link_type(requires_predicate).
+fact_req_link_type(requires_rule).
+fact_req_link_type(constrains).
+
+%% fact_linked_reqs(+FactId, +Relationships, -Reqs)
+% The requirements grounded on FactId in the store, plus those a pending
+% relationship in Relationships links to it, sorted.
+fact_linked_reqs(FactId, Relationships, Reqs) :-
+    findall(ReqId,
+            ( fact_req_link_type(Link),
+              (   kb_relationship(Link, ReqId, FactId)
+              ;   memberchk(rel(Link, ReqId, FactId, _), Relationships)
+              ) ),
+            Reqs0),
+    sort(Reqs0, Reqs).
+
+%% linked_req_conflict_pairs(+Reqs, -Pairs)
+% Every contradiction between two current requirements, one of them in
+% Reqs, as sorted pair(ReqA, ReqB)-Reason terms with ReqA @< ReqB, one per
+% requirement pair.
+linked_req_conflict_pairs(Reqs, Pairs) :-
+    findall(pair(A, B)-Reason,
+            ( member(ReqId, Reqs),
+              (   contradicting_reqs(ReqId, Other, Reason)
+              ;   contradicting_reqs(Other, ReqId, Reason)
+              ),
+              ReqId \== Other,
+              msort([ReqId, Other], [A, B]) ),
+            Pairs0),
+    keysort(Pairs0, Sorted),
+    first_reason_per_pair(Sorted, Pairs).
+
+first_reason_per_pair([], []).
+first_reason_per_pair([Key-Reason|Rest], [Key-Reason|Pairs]) :-
+    exclude(same_pair_key(Key), Rest, Others),
+    first_reason_per_pair(Others, Pairs).
+
+same_pair_key(Key, Key-_).
+
 kb_maybe_check_req_contradiction(Type, Id, SkipContradiction) :-
     (   Type == req,
         SkipContradiction == false
@@ -1061,23 +1115,72 @@ kb_maybe_check_req_contradiction(Type, Id, SkipContradiction) :-
     ;   true
     ).
 
-%% kb_stage_upsert_mutation(+Type, +Id, +Properties, +Relationships, +SkipContradiction)
-% The RDF mutation and refusal rules of one upsert, shared by the commit, the
-% batch commit and the dry-run preview so all three refuse the same payloads:
-% a relationship whose source or target entity does not exist, an invalid
-% relationship direction, a symbol mixing executable_for with production
-% ownership/coverage edges, and (for a requirement) a contradiction.
-kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction) :-
-    kb_assert_entity_no_audit(Type, Props),
-    kb_commit_relationships_no_audit(Relationships),
-    kb_maybe_check_req_contradiction(Type, Id, SkipContradiction).
+%% kb_check_upsert_contradiction(+Type, +Id, +SkipContradiction, +Baseline)
+% Run after the upsert's mutation: a requirement must not contradict any
+% current requirement, and a fact write must not make two current
+% requirements grounded on the fact contradict (check_fact_contradiction/2).
+kb_check_upsert_contradiction(Type, Id, SkipContradiction, Baseline) :-
+    kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+    (   Baseline = fact_baseline(Reqs0, Pairs0)
+    ->  kb_stage(contradiction_check),
+        check_fact_contradiction(Id, Reqs0, Pairs0)
+    ;   true
+    ).
 
-% Stage one upsert inside an already-open transaction. The caller saves once.
+%% check_fact_contradiction(+FactId, +ReqsBefore, +PairsBefore)
+% Throws error(kb_fact_contradiction(FactId, Conflicts), Message) when the
+% requirements linked to FactId after the write are in a contradicting pair
+% that PairsBefore did not hold. Conflicts are conflict(ReqA, ReqB, Reason)
+% terms. Changing a value fact one requirement is grounded on can leave a
+% second requirement on the same subject and property with no common value;
+% that is the same contradiction a requirement write is refused for.
+check_fact_contradiction(FactId, ReqsBefore, PairsBefore) :-
+    fact_linked_reqs(FactId, [], ReqsAfter),
+    ord_union(ReqsBefore, ReqsAfter, Reqs),
+    linked_req_conflict_pairs(Reqs, PairsAfter),
+    findall(conflict(A, B, Reason),
+            ( member(pair(A, B)-Reason, PairsAfter),
+              \+ memberchk(pair(A, B)-_, PairsBefore) ),
+            Conflicts),
+    (   Conflicts == []
+    ->  true
+    ;   build_fact_contradiction_message(FactId, Conflicts, Message),
+        throw(error(kb_fact_contradiction(FactId, Conflicts), Message))
+    ).
+
+build_fact_contradiction_message(FactId, Conflicts, Message) :-
+    format(atom(Header), 'Contradiction detected for fact ~w: the write makes current requirements conflict:', [FactId]),
+    findall(Line,
+            ( member(conflict(A, B, Reason), Conflicts),
+              format(atom(Line), '\n  - ~w conflicts with ~w: ~w', [A, B, Reason]) ),
+            Lines),
+    atomic_list_concat(Lines, Details),
+    Remedy = '\n\nTo resolve:\n  1. Change the conflicting requirement in the same kb_apply_plan as this fact, OR\n  2. Supersede one requirement, or scope the two so they no longer constrain one quantity.',
+    atomic_list_concat([Header, Details, Remedy], Message).
+
+%% kb_stage_upsert_mutation(+Type, +Id, +Properties, +Relationships, +SkipContradiction)
+% The RDF mutation and refusal rules of one upsert, shared by the commit and
+% the dry-run preview so both refuse the same payloads: a relationship whose
+% source or target entity does not exist, an invalid relationship direction,
+% a symbol mixing executable_for with production ownership/coverage edges,
+% for a requirement a contradiction, and for a fact a contradiction the
+% write introduces between requirements grounded on it.
+kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction) :-
+    upsert_contradiction_baseline(Type, Id, Relationships, SkipContradiction, Baseline),
+    kb_stage_upsert_mutation_unchecked(Type, Props, Relationships),
+    kb_check_upsert_contradiction(Type, Id, SkipContradiction, Baseline).
+
+kb_stage_upsert_mutation_unchecked(Type, Props, Relationships) :-
+    kb_assert_entity_no_audit(Type, Props),
+    kb_commit_relationships_no_audit(Relationships).
+
+% Stage one upsert inside an already-open transaction, without its
+% contradiction check: a batch checks once after every entry is staged.
 kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
     memberchk(id=Id, Props),
     memberchk(SkipContradiction, [true, false]),
     upsert_change_kind(Id, ChangeKind),
-    kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction),
+    kb_stage_upsert_mutation_unchecked(Type, Props, Relationships),
     kb_log_entity_upsert(ChangeKind, Type, Props),
     kb_commit_relationship_audits(Relationships).
 
@@ -1116,12 +1219,32 @@ kb_preview_upsert_contradiction(Type, Props, Relationships, SkipContradiction) :
         )
     ).
 
-kb_stage_upserts([], []).
-kb_stage_upserts([
+%% kb_stage_upserts(+Entries, -ChangeKinds)
+% Stage every entry, then run the contradiction checks once against the
+% whole batch, so a kb_apply_plan that changes a fact and the requirement it
+% would conflict with commits together instead of refusing its first step.
+% Fact baselines are read before any entry is staged and include the
+% requirements any entry links to the fact.
+kb_stage_upserts(Entries, Kinds) :-
+    findall(Rel,
+            ( member(upsert(_, _, Rels, _), Entries),
+              member(Rel, Rels) ),
+            AllRelationships),
+    findall(check(Type, Id, Skip, Baseline),
+            ( member(upsert(Type, Props, _, Skip), Entries),
+              memberchk(id=Id, Props),
+              upsert_contradiction_baseline(Type, Id, AllRelationships, Skip, Baseline) ),
+            Checks),
+    kb_stage_upsert_entries(Entries, Kinds),
+    forall(member(check(Type, Id, Skip, Baseline), Checks),
+           kb_check_upsert_contradiction(Type, Id, Skip, Baseline)).
+
+kb_stage_upsert_entries([], []).
+kb_stage_upsert_entries([
     upsert(Type, Props, Relationships, SkipContradiction)|Rest
 ], [ChangeKind|Kinds]) :-
     kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind),
-    kb_stage_upserts(Rest, Kinds).
+    kb_stage_upsert_entries(Rest, Kinds).
 
 %% kb_commit_upsert_batch(+Entries, -ChangeKinds)
 % Commit many upserts in one RDF transaction and one journal flush.

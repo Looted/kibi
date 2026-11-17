@@ -342,13 +342,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3871ce9d32b
-  - type: assumes
-    from: SCEN-NEG-check-reports-symbol-debt-SYMBOL-DEBT-BLOCKS
-    to: FACT-NEG-check-reports-symbol-debt-SYMBOL-DEBT-BLOCKS
-    created_at: 2026-11-16T05:33:59.367Z
+  - type: executable_for
+    from: SYM-test-cli-commandSurface
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T19:05:34.421Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-73cd60695bb3
+    id: rel-fe53ad61ab08
   - type: assumes
     from: SCEN-kb-merge-action-verify-before-push
     to: FACT-kb-merge-action-verify-before-push
@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0e30f1a10c73
+  - type: assumes
+    from: SCEN-check-quantity-duplicate
+    to: FACT-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:29.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f15b02b5c20
+  - type: verified_by
+    from: SCEN-check-quantity-duplicate
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:29.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe8dbea6cc14

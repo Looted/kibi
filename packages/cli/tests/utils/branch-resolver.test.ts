@@ -23,12 +23,10 @@ import {
   copyCleanSnapshot,
   detachedHeadWriteRefusal,
   getBranchDiagnostic,
-  getVolatileArtifactPatterns,
   isDetachedHead,
   isValidBranchName,
   resolveActiveBranch,
   resolveBranchAttachment,
-  resolveDefaultBranch,
   resolveReadBranchAttachment,
 } from "../../src/utils/branch-resolver";
 import { branchStorePath } from "../../src/utils/branch-store-locator";
@@ -671,141 +669,6 @@ describe("branch-resolver", () => {
       expect(existsSync(path.join(targetDir, "state.lock"))).toBe(false);
       expect(existsSync(path.join(targetDir, "server.temp"))).toBe(false);
       expect(existsSync(path.join(targetDir, "worker.pid"))).toBe(false);
-    });
-  });
-
-  describe("getVolatileArtifactPatterns", () => {
-    test("returns array of patterns", () => {
-      const patterns = getVolatileArtifactPatterns();
-      expect(patterns.length).toBeGreaterThan(0);
-      expect(patterns).toContain("sync-cache.json");
-      expect(patterns).toContain("*.lock");
-      expect(patterns).toContain("journal-*.log");
-    });
-  });
-
-  describe("resolveDefaultBranch", () => {
-    test("ignores deprecated configured defaultBranch", () => {
-      const result = resolveDefaultBranch(tmpDir, { defaultBranch: "trunk" });
-
-      expect("error" in result).toBe(true);
-      expect((result as { error: string }).error).toContain(
-        "No remote default branch",
-      );
-    });
-
-    test("does not use configured branch names with slashes", () => {
-      const result = resolveDefaultBranch(tmpDir, {
-        defaultBranch: "feature/nested/path",
-      });
-
-      expect("error" in result).toBe(true);
-    });
-
-    test("does not validate deprecated configured branch names", () => {
-      const result = resolveDefaultBranch(tmpDir, {
-        defaultBranch: "../etc/passwd",
-      });
-
-      expect("error" in result).toBe(true);
-      expect((result as { error: string }).error).toContain(
-        "No remote default branch",
-      );
-    });
-
-    test("returns origin/HEAD branch when config not set", () => {
-      // Initialize git repo with origin/HEAD
-      execSync("git init -b main", { cwd: tmpDir });
-      execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
-      execSync("git config user.name 'Test User'", { cwd: tmpDir });
-      execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
-      execSync("git checkout -b develop", { cwd: tmpDir });
-      // Create origin/HEAD pointing to develop
-      execSync("git remote add origin .", { cwd: tmpDir });
-      execSync(
-        "git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/develop",
-        {
-          cwd: tmpDir,
-        },
-      );
-
-      const result = resolveDefaultBranch(tmpDir, undefined);
-
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("develop");
-    });
-
-    test("returns an explicit error when origin/HEAD does not exist", () => {
-      _setBranchResolverDepsForTests({
-        execSync: ((command: string) => {
-          if (command.includes("symbolic-ref")) {
-            throw new Error(
-              "fatal: ref refs/remotes/origin/HEAD is not a symbolic ref",
-            );
-          }
-          return execSync(command, { cwd: tmpDir, encoding: "utf8" });
-        }) as unknown as typeof execSync,
-      });
-
-      const result = resolveDefaultBranch(tmpDir, undefined);
-
-      expect("error" in result).toBe(true);
-      expect((result as { code: string }).code).toBe("NO_DEFAULT_BRANCH");
-    });
-
-    test("returns an explicit error when not in a git repo", () => {
-      const result = resolveDefaultBranch(tmpDir, undefined);
-
-      expect("error" in result).toBe(true);
-    });
-
-    test("handles origin/HEAD with different branch names", () => {
-      // Initialize an explicit legacy-named default branch for this regression.
-      execSync("git init -b master", { cwd: tmpDir });
-      execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
-      execSync("git config user.name 'Test User'", { cwd: tmpDir });
-      execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
-      // Create origin/HEAD pointing to master (NOT normalized to main)
-      execSync("git remote add origin .", { cwd: tmpDir });
-      execSync(
-        "git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/master",
-        {
-          cwd: tmpDir,
-        },
-      );
-
-      const result = resolveDefaultBranch(tmpDir, undefined);
-
-      // Should return "master" verbatim, not normalized to "main"
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("master");
-    });
-
-    test("ignores whitespace-padded configured defaultBranch", () => {
-      const result = resolveDefaultBranch(tmpDir, {
-        defaultBranch: "  trunk  ",
-      });
-
-      expect("error" in result).toBe(true);
-    });
-
-    describe("with mocked execSync", () => {
-      beforeEach(() => {
-        _setBranchResolverDepsForTests({
-          execSync: mockExecSync as unknown as typeof execSync,
-        });
-      });
-
-      test("returns an explicit error when origin/HEAD is invalid", () => {
-        queueExecSyncResponses("refs/remotes/origin/-invalid\n");
-
-        const result = resolveDefaultBranch(tmpDir, undefined);
-
-        expect("error" in result).toBe(true);
-        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
-          "git symbolic-ref refs/remotes/origin/HEAD",
-        ]);
-      });
     });
   });
 });

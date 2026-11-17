@@ -6704,11 +6704,92 @@ test(preview_upsert_contradiction_refuses_like_the_commit_and_writes_nothing, [s
     kb_preview_upsert_contradiction(req, Props,
         [rel(supersedes, 'REQ-PREVIEW-C', 'REQ-PREVIEW-A', [])|Rels]),
     assertion(\+ kb_entity('REQ-PREVIEW-C', _, _)),
-    % Non-requirement entities never run the check.
+    % A fact no requirement is grounded on passes the check.
     kb_preview_upsert_contradiction(fact, [id='FACT-PREVIEW-NOTE', title="Note", status=active,
         fact_kind=observation, created_at="2026-05-01T00:00:00Z",
         updated_at="2026-05-01T00:00:00Z", source="test://kb.plt"], []),
     assertion(\+ kb_entity('FACT-PREVIEW-NOTE', _, _)).
+
+conflict_fact_props(FactId, Claim, Value, [
+    id=FactId, title="Conflict fact", status=active, fact_kind=property_value,
+    subject_key="api.quota", property_key="rate_limit", operator=eq,
+    value_type=int, value_int=Value, claim_key=Claim,
+    claim_text="API quota must equal the value",
+    created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+    source="test://kb.plt"]).
+
+test(fact_write_that_makes_its_requirements_contradict_is_refused, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-FACT-A', 5, 'REQ-FACT-B', 5),
+    conflict_fact_props('FACT-CONFLICT-A', "CLAIM-AAAAAAAAAAAAAAAA", 6, Props),
+    catch(
+        (kb_preview_upsert_contradiction(fact, Props, []), Caught = false),
+        error(kb_fact_contradiction(FactId, Conflicts), Message),
+        Caught = true
+    ),
+    assertion(Caught == true),
+    assertion(FactId == 'FACT-CONFLICT-A'),
+    assertion(Conflicts = [conflict('REQ-FACT-A', 'REQ-FACT-B', _)]),
+    assertion(sub_atom(Message, 0, _, _, 'Contradiction detected for fact FACT-CONFLICT-A')),
+    assertion(sub_atom(Message, _, _, _, 'REQ-FACT-A conflicts with REQ-FACT-B')),
+    assertion(sub_atom(Message, _, _, _, 'kb_apply_plan')),
+    % The preview rolled back: the stored value is unchanged.
+    once(kb_entity('FACT-CONFLICT-A', fact, Stored)),
+    memberchk(value_int=StoredValue, Stored),
+    assertion(kb:unwrap_rdf_value(StoredValue, 5)),
+    % The commit refuses the same write.
+    catch(
+        (kb_commit_upsert(fact, Props, [], false, _), Committed = true),
+        error(kb_fact_contradiction(_, _), _),
+        Committed = false
+    ),
+    assertion(Committed == false),
+    % A skipped check writes it.
+    kb_preview_upsert_contradiction(fact, Props, [], true).
+
+test(fact_write_keeps_a_contradiction_the_kb_already_holds, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-HELD-A', 5, 'REQ-HELD-B', 6),
+    % Moving A from 5 to 7 still conflicts with B; the pair is not new, so
+    % the write is kb_check's finding, not a refusal.
+    conflict_fact_props('FACT-CONFLICT-A', "CLAIM-AAAAAAAAAAAAAAAA", 7, Props),
+    kb_preview_upsert_contradiction(fact, Props, []),
+    % Settling the pair is accepted too.
+    conflict_fact_props('FACT-CONFLICT-A', "CLAIM-AAAAAAAAAAAAAAAA", 6, Settled),
+    kb_preview_upsert_contradiction(fact, Settled, []).
+
+test(fact_write_linking_a_new_requirement_is_checked, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-LINK-A', 5, 'REQ-LINK-B', 5),
+    assert_fixture_entity(fact, 'FACT-LINK-NEW', "Linked fact", active, []),
+    assert_fixture_entity(req, 'REQ-LINK-C', "Linked req", open, []),
+    kb_assert_relationship(constrains, 'REQ-LINK-C', 'FACT-CONFLICT-SUBJECT', []),
+    conflict_fact_props('FACT-LINK-NEW', "CLAIM-CCCCCCCCCCCCCCCC", 9, Props),
+    catch(
+        (kb_preview_upsert_contradiction(fact, Props,
+            [rel(requires_property, 'REQ-LINK-C', 'FACT-LINK-NEW', [])]), Caught = false),
+        error(kb_fact_contradiction('FACT-LINK-NEW', Conflicts), _),
+        Caught = true
+    ),
+    assertion(Caught == true),
+    assertion(Conflicts = [conflict('REQ-LINK-A', 'REQ-LINK-C', _), conflict('REQ-LINK-B', 'REQ-LINK-C', _)]).
+
+test(batch_checks_contradictions_once_after_every_entry, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-PLAN-A', 5, 'REQ-PLAN-B', 5),
+    conflict_fact_props('FACT-CONFLICT-A', "CLAIM-AAAAAAAAAAAAAAAA", 6, PropsA),
+    conflict_fact_props('FACT-CONFLICT-B', "CLAIM-BBBBBBBBBBBBBBBB", 6, PropsB),
+    % Alone, moving A to 6 contradicts B at 5.
+    catch(
+        (kb_commit_upsert_batch([upsert(fact, PropsA, [], false)], _), Alone = true),
+        error(kb_fact_contradiction(_, _), _),
+        Alone = false
+    ),
+    assertion(Alone == false),
+    % Together with B's move, the plan lands: the check runs once, after
+    % both entries, instead of refusing the first step.
+    kb_commit_upsert_batch([upsert(fact, PropsA, [], false),
+                            upsert(fact, PropsB, [], false)], Kinds),
+    assertion(Kinds == [updated, updated]),
+    once(kb_entity('FACT-CONFLICT-B', fact, StoredB)),
+    memberchk(value_int=ValueB, StoredB),
+    assertion(kb:unwrap_rdf_value(ValueB, 6)).
 
 test(check_req_contradiction_allows_direct_supersession, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_contradicting_requirement_pair('REQ-SUPERSEDES-A', 5, 'REQ-SUPERSEDES-B', 6),

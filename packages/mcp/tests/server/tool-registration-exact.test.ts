@@ -51,7 +51,12 @@ type Registered = {
 };
 
 function setup(
-  options: { tools?: unknown[]; hooks?: boolean; optional?: string } = {},
+  options: {
+    tools?: unknown[];
+    hooks?: boolean;
+    optional?: string;
+    listed?: ReadonlySet<string>;
+  } = {},
 ) {
   if (options.optional === undefined)
     Reflect.deleteProperty(process.env, "KIBI_MCP_OPTIONAL_TOOLS");
@@ -124,6 +129,7 @@ function setup(
         outputSchema,
       });
     }) as never,
+    options.listed,
   );
   return { runtime, registered, calls, afterSuccess };
 }
@@ -147,6 +153,28 @@ function run(
 }
 
 describe("registerConfiguredTools, exact", () => {
+  test("a tool profile registers only the tools it names, in catalog order", () => {
+    const { registered } = setup({
+      listed: new Set(["kb_check", "kb_query", "kb_apply_plan"]),
+    });
+    expect([...registered.keys()]).toStrictEqual([
+      "kb_query",
+      "kb_check",
+      "kb_apply_plan",
+    ]);
+    expect([...setup({ listed: new Set() }).registered.keys()]).toEqual([]);
+  });
+
+  test("an optional tool enabled by name is listed in every profile", () => {
+    const tools = buildBaseTools(new Set(["kb_sparql_remote"]));
+    expect([
+      ...setup({ tools, listed: new Set(["kb_query"]) }).registered.keys(),
+    ]).toStrictEqual(["kb_query", "kb_sparql_remote"]);
+    expect([
+      ...setup({ listed: new Set(["kb_query"]) }).registered.keys(),
+    ]).toStrictEqual(["kb_query"]);
+  });
+
   test("each tool is registered with its definition and catalog spec", async () => {
     const { registered, runtime } = setup();
     expect([...registered.keys()]).toStrictEqual(
@@ -299,7 +327,7 @@ describe("registerConfiguredTools, exact", () => {
   });
 
   test("upsert and delete run the shared executors with the session engine", async () => {
-    const upsert = stub(runtimeModule, "executeUpsert");
+    const upsert = stub(runtimeModule, "executeUpsertRequest");
     const del = stub(runtimeModule, "executeDelete");
     const { registered } = setup();
     const args = { id: "X" };

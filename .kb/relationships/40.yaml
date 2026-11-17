@@ -143,3 +143,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3b4e59e65fc
+  - type: assumes
+    from: SCEN-NEG-upsert-quantity-previous-value-MISSED
+    to: FACT-NEG-upsert-quantity-previous-value-MISSED
+    created_at: 2026-11-16T16:10:39.942Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55671a8c669e
+  - type: verified_by
+    from: SCEN-NEG-upsert-quantity-previous-value-MISSED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:39.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e24f895c52ed

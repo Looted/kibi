@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import path from "node:path";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import * as syncCache from "../../../src/commands/sync/cache.js";
 import * as engine from "../../../src/engine.js";
 import * as activation from "../../../src/operations/bootstrap/activation.js";
@@ -152,6 +153,10 @@ describe("executeStatus engine answer", () => {
     expect(calls.config).toHaveBeenCalledWith("/ws");
     expect(calls.fragment).not.toHaveBeenCalled();
     expect(calls.activation).toHaveBeenCalledWith(expect.anything(), []);
+    // kb_status opens a session the way the host adapters do.
+    expect((result as Loose).structuredContent.sessionBrief).toBe(
+      SESSION_BRIEF,
+    );
     expectGolden("discovery-status-healthy", result);
   });
 

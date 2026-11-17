@@ -290,3 +290,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51dfd4e543f0
+  - type: validates
+    from: TEST-mcp-structured-text-codex
+    to: SCEN-mcp-structured-text-codex
+    created_at: 2026-11-16T17:22:12.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb9b084c0687
+  - type: validates
+    from: TEST-mcp-structured-text-codex
+    to: SCEN-NEG-mcp-structured-text-codex-DOUBLE
+    created_at: 2026-11-16T17:22:12.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf0d026b1610

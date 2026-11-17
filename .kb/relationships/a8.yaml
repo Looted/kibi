@@ -55,6 +55,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73648d2181a0
+  - type: constrains
+    from: REQ-opencode-guidance-injection
+    to: FACT-kibi-opencode-guidance-block-component
+    created_at: 2026-11-16T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f753fcfd19aa
   - type: requires_property
     from: REQ-opencode-guidance-injection
     to: FACT-PROP-REQ-OPENCODE-GUIDANCE-INJECTION-C01
@@ -426,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09ddf6d40115
+  - type: assumes
+    from: SCEN-NEG-check-quantity-duplicate-UNREPORTED
+    to: FACT-NEG-check-quantity-duplicate-UNREPORTED
+    created_at: 2026-11-16T16:10:29.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99695f83c003
+  - type: verified_by
+    from: SCEN-NEG-check-quantity-duplicate-UNREPORTED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:29.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4274b95f441a

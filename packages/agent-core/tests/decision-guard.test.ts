@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -31,6 +32,7 @@ import {
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  startDecisionSession,
   statedRule,
   takeRuleNote,
 } from "../src/decision-guard";
@@ -706,6 +708,96 @@ describe("statedRule and notes", () => {
     expect(statedRule("Users never see drafts")).toBeUndefined();
   });
 
+  test("reads rules written as lists, with emphasis or after asking phrases", () => {
+    expect(statedRule("- Never log API keys")).toBe("never");
+    expect(statedRule("* Always require 2FA for admins")).toBe("always");
+    expect(statedRule("+ never log keys")).toBe("never");
+    expect(statedRule("1. Never log keys")).toBe("never");
+    expect(statedRule("2) always hash")).toBe("always");
+    expect(statedRule("## Never log keys")).toBe("never");
+    expect(statedRule("**Never** log API keys.")).toBe("never");
+    expect(statedRule("_Always_ hash passwords")).toBe("always");
+    expect(
+      statedRule(
+        "Rules:\n- never store passwords in plain text\n- always hash with argon2",
+      ),
+    ).toBe("never");
+    expect(statedRule("Also never log keys")).toBe("never");
+    expect(statedRule("Let's always require a review")).toBe("always");
+    expect(statedRule("Let us never skip review")).toBe("never");
+    expect(statedRule("We never want to log API keys.")).toBe("never");
+    expect(statedRule("You always need to sign commits")).toBe("always");
+    expect(statedRule("Remember to always validate the input")).toBe("always");
+    expect(statedRule("You need to always check the tenant id")).toBe("always");
+    expect(statedRule("Be sure to never skip it")).toBe("never");
+    expect(statedRule("Users may never see other tenants' data.")).toBe(
+      "never",
+    );
+    expect(statedRule("Guests can never delete")).toBe("never");
+    expect(statedRule("Always have a backup")).toBe("always");
+    expect(statedRule("Never pass secrets in URLs")).toBe("never");
+    // A describing clause does not hide a later instructing one.
+    expect(statedRule("It always crashes, so never deploy on Friday")).toBe(
+      "never",
+    );
+  });
+
+  test("does not read descriptions or idioms as rules", () => {
+    expect(
+      statedRule(
+        "Tokens currently never expire, and always have been stored in redis.",
+      ),
+    ).toBeUndefined();
+    expect(
+      statedRule("The cache is, as far as I can tell, never invalidated."),
+    ).toBeUndefined();
+    expect(statedRule("It never works (always crashes)")).toBeUndefined();
+    expect(statedRule("e.g. never-ending loops happen here")).toBeUndefined();
+    expect(statedRule("Never-ending loops")).toBeUndefined();
+    expect(statedRule("Users may never-ever")).toBeUndefined();
+    expect(
+      statedRule("Never mind, ignore my last message and just fix the typo."),
+    ).toBeUndefined();
+    expect(statedRule("Thanks. Always a pleasure!")).toBeUndefined();
+    expect(statedRule("Fine, always the same")).toBeUndefined();
+    expect(statedRule("and never an error")).toBeUndefined();
+    expect(statedRule("but always was slow")).toBeUndefined();
+    expect(statedRule("so never were they")).toBeUndefined();
+    expect(statedRule("then always is fine")).toBeUndefined();
+    expect(statedRule("but never are they")).toBeUndefined();
+    expect(statedRule("(always am late)")).toBeUndefined();
+    expect(statedRule("; never did it")).toBeUndefined();
+    expect(statedRule(": always does it")).toBeUndefined();
+    expect(statedRule(", never has it")).toBeUndefined();
+    expect(statedRule(", never had it")).toBeUndefined();
+    expect(statedRule(", always been so")).toBeUndefined();
+    expect(statedRule("We never wanted to")).toBeUndefined();
+  });
+
+  test("ignores fenced, indented and quoted text and questions asking to be told", () => {
+    expect(statedRule("~~~\nmust never\n~~~\nfix the typo")).toBeUndefined();
+    expect(statedRule("~~~\nmust never")).toBeUndefined();
+    expect(
+      statedRule("    assert x, 'must be set'\nfix the typo"),
+    ).toBeUndefined();
+    expect(statedRule("Fix it:\n\n\tmust()\n")).toBeUndefined();
+    expect(
+      statedRule("Fix it:\n\n    a()\n    must()\nthen go"),
+    ).toBeUndefined();
+    // An indented line that continues a paragraph is not code.
+    expect(statedRule("Fix it\n    and never log keys")).toBe("never");
+    expect(
+      statedRule("> you must never log keys\nwhat did the reviewer mean"),
+    ).toBeUndefined();
+    expect(statedRule("  > never log keys")).toBeUndefined();
+    expect(
+      statedRule("Could you tell me why this must be so?"),
+    ).toBeUndefined();
+    expect(statedRule("Can you explain why it must retry?")).toBeUndefined();
+    expect(statedRule("Please would you show why it must?")).toBeUndefined();
+    expect(statedRule("Can you make sure it must retry?")).toBe("must");
+  });
+
   test("ignores questions and code", () => {
     expect(statedRule("Should we always lint?")).toBeUndefined();
     expect(statedRule("Does it always fail?")).toBeUndefined();
@@ -760,8 +852,12 @@ describe("statedRule and notes", () => {
   });
 
   test("the capture template quotes the phrase and is one kb_upsert payload", () => {
-    const [intro, payload, ...rest] = ruleCaptureTemplate("must").split("\n");
+    const [intro, payload, next, ...rest] =
+      ruleCaptureTemplate("must").split("\n");
     expect(rest).toEqual([]);
+    expect(next).toBe(
+      "kb_check then asks for a scenario and a test that prove the rule; add them in this change or name them as still to do in the final report.",
+    );
     expect(intro).toBe(
       'Kibi: the request said "must" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:',
     );
@@ -777,7 +873,9 @@ describe("statedRule and notes", () => {
           ref: "<the person's words and where they said them>",
         },
       },
-      document: { body: "<the rule as one shall or must sentence>" },
+      document: {
+        body: "<the rule as one shall or must sentence>\n\n## Context\n\n<who asked for the rule and why, in their words; write 'Reason not stated' when they gave no reason>\n\n## Source\n\n<the person's words, verbatim>",
+      },
       implementedBy: [
         {
           sourceFile: "<file you changed>",
@@ -902,6 +1000,161 @@ describe("rule capture template", () => {
     expect(claimRuleCaptureTemplate(recorded)).toBe(undefined);
     // Recording first does not use up the template's one claim.
     expect(hasDecisionFlag(recorded, "capture-template")).toBe(false);
+  });
+
+  test("a host that delivers it before the edit passes an edit of a source file", () => {
+    const rule = session("pre-edit");
+    recordRequest(rule, "Uploads must stay under 10 MB");
+    expect(claimRuleCaptureTemplate(rule, false)).toBe(undefined);
+    expect(claimRuleCaptureTemplate(rule, true)).toBe(
+      ruleCaptureTemplate("must"),
+    );
+    expect(claimRuleCaptureTemplate(rule, true)).toBe(undefined);
+  });
+});
+
+describe("sessions without an id", () => {
+  const HOUR = 60 * 60 * 1000;
+
+  /** Set every marker of the session to `time` (ms). */
+  function age(s: DecisionSession, time: number) {
+    const key = createHash("sha256")
+      .update(s.sessionId?.trim() || "unattributed")
+      .digest("hex")
+      .slice(0, 32);
+    const dir = path.join(s.stateDir as string, "decision-guard", key);
+    for (const name of fs.readdirSync(dir)) {
+      const when = new Date(time);
+      fs.utimesSync(path.join(dir, name), when, when);
+    }
+  }
+
+  test("a new session without an id starts without the last one's markers", () => {
+    const first = session("");
+    recordRequest(first, "Never log keys");
+    markDecisionFlag(first, "source-edited");
+    claimDecisionFlag(first, "capture-asked");
+    const journal = path.join(first.stateDir as string, "host.jsonl");
+    fs.writeFileSync(journal, "{}");
+    // A resume keeps them.
+    expect(
+      startDecisionSession(first, "resume", { hostFiles: [journal] }),
+    ).toBe(false);
+    expect(hasDecisionFlag(first, "capture-asked")).toBe(true);
+    expect(
+      startDecisionSession(first, "startup", { hostFiles: [journal] }),
+    ).toBe(true);
+    expect(hasDecisionFlag(first, "capture-asked")).toBe(false);
+    expect(fs.existsSync(journal)).toBe(false);
+    expect(sessionRulePhrase(first)).toBe(undefined);
+    expect(claimCaptureReminder(first)).toBe(false);
+  });
+
+  test("a new session with an id keeps the markers of the unattributed one", () => {
+    const anonymous = session("");
+    markDecisionFlag(anonymous, "source-edited");
+    expect(
+      startDecisionSession(
+        { stateDir: anonymous.stateDir, sessionId: "named" },
+        "startup",
+      ),
+    ).toBe(false);
+    expect(hasDecisionFlag(anonymous, "source-edited")).toBe(true);
+  });
+
+  test("a prompt after two idle hours starts the unattributed session afresh", () => {
+    const now = Date.now();
+    const idle = session("");
+    markDecisionFlag(idle, "source-edited");
+    claimDecisionFlag(idle, "capture-asked");
+    age(idle, now - 2 * HOUR + 60_000);
+    recordRequest(idle, "Rename the helper", now);
+    expect(hasDecisionFlag(idle, "capture-asked")).toBe(true);
+    age(idle, now - 2 * HOUR - 60_000);
+    recordRequest(idle, "Rename the helper", now);
+    expect(hasDecisionFlag(idle, "capture-asked")).toBe(false);
+    // The new prompt's words are kept.
+    expect(requestWords(idle)).toContain("helper");
+
+    // A recent host file counts as activity; once dropped, it goes too.
+    markDecisionFlag(idle, "source-edited");
+    age(idle, now - 3 * HOUR);
+    const journal = path.join(idle.stateDir as string, "host.jsonl");
+    fs.writeFileSync(journal, "{}");
+    const options = { now, hostFiles: [journal] };
+    expect(startDecisionSession(idle, "prompt", options)).toBe(false);
+    expect(hasDecisionFlag(idle, "source-edited")).toBe(true);
+    const old = new Date(now - 3 * HOUR);
+    fs.utimesSync(journal, old, old);
+    expect(startDecisionSession(idle, "prompt", options)).toBe(true);
+    expect(hasDecisionFlag(idle, "source-edited")).toBe(false);
+    expect(fs.existsSync(journal)).toBe(false);
+
+    // An attributed session is never expired by idleness.
+    const named = session("named");
+    markDecisionFlag(named, "source-edited");
+    age(named, now - 3 * HOUR);
+    expect(startDecisionSession(named, "prompt", { now })).toBe(false);
+    expect(hasDecisionFlag(named, "source-edited")).toBe(true);
+    // No state directory, or no markers yet: nothing to expire.
+    expect(
+      startDecisionSession({ stateDir: undefined, sessionId: "" }, "prompt"),
+    ).toBe(false);
+    expect(startDecisionSession(session(""), "prompt")).toBe(false);
+    const missing = session("");
+    expect(
+      startDecisionSession(missing, "prompt", {
+        hostFiles: [path.join(missing.stateDir as string, "none.jsonl")],
+      }),
+    ).toBe(false);
+  });
+
+  test("session start removes markers of sessions untouched for a week", () => {
+    const now = Date.now();
+    const WEEK = 7 * 24 * HOUR;
+    const stale = session("stale");
+    markDecisionFlag(stale, "source-edited");
+    const fresh: DecisionSession = {
+      stateDir: stale.stateDir,
+      sessionId: "fresh",
+    };
+    age(stale, now - WEEK - 60_000);
+    markDecisionFlag(fresh, "source-edited");
+    const empty = path.join(stale.stateDir as string, "decision-guard", "x");
+    fs.mkdirSync(empty);
+    const current: DecisionSession = {
+      stateDir: stale.stateDir,
+      sessionId: "current",
+    };
+    markDecisionFlag(current, "kb-recorded");
+    age(current, now - WEEK - 60_000);
+    startDecisionSession(current, "startup", { now });
+    expect(hasDecisionFlag(stale, "source-edited")).toBe(false);
+    expect(hasDecisionFlag(fresh, "source-edited")).toBe(true);
+    expect(fs.existsSync(empty)).toBe(false);
+    // The starting session's own markers stay.
+    expect(hasDecisionFlag(current, "kb-recorded")).toBe(true);
+    // A resume prunes too.
+    age(fresh, now - WEEK - 60_000);
+    startDecisionSession(current, "resume", { now });
+    expect(hasDecisionFlag(fresh, "source-edited")).toBe(false);
+    // Nothing to do without a state directory or before any marker.
+    expect(startDecisionSession(noState, "startup")).toBe(false);
+    expect(startDecisionSession(session("first"), "startup")).toBe(false);
+  });
+
+  test("files that cannot be removed are left in place", () => {
+    const parent = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-file-"));
+    dirs.push(parent);
+    const blocker = path.join(parent, "not-a-dir");
+    fs.writeFileSync(blocker, "");
+    const broken: DecisionSession = { stateDir: blocker, sessionId: "" };
+    // A host file under a file cannot be removed: no error.
+    expect(
+      startDecisionSession(broken, "startup", {
+        hostFiles: [path.join(blocker, "journal")],
+      }),
+    ).toBe(true);
   });
 });
 

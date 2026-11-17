@@ -363,3 +363,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7149223743f5
+  - type: assumes
+    from: SCEN-cli-help-command-summaries
+    to: FACT-cli-help-hides-narrow-routes
+    created_at: 2026-11-16T17:22:08.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04a175965098
+  - type: assumes
+    from: SCEN-cli-help-command-summaries
+    to: FACT-cli-unlisted-commands-run
+    created_at: 2026-11-16T17:22:08.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dee56e57881
+  - type: assumes
+    from: SCEN-cli-help-command-summaries
+    to: FACT-cli-help-commands-without-first-sentence
+    created_at: 2026-11-16T18:33:16.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06a3eb73becc
+  - type: assumes
+    from: SCEN-cli-help-command-summaries
+    to: FACT-cli-command-help-shortened-count
+    created_at: 2026-11-16T18:33:29.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d1d549aa608
+  - type: constrains
+    from: REQ-kibi-skills-write-without-ritual
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
+    created_at: 2026-11-16T15:37:30.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e85b128637bc
+  - type: specified_by
+    from: REQ-kibi-skills-write-without-ritual
+    to: SCEN-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:37:30.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b96fd904b675
+  - type: specified_by
+    from: REQ-kibi-skills-write-without-ritual
+    to: SCEN-NEG-kibi-skills-write-without-ritual-THREE-CALLS
+    created_at: 2026-11-16T15:37:30.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-720f3be8aff6
+  - type: requires_property
+    from: REQ-kibi-skills-write-without-ritual
+    to: FACT-kibi-skills-write-is-one-call
+    created_at: 2026-11-16T15:46:19.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58099322ed9e
+  - type: requires_property
+    from: REQ-kibi-skills-write-without-ritual
+    to: FACT-kibi-skills-write-ritual-optional
+    created_at: 2026-11-16T15:46:19.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c86b4fdf5cf2

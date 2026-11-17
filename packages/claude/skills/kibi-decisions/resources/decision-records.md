@@ -10,7 +10,7 @@ or change a rule, what Kibi refuses, and the `kb_compile_intent` review loop.
 | Prompt submit | `Kibi: this request reads as a rule or decision (it says "<phrase>").` | The phrase matched words such as "must", "never", "always", "from now on", "has to". It only asks whether there is something to record; check with `kb_search`. |
 | Before an edit (Claude Code) | A permission prompt: `Kibi: this edit changes <symbol>, which implements a firm requirement recorded in the knowledge base: <ID>: <title>. Allow it if ...` | The person decides. You are also told: if the edit was declined or could not be confirmed, the requirement stands; if allowed and the change alters what the requirement says, update the requirement with `kb_upsert` in this change. |
 | Before an edit (Codex, Cursor, ZCode) | `Kibi: this edit changes <where>, which implements a firm requirement, a rule the person set: ...` | The host cannot prompt the person, so you must: unless the edit keeps the rule, ask before making it and name the rule. |
-| After the first source edit (prompt read as a rule) | `Kibi: the request said "<phrase>" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:` followed by a `kb_upsert` payload | Fill in the requirement (one shall or must sentence, the person's words as `origin.ref`, the file and function you changed as `implementedBy`) and send it with this change. Given once per session, and not after a `kb_upsert` write. |
+| After the first source edit (prompt read as a rule) | `Kibi: the request said "<phrase>" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:` followed by a `kb_upsert` payload | Fill in the requirement (one shall or must sentence, then the `## Context` and `## Source` sections of the body, the person's words as `origin.ref`, the file and function you changed as `implementedBy`) and send it with this change; kb_check then asks for a scenario and a test. Given once per session, and not after a `kb_upsert` write. |
 | Stop | `Kibi: the person's request said "<phrase>", this session changed source files, and nothing was recorded in the knowledge base.` (or, with no rule-like request, `Kibi: this session changed source files and recorded nothing in the knowledge base.`) | Record the rule behind the phrase (or the decision the person stated) with `kb_upsert` as a requirement linked to its code before reporting the work done, or say in the final report why the phrase is not a rule. Asked once per session. |
 
 The firm-edit prompt covers current requirements whose effective firmness is
@@ -69,8 +69,8 @@ validation, not the write.
   proof kinds in kibi-usage `resources/proof.md`.
 - Your own choice is `default`; a guess is `exploratory`. Write the value
   explicitly whenever you record a decision.
-- For strict modeling (claim keys, predicate facts) follow `kibi-usage`,
-  "Second-agent edits", recipe 1.
+- For strict modeling (claim keys, predicate facts) follow the `kibi-usage`
+  resource `resources/second-agent-edits.md`, recipe 1.
 
 ## Supersede a rule
 
