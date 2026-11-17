@@ -4,6 +4,7 @@ import {
   KbRejection,
   OperationError,
 } from "../../../src/cli-errors.js";
+import type { CaptureReads } from "../../../src/operations/mutation/capture.js";
 import {
   IMPLEMENTED_BY_DEPS,
   type ImplementedByDeps,
@@ -73,6 +74,7 @@ function deps(
     preview?: Record<string, unknown>;
     failSymbol?: string;
     empty?: boolean;
+    reads?: CaptureReads;
   } = {},
 ): ImplementedByDeps & { calls: Recorded } {
   const calls: Recorded = { executed: [], validated: [] };
@@ -114,6 +116,7 @@ function deps(
       };
     }) as unknown as ImplementedByDeps["validate"],
     storedSymbols: async () => options.stored ?? [],
+    captureReads: () => options.reads,
   };
 }
 
@@ -572,6 +575,136 @@ describe("executeUpsertRequest", () => {
       deps({ empty: true }),
     ).catch((caught: Error) => caught);
     expect((error as Error).message).toBe("kb_upsert returned no payload");
+  });
+
+  test("a written requirement gets its why applied, the steps left and the requirements on the same terms", async () => {
+    const reads: CaptureReads = {
+      entity: async (id) =>
+        id === "REQ-key-expiry"
+          ? { title: "Keys expire", status: "open" }
+          : undefined,
+      exists: async () => false,
+      implementingSymbols: async () => [],
+      scenarios: async () => [],
+      covered: async () => true,
+      tested: async () => true,
+      subjectGaps: async () => [
+        {
+          claimKey: "C1",
+          claimText: "c",
+          candidates: ["keys"],
+          labels: ["keys"],
+        },
+      ],
+      currentRequirements: async () => [
+        {
+          id: "REQ-key-age",
+          title: "Keys expire",
+          semanticText: "Keys expire after 90 days.",
+        },
+      ],
+    };
+    const using = deps({ reads });
+    const result = await executeUpsertRequest(
+      req(undefined, {
+        implementedBy: undefined,
+        why: "Leaked keys stay valid.",
+      }),
+      CONTEXT,
+      using,
+    );
+    expect(using.calls.executed[0]?.properties).toMatchObject({
+      rationale: "Leaked keys stay valid.",
+    });
+    expect(using.calls.executed[0]).not.toHaveProperty("why");
+    expect(result.structuredContent?.warnings).toEqual([
+      "warned REQ-key-expiry",
+    ]);
+    expect(
+      result.structuredContent?.nextActions?.map((step) => step.code),
+    ).toEqual(["claim-subject-missing"]);
+    expect(result.structuredContent?.relatedRequirements).toEqual([
+      { id: "REQ-key-age", statement: "Keys expire after 90 days." },
+    ]);
+    expect(result.content.map((part) => part.text)).toEqual([
+      "wrote REQ-key-expiry",
+      "Left before kb_check passes: 1 step(s), each in nextActions with its input.",
+      "Current requirements on the same terms: REQ-key-age. If REQ-key-expiry replaces one, add a supersedes link to it and close it.",
+    ]);
+
+    // Nothing left and nothing related adds nothing.
+    const quiet = await executeUpsertRequest(
+      req(undefined, { implementedBy: undefined }),
+      CONTEXT,
+      deps({
+        reads: {
+          ...reads,
+          subjectGaps: async () => [],
+          currentRequirements: async () => [],
+        },
+      }),
+    );
+    expect(quiet.content.map((part) => part.text)).toEqual([
+      "wrote REQ-key-expiry",
+    ]);
+    expect(quiet.structuredContent).not.toHaveProperty("nextActions");
+    expect(quiet.structuredContent).not.toHaveProperty("relatedRequirements");
+
+    // A store that fails a follow-up read leaves the write's own result.
+    const failing = await executeUpsertRequest(
+      req(undefined, { implementedBy: undefined }),
+      CONTEXT,
+      deps({
+        reads: {
+          ...reads,
+          entity: async () => {
+            throw new Error("Query failed");
+          },
+          currentRequirements: async () => [],
+        },
+      }),
+    );
+    expect(failing.structuredContent?.warnings).toEqual([
+      "warned REQ-key-expiry",
+    ]);
+    expect(failing.structuredContent).not.toHaveProperty("nextActions");
+
+    // A dry run, a write needing repair and another type get no follow-up.
+    const dry = await executeUpsertRequest(
+      req(undefined, { implementedBy: undefined, dryRun: true }),
+      CONTEXT,
+      deps({ reads }),
+    );
+    expect(dry.content.map((part) => part.text)).toEqual(["preview"]);
+    const repairing = deps({ reads });
+    const repaired = await executeUpsertRequest(
+      req(undefined, { implementedBy: undefined }),
+      CONTEXT,
+      {
+        ...repairing,
+        execute: async () => ({
+          content: [{ type: "text", text: "repair" }],
+          structuredContent: payload({ status: "committed_with_repairs" }),
+        }),
+      },
+    );
+    expect(repaired.structuredContent).not.toHaveProperty("nextActions");
+    const fact = await executeUpsertRequest(
+      { type: "fact", id: "F", properties: {} } as UpsertInput,
+      CONTEXT,
+      deps({ reads }),
+    );
+    expect(fact.structuredContent).not.toHaveProperty("nextActions");
+  });
+
+  test("the default capture reads need a store", () => {
+    expect(IMPLEMENTED_BY_DEPS.captureReads(CONTEXT)).toBeUndefined();
+    expect(
+      IMPLEMENTED_BY_DEPS.captureReads({
+        ...CONTEXT,
+        prolog: { query: async () => ({ success: false, bindings: {} }) },
+      } as unknown as OperationContext),
+    ).toBeDefined();
   });
 
   test("the default deps read the stored symbols from the store", async () => {
