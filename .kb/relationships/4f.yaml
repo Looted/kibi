@@ -367,3 +367,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3aa1d745f47
+  - type: assumes
+    from: SCEN-NEG-core-snapshot-duplicate-repair-UNREPORTED
+    to: FACT-NEG-core-snapshot-duplicate-repair-UNREPORTED
+    created_at: 2026-11-17T09:08:09.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36fe8f490bd5

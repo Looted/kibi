@@ -101,6 +101,7 @@ function harness() {
     storeReason: spy(branchStore, "branchStoreReason").mockReturnValue(null),
     lock: spy(branchStore, "storeLockJournalReason").mockReturnValue(null),
     takeover: spy(branchStore, "storeLockTakeoverReason").mockReturnValue(null),
+    repair: spy(branchStore, "storeRepairReason").mockReturnValue(null),
     compiler: spy(syncCache, "compilerFingerprintReason").mockReturnValue(null),
     extraction: spy(
       syncCache,
@@ -393,6 +394,37 @@ describe("executeStatus stale reasons", () => {
       syncState: "fresh",
       dirty: false,
     });
+  });
+
+  test("lists a store repair after a lock takeover without making the KB stale", async () => {
+    const calls = harness();
+    calls.repair.mockReturnValue({
+      code: "branch_store_repaired",
+      detail: "Kibi repaired this branch store.",
+    });
+    const repaired = await status();
+    expect(calls.repair).toHaveBeenCalled();
+    expect(repaired.structuredContent).toMatchObject({
+      syncState: "fresh",
+      dirty: false,
+      notices: [
+        {
+          code: "branch_store_repaired",
+          detail: "Kibi repaired this branch store.",
+        },
+      ],
+    });
+    expect(repaired.content[0].text).toEndWith(
+      ". Note: Kibi repaired this branch store.",
+    );
+    calls.takeover.mockReturnValue({ code: "takeover", detail: "took over" });
+    const both = await status();
+    expect(
+      both.structuredContent.notices.map((row: Loose) => row.code),
+    ).toEqual(["takeover", "branch_store_repaired"]);
+    expect(both.content[0].text).toEndWith(
+      ". Note: took over. Note: Kibi repaired this branch store.",
+    );
   });
 
   test("blocks on a store that was never compiled", async () => {

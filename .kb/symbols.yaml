@@ -44439,6 +44439,101 @@ symbols:
         target: TEST-kibi-env-workspace-file-key-policy
       - type: implements
         target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-test-core-snapshot-duplicate-triples
+    title: Branch store snapshot duplicate-triple suites
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:09:04.396Z
+    relationships:
+      - type: executable_for
+        target: TEST-core-snapshot-duplicate-triples
+  - id: SYM-branch-store-store-repair-reason
+    title: storeRepairReason
+    sourceFile: packages/cli/src/utils/branch-store.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:10:09.965Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-duplicate-repair
+  - id: SYM-core-kb-flush-journals
+    title: kb_flush_journals
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:40.944Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-triples-held-once
+  - id: SYM-core-collect-store-garbage
+    title: collect_store_garbage
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:42.700Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-triples-held-once
+  - id: SYM-check-store-snapshot-count-store
+    title: count_store
+    status: active
+    sourceFile: scripts/check-store-snapshot.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:44.565Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-triples-held-once
+  - id: SYM-core-kb-repair-duplicate-triples
+    title: kb_repair_duplicate_triples
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:46.412Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-duplicate-repair
+  - id: SYM-core-write-store-repair
+    title: write_store_repair
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:48.267Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-duplicate-repair
   - id: SYM-branch-store-locator-unmigrated-legacy-store-refusal
     title: unmigratedLegacyStoreRefusal
     sourceFile: packages/cli/src/utils/branch-store-locator.ts
