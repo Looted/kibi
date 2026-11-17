@@ -31,8 +31,9 @@ logic_claims:
   - CLAIM-3451CCB02BE8F626
 origin:
   kind: agent
-  ref: 'Owner decision, 2026-11-16 (relayed): a committed keeps receipt must no longer skip the firm-edit question on later edits; the hooks honour a receipt only in the session that was asked or for a retry of the same edit.'
+  ref: 'Owner decision, 2026-11-16 (relayed): a committed keeps receipt must no longer skip the firm-edit question on later edits; the hooks honour a receipt only in the session that was asked or for a retry of the same edit. Maintainer decision, 2026-11-17, approving the reworded statement: "Approved".'
   recorded_at: '2026-11-16T21:06:43.498Z'
+  approved_by: maintainer
 id: REQ-claude-firm-edit-confirmation
 type: req
 semantic_clauses:
