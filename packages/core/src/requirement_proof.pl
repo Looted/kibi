@@ -1660,6 +1660,15 @@ proof_contract_binding(Props, Binding) :-
     ).
 
 proof_contract_hash(RawContract, Hash) :-
+    % Every receipt of every test that covers a requirement is checked
+    % against its test's contract, so one stored contract text is parsed and
+    % hashed thousands of times per evaluation.
+    (   (atom(RawContract) ; string(RawContract))
+    ->  pure_memo(proof_contract_hash, RawContract, compute_proof_contract_hash, Hash)
+    ;   compute_proof_contract_hash(RawContract, Hash)
+    ).
+
+compute_proof_contract_hash(RawContract, Hash) :-
     proof_contract_dict(RawContract, Contract),
     canonical_json_value(Contract, Canonical),
     crypto_data_hash(Canonical, Hash, [algorithm(sha256), encoding(utf8)]).

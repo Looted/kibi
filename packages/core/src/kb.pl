@@ -154,6 +154,7 @@ kb_uri('urn-kibi:').
 :- dynamic kb_requirement_ladder_memo/3.
 :- dynamic kb_status_source_index_memo/2.
 :- dynamic kb_scenario_feasibility_memo/3.
+:- dynamic kb_property_fact_index/7.
 :- dynamic kb_search_ids_memo/4.
 :- dynamic kb_query_ids_memo/3.
 :- dynamic kb_index_verified_key/1.
@@ -382,6 +383,7 @@ kb_detach :-
     retractall(kb_requirement_ladder_memo(_, _, _)),
     retractall(kb_status_source_index_memo(_, _)),
     retractall(kb_scenario_feasibility_memo(_, _, _)),
+    retractall(kb_property_fact_index(_, _, _, _, _, _, _)),
     retractall(kb_search_ids_memo(_, _, _, _)),
     retractall(kb_query_ids_memo(_, _, _)),
     retractall(kb_index_entity(_, _)),
@@ -2032,13 +2034,13 @@ assert_relationship_reporting(rel(RelType, FromId, ToId), Position-Failed0, Next
 kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
     kb_graph(Graph),
     % Validate source entity exists
-    (   once(kb_entity(FromId, FromType, _))
+    (   kb_entity_type(FromId, FromType)
     ->  true
     ;   throw(error(existence_error(entity, FromId),
                 context(kb_assert_relationship, 'Source entity does not exist')))
     ),
     % Validate target entity exists
-    (   once(kb_entity(ToId, ToType, _))
+    (   kb_entity_type(ToId, ToType)
     ->  true
     ;   throw(error(existence_error(entity, ToId),
                 context(kb_assert_relationship, 'Target entity does not exist')))
@@ -2064,6 +2066,20 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
         % Assert relationship triple
         rdf_assert(FromURI, RelURI, ToURI, Graph)
     )).
+
+%% kb_entity_type(+Id, -Type)
+% The type once(kb_entity(Id, Type, _)) gives, read from the entity's type
+% triple without decoding its properties. Every relationship write checks
+% both endpoints, and each write starts a new RDF generation, so the decoded
+% entity memo never helped there: projecting a store of 8.5k entities and
+% 21k relationships decoded entities 54k times.
+kb_entity_type(Id, Type) :-
+    (   kb_graph(Graph),
+        entity_id_to_uri(Id, EntityURI),
+        once(rdf(EntityURI, kb:type, TypeLiteral, Graph))
+    ->  literal_to_atom(TypeLiteral, Type)
+    ;   once(entity(Type, Id, _, _))
+    ).
 
 validate_symbol_role_compatibility(RelType, FromId, _ToId) :-
     (   memberchk(RelType, [implements, covered_by, executable_for]),
@@ -2288,7 +2304,12 @@ row_for_id(Id, [Id, _]).
 %% entity_id_to_uri(+Id, -URI)
 % Build the canonical entity URI used for RDF read/write.
 entity_id_to_uri(Id, URI) :-
-    format(atom(URI), 'kb:entity/~w', [Id]).
+    % Checks convert ids millions of times; atom_concat/3 gives the text
+    % format/3 writes for any atomic id at a fraction of its cost.
+    (   atomic(Id)
+    ->  atom_concat('kb:entity/', Id, URI)
+    ;   format(atom(URI), 'kb:entity/~w', [Id])
+    ).
 
 %% entity_uri_to_id(+URI, -Id)
 % Extract entity ID from canonical or legacy entity URIs.
@@ -3631,8 +3652,15 @@ test_covers_requirement(Test, Req) :-
     requirement_test_fallback_allowed(Req),
     test_satisfies_requirement_semantics(Test, Req).
 test_covers_requirement(Test, Req) :-
-    kb_relationship(specified_by, Req, Scenario),
-    scenario_verified_by_test(Scenario, Test),
+    % Coverage asks which requirement a known test covers; walking every
+    % specified_by edge for each test made that quadratic. Start from the
+    % bound end; the solutions are the same either way.
+    (   var(Req), nonvar(Test)
+    ->  scenario_verified_by_test(Scenario, Test),
+        kb_relationship(specified_by, Req, Scenario)
+    ;   kb_relationship(specified_by, Req, Scenario),
+        scenario_verified_by_test(Scenario, Test)
+    ),
     test_satisfies_requirement_semantics(Test, Req).
 
 %% production_symbol_untested(+Symbol)

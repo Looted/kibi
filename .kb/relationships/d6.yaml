@@ -542,3 +542,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac1705a0db6a
+  - type: implements
+    from: SYM-ts-morph-extractor-create-builtin-ts-morph-symbol-extractor
+    to: REQ-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:27.891Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bad0f65e1e3
+  - type: covered_by
+    from: SYM-ts-morph-extractor-create-builtin-ts-morph-symbol-extractor
+    to: TEST-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:27.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6554f6189858

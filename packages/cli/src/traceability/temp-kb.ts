@@ -388,15 +388,16 @@ function registerCleanupHandlers(tempDir: string): void {
   });
 }
 
-async function consultOverlay(ctx: TempKbContext): Promise<void> {
+export async function consultOverlay(ctx: TempKbContext): Promise<void> {
   const prolog = prologByTempDir.get(ctx.tempDir);
   if (!prolog) {
     throw new Error(`No Prolog session found for temp dir: ${ctx.tempDir}`);
   }
 
+  // The scratch store is only queried in memory; saving it to disk after the
+  // overlay wrote the whole projected store again for nothing.
   const consultResult = await prolog.query([
     `consult(${escapePrologAtom(ctx.overlayPath)})`,
-    "kb_save",
   ]);
 
   if (!consultResult.success) {
@@ -405,8 +406,6 @@ async function consultOverlay(ctx: TempKbContext): Promise<void> {
     );
   }
 }
-
-export { consultOverlay };
 
 const PROJECTION_BATCH_SIZE = 128;
 

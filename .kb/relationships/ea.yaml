@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac9ac9a05c85
+  - type: implements
+    from: SYM-ts-morph-runtime-create-syntactic-project
+    to: REQ-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:26.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a390aa53e2f0
+  - type: covered_by
+    from: SYM-ts-morph-runtime-create-syntactic-project
+    to: TEST-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:26.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e73e5981568

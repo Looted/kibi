@@ -23,6 +23,7 @@ import type {
   OperationContext,
   PrologPort,
 } from "../../../src/public/operations/runtime-types.js";
+import * as analysisCache from "../../../src/public/operations/source-analysis-cache.js";
 import * as dangling from "../../../src/public/operations/source-path-dangling.js";
 import * as parity from "../../../src/public/operations/source-relationship-parity.js";
 import * as reporting from "../../../src/public/operations/specs/reporting.js";
@@ -603,7 +604,7 @@ describe("executeCheck", () => {
       prolog,
       "/ws/args",
       rules,
-      undefined,
+      null,
     );
     expect(calls.coordinates).toHaveBeenCalledWith(prolog, "/ws/args", rules);
     expect(calls.origin).toHaveBeenCalledWith(prolog, rules, "/ws/args");
@@ -712,7 +713,7 @@ describe("executeCheck", () => {
       calls.dangling,
     ])
       expect(skipped).not.toHaveBeenCalled();
-    expect(calls.granularity.mock.calls[0][3]).toBeUndefined();
+    expect(calls.granularity.mock.calls[0][3]).toBeNull();
     expect(calls.floor.mock.calls[0][2].freshEvidence).toBe(false);
     expect(calls.full.mock.calls[0][0].maxDiagnostics).toBe(3);
     expect(
@@ -730,10 +731,35 @@ describe("executeCheck", () => {
     ]);
   });
 
-  test("reads the analysis cache of the attached store", async () => {
+  test("shares one analysis cache of the attached store and saves it once", async () => {
     const calls = harness({ rules: ["aggregated"] });
+    const events: string[] = [];
+    const cache = {
+      get: () => undefined,
+      set: () => undefined,
+      save: () => {
+        events.push("save");
+      },
+    };
+    const open = spy(analysisCache, "openSourceAnalysisCache").mockReturnValue(
+      cache,
+    );
+    const collect = spy(debt, "collectSymbolDebt").mockImplementation(
+      async () => {
+        events.push("debt");
+        return { total: 0, fileCount: 0, files: [] };
+      },
+    );
+    calls.granularity.mockImplementation(async () => {
+      events.push("granularity");
+      return [];
+    });
     await run({}, context({ branchAttachment: ATTACHED as never }));
-    expect(calls.granularity.mock.calls[0][3]).toBe("/ws/store");
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(open.mock.calls[0]?.[0]).toBe("/ws/store");
+    expect(calls.granularity.mock.calls[0][3]).toBe(cache);
+    expect(collect.mock.calls[0]?.[2]).toBe(cache);
+    expect(events).toStrictEqual(["granularity", "debt", "save"]);
   });
 
   test("tells the plan which diagnostics the impact analysis listed", async () => {

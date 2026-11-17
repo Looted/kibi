@@ -377,3 +377,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a46379bb4134
+  - type: executable_for
+    from: SYM-test-check-analysis-cache-shared
+    to: TEST-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:03.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54a435cad32d

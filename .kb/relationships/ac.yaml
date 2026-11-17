@@ -258,3 +258,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-17f7d7dd9be3
+  - type: specified_by
+    from: REQ-check-analysis-cache-shared
+    to: SCEN-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:07.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6de3a74e82a9
+  - type: specified_by
+    from: REQ-check-analysis-cache-shared
+    to: SCEN-NEG-check-analysis-cache-shared-EVICTS
+    created_at: 2026-11-17T06:02:07.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8d9a2565bfd
+  - type: verified_by
+    from: REQ-check-analysis-cache-shared
+    to: TEST-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:07.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8ec0487b412
+  - type: constrains
+    from: REQ-check-analysis-cache-shared
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-17T06:02:07.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63b26d3ca1bd
+  - type: requires_property
+    from: REQ-check-analysis-cache-shared
+    to: FACT-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:08.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85143fed6fcc

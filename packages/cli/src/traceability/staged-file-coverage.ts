@@ -62,6 +62,8 @@ export interface StagedFileCoverageResult {
 
 type Edge = { from: string; to: string };
 type GitReader = (args: readonly string[]) => Buffer;
+type BlobReader = (oids: readonly string[]) => ReadonlyMap<string, Buffer>;
+type HeadFileReader = (path: string) => string;
 
 function defaultGitReader(args: readonly string[]): Buffer {
   return execFileSync("git", args, {
@@ -142,15 +144,64 @@ function headKbPaths(reader: GitReader): Set<string> {
   return new Set(output.split("\0"));
 }
 
+function isCommittedKnowledgeInput(path: string): boolean {
+  return (
+    path === CANONICAL_ENTITY_PATHS.symbols ||
+    path.startsWith(".kb/relationships/") ||
+    (path.startsWith(".kb/requirements/") && path.endsWith(".md"))
+  );
+}
+
+/**
+ * Reads committed knowledge files. With a blob reader, every file the
+ * analysis reads comes from one tree listing and one batched blob read
+ * instead of one `git show` per file (a repository with a thousand
+ * requirements spent seconds starting git processes).
+ */
+function headFileReader(
+  reader: GitReader,
+  headPaths: ReadonlySet<string>,
+  readBlobs: BlobReader | undefined,
+): HeadFileReader {
+  if (!readBlobs)
+    return (path) => readRequired(reader, ["show", `HEAD:${path}`]);
+  const oids = new Map<string, string>();
+  const listing = readRequired(reader, [
+    "ls-tree",
+    "-r",
+    "-z",
+    "HEAD",
+    "--",
+    ".kb",
+  ]);
+  for (const row of listing.split("\0")) {
+    const tab = row.indexOf("\t");
+    const path = row.slice(tab + 1);
+    // The empty tail after the last NUL has no tab and names no file.
+    if (tab === -1 || !headPaths.has(path) || !isCommittedKnowledgeInput(path))
+      continue;
+    oids.set(path, row.slice(0, tab).split(" ")[2] as string);
+  }
+  const blobs = readBlobs([...new Set(oids.values())]);
+  return (path) => {
+    const blob = blobs.get(oids.get(path) as string);
+    if (!blob)
+      throw new Error(
+        `git command failed: git show HEAD:${path} -> missing blob`,
+      );
+    return blob.toString("utf8");
+  };
+}
+
 function effectiveRelationshipFiles(
   inventory: readonly StagedPath[],
   headPaths: ReadonlySet<string>,
-  reader: GitReader,
+  readHead: HeadFileReader,
 ): { head: Map<string, string>; effective: Map<string, string> } {
   const head = new Map<string, string>();
   for (const path of headPaths) {
     if (!path.startsWith(".kb/relationships/")) continue;
-    head.set(path, readRequired(reader, ["show", `HEAD:${path}`]));
+    head.set(path, readHead(path));
   }
   const effective = new Map(head);
   for (const entry of inventory) {
@@ -167,14 +218,14 @@ function effectiveRelationshipFiles(
 function effectiveRequirementIds(
   inventory: readonly StagedPath[],
   headPaths: ReadonlySet<string>,
-  reader: GitReader,
+  readHead: HeadFileReader,
 ): Set<string> {
   const files = new Map<string, string>();
   for (const path of headPaths) {
     if (!path.startsWith(".kb/requirements/") || !path.endsWith(".md")) {
       continue;
     }
-    files.set(path, readRequired(reader, ["show", `HEAD:${path}`]));
+    files.set(path, readHead(path));
   }
   for (const entry of inventory) {
     files.delete(entry.oldPath as string);
@@ -321,10 +372,12 @@ export function analyzeStagedFileCoverage(
   inventory: readonly StagedPath[],
   reader: GitReader = defaultGitReader,
   isGenerated?: (path: string) => boolean,
+  readBlobs?: BlobReader,
 ): StagedFileCoverageResult {
   const headPaths = headKbPaths(reader);
+  const readHead = headFileReader(reader, headPaths, readBlobs);
   const headManifest = headPaths.has(CANONICAL_ENTITY_PATHS.symbols)
-    ? readRequired(reader, ["show", `HEAD:${CANONICAL_ENTITY_PATHS.symbols}`])
+    ? readHead(CANONICAL_ENTITY_PATHS.symbols)
     : null;
   const stagedManifest = stagedManifestContent(inventory);
   const headEntries = manifestEntries(headManifest);
@@ -334,12 +387,12 @@ export function analyzeStagedFileCoverage(
   const relationshipFiles = effectiveRelationshipFiles(
     inventory,
     headPaths,
-    reader,
+    readHead,
   );
   const actualRequirementIds = effectiveRequirementIds(
     inventory,
     headPaths,
-    reader,
+    readHead,
   );
   const files: StagedFileCoverageRecord[] = [];
   const diagnostics: StagedFileCoverageDiagnostic[] = [];

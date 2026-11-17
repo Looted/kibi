@@ -929,6 +929,7 @@ export async function checkCommand(
           stagedInventory,
           snapshot.readGit,
           (file) => generatedStaged.has(file),
+          snapshot.readBlobs,
         );
         stagedCoverage.snapshot = {
           baseTree: snapshot.baseTree,
