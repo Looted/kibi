@@ -454,3 +454,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3ca9aa9a2eb
+  - type: implements
+    from: SYM-merge-train-plan
+    to: REQ-ci-merge-train-lands-assembled-head
+    created_at: 2026-11-17T11:40:55.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a02fd2c7944
+  - type: implements
+    from: SYM-merge-train-plan
+    to: REQ-ci-merge-train-failure-bisect
+    created_at: 2026-11-17T11:40:55.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79b8b530e2ef
+  - type: covered_by
+    from: SYM-merge-train-plan
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:55.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1abd04417832

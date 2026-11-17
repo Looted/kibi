@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-ci-proof-reuse-train-merge",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./scripts/tests/ci-proof-reuse-main.coverage.test.ts",
+      "-t",
+      "merge train proof attestation and develop reuse"
+    ]
+  ]
+}
