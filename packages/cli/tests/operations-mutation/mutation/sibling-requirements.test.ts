@@ -141,14 +141,42 @@ describe("sibling requirements of a value fact write", () => {
     expect(report.warnings[2]).toContain(
       "Update REQ-floor in this change to the new value, with the person's words as origin.ref and their reason, and update the tests that pin the old value.",
     );
-    expect(report.nextActions).toEqual(
-      report.siblings.map((sibling, index) => ({
+    // A firm sibling is read for the person to decide on; the others get a
+    // ready kb_upsert input the new value is added to.
+    const upsert = (id: string) => ({
+      type: "req",
+      id,
+      properties: { title: `${id} title`, status: "open" },
+    });
+    expect(report.nextActions).toEqual([
+      {
+        operation: "kb_query",
+        input: { id: "REQ-banner", includeBody: true },
+        reason: report.warnings[0],
+        required: true,
+      },
+      ...["REQ-ceiling", "REQ-floor", "REQ-window"].map((id, index) => ({
         operation: "kb_upsert",
-        input: { id: sibling.requirementId },
-        reason: report.warnings[index],
+        input: upsert(id),
+        reason: report.warnings[index + 1],
         required: true,
       })),
+    ]);
+  });
+
+  test("a sibling's upsert input keeps its own status", () => {
+    write(
+      ".kb/requirements/REQ-floor.md",
+      "---\nid: REQ-floor\ntype: req\ntitle: REQ-floor title\nstatus: in_progress\nfirmness: exploratory\nlinks:\n  - type: requires_property\n    target: FACT-floor\n---\n",
     );
+    const floor = run(400).nextActions.find(
+      (action) => action.input.id === "REQ-floor",
+    );
+    expect(floor?.input).toStrictEqual({
+      type: "req",
+      id: "REQ-floor",
+      properties: { title: "REQ-floor title", status: "in_progress" },
+    });
   });
 
   test("after a write the caller passes the value before", () => {
