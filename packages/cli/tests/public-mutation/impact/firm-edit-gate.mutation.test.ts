@@ -1,17 +1,25 @@
 import { describe, expect, test } from "bun:test";
 import {
   FIRM_EDIT_RECEIPT_VERSION,
+  FIRM_EDIT_REMOVED_CODE_HASH,
   type FirmEditReceipt,
   firmEditCodeHash,
   firmEditReceiptPath,
   firmEditStatementHash,
   serializeFirmEditReceipt,
 } from "kibi-agent-core/firm-edit-review";
-import type { ExtractedEntity } from "../../../src/extractors/markdown.js";
+import type {
+  ExtractedEntity,
+  ExtractionResult,
+} from "../../../src/extractors/markdown.js";
 import {
+  type FirmEditGateOptions,
   createFirmEditGateDiagnostics,
+  firmRequirementRestated,
+  firmSymbolEdited,
   implementedRequirementIds,
   isCurrentFirmRequirement,
+  removedSymbolRecords,
   requirementStatement,
   reviewState,
 } from "../../../src/public/impact/firm-edit-gate.js";
@@ -110,6 +118,7 @@ function gate(
     readReceipt?: (relativePath: string) => string | undefined;
     changed?: readonly string[];
     content?: string | undefined;
+    extra?: Partial<FirmEditGateOptions>;
   } = {},
 ) {
   const requirements = options.requirements ?? {
@@ -133,6 +142,7 @@ function gate(
     requirementChanged: (requirement) =>
       (options.changed ?? []).includes(requirement.id),
     readReceipt: options.readReceipt ?? (() => undefined),
+    ...options.extra,
   });
 }
 
@@ -155,11 +165,121 @@ describe("helpers", () => {
     );
   });
 
-  test("the statement is the semantic text, else the title", () => {
+  test("the statement is read from the document as the hooks read it, else the semantic text, else the title", () => {
     expect(requirementStatement(req("REQ-a"))).toBe(STATEMENT);
     expect(
       requirementStatement(req("REQ-a", { semantic_text: undefined })),
     ).toBe("Title of REQ-a");
+    expect(
+      requirementStatement(
+        req("REQ-a"),
+        "---\nsemantic_text: >-\n  One.\n\n  Two.\n---\n",
+      ),
+    ).toBe("One. Two.");
+    expect(requirementStatement(req("REQ-a"), "no front matter")).toBe(
+      STATEMENT,
+    );
+  });
+
+  test("a requirement is restated only by a new statement, status or supersede", () => {
+    const doc = (text: string) => `---\nsemantic_text: ${text}\n---\n`;
+    const restated = (
+      extra: Partial<Parameters<typeof firmRequirementRestated>[0]>,
+    ) =>
+      firmRequirementRestated({
+        requirement: req("REQ-a"),
+        documentText: `${doc(STATEMENT)}\n## Notes\n\nA note.\n`,
+        baseText: doc(STATEMENT),
+        baseStatus: "open",
+        supersededInChange: false,
+        ...extra,
+      });
+    // A note, tag or link is not a restatement.
+    expect(restated({})).toBe(false);
+    expect(restated({ baseText: doc("Keys never expire.") })).toBe(true);
+    expect(restated({ baseStatus: "draft" })).toBe(true);
+    expect(restated({ baseText: undefined })).toBe(true);
+    expect(restated({ supersededInChange: true })).toBe(true);
+  });
+
+  test("a symbol is edited by a line it owns or lines removed inside it", () => {
+    const outer = symbol("Store", {
+      location: { file: "src/keys.ts", startLine: 1, endLine: 10 },
+      hunkRanges: [],
+    });
+    const inner = symbol("rotate", {
+      location: { file: "src/keys.ts", startLine: 3, endLine: 6 },
+      hunkRanges: [],
+    });
+    const twin = symbol("twin", {
+      location: { file: "src/keys.ts", startLine: 1, endLine: 10 },
+      hunkRanges: [],
+    });
+    const all = [outer, inner, twin];
+    expect(firmSymbolEdited(symbol("f"), all, [])).toBe(true);
+    expect(firmSymbolEdited(outer, all, [])).toBe(false);
+    // Lines removed between lines 1 and 2 are inside Store, outside rotate.
+    expect(firmSymbolEdited(outer, all, [1])).toBe(true);
+    expect(firmSymbolEdited(inner, all, [1])).toBe(false);
+    // Removed between lines 4 and 5: inside rotate, so not Store's own.
+    expect(firmSymbolEdited(inner, all, [4])).toBe(true);
+    expect(firmSymbolEdited(outer, all, [4])).toBe(false);
+    // After the last line or before the first is outside.
+    expect(firmSymbolEdited(inner, all, [6])).toBe(false);
+    expect(firmSymbolEdited(inner, all, [2])).toBe(false);
+    // A twin with the same span is not nested.
+    expect(firmSymbolEdited(outer, all, [8])).toBe(true);
+  });
+
+  test("removed symbol records are those the current knowledge lacks, with what they implemented", () => {
+    const record = (
+      id: string,
+      relationships: ExtractionResult["relationships"],
+      extra: Partial<ExtractionResult> = {},
+    ): ExtractionResult => ({
+      entity: {
+        id,
+        type: "symbol",
+        title: id.replace("SYM-", ""),
+        source: ".kb/symbols.yaml",
+      } as ExtractedEntity,
+      relationships,
+      sourceFile: "src/keys.ts",
+      ...extra,
+    });
+    const implementsReq = (to: string) => ({
+      type: "implements",
+      from: "x",
+      to,
+    });
+    const base = [
+      record("SYM-kept", [implementsReq("REQ-a")]),
+      record("SYM-gone", [
+        implementsReq("REQ-a"),
+        implementsReq("REQ-a"),
+        implementsReq("TEST-x"),
+        { type: "covered_by", from: "x", to: "REQ-b" },
+      ]),
+      record("SYM-unlinked", [{ type: "covered_by", from: "x", to: "TEST-a" }]),
+      record("SYM-nofile", [implementsReq("REQ-c")], { sourceFile: undefined }),
+      {
+        entity: req("REQ-a"),
+        relationships: [implementsReq("REQ-b")],
+      } as ExtractionResult,
+    ];
+    expect(
+      removedSymbolRecords(base, [
+        record("SYM-kept", []),
+        { entity: req("SYM-gone"), relationships: [] } as ExtractionResult,
+      ]),
+    ).toEqual([
+      { sourceFile: "src/keys.ts", symbol: "gone", requirementIds: ["REQ-a"] },
+      {
+        sourceFile: ".kb/symbols.yaml",
+        symbol: "nofile",
+        requirementIds: ["REQ-c"],
+      },
+    ]);
   });
 
   test("only a current firm requirement is gated", () => {
@@ -187,20 +307,26 @@ describe("helpers", () => {
 });
 
 describe("reviewState", () => {
+  const expire = symbol("expireKey");
+  const hashOf = (target: ExtractedSymbol, content = SOURCE) =>
+    firmEditCodeHash(
+      content,
+      target.location.startLine,
+      target.location.endLine,
+    );
   const state = (
     readReceipt: (relativePath: string) => string | undefined,
-    target: ExtractedSymbol = symbol("expireKey"),
-    content: string | undefined = SOURCE,
+    codeHash: string | undefined = hashOf(expire),
     statement = STATEMENT,
   ) =>
     reviewState({
       requirementId: "REQ-key-expiry",
       statement,
-      symbol: target,
-      content,
+      sourceFile: "src/keys.ts",
+      symbol: "expireKey",
+      codeHash,
       readReceipt,
     }).state;
-  const expire = symbol("expireKey");
 
   test("reads the receipt the symbol's path names", () => {
     expect(state(receipts(receipt(expire)))).toBe("kept");
@@ -231,30 +357,39 @@ describe("reviewState", () => {
 
   test("a changed statement or code makes the receipt stale", () => {
     expect(
-      state(receipts(receipt(expire)), expire, SOURCE, "Keys never expire."),
+      state(receipts(receipt(expire)), hashOf(expire), "Keys never expire."),
     ).toBe("statement-changed");
     expect(
-      state(receipts(receipt(expire)), expire, SOURCE.replace("90", "91")),
+      state(
+        receipts(receipt(expire)),
+        hashOf(expire, SOURCE.replace("90", "91")),
+      ),
     ).toBe("code-changed");
-    // Moved code keeps its hash; the current span is what is hashed.
-    const moved = symbol("expireKey", {
-      location: { file: "src/keys.ts", startLine: 2, endLine: 4 },
-    });
-    expect(state(receipts(receipt(expire)), moved, `\n${SOURCE}`)).toBe("kept");
-    // Without the text, the code cannot be shown to be the reviewed code.
+    // Without the code, it cannot be shown to be the reviewed code.
     expect(
       reviewState({
         requirementId: "REQ-key-expiry",
         statement: STATEMENT,
-        symbol: expire,
-        content: undefined,
+        sourceFile: "src/keys.ts",
+        symbol: "expireKey",
+        codeHash: undefined,
         readReceipt: receipts(receipt(expire)),
       }).state,
     ).toBe("code-changed");
-    const outside = symbol("expireKey", {
-      location: { file: "src/keys.ts", startLine: 1, endLine: 99 },
+  });
+
+  test("a removed symbol matches only a receipt recorded for its removal", () => {
+    const removedReceipt = receipt(expire, {
+      codeHash: FIRM_EDIT_REMOVED_CODE_HASH,
+      startLine: 0,
+      endLine: 0,
     });
-    expect(state(receipts(receipt(expire)), outside)).toBe("code-changed");
+    expect(state(receipts(removedReceipt), FIRM_EDIT_REMOVED_CODE_HASH)).toBe(
+      "kept",
+    );
+    expect(state(receipts(receipt(expire)), FIRM_EDIT_REMOVED_CODE_HASH)).toBe(
+      "code-changed",
+    );
   });
 });
 
@@ -380,8 +515,13 @@ describe("createFirmEditGateDiagnostics", () => {
     );
   });
 
-  test("judges only changed behavioral code of current firm requirements", () => {
-    expect(gate([symbol("expireKey", { role: "structural" })])).toEqual([]);
+  test("judges any changed code of current firm requirements, whatever its role", () => {
+    for (const role of ["structural", "unknown"] as const)
+      expect(
+        gate([symbol("KEY_MAX_AGE", { role, kind: "variable" })]).map(
+          (entry) => entry.id,
+        ),
+      ).toEqual(["firm_edit_unreviewed"]);
     expect(gate([symbol("expireKey", { hunkRanges: [] })])).toEqual([]);
     expect(gate([symbol("expireKey", { reqLinks: ["REQ-unknown"] })])).toEqual(
       [],
@@ -422,5 +562,92 @@ describe("createFirmEditGateDiagnostics", () => {
       'The change edits code that implements REQ-a, a firm rule the person set, without a current review of that code: zeta in src/a.ts (no review recorded); expireKey in src/keys.ts (no review recorded). Statement: "Keys rotate."',
     );
     expect(diagnostics[0]?.evidence?.statement).toBe("Keys rotate.");
+  });
+
+  test("lines removed inside a symbol edit it", () => {
+    const expire = symbol("expireKey", { hunkRanges: [] });
+    expect(
+      gate([expire], {
+        extra: { deletedAfterByFile: new Map([["src/keys.ts", [1]]]) },
+      }).map((entry) => entry.id),
+    ).toEqual(["firm_edit_unreviewed"]);
+    expect(
+      gate([expire], {
+        extra: { deletedAfterByFile: new Map([["src/other.ts", [1]]]) },
+      }),
+    ).toEqual([]);
+  });
+
+  test("a removed symbol record that implemented a firm rule needs a review of its removal", () => {
+    const removed = {
+      sourceFile: "src/keys.ts",
+      symbol: "expireKey",
+      requirementIds: ["REQ-key-expiry"],
+    };
+    const [diagnostic] = gate([], { extra: { removedSymbols: [removed] } });
+    expect(diagnostic?.message).toContain(
+      "expireKey in src/keys.ts (removed, no review recorded)",
+    );
+    expect(diagnostic?.evidence?.reviewInput).toEqual({
+      reviews: [
+        {
+          requirementId: "REQ-key-expiry",
+          sourceFile: "src/keys.ts",
+          symbol: "expireKey",
+          verdict: "keeps",
+          note: "",
+        },
+      ],
+    });
+    expect(
+      gate([], {
+        extra: { removedSymbols: [removed] },
+        readReceipt: receipts(
+          receipt(symbol("expireKey"), {
+            codeHash: FIRM_EDIT_REMOVED_CODE_HASH,
+            startLine: 0,
+            endLine: 0,
+          }),
+        ),
+      }),
+    ).toEqual([]);
+    // One symbol reached twice is reviewed once.
+    expect(
+      gate([symbol("expireKey")], {
+        extra: { removedSymbols: [removed] },
+      })[0]?.evidence?.reviews,
+    ).toHaveLength(1);
+  });
+
+  test("files with unstaged edits get a staged review input", () => {
+    const [diagnostic] = gate(
+      [
+        symbol("expireKey"),
+        symbol("zeta", {
+          location: { file: "src/a.ts", startLine: 1, endLine: 1 },
+        }),
+      ],
+      { extra: { hasUnstagedChanges: () => true } },
+    );
+    expect(diagnostic?.evidence?.reviewInput).toMatchObject({ staged: true });
+    expect(diagnostic?.suggestion).toContain(
+      'src/a.ts, src/keys.ts also have unstaged edits, so the input records the staged code ("staged": true).',
+    );
+    const [single] = gate([symbol("expireKey")], {
+      extra: { hasUnstagedChanges: (file) => file === "src/keys.ts" },
+    });
+    expect(single?.suggestion).toContain(
+      'src/keys.ts also has unstaged edits, so the input records the staged code ("staged": true).',
+    );
+  });
+
+  test("the statement comes from the requirement document when it can be read", () => {
+    const [diagnostic] = gate([symbol("expireKey")], {
+      extra: {
+        readRequirementText: () =>
+          "---\nsemantic_text: >-\n  Keys expire.\n\n  Always.\n---\n",
+      },
+    });
+    expect(diagnostic?.evidence?.statement).toBe("Keys expire. Always.");
   });
 });
