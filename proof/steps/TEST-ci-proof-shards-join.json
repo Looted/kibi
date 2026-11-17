@@ -1,0 +1,11 @@
+{
+  "test_id": "TEST-ci-proof-shards-join",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./scripts/tests/ci-proof-shards.test.ts",
+      "./scripts/tests/proof-shards-workflow-contract.test.ts"
+    ]
+  ]
+}

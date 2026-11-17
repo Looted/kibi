@@ -52,6 +52,7 @@ kibi prove --requirement REQ-cli-check
 kibi prove --integration self-proof
 kibi prove --stale          # only tests without a current passing receipt
 kibi prove --all --resume   # continue an interrupted run
+kibi prove --all --shard 2/3  # the 2nd of 3 disjoint parts, for parallel CI
 ```
 
 `--stale` narrows any selector (all tests by default) to the tests whose
@@ -65,6 +66,13 @@ rerun the same selector with `--resume`: integrations already ingested at the
 same workspace snapshot, for every test the run selects, are skipped (the
 record lives in `.kb/proof/runs/prove-progress.json`). After the workspace
 changes, `--resume` runs everything again.
+
+To spread a long run over several CI runners, give each runner the same
+selector and `--shard K/N` (`1/N` to `N/N`). The parts are disjoint and
+together hold every selected test, so the receipts from all runners are
+exactly one full run. `kibi prove --all --list` (with or without `--shard`)
+prints the selected ids, which a join job can compare against the union of the
+shards before it gates on fresh evidence.
 
 When `--test`, `--requirement` or `--stale` selects a subset and the
 integration's producer is `playwright`, a direct `playwright test` command is

@@ -62,7 +62,8 @@ describe("one required check per workflow", () => {
 
 describe("proof fails fast on KB-only gates", () => {
   test("the kb_search gold-set gates run after the KB sync and before the long proof run", () => {
-    const steps = (workflow("proof.yml").jobs.proof?.steps ?? []).map(
+    // The first proof shard runs them; the other shards prove meanwhile.
+    const steps = (workflow("proof.yml").jobs.prove?.steps ?? []).map(
       (step) => step.name,
     );
     const at = (name: string) => {
@@ -73,7 +74,7 @@ describe("proof fails fast on KB-only gates", () => {
     const sync = at("Sync and validate integrity of the proof snapshot");
     const answers = at("Gate kb_search answers on the repository gold set");
     const hints = at("Gate kb_search hints on reworded questions");
-    const prove = at("Prove every contracted test through Kibi");
+    const prove = at("Prove this shard's part of the contracted tests");
     expect(answers).toBeGreaterThan(sync);
     expect(hints).toBeGreaterThan(answers);
     expect(prove).toBeGreaterThan(hints);

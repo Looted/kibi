@@ -44549,6 +44549,85 @@ symbols:
         target: TEST-ci-required-checks-workflow-contract
       - type: implements
         target: REQ-ci-required-check-aggregate
+  - id: SYM-cli-prove-shard-selection
+    title: shardSelection
+    status: active
+    sourceFile: packages/cli/src/commands/prove.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:22:05.460Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prove-shard
+      - type: implements
+        target: REQ-cli-prove-shard-disjoint-parts
+  - id: SYM-ci-proof-shards-verify
+    title: verifyShards
+    status: active
+    sourceFile: scripts/ci-proof-shards.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:22:10.792Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-proof-shards-join
+      - type: implements
+        target: REQ-ci-proof-shards-cover-full-run
+  - id: SYM-proof-shard-join-step
+    title: Prove every contracted test through Kibi step (.github/workflows/proof.yml)
+    status: active
+    sourceFile: .github/workflows/proof.yml
+    symbol_role: config
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:22:13.762Z
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-ci-proof-shards-join
+      - type: implements
+        target: REQ-ci-proof-shards-cover-full-run
+  - id: SYM-test-cli-prove-shard
+    title: kibi prove shard suite
+    status: active
+    sourceFile: packages/cli/tests/commands/prove-shard.test.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:22:15.946Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-prove-shard
+  - id: SYM-test-ci-proof-shards-join
+    title: Proof shards join suite
+    status: active
+    sourceFile: scripts/tests/ci-proof-shards.test.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:22:20.390Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-proof-shards-join
   - id: SYM-test-core-snapshot-duplicate-triples
     title: Branch store snapshot duplicate-triple suites
     status: active
