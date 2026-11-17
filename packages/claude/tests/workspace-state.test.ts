@@ -5,6 +5,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  KIBI_WORKSPACE_ENV_KEYS,
+  resolveKibiWorkspace,
+} from "kibi-agent-core/workspace-optin";
+import {
   type SessionEvent,
   appendSessionEvents,
   applyEvent,
@@ -14,10 +18,6 @@ import {
   sessionJournal,
   workspaceDataDir,
 } from "../src/session-state";
-import {
-  KIBI_WORKSPACE_ENV_KEYS,
-  resolveKibiWorkspace,
-} from "../src/workspace-optin";
 import { cleanupTempDirs, tempDir, write } from "./fixture";
 
 afterEach(cleanupTempDirs);

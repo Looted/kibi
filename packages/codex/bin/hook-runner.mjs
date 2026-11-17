@@ -2172,16 +2172,85 @@ function settleFirmRequirements(session, ids) {
   } catch {}
 }
 
+// ../agent-core/dist/hook-input.js
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readString(record, keys) {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string") {
+      return value;
+    }
+  }
+  return;
+}
+function parseHookInput(input) {
+  if (!isRecord2(input)) {
+    return { event: "" };
+  }
+  const event = readString(input, [
+    "hook_event_name",
+    "event",
+    "hook_event",
+    "hookEvent",
+    "name"
+  ]) ?? "";
+  const cwd = readString(input, [
+    "cwd",
+    "current_working_directory",
+    "workspace"
+  ]);
+  const toolName = readString(input, ["toolName", "tool_name", "tool"]);
+  const toolInput = input.toolInput ?? input.tool_input ?? input.input;
+  const sessionId = readString(input, ["session_id", "sessionId"]);
+  const parsed = { event };
+  if (cwd !== undefined) {
+    parsed.cwd = cwd;
+  }
+  if (toolName !== undefined) {
+    parsed.toolName = toolName;
+  }
+  if (toolInput !== undefined) {
+    parsed.toolInput = toolInput;
+  }
+  if (sessionId !== undefined) {
+    parsed.sessionId = sessionId;
+  }
+  const prompt = readString(input, ["prompt"]);
+  if (prompt !== undefined) {
+    parsed.prompt = prompt;
+  }
+  if (input.stop_hook_active === true) {
+    parsed.stopHookActive = true;
+  }
+  return parsed;
+}
+async function readStdin() {
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+function parseStdinJson(rawInput) {
+  const trimmed = rawInput.trim();
+  if (trimmed.length === 0) {
+    return {};
+  }
+  return JSON.parse(trimmed);
+}
+
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID4 } from "node:crypto";
 import fs8 from "node:fs";
 import path9 from "node:path";
 
 // ../agent-core/dist/kb-mcp-tools.js
-function isRecord2(value) {
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function readString(record, keys) {
+function readString2(record, keys) {
   for (const key of keys) {
     const value = record[key];
     if (typeof value === "string") {
@@ -2212,7 +2281,7 @@ function readStringArray(record, keys) {
 function readRecord(record, keys) {
   for (const key of keys) {
     const value = record[key];
-    if (isRecord2(value)) {
+    if (isRecord3(value)) {
       return value;
     }
   }
@@ -2238,16 +2307,16 @@ function isKibiMcpToolName(toolName) {
 function stampKibiWorkspace(toolName, toolInput, workspaceRoot) {
   if (!workspaceRoot || !isKibiMcpToolName(toolName))
     return;
-  const base = isRecord2(toolInput) ? toolInput : {};
+  const base = isRecord3(toolInput) ? toolInput : {};
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
 var TOOL_NAME_KEYS = ["toolName", "tool_name", "name"];
 function extractKbMcpToolCall(toolName, toolInput) {
-  const input = isRecord2(toolInput) ? toolInput : {};
-  let name = canonicalKbToolName(toolName) ?? readString(input, TOOL_NAME_KEYS);
+  const input = isRecord3(toolInput) ? toolInput : {};
+  let name = canonicalKbToolName(toolName) ?? readString2(input, TOOL_NAME_KEYS);
   if (!name?.startsWith("kb_")) {
     const nested = input.arguments ?? input.args;
-    const nestedTool = isRecord2(nested) ? readString(nested, TOOL_NAME_KEYS) : undefined;
+    const nestedTool = isRecord3(nested) ? readString2(nested, TOOL_NAME_KEYS) : undefined;
     return nestedTool?.startsWith("kb_") ? { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] } : undefined;
   }
   const payload = readRecord(input, ["arguments", "args"]) ?? input;
@@ -2291,7 +2360,7 @@ function hostKbOperation(toolName, toolInput) {
   const mcp = canonicalKbToolName(toolName);
   if (/kb_[a-z_]+$/.test(String(mcp)))
     return mcp;
-  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord2(toolInput)) {
+  if (!toolName || !SHELL_TOOL_NAMES.has(toolName) || !isRecord3(toolInput)) {
     return;
   }
   return kibiCliOperation(toolInput.command);
@@ -2336,7 +2405,7 @@ var SMALL_COUNT_BUCKETS = [
 ];
 var KIBI_SOURCE_PACKAGES = "agent-core|cli|mcp|core|runtime|claude|codex|cursor|opencode|zcode|vscode|plugin-[a-z0-9-]+|lang-[a-z0-9-]+";
 var SOURCE_FRAME = new RegExp(`(?:^|/)packages/(${KIBI_SOURCE_PACKAGES})/((?:src|dist|bin)/.+)$`);
-function isRecord3(value) {
+function isRecord4(value) {
   return typeof value === "object" && value !== null;
 }
 var SKILL_FILE = /(?:^|[\\/])(kibi-[a-z0-9-]+)[\\/]SKILL\.md\b/i;
@@ -2358,7 +2427,7 @@ function skillInStrings(value, depth) {
   return;
 }
 function kibiSkillLoad(toolName, toolInput) {
-  if (/^skill$/i.test(String(toolName).trim()) && isRecord3(toolInput)) {
+  if (/^skill$/i.test(String(toolName).trim()) && isRecord4(toolInput)) {
     for (const key of ["skill", "name", "command"]) {
       const value = toolInput[key];
       if (typeof value !== "string")
@@ -2377,7 +2446,7 @@ function entries(value) {
   return Array.isArray(value) ? value : [];
 }
 function fresh(entry, now, windowMs) {
-  return isRecord3(entry) && typeof entry.t === "number" && now - entry.t <= windowMs;
+  return isRecord4(entry) && typeof entry.t === "number" && now - entry.t <= windowMs;
 }
 function readRecent(directory, now) {
   let parsed = {};
@@ -3060,93 +3129,64 @@ function sessionBriefWith(hostLines) {
 `);
 }
 
-// src/hook-input.ts
-function isRecord4(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+// ../agent-core/dist/workspace-optin.js
+import fs9 from "node:fs";
+import path10 from "node:path";
+var KIBI_WORKSPACE_ENV_KEYS = [
+  "KIBI_WORKSPACE",
+  "KIBI_PROJECT_ROOT",
+  "KIBI_ROOT"
+];
+function nextAncestorDirectory(current) {
+  const parent = path10.dirname(current);
+  return parent === current ? undefined : parent;
 }
-function readString2(record, keys) {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "string") {
-      return value;
+function hasKibiManifest(directory) {
+  return fs9.existsSync(path10.join(directory, ".kb", "manifest.json"));
+}
+function hasGitBoundary(directory) {
+  return fs9.existsSync(path10.join(directory, ".git"));
+}
+function resolveKibiWorkspace(startDir, env = process.env) {
+  for (const key of KIBI_WORKSPACE_ENV_KEYS) {
+    const value = env[key]?.trim();
+    if (value) {
+      const root = path10.resolve(value);
+      return { root, optedIn: hasKibiManifest(root) };
     }
   }
-  return;
-}
-function parseHookInput(input) {
-  if (!isRecord4(input)) {
-    return { event: "" };
+  const start = path10.resolve(startDir?.trim() ? startDir : process.cwd());
+  let current = start;
+  while (current !== undefined) {
+    if (hasKibiManifest(current)) {
+      return { root: current, optedIn: true };
+    }
+    if (hasGitBoundary(current)) {
+      return { root: current, optedIn: false };
+    }
+    current = nextAncestorDirectory(current);
   }
-  const event = readString2(input, [
-    "hook_event_name",
-    "event",
-    "hook_event",
-    "hookEvent",
-    "name"
-  ]) ?? "";
-  const cwd = readString2(input, [
-    "cwd",
-    "current_working_directory",
-    "workspace"
-  ]);
-  const toolName = readString2(input, ["toolName", "tool_name", "tool"]);
-  const toolInput = input.toolInput ?? input.tool_input ?? input.input;
-  const sessionId = readString2(input, ["session_id", "sessionId"]);
-  const parsed = { event };
-  if (cwd !== undefined) {
-    parsed.cwd = cwd;
-  }
-  if (toolName !== undefined) {
-    parsed.toolName = toolName;
-  }
-  if (toolInput !== undefined) {
-    parsed.toolInput = toolInput;
-  }
-  if (sessionId !== undefined) {
-    parsed.sessionId = sessionId;
-  }
-  const prompt = readString2(input, ["prompt"]);
-  if (prompt !== undefined) {
-    parsed.prompt = prompt;
-  }
-  if (input.stop_hook_active === true) {
-    parsed.stopHookActive = true;
-  }
-  return parsed;
-}
-async function readStdin() {
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-function parseStdinJson(rawInput) {
-  const trimmed = rawInput.trim();
-  if (trimmed.length === 0) {
-    return {};
-  }
-  return JSON.parse(trimmed);
+  return { root: start, optedIn: false };
 }
 
 // src/hook-state.ts
 import { createHash as createHash6, randomUUID as randomUUID5 } from "node:crypto";
-import fs9 from "node:fs";
+import fs10 from "node:fs";
 import os2 from "node:os";
-import path10 from "node:path";
+import path11 from "node:path";
 var stateFileName = "hook-state.json";
 var journalFileName = "hook-state.events.jsonl";
 var maxDirtyPaths = 50;
 var workspaceStateRoot = "workspaces";
 function resolvePluginDataDir(explicit, env = process.env) {
-  return explicit || env.PLUGIN_DATA?.trim() || env.CLAUDE_PLUGIN_DATA?.trim() || path10.join(os2.tmpdir(), `kibi-codex-${process.getuid?.() ?? "user"}`);
+  return explicit || env.PLUGIN_DATA?.trim() || env.CLAUDE_PLUGIN_DATA?.trim() || path11.join(os2.tmpdir(), `kibi-codex-${process.getuid?.() ?? "user"}`);
 }
 function resolveWorkspaceStateDir(pluginData, workspaceRoot) {
   if (!pluginData) {
     return;
   }
-  const workspaceKey = createHash6("sha256").update(path10.resolve(workspaceRoot)).digest("hex");
-  return path10.join(pluginData, workspaceStateRoot, workspaceKey);
+  const workspaceKey = createHash6("sha256").update(path11.resolve(workspaceRoot)).digest("hex");
+  return path11.join(pluginData, workspaceStateRoot, workspaceKey);
 }
 function emptyHookState() {
   return {
@@ -3157,7 +3197,7 @@ function emptyHookState() {
   };
 }
 function statePath(pluginData) {
-  return path10.join(pluginData, stateFileName);
+  return path11.join(pluginData, stateFileName);
 }
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -3166,7 +3206,7 @@ function normalizeDirtyPath(dirtyPath) {
   return dirtyPath.trim().replaceAll("\\", "/");
 }
 function uniqueTempPath(pluginData) {
-  return path10.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID5()}.tmp`);
+  return path11.join(pluginData, `${stateFileName}.${process.pid}.${Date.now()}.${randomUUID5()}.tmp`);
 }
 function mergeDirtyPaths(existingPaths, dirtyPaths) {
   const merged = [...existingPaths, ...dirtyPaths].map(normalizeDirtyPath).filter((dirtyPath) => dirtyPath.length > 0);
@@ -3189,7 +3229,7 @@ function coerceHookState(value) {
   };
 }
 function journalPath(pluginData) {
-  return path10.join(pluginData, journalFileName);
+  return path11.join(pluginData, journalFileName);
 }
 function applyJournalEvent(state, event) {
   switch (event.kind) {
@@ -3214,7 +3254,7 @@ function applyJournalEvent(state, event) {
 function readJournal(pluginData, initialState) {
   let contents;
   try {
-    contents = fs9.readFileSync(journalPath(pluginData), "utf8");
+    contents = fs10.readFileSync(journalPath(pluginData), "utf8");
   } catch {
     return initialState;
   }
@@ -3252,8 +3292,8 @@ function readJournal(pluginData, initialState) {
   }, initialState);
 }
 function appendJournalEvent(pluginData, event) {
-  fs9.mkdirSync(pluginData, { recursive: true });
-  fs9.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
+  fs10.mkdirSync(pluginData, { recursive: true });
+  fs10.appendFileSync(journalPath(pluginData), `${JSON.stringify(event)}
 `, "utf8");
 }
 function loadHookState(pluginData) {
@@ -3261,7 +3301,7 @@ function loadHookState(pluginData) {
     return emptyHookState();
   }
   try {
-    return readJournal(pluginData, coerceHookState(JSON.parse(fs9.readFileSync(statePath(pluginData), "utf8"))));
+    return readJournal(pluginData, coerceHookState(JSON.parse(fs10.readFileSync(statePath(pluginData), "utf8"))));
   } catch {
     return readJournal(pluginData, emptyHookState());
   }
@@ -3272,11 +3312,11 @@ function saveHookState(pluginData, state) {
   }
   const boundedState = coerceHookState(state);
   appendJournalEvent(pluginData, { kind: "replace", state: boundedState });
-  fs9.mkdirSync(pluginData, { recursive: true });
+  fs10.mkdirSync(pluginData, { recursive: true });
   const tempPath = uniqueTempPath(pluginData);
-  fs9.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
+  fs10.writeFileSync(tempPath, `${JSON.stringify(boundedState)}
 `);
-  fs9.renameSync(tempPath, statePath(pluginData));
+  fs10.renameSync(tempPath, statePath(pluginData));
 }
 function addDirtyPaths(pluginData, dirtyPaths) {
   const initialState = loadHookState(pluginData);
@@ -3337,11 +3377,6 @@ function clearDirtyPaths(pluginData) {
   return loadHookState(pluginData);
 }
 
-// src/kb-mcp-tools.ts
-function extractKbMcpToolCall2(toolName, toolInput) {
-  return extractKbMcpToolCall(toolName, toolInput);
-}
-
 // src/messages.ts
 var DIRECT_KB_EDIT_WARNING = "Avoid direct edits to .kb/. Use Kibi MCP tools for KB discovery and mutations so project memory stays valid.";
 var CODEX_SESSION_NOTE = "Workflow guidance: the kibi-usage skill (kb_skills with action load, or `npx --no-install kibi skills load kibi-usage`).";
@@ -3389,47 +3424,6 @@ function isMeaningfulTrackedPath2(candidate) {
 }
 function isSourceImpactRelevantPath2(candidate) {
   return isSourceImpactRelevantPath(candidate);
-}
-
-// src/workspace-optin.ts
-import fs10 from "node:fs";
-import path11 from "node:path";
-var KIBI_WORKSPACE_ENV_KEYS = [
-  "KIBI_WORKSPACE",
-  "KIBI_PROJECT_ROOT",
-  "KIBI_ROOT"
-];
-function nextAncestorDirectory(current) {
-  const parent = path11.dirname(current);
-  return parent === current ? undefined : parent;
-}
-function hasKibiManifest(directory) {
-  return fs10.existsSync(path11.join(directory, ".kb", "manifest.json"));
-}
-function hasGitBoundary(directory) {
-  return fs10.existsSync(path11.join(directory, ".git"));
-}
-function resolutionFor(root) {
-  return { root, optedIn: hasKibiManifest(root) };
-}
-function resolveKibiWorkspace(startDir, env = process.env) {
-  for (const key of KIBI_WORKSPACE_ENV_KEYS) {
-    const value = env[key]?.trim();
-    if (value) {
-      return resolutionFor(path11.resolve(value));
-    }
-  }
-  let current = path11.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
-  while (current !== undefined) {
-    if (hasKibiManifest(current)) {
-      return { root: current, optedIn: true };
-    }
-    if (hasGitBoundary(current)) {
-      return { root: current, optedIn: false };
-    }
-    current = nextAncestorDirectory(current);
-  }
-  return resolutionFor(path11.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
@@ -3636,7 +3630,7 @@ async function runHook(rawInput, environment = {}) {
         try {
           recordToolTelemetry(workspace.root, stateDir, input, startedAt, environment.env);
         } catch {}
-        const kbToolCall = extractKbMcpToolCall2(input.toolName, input.toolInput);
+        const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
         if (kbToolCall) {
           recordKbMcpTool(stateDir, kbToolCall.toolName, {
             impactCheckRun: kbToolCall.impactCheckRun,

@@ -27,6 +27,11 @@ import {
   statedReason,
 } from "kibi-agent-core/decision-guard";
 import {
+  parseHookInput,
+  parseStdinJson,
+  readStdin,
+} from "kibi-agent-core/hook-input";
+import {
   type HookTrace,
   appendHookUsage,
   appendHookUsageRows,
@@ -36,7 +41,10 @@ import {
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import {
+  extractKbMcpToolCall,
+  stampKibiWorkspace,
+} from "kibi-agent-core/kb-mcp-tools";
 import {
   type IndexedSymbol,
   loadKnowledgeIndex,
@@ -58,7 +66,7 @@ import {
   unownedSourceNote,
   unreadableManifestNote,
 } from "kibi-agent-core/snippets";
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   addDirtyPaths,
   clearDirtyPaths,
@@ -67,7 +75,6 @@ import {
   resolvePluginDataDir,
   resolveWorkspaceStateDir,
 } from "./hook-state.js";
-import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   CODEX_SESSION_NOTE,
   DIRECT_KB_EDIT_WARNING,
@@ -80,7 +87,6 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
-import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type HookResult = {
   continue: true;

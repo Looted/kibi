@@ -5,6 +5,22 @@ import os2 from "node:os";
 import path14 from "node:path";
 import { pathToFileURL } from "node:url";
 
+// ../agent-core/dist/hook-input.js
+async function readStdin() {
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+function parseStdinJson(rawInput) {
+  const trimmed = rawInput.trim();
+  if (trimmed.length === 0) {
+    return {};
+  }
+  return JSON.parse(trimmed);
+}
+
 // src/bash-command.ts
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -168,17 +184,6 @@ function parseHookInput(raw) {
   if (input.stop_hook_active === true)
     parsed.stopHookActive = true;
   return parsed;
-}
-async function readStdin() {
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-function parseStdinJson(rawInput) {
-  const trimmed = rawInput.trim();
-  return trimmed.length === 0 ? {} : JSON.parse(trimmed);
 }
 
 // ../agent-core/dist/checkout-hooks.js
@@ -3137,6 +3142,46 @@ function readPackageVersion(packageJsonPath) {
   return null;
 }
 
+// ../agent-core/dist/workspace-optin.js
+import fs11 from "node:fs";
+import path11 from "node:path";
+var KIBI_WORKSPACE_ENV_KEYS = [
+  "KIBI_WORKSPACE",
+  "KIBI_PROJECT_ROOT",
+  "KIBI_ROOT"
+];
+function nextAncestorDirectory(current) {
+  const parent = path11.dirname(current);
+  return parent === current ? undefined : parent;
+}
+function hasKibiManifest(directory) {
+  return fs11.existsSync(path11.join(directory, ".kb", "manifest.json"));
+}
+function hasGitBoundary(directory) {
+  return fs11.existsSync(path11.join(directory, ".git"));
+}
+function resolveKibiWorkspace(startDir, env = process.env) {
+  for (const key of KIBI_WORKSPACE_ENV_KEYS) {
+    const value = env[key]?.trim();
+    if (value) {
+      const root = path11.resolve(value);
+      return { root, optedIn: hasKibiManifest(root) };
+    }
+  }
+  const start = path11.resolve(startDir?.trim() ? startDir : process.cwd());
+  let current = start;
+  while (current !== undefined) {
+    if (hasKibiManifest(current)) {
+      return { root: current, optedIn: true };
+    }
+    if (hasGitBoundary(current)) {
+      return { root: current, optedIn: false };
+    }
+    current = nextAncestorDirectory(current);
+  }
+  return { root: start, optedIn: false };
+}
+
 // src/kb-tools.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -3224,21 +3269,21 @@ function classifyPath2(relativePath) {
 
 // src/session-state.ts
 import { createHash as createHash6 } from "node:crypto";
-import fs11 from "node:fs";
-import path11 from "node:path";
+import fs12 from "node:fs";
+import path12 from "node:path";
 var JOURNAL = "session.jsonl";
 function workspaceDataDir(pluginData, workspaceRoot) {
   if (!pluginData)
     return;
-  const key = createHash6("sha256").update(path11.resolve(workspaceRoot)).digest("hex").slice(0, 32);
-  return path11.join(pluginData, "workspaces", key);
+  const key = createHash6("sha256").update(path12.resolve(workspaceRoot)).digest("hex").slice(0, 32);
+  return path12.join(pluginData, "workspaces", key);
 }
 function sessionDir(workspaceDir, sessionId) {
   if (!workspaceDir)
     return;
   const trimmed = sessionId?.trim() ?? "";
   const key = trimmed.length > 0 ? createHash6("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
-  return path11.join(workspaceDir, "sessions", key);
+  return path12.join(workspaceDir, "sessions", key);
 }
 function emptySessionState() {
   return {
@@ -3328,7 +3373,7 @@ function applyEvent(state, event) {
   }
 }
 function sessionJournal(dir) {
-  return dir ? [path11.join(dir, JOURNAL)] : [];
+  return dir ? [path12.join(dir, JOURNAL)] : [];
 }
 function loadSessionState(dir) {
   const state = emptySessionState();
@@ -3336,7 +3381,7 @@ function loadSessionState(dir) {
     return state;
   let journal;
   try {
-    journal = fs11.readFileSync(path11.join(dir, JOURNAL), "utf8");
+    journal = fs12.readFileSync(path12.join(dir, JOURNAL), "utf8");
   } catch {
     return state;
   }
@@ -3352,8 +3397,8 @@ function appendSessionEvents(dir, events) {
   if (!dir || events.length === 0)
     return;
   try {
-    fs11.mkdirSync(dir, { recursive: true });
-    fs11.appendFileSync(path11.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
+    fs12.mkdirSync(dir, { recursive: true });
+    fs12.appendFileSync(path12.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
 `).join(""));
   } catch {}
 }
@@ -3393,9 +3438,9 @@ function stopReminder(paths) {
 }
 
 // src/usage-log.ts
-import path12 from "node:path";
+import path13 from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
-var pluginVersion = readPackageVersion(path12.join(path12.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
+var pluginVersion = readPackageVersion(path13.join(path13.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
 function appendHookUsage2(row, env = process.env) {
   appendHookUsage({
     ...row,
@@ -3404,47 +3449,6 @@ function appendHookUsage2(row, env = process.env) {
   }, env);
 }
 var flushHookTelemetry = finishHookTelemetry;
-
-// src/workspace-optin.ts
-import fs12 from "node:fs";
-import path13 from "node:path";
-var KIBI_WORKSPACE_ENV_KEYS = [
-  "KIBI_WORKSPACE",
-  "KIBI_PROJECT_ROOT",
-  "KIBI_ROOT"
-];
-function nextAncestorDirectory(current) {
-  const parent = path13.dirname(current);
-  return parent === current ? undefined : parent;
-}
-function hasKibiManifest(directory) {
-  return fs12.existsSync(path13.join(directory, ".kb", "manifest.json"));
-}
-function hasGitBoundary(directory) {
-  return fs12.existsSync(path13.join(directory, ".git"));
-}
-function resolutionFor(root) {
-  return { root, optedIn: hasKibiManifest(root) };
-}
-function resolveKibiWorkspace(startDir, env = process.env) {
-  for (const key of KIBI_WORKSPACE_ENV_KEYS) {
-    const value = env[key]?.trim();
-    if (value) {
-      return resolutionFor(path13.resolve(value));
-    }
-  }
-  let current = path13.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
-  while (current !== undefined) {
-    if (hasKibiManifest(current)) {
-      return { root: current, optedIn: true };
-    }
-    if (hasGitBoundary(current)) {
-      return { root: current, optedIn: false };
-    }
-    current = nextAncestorDirectory(current);
-  }
-  return resolutionFor(path13.resolve(startDir ?? process.cwd()));
-}
 
 // src/hook-runner.ts
 var readTools = new Set(["Read"]);
