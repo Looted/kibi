@@ -165,6 +165,8 @@ jobs:
             echo '::error::Kibi rewrote .kb/symbols.yaml during sync. Run kibi sync --refresh-symbol-coordinates and commit the reviewed manifest changes.'
             exit 1
           fi
+          # A fresh load of the store must hold every triple once.
+          swipl scripts/check-store-snapshot.pl .kb/branches
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
       # Every current requirement's floor, before re-proving: receipts that
@@ -197,6 +199,8 @@ jobs:
           status=0
           KIBI_PROOF_UNIT_RESULTS="$results" bun packages/cli/bin/kibi prove --all || status=$?
           kill "$fetcher" 2>/dev/null || true
+          # Proof writes snapshots too; a fresh load must hold every triple once.
+          swipl scripts/check-store-snapshot.pl .kb/branches || status=1
           exit "$status"
 
       # Also saves the kb-consistency certificates the gate re-checked, so an

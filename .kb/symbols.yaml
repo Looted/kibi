@@ -2674,16 +2674,6 @@ symbols:
         target: REQ-codex-adapter-package
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
-  - id: SYM-codex-resolveKibiWorkspace
-    title: resolveKibiWorkspace
-    sourceFile: packages/codex/src/workspace-optin.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-codex-adapter-package
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
   - id: SYM-codex-resolveWorkspaceStateDir
     title: resolveWorkspaceStateDir
     sourceFile: packages/codex/src/hook-state.ts
@@ -14133,16 +14123,6 @@ symbols:
         target: REQ-agent-hosts-stop-capture
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
-  - id: SYM-zcode-resolveKibiWorkspace
-    title: resolveKibiWorkspace
-    sourceFile: packages/zcode/src/workspace-optin.ts
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-zcode-unowned-workspace-silence
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
   - id: SYM-zcode-runHook
     title: runHook
     sourceFile: packages/zcode/src/hook-runner.ts
@@ -19011,28 +18991,6 @@ symbols:
         target: TEST-proof-snippet-max-chars
       - type: implements
         target: REQ-agent-core-hook-limits
-  - id: SYM-claude-resolveKibiWorkspace
-    title: resolveKibiWorkspace
-    status: active
-    sourceFile: packages/claude/src/workspace-optin.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-claude-unowned-project-silence
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-  - id: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
-    title: KIBI_WORKSPACE_ENV_KEYS
-    status: active
-    sourceFile: packages/claude/src/workspace-optin.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-proof-claude-workspace-env-keys
-      - type: implements
-        target: REQ-agent-workspace-opt-in-keys
   - id: SYM-claude-test-tempDir
     title: tempDir
     status: active
@@ -45075,3 +45033,132 @@ symbols:
         target: TEST-kibi-cli-legacy-apply-safe
       - type: implements
         target: REQ-kibi-legacy-attachment-engine-refusal
+  - id: SYM-agent-core-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    status: active
+    sourceFile: packages/agent-core/src/workspace-optin.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T08:31:05.830Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-unowned-project-silence
+      - type: implements
+        target: REQ-zcode-unowned-workspace-silence
+  - id: SYM-agent-core-KIBI_WORKSPACE_ENV_KEYS
+    title: KIBI_WORKSPACE_ENV_KEYS
+    status: active
+    sourceFile: packages/agent-core/src/workspace-optin.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T08:31:09.745Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-proof-claude-workspace-env-keys
+      - type: implements
+        target: REQ-agent-workspace-opt-in-keys
+  - id: SYM-test-core-snapshot-duplicate-triples
+    title: Branch store snapshot duplicate-triple suites
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:09:04.396Z
+    relationships:
+      - type: executable_for
+        target: TEST-core-snapshot-duplicate-triples
+  - id: SYM-branch-store-store-repair-reason
+    title: storeRepairReason
+    sourceFile: packages/cli/src/utils/branch-store.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:10:09.965Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-duplicate-repair
+  - id: SYM-core-kb-flush-journals
+    title: kb_flush_journals
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:40.944Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-triples-held-once
+  - id: SYM-core-collect-store-garbage
+    title: collect_store_garbage
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:42.700Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-triples-held-once
+  - id: SYM-check-store-snapshot-count-store
+    title: count_store
+    status: active
+    sourceFile: scripts/check-store-snapshot.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:44.565Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-triples-held-once
+  - id: SYM-core-kb-repair-duplicate-triples
+    title: kb_repair_duplicate_triples
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:46.412Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-duplicate-repair
+  - id: SYM-core-write-store-repair
+    title: write_store_repair
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T09:11:48.267Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-snapshot-duplicate-triples
+      - type: implements
+        target: REQ-core-snapshot-duplicate-repair

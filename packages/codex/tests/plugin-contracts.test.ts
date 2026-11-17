@@ -8,8 +8,14 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 
+import {
+  parseHookInput,
+  parseStdinJson,
+  readStdin,
+} from "kibi-agent-core/hook-input";
+import { extractKbMcpToolCall } from "kibi-agent-core/kb-mcp-tools";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
-import { parseHookInput, parseStdinJson, readStdin } from "../src/hook-input";
+import { KIBI_WORKSPACE_ENV_KEYS } from "kibi-agent-core/workspace-optin";
 import { isInvokedAsCli, main, runHook, runHookCli } from "../src/hook-runner";
 import {
   addDirtyPaths,
@@ -19,7 +25,6 @@ import {
   resolveWorkspaceStateDir,
   saveHookState,
 } from "../src/hook-state";
-import { extractKbMcpToolCall } from "../src/kb-mcp-tools";
 import {
   CODEX_SESSION_NOTE,
   DIRECT_KB_EDIT_WARNING,
@@ -32,10 +37,6 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "../src/path-policy";
-import {
-  KIBI_WORKSPACE_ENV_KEYS,
-  resolveKibiWorkspace,
-} from "../src/workspace-optin";
 
 function createTempRoot(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -843,108 +844,6 @@ describe("Codex path policy", () => {
     ];
     for (const [candidate, expected] of cases) {
       expect(isSourceImpactRelevantPath(candidate)).toBe(expected);
-    }
-  });
-});
-
-describe("Codex workspace opt-in", () => {
-  test("environment overrides win over the directory walk", () => {
-    const withManifest = createTempRoot("kibi-codex-optin-");
-    const withoutManifest = createTempRoot("kibi-codex-plain-");
-    tempRoots.push(withManifest, withoutManifest);
-    optInWorkspace(withManifest);
-
-    for (const key of KIBI_WORKSPACE_ENV_KEYS) {
-      const resolution = resolveKibiWorkspace(withoutManifest, {
-        [key]: withManifest,
-      } as NodeJS.ProcessEnv);
-      expect(resolution).toEqual({ root: withManifest, optedIn: true });
-    }
-    expect(
-      resolveKibiWorkspace(withManifest, {
-        KIBI_WORKSPACE: `  ${withoutManifest}  `,
-      } as NodeJS.ProcessEnv),
-    ).toEqual({ root: withoutManifest, optedIn: false });
-  });
-
-  test("the walk stops at the first manifest or git boundary", () => {
-    const opted = createTempRoot("kibi-codex-optin-");
-    optInWorkspace(opted);
-    const nested = path.join(opted, "src", "deep");
-    fs.mkdirSync(nested, { recursive: true });
-    expect(resolveKibiWorkspace(nested)).toEqual({
-      root: opted,
-      optedIn: true,
-    });
-
-    const plain = createTempRoot("kibi-codex-plain-");
-    fs.mkdirSync(path.join(plain, ".git"), { recursive: true });
-    const inner = path.join(plain, "src");
-    fs.mkdirSync(inner, { recursive: true });
-    expect(resolveKibiWorkspace(inner)).toEqual({
-      root: plain,
-      optedIn: false,
-    });
-  });
-
-  test("blank start dirs fall back to the process cwd", () => {
-    const opted = createTempRoot("kibi-codex-optin-");
-    optInWorkspace(opted);
-    const originalCwd = process.cwd();
-    process.chdir(opted);
-    try {
-      expect(resolveKibiWorkspace(undefined)).toEqual({
-        root: opted,
-        optedIn: true,
-      });
-      expect(resolveKibiWorkspace("   ")).toEqual({
-        root: opted,
-        optedIn: true,
-      });
-    } finally {
-      process.chdir(originalCwd);
-    }
-  });
-
-  test("whitespace start dirs resolve literally, not as the workspace", () => {
-    const opted = createTempRoot("kibi-codex-optin-");
-    tempRoots.push(opted);
-    optInWorkspace(opted);
-    const plain = createTempRoot("kibi-codex-plain-");
-    tempRoots.push(plain);
-    fs.mkdirSync(path.join(plain, ".git"), { recursive: true });
-    const literal = path.join(plain, "   ");
-    fs.mkdirSync(path.join(literal, ".kb"), { recursive: true });
-    fs.writeFileSync(path.join(literal, ".kb", "manifest.json"), "{}");
-
-    const originalCwd = process.cwd();
-    process.chdir(plain);
-    try {
-      expect(resolveKibiWorkspace("   ")).toEqual({
-        root: plain,
-        optedIn: false,
-      });
-    } finally {
-      process.chdir(originalCwd);
-    }
-    expect(resolveKibiWorkspace(literal)).toEqual({
-      root: literal,
-      optedIn: true,
-    });
-  });
-
-  test("blank start dirs fall back to the process cwd", () => {
-    const plain = createTempRoot("kibi-codex-plain-");
-    tempRoots.push(plain);
-    const originalCwd = process.cwd();
-    process.chdir(plain);
-    try {
-      expect(resolveKibiWorkspace("   ")).toEqual({
-        root: path.join(plain, "   "),
-        optedIn: false,
-      });
-    } finally {
-      process.chdir(originalCwd);
     }
   });
 });
