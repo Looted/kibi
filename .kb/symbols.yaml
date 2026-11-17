@@ -44438,3 +44438,24 @@ symbols:
         target: TEST-check-changed-commit-verdict
       - type: implements
         target: REQ-check-changed-commit-verdict
+  - id: SYM-result-envelope-envelope-diagnostic
+    title: envelopeDiagnostic
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:38:04.767Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-finding-blocks
+      - type: implements
+        target: REQ-check-finding-blocks
+  - id: SYM-changed-check-cli-probe
+    title: CliProbe
+    status: active
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:45:15.057Z

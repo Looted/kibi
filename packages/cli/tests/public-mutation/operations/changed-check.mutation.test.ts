@@ -1,7 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   type ChangedGateRun,
   changedCheckContent,
@@ -226,4 +233,134 @@ process.stdin.resume();
       rmSync(dir, { recursive: true, force: true });
     }
   }, 60_000);
+});
+
+describe("runChangedGate finds the kibi CLI", () => {
+  // A stand-in kibi: prints which file ran and the arguments it was given.
+  const STAND_IN = `process.stdout.write(JSON.stringify({ bin: process.argv[1], args: process.argv.slice(2) }) + "\\n");\n`;
+  let dir: string;
+  const setup = () => {
+    dir = realpathSync(mkdtempSync(path.join(tmpdir(), "kibi-changed-cli-")));
+    for (const bin of [
+      "sibling/bin/kibi",
+      "installed/bin/kibi",
+      "ws/node_modules/kibi-cli/bin/kibi",
+    ]) {
+      mkdirSync(path.dirname(path.join(dir, bin)), { recursive: true });
+      writeFileSync(path.join(dir, bin), STAND_IN);
+    }
+    mkdirSync(path.join(dir, "ws"), { recursive: true });
+  };
+  const probe = (
+    existing: readonly string[],
+    resolve: (specifier: string) => string = () => {
+      throw new Error("not installed");
+    },
+  ) => ({
+    // ../../../bin/kibi from here is <dir>/sibling/bin/kibi.
+    moduleUrl: pathToFileURL(path.join(dir, "sibling/a/b/c/changed-check.js"))
+      .href,
+    exists: (file: string) =>
+      existing.some((name) => path.join(dir, name) === file),
+    resolve,
+    nodePath: process.execPath,
+  });
+  const ran = async (
+    existing: readonly string[],
+    resolve?: (specifier: string) => string,
+  ) => {
+    const run = await runChangedGate(
+      path.join(dir, "ws"),
+      ["a.ts"],
+      probe(existing, resolve),
+    );
+    return JSON.parse(run.stdout) as { bin: string; args: string[] };
+  };
+  const all = [
+    "sibling/bin/kibi",
+    "installed/bin/kibi",
+    "ws/node_modules/kibi-cli/bin/kibi",
+  ];
+
+  test("starts the CLI beside this module first, through node", async () => {
+    setup();
+    try {
+      expect(
+        await ran(all, () => path.join(dir, "installed/bin/kibi")),
+      ).toStrictEqual({
+        bin: path.join(dir, "sibling/bin/kibi"),
+        args: ["check", "--changed", "a.ts", "--format", "json"],
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  test("bundled elsewhere, starts the installed kibi-cli bin it resolves", async () => {
+    setup();
+    try {
+      const asked: string[] = [];
+      const run = await ran(all.slice(1), (specifier) => {
+        asked.push(specifier);
+        return path.join(dir, "installed/bin/kibi");
+      });
+      expect(run.bin).toBe(path.join(dir, "installed/bin/kibi"));
+      expect(asked).toStrictEqual(["kibi-cli/bin/kibi"]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  test("a resolved bin missing on disk, or no kibi-cli package, falls to the workspace's", async () => {
+    setup();
+    try {
+      const local = path.join(dir, "ws/node_modules/kibi-cli/bin/kibi");
+      expect(
+        (await ran(all.slice(2), () => path.join(dir, "installed/bin/kibi")))
+          .bin,
+      ).toBe(local);
+      expect((await ran(all.slice(2))).bin).toBe(local);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  test("with none of them, starts kibi from PATH", async () => {
+    setup();
+    const previous = process.env.PATH;
+    try {
+      const onPath = path.join(dir, "path");
+      mkdirSync(onPath);
+      writeFileSync(
+        path.join(onPath, "kibi"),
+        `#!/bin/sh\necho "{\\"bin\\":\\"path\\",\\"args\\":[\\"$*\\"]}"\n`,
+        { mode: 0o755 },
+      );
+      process.env.PATH = onPath;
+      expect(await ran([])).toStrictEqual({
+        bin: "path",
+        args: ["check --changed a.ts --format json"],
+      });
+    } finally {
+      process.env.PATH = previous;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  test("by default, resolves the installed kibi-cli bin from this module", async () => {
+    setup();
+    try {
+      // No CLI beside the module: the default resolve finds kibi-cli's own
+      // bin, which refuses a workspace that is not a git repository.
+      await expect(
+        runChangedGate(path.join(dir, "ws"), ["a.ts"], {
+          moduleUrl: pathToFileURL(path.join(dir, "none/a/b/c/x.js")).href,
+        }),
+      ).rejects.toThrow(
+        /^kibi check --changed printed no result \(exit 1\): .*git rev-parse --git-path index/,
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120_000);
 });

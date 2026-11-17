@@ -1,5 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  rmSync,
+  statSync,
+  utimesSync,
+} from "node:fs";
 import path from "node:path";
 
 /** A scratch git index holding the working tree's changes over the index. */
@@ -56,7 +62,15 @@ export function prepareChangedIndex(
     rmSync(`${indexFile}.lock`, { force: true });
   };
   try {
-    if (existsSync(realIndex)) copyFileSync(realIndex, indexFile);
+    if (existsSync(realIndex)) {
+      copyFileSync(realIndex, indexFile);
+      // Git trusts an entry's stat data only when the file is older than the
+      // index; a same-size edit made in the second the index was written is
+      // "racily clean" and re-read. A fresh mtime on the copy would hide
+      // such edits, so the copy keeps the real index's times.
+      const { atime, mtime } = statSync(realIndex);
+      utimesSync(indexFile, atime, mtime);
+    }
     const scope =
       paths === undefined || paths.length === 0
         ? []
