@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-manifest-initialized-signal",
+  "sourceFile": "packages/cursor/src/hook-runner.ts",
+  "symbol": "hasKibiConfig",
+  "verdict": "keeps",
+  "note": "Cursor readiness now comes from cursorKibiWorkspace, which still takes .kb/manifest.json (not .kb/config.json) as the initialized signal and walks up to the project root.",
+  "statementHash": "sha256:c763f7f4f36a991b8f41a95d5e76219f3fa543ab01dbe046932222ead591cd64",
+  "codeHash": "removed",
+  "startLine": 0,
+  "endLine": 0,
+  "recordedAt": "2026-11-17T17:03:11.271Z"
+}

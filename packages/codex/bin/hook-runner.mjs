@@ -52,6 +52,15 @@ var REDIRECT_TARGET = /(?:^|[^0-9&<>])>>?\s*([^\s;&|<>()]+)/g;
 var IN_PLACE_FLAG = /^(-[A-Za-z]*i\S*|--in-place(=\S*)?)$/;
 var IN_PLACE_EDITORS = new Set(["sed", "gsed", "perl"]);
 var COMMAND_PREFIXES = new Set(["sudo", "env", "command", "exec", "nice"]);
+var SHELLS = new Set(["sh", "bash", "zsh", "dash", "ksh"]);
+var SCRIPT_FLAG = /^-[A-Za-z]*c[A-Za-z]*$/;
+function shellScript(words) {
+  const [name, ...args] = words;
+  if (!SHELLS.has(path.basename(String(name))))
+    return;
+  const flag = args.findIndex((arg) => SCRIPT_FLAG.test(arg));
+  return flag === -1 ? undefined : args[flag + 1];
+}
 function maskQuoted(command) {
   let masked = "";
   let quote = null;
@@ -97,7 +106,13 @@ function* writtenNames(command) {
     yield unquote(command.slice(end - match[1].length, end));
   }
   for (const words of simpleCommandWords(command, masked)) {
-    const [name, ...args] = words.slice(words.findIndex(isCommandWord));
+    const commandWords = words.slice(words.findIndex(isCommandWord));
+    const script = shellScript(commandWords);
+    if (script !== undefined) {
+      yield* writtenNames(unquote(script));
+      continue;
+    }
+    const [name, ...args] = commandWords;
     const program = path.basename(String(name));
     if (IN_PLACE_EDITORS.has(program) && args.some((arg) => IN_PLACE_FLAG.test(arg)) || program === "tee")
       yield* args;
@@ -116,6 +131,7 @@ function commandEditPaths(command, cwd) {
 }
 var SHELL_TOOLS = new Set([
   "Bash",
+  "Shell",
   "shell",
   "local_shell",
   "exec_command",
@@ -125,7 +141,8 @@ function shellToolEditPaths(toolName, toolInput, cwd) {
   if (toolName === undefined || !SHELL_TOOLS.has(toolName))
     return [];
   const raw = toolInput !== null && typeof toolInput === "object" ? toolInput.command : undefined;
-  const command = Array.isArray(raw) ? raw.filter((part) => typeof part === "string").join(" ") : raw;
+  const argv = Array.isArray(raw) ? raw.filter((part) => typeof part === "string") : undefined;
+  const command = argv === undefined ? raw : shellScript(argv) ?? argv.join(" ");
   if (typeof command !== "string")
     return [];
   return commandEditPaths(command, cwd);
@@ -1966,7 +1983,8 @@ function removesOnlyDeadImplementsComments(absolutePath, toolInput, base) {
   }
   return pairs.every(([before, after]) => removesOnlyDeadComments(before, after));
 }
-var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+var RULE_PHRASES = /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)(?!\s+have\b)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/gi;
+var DESCRIBING_FRAME = /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$|\bI\s+$/i;
 var IMPERATIVE_ADVERB = /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please|also|let['’]?s|let us)\s+)(never|always)\b(?!-)(?!\s+mind\b)/i;
 var ASKING_ADVERB = /(?:\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+|\b(?:remember|need|want|be sure|try) to\s+|\b(?:may|shall|can)\s+(?=never)|\b(?:we|you)\s+(?=(?:never|always)\s+(?:want|need) to\b))(never|always)\b(?!-)/i;
 var DESCRIBING_NEXT_WORD = /^\s+(?:a|an|the|have been|has|had|been|was|were|is|are|am|did|does|\w+ed|\w*[^s\W]s)\b/i;
@@ -1974,6 +1992,8 @@ var REQUEST_QUESTION = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i
 var ASKS_TO_BE_TOLD = /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\s+(?:tell|explain|show)\b/i;
 var CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
 var LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
+var PASTED_OUTPUT_LINE = /^\s*(?:[\w.$]*(?:Error|Exception)\b|(?:error|warning|fatal|panic)\b\s*[:[]|at\s+\S+\s+\()/i;
+var QUOTED_WORDS = /(?<!\w)'[^'\n]+'(?!\w)|‘[^’\n]*’/g;
 var EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
 function requestLines(text) {
   const lines = [];
@@ -1985,14 +2005,14 @@ function requestLines(text) {
       continue;
     }
     previous = line.trim() === "" ? "blank" : "text";
-    if (/^\s*>/.test(line))
+    if (/^\s*>/.test(line) || PASTED_OUTPUT_LINE.test(line))
       continue;
     lines.push(line.trim().replace(LINE_MARKERS, "").replace(EMPHASIS, ""));
   }
   return lines;
 }
 function requestSentences(prompt) {
-  return requestLines(prompt.replace(CODE_SPANS, " ")).flatMap((line) => line.split(/(?<=[.!?])\s/)).map((sentence) => sentence.trim());
+  return requestLines(prompt.replace(CODE_SPANS, " ")).map((line) => line.replace(QUOTED_WORDS, " ")).flatMap((line) => line.split(/(?<=[.!?])\s/)).map((sentence) => sentence.trim());
 }
 function instructingAdverb(sentence) {
   const asked = ASKING_ADVERB.exec(sentence);
@@ -2011,9 +2031,10 @@ function ruleMatch(prompt) {
   for (const [index, sentence] of sentences.entries()) {
     if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
       continue;
-    const match = RULE_PHRASES.exec(sentence);
-    if (match)
-      return { phrase: match[0].toLowerCase(), sentences, index };
+    for (const match of sentence.matchAll(RULE_PHRASES)) {
+      if (!DESCRIBING_FRAME.test(sentence.slice(0, match.index)))
+        return { phrase: match[0].toLowerCase(), sentences, index };
+    }
     const adverb = instructingAdverb(sentence);
     if (adverb)
       return { phrase: adverb, sentences, index };
@@ -3770,7 +3791,7 @@ async function runHook(rawInput, environment = {}) {
         }
         const shellEdits = shellEditedPaths(workspace.root, input);
         const dirtyPaths = [
-          ...extractEditedPaths(input.toolInput),
+          ...editTargets(workspace.root, input).map((target) => target.relative),
           ...shellEdits
         ].filter(isMeaningfulTrackedPath2);
         if (dirtyPaths.length > 0) {

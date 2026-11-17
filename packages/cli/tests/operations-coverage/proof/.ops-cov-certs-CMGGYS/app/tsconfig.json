@@ -1,7 +1,0 @@
-{
-  /* block comment */ "compilerOptions": {
-    "outDir": "dist", // line comment
-    "rootDir": "src",
-    "description": "a \"quoted\" name",
-  },
-}

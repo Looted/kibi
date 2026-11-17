@@ -470,7 +470,15 @@ export async function executeUpsertRequest(
         ? [
             {
               type: "text" as const,
-              text: `Left before kb_check passes: ${followUp.nextActions.length} step(s), each in nextActions with its input.`,
+              // Spelled out in the text: Cursor, Gemini CLI and other
+              // text-only hosts never show the model structuredContent.
+              text: [
+                `Left before kb_check passes: ${followUp.nextActions.length} step(s), also in nextActions:`,
+                ...followUp.nextActions.map(
+                  (action, index) =>
+                    `${index + 1}. ${action.operation} (${action.code}): ${action.reason} Input: ${JSON.stringify(action.input)}`,
+                ),
+              ].join("\n"),
             },
           ]
         : []),

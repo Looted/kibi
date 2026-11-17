@@ -50,7 +50,7 @@ This repository records its requirements, decisions, tests and code ownership in
 
 - Before changing behavior, ask it: \`kb_search\` with the question, and \`kb_query\` with \`sourceFile\` for a file you edit. Without the MCP tools, use the project-local CLI (\`npx --no-install kibi search "<question>"\`, or your package manager's runner).
 - A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question for the person, not a task. Ask when unsure.
-- Record new or changed behavior with \`kb_upsert\` and finish with \`kb_check\`. Do not edit \`.kb/\` files by hand.
+- Record a rule the person states with \`kb_record\` (other new or changed behavior with \`kb_upsert\`) and finish with \`kb_check\`. Do not edit \`.kb/\` files by hand.
 - Before editing code that implements a firm requirement (a rule the person set), ask the person unless the edit keeps that rule. After the edit, record your verdict for each edited symbol with \`kibi review-firm-edit\` ("keeps" or "changes"); the commit is blocked until each has a current keeps receipt.
 - Commits must pass \`kibi check --staged\`, which the pre-commit hook runs. A fresh clone has no git hooks until the project's dependencies are installed or \`kibi hooks install\` runs.
 - Workflow guidance: the \`kibi-usage\` skill (\`kb_skills\` with \`action: "load"\`, or \`kibi skills load kibi-usage\`).`;

@@ -3,7 +3,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { runHook } from "../src/hook-runner.js";
-import { BOOTSTRAP_REMINDER } from "../src/messages.js";
 
 const tempRoots: string[] = [];
 
@@ -20,7 +19,7 @@ afterEach(() => {
 });
 
 describe("cursor hook runner edges", () => {
-  test("sessionStart without Kibi config sends only the bootstrap reminder once MCP was observed", async () => {
+  test("sessionStart without Kibi config stays quiet even once MCP was observed", async () => {
     const cwd = tempRoot("kibi-cursor-edges-");
     const pluginData = tempRoot("kibi-cursor-edges-data-");
     await runHook(
@@ -38,7 +37,7 @@ describe("cursor hook runner edges", () => {
         { hook_event_name: "sessionStart", cwd, conversation_id: "c1" },
         { pluginData },
       ),
-    ).toStrictEqual({ additional_context: BOOTSTRAP_REMINDER });
+    ).toStrictEqual({});
   });
 
   test("postToolUse whose telemetry throws still returns the impact note", async () => {

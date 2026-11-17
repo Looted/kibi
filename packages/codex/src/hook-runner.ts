@@ -583,10 +583,11 @@ export async function runHook(
 
         // `apply_patch` names its files only in the patch text, so the explicit
         // path fields alone would leave those edits untracked and the Stop
-        // reminder silent.
+        // reminder silent. Paths are kept workspace-relative, the form the
+        // kb_check the hooks suggest names them in, whatever form the edit used.
         const shellEdits = shellEditedPaths(workspace.root, input);
         const dirtyPaths = [
-          ...extractEditedPaths(input.toolInput),
+          ...editTargets(workspace.root, input).map((target) => target.relative),
           ...shellEdits,
         ].filter(isMeaningfulTrackedPath);
 

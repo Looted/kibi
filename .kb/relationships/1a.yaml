@@ -384,3 +384,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bedf91c70417
+  - type: validates
+    from: TEST-opencode-decision-hooks
+    to: SCEN-opencode-decision-hooks
+    created_at: 2026-11-17T17:01:50.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78423c66e63d

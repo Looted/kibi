@@ -3001,20 +3001,6 @@ symbols:
         target: TEST-cursor-agent-plugin-v1
       - type: implements
         target: REQ-cursor-agent-plugin-package
-  - id: SYM-cursor-BOOTSTRAP_REMINDER
-    title: BOOTSTRAP_REMINDER
-    sourceFile: packages/cursor/src/messages.ts
-    granularity_reason: legacy-link
-    links:
-      - REQ-agent-kibi-interface-selection
-    status: active
-    relationships:
-      - type: covered_by
-        target: TEST-agent-kibi-interface-selection
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-kibi-interface-selection
   - id: SYM-cursor-buildAgentPluginUnlocked
     title: buildAgentPluginUnlocked
     status: active
@@ -38794,16 +38780,6 @@ symbols:
         target: TEST-kibi-html-health-report
       - type: implements
         target: REQ-kibi-health-report-complete-data
-  - id: SYM-cursor-hasKibiConfig
-    title: hasKibiConfig
-    status: active
-    sourceFile: packages/cursor/src/hook-runner.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-manifest-initialized-signal
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
   - id: SYM-mcp-kibiWorkspaceFor
     title: kibiWorkspaceFor
     status: active
@@ -45864,3 +45840,74 @@ symbols:
         target: TEST-mcp-short-field-descriptions
       - type: implements
         target: REQ-mcp-short-field-descriptions
+  - id: SYM-cursor-cursorKibiWorkspace
+    title: cursorKibiWorkspace
+    sourceFile: packages/cursor/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T16:53:29.158Z
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-manifest-initialized-signal
+  - id: SYM-decision-hooks-create-decision-hooks
+    title: createDecisionHooks
+    sourceFile: packages/opencode/src/decision-hooks.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:01:14.271Z
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-decision-hooks
+      - type: implements
+        target: REQ-opencode-decision-hooks
+  - id: SYM-test-opencode-decision-hooks
+    title: OpenCode decision hooks suite
+    status: active
+    sourceFile: packages/opencode/tests/decision-hooks.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:01:56.557Z
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-decision-hooks
+  - id: SYM-bash-command-shell-tool-edit-paths
+    title: shellToolEditPaths
+    sourceFile: packages/agent-core/src/bash-command.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:02:24.940Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-shell-edits-count
+      - type: implements
+        target: REQ-agent-hosts-shell-edits-count
+  - id: SYM-test-agent-hosts-shell-edits-count
+    title: Shell edit detection suite
+    status: active
+    sourceFile: packages/agent-core/tests/bash-command.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:02:50.483Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-hosts-shell-edits-count
+  - id: SYM-agent-instructions-kibi-agent-instructions
+    title: KIBI_AGENT_INSTRUCTIONS
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:02:53.198Z

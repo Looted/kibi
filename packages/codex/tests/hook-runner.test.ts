@@ -1014,6 +1014,42 @@ describe("Codex decision guard", () => {
     ).not.toContain("recorded nothing");
   });
 
+  test("an edit by absolute path is cleared by the workspace-relative kb_check", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const event = (payload: Record<string, unknown>) =>
+      runHook({ session_id: "abs-1", cwd, ...payload }, { pluginData });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: {
+        command: GUARD_PATCH.replace(
+          "src/guard.ts",
+          path.join(cwd, "src/guard.ts"),
+        ),
+      },
+    });
+    const unchecked = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: true,
+    });
+    expect(JSON.stringify(unchecked)).not.toContain(path.join(cwd, "src"));
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_check",
+      tool_input: { changed: true, sourceFiles: ["src/guard.ts"] },
+    });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_upsert",
+      tool_input: { type: "symbol", id: "SYM-guard", properties: {} },
+    });
+    const stop = await event({ hook_event_name: "Stop", stop_hook_active: false });
+    expect(stop.decision).toBeUndefined();
+  });
+
   test("Stop continues the turn once with the capture request when source changed and nothing was recorded", async () => {
     const event = session();
     await event({

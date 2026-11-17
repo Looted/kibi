@@ -87,19 +87,54 @@ function writeKeepsReceipt(root: string): void {
 }
 
 describe("Cursor hook runner", () => {
-  test("sessionStart reminds when cwd has no Kibi config", async () => {
+  test("a workspace without Kibi gets nothing and keeps no state", async () => {
     const cwd = createTempRoot("kibi-cursor-cwd-");
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".git"));
+
+    for (const event of [
+      { hook_event_name: "sessionStart", cwd },
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: ".kb/config.json" },
+      },
+      {
+        hook_event_name: "postToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: "src/a.ts" },
+      },
+      {
+        hook_event_name: "postToolUse",
+        cwd,
+        tool_name: "Shell",
+        tool_input: { command: "echo x > src/a.ts" },
+      },
+    ]) {
+      expect(await runHook(event, { pluginData })).toStrictEqual({});
+    }
+    expect(fs.readdirSync(pluginData)).toEqual([]);
+  });
+
+  test("a window opened on a subdirectory belongs to the Kibi project above it", async () => {
+    const root = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(root, pluginData);
+    fs.mkdirSync(path.join(root, ".kb"));
+    fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
+    fs.mkdirSync(path.join(root, "packages", "app"), { recursive: true });
 
     const result = await runHook(
-      { hook_event_name: "sessionStart", cwd },
+      {
+        hook_event_name: "sessionStart",
+        workspace_roots: [path.join(root, "packages", "app")],
+      },
       { pluginData },
     );
-
-    expect(result.additional_context).toContain(
-      "Kibi config was not found at the Cursor workspace root",
-    );
+    expect(result.additional_context).toBeDefined();
   });
 
   test("sessionStart stays quiet when cwd has Kibi config", async () => {
@@ -173,20 +208,6 @@ describe("Cursor hook runner", () => {
     );
 
     expect(result.additional_context).toBeDefined();
-  });
-
-  test("sessionStart treats an empty cwd as missing Kibi config", async () => {
-    const pluginData = createTempRoot("kibi-cursor-data-");
-    tempRoots.push(pluginData);
-
-    const result = await runHook(
-      { hook_event_name: "sessionStart", cwd: "" },
-      { pluginData },
-    );
-
-    expect(result.additional_context).toContain(
-      "Kibi config was not found at the Cursor workspace root",
-    );
   });
 
   test("preToolUse warns on explicit direct .kb path edits without blocking", async () => {
@@ -1058,6 +1079,49 @@ describe("Cursor decision guard", () => {
     expect(message).toContain(
       ruleCaptureTemplate("must not", "because refunds drift"),
     );
+  });
+
+  test("a shell in-place edit of source carries the rule note and counts at stop", async () => {
+    const { event, workspace } = conversation({ KIBI_CONFIRM_FIRM_EDITS: "0" });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded, because refunds drift.",
+    });
+    const shell = await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Shell",
+      tool_input: { command: "sed -i s/1/2/ src/checkout.ts" },
+      cwd: workspace,
+    });
+    expect(shell.additional_context).toStartWith(
+      rulePromptNote("must not", "because refunds drift"),
+    );
+    expect(shell.additional_context).toContain(
+      ruleCaptureTemplate("must not", "because refunds drift"),
+    );
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message).toContain(captureReminder("must not"));
+  });
+
+  test("a shell edit of KB or doc files is tracked without a rule note", async () => {
+    const { event, workspace } = conversation({ KIBI_CONFIRM_FIRM_EDITS: "0" });
+    fs.mkdirSync(path.join(workspace, "documentation"));
+    fs.writeFileSync(path.join(workspace, "documentation/guide.md"), "x\n");
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded.",
+    });
+    expect(
+      await event({
+        hook_event_name: "postToolUse",
+        tool_name: "Shell",
+        tool_input: {
+          command:
+            "echo x >> .kb/requirements/REQ-checkout-rounding.md && echo y >> documentation/guide.md",
+        },
+        cwd: workspace,
+      }),
+    ).toEqual({});
   });
 
   test("stop asks nothing in a workspace that never adopted Kibi", async () => {

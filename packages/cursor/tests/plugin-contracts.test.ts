@@ -1014,44 +1014,19 @@ describe("Cursor hook runner decisions", () => {
     fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
   }
 
-  test("sessionStart bootstraps unconfigured workspaces with the right advisory", async () => {
+  test("sessionStart stays quiet in a workspace that never adopted Kibi", async () => {
     const cwd = tempDir("kibi-cursor-cwd-");
     const pluginData = tempDir("kibi-cursor-data-");
-
-    const untrusted = await runHook(
-      { event: "sessionStart", cwd },
-      { pluginData },
-    );
-    expect(untrusted.additional_context).toBe(
-      `${BOOTSTRAP_REMINDER}\n${interfaceAdvisory("unknown", false)}`,
-    );
-
-    const trusted = await runHook(
-      { event: "sessionStart", cwd },
-      {
-        pluginData,
-        workspaceTrusted: true,
-      },
-    );
-    expect(trusted.additional_context).toBe(
-      `${BOOTSTRAP_REMINDER}\n${interfaceAdvisory("unknown", true)}`,
-    );
-  });
-
-  test("sessionStart still bootstraps when .kb exists without a manifest", async () => {
-    const cwd = tempDir("kibi-cursor-cwd-");
-    const pluginData = tempDir("kibi-cursor-data-");
+    for (const workspaceTrusted of [false, true]) {
+      expect(
+        await runHook({ event: "sessionStart", cwd }, { pluginData, workspaceTrusted }),
+      ).toStrictEqual({});
+    }
+    // A .kb folder without a manifest is not an adopted workspace either.
     fs.mkdirSync(path.join(cwd, ".kb"), { recursive: true });
-
-    const result = await runHook(
-      { event: "sessionStart", cwd },
-      {
-        pluginData,
-      },
-    );
     expect(
-      result.additional_context?.startsWith("Kibi config was not found"),
-    ).toBe(true);
+      await runHook({ event: "sessionStart", cwd }, { pluginData }),
+    ).toStrictEqual({});
   });
 
   test("sessionStart opens configured workspaces with only the session brief once mcp is observed", async () => {
@@ -1422,6 +1397,8 @@ describe("Cursor hook CLI surface", () => {
 
   test("main parses stdin, applies the trusted flag, and prints one line", async () => {
     const cwd = tempDir("kibi-cursor-main-cwd-");
+    fs.mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
     const originalCwd = process.cwd();
     process.chdir(cwd);
     const originalArgv = process.argv;
