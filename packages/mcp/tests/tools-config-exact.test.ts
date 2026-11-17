@@ -65,6 +65,13 @@ const W = {
   openWorldHint: false,
 };
 const O = { ...R, openWorldHint: true };
+// A receipt write: it adds a file under .kb and repeats safely.
+const A = {
+  readOnlyHint: false,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+};
 
 describe("tool annotations", () => {
   test("every exposed tool has its title and effect hints", () => {
@@ -81,6 +88,7 @@ describe("tool annotations", () => {
       ["kb_record", "Record a stated rule", W],
       ["kb_delete", "Delete a Kibi entity", W],
       ["kb_check", "Validate Kibi knowledge base", R],
+      ["kb_review_firm_edit", "Record a firm-edit review", A],
       ["kb_prepare_impact_review", "Prepare an impact review", R],
       ["kb_plan_bootstrap", "Plan Kibi bootstrap", R],
       ["kb_compile_intent", "Compile Kibi change intent", R],
