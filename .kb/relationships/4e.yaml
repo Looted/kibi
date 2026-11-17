@@ -244,3 +244,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74209dcac70a
+  - type: covered_by
+    from: SYM-const-quantity-trivial-numbers
+    to: TEST-proof-quantity-trivial-numbers
+    created_at: 2026-11-17T06:00:10.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f25ff102a71

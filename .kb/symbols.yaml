@@ -42102,6 +42102,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kb-upsert-capture-with-why
+      - type: covered_by
+        target: TEST-proof-kb-upsert-related-requirements-cap
       - type: implements
         target: REQ-kb-upsert-related-current-requirements
   - id: SYM-capture-max-related-statement
@@ -43015,6 +43017,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-check-quantity-duplicate
+      - type: covered_by
+        target: TEST-proof-quantity-word-share
       - type: implements
         target: REQ-check-quantity-duplicate-pairing
   - id: SYM-cli-quantity-layer-quantity-value
@@ -44414,6 +44418,119 @@ symbols:
         target: TEST-kibi-env-workspace-file-key-policy
       - type: implements
         target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-agent-core-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    status: active
+    sourceFile: packages/agent-core/src/workspace-optin.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T08:31:05.830Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-unowned-project-silence
+      - type: implements
+        target: REQ-zcode-unowned-workspace-silence
+  - id: SYM-agent-core-KIBI_WORKSPACE_ENV_KEYS
+    title: KIBI_WORKSPACE_ENV_KEYS
+    status: active
+    sourceFile: packages/agent-core/src/workspace-optin.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T08:31:09.745Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-proof-claude-workspace-env-keys
+      - type: implements
+        target: REQ-agent-workspace-opt-in-keys
+  - id: SYM-branch-store-locator-unmigrated-legacy-store-refusal
+    title: unmigratedLegacyStoreRefusal
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:45:09.394Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-legacy-attachment-engine-refusal
+  - id: SYM-branch-resolver-legacy-attachment-refusal
+    title: legacyAttachmentRefusal
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:45:14.032Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-legacy-attachment-engine-refusal
+  - id: SYM-proof-quantity-trivial-numbers
+    title: trivialNumbersCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/quantity-duplicate-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:00:06.171Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-quantity-trivial-numbers
+  - id: SYM-const-quantity-trivial-numbers
+    title: TRIVIAL_NUMBERS
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:00:09.652Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-quantity-trivial-numbers
+  - id: SYM-proof-quantity-word-share
+    title: quantityWordShareCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/quantity-duplicate-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:00:14.253Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-quantity-word-share
+  - id: SYM-proof-kb-upsert-related-requirements-cap
+    title: relatedRequirementsCapCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/related-requirements-cap.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T08:28:24.990Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-kb-upsert-related-requirements-cap
   - id: SYM-test-core-snapshot-duplicate-triples
     title: Branch store snapshot duplicate-triple suites
     status: active
@@ -44509,63 +44626,3 @@ symbols:
         target: TEST-core-snapshot-duplicate-triples
       - type: implements
         target: REQ-core-snapshot-duplicate-repair
-  - id: SYM-branch-store-locator-unmigrated-legacy-store-refusal
-    title: unmigratedLegacyStoreRefusal
-    sourceFile: packages/cli/src/utils/branch-store-locator.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:45:09.394Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-cli-legacy-apply-safe
-      - type: implements
-        target: REQ-kibi-legacy-attachment-engine-refusal
-  - id: SYM-branch-resolver-legacy-attachment-refusal
-    title: legacyAttachmentRefusal
-    sourceFile: packages/cli/src/utils/branch-resolver.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:45:14.032Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-cli-legacy-apply-safe
-      - type: implements
-        target: REQ-kibi-legacy-attachment-engine-refusal
-  - id: SYM-agent-core-resolveKibiWorkspace
-    title: resolveKibiWorkspace
-    status: active
-    sourceFile: packages/agent-core/src/workspace-optin.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-17T08:31:05.830Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-claude-unowned-project-silence
-      - type: implements
-        target: REQ-zcode-unowned-workspace-silence
-  - id: SYM-agent-core-KIBI_WORKSPACE_ENV_KEYS
-    title: KIBI_WORKSPACE_ENV_KEYS
-    status: active
-    sourceFile: packages/agent-core/src/workspace-optin.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-17T08:31:09.745Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-code-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-proof-claude-workspace-env-keys
-      - type: implements
-        target: REQ-agent-workspace-opt-in-keys

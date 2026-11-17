@@ -405,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-473d0bff8544
+  - type: executable_for
+    from: SYM-proof-quantity-trivial-numbers
+    to: TEST-proof-quantity-trivial-numbers
+    created_at: 2026-11-17T06:00:07.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28d2f1aaead0
