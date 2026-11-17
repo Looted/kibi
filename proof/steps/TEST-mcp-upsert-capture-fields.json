@@ -1,0 +1,25 @@
+{
+  "test_id": "TEST-mcp-upsert-capture-fields",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/operations/advertised-schema.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/operations/field-reference.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/server/tools-coverage.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/server/tool-surface-consumer.test.ts"
+    ]
+  ]
+}

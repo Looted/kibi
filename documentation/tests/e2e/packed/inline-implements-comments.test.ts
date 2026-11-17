@@ -54,8 +54,10 @@ async function assertStagedGateRejectsCommentOnlyLink(
   });
   const output = `${check.stdout}\n${check.stderr}`;
   assert.strictEqual(check.exitCode, 1, output);
-  assert.match(output, /src\/greet\.js:\d+\s+greet\s+\(0 of 1 link\(s\)\)/);
-  assert.match(output, /A code comment is never a link/);
+  assert.match(
+    output,
+    /\[BLOCKS COMMIT\] greet \(src\/greet\.js:\d+\) is new and no requirement owns it\./,
+  );
 }
 
 /** kibi migrate names the comment in one review action and edits no source. */

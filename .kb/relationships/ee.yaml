@@ -580,3 +580,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb4c8d611cdd
+  - type: assumes
+    from: SCEN-upsert-refuses-fact-contradiction
+    to: FACT-upsert-refuses-fact-contradiction
+    created_at: 2026-11-16T19:17:12.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f9d667d0ef8
+  - type: verified_by
+    from: SCEN-upsert-refuses-fact-contradiction
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:12.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f3003485440

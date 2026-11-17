@@ -53,7 +53,7 @@ When a prompt reads as a rule or decision, the kibi-claude UserPromptSubmit hook
 
 ## Context
 
-Agents implemented decisions the person stated and recorded none of them, so later sessions found no record of the decision and changed the behavior back. The hooks already surfaced recorded rules but nothing asked for new ones to be recorded. The Stop and post-edit behavior is shared hook code in kibi-agent-core, so the Claude Code, Codex, Cursor and ZCode hooks behave alike; Cursor's post-edit hook cannot add context, so its template rides on the next pre-edit message.
+Agents implemented decisions the person stated and recorded none of them, so later sessions found no record of the decision and changed the behavior back. The hooks already surfaced recorded rules but nothing asked for new ones to be recorded. The Stop and post-edit behavior is shared hook code in kibi-agent-core, so the Claude Code, Codex, Cursor and ZCode hooks behave alike; Cursor delivers the template with the pre-edit message of the session's first source edit, so a session with one edit gets it too.
 
 ## Why this changed
 

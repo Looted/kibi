@@ -38,6 +38,7 @@ describe("baseline-preserving insertion", () => {
       paragraph,
       plan: {
         ...plan,
+        headingAnchor: "## 4. Check",
         currentBaselineBodyHash: sha256(current.body),
         frontmatterHash: current.frontmatterHash,
         resourcesHash: current.resourcesHash,

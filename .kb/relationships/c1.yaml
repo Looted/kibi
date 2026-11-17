@@ -181,13 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bc17e5f6f1b3
-  - type: implements
-    from: SYM-staged-symbols-manifest-unrecordedDeclarations
-    to: REQ-check-reports-symbol-debt
-    created_at: 2026-11-16T05:45:47.105Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4f6b5985c176
   - type: covered_by
     from: SYM-staged-symbols-manifest-unrecordedDeclarations
     to: TEST-check-reports-symbol-debt
@@ -195,20 +188,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f9c3f7bb48
-  - type: implements
-    from: SYM-check-inheritedSymbolGapsOf
-    to: REQ-staged-gate-reports-inherited-symbol-gaps
-    created_at: 2026-11-16T09:21:37.884Z
+  - type: executable_for
+    from: SYM-test-skills-core-arc
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:37:05.457Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-0dce13c69813
-  - type: covered_by
-    from: SYM-check-inheritedSymbolGapsOf
-    to: TEST-staged-gate-inherited-symbol-gaps
-    created_at: 2026-11-16T09:21:37.897Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1b0b81d588a0
+    id: rel-137ed8698acb
   - type: constrains
     from: REQ-check-restated-twin-facts
     to: FACT-check-duplicate-value-facts-subject
@@ -237,3 +223,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-466cc175812d
+  - type: implements
+    from: SYM-check-inheritedSymbolGapsOf
+    to: REQ-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dce13c69813
+  - type: covered_by
+    from: SYM-check-inheritedSymbolGapsOf
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b0b81d588a0
+  - type: covered_by
+    from: SYM-cli-quantity-layer-quantity-inputs
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:13.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e912df283ec8
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-inputs
+    to: REQ-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T17:52:31.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9b66cf3736c
+  - type: implements
+    from: SYM-staged-symbols-manifest-unrecordedDeclarations
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:55:33.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28bfaeb617b5
+  - type: assumes
+    from: SCEN-check-unscoped-budget
+    to: FACT-check-unscoped-budget
+    created_at: 2026-11-16T16:00:53.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b130e6296e77

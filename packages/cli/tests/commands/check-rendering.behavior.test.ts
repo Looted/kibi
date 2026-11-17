@@ -702,7 +702,9 @@ Body.
       }),
     ]);
     const messages = output.messages.join("\n");
-    expect(messages).toContain("src/decorated.py:1  handler  (0 of 1 link(s))");
+    expect(messages).toContain(
+      "[BLOCKS COMMIT] handler (src/decorated.py:1) has a symbol record but no requirement owns it.",
+    );
     expect(messages).not.toContain("Partial source analysis");
   });
 
@@ -1242,7 +1244,7 @@ describe("checkCommand full-KB text rendering", () => {
 
     expect(result.exitCode).toBe(0);
     const text = io.logText();
-    expect(text).toContain("No violations found. KB is valid.");
+    expect(text).toContain("✓ No violations. 0 rules.");
     expect(text).toContain("Quality diagnostics (1):");
     expect(text).toContain("[INFO status.info] all good");
     expect(text).toContain("Blocking: no");

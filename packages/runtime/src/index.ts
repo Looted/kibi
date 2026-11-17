@@ -152,6 +152,7 @@ export type {
   ValidatedUpsert,
 } from "kibi-cli/operations/mutation/types";
 export { executeDelete } from "kibi-cli/operations/mutation/delete";
+export { executeUpsertRequest } from "kibi-cli/operations/mutation/implemented-by";
 export { executeUpsert } from "kibi-cli/operations/mutation/upsert";
 export { validateUpsertInput } from "kibi-cli/operations/mutation/validation";
 export {

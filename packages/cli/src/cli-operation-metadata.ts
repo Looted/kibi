@@ -43,7 +43,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_search",
     cliName: "search",
     description:
-      "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+      "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   },
   {
     name: "kb_status",
@@ -183,4 +183,15 @@ export function getCliOperationMetadata(
 
 export function isOperationName(name: string): name is OperationName {
   return METADATA_BY_NAME.has(name as OperationName);
+}
+
+/**
+ * The line `kibi --help` lists for an operation command: the first sentence
+ * of its description. `kibi <command> --help` still prints the whole text.
+ */
+export function commandSummary(description: string): string {
+  const text = description.trim();
+  // A sentence ends at the first `.`, `!` or `?` followed by white space; a
+  // description with none is one sentence.
+  return /.*?[.!?](?=\s)/s.exec(text)?.[0] ?? text;
 }

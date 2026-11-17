@@ -139,9 +139,14 @@ describe("setup choices", () => {
 });
 
 describe("agent instructions", () => {
-  test("create AGENTS.md and a CLAUDE.md that imports it", () => {
+  test("create AGENTS.md, and a CLAUDE.md and GEMINI.md that import it", () => {
     const result = writeAgentInstructions(root);
-    expect(result).toEqual({ agents: "created", claude: "created" });
+    expect(result).toEqual({
+      agents: "created",
+      claude: "created",
+      gemini: "created",
+    });
+    expect(read("GEMINI.md")).toContain("@./AGENTS.md");
     expect(read("AGENTS.md")).toContain("kb_search");
     expect(read("AGENTS.md")).toContain("kb_query");
     expect(read("CLAUDE.md")).toContain("@AGENTS.md");
@@ -153,6 +158,7 @@ describe("agent instructions", () => {
     expect(writeAgentInstructions(root)).toEqual({
       agents: "updated",
       claude: "unchanged",
+      gemini: "created",
     });
     const first = read("AGENTS.md");
     expect(first).toStartWith("# Rules\n\nUse tabs.\n\n");
@@ -173,6 +179,7 @@ describe("agent instructions", () => {
     expect(writeAgentInstructions(root)).toEqual({
       agents: "updated",
       claude: "same-file",
+      gemini: "created",
     });
     expect(read("CLAUDE.md").match(/BEGIN kibi-managed/g)).toHaveLength(1);
 

@@ -225,7 +225,7 @@ After installing the packages, use this short path:
 
 `kibi init` runs once per repository, but `.git/hooks`, the compiled branch store and agent plugins never travel with a clone. So that a teammate's or an agent's fresh clone still uses Kibi, `kibi init` also:
 
-- writes a Kibi section into `AGENTS.md` and an `@AGENTS.md` import into `CLAUDE.md`, so every coding agent, with or without a Kibi plugin, is told the knowledge base exists and how to query it;
+- writes a Kibi section into `AGENTS.md`, an `@AGENTS.md` import into `CLAUDE.md` and an `@./AGENTS.md` import into `GEMINI.md` (Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default), so every coding agent, with or without a Kibi plugin, is told the knowledge base exists and how to query it;
 - adds `kibi hooks install --quiet` to the root `package.json` `prepare` script, so installing dependencies installs the hooks (without a root `package.json`, run `kibi hooks install` after cloning);
 - records these choices in `package.json` `kibi.setup` (or `.kb/setup.json`).
 

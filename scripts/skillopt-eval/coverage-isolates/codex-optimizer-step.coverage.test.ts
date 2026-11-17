@@ -235,7 +235,7 @@ describe("runCodexSkillOptStep", () => {
     expect(result.body).toContain(INSERTION_PARAGRAPH);
     expect(result.body).not.toContain("REQ-INSERT-001");
     expect(result.body).toContain("## Closeout fields");
-    expect(prompts[0]).toContain("same-payload kb_upsert");
+    expect(prompts[0]).toContain("perform the authorized kb_upsert");
     expect(prompts[0]).toContain(INSERTION_PLAN.objective);
     expect(prompts[0]).toContain(
       "approved relation arguments were incorrectly split into separate claims",

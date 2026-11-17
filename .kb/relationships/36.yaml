@@ -475,3 +475,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0b51c19f9cc
+  - type: covered_by
+    from: SYM-mcp-DEFAULT_PROFILE_TOOLS
+    to: TEST-proof-mcp-default-profile-tools
+    created_at: 2026-11-16T22:38:07.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed7423590b0e
+  - type: implements
+    from: SYM-symbol-debt-symbol-debt-listing
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:52:23.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19a1f815a208
+  - type: covered_by
+    from: SYM-symbol-debt-symbol-debt-listing
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T15:56:13.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73e99a241cd8
+  - type: implements
+    from: SYM-owner-findings-format-owner-findings
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T16:49:26.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec5122cb3f2c
+  - type: covered_by
+    from: SYM-owner-findings-format-owner-findings
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T16:49:26.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87394966658f

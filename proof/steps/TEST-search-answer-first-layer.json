@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-search-answer-first-layer",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/search-answer.test.ts",
+      "./packages/cli/tests/consumer/search-answer-layer.test.ts",
+      "./packages/cli/tests/public-mutation/operations/discovery-search.mutation.test.ts"
+    ]
+  ]
+}

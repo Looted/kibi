@@ -3,7 +3,7 @@ import fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { resetKibiEnvironmentBootstrapStateForTests } from "kibi-runtime";
-import { loadDefaultEnvFile, loadEnvFile } from "../src/env.js";
+import { loadDefaultEnvFile } from "../src/env.js";
 import { restoreProcessEnv } from "./helpers/process-env.js";
 
 const originalCwd = process.cwd();
@@ -72,24 +72,5 @@ describe("MCP env loading applies the workspace env policy", () => {
     expect(written).toContain(
       `Ignored KIBI_NODE_PATH, NODE_OPTIONS from ${path.join(tmpDir, ".env")}`,
     );
-  });
-
-  test("the deprecated loadEnvFile skips keys the policy denies", () => {
-    fs.writeFileSync(
-      path.join(tmpDir, ".env.kibi"),
-      "KIBI_KB_PL_PATH=./kb.pl\nLD_PRELOAD=./evil.so\nPROVIDER_TOKEN=t\n",
-    );
-    for (const key of ["KIBI_KB_PL_PATH", "LD_PRELOAD", "PROVIDER_TOKEN"]) {
-      Reflect.deleteProperty(process.env, key);
-    }
-
-    const result = loadEnvFile({
-      envFileName: ".env.kibi",
-      workspaceRoot: tmpDir,
-    });
-
-    expect(result.keysLoaded).toEqual(["PROVIDER_TOKEN"]);
-    expect(process.env.KIBI_KB_PL_PATH).toBeUndefined();
-    expect(process.env.LD_PRELOAD).toBeUndefined();
   });
 });

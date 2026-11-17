@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import {
   compilerFingerprintReason,
   sourceExtractionFailureReasons,
@@ -293,6 +294,8 @@ export type StatusPayload = {
   };
   readonly schemaStatus?: MigrationConfigStatus;
   readonly migrationPlan?: MigrationPlan;
+  /** The Kibi session brief (kibi-agent-core), the same on every surface. */
+  readonly sessionBrief?: string;
   readonly bootstrap?: {
     readonly incompleteApplications?: readonly Readonly<
       Record<string, unknown>
@@ -976,7 +979,13 @@ const SUMMARY_ENTITY_FIELDS = [
   "updated_at",
 ] as const;
 
-function summarizeMatch<
+/**
+ * A match as discovery needs it: identifying metadata, and evidence without
+ * its traceability graph paths. The paths name every symbol and link that
+ * reached the entity; `reasons` already says a graph match counted, and
+ * `fields: "full"` or kb_graph returns them.
+ */
+export function summarizeMatch<
   TMatch extends { readonly entity: Record<string, unknown> },
 >(match: TMatch): TMatch {
   const row = match.entity;
@@ -984,7 +993,11 @@ function summarizeMatch<
   for (const field of SUMMARY_ENTITY_FIELDS) {
     if (row[field] !== undefined) summary[field] = row[field];
   }
-  return { ...match, entity: summary };
+  if (!("evidence" in match)) return { ...match, entity: summary };
+  const { graphPaths: _graphPaths, ...evidence } = (
+    match as unknown as IntentSearchMatch
+  ).evidence;
+  return { ...match, entity: summary, evidence };
 }
 
 // Candidates are projected rows, so `fields: "full"` reloads the final page's
@@ -1151,6 +1164,7 @@ export async function executeSearch(
           ? await buildSearchAnswer(prolog, intentResult.matches, {
               workspaceRoot: context.workspaceRoot,
               branch: context.branchAttachment?.kbBranch ?? null,
+              detail: fields === "full" ? "full" : "summary",
             })
           : undefined;
       // The structured payload carries every row; the text is a short
@@ -1421,6 +1435,9 @@ export async function executeStatus(
       ...(storeUncompiled ? { syncState: "stale", dirty: true } : {}),
       branchAttachment: attachment,
       branchStore: store,
+      // The session brief every host opens with, for an agent whose host
+      // has no Kibi plugin and only calls kb_status.
+      sessionBrief: SESSION_BRIEF,
       ...(takeoverNotice ? { notices: [takeoverNotice] } : {}),
       ...(engineStatus ? { engineStatus } : {}),
       staleReasons,
