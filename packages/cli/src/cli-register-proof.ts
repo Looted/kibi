@@ -29,6 +29,14 @@ export function registerProofCommand(program: Command): void {
       "--resume",
       "Skip integrations an interrupted run with the same selector already ingested at this snapshot",
     )
+    .option(
+      "--shard <K/N>",
+      "Prove only the K-th of N disjoint parts of the selected tests, so N parallel runs prove every test exactly once",
+    )
+    .option(
+      "--list",
+      "Print the selected test ids as JSON and exit without running them",
+    )
     .action(
       withExitCode(
         async (options: {
@@ -39,6 +47,8 @@ export function registerProofCommand(program: Command): void {
           all?: boolean;
           stale?: boolean;
           resume?: boolean;
+          shard?: string;
+          list?: boolean;
         }) => {
           const mode = [
             options.test ? "test" : undefined,
@@ -68,6 +78,14 @@ export function registerProofCommand(program: Command): void {
             all: mode === 0,
             ...(options.stale ? { stale: true } : {}),
             ...(options.resume ? { resume: true } : {}),
+            ...(options.shard === undefined
+              ? {}
+              : {
+                  shard: (await import("./commands/prove.js")).parseProveShard(
+                    options.shard,
+                  ),
+                }),
+            ...(options.list ? { list: true } : {}),
           });
         },
       ),

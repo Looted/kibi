@@ -47,6 +47,18 @@
         "description": "Skip integrations an interrupted run with the same selector already ingested at this snapshot",
         "default": null,
         "mandatory": false
+      },
+      {
+        "flags": "--shard <K/N>",
+        "description": "Prove only the K-th of N disjoint parts of the selected tests, so N parallel runs prove every test exactly once",
+        "default": null,
+        "mandatory": false
+      },
+      {
+        "flags": "--list",
+        "description": "Print the selected test ids as JSON and exit without running them",
+        "default": null,
+        "mandatory": false
       }
     ],
     "commands": []

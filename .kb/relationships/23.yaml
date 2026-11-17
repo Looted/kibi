@@ -353,3 +353,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4c331aa52aeb
+  - type: constrains
+    from: REQ-cli-prove-shard-disjoint-parts
+    to: FACT-SUBJECT-kibi-cli-prove-shard
+    created_at: 2026-11-17T11:21:55.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0d45b09da1a
+  - type: requires_property
+    from: REQ-cli-prove-shard-disjoint-parts
+    to: FACT-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:21:56.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe038576bea1
+  - type: specified_by
+    from: REQ-cli-prove-shard-disjoint-parts
+    to: SCEN-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:21:56.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe8efae95fd9
+  - type: specified_by
+    from: REQ-cli-prove-shard-disjoint-parts
+    to: SCEN-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    created_at: 2026-11-17T11:21:56.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4f650cf18a5

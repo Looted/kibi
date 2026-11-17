@@ -363,3 +363,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac9ac9a05c85
+  - type: validates
+    from: TEST-cli-prove-shard
+    to: REQ-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:22:01.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d0432025fdb
+  - type: validates
+    from: TEST-cli-prove-shard
+    to: SCEN-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:22:01.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56de455e8a98
+  - type: validates
+    from: TEST-cli-prove-shard
+    to: SCEN-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    created_at: 2026-11-17T11:22:01.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a32f9c47ae19

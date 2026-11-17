@@ -276,6 +276,8 @@ kibi prove --all --integration-except heavy-suite
 kibi prove --stale
 kibi prove --requirement REQ-checkout --stale
 kibi prove --all --resume
+kibi prove --all --shard 2/3
+kibi prove --all --list
 ```
 
 Selectors: `--test`, `--requirement`, `--integration`, `--all` (default).
@@ -285,7 +287,11 @@ them); when every selected test is current it runs nothing and says so.
 `--resume` skips integrations an interrupted run with the same selector
 already ingested at the current workspace snapshot (recorded in
 `.kb/proof/runs/prove-progress.json`); progress lines on stderr name each
-integration as it starts and is ingested. With `--test`, `--requirement` or
+integration as it starts and is ingested. `--shard K/N` keeps the K-th of N
+disjoint parts of the selection (tests ordered by id and dealt out in turn,
+before `--stale` applies), so N parallel runs with `--shard 1/N` to `N/N`
+prove every selected test exactly once. `--list` prints the selected test ids
+as `{"tests": [...], "shard": "K/N"}` and runs nothing. With `--test`, `--requirement` or
 `--stale`, a `playwright` integration whose command is a direct
 `playwright test` invocation runs only the selected tests'
 `proof_bindings[].source_file` spec files; every producer also receives them
