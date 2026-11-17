@@ -384,7 +384,15 @@ describe("toKibiResult diagnostics", () => {
       { message: "plain", severity: "warning" },
       kept,
     ]);
-    expect(result.diagnostics[1]).toBe(kept);
+  });
+
+  test("leaves what a finding blocks in the data, not the envelope", () => {
+    const tagged = { message: "m", severity: "error", blocks: "commit" };
+    const result = toKibiResult(readSpec, { diagnostics: [tagged] });
+    expect(result.diagnostics).toStrictEqual([
+      { message: "m", severity: "error" },
+    ]);
+    expect(tagged.blocks).toBe("commit");
   });
 
   test("ignores diagnostics that are not a list", () => {

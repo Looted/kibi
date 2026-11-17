@@ -395,6 +395,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce1b7e50d844
+  - type: implements
+    from: SYM-finding-blocks-is-blocking-finding
+    to: REQ-check-finding-blocks
+    created_at: 2026-11-16T19:30:06.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-162ddb40b392
+  - type: covered_by
+    from: SYM-finding-blocks-is-blocking-finding
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-16T19:35:30.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cadd507980c4
   - type: assumes
     from: SCEN-cli-transient-failure-retryable
     to: FACT-cli-refusal-not-retryable

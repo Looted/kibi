@@ -1410,7 +1410,7 @@ function unreadableManifestNote(relativePath) {
 `);
 }
 function impactCheckLine(relativePath) {
-  return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
+  return `Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:[${jsonString(relativePath)}]}) gives the commit gate's verdict on the edit.`;
 }
 var GROUNDING_LINK_TYPES = [
   "constrains",
@@ -2328,13 +2328,13 @@ function extractKbMcpToolCall(toolName, toolInput) {
   const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
   return {
     toolName: name,
-    impactCheckRun: name === "kb_check" && readBoolean(payload, [
+    impactCheckRun: name === "kb_check" && (readBoolean(payload, ["changed"]) === true || readBoolean(payload, [
       "includeImpactDiagnostics",
       "include_impact_diagnostics"
     ]) === true && readBoolean(payload, [
       "includeWorkingTreeDiff",
       "include_working_tree_diff"
-    ]) === true && sourceFiles.length > 0,
+    ]) === true) && sourceFiles.length > 0,
     sourceFiles
   };
 }
@@ -3431,7 +3431,7 @@ function freshnessReminder(dirtyPaths) {
 function postEditImpactNote(sourcePaths) {
   const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
   return [
-    `Kibi impact review: run kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
+    `Kibi impact review: run kb_check({changed:true, sourceFiles:${sourceFiles}}) while this edit is fresh; it gives the commit gate's verdict.`,
     "Check whether the linked requirements, scenarios and tests still cover the changed behavior."
   ].join(`
 `);
@@ -3443,7 +3443,7 @@ function impactCheckReminder(sourcePaths) {
   const suffix = remaining > 0 ? [`- …and ${remaining} more`] : [];
   return [
     "Kibi impact reminder: source paths changed during this Codex session.",
-    `Run kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) before finishing.`,
+    `Run kb_check({changed:true, sourceFiles:${sourceFiles}}) before finishing; findings with blocks:"commit" stop the commit.`,
     "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
     ...preview.map((sourcePath) => `- ${sourcePath}`),
     ...suffix

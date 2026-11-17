@@ -4340,6 +4340,10 @@
             "description": "When true, run as a background job and return a kibi.job.v1 receipt to poll with kb_job_status.",
             "type": "boolean"
           },
+          "changed": {
+            "description": "When true, give the commit gate's verdict on every current change (commitAllowed, findings with blocks).",
+            "type": "boolean"
+          },
           "includeImpactDiagnostics": {
             "description": "When true, include changed-file impact diagnostics (granularity, ownership, statements to verify) in the output.",
             "type": "boolean"
@@ -4674,6 +4678,15 @@
               {
                 "additionalProperties": false,
                 "properties": {
+                  "changed": {
+                    "const": true,
+                    "description": "Set by changed:true: the commit gate judged the working tree plus the index.",
+                    "type": "boolean"
+                  },
+                  "commitAllowed": {
+                    "description": "changed:true only. True when a commit of these changes passes the commit gate.",
+                    "type": "boolean"
+                  },
                   "count": {
                     "maximum": 9007199254740991,
                     "minimum": -9007199254740991,
@@ -4716,6 +4729,12 @@
                     },
                     "type": "array"
                   },
+                  "messages": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
                   "migrationPlan": {
                     "additionalProperties": {},
                     "properties": {},
@@ -4735,6 +4754,13 @@
                     "properties": {},
                     "type": "object"
                   },
+                  "operationalError": {
+                    "type": "string"
+                  },
+                  "ownerFindings": {
+                    "items": {},
+                    "type": "array"
+                  },
                   "qualityDiagnostics": {
                     "items": {
                       "additionalProperties": {},
@@ -4748,6 +4774,11 @@
                       "type": "string"
                     },
                     "type": "array"
+                  },
+                  "staged": {
+                    "additionalProperties": {},
+                    "properties": {},
+                    "type": "object"
                   },
                   "symbolDebt": {
                     "additionalProperties": false,

@@ -11,6 +11,7 @@
     coverage_evidence_json/5,
     coverage_evidence_json/7,
     evidence_floor_json/6,
+    evidence_floor_json/7,
     requirement_proof_json/5,
     requirement_proof_json/7,
     symbol_proof_json/7,
@@ -385,9 +386,16 @@ coverage_evidence_rows_json(Tags, ProofContext, JsonString) :-
 % requirements were evaluated.  Requirements outside proof scope carry no
 % floor.
 evidence_floor_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    evidence_floor_json(all, BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString).
+
+% The same rows for the requirements Scope names: all, or ids(Ids) for
+% only those of Ids the KB holds as requirements.  The staged check judges
+% only the requirements a commit stages, so it evaluates their proofs alone
+% instead of every requirement's.
+evidence_floor_json(Scope, BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
     requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Context),
     findall(Id-Proof,
-        (   kb_entity(Id, req, Props),
+        (   evidence_floor_requirement(Scope, Id, Props),
             requirement_proof(Id, Props, Context, Proof),
             get_dict(evidenceFloor, Proof, _)
         ),
@@ -420,6 +428,13 @@ evidence_floor_json(BindingMode, TestBindings, VerificationSnapshot, CheckedAt, 
     review_rows(unapproved_implemented, Evaluated, Unapproved),
     dict_json_string(_{evaluated: Count, rows: Rows,
                        unapprovedImplemented: Unapproved}, JsonString).
+
+evidence_floor_requirement(all, Id, Props) :-
+    kb_entity(Id, req, Props).
+evidence_floor_requirement(ids(Ids), Id, Props) :-
+    sort(Ids, Unique),
+    member(Id, Unique),
+    kb_entity(Id, req, Props).
 
 % The rows of one requirement review kind (see requirement_review_row/4),
 % each tagged with its requirement id and sorted by it.

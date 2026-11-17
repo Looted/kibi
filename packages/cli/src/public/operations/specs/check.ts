@@ -53,6 +53,13 @@ export const checkSpec = {
         [ADVERTISED_DESCRIPTION]:
           "When true, inspect staged source changes for impact diagnostics, as kibi check --staged does.",
       },
+      changed: {
+        type: "boolean",
+        description:
+          'When true, run the commit gate (kibi check --staged) over the working tree plus the index, as a commit of every current change would be judged, without touching the real index; with sourceFiles, only those files and .kb are added. Returns commitAllowed and the gate\'s findings, each with blocks: "commit" when it refuses the commit or "none" when it is advice. Without changed, each finding carries blocks: "merge" (fails the full check run in CI), "commit" (a blocking impact diagnostic) or "none". Use after editing code, before finishing: it is the verdict git commit will give.',
+        [ADVERTISED_DESCRIPTION]:
+          "When true, give the commit gate's verdict on every current change (commitAllowed, findings with blocks).",
+      },
       includeWorkingTreeDiff: {
         type: "boolean",
         description:

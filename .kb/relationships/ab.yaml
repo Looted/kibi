@@ -514,3 +514,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b5e1b1ca92d
+  - type: executable_for
+    from: SYM-test-hooks-recommend-changed-check
+    to: TEST-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:24:42.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0950ba4d8b80

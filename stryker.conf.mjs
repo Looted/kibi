@@ -676,6 +676,15 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/plugins/source-analysis-service-units.test.ts",
     "packages/cli/tests/plugins/source-analysis-service-mutation.test.ts",
   ],
+  "packages/cli/src/traceability/changed-index.ts": [
+    "packages/cli/tests/traceability/changed-index.test.ts",
+  ],
+  "packages/cli/src/public/operations/changed-check.ts": [
+    "packages/cli/tests/public-mutation/operations/changed-check.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/finding-blocks.ts": [
+    "packages/cli/tests/public-mutation/operations/finding-blocks.mutation.test.ts",
+  ],
   "packages/cli/src/traceability/temp-kb.ts": [
     "packages/cli/tests/traceability/temp-kb-mutation.test.ts",
   ],

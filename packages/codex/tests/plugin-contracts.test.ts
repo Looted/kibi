@@ -974,7 +974,7 @@ describe("Codex reminder messages", () => {
     expect(impactCheckReminder(paths)).toBe(
       [
         "Kibi impact reminder: source paths changed during this Codex session.",
-        `Run kb_check({sourceFiles:${JSON.stringify(paths)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) before finishing.`,
+        `Run kb_check({changed:true, sourceFiles:${JSON.stringify(paths)}}) before finishing; findings with blocks:"commit" stop the commit.`,
         "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
         "- src/a.ts",
         "- src/b.ts",

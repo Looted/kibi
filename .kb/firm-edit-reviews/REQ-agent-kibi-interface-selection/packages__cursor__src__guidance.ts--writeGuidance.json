@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-agent-kibi-interface-selection",
+  "sourceFile": "packages/cursor/src/guidance.ts",
+  "symbol": "writeGuidance",
+  "verdict": "keeps",
+  "note": "The guidance now names kb_check changed:true; it still presents the MCP and CLI surfaces as peers and rewrites no policy history.",
+  "statementHash": "sha256:9d2ebc0267c4e29f1a9abe87102d1dace6aeb6b22fc78ec79b12522eab235a4d",
+  "codeHash": "sha256:022320bc5037f377787876475a4e7a555f5ea4b7cf769b2223530897a93c4f19",
+  "startLine": 108,
+  "endLine": 138,
+  "recordedAt": "2026-11-16T19:28:27.143Z"
+}

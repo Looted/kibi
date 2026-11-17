@@ -130,7 +130,7 @@ export function writeGuidance(
   // Retrieval is asked for before the edit; this message stays scoped to the
   // impact review that only becomes possible once the change exists.
   const guidance = [
-    `Kibi impact review: run kb_check({sourceFiles:["${relativePath}"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
+    `Kibi impact review: run kb_check({changed:true, sourceFiles:["${relativePath}"]}) while this edit is fresh; it gives the commit gate's verdict.`,
     "Check symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.",
     "Record traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.",
   ];

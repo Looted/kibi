@@ -356,7 +356,7 @@ describe("Codex hook runner workspace opt-in", () => {
     // systemMessage reaches only the person; the agent gets `reason`.
     expect(result).toMatchObject({ continue: true, decision: "block" });
     expect(result.systemMessage).toBeUndefined();
-    expect(result.reason).toContain("includeImpactDiagnostics");
+    expect(result.reason).toContain("kb_check({changed:true");
     expect(result.reason).toContain("src/hook-runner.ts");
   });
 
@@ -730,7 +730,7 @@ describe("Codex evaluation trace replay", () => {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext: expect.stringContaining(
-          'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true',
+          'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
         ),
       },
     });
@@ -743,7 +743,7 @@ describe("Codex evaluation trace replay", () => {
     expect(stop.decision).toBe("block");
     expect(stop.reason).toContain("recorded nothing in the knowledge base");
     expect(stop.reason).toContain(
-      'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
     );
     expect(
       await event({ hook_event_name: "Stop", stop_hook_active: false }),
@@ -1513,7 +1513,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context).toMatch(/\n- \+[345] more requirements: kb_query\(/);
     expect(context).toContain("\nWhy: ");
     expect(context).toContain("\nNext layer: ");
-    expect(context).toEndWith("reports ownership drift after the edit.");
+    expect(context).toEndWith("gives the commit gate's verdict on the edit.");
     expect(context).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
@@ -1938,7 +1938,7 @@ describe("Codex reminders from real payload shapes", () => {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext: expect.stringContaining(
-          'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+          'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
         ),
       },
     });
@@ -2091,7 +2091,7 @@ describe("Codex reminders from real payload shapes", () => {
       continue: true,
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
-        additionalContext: `Kibi impact review: run kb_check({sourceFiles:${JSON.stringify(sourceFiles)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.`,
+        additionalContext: `Kibi impact review: run kb_check({changed:true, sourceFiles:${JSON.stringify(sourceFiles)}}) while this edit is fresh; it gives the commit gate's verdict.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.`,
       },
     });
 

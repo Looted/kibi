@@ -29,6 +29,10 @@ import {
   collectFullKbQualityDiagnostics,
 } from "../impact-diagnostics.js";
 import {
+  type ChangedGateRunner,
+  executeChangedCheck,
+} from "./changed-check.js";
+import {
   type CheckDiagnostic,
   type CheckEvaluated,
   type CheckStructuredContent,
@@ -55,6 +59,7 @@ import { collectDecisionFirmnessViolations } from "./decision-firmness.js";
 import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
 import { collectEvidenceFloorViolations } from "./evidence-floor.js";
+import { tagBlocks } from "./finding-blocks.js";
 import {
   buildActionsFromCheck,
   buildMigrationPlan,
@@ -87,6 +92,12 @@ export type CheckInput = {
   readonly workspaceRoot?: string;
   readonly sourceFiles?: readonly string[];
   readonly staged?: boolean;
+  /**
+   * Run the commit gate (kibi check --staged) over the working tree plus
+   * the index instead of the KB rules; with sourceFiles, only those files
+   * and .kb are added to the index it judges.
+   */
+  readonly changed?: boolean;
   readonly includeWorkingTreeDiff?: boolean;
   readonly includeImpactDiagnostics?: boolean;
   readonly maxDiagnostics?: number;
@@ -117,6 +128,8 @@ export type CheckExecutionOptions = {
    * test store) and the branch-store compilation check is skipped.
    */
   readonly branchStoreAttached?: boolean;
+  /** Runs the commit gate for `changed: true` (tests inject one). */
+  readonly changedGateRunner?: ChangedGateRunner;
   /**
    * Every finding in full, past the size budget a check without a rule
    * selection keeps (the `kibi check` command prints them all).
@@ -295,6 +308,12 @@ export async function executeCheck(
 ): Promise<OperationResult<CheckPayload>> {
   try {
     const workspaceRoot = args.workspaceRoot ?? context.workspaceRoot;
+    if (args.changed === true)
+      return (await executeChangedCheck(
+        workspaceRoot,
+        args.sourceFiles,
+        options.changedGateRunner,
+      )) as unknown as OperationResult<CheckPayload>;
     const prolog = requireProlog(context);
     const snapshotEvidence = await readWorkspaceSnapshot(context);
     const proofSnapshot = snapshotEvidence.available
@@ -623,13 +642,15 @@ export async function executeCheck(
       hasExplicitRules || options.fullListing === true
         ? structured
         : fitScopedCheckToBudget(
-            structured,
+            // Tagged before the cut, so the budget counts the tags.
+            withMergeBlocks(structured),
             undefined,
             scoped,
             args.includeMigrationPlan === true,
           );
-    const structuredContent =
-      symbolDebt !== undefined ? { ...fitted, symbolDebt } : fitted;
+    const structuredContent = withMergeBlocks(
+      symbolDebt !== undefined ? { ...fitted, symbolDebt } : fitted,
+    );
     return {
       content: [
         {
@@ -660,4 +681,29 @@ export async function executeCheck(
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Check execution failed: ${message}`);
   }
+}
+
+/**
+ * Tags each finding of the full check with what it stops: a violation or
+ * blocking quality diagnostic fails the merge check, a blocking impact
+ * diagnostic is one the commit gate refuses, and the rest are advice.
+ * `diagnostics` restates the violations for the result envelope, whose
+ * schema is fixed, so it is left as it is.
+ */
+export function withMergeBlocks(
+  content: CheckStructuredContent,
+): CheckStructuredContent {
+  return {
+    ...content,
+    violations: tagBlocks(content.violations, "merge", true),
+    ...(content.qualityDiagnostics !== undefined
+      ? { qualityDiagnostics: tagBlocks(content.qualityDiagnostics, "merge") }
+      : {}),
+    ...(content.impactDiagnostics !== undefined
+      ? { impactDiagnostics: tagBlocks(content.impactDiagnostics, "commit") }
+      : {}),
+    ...(content.violationGroups !== undefined
+      ? { violationGroups: tagBlocks(content.violationGroups, "merge", true) }
+      : {}),
+  };
 }

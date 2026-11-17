@@ -419,3 +419,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-208524a4b12f
+  - type: validates
+    from: TEST-check-finding-blocks
+    to: SCEN-check-finding-blocks
+    created_at: 2026-11-16T19:24:29.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efa963e83437
+  - type: validates
+    from: TEST-check-finding-blocks
+    to: SCEN-NEG-check-finding-blocks-UNTAGGED
+    created_at: 2026-11-16T19:24:29.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0072b1ead8a

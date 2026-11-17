@@ -183,19 +183,19 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-43e1526a216d
   - type: implements
-    from: SYM-mcp-profileToolNames
-    to: REQ-mcp-default-tool-profile
-    created_at: 2026-11-16T17:29:42.678Z
+    from: SYM-evidence-floor-read-requirement-proof-payload
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T19:32:11.638Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-24185d3a861b
+    id: rel-d81df37113b7
   - type: covered_by
-    from: SYM-mcp-profileToolNames
-    to: TEST-mcp-default-tool-profile
-    created_at: 2026-11-16T17:29:42.709Z
+    from: SYM-evidence-floor-read-requirement-proof-payload
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:35:52.022Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-21e92151742c
+    id: rel-a36b54582cac
   - type: validates
     from: TEST-proof-scoped-check-budget
     to: SCEN-kibi-scoped-check-output
@@ -217,3 +217,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f34e71a4e5f0
+  - type: implements
+    from: SYM-mcp-profileToolNames
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:42.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24185d3a861b
+  - type: covered_by
+    from: SYM-mcp-profileToolNames
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:42.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21e92151742c

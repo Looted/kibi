@@ -2075,8 +2075,12 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: implements
+        target: REQ-staged-gate-scratch-store
   - id: SYM-cli-PrologProcess-start
     title: PrologProcess.start
     sourceFile: packages/cli/src/prolog.ts
@@ -2363,17 +2367,17 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-cli-help-command-summaries
-      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
       - type: implements
-        target: REQ-cli-help-command-summaries
-      - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: implements
+        target: REQ-cli-help-command-summaries
   - id: SYM-cli-register-skills-commands
     title: registerSkillsCommands
     status: active
@@ -2638,10 +2642,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-codex-hook-limits
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-hooks-recommend-changed-check
+      - type: implements
+        target: REQ-codex-hook-limits
+      - type: implements
+        target: REQ-hooks-recommend-changed-check
   - id: SYM-codex-main
     title: main
     sourceFile: packages/codex/src/hook-runner.ts
@@ -2947,10 +2955,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-staged-overlay-kb
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
+      - type: implements
+        target: REQ-kibi-staged-overlay-kb
+      - type: implements
+        target: REQ-staged-gate-scratch-store
   - id: SYM-CURRENT_CHANGED_PATHS
     title: CURRENT_CHANGED_PATHS
     sourceFile: packages/cli/tests/traceability/release-audit-fixture.ts
@@ -3319,17 +3331,21 @@ symbols:
     title: writeGuidance
     sourceFile: packages/cursor/src/guidance.ts
     text_ref: packages/cursor/src/guidance.ts#writeGuidance
-    links:
-      - REQ-agent-kibi-interface-selection
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-cursor-hook-limits
       - type: covered_by
         target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-hooks-recommend-changed-check
+      - type: implements
+        target: REQ-cursor-hook-limits
+      - type: implements
+        target: REQ-hooks-recommend-changed-check
+    links:
+      - REQ-agent-kibi-interface-selection
   - id: SYM-DEFAULT-TOOLS-RUNTIME
     title: DEFAULT_TOOLS_RUNTIME
     status: active
@@ -18957,10 +18973,14 @@ symbols:
     sourceFile: packages/claude/src/snippets.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-claude-stop-reminder-and-firm-ask
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-hooks-recommend-changed-check
+      - type: implements
+        target: REQ-claude-stop-reminder-and-firm-ask
+      - type: implements
+        target: REQ-hooks-recommend-changed-check
   - id: SYM-claude-MAX_SNIPPET_CHARS
     title: MAX_SNIPPET_CHARS
     status: active
@@ -19246,8 +19266,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-core-shared-hook-inputs
-      - type: implements
-        target: REQ-agent-core-shared-hook-inputs
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
       - type: covered_by
@@ -19255,7 +19273,13 @@ symbols:
       - type: covered_by
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
+        target: TEST-hooks-recommend-changed-check
+      - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-core-shared-hook-inputs
+      - type: implements
+        target: REQ-hooks-recommend-changed-check
   - id: SYM-agent-core-canonicalKbToolName
     title: canonicalKbToolName
     status: active
@@ -28530,8 +28554,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-evidence-floors
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
       - type: implements
         target: REQ-kibi-evidence-floors
+      - type: implements
+        target: REQ-staged-gate-scratch-store
   - id: SYM-cli-evidence-floor-findings
     title: evidenceFloorViolations
     status: active
@@ -40286,8 +40314,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-evidence-floors
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
       - type: implements
         target: REQ-kibi-evidence-floors
+      - type: implements
+        target: REQ-staged-gate-scratch-store
   - id: SYM-inventory-commit-warning-inventoryCommitWarnings
     title: inventoryCommitWarnings
     status: active
@@ -41165,13 +41197,13 @@ symbols:
       recorded_at: 2026-11-16T09:00:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-check-staged-owner-block
-      - type: covered_by
         target: TEST-staged-gate-inherited-symbol-gaps
       - type: implements
-        target: REQ-check-staged-owner-block
-      - type: implements
         target: REQ-staged-gate-reports-inherited-symbol-gaps
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
   - id: SYM-check-InheritedSymbolGaps
     title: InheritedSymbolGaps
     status: active
@@ -44411,3 +44443,348 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T18:14:35.200Z
+  - id: SYM-test-check-changed-commit-verdict
+    title: changed check verdict suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/changed-index.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:24:20.329Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-changed-commit-verdict
+  - id: SYM-test-check-finding-blocks
+    title: finding blocks tag suite
+    status: active
+    sourceFile: packages/cli/tests/public-mutation/operations/finding-blocks.mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:24:31.555Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-finding-blocks
+  - id: SYM-test-hooks-recommend-changed-check
+    title: host hooks recommend the changed check suite
+    status: active
+    sourceFile: packages/agent-core/tests/snippets.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:24:41.466Z
+    relationships:
+      - type: executable_for
+        target: TEST-hooks-recommend-changed-check
+  - id: SYM-test-staged-gate-scratch-store
+    title: staged gate scratch store suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/temp-kb.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:24:54.054Z
+    relationships:
+      - type: executable_for
+        target: TEST-staged-gate-scratch-store
+  - id: SYM-changed-check-changed-gate-run
+    title: ChangedGateRun
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:02.401Z
+    relationships: []
+  - id: SYM-changed-check-changed-gate-runner
+    title: ChangedGateRunner
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:07.256Z
+    relationships: []
+  - id: SYM-changed-check-changed-check-content
+    title: ChangedCheckContent
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:10.894Z
+    relationships: []
+  - id: SYM-changed-check-run-changed-gate
+    title: runChangedGate
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:14.492Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict
+  - id: SYM-operations-changed-check-changed-check-content
+    title: changedCheckContent
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:17.773Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict
+  - id: SYM-changed-check-changed-check-summary
+    title: changedCheckSummary
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:21.225Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict
+  - id: SYM-changed-check-execute-changed-check
+    title: executeChangedCheck
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:24.832Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict
+  - id: SYM-changed-index-changed-index
+    title: ChangedIndex
+    sourceFile: packages/cli/src/traceability/changed-index.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:28.934Z
+    relationships: []
+  - id: SYM-changed-index-prepare-changed-index
+    title: prepareChangedIndex
+    sourceFile: packages/cli/src/traceability/changed-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:32.214Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict
+  - id: SYM-changed-index-with-changed-index
+    title: withChangedIndex
+    sourceFile: packages/cli/src/traceability/changed-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:29:35.443Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict
+  - id: SYM-finding-blocks-finding-blocks
+    title: FindingBlocks
+    sourceFile: packages/cli/src/public/operations/finding-blocks.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:30:01.171Z
+    relationships: []
+  - id: SYM-finding-blocks-is-blocking-finding
+    title: isBlockingFinding
+    sourceFile: packages/cli/src/public/operations/finding-blocks.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:30:05.087Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-finding-blocks
+      - type: implements
+        target: REQ-check-finding-blocks
+  - id: SYM-finding-blocks-tag-blocks
+    title: tagBlocks
+    sourceFile: packages/cli/src/public/operations/finding-blocks.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:30:08.404Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-finding-blocks
+      - type: implements
+        target: REQ-check-finding-blocks
+  - id: SYM-check-executor-with-merge-blocks
+    title: withMergeBlocks
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:30:12.218Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-finding-blocks
+      - type: implements
+        target: REQ-check-finding-blocks
+  - id: SYM-messages-post-edit-impact-note
+    title: postEditImpactNote
+    sourceFile: packages/codex/src/messages.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:30:21.371Z
+    relationships:
+      - type: covered_by
+        target: TEST-hooks-recommend-changed-check
+      - type: implements
+        target: REQ-hooks-recommend-changed-check
+  - id: SYM-src-messages-post-edit-impact-note
+    title: postEditImpactNote
+    sourceFile: packages/zcode/src/messages.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:30:23.849Z
+    relationships:
+      - type: covered_by
+        target: TEST-hooks-recommend-changed-check
+      - type: implements
+        target: REQ-hooks-recommend-changed-check
+  - id: SYM-messages-impact-check-reminder
+    title: impactCheckReminder
+    sourceFile: packages/zcode/src/messages.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:30:25.404Z
+    relationships:
+      - type: covered_by
+        target: TEST-hooks-recommend-changed-check
+      - type: implements
+        target: REQ-hooks-recommend-changed-check
+  - id: SYM-cli-PrologProcess
+    title: PrologProcess
+    status: active
+    sourceFile: packages/cli/src/prolog.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:31:42.612Z
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
+      - type: implements
+        target: REQ-staged-gate-scratch-store
+  - id: SYM-prolog-prolog-options
+    title: PrologOptions
+    sourceFile: packages/cli/src/prolog.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:32:01.463Z
+    relationships: []
+  - id: SYM-evidence-floor-evidence-floor-options
+    title: EvidenceFloorOptions
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:32:07.317Z
+    relationships: []
+  - id: SYM-evidence-floor-read-requirement-proof-payload
+    title: readRequirementProofPayload
+    sourceFile: packages/cli/src/public/operations/evidence-floor.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:32:10.793Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
+      - type: implements
+        target: REQ-staged-gate-scratch-store
+  - id: SYM-temp-kb-set-prolog-factory
+    title: _setPrologFactory
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:32:14.025Z
+    relationships:
+      - type: covered_by
+        target: TEST-staged-gate-scratch-store
+      - type: implements
+        target: REQ-staged-gate-scratch-store
+  - id: SYM-changed-check-create-changed-gate-runner
+    title: createChangedGateRunner
+    sourceFile: packages/cli/src/public/operations/changed-check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:41:23.930Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict
+  - id: SYM-check-tagStagedFindings
+    title: tagStagedFindings
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T03:08:23.969Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-finding-blocks
+      - type: implements
+        target: REQ-check-finding-blocks
+  - id: SYM-cli-register-reporting-run-changed-check
+    title: runChangedCheck
+    status: active
+    sourceFile: packages/cli/src/cli-register-reporting.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T05:05:18.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict

@@ -1508,7 +1508,7 @@ function unreadableManifestNote(relativePath) {
 `);
 }
 function impactCheckLine(relativePath) {
-  return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
+  return `Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:[${jsonString(relativePath)}]}) gives the commit gate's verdict on the edit.`;
 }
 var GROUNDING_LINK_TYPES = [
   "constrains",
@@ -3070,7 +3070,7 @@ function usageFromPayload(operation, payload) {
     paths,
     ids,
     check,
-    checkAll: check && paths.length === 0 && payload.includeWorkingTreeDiff === true
+    checkAll: check && paths.length === 0 && (payload.includeWorkingTreeDiff === true || payload.changed === true)
   };
 }
 function extractMcpKbUsage(toolName, toolInput) {
@@ -3279,7 +3279,7 @@ function stopReminder(paths) {
   const more = paths.length > shown.length ? ` +${paths.length - shown.length}` : "";
   return [
     `Kibi: ${paths.length} source ${paths.length === 1 ? "file" : "files"} changed this session without a Kibi impact check: ${shown.join(", ")}${more}.`,
-    `kb_check({sourceFiles:${JSON.stringify(shown)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports requirement ownership, stale traceability, and symbol-manifest drift for ${paths.length === 1 ? "it" : "them"}. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`
+    `kb_check({changed:true, sourceFiles:${JSON.stringify(shown)}}) gives the commit gate's verdict on ${paths.length === 1 ? "it" : "them"}: each finding says whether it blocks the commit. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`
   ].join(`
 `);
 }

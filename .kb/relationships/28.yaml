@@ -311,6 +311,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-206824993156
+  - type: specified_by
+    from: REQ-staged-gate-scratch-store
+    to: SCEN-staged-gate-scratch-store
+    created_at: 2026-11-16T19:31:59.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e401119eab41
+  - type: specified_by
+    from: REQ-staged-gate-scratch-store
+    to: SCEN-NEG-staged-gate-scratch-store-SAVES
+    created_at: 2026-11-16T19:31:59.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e94bfc775063
+  - type: verified_by
+    from: REQ-staged-gate-scratch-store
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:31:59.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dad2a2c4dc9c
+  - type: constrains
+    from: REQ-staged-gate-scratch-store
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-16T19:31:59.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e882b9b9da3b
+  - type: requires_property
+    from: REQ-staged-gate-scratch-store
+    to: FACT-staged-gate-scratch-store
+    created_at: 2026-11-16T19:31:59.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e60a5e29d512
   - type: constrains
     from: REQ-ci-kb-merge-uses-action
     to: FACT-SUBJECT-kibi-ci-kb-merge-workflow

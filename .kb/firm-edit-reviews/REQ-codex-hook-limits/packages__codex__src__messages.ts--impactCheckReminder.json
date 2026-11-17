@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-codex-hook-limits",
+  "sourceFile": "packages/codex/src/messages.ts",
+  "symbol": "impactCheckReminder",
+  "verdict": "keeps",
+  "note": "Only the reminder text changed to name the changed check; the hook still never denies a call and never writes to .kb.",
+  "statementHash": "sha256:65c8862d5e46a0935a1bf3470846f47e0fa2bbe9054cb0116a208766de2dbf10",
+  "codeHash": "sha256:f9ca5cced11c7a36732aae5318f79120ada6dd9160393453cffe330022d4c1f6",
+  "startLine": 29,
+  "endLine": 42,
+  "recordedAt": "2026-11-16T19:28:27.143Z"
+}
