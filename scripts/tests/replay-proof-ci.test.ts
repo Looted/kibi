@@ -6,7 +6,6 @@ import { replaySteps } from "../replay-proof-ci.ts";
 
 const FINAL_GATE_STEP = "Enforce evidence floors on a clean snapshot";
 const HOST_PROVISIONING_STEPS = [
-  "Check whether the PR can reuse develop proof",
   "Bootstrap Ubuntu packages",
   "Install SWI-Prolog",
   "Provision strict-proof host prerequisites",
@@ -27,7 +26,6 @@ describe("local proof CI replay", () => {
       "Reject generated manifest drift in committed snapshot",
       "Compile packed proof tests",
       "Sync and validate integrity of the proof snapshot",
-      "Reject evidence-floor regressions before executing contracts",
       "Prove every contracted test through Kibi",
       FINAL_GATE_STEP,
     ].map((name) => names.indexOf(name));
@@ -57,6 +55,9 @@ describe("local proof CI replay", () => {
     // GitHub-only expressions stay unset locally instead of becoming literals.
     expect(prove?.env).not.toHaveProperty("GH_TOKEN");
     expect(prove?.env).not.toHaveProperty("CI_HEAD_SHA");
+    // Without the shards' receipts a replay runs the full proof.
+    expect(prove?.env).not.toHaveProperty("KIBI_PROOF_SHARDS");
+    expect(prove?.run).toContain('if [ -n "${KIBI_PROOF_SHARDS:-}" ]; then');
     const finalGate = replaySteps(proofWorkflow).find(
       (step) => step.name === FINAL_GATE_STEP,
     );
@@ -64,7 +65,7 @@ describe("local proof CI replay", () => {
   });
 
   test("fails loudly when a skipped step is renamed in the workflow", () => {
-    const renamed = proofWorkflow.replace(
+    const renamed = proofWorkflow.replaceAll(
       "name: Install SWI-Prolog",
       "name: Install Prolog",
     );

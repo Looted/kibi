@@ -29,11 +29,10 @@ const FINAL_GATE_STEP = "Enforce evidence floors on a clean snapshot";
 
 /**
  * Steps that provision the CI host (apt packages, the SWI-Prolog build, global
- * npm and curl installs) or decide master-PR reuse. They change the machine,
+ * npm and curl installs). They change the machine,
  * not the repository, so a local replay checks for their tools instead.
  */
 const HOST_PROVISIONING_STEPS = Object.freeze([
-  "Check whether the PR can reuse develop proof",
   "Bootstrap Ubuntu packages",
   "Install SWI-Prolog",
   "Provision strict-proof host prerequisites",

@@ -19,8 +19,6 @@ jobs:
   proof:
     steps:
       - uses: actions/checkout@v4
-      - name: Check whether the PR can reuse develop proof
-        run: bun scripts/ci-proof-reuse.ts decide out.json
       - name: Bootstrap Ubuntu packages
         run: sudo apt-get install -y z3
       - name: Install SWI-Prolog
@@ -140,7 +138,7 @@ describe("proof replay command", () => {
       "  - Provision strict-proof host prerequisites (repository-local part)",
       "  - Record the branch",
       "  - Enforce evidence floors on a clean snapshot",
-      "Skipped host provisioning: Check whether the PR can reuse develop proof; Bootstrap Ubuntu packages; Install SWI-Prolog; Provision strict-proof host prerequisites",
+      "Skipped host provisioning: Bootstrap Ubuntu packages; Install SWI-Prolog; Provision strict-proof host prerequisites",
     ]);
   });
 
