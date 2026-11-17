@@ -785,6 +785,15 @@ async function decideTrain(outputPath: string): Promise<void> {
     const parents = (await git("show", "-s", "--format=%P", "HEAD"))
       .split(" ")
       .filter(Boolean);
+    // A depth-1 checkout grafts HEAD's parents away; a merge would then look
+    // like a root commit and its train would never be recognised.
+    if (
+      parents.length === 0 &&
+      (await git("rev-parse", "--is-shallow-repository")) === "true"
+    )
+      throw new Error(
+        "the checkout is shallow and hides HEAD's parents; fetch at least depth 2",
+      );
     const head = parents[1];
     const runs =
       parents.length === 2 && head !== undefined && SHA.test(head)
