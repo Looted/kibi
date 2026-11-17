@@ -1505,7 +1505,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context).toMatch(/\n- \+[345] more requirements: kb_query\(/);
     expect(context).toContain("\nWhy: ");
     expect(context).toContain("\nNext layer: ");
-    expect(context).toEndWith("reports ownership drift after the edit.");
+    expect(context).toEndWith("gives the commit gate's verdict on the edit.");
     expect(context).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
