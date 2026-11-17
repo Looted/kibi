@@ -482,20 +482,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f3696ab03c9
-  - type: assumes
-    from: SCEN-kb-upsert-related-requirements-AT-CAP
-    to: FACT-kb-upsert-related-requirements-AT-CAP
-    created_at: 2026-11-16T16:25:50.450Z
+  - type: implements
+    from: SYM-temp-kb-set-prolog-factory
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T19:32:14.902Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-3ad26bfede2e
-  - type: verified_by
-    from: SCEN-kb-upsert-related-requirements-AT-CAP
-    to: TEST-kb-upsert-capture-with-why
-    created_at: 2026-11-16T16:25:50.538Z
+    id: rel-104c8746099e
+  - type: covered_by
+    from: SYM-temp-kb-set-prolog-factory
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:36:01.874Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-00afce20f5c9
+    id: rel-22507f764933
   - type: constrains
     from: REQ-agent-core-edit-snippet-why
     to: FACT-edit-snippet-reason-subject
@@ -573,3 +573,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a2374b067ab
+  - type: assumes
+    from: SCEN-kb-upsert-related-requirements-AT-CAP
+    to: FACT-kb-upsert-related-requirements-AT-CAP
+    created_at: 2026-11-16T16:25:50.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ad26bfede2e
+  - type: verified_by
+    from: SCEN-kb-upsert-related-requirements-AT-CAP
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:25:50.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00afce20f5c9

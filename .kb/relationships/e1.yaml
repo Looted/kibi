@@ -406,6 +406,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-a81b06901977
   - type: implements
+    from: SYM-claude-stopReminder
+    to: REQ-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:32:49.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-678b681300b9
+  - type: covered_by
+    from: SYM-claude-stopReminder
+    to: TEST-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:34:08.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92504b3cd759
+  - type: implements
     from: SYM-cli-quantity-duplicate-quantity-duplicate-actions
     to: REQ-migrate-quantity-duplicate-review
     created_at: 2026-11-16T16:11:58.573Z

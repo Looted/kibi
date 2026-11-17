@@ -494,7 +494,7 @@ describe("fileKnowledgeSnippet", () => {
       "Test code for: R1.",
       "The edit is inside helper.",
       'Next layer: kb_search({query:"<topic>", sourceLocations:[{path:"a.ts", symbol:"helper"}]}) answers with governing requirements, facts, decisions, and tests.',
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["a.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
     expect(
       fileKnowledgeSnippet({

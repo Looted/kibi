@@ -370,6 +370,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83f8f06a4bb1
+  - type: validates
+    from: TEST-staged-gate-scratch-store
+    to: SCEN-staged-gate-scratch-store
+    created_at: 2026-11-16T19:24:51.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36e372327adb
+  - type: validates
+    from: TEST-staged-gate-scratch-store
+    to: SCEN-NEG-staged-gate-scratch-store-SAVES
+    created_at: 2026-11-16T19:24:51.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76fb17ad127a
   - type: assumes
     from: SCEN-kb-upsert-statement-semantic-text
     to: FACT-kb-upsert-statement-semantic-text

@@ -49,12 +49,12 @@ describe("ZCode hook messages", () => {
   test("the post-edit note names at most ten source files", () => {
     expect(postEditImpactNote(["src/a.ts"])).toBe(
       [
-        'Kibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.',
+        'Kibi impact review: run kb_check({changed:true, sourceFiles:["src/a.ts"]}) while this edit is fresh; it gives the commit gate\'s verdict.',
         "Check whether the linked requirements, scenarios and tests still cover the changed behavior.",
       ].join("\n"),
     );
     expect(postEditImpactNote(paths(11))).toContain(
-      `sourceFiles:${JSON.stringify(paths(10))},`,
+      `sourceFiles:${JSON.stringify(paths(10))}}`,
     );
   });
 
@@ -62,7 +62,7 @@ describe("ZCode hook messages", () => {
     expect(impactCheckReminder(["src/a.ts"])).toBe(
       [
         "Kibi impact reminder: source paths changed during this ZCode session.",
-        'Run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) before finishing.',
+        'Run kb_check({changed:true, sourceFiles:["src/a.ts"]}) before finishing; findings with blocks:"commit" stop the commit.',
         "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
         "- src/a.ts",
       ].join("\n"),
@@ -70,14 +70,14 @@ describe("ZCode hook messages", () => {
     const ten = impactCheckReminder(paths(10)).split("\n");
     expect(ten).toHaveLength(13);
     expect(ten[1]).toBe(
-      `Run kb_check({sourceFiles:${JSON.stringify(paths(10))}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) before finishing.`,
+      `Run kb_check({changed:true, sourceFiles:${JSON.stringify(paths(10))}}) before finishing; findings with blocks:"commit" stop the commit.`,
     );
   });
 
   test("the impact reminder summarizes paths past the tenth", () => {
     const lines = impactCheckReminder(paths(11)).split("\n");
     expect(lines).toHaveLength(14);
-    expect(lines[1]).toContain(`sourceFiles:${JSON.stringify(paths(10))},`);
+    expect(lines[1]).toContain(`sourceFiles:${JSON.stringify(paths(10))}}`);
     expect(lines[12]).toBe("- src/f10.ts");
     expect(lines[13]).toBe("- …and 1 more");
   });

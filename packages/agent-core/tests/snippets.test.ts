@@ -278,7 +278,7 @@ describe("shared file knowledge snippet", () => {
       "Covered by: TEST-rounding.",
       "The edit is inside computeTotal, which implements REQ-rounding.",
       'Next layer: kb_query({id:"REQ-rounding", includeBody:true}) returns the full requirement text and why it exists; kb_search({query:"<topic>", sourceLocations:[{path:"src/checkout.ts", symbol:"computeTotal"}]}) answers with governing requirements, facts, decisions, and tests.',
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
 
     const read = fileKnowledgeSnippet({
@@ -380,7 +380,7 @@ describe("edit update after a shown snippet", () => {
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-rounding.",
       "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
       "Decision: ADR-decimal: Money is decimal cents.",
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
   });
 
@@ -738,7 +738,7 @@ describe("the recorded reason on the Why line", () => {
       "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
       whyLine,
       "Decision: ADR-decimal: Money is decimal cents.",
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      `Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate's verdict on the edit.`,
     ]);
     const read = fileKnowledgeSnippet({ ...input, surface: "read" });
     expect(read).not.toContain("Why:");
@@ -799,7 +799,7 @@ describe("the recorded reason on the Why line", () => {
     expect(fitted.endsWith("…")).toBe(false);
     expect(fitted).toContain("\nWhy: Because");
     expect(fitted).toContain("Next layer:");
-    expect(fitted).toContain("reports ownership drift after the edit.");
+    expect(fitted).toContain("gives the commit gate's verdict on the edit.");
     expect(fitted.match(/^- REQ-/gm)?.length).toBeLessThan(4);
     // Each layout shows less than the one before it.
     const sizes = [1400, 1250, 1150, 1050, 950, 850].map(

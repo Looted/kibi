@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83b83057ccc4
+  - type: implements
+    from: SYM-cli-register-reporting-run-changed-check
+    to: REQ-check-changed-commit-verdict
+    created_at: 2026-11-17T05:05:19.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9c4ebca5d00
+  - type: covered_by
+    from: SYM-cli-register-reporting-run-changed-check
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-17T05:05:19.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b39c3371566

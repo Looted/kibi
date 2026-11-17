@@ -156,6 +156,33 @@ describe("extractKbMcpToolCall", () => {
     );
   });
 
+  test("the commit gate's verdict on the files counts as the impact check", () => {
+    expect(
+      extractKbMcpToolCall("kb_check", {
+        changed: true,
+        sourceFiles: ["src/a.ts"],
+      }),
+    ).toStrictEqual({
+      toolName: "kb_check",
+      impactCheckRun: true,
+      sourceFiles: ["src/a.ts"],
+    });
+    for (const call of [
+      { changed: true },
+      { changed: "true", sourceFiles: ["src/a.ts"] },
+      { changed: false, sourceFiles: ["src/a.ts"] },
+    ])
+      expect(extractKbMcpToolCall("kb_check", call)?.impactCheckRun).toBe(
+        false,
+      );
+    expect(
+      extractKbMcpToolCall("kb_search", {
+        changed: true,
+        sourceFiles: ["src/a.ts"],
+      })?.impactCheckRun,
+    ).toBe(false);
+  });
+
   test("source files keep non-empty strings from the first array", () => {
     expect(
       extractKbMcpToolCall("kb_check", { sourceFiles: ["a", "", 3, null, "b"] })

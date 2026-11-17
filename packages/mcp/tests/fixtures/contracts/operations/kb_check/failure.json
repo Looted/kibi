@@ -17,6 +17,10 @@
           "description": "When true, run as a background job and return a kibi.job.v1 receipt to poll with kb_job_status.",
           "type": "boolean"
         },
+        "changed": {
+          "description": "When true, give the commit gate's verdict on every current change (commitAllowed, findings with blocks).",
+          "type": "boolean"
+        },
         "includeImpactDiagnostics": {
           "description": "When true, include changed-file impact diagnostics (granularity, ownership, statements to verify) in the output.",
           "type": "boolean"

@@ -1248,7 +1248,7 @@ function jsonString(value) {
   return JSON.stringify(value);
 }
 function impactCheckLine(relativePath) {
-  return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
+  return `Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:[${jsonString(relativePath)}]}) gives the commit gate's verdict on the edit.`;
 }
 var GROUNDING_LINK_TYPES = [
   "constrains",
@@ -2086,13 +2086,13 @@ function extractKbMcpToolCall(toolName, toolInput) {
   const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
   return {
     toolName: name,
-    impactCheckRun: name === "kb_check" && readBoolean(payload, [
+    impactCheckRun: name === "kb_check" && (readBoolean(payload, ["changed"]) === true || readBoolean(payload, [
       "includeImpactDiagnostics",
       "include_impact_diagnostics"
     ]) === true && readBoolean(payload, [
       "includeWorkingTreeDiff",
       "include_working_tree_diff"
-    ]) === true && sourceFiles.length > 0,
+    ]) === true) && sourceFiles.length > 0,
     sourceFiles
   };
 }
@@ -2970,7 +2970,7 @@ function impactCheckFollowup(sourcePaths) {
   const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
   return [
     `Kibi: run impact-enabled kb_check after ${fileCount} edited source ${noun}.`,
-    `Use kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}).`,
+    `Use kb_check({changed:true, sourceFiles:${sourceFiles}}); findings with blocks:"commit" stop the commit.`,
     "Review symbol granularity and semantic review of linked requirements/tests before stopping."
   ].join(`
 `);
@@ -3044,7 +3044,7 @@ function writeGuidance(filePath, context) {
     return withAdvisory(context, guidance);
   }
   const guidance = [
-    `Kibi impact review: run kb_check({sourceFiles:["${relativePath}"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.`,
+    `Kibi impact review: run kb_check({changed:true, sourceFiles:["${relativePath}"]}) while this edit is fresh; it gives the commit gate's verdict.`,
     "Check symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.",
     "Record traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read."
   ];

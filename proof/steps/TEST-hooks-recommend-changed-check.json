@@ -1,0 +1,20 @@
+{
+  "test_id": "TEST-hooks-recommend-changed-check",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "200000",
+      "./packages/agent-core/tests/snippets.test.ts",
+      "./packages/agent-core/tests/snippets-contract.test.ts",
+      "./packages/agent-core/tests/kb-mcp-tools.test.ts",
+      "./packages/claude/tests/messages-telemetry.test.ts",
+      "./packages/claude/tests/kb-tools.test.ts",
+      "./packages/codex/tests/hook-runner.test.ts",
+      "./packages/cursor/tests/messages.test.ts",
+      "./packages/opencode/tests/enforcement-policy.mutation.test.ts",
+      "./packages/zcode/tests/messages.test.ts"
+    ]
+  ]
+}

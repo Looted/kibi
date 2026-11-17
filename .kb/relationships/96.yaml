@@ -489,3 +489,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-096266f747a4
+  - type: specified_by
+    from: REQ-check-finding-blocks
+    to: SCEN-check-finding-blocks
+    created_at: 2026-11-16T19:29:58.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc09224e7e25
+  - type: specified_by
+    from: REQ-check-finding-blocks
+    to: SCEN-NEG-check-finding-blocks-UNTAGGED
+    created_at: 2026-11-16T19:29:59.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b277288238b
+  - type: verified_by
+    from: REQ-check-finding-blocks
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-16T19:29:59.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dba15dde3c2
+  - type: constrains
+    from: REQ-check-finding-blocks
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-16T19:29:59.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da57641cfd10
+  - type: requires_property
+    from: REQ-check-finding-blocks
+    to: FACT-check-finding-blocks
+    created_at: 2026-11-16T19:29:59.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff5c8810c91e

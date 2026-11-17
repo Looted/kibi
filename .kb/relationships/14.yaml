@@ -336,20 +336,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-1f191898b404
   - type: assumes
-    from: SCEN-NEG-kb-upsert-capture-next-actions-WARNING-ONLY
-    to: FACT-NEG-kb-upsert-capture-next-actions-WARNING-ONLY
-    created_at: 2026-11-16T16:11:32.565Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3f02f1679ecc
-  - type: verified_by
-    from: SCEN-NEG-kb-upsert-capture-next-actions-WARNING-ONLY
-    to: TEST-kb-upsert-capture-with-why
-    created_at: 2026-11-16T16:17:56.815Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ae070825b676
-  - type: assumes
     from: SCEN-check-quantity-duplicate-distinct-from
     to: FACT-check-quantity-duplicate-distinct-from
     created_at: 2026-11-16T16:10:33.881Z
@@ -363,3 +349,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cab71e4b3d4
+  - type: implements
+    from: SYM-check-tagStagedFindings
+    to: REQ-check-finding-blocks
+    created_at: 2026-11-17T03:08:24.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f03ed077c52
+  - type: covered_by
+    from: SYM-check-tagStagedFindings
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-17T03:08:24.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e358858214ab
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-capture-next-actions-WARNING-ONLY
+    to: FACT-NEG-kb-upsert-capture-next-actions-WARNING-ONLY
+    created_at: 2026-11-16T16:11:32.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f02f1679ecc
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-capture-next-actions-WARNING-ONLY
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:17:56.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae070825b676

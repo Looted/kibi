@@ -345,8 +345,7 @@ describe("Cursor hook runner", () => {
 
     expect(result.additional_context).toContain("Kibi impact review");
     expect(result.additional_context).toContain("kb_check");
-    expect(result.additional_context).toContain("includeImpactDiagnostics");
-    expect(result.additional_context).toContain("includeWorkingTreeDiff");
+    expect(result.additional_context).toContain("kb_check({changed:true");
     expect(result.additional_context).toContain("symbol granularity");
   });
 
@@ -483,8 +482,7 @@ describe("Cursor hook runner", () => {
     );
 
     const result = await runHook({ hook_event_name: "stop" }, { pluginData });
-    expect(result.followup_message).toContain("includeImpactDiagnostics");
-    expect(result.followup_message).toContain("includeWorkingTreeDiff");
+    expect(result.followup_message).toContain("kb_check({changed:true");
     expect(result.followup_message).toContain(
       "packages/cursor/src/hook-runner.ts",
     );
@@ -613,7 +611,7 @@ describe("Cursor hook runner", () => {
     );
 
     const result = await runHook({ hook_event_name: "stop" }, { pluginData });
-    expect(result.followup_message).toContain("includeImpactDiagnostics");
+    expect(result.followup_message).toContain("kb_check({changed:true");
     expect(result.followup_message).toContain(
       "packages/cursor/src/hook-runner.ts",
     );

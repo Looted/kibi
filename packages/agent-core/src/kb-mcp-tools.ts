@@ -163,16 +163,19 @@ export function extractKbMcpToolCall(
   const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
   return {
     toolName: name,
+    // The commit gate's verdict on the changes (changed:true) checks them
+    // as fully as the impact diagnostics of the working tree.
     impactCheckRun:
       name === "kb_check" &&
-      readBoolean(payload, [
-        "includeImpactDiagnostics",
-        "include_impact_diagnostics",
-      ]) === true &&
-      readBoolean(payload, [
-        "includeWorkingTreeDiff",
-        "include_working_tree_diff",
-      ]) === true &&
+      (readBoolean(payload, ["changed"]) === true ||
+        (readBoolean(payload, [
+          "includeImpactDiagnostics",
+          "include_impact_diagnostics",
+        ]) === true &&
+          readBoolean(payload, [
+            "includeWorkingTreeDiff",
+            "include_working_tree_diff",
+          ]) === true)) &&
       sourceFiles.length > 0,
     sourceFiles,
   };

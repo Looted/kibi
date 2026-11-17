@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-284ea1d6c0be
+  - type: implements
+    from: SYM-changed-check-run-changed-gate
+    to: REQ-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:15.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e212cabfb262
+  - type: covered_by
+    from: SYM-changed-check-run-changed-gate
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T19:34:44.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fc6ce71c51d

@@ -1973,7 +1973,7 @@ describe("ZCode reminders from Claude-compatible payloads", () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-post");
     const first = await runHook(editPost(cwd), { pluginData, env: {} });
     expect(expectAdditionalContext(first, "PostToolUse")).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
     expectQuiet(await runHook(editPost(cwd), { pluginData, env: {} }));
   });
