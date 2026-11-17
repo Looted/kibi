@@ -181,6 +181,53 @@ describe("executeUpsertRequest", () => {
       );
   });
 
+  test("refuses a coveredBy that is not a list of test ids", async () => {
+    for (const coveredBy of ["TEST-a", [""], ["  "], [3], null])
+      expect(
+        (
+          await refusal(
+            req([
+              { sourceFile: "src/keys.ts", symbol: "expireKey", coveredBy },
+            ]),
+          )
+        ).message,
+      ).toBe(
+        "Upsert of REQ-key-expiry rejected: implementedBy[0].coveredBy must be an array of test ids.",
+      );
+  });
+
+  test("links each coveredBy test with covered_by, once", async () => {
+    const using = deps({
+      stored: [
+        { id: "SYM-expiry", title: "expireKey", sourceFile: "src/keys.ts" },
+      ],
+    });
+    await executeUpsertRequest(
+      req([
+        {
+          sourceFile: "src/keys.ts",
+          symbol: "expireKey",
+          coveredBy: [" TEST-key-expiry ", "TEST-key-expiry", "TEST-keys"],
+        },
+        { sourceFile: "src/keys.ts", symbol: "KeyStore.rotate", coveredBy: [] },
+      ]),
+      CONTEXT,
+      using,
+    );
+    expect(using.calls.executed[1]?.relationships).toEqual([
+      { type: "implements", from: "SYM-expiry", to: "REQ-key-expiry" },
+      { type: "covered_by", from: "SYM-expiry", to: "TEST-key-expiry" },
+      { type: "covered_by", from: "SYM-expiry", to: "TEST-keys" },
+    ]);
+    expect(using.calls.executed[2]?.relationships).toEqual([
+      {
+        type: "implements",
+        from: "SYM-keys-key-store-rotate",
+        to: "REQ-key-expiry",
+      },
+    ]);
+  });
+
   test("refuses a file outside the workspace or one it cannot read", async () => {
     expect(
       (await refusal(req([{ sourceFile: "../keys.ts", symbol: "expireKey" }])))

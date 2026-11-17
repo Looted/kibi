@@ -1704,7 +1704,7 @@ export function landingContent(args: {
       <div class="step-body">
         <span class="step-num">03</span>
         <h3>Read the result</h3>
-        <p>The health report names what is tested, what still has a gap, and what contradicts itself, and labels each requirement proved, tested, asserted or unverified. A green test run is a different fact.</p>
+        <p>The health report names what is tested, what still has a gap, and what contradicts itself, and labels each requirement proved, tested, asserted or unverified. A green test run is a different fact. When the pre-commit hook refuses new code no requirement owns, it prints one block per declaration with the requirements that already own the rest of its file and a ready-to-run input that links it, never a pick of its own.</p>
       </div>
     </li>
   </ol>

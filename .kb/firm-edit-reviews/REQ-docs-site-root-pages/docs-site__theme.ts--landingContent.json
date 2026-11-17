@@ -4,10 +4,10 @@
   "sourceFile": "docs-site/theme.ts",
   "symbol": "landingContent",
   "verdict": "keeps",
-  "note": "Landing-page sentences change wording only: the recorded reason in the words of whoever asked, the pre-edit context and search answers naming why a requirement exists, and kibi check --symbol-debt; where and when the site and report are published, and the link checks, are unchanged.",
+  "note": "Merged landing copy from develop; the docs site root pages are still published as the statement says.",
   "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
-  "codeHash": "sha256:0680494908341cbcbc19680fdc35b1026e452e9414f8a2076b9dabad1d5d38ac",
+  "codeHash": "sha256:f1ef7c06f75e2a49884c0f6b60fd530517db2f6354a222230dfa61c7255ed9fa",
   "startLine": 1447,
   "endLine": 1833,
-  "recordedAt": "2026-11-17T02:19:14.801Z"
+  "recordedAt": "2026-11-17T03:42:18.530Z"
 }

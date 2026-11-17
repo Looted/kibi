@@ -507,7 +507,7 @@ Fixture requirement for the staged check: users sign in before they reach their 
       checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
     );
     expect(failed.exitCode).toBe(1);
-    expect(io.logText()).toMatch(/\[(ERROR|WARNING|REVIEW)/);
+    expect(io.logText()).toMatch(/\[(ERROR|WARNING|REVIEW|BLOCKS COMMIT)/);
 
     const dry = await withCwd(cwd, () =>
       checkCommand({
@@ -591,7 +591,7 @@ Fixture requirement for the staged check: users sign in before they reach their 
       }),
     );
     expect(failed.exitCode).toBe(1);
-    expect(io.logText()).toContain("Traceability failed");
+    expect(io.logText()).toContain("[BLOCKS COMMIT] greet (src/greet.ts:1)");
 
     const dry = await withCwd(cwd, () =>
       checkCommand({

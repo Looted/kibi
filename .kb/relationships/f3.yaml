@@ -220,3 +220,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c45a76dde64f
+  - type: specified_by
+    from: REQ-check-staged-owner-block
+    to: SCEN-check-staged-owner-block
+    created_at: 2026-11-16T16:49:13.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eede20801cbc
+  - type: specified_by
+    from: REQ-check-staged-owner-block
+    to: SCEN-NEG-check-staged-owner-block-SPLIT
+    created_at: 2026-11-16T16:49:13.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea9e8d4885b4
+  - type: specified_by
+    from: REQ-check-staged-owner-block
+    to: SCEN-NEG-check-staged-owner-block-SILENT
+    created_at: 2026-11-16T16:49:13.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0faaba35da2d
+  - type: verified_by
+    from: REQ-check-staged-owner-block
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T16:49:13.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c62b372f10d
+  - type: constrains
+    from: REQ-check-staged-owner-block
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-16T16:49:13.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bd6c455ff8f
+  - type: requires_property
+    from: REQ-check-staged-owner-block
+    to: FACT-check-staged-owner-block
+    created_at: 2026-11-16T16:49:13.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-600167f80a8c
