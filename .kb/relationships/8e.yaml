@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83f8f06a4bb1
+  - type: assumes
+    from: SCEN-kb-upsert-statement-semantic-text
+    to: FACT-kb-upsert-statement-semantic-text
+    created_at: 2026-11-16T16:11:28.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0cf5c77e1419
+  - type: verified_by
+    from: SCEN-kb-upsert-statement-semantic-text
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:17:52.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d8f5bdd0040

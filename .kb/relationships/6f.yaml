@@ -216,13 +216,34 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-addd1c29ba03
-  - type: implements
-    from: SYM-check-executor-withSymbolDebtSummary
-    to: REQ-check-symbol-debt-count
-    created_at: 2026-11-16T15:54:47.809Z
+  - type: assumes
+    from: SCEN-kb-upsert-requirement-why
+    to: FACT-kb-upsert-why-recorded
+    created_at: 2026-11-16T16:11:26.584Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-3f50f89f3e57
+    id: rel-fd3bfc89b9b5
+  - type: verified_by
+    from: SCEN-kb-upsert-requirement-why
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:17:49.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d97f50ed8a78
+  - type: implements
+    from: SYM-capture-max-related-requirements
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:14.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1418da0081c5
+  - type: covered_by
+    from: SYM-capture-max-related-requirements
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:44.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c72c2a65d163
   - type: validates
     from: TEST-kb-merge-action
     to: REQ-kb-merge-action-manifest-only
@@ -321,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8be92fe10d6e
+  - type: implements
+    from: SYM-check-executor-withSymbolDebtSummary
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:54:47.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f50f89f3e57

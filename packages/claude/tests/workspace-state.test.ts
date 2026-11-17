@@ -205,6 +205,7 @@ describe("session journal replay", () => {
       commandStartedAt: undefined,
       requestWords: [],
       rulePhrase: undefined,
+      ruleReason: undefined,
       firmAsked: new Map(),
       firmConfirmed: new Set(),
       sourceEdited: false,
@@ -301,6 +302,32 @@ describe("session journal replay", () => {
     );
     expect(state.requestWords).toStrictEqual(["c"]);
     expect(state.rulePhrase).toBe("never");
+    expect(state.ruleReason).toBe(undefined);
+    expect(
+      replay(
+        {
+          kind: "prompt",
+          words: [],
+          rule: true,
+          phrase: "must",
+          reason: "because x",
+        },
+        { kind: "prompt", words: [], rule: false },
+      ).ruleReason,
+    ).toBe("because x");
+    // A later rule prompt without a reason clears the earlier one.
+    expect(
+      replay(
+        {
+          kind: "prompt",
+          words: [],
+          rule: true,
+          phrase: "must",
+          reason: "because x",
+        },
+        { kind: "prompt", words: [], rule: true, phrase: "never" },
+      ).ruleReason,
+    ).toBe(undefined);
     expect(replay({ kind: "prompt", words: [], rule: false }).rulePhrase).toBe(
       undefined,
     );

@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a1a5cceb8a6
+  - type: implements
+    from: SYM-mutation-implemented-by-implemented-by-deps
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:26.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b77126b8d803
+  - type: covered_by
+    from: SYM-mutation-implemented-by-implemented-by-deps
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:42:38.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90d105deb714
