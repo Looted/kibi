@@ -10248,6 +10248,38 @@ test(a_journaled_store_under_a_punctuated_path_saves_and_reloads, [setup(cleanup
     kb_detach,
     assertion(Ids == ['REQ-DEEP-PATH']).
 
+% A store written before the short graph URIs, at a path whose encoded name
+% fits a journal (`.jrn`) but not a snapshot (`.trp.new`), kept appending to
+% its journal and could never be compacted.
+ks_unwritable_graph(Graph) :-
+    length(Dashes, 78),
+    maplist(=('-'), Dashes),
+    atomic_list_concat(['file:///'|Dashes], Graph).
+
+test(a_store_restored_under_an_unwritable_graph_moves_to_its_short_graph, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_unwritable_graph(Long),
+    assertion(\+ kb:journal_file_name_fits(Long)),
+    ks_journaled_store(Dir),
+    kb_attach(Dir),
+    kb:kb_graph(Short),
+    kb_detach,
+    kb_attach(Dir),
+    rdf_assert('urn:test:old', 'urn:test:title', literal(old), Long),
+    rdf_assert('urn:test:old', 'urn:test:status', literal(open), Long),
+    kb_detach,
+    kb_attach(Dir),
+    kb:kb_graph(Graph),
+    aggregate_all(count, rdf('urn:test:old', _, _, Short), Moved),
+    kb_storage_compact,
+    kb_detach,
+    assertion(Graph == Short),
+    assertion(Moved == 2),
+    assertion(\+ rdf_graph(Long)),
+    kb_attach(Dir),
+    aggregate_all(count, rdf('urn:test:old', _, _), Reloaded),
+    kb_detach,
+    assertion(Reloaded == 2).
+
 test(journaled_attach_loads_legacy_entity_files_and_builds_the_index, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     ks_journaled_store(Dir),
     atom_concat(Dir, '/legacy.pl', LegacyFile),

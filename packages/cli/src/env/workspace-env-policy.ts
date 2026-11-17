@@ -27,10 +27,21 @@
  * The user file (`~/.config/kibi/env`) and the process environment are
  * trusted and are not filtered.
  *
- * The policy denies by default inside the `KIBI_` namespace: only the
- * provider-setting prefixes below pass. Outside it, provider secrets such as
- * `TYPESAFE_API_KEY` pass unless the key is a process-level variable.
+ * The policy denies by default on both sides. Inside the `KIBI_` namespace
+ * only the provider-setting prefixes below pass. Outside it only a provider
+ * secret or setting passes (a name ending in `_API_KEY`, `_TOKEN`,
+ * `_SECRET`, `_URL`, `_MODEL` and the like, such as `TYPESAFE_API_KEY`), and
+ * never one of the process-level variables below: a process variable that
+ * loads code (`OPENSSL_CONF`, `_JAVA_OPTIONS`, `RUSTC_WRAPPER`, ...) has no
+ * such name, so a list of them cannot fall behind.
  */
+
+/**
+ * The shape of a provider secret or setting outside the `KIBI_` namespace:
+ * a vendor word, then a secret or setting suffix.
+ */
+export const WORKSPACE_PROVIDER_KEY =
+  /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*_(?:API_KEY|KEY|TOKEN|SECRET|PASSWORD|URL|ENDPOINT|MODEL|ORG|ORG_ID|ORGANIZATION|PROJECT|PROJECT_ID|REGION)$/;
 
 /** `KIBI_` keys a workspace file may set: first-party provider settings. */
 export const WORKSPACE_ALLOWED_KIBI_PREFIXES: readonly string[] = ["KIBI_JEV_"];
@@ -110,7 +121,9 @@ export function isWorkspaceEnvKeyAllowed(key: string): boolean {
     );
   }
   if (deniedProcessKeys.has(upper)) return false;
-  return !WORKSPACE_DENIED_PROCESS_PREFIXES.some((prefix) =>
-    upper.startsWith(prefix),
-  );
+  if (
+    WORKSPACE_DENIED_PROCESS_PREFIXES.some((prefix) => upper.startsWith(prefix))
+  )
+    return false;
+  return WORKSPACE_PROVIDER_KEY.test(upper);
 }

@@ -475,3 +475,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd26075812f1
+  - type: constrains
+    from: REQ-opencode-decision-hooks
+    to: FACT-SUBJECT-KIBI-AGENT-HOSTS-DECISION-GUARD
+    created_at: 2026-11-17T17:20:21.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4067498d7217

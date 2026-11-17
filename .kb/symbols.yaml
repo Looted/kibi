@@ -45911,3 +45911,11 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-17T17:02:53.198Z
+  - id: SYM-workspace-env-policy-workspace-provider-key
+    title: WORKSPACE_PROVIDER_KEY
+    status: active
+    sourceFile: packages/cli/src/env/workspace-env-policy.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:21:29.041Z
