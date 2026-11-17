@@ -5,6 +5,7 @@ name: Store integrity sampling (diagnostics)
 on:
   push:
     branches: [claude/project-thread-rtyvm9-store-diag]
+    paths-ignore: [.github/workflows/store-fix-matrix.yml]
   workflow_dispatch:
 
 env:
