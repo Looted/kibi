@@ -18,8 +18,9 @@ semantic_clauses:
   - The user env file and the process environment stay unrestricted.
 origin:
   kind: agent
-  ref: 'Security fix, 2026-11-16: a committed .env.kibi or .env could set KIBI_NODE_PATH and make the next engine command run a file of the repository''s choosing. Wording proposed for owner approval.'
+  ref: 'Security fix, 2026-11-16: a committed .env.kibi or .env could set KIBI_NODE_PATH and make the next engine command run a file of the repository''s choosing. Maintainer decision, 2026-11-17, approving the statement as worded: "Approved".'
   recorded_at: '2026-11-16T20:52:57.284Z'
+  approved_by: maintainer
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 90287ad8786a715d0eaebd07fc719db79f0e3a96d3ae9c21d314d5f73fa518e9
