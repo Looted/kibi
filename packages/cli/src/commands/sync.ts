@@ -309,7 +309,7 @@ export function trackedRelationshipFiles(
         // here; that branch keeps the receipt.
         if (!inScope(receipt)) continue;
         // Committed on another local branch: discovery retires the receipt.
-        if (committedOnBranch(relative)) continue;
+        if (committedOnBranch(relative, receipt.afterHash)) continue;
         if (recoverMissingPendingSources) {
           const receiptPath = path.join(pendingRoot, receiptName);
           if (

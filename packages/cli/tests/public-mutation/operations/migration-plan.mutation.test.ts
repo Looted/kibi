@@ -10,6 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { branchMigrationApprovalHash } from "../../../src/commands/branch.js";
 import {
   FRESHNESS_RESYNC,
   MIGRATION_PLAN_DIGEST_VERSION,
@@ -31,14 +32,13 @@ import {
   withoutActionCodes,
 } from "../../../src/public/operations/migration-plan.js";
 import {
-  defaultKbManifest,
-  writeKbManifest,
-} from "../../../src/utils/kb-manifest.js";
-import { branchMigrationApprovalHash } from "../../../src/commands/branch.js";
-import {
   branchStorePath,
   legacyBranchStorePath,
 } from "../../../src/utils/branch-store-locator.js";
+import {
+  defaultKbManifest,
+  writeKbManifest,
+} from "../../../src/utils/kb-manifest.js";
 import { expectGolden } from "../helpers/golden.js";
 
 const roots: string[] = [];
@@ -876,6 +876,34 @@ describe("buildActionsFromStatus", () => {
       status(root, { branchStore: { state: "ok" } }).actions,
       status(root, { branchStore: { state: 1 } }).actions,
     ]);
+  });
+
+  test("plans no recovery for a store that is incomplete only because a legacy one exists", () => {
+    const root = workspace();
+    write(root, ".kb/branches/a/kb.rdf", "facts\n");
+    const plan = status(root, {
+      branchAttachment: {
+        migrationRequired: true,
+        kind: "legacy_compat",
+        gitBranch: "a",
+        kbBranch: "a",
+        storePath: join(root, ".kb/branches/a"),
+      },
+      branchStore: {
+        state: "incomplete",
+        path: join(root, ".kb/branches/a"),
+        errorCode: "legacy_branch_store",
+      },
+    });
+    expect(plan.actions.map((action) => action.code)).toEqual([
+      "legacy_branch_storage",
+    ]);
+    // A store damaged for any other reason is still recovered.
+    expect(
+      status(root, {
+        branchStore: { state: "incomplete", errorCode: "journal_torn" },
+      }).actions.map((action) => action.code),
+    ).toEqual(["damaged_exact_branch_store"]);
   });
 
   test("plans schema upgrades", () => {

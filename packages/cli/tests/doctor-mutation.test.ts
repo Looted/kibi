@@ -1305,6 +1305,23 @@ describe("branch store check", () => {
     );
   });
 
+  test("ask for migration, not recovery, of a legacy literal-named store", async () => {
+    s.store.mockReturnValue({
+      state: "incomplete",
+      path: "/legacy",
+      detail: "legacy",
+      errorCode: "legacy_branch_store",
+    } as never);
+    expect(await check("Branch store")).toStrictEqual({
+      name: "Branch store",
+      passed: false,
+      message: "Store for main is incomplete: legacy",
+      remediation:
+        "Run: kibi migrate, then kibi migrate --apply-safe <planHash>",
+      details: { branch: "main", path: "/legacy", state: "incomplete" },
+    });
+  });
+
   test("report a compiled store with and without a generation", async () => {
     expect(await check("Branch store")).toStrictEqual({
       name: "Branch store",
