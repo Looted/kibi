@@ -1839,6 +1839,30 @@ describe("ZCode decision guard", () => {
     expect(again).not.toContain("recorded nothing in the knowledge base");
   });
 
+  test("a new session without an id is not silenced by an earlier one's markers", async () => {
+    const { event, fixture } = session();
+    const anonymous = (payload: Record<string, unknown>) => event(payload, "");
+    const write = {
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+    };
+    await anonymous({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    await anonymous(write);
+    expect(
+      expectReminder(await anonymous({ hook_event_name: "Stop" })),
+    ).toStartWith(captureReminder("must not"));
+    // A new session starts clean: no stale rule phrase, and it is asked.
+    await anonymous({ hook_event_name: "SessionStart" });
+    await anonymous(write);
+    expect(
+      expectReminder(await anonymous({ hook_event_name: "Stop" })),
+    ).toStartWith(captureReminder(undefined));
+  });
+
   test("a rule session gets the capture template after its first source edit, and Stop quotes the rule phrase", async () => {
     const { event, fixture } = session();
     await event({

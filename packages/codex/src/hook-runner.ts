@@ -23,6 +23,7 @@ import {
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  startDecisionSession,
 } from "kibi-agent-core/decision-guard";
 import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import {
@@ -437,6 +438,10 @@ export async function runHook(
     switch (input.event) {
       case "SessionStart": {
         trace.action = "session_start";
+        startDecisionSession(
+          { stateDir, sessionId: input.sessionId },
+          "startup",
+        );
         return {
           continue: true,
           hookSpecificOutput: {

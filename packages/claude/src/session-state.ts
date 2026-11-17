@@ -186,6 +186,14 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
   }
 }
 
+/**
+ * The session journal of the session directory `dir`, as a list so a host
+ * without one passes none.
+ */
+export function sessionJournal(dir: string | undefined): string[] {
+  return dir ? [path.join(dir, JOURNAL)] : [];
+}
+
 export function loadSessionState(dir: string | undefined): SessionState {
   const state = emptySessionState();
   if (!dir) return state;
