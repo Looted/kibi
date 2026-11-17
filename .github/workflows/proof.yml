@@ -269,6 +269,9 @@ jobs:
           bun scripts/ci-unit-results.ts fetch "$results" &
           fetcher=$!
           status=0
+          # Without pipefail the shard takes tee's status and a failed proof
+          # shows a green shard; only the join would catch it.
+          set -o pipefail
           KIBI_PROOF_UNIT_RESULTS="$results" bun packages/cli/bin/kibi prove --all --shard "$KIBI_PROOF_SHARD" | tee "$out/prove.log" || status=$?
           kill "$fetcher" 2>/dev/null || true
           bun scripts/ci-proof-shards.ts collect "$out"
