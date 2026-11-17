@@ -44,9 +44,9 @@ export function firmRequirementsTouched(input: {
   /** The edit only removes dead `implements` comments, so it changes none. */
   commentOnly?: boolean;
   /**
-   * Whether a current `keeps` receipt covers this requirement for this
-   * symbol (see `firmEditReviewed`); a requirement every touched symbol has
-   * one for is not counted.
+   * Whether a `keeps` receipt recorded for this edit covers this requirement
+   * for this symbol (see `firmEditReviewed`); a requirement every touched
+   * symbol has one for is not counted.
    */
   reviewed?: (requirementId: string, symbol: IndexedSymbol) => boolean;
 }): { ids: string[]; symbol: IndexedSymbol | undefined } {
@@ -354,7 +354,7 @@ export function firmEditContext(ids: readonly string[]): string {
   return [
     `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
     "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " +
-      `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a current keeps receipt stops this question for that code. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`,
+      `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`,
   ].join("\n");
 }
 
@@ -447,31 +447,70 @@ function instructingAdverb(sentence: string): string | undefined {
   return undefined;
 }
 
-/**
- * The phrase that makes `prompt` read as a rule, or undefined. A sentence
- * that asks a question (other than a request such as "Can you make sure
- * ...?") states no rule.
- */
-export function statedRule(prompt: string): string | undefined {
-  for (const sentence of requestSentences(prompt)) {
+/** The rule phrase of `prompt`, the request's sentences, and which one holds it. */
+function ruleMatch(
+  prompt: string,
+): { phrase: string; sentences: string[]; index: number } | undefined {
+  const sentences = requestSentences(prompt);
+  for (const [index, sentence] of sentences.entries()) {
     if (
       sentence.endsWith("?") &&
       (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence))
     )
       continue;
     const match = RULE_PHRASES.exec(sentence);
-    if (match) return match[0].toLowerCase();
+    if (match) return { phrase: match[0].toLowerCase(), sentences, index };
     const adverb = instructingAdverb(sentence);
-    if (adverb) return adverb;
+    if (adverb) return { phrase: adverb, sentences, index };
   }
   return undefined;
 }
 
+/**
+ * The phrase that makes `prompt` read as a rule, or undefined. A sentence
+ * that asks a question (other than a request such as "Can you make sure
+ * ...?") states no rule.
+ */
+export function statedRule(prompt: string): string | undefined {
+  return ruleMatch(prompt)?.phrase;
+}
+
+/** Words that give the reason for a rule. */
+const REASON_MARKER = /\b(?:because|so that)\b/i;
+
+/** The longest reason a note quotes. */
+const MAX_REASON_CHARS = 200;
+
+/**
+ * The reason a rule prompt gives for its rule: the "because ..." or "so that
+ * ..." clause of the sentence that states the rule, or of the sentence after
+ * it. Undefined when the prompt states no rule or gives no such reason.
+ */
+export function statedReason(prompt: string | undefined): string | undefined {
+  const match = prompt === undefined ? undefined : ruleMatch(prompt);
+  if (match === undefined) return undefined;
+  for (const sentence of match.sentences.slice(match.index, match.index + 2)) {
+    const marker = REASON_MARKER.exec(sentence);
+    if (marker === null) continue;
+    const reason = sentence.slice(marker.index).replace(/[.!]+$/, "");
+    return reason.length > MAX_REASON_CHARS
+      ? `${reason.slice(0, MAX_REASON_CHARS - 1).trimEnd()}…`
+      : reason;
+  }
+  return undefined;
+}
+
+/** The line that asks for the person's stated reason in `why`. */
+function reasonLine(reason: string): string {
+  return `The request gives its reason ("${reason}"): put that reason in the requirement's why field, in the person's words.`;
+}
+
 /** Prompt-time note for a request that reads as a rule or decision. */
-export function rulePromptNote(phrase: string): string {
+export function rulePromptNote(phrase: string, reason?: string): string {
   return [
     `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
     "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it.",
+    ...(reason === undefined ? [] : [reasonLine(reason)]),
   ].join("\n");
 }
 
@@ -495,11 +534,14 @@ export function captureReminder(rulePhrase: string | undefined): string {
 
 /**
  * Post-edit note for the first source edit of a session whose prompt stated
- * a rule: a kb_upsert payload to fill in, so recording the rule is one call.
- * Its body has the Context and Source sections kb_check asks of a new
- * requirement, and the note says the scenario and test come next.
+ * a rule: a kb_upsert payload to fill in, so recording the rule and its
+ * reason is one call. The write's result lists what is left (subjects, a
+ * test) as nextActions with ready payloads.
  */
-export function ruleCaptureTemplate(rulePhrase: string): string {
+export function ruleCaptureTemplate(
+  rulePhrase: string,
+  reason?: string,
+): string {
   const template = {
     type: "req",
     id: "REQ-<short-name>",
@@ -512,9 +554,11 @@ export function ruleCaptureTemplate(rulePhrase: string): string {
         ref: "<the person's words and where they said them>",
       },
     },
-    document: {
-      body: "<the rule as one shall or must sentence>\n\n## Context\n\n<who asked for the rule and why, in their words; write 'Reason not stated' when they gave no reason>\n\n## Source\n\n<the person's words, verbatim>",
-    },
+    document: { body: "<the rule as one shall or must sentence>" },
+    why:
+      reason === undefined
+        ? "<why the person wants it, in their words; 'Reason not stated' if they gave none>"
+        : "<the person's reason, in their words>",
     implementedBy: [
       {
         sourceFile: "<file you changed>",
@@ -525,7 +569,8 @@ export function ruleCaptureTemplate(rulePhrase: string): string {
   return [
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
     JSON.stringify(template),
-    "kb_check then asks for a scenario and a test that prove the rule; add them in this change or name them as still to do in the final report.",
+    ...(reason === undefined ? [] : [reasonLine(reason)]),
+    "Then follow the nextActions the result returns.",
   ].join("\n");
 }
 
@@ -768,11 +813,29 @@ export function recordRequest(
     markDecisionFlag(session, "rule-prompt");
     try {
       writeMarker(sessionPath(session, "rule-phrase"), rule);
+      // The latest rule prompt's reason, or none: an empty marker.
+      writeMarker(
+        sessionPath(session, "rule-reason"),
+        statedReason(prompt) ?? "",
+      );
     } catch {
       // Best effort: without it the reminders read as for no rule.
     }
   }
   return rule;
+}
+
+/** The reason the session's latest rule prompt gave, or undefined. */
+export function sessionRuleReason(
+  session: DecisionSession,
+): string | undefined {
+  let reason = "";
+  try {
+    reason = String(fs.readFileSync(sessionPath(session, "rule-reason")));
+  } catch {
+    // No rule prompt this session, or no state directory.
+  }
+  return reason || undefined;
 }
 
 /** The phrase of the session's latest prompt that read as a rule, or undefined. */
@@ -806,7 +869,7 @@ export function claimRuleCaptureTemplate(
     !claimDecisionFlag(session, "capture-template")
   )
     return undefined;
-  return ruleCaptureTemplate(phrase);
+  return ruleCaptureTemplate(phrase, sessionRuleReason(session));
 }
 
 /** Topic words of the session's latest prompt, or none. */
@@ -923,9 +986,16 @@ export function settleFirmRequirements(
  * Keep a prompt's rule note for a host whose prompt hook cannot add context,
  * so the next hook that can speak to the agent delivers it.
  */
-export function holdRuleNote(session: DecisionSession, phrase: string): void {
+export function holdRuleNote(
+  session: DecisionSession,
+  phrase: string,
+  reason?: string,
+): void {
   try {
-    writeMarker(sessionPath(session, "rule-note"), rulePromptNote(phrase));
+    writeMarker(
+      sessionPath(session, "rule-note"),
+      rulePromptNote(phrase, reason),
+    );
   } catch {
     // Best effort.
   }

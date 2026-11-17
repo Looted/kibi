@@ -311,3 +311,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf0d026b1610
+  - type: requires_property
+    from: REQ-core-snapshot-triples-held-once
+    to: FACT-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:10:04.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0575d1dc08b3
+  - type: constrains
+    from: REQ-core-snapshot-triples-held-once
+    to: FACT-kibi-engine-journal-component
+    created_at: 2026-11-17T09:10:04.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-499851f06621
+  - type: specified_by
+    from: REQ-core-snapshot-triples-held-once
+    to: SCEN-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:10:04.912Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acfecca4d5ef
+  - type: specified_by
+    from: REQ-core-snapshot-triples-held-once
+    to: SCEN-NEG-core-snapshot-triples-held-once-HELD-TWICE
+    created_at: 2026-11-17T09:10:04.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86a3f3906c7a
+  - type: implements
+    from: SYM-core-kb-repair-duplicate-triples
+    to: REQ-core-snapshot-duplicate-repair
+    created_at: 2026-11-17T09:11:47.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-207255cbe9bf
+  - type: covered_by
+    from: SYM-core-kb-repair-duplicate-triples
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:11:47.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f0234760407
+  - type: assumes
+    from: SCEN-cli-prove-shard-disjoint-parts
+    to: FACT-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:21:30.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5c137281775
+  - type: verified_by
+    from: SCEN-cli-prove-shard-disjoint-parts
+    to: TEST-cli-prove-shard
+    created_at: 2026-11-17T11:21:30.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6a645427ce0

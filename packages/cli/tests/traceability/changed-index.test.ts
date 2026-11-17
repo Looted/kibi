@@ -6,6 +6,8 @@ import {
   mkdtempSync,
   readdirSync,
   rmSync,
+  statSync,
+  utimesSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -64,6 +66,36 @@ afterEach(() => {
 });
 
 describe("prepareChangedIndex", () => {
+  test("sees a same-size edit git would only catch as racily clean", () => {
+    // Stat data alone cannot tell this edit apart: same size, same mtime,
+    // ctime ignored. Only git's racy-clean rule (a file not older than the
+    // index is re-read) finds it, so the scratch index must keep the real
+    // index's times.
+    git(["config", "core.trustctime", "false"]);
+    // An mtime well before the index is written, so git does not smudge
+    // the entry as racy when it writes the index now.
+    const racy = new Date(Date.now() - 100_000);
+    const file = path.join(root, "b.ts");
+    utimesSync(file, racy, racy);
+    git(["add", "-A"]);
+    write("b.ts", "export const b = 3;\n");
+    utimesSync(file, racy, racy);
+    // The index as if written in the same second as that edit.
+    utimesSync(path.join(root, ".git", "index"), racy, racy);
+    expect(git(["diff", "--name-only"])).toBe("b.ts\n");
+    const changed = prepareChangedIndex(root, ["b.ts"]);
+    try {
+      expect(
+        git(["show", ":b.ts"], {
+          ...gitEnv(),
+          GIT_INDEX_FILE: changed.indexFile,
+        }),
+      ).toBe("export const b = 3;\n");
+    } finally {
+      changed.dispose();
+    }
+  });
+
   test("holds every working-tree change over the index and leaves the real index alone", () => {
     const changed = prepareChangedIndex(root);
     try {

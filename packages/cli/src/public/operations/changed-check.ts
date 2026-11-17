@@ -1,4 +1,7 @@
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { type FindingBlocks, tagBlocks } from "./finding-blocks.js";
@@ -32,8 +35,6 @@ export type ChangedCheckContent = Readonly<{
   ownerFindings?: unknown;
   operationalError?: string;
 }>;
-
-const CLI_BIN = fileURLToPath(new URL("../../../bin/kibi", import.meta.url));
 
 /**
  * A runner that starts `command` with `prefix` and then the `kibi check`
@@ -80,15 +81,80 @@ export function createChangedGateRunner(
     });
 }
 
+/** How to start the kibi CLI: a command and the arguments before its own. */
+type KibiCliLauncher = Readonly<{
+  command: string;
+  prefix: readonly string[];
+}>;
+
+/** Where the changed check looks for the kibi CLI; tests pass their own. */
+export type CliProbe = Readonly<{
+  /** The URL of the module asking, as import.meta.url gives it. */
+  moduleUrl: string;
+  exists: (file: string) => boolean;
+  /** Resolves a package file from moduleUrl, or throws when not installed. */
+  resolve: (specifier: string) => string;
+  nodePath: string;
+}>;
+
+const defaultProbe: CliProbe = {
+  moduleUrl: import.meta.url,
+  exists: existsSync,
+  resolve: (specifier) => createRequire(import.meta.url).resolve(specifier),
+  nodePath: process.execPath,
+};
+
 /**
- * The default runner: this package's own CLI in a child process, so the
- * scratch index (GIT_INDEX_FILE) never touches a long-lived server's
+ * The kibi CLI the changed check starts. This module also runs bundled into
+ * another package (the MCP server's runtime), where a path relative to the
+ * module names no CLI, so the CLI is found, in order: beside this module
+ * (kibi-cli's own source or dist), as the installed kibi-cli package, as
+ * the workspace's project-local kibi-cli, and last as `kibi` on PATH.
+ */
+function resolveKibiCli(
+  workspaceRoot: string,
+  probe: CliProbe,
+): KibiCliLauncher {
+  const viaNode = (bin: string) => ({
+    command: probe.nodePath,
+    prefix: [bin],
+  });
+  const sibling = fileURLToPath(new URL("../../../bin/kibi", probe.moduleUrl));
+  if (probe.exists(sibling)) return viaNode(sibling);
+  try {
+    // kibi-cli exports its bin, not its package.json.
+    const bin = probe.resolve("kibi-cli/bin/kibi");
+    if (probe.exists(bin)) return viaNode(bin);
+  } catch {
+    // kibi-cli is not installed beside this package; look further.
+  }
+  const local = path.join(
+    workspaceRoot,
+    "node_modules",
+    "kibi-cli",
+    "bin",
+    "kibi",
+  );
+  if (probe.exists(local)) return viaNode(local);
+  return { command: "kibi", prefix: [] };
+}
+
+/**
+ * The default runner: the kibi CLI (see resolveKibiCli) in a child process,
+ * so the scratch index (GIT_INDEX_FILE) never touches a long-lived server's
  * environment and the verdict is the gate's own.
  */
-export const runChangedGate: ChangedGateRunner = createChangedGateRunner(
-  process.execPath,
-  [CLI_BIN],
-);
+export function runChangedGate(
+  workspaceRoot: string,
+  sourceFiles: readonly string[] | undefined,
+  probe: Partial<CliProbe> = {},
+): Promise<ChangedGateRun> {
+  const cli = resolveKibiCli(workspaceRoot, { ...defaultProbe, ...probe });
+  return createChangedGateRunner(cli.command, cli.prefix)(
+    workspaceRoot,
+    sourceFiles,
+  );
+}
 
 function list(value: unknown): Finding[] {
   return Array.isArray(value) ? (value as Finding[]) : [];

@@ -3,14 +3,14 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import {
   commandEditPaths,
   commandFilePaths,
   filesChangedSince,
   isSearchCommand,
 } from "./bash-command.js";
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
-import type { HookInput } from "./hook-input.js";
+import { type HookInput, parseHookInput } from "./hook-input.js";
 
 import {
   hasKibiPreCommitGate,
@@ -35,6 +35,7 @@ import {
 
 export { CONFIRM_FIRM_EDITS_ENV };
 import { skillLoadTrace } from "kibi-agent-core/hook-usage-log";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   type KbUsage,
   extractCliKbUsage,
@@ -77,6 +78,7 @@ import {
   editFocus as sharedEditFocus,
   signoffReminder,
   startDecisionSession,
+  statedReason,
   statedRule,
   stopReminder,
   unownedSourceNote,
@@ -88,7 +90,6 @@ import {
   flushHookTelemetry,
   hookTelemetryEnabled,
 } from "./usage-log.js";
-import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ContextEvent =
   | "SessionStart"
@@ -237,10 +238,10 @@ function firmEdit(
     wholeFile,
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
-    reviewed: firmEditReviewed(
-      workspace.root,
-      relativePath,
-      workspace.summarize,
+    // A receipt counts only for the retry of an edit this session asked
+    // about, never for a later session's edit.
+    reviewed: firmEditReviewed(workspace.root, relativePath, (id) =>
+      state.firmAskedAt.get(id),
     ),
   });
   if (ids.length === 0) return undefined;
@@ -264,7 +265,7 @@ function withFirmConfirmation(
   trace: HookTrace,
 ): HookOutput {
   appendSessionEvents(workspace.stateDir, [
-    { kind: "firm_asked", path: firm.path, ids: firm.ids },
+    { kind: "firm_asked", path: firm.path, ids: firm.ids, at: Date.now() },
   ]);
   trace.action = "edit_firm_ask";
   trace.requirementIds = firm.ids;
@@ -741,7 +742,7 @@ function captureTemplateNote(
   )
     return undefined;
   events.push({ kind: "notice", name: "capture-template" });
-  return ruleCaptureTemplate(state.rulePhrase);
+  return ruleCaptureTemplate(state.rulePhrase, state.ruleReason);
 }
 
 function recordKbUsage(
@@ -899,6 +900,7 @@ function userPromptSubmit(
 ): HookOutput {
   const prompt = input.prompt ?? "";
   const rule = statedRule(prompt);
+  const reason = statedReason(prompt);
   // A session without an id idle for long has ended; this prompt starts anew.
   startDecisionSession(
     { stateDir: workspace.stateDir, sessionId: input.sessionId },
@@ -911,6 +913,7 @@ function userPromptSubmit(
       words: requestTopicWords(prompt),
       rule: rule !== undefined,
       phrase: rule ?? "",
+      reason,
     },
   ]);
   if (rule === undefined) {
@@ -918,7 +921,7 @@ function userPromptSubmit(
     return {};
   }
   trace.action = "prompt_rule_note";
-  return context("UserPromptSubmit", rulePromptNote(rule));
+  return context("UserPromptSubmit", rulePromptNote(rule, reason));
 }
 
 export async function runHook(

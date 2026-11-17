@@ -5,6 +5,22 @@ import os2 from "node:os";
 import path14 from "node:path";
 import { pathToFileURL } from "node:url";
 
+// ../agent-core/dist/hook-input.js
+async function readStdin() {
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+function parseStdinJson(rawInput) {
+  const trimmed = rawInput.trim();
+  if (trimmed.length === 0) {
+    return {};
+  }
+  return JSON.parse(trimmed);
+}
+
 // src/bash-command.ts
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -168,17 +184,6 @@ function parseHookInput(raw) {
   if (input.stop_hook_active === true)
     parsed.stopHookActive = true;
   return parsed;
-}
-async function readStdin() {
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-function parseStdinJson(rawInput) {
-  const trimmed = rawInput.trim();
-  return trimmed.length === 0 ? {} : JSON.parse(trimmed);
 }
 
 // ../agent-core/dist/checkout-hooks.js
@@ -1941,7 +1946,7 @@ function firmEditContext(ids) {
   const named = ids.slice(0, 2).join(", ");
   return [
     `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
-    "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " + `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a current keeps receipt stops this question for that code. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`
+    "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " + `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kibi review-firm-edit and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`
   ].join(`
 `);
 }
@@ -1985,23 +1990,46 @@ function instructingAdverb(sentence) {
   }
   return;
 }
-function statedRule(prompt) {
-  for (const sentence of requestSentences(prompt)) {
+function ruleMatch(prompt) {
+  const sentences = requestSentences(prompt);
+  for (const [index, sentence] of sentences.entries()) {
     if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
       continue;
     const match = RULE_PHRASES.exec(sentence);
     if (match)
-      return match[0].toLowerCase();
+      return { phrase: match[0].toLowerCase(), sentences, index };
     const adverb = instructingAdverb(sentence);
     if (adverb)
-      return adverb;
+      return { phrase: adverb, sentences, index };
   }
   return;
 }
-function rulePromptNote(phrase) {
+function statedRule(prompt) {
+  return ruleMatch(prompt)?.phrase;
+}
+var REASON_MARKER = /\b(?:because|so that)\b/i;
+var MAX_REASON_CHARS2 = 200;
+function statedReason(prompt) {
+  const match = prompt === undefined ? undefined : ruleMatch(prompt);
+  if (match === undefined)
+    return;
+  for (const sentence of match.sentences.slice(match.index, match.index + 2)) {
+    const marker = REASON_MARKER.exec(sentence);
+    if (marker === null)
+      continue;
+    const reason = sentence.slice(marker.index).replace(/[.!]+$/, "");
+    return reason.length > MAX_REASON_CHARS2 ? `${reason.slice(0, MAX_REASON_CHARS2 - 1).trimEnd()}…` : reason;
+  }
+  return;
+}
+function reasonLine2(reason) {
+  return `The request gives its reason ("${reason}"): put that reason in the requirement's why field, in the person's words.`;
+}
+function rulePromptNote(phrase, reason) {
   return [
     `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
-    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it."
+    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it.",
+    ...reason === undefined ? [] : [reasonLine2(reason)]
   ].join(`
 `);
 }
@@ -2016,7 +2044,7 @@ function captureReminder(rulePhrase) {
   ].join(`
 `);
 }
-function ruleCaptureTemplate(rulePhrase) {
+function ruleCaptureTemplate(rulePhrase, reason) {
   const template = {
     type: "req",
     id: "REQ-<short-name>",
@@ -2029,17 +2057,8 @@ function ruleCaptureTemplate(rulePhrase) {
         ref: "<the person's words and where they said them>"
       }
     },
-    document: {
-      body: `<the rule as one shall or must sentence>
-
-## Context
-
-<who asked for the rule and why, in their words; write 'Reason not stated' when they gave no reason>
-
-## Source
-
-<the person's words, verbatim>`
-    },
+    document: { body: "<the rule as one shall or must sentence>" },
+    why: reason === undefined ? "<why the person wants it, in their words; 'Reason not stated' if they gave none>" : "<the person's reason, in their words>",
     implementedBy: [
       {
         sourceFile: "<file you changed>",
@@ -2050,7 +2069,8 @@ function ruleCaptureTemplate(rulePhrase) {
   return [
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
     JSON.stringify(template),
-    "kb_check then asks for a scenario and a test that prove the rule; add them in this change or name them as still to do in the final report."
+    ...reason === undefined ? [] : [reasonLine2(reason)],
+    "Then follow the nextActions the result returns."
   ].join(`
 `);
 }
@@ -2199,10 +2219,35 @@ function firmEditCodeHash(content, startLine, endLine) {
 function fileSafe(text) {
   return text.replace(/\//g, "__").replace(/[^A-Za-z0-9._-]/g, "_");
 }
+var RECEIPT_NAME_PREFIX = 48;
+var MAX_FILE_NAME = 255;
 function firmEditReceiptPath(requirementId, sourceFile, symbol) {
   if (!REQUIREMENT_ID.test(requirementId))
     return;
-  return `${FIRM_EDIT_REVIEWS_DIR}/${requirementId}/${fileSafe(sourceFile)}--${fileSafe(symbol)}.json`;
+  const digest = createHash3("sha256").update(`${sourceFile}\x00${symbol}`).digest("hex").slice(0, 32);
+  const prefix = fileSafe(symbol).slice(0, RECEIPT_NAME_PREFIX);
+  return `${FIRM_EDIT_REVIEWS_DIR}/${requirementId}/${prefix}--${digest}.json`;
+}
+function firmEditLegacyReceiptPath(requirementId, sourceFile, symbol) {
+  if (!REQUIREMENT_ID.test(requirementId))
+    return;
+  const name = `${fileSafe(sourceFile)}--${fileSafe(symbol)}.json`;
+  if (name.length > MAX_FILE_NAME)
+    return;
+  return `${FIRM_EDIT_REVIEWS_DIR}/${requirementId}/${name}`;
+}
+function readFirmEditReceipt(requirementId, sourceFile, symbol, readFile) {
+  for (const receiptPath of [
+    firmEditReceiptPath(requirementId, sourceFile, symbol),
+    firmEditLegacyReceiptPath(requirementId, sourceFile, symbol)
+  ]) {
+    if (receiptPath === undefined)
+      continue;
+    const receipt = parseFirmEditReceipt(readFile(receiptPath));
+    if (receipt !== undefined && receipt.requirementId === requirementId && receipt.sourceFile === sourceFile && receipt.symbol === symbol)
+      return receipt;
+  }
+  return;
 }
 function isText(value) {
   return typeof value === "string" && value.length > 0;
@@ -2217,23 +2262,102 @@ function parseFirmEditReceipt(text) {
     return;
   return receipt;
 }
+function receiptCodeFound(receipt, content) {
+  const length = receipt.endLine - receipt.startLine;
+  const lineCount = content.split(/\r?\n/).length;
+  for (let start = 1;start + length <= lineCount; start += 1)
+    if (firmEditCodeHash(content, start, start + length) === receipt.codeHash)
+      return true;
+  return false;
+}
 function firmEditReceiptMismatch(receipt, current) {
   if (receipt.statementHash !== firmEditStatementHash(current.statement))
     return "statement-changed";
-  const codeHash = current.codeHash ?? (current.content === undefined ? undefined : firmEditCodeHash(current.content, receipt.startLine, receipt.endLine));
-  return codeHash === receipt.codeHash ? undefined : "code-changed";
+  if (current.codeHash !== undefined)
+    return current.codeHash === receipt.codeHash ? undefined : "code-changed";
+  return current.content !== undefined && receiptCodeFound(receipt, current.content) ? undefined : "code-changed";
 }
-function firmEditReviewed(workspaceRoot, sourceFile, summarize) {
+var CONTEXT_HEADING = /^(?:context|rationale|why|background|source|notes|evidence)\b/i;
+var HEADING_LINE = /^\s{0,3}(#{1,6})(?:[ \t]+(.*?))?[ \t]*$/;
+function frontMatterScalar(lines, key) {
+  const prefix = new RegExp(`^${key}:(?:\\s+(.*?))?\\s*$`);
+  const index = lines.findIndex((line) => prefix.test(line));
+  if (index === -1)
+    return;
+  const raw = prefix.exec(lines[index])[1] ?? "";
+  const rest = [];
+  for (const line of lines.slice(index + 1)) {
+    if (line.trim() !== "" && !/^\s/.test(line))
+      break;
+    rest.push(line);
+  }
+  if (/^[>|][0-9+-]*$/.test(raw))
+    return rest.map((line) => line.trim()).filter((line) => line !== "").join(" ");
+  const text = [raw, ...rest.map((line) => line.trim())].filter((line) => line !== "").join(" ");
+  const quote = text[0];
+  if (quote === '"') {
+    const end = /^"((?:[^"\\]|\\.)*)"/.exec(text);
+    const body = end ? end[1] : text.slice(1);
+    return body.replace(/\\(.)/g, (_, char) => char === "n" ? `
+` : char === "t" ? "\t" : char);
+  }
+  if (quote === "'") {
+    const end = /^'((?:[^']|'')*)'/.exec(text);
+    return (end ? end[1] : text.slice(1)).replace(/''/g, "'");
+  }
+  return text.replace(/\s+#.*$/, "");
+}
+function requirementStatementFromDocument(text) {
+  const lines = text.replace(/\r\n?/g, `
+`).split(`
+`);
+  if (lines[0]?.trim() !== "---")
+    return;
+  const close = lines.findIndex((line, index) => index > 0 && line.trim() === "---");
+  if (close === -1)
+    return;
+  const front = lines.slice(1, close);
+  const semantic = frontMatterScalar(front, "semantic_text");
+  if (semantic !== undefined && semantic.trim() !== "")
+    return semantic;
+  const body = [];
+  let contextLevel = 0;
+  for (const line of lines.slice(close + 1)) {
+    const heading = HEADING_LINE.exec(line);
+    if (heading === null) {
+      if (contextLevel === 0)
+        body.push(line.replace(/^\s*(?:(?:[-*+]|\d+[.)])\s+|>\s*)/, ""));
+      continue;
+    }
+    const level = heading[1].length;
+    const words = (heading[2] ?? "").replace(/^[*_`\s]+/, "");
+    if (level <= contextLevel)
+      contextLevel = 0;
+    if (contextLevel === 0 && CONTEXT_HEADING.test(words))
+      contextLevel = level;
+  }
+  const derived = body.join(" ").replace(/\s+/g, " ").trim();
+  if (derived !== "")
+    return derived;
+  const title = frontMatterScalar(front, "title");
+  return title !== undefined && title.trim() !== "" ? title : undefined;
+}
+function readRequirementStatement(workspaceRoot, requirementId) {
+  if (!REQUIREMENT_ID.test(requirementId))
+    return;
+  const text = readText2(path7.join(workspaceRoot, ".kb", "requirements", `${requirementId}.md`));
+  return requirementStatementFromDocument(text);
+}
+function firmEditReviewed(workspaceRoot, sourceFile, askedAt) {
   let content;
   return (requirementId, symbol) => {
-    const receiptPath = firmEditReceiptPath(requirementId, sourceFile, symbol.title);
-    if (receiptPath === undefined)
+    const asked = askedAt(requirementId);
+    if (asked === undefined)
       return false;
-    const receipt = parseFirmEditReceipt(readText2(path7.join(workspaceRoot, receiptPath)));
-    if (receipt?.verdict !== "keeps" || receipt.requirementId !== requirementId || receipt.sourceFile !== sourceFile || receipt.symbol !== symbol.title)
+    const receipt = readFirmEditReceipt(requirementId, sourceFile, symbol.title, (relativePath) => readText2(path7.join(workspaceRoot, relativePath)));
+    if (receipt?.verdict !== "keeps" || !(Date.parse(receipt.recordedAt) >= asked))
       return false;
-    const summary = summarize(requirementId);
-    const statement = summary.statement ?? summary.title;
+    const statement = readRequirementStatement(workspaceRoot, requirementId);
     if (statement === undefined)
       return false;
     content ??= readText2(path7.join(workspaceRoot, sourceFile));
@@ -3018,6 +3142,46 @@ function readPackageVersion(packageJsonPath) {
   return null;
 }
 
+// ../agent-core/dist/workspace-optin.js
+import fs11 from "node:fs";
+import path11 from "node:path";
+var KIBI_WORKSPACE_ENV_KEYS = [
+  "KIBI_WORKSPACE",
+  "KIBI_PROJECT_ROOT",
+  "KIBI_ROOT"
+];
+function nextAncestorDirectory(current) {
+  const parent = path11.dirname(current);
+  return parent === current ? undefined : parent;
+}
+function hasKibiManifest(directory) {
+  return fs11.existsSync(path11.join(directory, ".kb", "manifest.json"));
+}
+function hasGitBoundary(directory) {
+  return fs11.existsSync(path11.join(directory, ".git"));
+}
+function resolveKibiWorkspace(startDir, env = process.env) {
+  for (const key of KIBI_WORKSPACE_ENV_KEYS) {
+    const value = env[key]?.trim();
+    if (value) {
+      const root = path11.resolve(value);
+      return { root, optedIn: hasKibiManifest(root) };
+    }
+  }
+  const start = path11.resolve(startDir?.trim() ? startDir : process.cwd());
+  let current = start;
+  while (current !== undefined) {
+    if (hasKibiManifest(current)) {
+      return { root: current, optedIn: true };
+    }
+    if (hasGitBoundary(current)) {
+      return { root: current, optedIn: false };
+    }
+    current = nextAncestorDirectory(current);
+  }
+  return { root: start, optedIn: false };
+}
+
 // src/kb-tools.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -3105,21 +3269,21 @@ function classifyPath2(relativePath) {
 
 // src/session-state.ts
 import { createHash as createHash6 } from "node:crypto";
-import fs11 from "node:fs";
-import path11 from "node:path";
+import fs12 from "node:fs";
+import path12 from "node:path";
 var JOURNAL = "session.jsonl";
 function workspaceDataDir(pluginData, workspaceRoot) {
   if (!pluginData)
     return;
-  const key = createHash6("sha256").update(path11.resolve(workspaceRoot)).digest("hex").slice(0, 32);
-  return path11.join(pluginData, "workspaces", key);
+  const key = createHash6("sha256").update(path12.resolve(workspaceRoot)).digest("hex").slice(0, 32);
+  return path12.join(pluginData, "workspaces", key);
 }
 function sessionDir(workspaceDir, sessionId) {
   if (!workspaceDir)
     return;
   const trimmed = sessionId?.trim() ?? "";
   const key = trimmed.length > 0 ? createHash6("sha256").update(trimmed).digest("hex").slice(0, 32) : "unattributed";
-  return path11.join(workspaceDir, "sessions", key);
+  return path12.join(workspaceDir, "sessions", key);
 }
 function emptySessionState() {
   return {
@@ -3134,7 +3298,9 @@ function emptySessionState() {
     commandStartedAt: undefined,
     requestWords: [],
     rulePhrase: undefined,
+    ruleReason: undefined,
     firmAsked: new Map,
+    firmAskedAt: new Map,
     firmConfirmed: new Set,
     sourceEdited: false,
     kbRecorded: false
@@ -3184,13 +3350,18 @@ function applyEvent(state, event) {
       return;
     case "prompt":
       state.requestWords = event.words;
-      if (event.phrase)
+      if (event.phrase) {
         state.rulePhrase = event.phrase;
+        state.ruleReason = event.reason || undefined;
+      }
       return;
     case "firm_asked":
       state.firmAsked.set(event.path, [
         ...new Set([...state.firmAsked.get(event.path) ?? [], ...event.ids])
       ]);
+      if (event.at !== undefined)
+        for (const id of event.ids)
+          state.firmAskedAt.set(id, event.at);
       return;
     case "context_reset":
       state.shownRead.clear();
@@ -3202,7 +3373,7 @@ function applyEvent(state, event) {
   }
 }
 function sessionJournal(dir) {
-  return dir ? [path11.join(dir, JOURNAL)] : [];
+  return dir ? [path12.join(dir, JOURNAL)] : [];
 }
 function loadSessionState(dir) {
   const state = emptySessionState();
@@ -3210,7 +3381,7 @@ function loadSessionState(dir) {
     return state;
   let journal;
   try {
-    journal = fs11.readFileSync(path11.join(dir, JOURNAL), "utf8");
+    journal = fs12.readFileSync(path12.join(dir, JOURNAL), "utf8");
   } catch {
     return state;
   }
@@ -3226,8 +3397,8 @@ function appendSessionEvents(dir, events) {
   if (!dir || events.length === 0)
     return;
   try {
-    fs11.mkdirSync(dir, { recursive: true });
-    fs11.appendFileSync(path11.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
+    fs12.mkdirSync(dir, { recursive: true });
+    fs12.appendFileSync(path12.join(dir, JOURNAL), events.map((event) => `${JSON.stringify(event)}
 `).join(""));
   } catch {}
 }
@@ -3267,9 +3438,9 @@ function stopReminder(paths) {
 }
 
 // src/usage-log.ts
-import path12 from "node:path";
+import path13 from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
-var pluginVersion = readPackageVersion(path12.join(path12.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
+var pluginVersion = readPackageVersion(path13.join(path13.dirname(fileURLToPath2(import.meta.url)), "..", "package.json"));
 function appendHookUsage2(row, env = process.env) {
   appendHookUsage({
     ...row,
@@ -3278,47 +3449,6 @@ function appendHookUsage2(row, env = process.env) {
   }, env);
 }
 var flushHookTelemetry = finishHookTelemetry;
-
-// src/workspace-optin.ts
-import fs12 from "node:fs";
-import path13 from "node:path";
-var KIBI_WORKSPACE_ENV_KEYS = [
-  "KIBI_WORKSPACE",
-  "KIBI_PROJECT_ROOT",
-  "KIBI_ROOT"
-];
-function nextAncestorDirectory(current) {
-  const parent = path13.dirname(current);
-  return parent === current ? undefined : parent;
-}
-function hasKibiManifest(directory) {
-  return fs12.existsSync(path13.join(directory, ".kb", "manifest.json"));
-}
-function hasGitBoundary(directory) {
-  return fs12.existsSync(path13.join(directory, ".git"));
-}
-function resolutionFor(root) {
-  return { root, optedIn: hasKibiManifest(root) };
-}
-function resolveKibiWorkspace(startDir, env = process.env) {
-  for (const key of KIBI_WORKSPACE_ENV_KEYS) {
-    const value = env[key]?.trim();
-    if (value) {
-      return resolutionFor(path13.resolve(value));
-    }
-  }
-  let current = path13.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
-  while (current !== undefined) {
-    if (hasKibiManifest(current)) {
-      return { root: current, optedIn: true };
-    }
-    if (hasGitBoundary(current)) {
-      return { root: current, optedIn: false };
-    }
-    current = nextAncestorDirectory(current);
-  }
-  return resolutionFor(path13.resolve(startDir ?? process.cwd()));
-}
 
 // src/hook-runner.ts
 var readTools = new Set(["Read"]);
@@ -3378,7 +3508,7 @@ function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace) {
     wholeFile,
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
-    reviewed: firmEditReviewed(workspace.root, relativePath, workspace.summarize)
+    reviewed: firmEditReviewed(workspace.root, relativePath, (id) => state.firmAskedAt.get(id))
   });
   if (ids.length === 0)
     return;
@@ -3390,7 +3520,7 @@ function firmEdit(relativePath, symbols, focus, wholeFile, state, workspace) {
 }
 function withFirmConfirmation(output, firm, workspace, trace) {
   appendSessionEvents(workspace.stateDir, [
-    { kind: "firm_asked", path: firm.path, ids: firm.ids }
+    { kind: "firm_asked", path: firm.path, ids: firm.ids, at: Date.now() }
   ]);
   trace.action = "edit_firm_ask";
   trace.requirementIds = firm.ids;
@@ -3671,7 +3801,7 @@ function captureTemplateNote(workspace, events) {
   if (state.rulePhrase === undefined || state.kbRecorded || state.notices.has("capture-template"))
     return;
   events.push({ kind: "notice", name: "capture-template" });
-  return ruleCaptureTemplate(state.rulePhrase);
+  return ruleCaptureTemplate(state.rulePhrase, state.ruleReason);
 }
 function recordKbUsage(usage, workspace, events) {
   const paths = usage.paths.map((candidate) => toWorkspacePath2(workspace.root, candidate, workspace.root)?.relative).filter((candidate) => candidate !== undefined);
@@ -3765,13 +3895,15 @@ function stop(input, workspace, trace = {}) {
 function userPromptSubmit(input, workspace, trace) {
   const prompt = input.prompt ?? "";
   const rule = statedRule(prompt);
+  const reason = statedReason(prompt);
   startDecisionSession({ stateDir: workspace.stateDir, sessionId: input.sessionId }, "prompt", { hostFiles: sessionJournal(workspace.stateDir) });
   appendSessionEvents(workspace.stateDir, [
     {
       kind: "prompt",
       words: requestTopicWords(prompt),
       rule: rule !== undefined,
-      phrase: rule ?? ""
+      phrase: rule ?? "",
+      reason
     }
   ]);
   if (rule === undefined) {
@@ -3779,7 +3911,7 @@ function userPromptSubmit(input, workspace, trace) {
     return {};
   }
   trace.action = "prompt_rule_note";
-  return context("UserPromptSubmit", rulePromptNote(rule));
+  return context("UserPromptSubmit", rulePromptNote(rule, reason));
 }
 async function runHook(rawInput, environment = {}) {
   const startedAt = new Date;

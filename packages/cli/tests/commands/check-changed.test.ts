@@ -121,4 +121,49 @@ describe("kibi check --changed", () => {
       rmSync(input, { force: true });
     }
   }, 180_000);
+
+  test("kb_check changed:true carries a staged-file diagnostic in the envelope's shape", () => {
+    write("src/notes.txt", "hello\n");
+    const input = path.join(root, "..", `${path.basename(root)}-notes.json`);
+    writeFileSync(
+      input,
+      JSON.stringify({ changed: true, sourceFiles: ["src/notes.txt"] }),
+    );
+    try {
+      const run = kibi(["check", "--input", input]);
+      const result = JSON.parse(run.stdout) as {
+        status: string;
+        diagnostics: Record<string, unknown>[];
+        data: { diagnostics: { id: string; blocks: string }[] };
+      };
+      expect(result.status).toBe("success");
+      // The gate's own row stays as the gate wrote it, in the data.
+      expect(result.data.diagnostics).toContainEqual(
+        expect.objectContaining({
+          id: "staged_file_ownership_missing",
+          path: "src/notes.txt",
+          blocks: "none",
+        }),
+      );
+      // The envelope names it by code and file, the rest under detail.
+      const ownership = result.diagnostics.find(
+        (row) => row.code === "staged_file_ownership_missing",
+      );
+      expect(ownership).toMatchObject({
+        severity: "warning",
+        file: "src/notes.txt",
+        detail: {
+          blocking: false,
+          requirementIds: [],
+          evidencePaths: [],
+          blocks: "none",
+        },
+      });
+      expect(ownership).not.toHaveProperty("id");
+      expect(ownership).not.toHaveProperty("path");
+    } finally {
+      rmSync(input, { force: true });
+      rmSync(path.join(root, "src/notes.txt"), { force: true });
+    }
+  }, 180_000);
 });

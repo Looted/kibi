@@ -1305,6 +1305,23 @@ describe("branch store check", () => {
     );
   });
 
+  test("ask for migration, not recovery, of a legacy literal-named store", async () => {
+    s.store.mockReturnValue({
+      state: "incomplete",
+      path: "/legacy",
+      detail: "legacy",
+      errorCode: "legacy_branch_store",
+    } as never);
+    expect(await check("Branch store")).toStrictEqual({
+      name: "Branch store",
+      passed: false,
+      message: "Store for main is incomplete: legacy",
+      remediation:
+        "Run: kibi migrate, then kibi migrate --apply-safe <planHash>",
+      details: { branch: "main", path: "/legacy", state: "incomplete" },
+    });
+  });
+
   test("report a compiled store with and without a generation", async () => {
     expect(await check("Branch store")).toStrictEqual({
       name: "Branch store",
@@ -1320,6 +1337,34 @@ describe("branch store check", () => {
     expect(s.takeover).toHaveBeenCalledWith("/store");
     s.compilation.mockReturnValue({ compiled: true } as never);
     expect((await check("Branch store"))?.message).toBe("Compiled for main");
+  });
+
+  test("warn about a store the engine repaired on attach", async () => {
+    const warningsBefore = (await report()).warnings;
+    const repair = spyOn(branchStore, "storeRepairReason").mockReturnValue({
+      code: "branch_store_repaired",
+      detail: "Kibi repaired this branch store.",
+    });
+    expect(await check("Branch store")).toStrictEqual({
+      name: "Branch store",
+      passed: true,
+      warning: true,
+      remediation:
+        "Nothing to do; rerun kibi check if it ran on this branch before the repair",
+      message: "Compiled for main (g1). Kibi repaired this branch store.",
+      details: {
+        branch: "main",
+        path: "/store",
+        state: "ready",
+        generation: "g1",
+        storeRepair: {
+          code: "branch_store_repaired",
+          detail: "Kibi repaired this branch store.",
+        },
+      },
+    });
+    expect(repair).toHaveBeenCalledWith("/store");
+    expect((await report()).warnings).toBe(warningsBefore + 1);
   });
 
   test("append a lock takeover to every outcome", async () => {

@@ -517,3 +517,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fb415d7cfb9a
+  - type: implements
+    from: SYM-cli-prove-shard-selection
+    to: REQ-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:22:06.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0adf7545936c
+  - type: covered_by
+    from: SYM-cli-prove-shard-selection
+    to: TEST-cli-prove-shard
+    created_at: 2026-11-17T11:22:06.252Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-254cce55939d
+  - type: implements
+    from: SYM-agent-core-read-requirement-statement
+    to: REQ-claude-firm-edit-confirmation
+    created_at: 2026-11-16T21:23:12.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfa3b0c8cac7
+  - type: covered_by
+    from: SYM-agent-core-read-requirement-statement
+    to: TEST-agent-hosts-firm-edit-receipt-notice
+    created_at: 2026-11-16T21:23:13.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8aeba875f66
+  - type: covered_by
+    from: SYM-agent-core-read-requirement-statement
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T21:23:13.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e12942b6099

@@ -23,8 +23,8 @@ import {
   settledFirmRequirements,
   signoffReminder,
   startDecisionSession,
+  statedReason,
 } from "kibi-agent-core/decision-guard";
-import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import {
   type HookTrace,
   appendHookUsage,
@@ -35,7 +35,10 @@ import {
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import {
+  extractKbMcpToolCall,
+  stampKibiWorkspace,
+} from "kibi-agent-core/kb-mcp-tools";
 import {
   type IndexedSymbol,
   loadKnowledgeIndex,
@@ -50,7 +53,12 @@ import {
 } from "kibi-agent-core/snippets";
 
 type Summarize = ReturnType<typeof createEntitySummarizer>;
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import {
+  parseHookInput,
+  parseStdinJson,
+  readStdin,
+} from "kibi-agent-core/hook-input";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   addDirtyPaths,
   clearDirtyPaths,
@@ -59,7 +67,6 @@ import {
   resolvePluginDataDir,
   resolveSessionStateDir,
 } from "./hook-state.js";
-import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   DIRECT_KB_EDIT_WARNING,
   SESSION_START_CONTEXT,
@@ -74,7 +81,6 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
-import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ZcodeHookEvent =
   | "SessionStart"
@@ -241,7 +247,6 @@ function firmNotice(
       wholeFile: focus === undefined,
       summarize,
       confirmed: settled,
-      reviewed: firmEditReviewed(workspaceRoot, target.relative, summarize),
       commentOnly: removesOnlyDeadImplementsComments(
         target.absolute,
         input.toolInput,
@@ -404,7 +409,10 @@ export async function runHook(
           rule === undefined ? "prompt_silent" : "prompt_rule_note";
         return rule === undefined
           ? defaultResult()
-          : contextResult(input.event, rulePromptNote(rule));
+          : contextResult(
+              input.event,
+              rulePromptNote(rule, statedReason(input.prompt)),
+            );
       }
 
       case "PreToolUse": {

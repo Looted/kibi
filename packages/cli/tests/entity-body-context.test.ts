@@ -160,6 +160,25 @@ describe("reviseRequirementBody", () => {
     );
   });
 
+  test("a named context heading replaces that section and keeps its heading", () => {
+    expect(
+      reviseRequirementBody({
+        existingBody: "Old.\n\n## Context\n\nKept.\n\n## Why\n\nOld why.\n",
+        statement: "New.",
+        context: "New why.",
+        contextHeading: "Why",
+      }),
+    ).toBe("New.\n\n## Context\n\nKept.\n\n## Why\n\nNew why.\n");
+    expect(
+      reviseRequirementBody({
+        existingBody: "Old.\n",
+        statement: "New.",
+        context: "Reason.",
+        contextHeading: "Rationale",
+      }),
+    ).toBe("New.\n\n## Rationale\n\nReason.\n");
+  });
+
   test("supplied context or source replaces just that section", () => {
     const revised = reviseRequirementBody({
       existingBody: existing,

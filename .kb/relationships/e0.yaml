@@ -374,3 +374,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9952efe55c05
+  - type: implements
+    from: SYM-agent-core-firm-edit-legacy-receipt-path
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:22:53.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5040455c2cfd
+  - type: covered_by
+    from: SYM-agent-core-firm-edit-legacy-receipt-path
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:22:53.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95a876374d25
+  - type: executable_for
+    from: SYM-test-agent-hosts-rule-phrase-detection
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:17:44.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cc94e0e2fb5

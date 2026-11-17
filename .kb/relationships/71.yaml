@@ -321,3 +321,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-666478144143
+  - type: covered_by
+    from: SYM-agent-core-firm-edit-removed-code-hash
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:23:19.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b31e96ebdbe

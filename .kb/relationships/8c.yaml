@@ -272,3 +272,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1050733d692
+  - type: executable_for
+    from: SYM-test-mcp-env-workspace-file-key-policy
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:33:24.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49a65a436c45
+  - type: implements
+    from: SYM-core-collect-store-garbage
+    to: REQ-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:11:43.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a55748c008f
+  - type: covered_by
+    from: SYM-core-collect-store-garbage
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:11:43.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9b9758a82f0

@@ -24,9 +24,10 @@ import {
   settledFirmRequirements,
   signoffReminder,
   startDecisionSession,
+  statedReason,
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
-import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import {
   type HookTrace,
   appendHookUsage,
@@ -48,7 +49,7 @@ import {
   implementedRequirementIds,
 } from "kibi-agent-core/snippets";
 import { preEditGuidance, readGuidance, writeGuidance } from "./guidance.js";
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import { parseHookInput } from "./hook-input.js";
 import {
   addDirtyPaths,
   clearSessionHookState,
@@ -144,7 +145,6 @@ function firmNotice(
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly,
-    reviewed: firmEditReviewed(workspaceRoot, linked.relativePath, summarize),
   });
   if (ids.length === 0) return undefined;
   settleFirmRequirements(session, ids);
@@ -433,7 +433,8 @@ export async function runHook(
         // waits for the next pre-edit message.
         if (kibiReady && input.prompt) {
           const rule = recordRequest(session, input.prompt);
-          if (rule !== undefined) holdRuleNote(session, rule);
+          if (rule !== undefined)
+            holdRuleNote(session, rule, statedReason(input.prompt));
           trace.action =
             rule === undefined ? "prompt_silent" : "prompt_rule_note";
         }

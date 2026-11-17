@@ -188,13 +188,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f9c3f7bb48
-  - type: executable_for
-    from: SYM-test-skills-core-arc
-    to: TEST-kibi-skills-core-arc
-    created_at: 2026-11-16T15:37:05.457Z
+  - type: implements
+    from: SYM-check-inheritedSymbolGapsOf
+    to: REQ-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.884Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-137ed8698acb
+    id: rel-0dce13c69813
+  - type: covered_by
+    from: SYM-check-inheritedSymbolGapsOf
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T09:21:37.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b0b81d588a0
   - type: constrains
     from: REQ-check-restated-twin-facts
     to: FACT-check-duplicate-value-facts-subject
@@ -224,19 +231,26 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-466cc175812d
   - type: implements
-    from: SYM-check-inheritedSymbolGapsOf
-    to: REQ-staged-gate-reports-inherited-symbol-gaps
-    created_at: 2026-11-16T09:21:37.884Z
+    from: SYM-branch-resolver-legacy-attachment-refusal
+    to: REQ-kibi-legacy-attachment-engine-refusal
+    created_at: 2026-11-16T20:45:15.233Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-0dce13c69813
+    id: rel-dfaead6d213b
   - type: covered_by
-    from: SYM-check-inheritedSymbolGapsOf
-    to: TEST-staged-gate-inherited-symbol-gaps
-    created_at: 2026-11-16T09:21:37.897Z
+    from: SYM-branch-resolver-legacy-attachment-refusal
+    to: TEST-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-16T20:46:25.732Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-1b0b81d588a0
+    id: rel-70bb95bc78c8
+  - type: executable_for
+    from: SYM-test-skills-core-arc
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:37:05.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-137ed8698acb
   - type: covered_by
     from: SYM-cli-quantity-layer-quantity-inputs
     to: TEST-check-quantity-duplicate
@@ -265,3 +279,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b130e6296e77
+  - type: assumes
+    from: SCEN-ci-required-check-aggregate
+    to: FACT-ci-required-check-aggregate
+    created_at: 2026-11-17T10:51:18.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d670c63d4840
+  - type: verified_by
+    from: SCEN-ci-required-check-aggregate
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:18.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ce44c041df

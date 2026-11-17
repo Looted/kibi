@@ -335,20 +335,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef63ac171af5
-  - type: implements
-    from: SYM-kibi-freshness-skill-guidance
-    to: REQ-kibi-skills-write-without-ritual
-    created_at: 2026-11-16T15:38:54.077Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-efda639bfcc3
-  - type: covered_by
-    from: SYM-kibi-freshness-skill-guidance
-    to: TEST-kibi-skills-core-arc
-    created_at: 2026-11-16T15:38:54.156Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-11f1365061a4
   - type: executable_for
     from: SYM-kb-merge-fixture-fixture-commit
     to: TEST-kb-merge-action
@@ -363,6 +349,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3413a41aaddd
+  - type: implements
+    from: SYM-agent-core-requirement-statement-from-document
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:23:06.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02abb0b23547
+  - type: covered_by
+    from: SYM-agent-core-requirement-statement-from-document
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:23:06.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-662a314a3b67
+  - type: covered_by
+    from: SYM-agent-core-requirement-statement-from-document
+    to: TEST-agent-hosts-firm-edit-receipt-notice
+    created_at: 2026-11-16T21:23:06.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cb58079b5a7
+  - type: implements
+    from: SYM-kibi-freshness-skill-guidance
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:38:54.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efda639bfcc3
+  - type: covered_by
+    from: SYM-kibi-freshness-skill-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:38:54.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11f1365061a4
   - type: implements
     from: SYM-cli-quantity-warnings-quantity-warning-input
     to: REQ-upsert-names-quantity-twin
@@ -405,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f0cff3135cf8
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-capture-template-why-NO-WHY
+    to: FACT-NEG-agent-hosts-capture-template-why-NO-WHY
+    created_at: 2026-11-16T16:23:38.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8eb9cb3a2de8
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-capture-template-why-NO-WHY
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:23:38.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2e5304475d3

@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f95c06ca943c
+  - type: validates
+    from: TEST-proof-kb-upsert-related-requirements-cap
+    to: SCEN-kb-upsert-related-requirements-cap
+    created_at: 2026-11-17T08:28:23.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96f8f8c427d7

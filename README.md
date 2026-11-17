@@ -333,6 +333,8 @@ Every entity records who authored it, a person or an agent, and advisory checks 
 
 Requirements and ADRs also say how firmly they were decided. A `firm` rule is one a person stated: it points at their words, the agent asks before changing it, and Kibi refuses to rewrite it quietly. A `default` choice can be revisited on evidence, and `exploratory` marks a guess. Every supersede has to say why it changed. A requirement whose behavior is gone without a replacement is `retired` with a reason, so it stops governing; a `closed` one is done and still holds. [How Kibi works](https://looted.github.io/kibi/guide/how-it-works.html) has the details.
 
+When the agent records a rule you stated, one `kb_upsert` call takes your reason as `why` and writes it into the requirement with your words as its source. The result lists what the checks still need (the subject the rule is about, a test) as ready calls, and names the current requirements on the same terms, so an older version of the rule is superseded rather than left beside the new one.
+
 ## Packages
 
 Install `kibi-core`, `kibi-cli`, and `kibi-mcp` in the project. Everything else is optional.

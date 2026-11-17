@@ -1048,7 +1048,7 @@ describe("firm requirement confirmation", () => {
     ).toBe("ask");
   });
 
-  test("a current keeps receipt for the edited code is not put to the person", async () => {
+  test("a keeps receipt lets only the retry of the edit this session asked about through", async () => {
     const fixture = createKibiWorkspace();
     const { raw } = firmSession(fixture);
     const content = fs.readFileSync(
@@ -1064,28 +1064,43 @@ describe("firm requirement confirmation", () => {
         "computeTotal",
       ) as string,
     );
-    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
-    fs.writeFileSync(
-      receiptPath,
-      serializeFirmEditReceipt({
-        version: FIRM_EDIT_RECEIPT_VERSION,
-        requirementId: "REQ-checkout-rounding",
-        sourceFile: "src/checkout.ts",
-        symbol: "computeTotal",
-        verdict: "keeps",
-        note: "Still rounds to cents.",
-        statementHash: firmEditStatementHash(
-          "Totals round half up to two decimals.",
-        ),
-        codeHash: firmEditCodeHash(content, 1, lines) as string,
-        startLine: 1,
-        endLine: lines,
-        recordedAt: "2026-11-16T00:00:00.000Z",
-      }),
-    );
+    const record = (recordedAt: string) => {
+      fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+      fs.writeFileSync(
+        receiptPath,
+        serializeFirmEditReceipt({
+          version: FIRM_EDIT_RECEIPT_VERSION,
+          requirementId: "REQ-checkout-rounding",
+          sourceFile: "src/checkout.ts",
+          symbol: "computeTotal",
+          verdict: "keeps",
+          note: "Still rounds to cents.",
+          statementHash: firmEditStatementHash(
+            "Totals round half up to two decimals.",
+          ),
+          codeHash: firmEditCodeHash(content, 1, lines) as string,
+          startLine: 1,
+          endLine: lines,
+          recordedAt,
+        }),
+      );
+    };
+    // A receipt committed before this session asked about the edit (an
+    // earlier session's judgment) does not skip the question.
+    record("2026-11-16T00:00:00.000Z");
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    // Recorded after the question, it lets the retried edit through.
+    record(new Date(Date.now() + 1000).toISOString());
     expect(
       (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
     ).toBeUndefined();
+    // A new session editing the symbol is asked again.
+    expect(
+      (await firmSession(fixture, "later").raw("Edit", editTotal))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
   });
 
   test("once an edit was allowed the requirement is not asked about again; a declined edit is asked again", async () => {
@@ -1290,6 +1305,22 @@ describe("decision capture", () => {
     );
     expect(first).toBe(ruleCaptureTemplate("must"));
     expect(await post("Edit", { file_path: "src/checkout.ts" })).toEqual({});
+
+    // A reason the prompt gave is asked for in the template's why.
+    const reasoned = createKibiWorkspace();
+    await prompt(
+      reasoned,
+      "Totals must never be negative, because refunds break.",
+      "s-why",
+    );
+    expect(
+      contextOf(
+        await session(reasoned, "s-why").post("Edit", {
+          file_path: "src/checkout.ts",
+        }),
+        "PostToolUse",
+      ),
+    ).toBe(ruleCaptureTemplate("must", "because refunds break"));
 
     // A shell write is a source edit too.
     const shell = createKibiWorkspace();

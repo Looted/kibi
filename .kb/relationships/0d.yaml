@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8106c1f1e69
+  - type: implements
+    from: SYM-merge-train-refusal
+    to: REQ-ci-merge-train-admission
+    created_at: 2026-11-17T11:40:51.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1761a3e950e7
+  - type: covered_by
+    from: SYM-merge-train-refusal
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:51.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4672486fc117

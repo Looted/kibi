@@ -38,12 +38,19 @@ export type SessionEvent =
    * rule or decision ("must", "never", "from now on"), and the phrase that
    * makes it read so (empty when it does not; absent in older journals).
    */
-  | { kind: "prompt"; words: string[]; rule: boolean; phrase?: string }
+  | {
+      kind: "prompt";
+      words: string[];
+      rule: boolean;
+      phrase?: string;
+      reason?: string | undefined;
+    }
   /**
    * An edit of `path` was put to the person because it changes code that
-   * implements these firm requirements.
+   * implements these firm requirements, at `at` (epoch milliseconds; absent
+   * in older journals).
    */
-  | { kind: "firm_asked"; path: string; ids: string[] };
+  | { kind: "firm_asked"; path: string; ids: string[]; at?: number };
 
 export type SessionState = {
   shownRead: Set<string>;
@@ -61,8 +68,16 @@ export type SessionState = {
   requestWords: string[];
   /** The phrase of the latest prompt this session that read as a rule. */
   rulePhrase: string | undefined;
+  /** The reason that prompt gave ("because ...", "so that ..."), if any. */
+  ruleReason: string | undefined;
   /** Firm requirements whose edit was put to the person, by edited path. */
   firmAsked: Map<string, string[]>;
+  /**
+   * When this session last put an edit of each firm requirement's code to
+   * the person (epoch milliseconds): a keeps receipt recorded since lets the
+   * retried edit through.
+   */
+  firmAskedAt: Map<string, number>;
   /** Firm requirements the person let an edit change this session. */
   firmConfirmed: Set<string>;
   /** True once any source file was changed this session. */
@@ -111,7 +126,9 @@ export function emptySessionState(): SessionState {
     commandStartedAt: undefined,
     requestWords: [],
     rulePhrase: undefined,
+    ruleReason: undefined,
     firmAsked: new Map(),
+    firmAskedAt: new Map(),
     firmConfirmed: new Set(),
     sourceEdited: false,
     kbRecorded: false,
@@ -166,12 +183,17 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     case "prompt":
       state.requestWords = event.words;
-      if (event.phrase) state.rulePhrase = event.phrase;
+      if (event.phrase) {
+        state.rulePhrase = event.phrase;
+        state.ruleReason = event.reason || undefined;
+      }
       return;
     case "firm_asked":
       state.firmAsked.set(event.path, [
         ...new Set([...(state.firmAsked.get(event.path) ?? []), ...event.ids]),
       ]);
+      if (event.at !== undefined)
+        for (const id of event.ids) state.firmAskedAt.set(id, event.at);
       return;
     case "context_reset":
       // Snippets, notices and Kibi lookups shown before the reset are no

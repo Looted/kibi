@@ -349,6 +349,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-794a5d85c566
+  - type: executable_for
+    from: SYM-proof-advertised-description-limit
+    to: TEST-proof-advertised-description-limit
+    created_at: 2026-11-16T11:02:35.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5514596b1665
+  - type: implements
+    from: SYM-cli-firm-symbol-edited
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:23:59.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f03a56dca053
+  - type: covered_by
+    from: SYM-cli-firm-symbol-edited
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:23:59.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ba0842a0c43
+  - type: implements
+    from: SYM-cli-review-firm-edit-default-deps
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:24:51.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5c2bc3e92c9
+  - type: covered_by
+    from: SYM-cli-review-firm-edit-default-deps
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:24:51.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43907bfc1bed
   - type: specified_by
     from: REQ-check-pass-one-line
     to: SCEN-check-pass-one-line
@@ -391,10 +426,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c847ef44b90
-  - type: executable_for
-    from: SYM-proof-advertised-description-limit
-    to: TEST-proof-advertised-description-limit
-    created_at: 2026-11-16T11:02:35.222Z
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-attachment-engine-refusal-EMPTY-HASHED-STORE
+    to: FACT-NEG-kibi-legacy-attachment-engine-refusal-EMPTY-HASHED-STORE
+    created_at: 2026-11-16T20:45:41.484Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-5514596b1665
+    id: rel-c88ab026dc53
+  - type: implements
+    from: SYM-core-kb-flush-journals
+    to: REQ-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:11:41.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8b8508e5b97
+  - type: covered_by
+    from: SYM-core-kb-flush-journals
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:11:41.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5900dc7102d1

@@ -385,6 +385,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-a270363fb871
   - type: implements
+    from: SYM-upsert-why-schema
+    to: REQ-kb-upsert-requirement-why
+    created_at: 2026-11-16T16:40:11.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09c563cb1794
+  - type: covered_by
+    from: SYM-upsert-why-schema
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:11.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18f5e9274659
+  - type: implements
     from: SYM-mcp-tools-embedsStructuredText
     to: REQ-mcp-structured-text-codex
     created_at: 2026-11-16T17:30:38.909Z
@@ -398,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a44b1b8229c
+  - type: assumes
+    from: SCEN-ci-proof-reuse-train-merge
+    to: FACT-ci-proof-reuse-train-merge
+    created_at: 2026-11-17T11:50:14.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e7c5590b556
+  - type: verified_by
+    from: SCEN-ci-proof-reuse-train-merge
+    to: TEST-ci-proof-reuse-train-merge
+    created_at: 2026-11-17T11:50:14.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4951e409d8b7

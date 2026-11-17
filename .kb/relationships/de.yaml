@@ -395,3 +395,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a919c27fc45b
+  - type: implements
+    from: SYM-session-state-session-event
+    to: REQ-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T17:04:28.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-502203e589d8
+  - type: covered_by
+    from: SYM-session-state-session-event
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T17:04:28.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07dd9d320c2b
+  - type: covered_by
+    from: SYM-session-state-session-event
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-17T08:31:04.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74f990e25b0a

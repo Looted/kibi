@@ -455,19 +455,33 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b16b76aa2f49
   - type: implements
-    from: SYM-check-format-shared-describe-evaluated-rules
-    to: REQ-check-pass-one-line
-    created_at: 2026-11-16T15:52:58.175Z
+    from: SYM-capture-max-related-statement
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:18.090Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-eb0fa17c500d
+    id: rel-bb950d59bf62
+  - type: implements
+    from: SYM-capture-capture-reads
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:30.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3162e648e76
   - type: covered_by
-    from: SYM-check-format-shared-describe-evaluated-rules
-    to: TEST-check-reports-symbol-debt
-    created_at: 2026-11-16T15:57:04.193Z
+    from: SYM-capture-max-related-statement
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:42:17.762Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-8610ab4f6947
+    id: rel-aa42557166d8
+  - type: covered_by
+    from: SYM-capture-capture-reads
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:38.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54c5cad274ee
   - type: constrains
     from: REQ-upsert-quotes-older-reason
     to: FACT-upsert-reason-notes-subject
@@ -496,3 +510,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d1b89031ab6
+  - type: implements
+    from: SYM-check-format-shared-describe-evaluated-rules
+    to: REQ-check-pass-one-line
+    created_at: 2026-11-16T15:52:58.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb0fa17c500d
+  - type: covered_by
+    from: SYM-check-format-shared-describe-evaluated-rules
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T15:57:04.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8610ab4f6947
+  - type: assumes
+    from: SCEN-NEG-core-snapshot-triples-held-once-HELD-TWICE
+    to: FACT-NEG-core-snapshot-triples-held-once-HELD-TWICE
+    created_at: 2026-11-17T09:08:07.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-528a1a8d2c9b

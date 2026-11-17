@@ -10,13 +10,9 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import { readGuidance, writeGuidance } from "../src/guidance";
-import {
-  type HookStopStatus,
-  parseHookInput,
-  parseStdinJson,
-  readStdin,
-} from "../src/hook-input";
+import { type HookStopStatus, parseHookInput } from "../src/hook-input";
 import { isInvokedAsCli, main, runHook, runHookCli } from "../src/hook-runner";
 import {
   addDirtyPaths,

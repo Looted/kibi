@@ -966,12 +966,12 @@ describe("Cursor decision guard", () => {
     );
   });
 
-  test("a current keeps receipt for the edited code stops the firm-edit notice", async () => {
+  test("a keeps receipt from an earlier session does not stop the firm-edit notice in a new session", async () => {
     const { event, edit, workspace } = conversation();
     writeKeepsReceipt(workspace);
     const result = await event(edit);
     expect(result.permission).toBe("allow");
-    expect(JSON.stringify(result)).not.toContain(
+    expect(JSON.stringify(result)).toContain(
       "which implements a firm requirement",
     );
   });
@@ -997,6 +997,24 @@ describe("Cursor decision guard", () => {
       'Kibi: this request reads as a rule or decision (it says "must not").',
     );
     expect(message).toContain("Kibi knowledge for src/checkout.ts");
+  });
+
+  test("a rule prompt's reason is asked for in why by the held note and the template", async () => {
+    const { event, edit } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded, because refunds drift.",
+    });
+    // The first source pre-edit carries the held note and the template.
+    const message = (await event(edit)).agent_message ?? "";
+    expect(message).toStartWith(
+      rulePromptNote("must not", "because refunds drift"),
+    );
+    expect(message).toContain(
+      ruleCaptureTemplate("must not", "because refunds drift"),
+    );
   });
 
   test("stop asks once for the decision record when source changed and nothing was recorded", async () => {

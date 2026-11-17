@@ -5,6 +5,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  KIBI_WORKSPACE_ENV_KEYS,
+  resolveKibiWorkspace,
+} from "kibi-agent-core/workspace-optin";
+import {
   type SessionEvent,
   appendSessionEvents,
   applyEvent,
@@ -14,10 +18,6 @@ import {
   sessionJournal,
   workspaceDataDir,
 } from "../src/session-state";
-import {
-  KIBI_WORKSPACE_ENV_KEYS,
-  resolveKibiWorkspace,
-} from "../src/workspace-optin";
 import { cleanupTempDirs, tempDir, write } from "./fixture";
 
 afterEach(cleanupTempDirs);
@@ -205,7 +205,9 @@ describe("session journal replay", () => {
       commandStartedAt: undefined,
       requestWords: [],
       rulePhrase: undefined,
+      ruleReason: undefined,
       firmAsked: new Map(),
+      firmAskedAt: new Map(),
       firmConfirmed: new Set(),
       sourceEdited: false,
       kbRecorded: false,
@@ -244,8 +246,17 @@ describe("session journal replay", () => {
     const state = replay(
       { kind: "firm_asked", path: "src/a.ts", ids: ["R1", "R2"] },
       { kind: "firm_asked", path: "src/a.ts", ids: ["R2", "R3"] },
-      { kind: "firm_asked", path: "src/b.ts", ids: ["R9"] },
+      { kind: "firm_asked", path: "src/b.ts", ids: ["R9"], at: 5 },
+      { kind: "firm_asked", path: "src/c.ts", ids: ["R2"], at: 7 },
     );
+    // Older journals carry no time: only timed asks are remembered.
+    expect(state.firmAskedAt).toStrictEqual(
+      new Map([
+        ["R9", 5],
+        ["R2", 7],
+      ]),
+    );
+    state.firmAsked.delete("src/c.ts");
     expect(state.firmAsked).toStrictEqual(
       new Map([
         ["src/a.ts", ["R1", "R2", "R3"]],
@@ -301,6 +312,32 @@ describe("session journal replay", () => {
     );
     expect(state.requestWords).toStrictEqual(["c"]);
     expect(state.rulePhrase).toBe("never");
+    expect(state.ruleReason).toBe(undefined);
+    expect(
+      replay(
+        {
+          kind: "prompt",
+          words: [],
+          rule: true,
+          phrase: "must",
+          reason: "because x",
+        },
+        { kind: "prompt", words: [], rule: false },
+      ).ruleReason,
+    ).toBe("because x");
+    // A later rule prompt without a reason clears the earlier one.
+    expect(
+      replay(
+        {
+          kind: "prompt",
+          words: [],
+          rule: true,
+          phrase: "must",
+          reason: "because x",
+        },
+        { kind: "prompt", words: [], rule: true, phrase: "never" },
+      ).ruleReason,
+    ).toBe(undefined);
     expect(replay({ kind: "prompt", words: [], rule: false }).rulePhrase).toBe(
       undefined,
     );

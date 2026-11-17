@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-ci-required-checks-workflow-contract",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./scripts/tests/required-checks-workflow-contract.test.ts"
+    ]
+  ]
+}

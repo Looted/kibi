@@ -489,3 +489,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71dc409bee9d
+  - type: validates
+    from: TEST-kibi-cli-legacy-apply-safe
+    to: SCEN-kibi-legacy-attachment-engine-refusal
+    created_at: 2026-11-16T20:46:18.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca7cd93785c5
+  - type: validates
+    from: TEST-kibi-cli-legacy-apply-safe
+    to: SCEN-NEG-kibi-legacy-attachment-engine-refusal-EMPTY-HASHED-STORE
+    created_at: 2026-11-16T20:46:18.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9afe4c04146
+  - type: assumes
+    from: SCEN-NEG-ci-merge-train-lands-assembled-head-VIOLATED
+    to: FACT-NEG-ci-merge-train-lands-assembled-head-VIOLATED
+    created_at: 2026-11-17T11:40:09.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90378ded7059
+  - type: verified_by
+    from: SCEN-NEG-ci-merge-train-lands-assembled-head-VIOLATED
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:09.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa79a405cab4
