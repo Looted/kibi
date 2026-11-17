@@ -18,6 +18,8 @@ tags:
 origin:
   kind: agent
   recorded_at: '2026-11-16T20:45:08.549Z'
+  ref: 'Fix for a legacy branch store that engine reads turned unmigratable, 2026-11-16. Maintainer decision, 2026-11-17, approving the statement as worded: "Approved".'
+  approved_by: maintainer
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 8b976e16f4b7ad40fab4f9f0d181935ba5f8370ee6390f9e1d7043607113727d

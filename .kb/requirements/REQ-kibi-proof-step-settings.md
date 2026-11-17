@@ -15,8 +15,9 @@ tags:
   - proof
 origin:
   kind: agent
-  ref: 'Proposed amendment: refuse the default proof steps source when both proof/steps/ and proof/steps.json exist (a half-finished move otherwise ran only some tests and reported every step passed). Awaiting maintainer approval of the wording.'
+  ref: 'Proposed amendment: refuse the default proof steps source when both proof/steps/ and proof/steps.json exist (a half-finished move otherwise ran only some tests and reported every step passed). Maintainer decision, 2026-11-17, approving the amended statement: "Approved".'
   recorded_at: '2026-11-16T20:47:00.855Z'
+  approved_by: maintainer
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: acb551b8ef5030cdf2a142a75c37defff62f70bab27cb0b15c2f331215ae5282
