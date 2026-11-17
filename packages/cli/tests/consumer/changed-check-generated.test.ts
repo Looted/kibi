@@ -1,7 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
+import path from "node:path";
 import { changedCheckContent } from "../../src/public/operations/changed-check.js";
 import {
   type ConsumerWorkspace,
+  KIBI_CLI,
   createConsumerWorkspace,
 } from "./workspace.js";
 
@@ -59,5 +62,39 @@ describe("kibi check --changed and the generated-manifest check", () => {
     const fixed = verdict();
     expect(fixed.messages.join("\n")).not.toContain("generated manifest");
     expect(fixed.commitAllowed).toBe(true);
+  }, 300_000);
+});
+
+describe("kibi check --changed with files, run from a subdirectory", () => {
+  const fromSrc = (...files: string[]) =>
+    spawnSync(
+      "node",
+      [KIBI_CLI, "check", "--changed", ...files, "--format", "json"],
+      {
+        cwd: path.join(workspace.root, "src"),
+        encoding: "utf8",
+        timeout: 120_000,
+      },
+    );
+
+  test("reads the files from that directory and refuses one that names nothing", () => {
+    workspace.write(
+      "src/b c.ts",
+      "export function fb(): number {\n  return 1;\n}\n",
+    );
+    const run = fromSrc("b c.ts");
+    const judged = changedCheckContent({
+      exitCode: run.status ?? 1,
+      stdout: run.stdout,
+      stderr: run.stderr,
+    });
+    expect(judged.commitAllowed).toBe(false);
+    expect(run.stdout).toContain("fb");
+
+    const missing = fromSrc("nope.ts");
+    expect(missing.status).not.toBe(0);
+    expect(`${missing.stdout}${missing.stderr}`).toContain(
+      "src/nope.ts is neither in the working tree nor tracked by git",
+    );
   }, 300_000);
 });

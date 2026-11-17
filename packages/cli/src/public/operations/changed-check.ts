@@ -58,7 +58,11 @@ export function createChangedGateRunner(
           ...prefix,
           "check",
           "--changed",
-          ...(sourceFiles ?? []),
+          // A name starting with "-" would end the variadic list and be read
+          // as an option of kibi check; "./" keeps it a path.
+          ...(sourceFiles ?? []).map((file) =>
+            file.startsWith("-") ? `./${file}` : file,
+          ),
           "--format",
           "json",
         ],

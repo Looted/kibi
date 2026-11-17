@@ -227,6 +227,18 @@ process.stdin.resume();
         args: ["check", "--changed", "a.ts", "b.ts", "--format", "json"],
         cwd: realpathSync(dir),
       });
+      // A name starting with "-" stays a path, not an option of kibi check.
+      const dashed = await runner("print")(dir, ["--rules", "-x.ts"]);
+      expect(
+        JSON.parse(dashed.stdout.trim().split("\n")[1] as string).args,
+      ).toStrictEqual([
+        "check",
+        "--changed",
+        "./--rules",
+        "./-x.ts",
+        "--format",
+        "json",
+      ]);
       const all = await runner("print")(dir, undefined);
       expect(
         JSON.parse(all.stdout.trim().split("\n")[1] as string).args,

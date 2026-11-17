@@ -33,6 +33,12 @@ const PATH_OPTIONS = new Set([
 ]);
 
 /**
+ * Variadic options whose values are files the user named from their shell:
+ * every argument after one, up to the next option.
+ */
+const VARIADIC_PATH_OPTIONS = new Set(["--changed"]);
+
+/**
  * Subcommands whose first positional argument is a path the user named from
  * their shell, with the options of that subcommand that take a value.
  */
@@ -63,11 +69,25 @@ function absolutePathArgs(argv: readonly string[], base: string): string[] {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index] as string;
     const eq = arg.indexOf("=");
-    if (eq !== -1 && PATH_OPTIONS.has(arg.slice(0, eq))) {
+    const option = eq === -1 ? arg : arg.slice(0, eq);
+    if (
+      eq !== -1 &&
+      (PATH_OPTIONS.has(option) || VARIADIC_PATH_OPTIONS.has(option))
+    ) {
       result.push(`${arg.slice(0, eq)}=${absolute(arg.slice(eq + 1))}`);
       continue;
     }
     result.push(index === positional ? absolute(arg) : arg);
+    if (VARIADIC_PATH_OPTIONS.has(arg)) {
+      while (
+        index + 1 < argv.length &&
+        !(argv[index + 1] as string).startsWith("-")
+      ) {
+        result.push(absolute(argv[index + 1] as string));
+        index += 1;
+      }
+      continue;
+    }
     const next = argv[index + 1];
     if (PATH_OPTIONS.has(arg) && next !== undefined && !next.startsWith("--")) {
       result.push(absolute(next));
@@ -111,8 +131,9 @@ function positionalPathIndex(argv: readonly string[]): number {
  * `.kb/manifest.json`. Without this, a command run from `apps/server/`
  * compiles a second, empty branch store there and reports an empty KB.
  * An explicit KIBI_WORKSPACE (or alias) and `kibi init` keep the given
- * directory. Relative path option values, and the path `kibi skills validate`
- * takes, keep meaning what the user typed: the result is the directory to
+ * directory. Relative path option values (the files `--changed` names
+ * included), and the path `kibi skills validate` takes, keep meaning what the
+ * user typed: the result is the directory to
  * run in and argv with those values made absolute.
  */
 export function resolveWorkspaceCwd(
