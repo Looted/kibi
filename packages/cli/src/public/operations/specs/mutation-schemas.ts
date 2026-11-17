@@ -1,8 +1,4 @@
 import { ENTITY_ORIGIN_SCHEMA } from "../../entity-origin.js";
-import {
-  ADVERTISED_DESCRIPTION,
-  ADVERTISED_SUMMARY,
-} from "../advertised-schema.js";
 import { EVIDENCE_LEVELS } from "../../evidence-levels.js";
 import {
   PROOF_BINDINGS_SCHEMA,
@@ -12,6 +8,11 @@ import {
   MAX_PROOF_RECEIPTS,
   PROOF_RECEIPT_SCHEMA,
 } from "../../proof-receipt.js";
+import {
+  ADVERTISED_DESCRIPTION,
+  ADVERTISED_FIELDS,
+  ADVERTISED_SUMMARY,
+} from "../advertised-schema.js";
 
 export const ENTITY_TYPES = [
   "req",
@@ -37,7 +38,26 @@ export const ENTITY_PROPERTIES_SCHEMA = {
   description:
     "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
   [ADVERTISED_DESCRIPTION]:
-    "Entity fields to persist; must include title and status.",
+    "Entity fields; must include title and status. Fact, symbol, test and proof fields: kibi-usage resource operation-fields.",
+  // The fields that capture a decision or requirement and its reason; the
+  // specialist ones stay valid and are listed in operation-fields.
+  [ADVERTISED_FIELDS]: [
+    "title",
+    "status",
+    "priority",
+    "tags",
+    "links",
+    "text_ref",
+    "origin",
+    "semantic_text",
+    "rationale",
+    "firmness",
+    "approved_by",
+    "approval_ref",
+    "required_evidence",
+    "sourceFile",
+    "symbol_role",
+  ],
   properties: {
     title: {
       type: "string",
@@ -510,9 +530,9 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       type: "array",
       items: { type: "string" },
       description:
-        "subject only: similar defined subject keys this subject was checked to differ from; the body says how. Silences subject-duplicate for those pairs.",
+        "subject facts: similar defined subject keys this subject was checked to differ from; property_value facts: subject_key.property_key of value facts that state a different quantity. The body says how. Silences subject-duplicate or quantity-duplicate for those pairs.",
       [ADVERTISED_DESCRIPTION]:
-        "subject only: similar subject keys this subject was checked to differ from; silences subject-duplicate.",
+        "Keys this subject or value fact was checked to differ from; silences subject-duplicate and quantity-duplicate.",
     },
     semantic_inventory: {
       type: "array",

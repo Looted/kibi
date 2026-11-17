@@ -70,7 +70,7 @@ npm install --save-dev kibi-core kibi-cli kibi-mcp
 npm exec -- kibi init
 ```
 
-`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It never overwrites a hook it did not write; with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add instead. It does not infer product knowledge. So that a fresh clone (a teammate's, a cloud agent's) uses Kibi too, it also writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md`) that tells any agent the knowledge base exists, and adds a `prepare` step that installs the hooks when dependencies are installed; the first Kibi query in a clone compiles the branch's store from the committed knowledge. Each of these can be turned off ([setup choices](https://looted.github.io/kibi/reference/cli.html#setup-choices)). [Connect your coding agent](#connect-your-coding-agent), then ask it:
+`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It never overwrites a hook it did not write; with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add instead. It does not infer product knowledge. So that a fresh clone (a teammate's, a cloud agent's) uses Kibi too, it also writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md` for Claude Code and from `GEMINI.md` for Gemini CLI) that tells any agent the knowledge base exists, and adds a `prepare` step that installs the hooks when dependencies are installed; the first Kibi query in a clone compiles the branch's store from the committed knowledge. Each of these can be turned off ([setup choices](https://looted.github.io/kibi/reference/cli.html#setup-choices)). [Connect your coding agent](#connect-your-coding-agent), then ask it:
 
 > **Bootstrap Kibi for this repository.**
 
@@ -192,9 +192,11 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 
 ### What your agent gets
 
-Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and a small set of MCP tools does the rest:
+Every surface opens a session with the same short brief: search for the recorded intent before changing behaviour, record the person's decisions with their reason, run the commit check before finishing, and treat a request that would make a recorded rule false as a question. The host plugins add it at session start, and the MCP server returns it in its `initialize` instructions and in `kb_status`, so an MCP client without hooks reads it too.
 
-- **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements, the tests and decisions behind them, and what Kibi's checks say about each.
+Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and six MCP tools (`kb_search`, `kb_query`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills`) do the rest; the other operations run through the project CLI, or list them all with `KIBI_MCP_TOOLS=full`. The main skill, `kibi-usage`, is a short arc of about 3k characters (search for prior intent, edit, record the decision, check, commit); its topic guidance, such as modeling claims or changing someone else's KB, loads only when the task needs it:
+
+- **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements with what each says and why it exists (its recorded reason, who gave it and when), the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.
 - **Safe writes.** Every write can be previewed first, and a plan you approve lands in full or not at all.
 - **Other repositories' knowledge, read-only.** Declare a repository your code depends on in `.kb/dependencies.json`, pin it with `kibi deps lock`, and `kb_search` (or `kibi search --kb <name>`) answers from that repository's own KB at the pinned commit. Its KB stays separate from yours, is never written to, and can be on an older KB schema (6 or later).
@@ -292,12 +294,12 @@ flowchart LR
 
 For a requirement to be tested end to end rather than merely documented:
 
-- Every behavioral production symbol must trace to the requirement it implements. A schema constant or type can be recorded with a non-behavioral `symbol_role` and no link.
+- Every behavioral production symbol must trace to the requirement it implements. A schema constant or type can be recorded with a non-behavioral `symbol_role` and no link. When the pre-commit hook refuses a new declaration that nothing owns, it prints one block for it: the requirements the rest of its file implements, each with a paste-ready `kb_upsert` input (`implementedBy` with `coveredBy`), and Kibi never picks one.
 - Every normative requirement clause must be modeled as typed facts or stay explicitly unresolved.
 - Requirements must be specified by scenarios, and tests must verify those scenarios. A success scenario that assumes something a current requirement forbids blocks proof.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests, and the pre-commit hook applies the same rule as the full check.
-- The pre-commit hook judges a commit only on the declarations it adds or changes, so an older repository whose KB records only its deciding code can adopt Kibi without first recording every declaration. `kibi check` reports the unrecorded rest as non-blocking symbol debt, and every commit that touches it records it.
+- The pre-commit hook judges a commit only on the declarations it adds or changes, so an older repository whose KB records only its deciding code can adopt Kibi without first recording every declaration. `kibi check` counts the unrecorded rest as non-blocking symbol debt on its one-line verdict (`kibi check --symbol-debt` lists it), and every commit that touches it records it.
 - End-to-end evidence must be fresh and bound to the current code snapshot, so CI and a local checkout of the same commit agree.
 
 That makes questions answerable in both directions: which requirement owns this symbol, what this E2E test actually verifies, which requirements lack a scenario or current evidence, and whether two current requirements contradict each other. Code coverage alone cannot answer them: it shows that a test touched a line, not which product behavior was exercised.

@@ -111,9 +111,16 @@ const STRUCTURED_TEXT_ENV = "KIBI_MCP_STRUCTURED_TEXT";
 /**
  * Hosts known to show `structuredContent` to the agent. Embedding the data
  * JSON in the text part would hand them every discovery result twice.
+ * Claude Code shows `structuredContent`; Codex gives the model the
+ * serialized `structuredContent` in place of the text whenever it is
+ * present (its client sends the name `codex-mcp-client`, its launcher
+ * `KIBI_MCP_HOST=codex`). Gemini CLI and Cursor give the model the text
+ * content only, so they keep the copy, as does any host not named here.
  */
 const HOSTS_READING_STRUCTURED_CONTENT: ReadonlySet<string> = new Set([
   "claude-code",
+  "codex",
+  "codex-mcp-client",
 ]);
 
 /** `Claude Code`, `claude_code` and `claude-code` name the same host. */
@@ -843,8 +850,10 @@ export function registerAllTools<TProlog>(
   server: McpServer,
   // INTENTIONAL: same generic bridge cast as addTool — see comment there.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
+  // The tool profile's names (profileToolNames); every tool when absent.
+  listed?: ReadonlySet<string>,
 ): void {
-  registerConfiguredTools(server, runtime, addTool);
+  registerConfiguredTools(server, runtime, addTool, listed);
   if (enabledOptionalTools().has("kb_job_status")) {
     registerJobStatusTool(server);
   }

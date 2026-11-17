@@ -54,6 +54,7 @@ import {
   appendSessionEvents,
   loadSessionState,
   sessionDir,
+  sessionJournal,
   workspaceDataDir,
 } from "./session-state.js";
 import {
@@ -75,6 +76,7 @@ import {
   sessionStartContext,
   editFocus as sharedEditFocus,
   signoffReminder,
+  startDecisionSession,
   statedRule,
   stopReminder,
   unownedSourceNote,
@@ -897,6 +899,12 @@ function userPromptSubmit(
 ): HookOutput {
   const prompt = input.prompt ?? "";
   const rule = statedRule(prompt);
+  // A session without an id idle for long has ended; this prompt starts anew.
+  startDecisionSession(
+    { stateDir: workspace.stateDir, sessionId: input.sessionId },
+    "prompt",
+    { hostFiles: sessionJournal(workspace.stateDir) },
+  );
   appendSessionEvents(workspace.stateDir, [
     {
       kind: "prompt",
@@ -977,8 +985,17 @@ function dispatchHook(
   trace: HookTrace,
 ): HookOutput {
   switch (input.event) {
-    case "SessionStart":
+    case "SessionStart": {
       trace.action = "session_start";
+      // Sessions without an id share one directory: a new one (not a resume
+      // or compact of the last) starts without the earlier one's state.
+      startDecisionSession(
+        { stateDir: workspace.stateDir, sessionId: input.sessionId },
+        input.source === "resume" || input.source === "compact"
+          ? "resume"
+          : "startup",
+        { hostFiles: sessionJournal(workspace.stateDir) },
+      );
       // A compact or clear drops the conversation context, so the snippets
       // this session already showed are gone from the model's view and may be
       // shown again; a resume restores the transcript and keeps them.
@@ -994,6 +1011,7 @@ function dispatchHook(
           .filter((line): line is string => line !== null)
           .join("\n"),
       );
+    }
     case "UserPromptSubmit":
       return userPromptSubmit(input, workspace, trace);
     case "PreToolUse": {

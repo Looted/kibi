@@ -454,6 +454,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b16b76aa2f49
+  - type: implements
+    from: SYM-check-format-shared-describe-evaluated-rules
+    to: REQ-check-pass-one-line
+    created_at: 2026-11-16T15:52:58.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb0fa17c500d
+  - type: covered_by
+    from: SYM-check-format-shared-describe-evaluated-rules
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T15:57:04.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8610ab4f6947
   - type: constrains
     from: REQ-upsert-quotes-older-reason
     to: FACT-upsert-reason-notes-subject

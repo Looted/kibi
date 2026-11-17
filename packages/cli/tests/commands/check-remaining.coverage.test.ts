@@ -98,7 +98,7 @@ describe("checkCommand remaining runtime branches", () => {
       checkCommand({ kbPath, format: "text" }),
     );
     expect(empty.exitCode).toBe(0);
-    expect(io.logText()).toContain("No violations found. KB is valid.");
+    expect(io.logText()).toContain("✓ No violations. 0 rules.");
   });
 
   test("prints blocking quality diagnostics and entity-less text violations", async () => {

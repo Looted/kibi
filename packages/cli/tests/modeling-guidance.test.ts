@@ -158,7 +158,9 @@ describe("modeling guidance: canonical entity-choice rule", () => {
   // ─── bundled kibi-usage skill ───────────────────────────────────────────────
 
   describe("kibi-usage skill", () => {
-    const usageSkill = "packages/runtime/src/skills/kibi-usage/SKILL.md";
+    // The entity-choice rule lives in the usage skill's recording resource.
+    const usageSkill =
+      "packages/runtime/src/skills/kibi-usage/resources/recording.md";
 
     test("must explicitly state that flag is for runtime/config gating", () => {
       const content = readDoc(usageSkill);

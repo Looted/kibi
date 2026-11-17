@@ -8,6 +8,7 @@ import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import {
   captureReminder,
   ruleCaptureTemplate,
+  rulePromptNote,
 } from "kibi-agent-core/decision-guard";
 import {
   FIRM_EDIT_RECEIPT_VERSION,
@@ -854,7 +855,7 @@ function cursorLinkedWorkspace(): string {
   );
   write(
     ".kb/requirements/REQ-checkout-rounding.md",
-    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n\nTotals round half up to two decimals.\n",
+    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n\nTotals round half up to two decimals.\n\n## Context\n\nFinance reconciles every order to the cent.\n",
   );
   write(
     ".kb/facts/FACT-total-rounding-cents.md",
@@ -908,6 +909,9 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
     );
     expect(snippet).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
+    );
+    expect(snippet).toContain(
+      "\nWhy: Finance reconciles every order to the cent (context section).\n",
     );
     expect(snippet).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
@@ -1021,7 +1025,7 @@ describe("Cursor decision guard", () => {
     );
   });
 
-  test("a rule session's first source edit puts the capture template on the next pre-edit message, and stop quotes the rule phrase", async () => {
+  test("a rule session's first source pre-edit carries the capture template, and stop quotes the rule phrase", async () => {
     const { event, edit, workspace } = conversation({
       KIBI_CONFIRM_FIRM_EDITS: "0",
     });
@@ -1029,23 +1033,85 @@ describe("Cursor decision guard", () => {
       hook_event_name: "beforeSubmitPrompt",
       prompt: "Guests should never see totals.",
     });
-    // The first pre-edit message carries the rule note, not the template.
-    expect((await event(edit)).agent_message ?? "").not.toContain(
-      "fill in this template",
+    // A pre-edit of a file that is not source carries the rule note only.
+    const readme =
+      (
+        await event({
+          hook_event_name: "preToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: path.join(workspace, "README.md") },
+        })
+      ).agent_message ?? "";
+    expect(readme).toContain(rulePromptNote("should never"));
+    expect(readme).not.toContain("fill in this template");
+    // The first source pre-edit carries the template, so a session with a
+    // single edit gets it.
+    expect((await event(edit)).agent_message ?? "").toContain(
+      ruleCaptureTemplate("should never"),
     );
     await event({
       hook_event_name: "postToolUse",
       tool_name: "Write",
       tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
     });
-    expect((await event(edit)).agent_message ?? "").toContain(
-      ruleCaptureTemplate("should never"),
-    );
     expect((await event(edit)).agent_message ?? "").not.toContain(
       "fill in this template",
     );
     const stop = await event({ hook_event_name: "stop", status: "completed" });
     expect(stop.followup_message).toStartWith(captureReminder("should never"));
+  });
+
+  test("a new conversation without an id is not silenced by an earlier one's markers", async () => {
+    const { event, workspace } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    const anonymous = (payload: Record<string, unknown>) => event(payload, "");
+    const write = {
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    };
+    const stop = { hook_event_name: "stop", status: "completed" };
+    await anonymous({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Guests should never see totals.",
+    });
+    await anonymous(write);
+    expect((await anonymous(stop)).followup_message).toStartWith(
+      captureReminder("should never"),
+    );
+    await anonymous({ hook_event_name: "sessionStart" });
+    await anonymous(write);
+    expect((await anonymous(stop)).followup_message).toStartWith(
+      captureReminder(undefined),
+    );
+  });
+
+  test("a rule session whose source was edited before any pre-edit gets the template on the next pre-edit", async () => {
+    const { event, edit, workspace } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Guests should never see totals.",
+    });
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    expect(
+      (
+        await event({
+          hook_event_name: "preToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: path.join(workspace, "README.md") },
+        })
+      ).agent_message ?? "",
+    ).toContain(ruleCaptureTemplate("should never"));
+    expect((await event(edit)).agent_message ?? "").not.toContain(
+      "fill in this template",
+    );
   });
 
   test("stop asks once for a signoff view after a requirement is written", async () => {
@@ -1388,7 +1454,7 @@ describe("Cursor hook runner result contracts", () => {
     expect(loadHookState(pluginData).guidedPreEditPaths).toEqual([]);
   });
 
-  test("the rule note, firm notice and knowledge are separate paragraphs", async () => {
+  test("the rule note, capture template, firm notice and knowledge are separate paragraphs", async () => {
     const { event, workspace } = conversation();
     await event({
       hook_event_name: "beforeSubmitPrompt",
@@ -1408,10 +1474,11 @@ describe("Cursor hook runner result contracts", () => {
       ).agent_message ?? "";
     const paragraphs = message.split("\n\n");
     expect(paragraphs[0]).toStartWith(RULE_NOTE_START);
-    expect(paragraphs[1]).toStartWith(
+    expect(paragraphs[1]).toBe(ruleCaptureTemplate("must not"));
+    expect(paragraphs[2]).toStartWith(
       "Kibi: this edit changes computeTotal in src/checkout.ts",
     );
-    expect(paragraphs[2]).toContain("Kibi knowledge for src/checkout.ts");
+    expect(paragraphs[3]).toContain("Kibi knowledge for src/checkout.ts");
   });
 
   test("a prompt without a rule leaves the next edit without a rule note", async () => {

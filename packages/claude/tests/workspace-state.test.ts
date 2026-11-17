@@ -11,6 +11,7 @@ import {
   emptySessionState,
   loadSessionState,
   sessionDir,
+  sessionJournal,
   workspaceDataDir,
 } from "../src/session-state";
 import {
@@ -180,6 +181,15 @@ function replay(...events: SessionEvent[]) {
   for (const event of events) applyEvent(state, event);
   return state;
 }
+
+describe("session journal path", () => {
+  test("is the journal file of the session directory, or none", () => {
+    expect(sessionJournal("/state/s")).toStrictEqual([
+      path.join("/state/s", "session.jsonl"),
+    ]);
+    expect(sessionJournal(undefined)).toStrictEqual([]);
+  });
+});
 
 describe("session journal replay", () => {
   test("the empty state", () => {

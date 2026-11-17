@@ -3,6 +3,7 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import {
@@ -27,7 +28,7 @@ import {
   resolvePluginDataDir,
   resolveWorkspaceStateDir,
 } from "../src/hook-state";
-import { impactCheckReminder } from "../src/messages";
+import { CODEX_SESSION_NOTE, impactCheckReminder } from "../src/messages";
 
 function createTempRoot(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -120,7 +121,7 @@ describe("Codex hook runner workspace opt-in", () => {
     expect(result.systemMessage).toBeUndefined();
   });
 
-  test("SessionStart stays quiet in an opted-in workspace", async () => {
+  test("SessionStart opens an opted-in workspace with the shared session brief", async () => {
     const cwd = createTempRoot("kibi-codex-cwd-");
     optInWorkspace(cwd);
     const pluginData = createTempRoot("kibi-codex-data-");
@@ -128,7 +129,13 @@ describe("Codex hook runner workspace opt-in", () => {
 
     expect(
       await runHook({ event: "SessionStart", cwd }, { pluginData }),
-    ).toEqual({ continue: true });
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+      },
+    });
   });
 
   test("SessionStart tells the agent when the checkout has no Kibi hooks", async () => {
@@ -144,7 +151,10 @@ describe("Codex hook runner workspace opt-in", () => {
       continue: true,
       hookSpecificOutput: {
         hookEventName: "SessionStart",
-        additionalContext: MISSING_HOOKS_NOTE,
+        additionalContext: sessionBriefWith([
+          CODEX_SESSION_NOTE,
+          MISSING_HOOKS_NOTE,
+        ]),
       },
     });
   });
@@ -506,7 +516,7 @@ function linkedWorkspace(requirementStatus = "open"): string {
   writeFile(
     root,
     ".kb/requirements/REQ-checkout-rounding.md",
-    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n`,
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\nrationale: Finance reconciles every order to the cent.\norigin:\n  kind: human\n  recorded_at: '2026-10-01T00:00:00Z'\n---\n`,
   );
   writeFile(
     root,
@@ -683,7 +693,13 @@ describe("Codex evaluation trace replay", () => {
 
     expect(
       await event({ hook_event_name: "SessionStart", source: "startup" }),
-    ).toEqual({ continue: true });
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+      },
+    });
     const linkedEdit = await event({
       hook_event_name: "PreToolUse",
       tool_name: "apply_patch",
@@ -1051,6 +1067,31 @@ describe("Codex decision guard", () => {
     expect(JSON.stringify(edit)).not.toContain("fill in this template");
   });
 
+  test("a new session without an id is not silenced by an earlier one's markers", async () => {
+    const event = session();
+    const anonymous = (payload: Record<string, unknown>) => event(payload, "");
+    const edit = {
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    };
+    const stop = { hook_event_name: "Stop", stop_hook_active: false };
+    await anonymous({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guards should never pass by default.",
+    });
+    await anonymous(edit);
+    expect((await anonymous(stop)).reason).toStartWith(
+      captureReminder("should never"),
+    );
+    // A new session starts clean: no stale rule phrase, and it is asked.
+    await anonymous({ hook_event_name: "SessionStart" });
+    await anonymous(edit);
+    expect((await anonymous(stop)).reason).toStartWith(
+      captureReminder(undefined),
+    );
+  });
+
   test("a kb_upsert in the session keeps Stop from asking for capture", async () => {
     const event = session();
     await event({
@@ -1392,6 +1433,9 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
+    expect(context).toContain(
+      "\nWhy: Finance reconciles every order to the cent (rationale; human, 2026-10-01).\n",
+    );
     expect(context).toContain("\nCovered by: TEST-checkout-rounding.\n");
     expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
 
@@ -1403,7 +1447,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(additionalContextOf(await preEdit("codex-e2e-2"))).toBe(context);
   }, 30_000);
 
-  test("a file owning more requirements than fit is cut at the snippet budget after its grounding and decision", async () => {
+  test("a file owning more requirements than fit lists fewer of them and keeps its grounding, reason, decision and next calls", async () => {
     const cwd = linkedWorkspace();
     const pluginData = createTempRoot("kibi-codex-e2e-data-");
     tempRoots.push(pluginData);
@@ -1452,12 +1496,16 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
       ),
     );
 
-    expect(context.length).toBe(MAX_SNIPPET_CHARS);
-    expect(context).toEndWith("…");
+    // Fewer requirements are listed, so nothing is cut off the end.
+    expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+    expect(context).not.toEndWith("…");
     expect(context).toContain(
       "\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
-    expect(context).toContain("\n- +2 more requirements: kb_query(");
+    expect(context).toMatch(/\n- \+[345] more requirements: kb_query\(/);
+    expect(context).toContain("\nWhy: ");
+    expect(context).toContain("\nNext layer: ");
+    expect(context).toEndWith("reports ownership drift after the edit.");
     expect(context).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );

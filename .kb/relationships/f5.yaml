@@ -391,3 +391,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73973377b4fc
+  - type: constrains
+    from: REQ-upsert-dry-run-lists-siblings
+    to: FACT-upsert-sibling-requirements-subject
+    created_at: 2026-11-16T19:17:08.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d430ac071165
+  - type: requires_property
+    from: REQ-upsert-dry-run-lists-siblings
+    to: FACT-upsert-dry-run-lists-siblings
+    created_at: 2026-11-16T19:17:08.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bbec0f32eba
+  - type: specified_by
+    from: REQ-upsert-dry-run-lists-siblings
+    to: SCEN-upsert-dry-run-lists-siblings
+    created_at: 2026-11-16T19:17:08.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a250ee4ecb3f
+  - type: specified_by
+    from: REQ-upsert-dry-run-lists-siblings
+    to: SCEN-NEG-upsert-dry-run-lists-siblings-DIFFERS
+    created_at: 2026-11-16T19:17:08.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab4770749e26
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-next-action
+    to: REQ-upsert-lists-sibling-requirements
+    created_at: 2026-11-16T19:17:25.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f76cabdf996
+  - type: covered_by
+    from: SYM-cli-sibling-requirements-sibling-next-action
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:25.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6a0a4a6535a

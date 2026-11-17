@@ -405,13 +405,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23ddfbc35ae8
-  - type: assumes
-    from: SCEN-check-reports-symbol-debt
-    to: FACT-check-reports-symbol-debt
-    created_at: 2026-11-16T05:33:58.167Z
+  - type: implements
+    from: SYM-kibi-commit-review-skill-guidance
+    to: REQ-kibi-commit-review-kb-staging
+    created_at: 2026-11-16T15:38:44.910Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-798ac16da5cb
+    id: rel-089acfc40017
+  - type: implements
+    from: SYM-kibi-commit-review-skill-guidance
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:38:44.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47f2a700c073
+  - type: covered_by
+    from: SYM-kibi-commit-review-skill-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:38:45.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-633253af1034
   - type: implements
     from: SYM-kb-merge-action-classify
     to: REQ-kb-merge-action-manifest-only

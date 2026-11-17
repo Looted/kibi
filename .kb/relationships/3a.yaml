@@ -398,3 +398,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb6e19c660bb
+  - type: constrains
+    from: REQ-check-quantity-duplicate-dangling-distinct
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:19.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6df7721868c8
+  - type: requires_property
+    from: REQ-check-quantity-duplicate-dangling-distinct
+    to: FACT-check-quantity-duplicate-dangling-distinct
+    created_at: 2026-11-16T16:10:19.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4167b95d89df
+  - type: specified_by
+    from: REQ-check-quantity-duplicate-dangling-distinct
+    to: SCEN-check-quantity-duplicate-dangling-distinct
+    created_at: 2026-11-16T16:10:19.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fc78d243f74
+  - type: specified_by
+    from: REQ-check-quantity-duplicate-dangling-distinct
+    to: SCEN-NEG-check-quantity-duplicate-dangling-distinct-UNREPORTED
+    created_at: 2026-11-16T16:10:19.552Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63544ec95466

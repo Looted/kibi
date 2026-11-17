@@ -22,6 +22,7 @@ import {
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  startDecisionSession,
 } from "kibi-agent-core/decision-guard";
 import {
   type HookTrace,
@@ -385,6 +386,7 @@ export async function runHook(
     switch (input.event) {
       case "SessionStart":
         trace.action = "session_start";
+        startDecisionSession(session, "startup");
         return contextResult(
           input.event,
           [SESSION_START_CONTEXT, missingHooksNote(workspace.root)]

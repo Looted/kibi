@@ -218,6 +218,9 @@
       "bootstrap": {
         "type": "object",
         "additionalProperties": true
+      },
+      "sessionBrief": {
+        "type": "string"
       }
     }
   },
@@ -733,6 +736,20 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "siblings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
       }
     }
   },
@@ -792,13 +809,20 @@
             "type": "object",
             "additionalProperties": true
           },
+          "siblings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
           "inventoryApplied": {
             "type": "array",
             "items": {
               "type": "object",
               "additionalProperties": true
             },
-            "description": "For a requirement sent without its inventory contract: each claim the server recorded, with its claim_key, role, status and claim_text."
+            "description": "Each claim recorded for a requirement sent without its inventory contract."
           },
           "implementedBy": {
             "type": "array",
@@ -806,7 +830,7 @@
               "type": "object",
               "additionalProperties": true
             },
-            "description": "Each implementedBy entry with the symbolId that implements the requirement and whether it was created."
+            "description": "Each implementedBy entry's symbolId and whether it was created."
           }
         }
       },
@@ -859,6 +883,20 @@
             }
           },
           "implementedBy": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "siblings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "nextActions": {
             "type": "array",
             "items": {
               "type": "object",
@@ -1070,9 +1108,12 @@
           "symbolDebt": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["total", "files"],
+            "required": ["total", "fileCount"],
             "properties": {
               "total": {
+                "type": "integer"
+              },
+              "fileCount": {
                 "type": "integer"
               },
               "files": {
@@ -1095,7 +1136,7 @@
                 }
               }
             },
-            "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record. Non-blocking: the staged gate judges them only when a commit adds or changes them."
+            "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them."
           }
         }
       },

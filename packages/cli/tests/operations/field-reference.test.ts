@@ -2,7 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ADVERTISED_DESCRIPTION } from "../../src/public/operations/advertised-schema.js";
+import {
+  ADVERTISED_DESCRIPTION,
+  ADVERTISED_FIELDS,
+} from "../../src/public/operations/advertised-schema.js";
 import { listSpecs } from "../../src/public/operations/catalog.js";
 import {
   operationFieldReference,
@@ -50,6 +53,42 @@ describe("operation field reference", () => {
       ["either", "First."],
       ["properties", "Full properties."],
     ]);
+  });
+
+  test("lists each field an object leaves out of its advertisement", () => {
+    expect(
+      shortenedFields({
+        type: "object",
+        [ADVERTISED_FIELDS]: ["kept"],
+        properties: {
+          kept: { type: "string", description: "Advertised in full." },
+          left: { type: "string", description: "Left out." },
+          // A left-out field without a text description has nothing to list.
+          bare: { type: "string" },
+          odd: { type: "string", description: 1 },
+          // A left-out field with a short description is listed once.
+          short: long("Full short."),
+          nested: {
+            type: "object",
+            description: "Left out too.",
+            properties: { inner: long("Full inner.") },
+          },
+        },
+      }),
+    ).toEqual([
+      ["left", "Left out."],
+      ["short", "Full short."],
+      ["nested", "Left out too."],
+      ["nested.inner", "Full inner."],
+    ]);
+    // A marker that is not a list leaves every field advertised.
+    expect(
+      shortenedFields({
+        type: "object",
+        [ADVERTISED_FIELDS]: "kept",
+        properties: { left: { type: "string", description: "Left." } },
+      }),
+    ).toEqual([]);
   });
 
   test("renders one section per operation with shortened fields, after workspaceRoot", () => {

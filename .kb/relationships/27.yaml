@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1027d3322435
+  - type: implements
+    from: SYM-owner-findings-owner-payloads-shown
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T18:14:13.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-741ab3d893bd
+  - type: covered_by
+    from: SYM-owner-findings-owner-payloads-shown
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T18:14:13.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34929cda715e

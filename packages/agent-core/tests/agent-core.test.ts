@@ -383,6 +383,7 @@ describe("agent-core knowledge index", () => {
       title: "Totals round to cents",
       status: "superseded",
       firmness: "firm",
+      why: { recorded: false },
     });
     expect(readEntitySummary(root, "REQ-../../secret")).toEqual({
       id: "REQ-../../secret",
@@ -461,6 +462,7 @@ describe("agent-core knowledge index", () => {
         { type: "constrains", target: "FACT-checkout-total" },
         { type: "relates_to", target: "ADR-money" },
       ],
+      why: { recorded: false },
     });
   });
 
@@ -575,6 +577,7 @@ describe("agent-core knowledge index", () => {
       status: "superseded",
       firmness: "firm",
       links: [{ type: "constrains", target: "FACT-old-total" }],
+      why: { recorded: false },
     });
   });
 

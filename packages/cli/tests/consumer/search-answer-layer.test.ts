@@ -651,4 +651,93 @@ priority: should
       "where why.recorded is false, say that no reason is recorded and do not supply one",
     );
   }, 300_000);
+
+  test("each governing requirement states itself and says who gave its reason; graph paths and fact calls wait for fields full", () => {
+    const ws = createConsumerWorkspace("kibi-search-answer-first-layer-");
+    workspace = ws;
+
+    ws.write(".kb/facts/FACT-QUOTA-SUBJECT.md", QUOTA_SUBJECT);
+    ws.write(
+      ".kb/facts/FACT-QUOTA-POSITIVE.md",
+      quotaValueFact(
+        "FACT-QUOTA-POSITIVE",
+        "Remaining quota above zero",
+        "gt",
+        0,
+      ),
+    );
+    ws.write(
+      ".kb/requirements/REQ-QUOTA-CALL.md",
+      doc(
+        `
+id: REQ-QUOTA-CALL
+title: A client call needs remaining call quota
+type: req
+status: open
+priority: must
+origin:
+  kind: human
+  approved_by: Dana Lee
+  recorded_at: '2026-10-01T09:30:00Z'
+links:
+  - type: constrains
+    target: FACT-QUOTA-SUBJECT
+  - type: requires_property
+    target: FACT-QUOTA-POSITIVE
+`,
+        "A client may call only with remaining call quota.\n\n## Why\n\nThe gateway is billed per call, so calls past the quota cost money nobody approved.",
+      ),
+    );
+    ws.sync();
+
+    const summary = ws.json(["search"], { query: "client call quota" });
+    const data = summary.data as Json;
+    const governing = (data.answer as Json).governing as Array<{
+      id: string;
+      statement?: string;
+      why: Json;
+      facts: Array<{ id: string; claim?: string; ask?: string }>;
+    }>;
+    const quota = governing.find((req) => req.id === "REQ-QUOTA-CALL");
+    expect(quota?.statement).toBe(
+      "A client may call only with remaining call quota.",
+    );
+    expect(quota?.why).toEqual({
+      recorded: true,
+      text: "The gateway is billed per call, so calls past the quota cost money nobody approved.",
+      from: "section",
+      said: { by: "Dana Lee", on: "2026-10-01" },
+    });
+    const positive = quota?.facts.find(
+      (fact) => fact.id === "FACT-QUOTA-POSITIVE",
+    );
+    expect(positive?.claim).toBe("client.call_quota remaining gt 0");
+    expect(positive && "ask" in positive).toBe(false);
+    const results = data.results as Array<{ evidence: Json }>;
+    expect(results.length).toBeGreaterThan(0);
+    for (const row of results) expect("graphPaths" in row.evidence).toBe(false);
+
+    const full = ws.json(["search"], {
+      query: "client call quota",
+      fields: "full",
+    });
+    const fullData = full.data as Json;
+    const fullResults = fullData.results as Array<{ evidence: Json }>;
+    for (const row of fullResults)
+      expect(Array.isArray(row.evidence.graphPaths)).toBe(true);
+    const fullQuota = (
+      (fullData.answer as Json).governing as Array<{
+        id: string;
+        facts: Array<{ id: string; ask?: string }>;
+      }>
+    ).find((req) => req.id === "REQ-QUOTA-CALL");
+    expect(
+      fullQuota?.facts.find((fact) => fact.id === "FACT-QUOTA-POSITIVE")?.ask,
+    ).toBe(
+      'kb_query({"subjectKey":"client.call_quota","propertyKey":"remaining"})',
+    );
+    // The abstention and ambiguity signals stay in the summary.
+    expect((data.queryAnalysis as Json).abstained).toBe(false);
+    expect(typeof (data.queryAnalysis as Json).ambiguous).toBe("boolean");
+  }, 300_000);
 });

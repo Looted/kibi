@@ -616,24 +616,6 @@ function symbolManifestRecord(
   );
 }
 
-export function manifestRelationships(
-  item: unknown,
-): Array<{ type: string; target: string }> {
-  const value: unknown = isMap(item)
-    ? (item.toJSON() as Record<string, unknown>).relationships
-    : undefined;
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((relationship) => {
-    // Object() reads a missing or scalar row as one without fields.
-    const candidate = Object(relationship) as Record<string, unknown>;
-    const type = candidate.type;
-    const target = candidate.target ?? candidate.to;
-    return typeof type === "string" && typeof target === "string"
-      ? [{ type, target }]
-      : [];
-  });
-}
-
 // A matching entry that is not a mapping (a list whose missing `id` reads as
 // "undefined") cannot be merged.
 function manifestRecord(item: unknown): Record<string, unknown> | undefined {

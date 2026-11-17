@@ -1,16 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import Ajv from "ajv";
 
+import { prepareOperationInput } from "../../src/cli-validate.js";
 import {
   ADVERTISED_DESCRIPTION,
   ADVERTISED_DESCRIPTION_LIMIT,
+  ADVERTISED_FIELDS,
   ADVERTISED_SUMMARY,
   advertisedFieldSchemaHints,
   advertisedInputSchema,
 } from "../../src/public/operations/advertised-schema.js";
 import { listSpecs } from "../../src/public/operations/catalog.js";
 import { upsertSpec } from "../../src/public/operations/specs/upsert.js";
-import { prepareOperationInput } from "../../src/cli-validate.js";
 
 const contract = {
   type: "object",
@@ -100,15 +101,23 @@ describe("advertised input schemas", () => {
     ]);
   });
 
-  test("kb_upsert advertises its proof fields as stubs and keeps origin and firmness in full", () => {
+  test("kb_upsert advertises its capture fields only and keeps origin and firmness in full", () => {
     const advertised = advertisedInputSchema(upsertSpec.businessInputSchema);
     const fields = advertised.properties.properties.properties as Record<
       string,
       Record<string, unknown>
     >;
-    for (const name of ["proof_contract", "proof_bindings", "proof_receipts"]) {
-      expect(JSON.stringify(fields[name]).length).toBeLessThan(400);
+    // Proof, fact and predicate fields are left to operation-fields.
+    for (const name of [
+      "proof_contract",
+      "proof_bindings",
+      "proof_receipts",
+      "fact_kind",
+      "predicate_args",
+    ]) {
+      expect(fields[name]).toBeUndefined();
     }
+    expect(Object.keys(fields)).toHaveLength(15);
     const {
       [ADVERTISED_DESCRIPTION]: short,
       description: _full,
@@ -117,8 +126,61 @@ describe("advertised input schemas", () => {
     expect(fields.origin).toEqual({ ...origin, description: short });
     expect(fields.firmness?.enum).toEqual(["firm", "default", "exploratory"]);
     expect(JSON.stringify(advertised).length).toBeLessThan(
-      JSON.stringify(upsertSpec.businessInputSchema).length - 15_000,
+      JSON.stringify(upsertSpec.businessInputSchema).length - 25_000,
     );
+  });
+
+  test("advertise only the fields an object names and drop the marker", () => {
+    const advertised = advertisedInputSchema({
+      type: "object",
+      [ADVERTISED_FIELDS]: ["kept"],
+      required: ["kept"],
+      properties: {
+        kept: {
+          type: "string",
+          description: "Kept in full.",
+          [ADVERTISED_DESCRIPTION]: "Kept.",
+        },
+        left: { type: "string", description: "Left out." },
+      },
+    });
+    expect(advertised as unknown).toEqual({
+      type: "object",
+      required: ["kept"],
+      properties: { kept: { type: "string", description: "Kept." } },
+    });
+    // Only `properties` is narrowed; other schema members stay whole.
+    expect(
+      advertisedInputSchema({
+        type: "object",
+        [ADVERTISED_FIELDS]: ["kept"],
+        properties: { kept: { type: "string" } },
+        additionalProperties: { type: "string", minLength: 1 },
+      }) as unknown,
+    ).toEqual({
+      type: "object",
+      properties: { kept: { type: "string" } },
+      additionalProperties: { type: "string", minLength: 1 },
+    });
+    // Without the marker every field stays.
+    expect(
+      Object.keys(
+        advertisedInputSchema({
+          type: "object",
+          properties: { a: { type: "string" }, b: { type: "string" } },
+        }).properties,
+      ),
+    ).toEqual(["a", "b"]);
+    // A marker that is not a list keeps every field.
+    expect(
+      Object.keys(
+        advertisedInputSchema({
+          type: "object",
+          [ADVERTISED_FIELDS]: "kept",
+          properties: { kept: { type: "string" }, left: { type: "string" } },
+        }).properties,
+      ),
+    ).toEqual(["kept", "left"]);
   });
 
   test("advertise a marked field's short description and keep its schema", () => {
@@ -183,6 +245,7 @@ describe("advertised input schemas", () => {
   test("name the markers that specs and other tools rely on", () => {
     expect(ADVERTISED_SUMMARY).toBe("x-kibi-advertised-summary");
     expect(ADVERTISED_DESCRIPTION).toBe("x-kibi-advertised-description");
+    expect(ADVERTISED_FIELDS).toBe("x-kibi-advertised-fields");
   });
 
   test("walk into lists and leave null values and other choices as they are", () => {

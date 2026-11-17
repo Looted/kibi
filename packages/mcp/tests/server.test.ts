@@ -313,8 +313,43 @@ describe("MCP Server", () => {
     await killServer(proc);
   });
 
-  test("should handle tools/list request", async () => {
+  test("lists the six core tools by default in a workspace with knowledge", async () => {
+    // This repository's own knowledge base is not empty, so the bootstrap
+    // tools stay out too.
     const proc = startServer();
+    try {
+      await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2025-11-25",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
+        },
+      });
+      const response = await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/list",
+      });
+      const tools = (response.result as { tools: { name: string }[] }).tools;
+      expect(tools.map((tool) => tool.name)).toEqual([
+        "kb_query",
+        "kb_search",
+        "kb_status",
+        "kb_skills",
+        "kb_upsert",
+        "kb_check",
+      ]);
+    } finally {
+      proc.kill();
+    }
+  });
+
+  test("should handle tools/list request", async () => {
+    // --tools full lists the whole catalog.
+    const proc = startServer({ args: ["--tools", "full"] });
 
     // Initialize first
     await sendRequest(proc, {
@@ -644,7 +679,7 @@ describe("MCP Server", () => {
       });
       const proc = startServer({
         cwd: tempRoot,
-        env: { KIBI_WORKSPACE: tempRoot },
+        env: { KIBI_WORKSPACE: tempRoot, KIBI_MCP_TOOLS: "full" },
       });
 
       try {
@@ -1053,6 +1088,114 @@ describe("MCP Server", () => {
         );
         expect(del.error).toBeUndefined();
       }
+    } finally {
+      await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  }, 180000);
+
+  test("kb_upsert links implementedBy entries and refuses a bad one, as the CLI does", async () => {
+    const tempRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-mcp-implemented-by-"),
+    );
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
+    execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
+    execSync('git config user.email "test@example.com"', {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    execSync('git config user.name "Kibi Test"', {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    fs.mkdirSync(path.join(tempRoot, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tempRoot, "src", "keys.ts"),
+      "export function expireKey(createdAt: number): boolean {\n  return createdAt > 0;\n}\n",
+    );
+    execSync(`bun ${kibiBin} sync`, { cwd: tempRoot, stdio: "ignore" });
+
+    const proc = startServer({ cwd: tempRoot });
+    const call = async (id: number, args: Record<string, unknown>) => {
+      const response = await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id,
+          method: "tools/call",
+          params: { name: "kb_upsert", arguments: args },
+        },
+        HEAVY_TOOL_TIMEOUT_MS,
+      );
+      expect(response.error).toBeUndefined();
+      return response.result as {
+        isError?: boolean;
+        content: { text: string }[];
+        structuredContent?: { data?: Record<string, unknown> };
+      };
+    };
+    const requirement = (implementedBy: unknown) => ({
+      type: "req",
+      id: "REQ-key-expiry",
+      properties: { title: "Keys expire", status: "open" },
+      implementedBy,
+    });
+    try {
+      await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2025-11-25",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0" },
+          },
+        },
+        30000,
+      );
+      const refused = await call(
+        2,
+        requirement([{ sourceFile: "src/keys.ts", symbol: "expire" }]),
+      );
+      expect(refused.isError).toBe(true);
+      expect(refused.content[0]?.text).toContain(
+        "implementedBy symbol expire resolves to no declaration in src/keys.ts. Candidates: expireKey.",
+      );
+      expect(
+        fs.existsSync(
+          path.join(tempRoot, ".kb", "requirements", "REQ-key-expiry.md"),
+        ),
+      ).toBe(false);
+
+      const linked = await call(
+        3,
+        requirement([{ sourceFile: "src/keys.ts", symbol: "expireKey" }]),
+      );
+      expect(linked.isError).not.toBe(true);
+      expect(linked.structuredContent?.data).toMatchObject({
+        relationships_created: 1,
+        implementedBy: [
+          {
+            sourceFile: "src/keys.ts",
+            symbol: "expireKey",
+            symbolId: "SYM-keys-expire-key",
+            created: true,
+          },
+        ],
+      });
+      const symbols = fs.readFileSync(
+        path.join(tempRoot, ".kb", "symbols.yaml"),
+        "utf8",
+      );
+      expect(symbols).toContain("id: SYM-keys-expire-key");
+      expect(symbols).toContain("target: REQ-key-expiry");
     } finally {
       await killServer(proc);
       stopWorkspaceEngine(kibiBin, tempRoot);

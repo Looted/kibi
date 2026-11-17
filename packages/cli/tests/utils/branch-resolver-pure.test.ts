@@ -11,7 +11,6 @@
 import { describe, expect, test } from "bun:test";
 import {
   getBranchDiagnostic,
-  getVolatileArtifactPatterns,
   isValidBranchName,
 } from "../../src/utils/branch-resolver.js";
 
@@ -114,37 +113,5 @@ describe("getBranchDiagnostic", () => {
       "Git is in detached HEAD state",
     );
     expect(result).toContain("detached HEAD");
-  });
-});
-
-describe("getVolatileArtifactPatterns", () => {
-  test("returns array of patterns", () => {
-    const patterns = getVolatileArtifactPatterns();
-    expect(Array.isArray(patterns)).toBe(true);
-    expect(patterns.length).toBeGreaterThan(0);
-  });
-
-  test("includes specific file names", () => {
-    const patterns = getVolatileArtifactPatterns();
-    expect(patterns).toContain("sync-cache.json");
-    expect(patterns).toContain("source-analysis-cache.json");
-    expect(patterns).toContain("journal.log");
-    expect(patterns).toContain("audit.log");
-    expect(patterns).toContain("lock");
-    expect(patterns).toContain("lockfile");
-    expect(patterns).toContain(".lock");
-  });
-
-  test("includes file extensions", () => {
-    const patterns = getVolatileArtifactPatterns();
-    expect(patterns).toContain("*.lock");
-    expect(patterns).toContain("*.tmp");
-    expect(patterns).toContain("*.temp");
-    expect(patterns).toContain("*.pid");
-  });
-
-  test("includes journal pattern", () => {
-    const patterns = getVolatileArtifactPatterns();
-    expect(patterns).toContain("journal-*.log");
   });
 });

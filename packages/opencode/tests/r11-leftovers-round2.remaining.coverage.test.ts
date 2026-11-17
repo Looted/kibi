@@ -11,10 +11,7 @@ import {
   nextRecentCommentSuggestion,
   resetCommentSuggestion,
 } from "../src/plugin.js";
-import {
-  createSessionEditState,
-  pushEventHintIfKind,
-} from "../src/session-edit-state.js";
+import { createSessionEditState } from "../src/session-edit-state.js";
 
 afterEach(() => {
   process.exitCode = 0;
@@ -36,11 +33,6 @@ describe("opencode remasure11 leftover helpers", () => {
       id: "kept",
     });
     expect(adoptPrecomputedSuggestion(null, undefined)).toBeNull();
-    const hints: Array<{ kind: string; timestamp: number }> = [];
-    pushEventHintIfKind(hints, undefined, 1);
-    expect(hints).toEqual([]);
-    pushEventHintIfKind(hints, "file.edited", 2);
-    expect(hints).toEqual([{ kind: "file.edited", timestamp: 2 }]);
 
     const worktree = mkdtempSync(join(tmpdir(), "kibi-r11-session-"));
     mkdirSync(join(worktree, "src"), { recursive: true });

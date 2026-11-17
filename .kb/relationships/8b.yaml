@@ -377,3 +377,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5dd84e3c318f
+  - type: implements
+    from: SYM-owner-findings-without-owned-causes
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T16:49:20.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efa4f6c104fd
+  - type: covered_by
+    from: SYM-owner-findings-without-owned-causes
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T16:49:20.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-286d9733b4f2

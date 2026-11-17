@@ -16,7 +16,12 @@ import {
   type HookOutput,
   runHook,
 } from "../src/hook-runner";
-import { MAX_SNIPPET_CHARS, ruleCaptureTemplate } from "../src/snippets";
+import { sessionDir, workspaceDataDir } from "../src/session-state";
+import {
+  MAX_SNIPPET_CHARS,
+  captureReminder,
+  ruleCaptureTemplate,
+} from "../src/snippets";
 import {
   CHECKOUT_SOURCE,
   COORDINATES_YAML,
@@ -166,7 +171,8 @@ describe("session start", () => {
       }),
       "SessionStart",
     );
-    expect(text).toContain("1 source files have requirement-linked symbols");
+    expect(text).toContain("the 1 linked source files");
+    expect(text).toContain("is a question, not a task");
     expect(text).toContain("kb_search");
     expect(text).toContain("kibi-usage");
   });
@@ -345,6 +351,7 @@ describe("pre-edit snippets", () => {
     expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
+      "Why: Finance reconciles every order to the cent (context section).",
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
     ]);
@@ -590,7 +597,7 @@ describe("evaluation trace replays", () => {
       await call({ hook_event_name: "SessionStart", source: "compact" }),
       "SessionStart",
     );
-    expect(compact).toContain("1 source files have requirement-linked symbols");
+    expect(compact).toContain("the 1 linked source files");
     const again = await pre("Read", { file_path: linked(fixture) });
     expect(again).toContain("Kibi knowledge for src/checkout.ts");
     expect(again).toContain("Covered by: TEST-checkout-rounding.");
@@ -1172,6 +1179,43 @@ describe("decision capture", () => {
       { pluginData: fixture.pluginData, env: NO_FIRM_CONFIRM },
     );
 
+  test("a new session without an id is not silenced by an earlier one's state", async () => {
+    const fixture = createKibiWorkspace();
+    const anonymous = session(fixture, "");
+    await prompt(fixture, "Totals must never be negative.", "");
+    await anonymous.post("Edit", { file_path: "src/checkout.ts" });
+    expect(await anonymous.stop()).toContain(captureReminder("must"));
+    // A resume or compact is the same session: it was asked already.
+    for (const source of ["resume", "compact"]) {
+      await anonymous.call({ hook_event_name: "SessionStart", source });
+      await anonymous.post("Edit", { file_path: "src/checkout.ts" });
+      expect((await anonymous.stop()) ?? "").not.toContain("recorded nothing");
+    }
+    // A new session starts clean: no stale rule phrase, and it is asked.
+    await anonymous.call({
+      hook_event_name: "SessionStart",
+      source: "startup",
+    });
+    await anonymous.post("Edit", { file_path: "src/checkout.ts" });
+    expect(await anonymous.stop()).toContain(captureReminder(undefined));
+
+    // A prompt after an idle spell starts the session afresh too.
+    const journal = path.join(
+      sessionDir(
+        workspaceDataDir(fixture.pluginData, fixture.root),
+        "",
+      ) as string,
+      "session.jsonl",
+    );
+    await prompt(fixture, "Rename the helper.", "");
+    expect(await anonymous.stop()).toBeUndefined();
+    const idle = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    fs.utimesSync(journal, idle, idle);
+    await prompt(fixture, "Rename the helper.", "");
+    await anonymous.post("Edit", { file_path: "src/checkout.ts" });
+    expect(await anonymous.stop()).toContain(captureReminder(undefined));
+  });
+
   test("a request that reads as a rule is told, before the work, that recording it is part of the change", async () => {
     const fixture = createKibiWorkspace();
     const text = contextOf(
@@ -1312,6 +1356,25 @@ describe("decision capture", () => {
     expect(
       await session(plain).post("Edit", { file_path: "src/checkout.ts" }),
     ).toEqual({});
+    // A dry-run upsert records nothing: the template and the stop
+    // reminder still come.
+    const dry = createKibiWorkspace();
+    await prompt(dry, "Totals must never be negative.");
+    const withDryRun = session(dry);
+    await withDryRun.post("mcp__kibi__kb_upsert", {
+      type: "req",
+      id: "REQ-x",
+      dryRun: true,
+    });
+    expect(
+      contextOf(
+        await withDryRun.post("Edit", { file_path: "src/checkout.ts" }),
+        "PostToolUse",
+      ),
+    ).toBe(ruleCaptureTemplate("must"));
+    expect(await withDryRun.stop()).toContain(
+      'the person\'s request said "must"',
+    );
     const recorded = createKibiWorkspace();
     await prompt(recorded, "Totals must never be negative.");
     const withRecord = session(recorded);

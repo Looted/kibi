@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74950c08b10a
+  - type: assumes
+    from: SCEN-kibi-commit-review-kb-staging
+    to: FACT-kibi-commit-review-kb-staging-guidance
+    created_at: 2026-11-16T16:23:25.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba7647e71c05

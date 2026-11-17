@@ -14,6 +14,7 @@ import * as commitAmend from "../../../src/traceability/commit-amend.js";
 import * as snapshotModule from "../../../src/traceability/git-change-snapshot.js";
 import * as impactEvaluator from "../../../src/traceability/impact-evaluator.js";
 import * as markdownValidate from "../../../src/traceability/markdown-validate.js";
+import * as ownerFindings from "../../../src/traceability/owner-findings.js";
 import * as snapshotKnowledge from "../../../src/traceability/snapshot-knowledge.js";
 import * as consistency from "../../../src/traceability/staged-consistency.js";
 import * as stagedDiagnostics from "../../../src/traceability/staged-diagnostics.js";
@@ -186,6 +187,15 @@ export function stagedHarness() {
       `coverage ${violations.length}`,
     formatViolations: (violations: unknown[]) =>
       `violations ${violations.length}`,
+    collectOwnerFindings: () => [],
+    coveringTests: () => [],
+    withoutOwnedCauses: (
+      _findings: unknown[],
+      diagnostics: unknown[],
+      traceability: unknown[],
+    ) => ({ diagnostics, traceability }),
+    formatOwnerFindings: (findings: unknown[]) =>
+      findings.length > 0 ? `owners ${findings.length}` : "",
   };
 
   const targets: Array<[object, string]> = [
@@ -238,6 +248,10 @@ export function stagedHarness() {
     [validate, "validateStagedSymbolCoverage"],
     [validate, "formatCoverageViolations"],
     [validate, "formatViolations"],
+    [ownerFindings, "collectOwnerFindings"],
+    [ownerFindings, "coveringTests"],
+    [ownerFindings, "withoutOwnedCauses"],
+    [ownerFindings, "formatOwnerFindings"],
   ];
   for (const [module, name] of targets) {
     const spy = spyOn(module as Record<string, Impl>, name).mockImplementation(

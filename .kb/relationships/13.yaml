@@ -356,3 +356,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-024979b20066
+  - type: constrains
+    from: REQ-upsert-flags-stale-sibling-claim
+    to: FACT-upsert-sibling-requirements-subject
+    created_at: 2026-11-16T19:17:06.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40ee42c8c385
+  - type: requires_property
+    from: REQ-upsert-flags-stale-sibling-claim
+    to: FACT-upsert-flags-stale-sibling-claim
+    created_at: 2026-11-16T19:17:06.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30d1fb06dc70
+  - type: specified_by
+    from: REQ-upsert-flags-stale-sibling-claim
+    to: SCEN-upsert-flags-stale-sibling-claim
+    created_at: 2026-11-16T19:17:06.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1ba64a45668
+  - type: specified_by
+    from: REQ-upsert-flags-stale-sibling-claim
+    to: SCEN-NEG-upsert-flags-stale-sibling-claim-UNFLAGGED
+    created_at: 2026-11-16T19:17:06.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68d17c2caabd

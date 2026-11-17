@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43e7f9ae9eb2
+  - type: implements
+    from: SYM-core-kb-kb-stage-upserts
+    to: REQ-apply-plan-checks-contradictions-once
+    created_at: 2026-11-16T19:17:44.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fcc6575064f
+  - type: covered_by
+    from: SYM-core-kb-kb-stage-upserts
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:44.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f7887a3d09e

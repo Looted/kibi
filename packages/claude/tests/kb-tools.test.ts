@@ -72,6 +72,23 @@ describe("Kibi MCP usage", () => {
     });
   });
 
+  test("a dry-run upsert is reported as the validation it routes to", () => {
+    expect(
+      extractMcpKbUsage("mcp__kibi__kb_upsert", { type: "req", dryRun: true })
+        ?.operation,
+    ).toBe("kb_validate_upsert");
+    expect(
+      extractMcpKbUsage("kb_upsert", { arguments: { dryRun: true } })
+        ?.operation,
+    ).toBe("kb_validate_upsert");
+    expect(extractMcpKbUsage("kb_upsert", { dryRun: "true" })?.operation).toBe(
+      "kb_upsert",
+    );
+    expect(extractMcpKbUsage("kb_check", { dryRun: true })?.operation).toBe(
+      "kb_check",
+    );
+  });
+
   test("empty and non-string values are dropped", () => {
     expect(
       extractMcpKbUsage("kb_query", {

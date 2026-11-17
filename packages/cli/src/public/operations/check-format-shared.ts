@@ -1,3 +1,4 @@
+import { getDefaultRules } from "../../utils/rule-registry.js";
 import type { Violation } from "../check-types.js";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
@@ -32,12 +33,29 @@ export interface CheckDiagnostic {
 
 /**
  * What a check run evaluated, so "no violations" can be told apart from
- * "nothing evaluated": the rules that ran, and for `domain-contradictions`
- * how many pairs of requirement facts it compared.
+ * "nothing evaluated": how many rules ran, their names when some default
+ * rule did not run, and for `domain-contradictions` how many pairs of
+ * requirement facts it compared.
  */
 export interface CheckEvaluated {
-  readonly rules: readonly string[];
+  readonly ruleCount: number;
+  /** The rules that ran, listed only when a default rule did not. */
+  readonly rules?: readonly string[];
   readonly domainContradictions?: Readonly<{ factPairsExamined: number }>;
+}
+
+/**
+ * The rules a run evaluated as a count, with their names only when some
+ * default rule was skipped: a full run is one number, a narrowed one says
+ * which rules it covered.
+ */
+export function describeEvaluatedRules(
+  rules: Iterable<string>,
+): Pick<CheckEvaluated, "ruleCount" | "rules"> {
+  const ran = [...rules];
+  const ranSet = new Set(ran);
+  const skipped = [...getDefaultRules()].some((rule) => !ranSet.has(rule));
+  return { ruleCount: ran.length, ...(skipped ? { rules: ran } : {}) };
 }
 
 export interface CheckStructuredContent {
@@ -63,7 +81,8 @@ export interface CheckStructuredContent {
   readonly truncation?: Readonly<{ budgetChars: number; hint: string }>;
   /**
    * Declarations without a symbol record in files that have at least one,
-   * reported by a check with no rule or file scope. Never blocking.
+   * reported by a check with no rule or file scope as counts, listed per
+   * file only with includeSymbolDebt. Never blocking.
    */
   readonly symbolDebt?: SymbolDebt;
 }
@@ -114,34 +133,46 @@ export function summarizeMigrationPlan(
   };
 }
 
-/** Characters a scoped check's structured result may take. */
+/** Characters a check's structured result may take, scoped or not. */
 export const SCOPED_CHECK_BUDGET_CHARS = 24_000;
 const GROUP_ENTITY_IDS_SHOWN = 20;
 
 const sizeOf = (value: unknown) => JSON.stringify(value).length;
 
 /**
- * `content` cut to `budget` characters for a scoped check: advisory quality
- * diagnostics are reduced to counts first, then the blocking findings past
- * the budget are listed by rule and entity id instead of in full. A
- * blocking finding's rule is never dropped, `count` keeps the full number,
- * and impact diagnostics (what the check says about the edit) are kept.
+ * `content` cut to `budget` characters for a check without a rule
+ * selection, scoped to sourceFiles or not: advisory quality diagnostics are
+ * reduced to counts first, then a migration plan nobody asked for in full
+ * to its summary, then the blocking findings past the budget are listed by
+ * rule and entity id instead of in full. A blocking finding's rule is never
+ * dropped, `count` keeps the full number, and impact diagnostics (what the
+ * check says about the edit) are kept.
  */
 export function fitScopedCheckToBudget(
   content: CheckStructuredContent,
   budget: number = SCOPED_CHECK_BUDGET_CHARS,
+  scoped = true,
+  keepPlan = false,
 ): CheckStructuredContent {
   if (sizeOf(content) <= budget) return content;
   const truncation = {
     budgetChars: budget,
-    hint: "The result was cut to its size budget. Narrow sourceFiles, select rules, or run kb_check without sourceFiles for every finding in full.",
+    hint: `The result was cut to its size budget. ${scoped ? "Narrow sourceFiles, or pass" : "Pass"} rules to list those rules' findings in full; kibi check --format json lists every finding.`,
   };
   let fitted: CheckStructuredContent = {
     ...content,
     truncated: true,
     truncation,
   };
-  const advisory = content.qualityDiagnostics ?? [];
+  // Telemetry acceptance is a state of the whole project, read from an
+  // unfiltered check, not a per-entity finding: it is always kept.
+  const quality = content.qualityDiagnostics ?? [];
+  const telemetry = quality.filter(
+    (diagnostic) => diagnostic.category === "telemetry",
+  );
+  const advisory = quality.filter(
+    (diagnostic) => diagnostic.category !== "telemetry",
+  );
   if (advisory.length > 0) {
     const byId: Record<string, number> = {};
     for (const diagnostic of advisory) {
@@ -157,13 +188,22 @@ export function fitScopedCheckToBudget(
           category: "integrity",
           message: `${advisory.length} advisory ${advisory.length === 1 ? "finding is" : "findings are"} not listed, to keep this result within its size budget.`,
           suggestion:
-            "Run kb_check without sourceFiles to list every advisory finding.",
+            "Run kibi check --format json to list every advisory finding.",
           evidence: { omitted: advisory.length, byId },
         },
+        ...telemetry,
       ],
     };
   }
   if (sizeOf(fitted) <= budget) return fitted;
+  if (fitted.migrationPlan !== undefined && !keepPlan) {
+    const { migrationPlan, ...withoutPlan } = fitted;
+    fitted = {
+      ...withoutPlan,
+      migrationPlanSummary: summarizeMigrationPlan(migrationPlan),
+    };
+    if (sizeOf(fitted) <= budget) return fitted;
+  }
 
   // List blocking findings in full while they fit, then by rule and id.
   const base = sizeOf({ ...fitted, violations: [], diagnostics: [] });
@@ -436,7 +476,10 @@ export function buildStructuredContent(input: {
     violations: [...input.violations],
     count: input.violations.length + (input.omittedViolations?.total ?? 0),
     evaluated: {
-      rules: [...input.evaluated.rules],
+      ruleCount: input.evaluated.ruleCount,
+      ...(input.evaluated.rules !== undefined
+        ? { rules: [...input.evaluated.rules] }
+        : {}),
       ...(input.evaluated.domainContradictions !== undefined
         ? { domainContradictions: input.evaluated.domainContradictions }
         : {}),
@@ -468,9 +511,9 @@ export function buildStructuredContent(input: {
 /** One line saying what the check evaluated, so a clean result is readable. */
 export function formatEvaluatedText(evaluated: CheckEvaluated): string {
   const rules =
-    evaluated.rules.length === 0
+    evaluated.ruleCount === 0
       ? "Evaluated no rules"
-      : `Evaluated ${evaluated.rules.length} rule${evaluated.rules.length === 1 ? "" : "s"}`;
+      : `Evaluated ${evaluated.ruleCount} rule${evaluated.ruleCount === 1 ? "" : "s"}`;
   const pairs = evaluated.domainContradictions;
   if (pairs === undefined) return `${rules}.`;
   return `${rules}; domain-contradictions compared ${pairs.factPairsExamined} fact pair${pairs.factPairsExamined === 1 ? "" : "s"}${pairs.factPairsExamined === 0 ? " (no two current requirements constrain the same subject or predicate case)" : ""}.`;

@@ -4,7 +4,6 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { OperationError } from "../../src/cli-errors.js";
 import {
-  manifestRelationships,
   resolveContainedSourcePath,
   writeSourceForUpsert,
 } from "../../src/operations/mutation/source-authoring.js";
@@ -133,11 +132,5 @@ describe("source-authoring remaining path, manifest, and rollback branches", () 
     await expect(
       readFile(path.join(root, "docs", "REQ-THROW.md"), "utf8"),
     ).rejects.toThrow();
-  });
-
-  test("manifestRelationships returns empty for nodes without get()", () => {
-    expect(manifestRelationships(null)).toEqual([]);
-    expect(manifestRelationships("plain")).toEqual([]);
-    expect(manifestRelationships({ get: 12 })).toEqual([]);
   });
 });

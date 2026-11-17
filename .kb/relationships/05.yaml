@@ -416,3 +416,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-addee9fc2929
+  - type: constrains
+    from: REQ-search-answer-reason-origin
+    to: FACT-search-answer-reasons-subject
+    created_at: 2026-11-16T15:54:13.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fe477391fed
+  - type: requires_property
+    from: REQ-search-answer-reason-origin
+    to: FACT-search-answer-reason-origin
+    created_at: 2026-11-16T15:54:13.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53527d8323cc
+  - type: specified_by
+    from: REQ-search-answer-reason-origin
+    to: SCEN-search-answer-reason-origin
+    created_at: 2026-11-16T15:54:13.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61f2ecd9fc69
+  - type: specified_by
+    from: REQ-search-answer-reason-origin
+    to: SCEN-NEG-search-answer-reason-origin-UNSOURCED
+    created_at: 2026-11-16T15:54:13.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f548bfe8b57
+  - type: assumes
+    from: SCEN-upsert-flags-stale-sibling-claim
+    to: FACT-upsert-flags-stale-sibling-claim
+    created_at: 2026-11-16T19:17:15.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55aafbe08dd4
+  - type: verified_by
+    from: SCEN-upsert-flags-stale-sibling-claim
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:15.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6b120cc5703

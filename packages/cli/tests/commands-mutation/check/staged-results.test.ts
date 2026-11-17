@@ -477,6 +477,73 @@ describe("staged verdicts", () => {
     expect(h.output().messages).toEqual(messages);
   });
 
+  test("owner findings come first and stand for the findings they merge", async () => {
+    withSymbols();
+    const owner = { blocks: "commit", symbol: "a" };
+    const raw = [{ v: "raw" }];
+    const kept = diagnostic(true);
+    h.set("validateStagedSymbols", async () => raw);
+    h.set("collectStagedKibiDiagnostics", () => [diagnostic(false), kept]);
+    h.world.entities = [
+      {
+        entity: { id: "REQ-a", title: "A", status: "open" },
+        relationships: [],
+      },
+    ];
+    h.set("analyzeStagedFileCoverage", () => ({
+      version: 1,
+      files: [{ path: "src/a.ts", requirementIds: ["REQ-a"] }],
+      diagnostics: [],
+    }));
+    h.set("collectOwnerFindings", () => [owner]);
+    h.set("withoutOwnedCauses", () => ({
+      diagnostics: [kept],
+      traceability: [],
+    }));
+    expect(await h.run()).toBe(1);
+    expect(h.output()).toMatchObject({
+      violations: raw,
+      qualityDiagnostics: [diagnostic(false), kept],
+      ownerFindings: [owner],
+      messages: ["owners 1", "[ERROR block] M\n  Suggestion: S"],
+    });
+    const [input] = h.calls.collectOwnerFindings?.[0] as [
+      {
+        traceability: unknown;
+        candidatesByFile: Map<string, string[]>;
+        readRequirement: (id: string) => unknown;
+        testsFor: (file: string, req: string) => unknown;
+      },
+    ];
+    expect(input.traceability).toBe(raw);
+    expect([...input.candidatesByFile]).toEqual([["src/a.ts", ["REQ-a"]]]);
+    expect(input.readRequirement("REQ-a")).toEqual({
+      id: "REQ-a",
+      title: "A",
+      status: "open",
+    });
+    expect(input.readRequirement("REQ-none")).toBeUndefined();
+    input.testsFor("src/a.ts", "REQ-a");
+    expect(h.calls.coveringTests?.[0]).toEqual([
+      h.world.entities,
+      "src/a.ts",
+      "REQ-a",
+    ]);
+  });
+
+  test("owner findings alone fail through the diagnostics branch", async () => {
+    withSymbols();
+    const owner = { blocks: "commit", symbol: "a" };
+    h.set("collectStagedKibiDiagnostics", () => [diagnostic(true)]);
+    h.set("collectOwnerFindings", () => [owner]);
+    h.set("withoutOwnedCauses", () => ({ diagnostics: [], traceability: [] }));
+    expect(await h.run()).toBe(1);
+    expect(h.output()).toMatchObject({
+      ownerFindings: [owner],
+      messages: ["owners 1"],
+    });
+  });
+
   test("context violations without symbols skip the snapshot check", async () => {
     h.world.inventory = [entry(REQ, { analysisDepth: "metadata" })];
     h.set("collectIntroducedEntityContextViolations", () => [{ v: "ctx" }]);
@@ -493,6 +560,7 @@ describe("staged verdicts", () => {
       qualityDiagnostics: [diagnostic(true)],
       messages: ["[ERROR block] M\n  Suggestion: S"],
     });
+    expect(h.output().ownerFindings).toBeUndefined();
     expect(h.calls.assertUnchanged).toHaveLength(1);
     expect(await h.run({ dryRun: true })).toBe(0);
   });
