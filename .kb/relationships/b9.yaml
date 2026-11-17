@@ -258,13 +258,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5d0a61c1084
-  - type: requires_property
-    from: REQ-mcp-default-tool-profile
-    to: FACT-mcp-empty-kb-bootstrap-tools
-    created_at: 2026-11-16T22:37:12.601Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6d69c30f17dd
   - type: assumes
     from: SCEN-NEG-check-staged-owner-block-SPLIT
     to: FACT-NEG-check-staged-owner-block-SPLIT

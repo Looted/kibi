@@ -20,15 +20,15 @@ id: TEST-mcp-default-tool-profile
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-f185c43bcb5116047e812d65
+    receipt_id: PR-dce56dfeb08e6dff14e3d011
     test_id: TEST-mcp-default-tool-profile
     scope: end_to_end
     outcome: passed
-    code_snapshot: 32ee33b73de52a5faea88037234ee6420cfcba340ad0940b4021a05c62fa772d
+    code_snapshot: bf728393848d8d041bb9f4f7426a9989adf51075b0700112dffd0fb3e965a69e
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-17T16:02:41.533Z'
-    finished_at: '2026-11-17T16:02:56.993Z'
-    artifact_digest: f4887a07f9a9b865fefecdb3eb64200815c603d43fd8b900b1a5dac6d042d0dc
+    started_at: '2026-11-17T18:50:43.658Z'
+    finished_at: '2026-11-17T18:50:56.400Z'
+    artifact_digest: 0dd89fba0e87fd074e05f7546ce0b1789adf24cd3623664838b77c818cdb87fb
     contract_hash: b8fd8042617774c50b7f73d41c1e3a2e5f84809075b20f678ae8b7c735a305ad
     binding_hash: ce45a60873aee81c78293ae681ca48512f4473edfe87a15188a4d054693baa88
     fingerprint: 01ae8339b3d295dbd92c709d007a17f15835a5fcda993c0c8a28b4d0e78250b5

@@ -1,64 +1,60 @@
 ---
-title: The MCP server lists seven tools by default and every tool in the full profile
+title: The MCP server lists every tool unless the core profile is chosen
 status: open
 priority: must
 required_evidence: tested
-semantic_text: The MCP server must list only kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status and kb_skills unless the full tool profile is chosen. The MCP server must also list kb_plan_bootstrap and kb_apply_plan while the knowledge base holds no entity. The full tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list every MCP tool. The MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI.
-rationale: Every MCP session loaded all 16 tool definitions, about 130,000 characters of which about 71,000 reach the model, while a typical change uses the six tools that search, read, write, check and load skills. Listing those six by default cuts the definitions a session loads to about 46,000 characters; every other operation still runs through the CLI with the same input, and a project that wants them all listed chooses the full profile.
+semantic_text: The MCP server must list every MCP tool unless the core tool profile is chosen. The core tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list only kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status, kb_skills and kb_review_firm_edit, and also kb_plan_bootstrap and kb_apply_plan while the knowledge base holds no entity. Under the core tool profile, the MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI.
+rationale: 'Every tool is listed by default because an agent that has to reach an unlisted operation through the project CLI may not be able to run it: in benchmark sessions where the CLI could not run, agents looped looking for the firm-edit receipt and asked the person again. Claude Code and Codex load a tool''s schema only when the agent first calls it, so the full list costs little there. On a host that loads every schema up front, the core profile saves about 32,000 characters of tool schemas per session, at the price of sending the other operations through the CLI.'
 tags:
   - mcp
   - tool-surface
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-11-16, approving the W4 statements as worded in the statement file (decision card, 17:53Z). Requested as: Maintainer request, 2026-11-16: list six MCP tools by default and the rest under a full profile chosen by configuration, an environment variable or a flag, with the bootstrap tools also listed while the knowledge base is empty; advertise about 15 kb_upsert capture fields and point to the operation-fields resource for the rest; resolve the double delivery of discovery results by what each host forwards; and list each kibi --help command by the first sentence of its description. Maintainer decision, 2026-11-17, approving this count change as worded: "Add kb_record to the defaults and pay for it with enum encoding: yes, both in the kb_record PR".'
   approved_by: maintainer
-  recorded_at: '2026-11-16T20:00:00.000Z'
+  ref: 'Maintainer decision, 2026-11-17, approving this statement: "And yes, ok for the tool-profile wording." Maintainer decision, 2026-11-17, choosing the full tool set on every host with an opt-in smaller profile. Earlier: Maintainer decision, 2026-11-16, approving the W4 statements as worded in the statement file (decision card, 17:53Z). Requested as: Maintainer request, 2026-11-16: list six MCP tools by default and the rest under a full profile chosen by configuration, an environment variable or a flag, with the bootstrap tools also listed while the knowledge base is empty; advertise about 15 kb_upsert capture fields and point to the operation-fields resource for the rest; resolve the double delivery of discovery results by what each host forwards; and list each kibi --help command by the first sentence of its description. Maintainer decision, 2026-11-17, approving this count change as worded: "Add kb_record to the defaults and pay for it with enum encoding: yes, both in the kb_record PR".'
+  recorded_at: '2026-11-17T18:48:39.246Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: e3a734cc0c7e7ceb37d572084a8113fd34e4ce308a272ac7ade4e2f2217ce829
+semantic_source_hash: 389349a450a0ff45efc4157d828caf4ff4fb90a913d5d7afb0f64f09bc71778a
 semantic_inventory:
-  - claim_key: CLAIM-7DDAFB6E5A4B6A32
-    claim_text: The MCP server must list only kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status and kb_skills unless the full tool profile is chosen
+  - claim_key: CLAIM-CA13AD582348339C
+    claim_text: The MCP server must list every MCP tool unless the core tool profile is chosen
     role: exception
     status: modeled
     span:
       start: 0
-      end: 145
-  - claim_key: CLAIM-756AC6B3EC9E1EC2
-    claim_text: The MCP server must also list kb_plan_bootstrap and kb_apply_plan while the knowledge base holds no entity
+      end: 78
+  - claim_key: CLAIM-D4F4BDAAF64421B5
+    claim_text: The core tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list only kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status, kb_skills and kb_review_firm_edit, and also kb_plan_bootstrap and kb_apply_plan while the knowledge base holds no entity
     role: normative
     status: modeled
     span:
-      start: 147
-      end: 253
-  - claim_key: CLAIM-53F4E7511CBC7D77
-    claim_text: The full tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list every MCP tool
-    role: normative
-    status: modeled
-    span:
-      start: 255
+      start: 80
       end: 380
-  - claim_key: CLAIM-063456F19053E2B1
-    claim_text: The MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI
+  - claim_key: CLAIM-1BECB4BB3E4A1516
+    claim_text: Under the core tool profile, the MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI
     role: normative
     status: modeled
     span:
       start: 382
-      end: 499
+      end: 528
 logic_claims:
-  - CLAIM-7DDAFB6E5A4B6A32
-  - CLAIM-756AC6B3EC9E1EC2
-  - CLAIM-53F4E7511CBC7D77
-  - CLAIM-063456F19053E2B1
+  - CLAIM-CA13AD582348339C
+  - CLAIM-D4F4BDAAF64421B5
+  - CLAIM-1BECB4BB3E4A1516
 id: REQ-mcp-default-tool-profile
 type: req
 ---
-The MCP server must list only kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status and kb_skills unless the full tool profile is chosen. The MCP server must also list kb_plan_bootstrap and kb_apply_plan while the knowledge base holds no entity. The full tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list every MCP tool. The MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI.
+The MCP server must list every MCP tool unless the core tool profile is chosen. The core tool profile, chosen by KIBI_MCP_TOOLS, kibi-mcp --tools or the project's mcpTools setting, must list only kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status, kb_skills and kb_review_firm_edit, and also kb_plan_bootstrap and kb_apply_plan while the knowledge base holds no entity. Under the core tool profile, the MCP initialize instructions must name the tools that are not listed and say that they run through the project CLI.
 
 ## Why
 
-Every MCP session loaded all 16 tool definitions, about 130,000 characters of which about 71,000 reach the model, while a typical change uses the six tools that search, read, write, check and load skills. Listing those six by default cuts the definitions a session loads to about 46,000 characters; every other operation still runs through the CLI with the same input, and a project that wants them all listed chooses the full profile.
+Every tool is listed by default because an agent that has to reach an unlisted operation through the project CLI may not be able to run it: in benchmark sessions where the CLI could not run, agents looped looking for the firm-edit receipt and asked the person again. Claude Code and Codex load a tool's schema only when the agent first calls it, so the full list costs little there. On a host that loads every schema up front, the core profile saves about 32,000 characters of tool schemas per session, at the price of sending the other operations through the CLI.
+
+Until 2026-11-17 the server listed the core tools by default and every tool only under a full profile, to cut the 130,000 characters of tool definitions a session loaded.
 
 ## Source
 
-> Maintainer request, 2026-11-16: list six MCP tools by default and the rest under a full profile chosen by configuration, an environment variable or a flag, with the bootstrap tools also listed while the knowledge base is empty; advertise about 15 kb_upsert capture fields and point to the operation-fields resource for the rest; resolve the double delivery of discovery results by what each host forwards; and list each kibi --help command by the first sentence of its description.
+> Maintainer decision, 2026-11-17: "And yes, ok for the tool-profile wording."
+
+> Maintainer request, 2026-11-16: list six MCP tools by default and the rest under a full profile chosen by configuration, an environment variable or a flag, with the bootstrap tools also listed while the knowledge base is empty.
