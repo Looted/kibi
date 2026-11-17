@@ -119,6 +119,14 @@ export function validateRelationshipSources(
         formatRelationshipSourceMismatch(entityId, relationship),
       );
     }
+    // No relationship type relates an entity to itself; a self supersedes,
+    // for one, would retire the requirement that replaces it.
+    if (relationship.to === entityId) {
+      throw new KbRejection(
+        "RELATIONSHIP_SELF_REFERENCE",
+        `${entityId} cannot have a ${String(relationship.type)} relationship to itself`,
+      );
+    }
   }
 }
 

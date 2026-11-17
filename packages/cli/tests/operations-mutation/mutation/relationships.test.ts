@@ -244,6 +244,20 @@ describe("validateRelationshipSources and formatRelationshipSourceMismatch", () 
     });
   });
 
+  test("refuses a relationship from the entity to itself", async () => {
+    expect(
+      await rejection(() =>
+        validateRelationshipSources("REQ-1", [
+          { type: "supersedes", from: "REQ-1", to: "REQ-1" },
+        ]),
+      ),
+    ).toStrictEqual({
+      name: "Error",
+      code: "RELATIONSHIP_SELF_REFERENCE",
+      message: "REQ-1 cannot have a supersedes relationship to itself",
+    });
+  });
+
   test("requires non-empty string endpoints", async () => {
     for (const [relationship, field] of [
       [{ from: "", to: "X" }, "from"],
