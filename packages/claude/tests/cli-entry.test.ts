@@ -7,7 +7,8 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { pathToFileURL } from "node:url";
 
-import { parseHookInput, parseStdinJson, readStdin } from "../src/hook-input";
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
+import { parseHookInput } from "../src/hook-input";
 import {
   isInvokedAsCli,
   main,

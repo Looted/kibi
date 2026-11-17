@@ -1,16 +1,18 @@
-export type HookEvent =
-  | "SessionStart"
-  | "UserPromptSubmit"
-  | "PreToolUse"
-  | "PostToolUse"
-  | "Stop";
+/**
+ * Hook input on stdin. Every host hook reads its JSON payload with
+ * `readStdin` and `parseStdinJson`. `parseHookInput` is the tolerant parser
+ * the Codex and ZCode hooks share: it accepts the snake_case field names both
+ * hosts send and the camelCase spellings older and test payloads use. The
+ * Claude Code and Cursor hooks keep their own parsers because their payloads
+ * carry host-specific fields.
+ */
 
 export type HookInput = {
   event: string;
   cwd?: string;
   toolName?: string;
   toolInput?: unknown;
-  /** Codex session identity (`session_id`); may be absent. */
+  /** Host session identity (`session_id`); may be absent. */
   sessionId?: string;
   /** UserPromptSubmit: the submitted prompt. */
   prompt?: string;
@@ -45,8 +47,8 @@ export function parseHookInput(input: unknown): HookInput {
   }
 
   const event =
-    // Codex sends `hook_event_name`; the other spellings are kept for older
-    // and test payloads.
+    // Codex and ZCode send `hook_event_name`; the other spellings are kept
+    // for older and test payloads.
     readString(input, [
       "hook_event_name",
       "event",
@@ -96,6 +98,7 @@ export async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
 
   for await (const chunk of process.stdin) {
+    // Buffer.from copies a Buffer chunk and encodes a string one.
     chunks.push(Buffer.from(chunk));
   }
 
