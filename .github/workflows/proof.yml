@@ -35,13 +35,16 @@ jobs:
     name: Bundled SWI-Prolog
     uses: ./.github/workflows/swipl-ci-bundle.yml
 
-  # Decides once, before any runner provisions, whether this PR can reuse
-  # develop's proof. Every proof job below reads the decision.
+  # Decides once, before any runner provisions, whether this run can reuse a
+  # proof of the same snapshot: a PR reuses develop's, and a develop push that
+  # merged a merge train reuses the train's. Every proof job below reads it.
   reuse:
     name: Decide whether the PR can reuse develop proof
     runs-on: ubuntu-latest
     outputs:
-      execute: ${{ steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true' }}
+      execute: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') }}
+      train-run-id: ${{ steps.train.outputs.source_run_id }}
+      train-run-url: ${{ steps.train.outputs.source_run_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -78,8 +81,19 @@ jobs:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: bun scripts/ci-proof-reuse.ts decide "$RUNNER_TEMP/kibi-proof-decision.json"
 
+      # A merge train lands as a merge commit of a train head that its pull
+      # request run proved in full, merged into the commit it was assembled
+      # on; such a develop commit has the proven tree and reuses that proof.
+      - name: Check whether the develop push can reuse the train's proof
+        id: train
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bun scripts/ci-proof-reuse.ts decide-train "$RUNNER_TEMP/kibi-proof-decision.json"
+
       - name: Upload proof reuse decision
-        if: ${{ github.event_name == 'pull_request' && steps.reuse.outcome == 'success' }}
+        if: ${{ steps.reuse.outcome == 'success' || steps.train.outcome == 'success' }}
         continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -507,12 +521,21 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      # A develop push attests its proof, or the train proof it reused. A
+      # merge train pull request attests its own, so the develop push that
+      # merges it can reuse it.
       - name: Attest successful develop proof
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository) }}
+        env:
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_HEAD_BRANCH: ${{ github.head_ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          KIBI_PROOF_DERIVED_FROM: ${{ needs.reuse.outputs.train-run-url }}
         run: bun scripts/ci-proof-reuse.ts attest "$RUNNER_TEMP/kibi-proof-attestation"
 
       - name: Upload develop proof attestation
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: kibi-proof-attestation
@@ -520,20 +543,36 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      # A develop push that reused a train's proof publishes that train's
+      # report: it describes this exact snapshot.
+      - name: Download the reused train's proof report
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != '' }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: kibi-requirement-proof
+          run-id: ${{ needs.reuse.outputs.train-run-id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/kibi-train-proof
+
+      - name: Use the reused train's proof report
+        id: train-report
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != '' }}
+        run: cp -R "$RUNNER_TEMP/kibi-train-proof/kibi-report" kibi-report
+
       - name: Build documentation site at the Pages root
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
         env:
           KIBI_UMAMI_WEBSITE_ID: 197fb489-cdd4-4d95-ae8a-119dc6422a45
         run: bun run docs:site -- --out pages
 
       - name: Namespace the proof report under /kibi-report/
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
         run: |
           mkdir -p pages/kibi-report
           cp -R kibi-report/. pages/kibi-report/
 
       - name: Upload Kibi Pages artifact
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && (steps.integrity.outcome == 'success' || steps.train-report.outcome == 'success') }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: pages

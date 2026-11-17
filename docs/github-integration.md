@@ -398,6 +398,24 @@ checks passed on.
 Each run takes one step and exits. Run it when your check workflows finish,
 when the label is added, and on a schedule as a backstop, as the example does.
 
+### Don't prove a landed train twice
+
+When a train lands, the push to the default branch would start the proof
+again on a tree the train already proved. Kibi's own proof workflow skips that
+run. On a push, `bun scripts/ci-proof-reuse.ts decide-train` reuses the train's
+proof only when all of these hold:
+
+- the pushed commit is a merge whose parents are the previous tip and a
+  `merge-train/` head from this repository;
+- exactly one successful proof run exists for that head, from a pull request
+  in this repository;
+- that run's attestation names the same head and base commits; and
+- the canonical Kibi snapshot of the pushed commit equals the attested one.
+
+Otherwise the push runs the full proof. A push that reuses the train's proof
+publishes the train's report and attests it, naming the train run it came
+from, so a later pull request can reuse it in turn.
+
 ### Set it up
 
 1. Copy [docs/examples/github/kibi-merge-train.yml](examples/github/kibi-merge-train.yml)

@@ -44811,3 +44811,34 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-ci-merge-train
+  - id: SYM-ci-proof-reuse-train-assess
+    title: assessTrainProofReuse
+    status: active
+    sourceFile: scripts/ci-proof-reuse.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:50:21.426Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-proof-reuse-train-merge
+      - type: implements
+        target: REQ-ci-proof-reuse-train-merge
+  - id: SYM-test-ci-proof-reuse-train-merge
+    title: Merge train proof attestation and develop reuse suite
+    status: active
+    sourceFile: scripts/tests/ci-proof-reuse-main.coverage.test.ts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T11:50:24.222Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-ci-proof-reuse-train-merge
