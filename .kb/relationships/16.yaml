@@ -413,19 +413,19 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-fa718cc29826
   - type: implements
-    from: SYM-mcp-serverInstructions
-    to: REQ-mcp-default-tool-profile
-    created_at: 2026-11-16T17:29:56.378Z
+    from: SYM-capture-related-current-requirements
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:13:13.061Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-175788ef0a2e
+    id: rel-184d9638e923
   - type: covered_by
-    from: SYM-mcp-serverInstructions
-    to: TEST-mcp-default-tool-profile
-    created_at: 2026-11-16T17:29:56.513Z
+    from: SYM-capture-related-current-requirements
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:20:50.600Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-5127d73260f7
+    id: rel-9b513bf98ce9
   - type: implements
     from: SYM-cli-sibling-requirements-sibling-input
     to: REQ-upsert-lists-sibling-requirements
@@ -447,20 +447,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-56faa23dc8ff
-  - type: covered_by
-    from: SYM-mcp-serverInstructions
-    to: TEST-session-brief
-    created_at: 2026-11-16T23:06:45.832Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0ed07d6234f2
-  - type: implements
-    from: SYM-mcp-serverInstructions
-    to: REQ-session-brief-on-every-surface
-    created_at: 2026-11-16T23:06:45.889Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e2626fca4342
   - type: constrains
     from: REQ-requirement-reason-skips-change-notes
     to: FACT-search-answer-reasons-subject
@@ -489,3 +475,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a234ad18b1d4
+  - type: implements
+    from: SYM-mcp-serverInstructions
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:56.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-175788ef0a2e
+  - type: covered_by
+    from: SYM-mcp-serverInstructions
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:56.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5127d73260f7
+  - type: covered_by
+    from: SYM-mcp-serverInstructions
+    to: TEST-session-brief
+    created_at: 2026-11-16T23:06:45.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ed07d6234f2
+  - type: implements
+    from: SYM-mcp-serverInstructions
+    to: REQ-session-brief-on-every-surface
+    created_at: 2026-11-16T23:06:45.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2626fca4342

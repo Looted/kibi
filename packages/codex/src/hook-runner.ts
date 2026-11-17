@@ -24,6 +24,7 @@ import {
   settledFirmRequirements,
   signoffReminder,
   startDecisionSession,
+  statedReason,
 } from "kibi-agent-core/decision-guard";
 import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import {
@@ -468,7 +469,7 @@ export async function runHook(
           continue: true,
           hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
-            additionalContext: rulePromptNote(rule),
+            additionalContext: rulePromptNote(rule, statedReason(input.prompt)),
           },
         };
       }

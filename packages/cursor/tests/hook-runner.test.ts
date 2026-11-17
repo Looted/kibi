@@ -999,6 +999,24 @@ describe("Cursor decision guard", () => {
     expect(message).toContain("Kibi knowledge for src/checkout.ts");
   });
 
+  test("a rule prompt's reason is asked for in why by the held note and the template", async () => {
+    const { event, edit } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded, because refunds drift.",
+    });
+    // The first source pre-edit carries the held note and the template.
+    const message = (await event(edit)).agent_message ?? "";
+    expect(message).toStartWith(
+      rulePromptNote("must not", "because refunds drift"),
+    );
+    expect(message).toContain(
+      ruleCaptureTemplate("must not", "because refunds drift"),
+    );
+  });
+
   test("stop asks once for the decision record when source changed and nothing was recorded", async () => {
     const { event, workspace } = conversation();
     await event({

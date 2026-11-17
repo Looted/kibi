@@ -374,3 +374,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9952efe55c05
+  - type: executable_for
+    from: SYM-test-agent-hosts-rule-phrase-detection
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:17:44.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cc94e0e2fb5

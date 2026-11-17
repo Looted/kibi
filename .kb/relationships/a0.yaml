@@ -433,3 +433,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7f37497e4361
+  - type: implements
+    from: SYM-claude-rulePromptNote
+    to: REQ-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:14:02.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0834c04e8639
+  - type: covered_by
+    from: SYM-claude-rulePromptNote
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:25:19.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-208524a4b12f

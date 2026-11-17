@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6adac2e94887
+  - type: implements
+    from: SYM-capture-prolog-capture-reads
+    to: REQ-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:12:37.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68e7ff2b8922
+  - type: covered_by
+    from: SYM-capture-prolog-capture-reads
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:20:44.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad8a07667229

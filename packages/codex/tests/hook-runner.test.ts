@@ -9,6 +9,7 @@ import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
 import {
   captureReminder,
   ruleCaptureTemplate,
+  rulePromptNote,
 } from "kibi-agent-core/decision-guard";
 import {
   FIRM_EDIT_RECEIPT_VERSION,
@@ -956,6 +957,13 @@ describe("Codex decision guard", () => {
         prompt: "Rename the export button.",
       }),
     ).toEqual({ continue: true });
+    const reasoned = await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guests must not export, so that drafts stay private.",
+    });
+    expect(contextOf(reasoned)).toBe(
+      rulePromptNote("must not", "so that drafts stay private"),
+    );
   });
 
   test("the request's words pick requirement candidates for an unlinked file", async () => {
