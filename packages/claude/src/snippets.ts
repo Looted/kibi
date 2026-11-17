@@ -17,6 +17,7 @@ export {
   ruleCaptureTemplate,
   rulePromptNote,
   signoffReminder,
+  startDecisionSession,
   statedRule,
 } from "kibi-agent-core/decision-guard";
 import { sessionBriefWith } from "kibi-agent-core/session-brief";
