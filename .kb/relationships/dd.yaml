@@ -461,3 +461,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ee6e8e9f0c6
+  - type: implements
+    from: SYM-agent-core-decision-guard-holdrulenote
+    to: REQ-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:14:13.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d5ee30d0e7a
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-holdrulenote
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:24:47.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fb284b646c2

@@ -77,6 +77,7 @@ import {
   editFocus as sharedEditFocus,
   signoffReminder,
   startDecisionSession,
+  statedReason,
   statedRule,
   stopReminder,
   unownedSourceNote,
@@ -741,7 +742,7 @@ function captureTemplateNote(
   )
     return undefined;
   events.push({ kind: "notice", name: "capture-template" });
-  return ruleCaptureTemplate(state.rulePhrase);
+  return ruleCaptureTemplate(state.rulePhrase, state.ruleReason);
 }
 
 function recordKbUsage(
@@ -899,6 +900,7 @@ function userPromptSubmit(
 ): HookOutput {
   const prompt = input.prompt ?? "";
   const rule = statedRule(prompt);
+  const reason = statedReason(prompt);
   // A session without an id idle for long has ended; this prompt starts anew.
   startDecisionSession(
     { stateDir: workspace.stateDir, sessionId: input.sessionId },
@@ -911,6 +913,7 @@ function userPromptSubmit(
       words: requestTopicWords(prompt),
       rule: rule !== undefined,
       phrase: rule ?? "",
+      reason,
     },
   ]);
   if (rule === undefined) {
@@ -918,7 +921,7 @@ function userPromptSubmit(
     return {};
   }
   trace.action = "prompt_rule_note";
-  return context("UserPromptSubmit", rulePromptNote(rule));
+  return context("UserPromptSubmit", rulePromptNote(rule, reason));
 }
 
 export async function runHook(
