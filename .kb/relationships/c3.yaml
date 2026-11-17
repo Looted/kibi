@@ -503,13 +503,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b28b560727e7
-  - type: assumes
-    from: SCEN-NEG-check-unscoped-budget-OVER-BUDGET
-    to: FACT-NEG-check-unscoped-budget-OVER-BUDGET
-    created_at: 2026-11-16T15:48:21.962Z
+  - type: implements
+    from: SYM-kibi-traceability-skill-guidance
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:38:58.625Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-3b71d1a4b3cd
+    id: rel-dea94e1bb1cf
+  - type: covered_by
+    from: SYM-kibi-traceability-skill-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:38:58.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0d64a6eb3d7
   - type: constrains
     from: REQ-kb-merge-action-no-hooks
     to: FACT-SUBJECT-kibi-ci-kb-merge-action
@@ -573,3 +580,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4194f9c18f68
+  - type: assumes
+    from: SCEN-NEG-check-unscoped-budget-OVER-BUDGET
+    to: FACT-NEG-check-unscoped-budget-OVER-BUDGET
+    created_at: 2026-11-16T15:48:21.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b71d1a4b3cd

@@ -16,4 +16,4 @@ origin:
 id: FACT-mcp-default-tool-count
 type: fact
 ---
-TOOLS in packages/mcp/src/tools-config.ts lists the tools the Kibi MCP server registers by default.
+TOOLS in packages/mcp/src/tools-config.ts is the Kibi MCP tool catalog. The full tool profile lists all of it; the default profile lists six of these tools (and the bootstrap tools while the knowledge base is empty), and the rest run through the CLI.

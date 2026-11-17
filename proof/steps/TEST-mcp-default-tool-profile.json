@@ -1,0 +1,25 @@
+{
+  "test_id": "TEST-mcp-default-tool-profile",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/server/tool-profile.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/server/tool-registration-exact.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/server/server-start-exact.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/server/tool-surface-consumer.test.ts"
+    ]
+  ]
+}

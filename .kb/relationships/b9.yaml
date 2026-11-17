@@ -188,20 +188,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0586506674d4
-  - type: implements
-    from: SYM-cli-errors-is-kb-rejection
-    to: REQ-cli-rejection-not-retryable
-    created_at: 2026-11-16T14:41:22.969Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3fadc4c83654
-  - type: covered_by
-    from: SYM-cli-errors-is-kb-rejection
-    to: TEST-cli-rejection-not-retryable
-    created_at: 2026-11-16T14:41:22.982Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1ab3fa5ab880
   - type: constrains
     from: REQ-prolog-swipl-resolution-order
     to: FACT-kibi-prolog-swipl-version-component
@@ -216,3 +202,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-60e607b6d1d2
+  - type: constrains
+    from: REQ-mcp-default-tool-profile
+    to: FACT-SUBJECT-kibi-mcp-tool-catalog
+    created_at: 2026-11-16T17:27:09.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9d5c74bd8b5
+  - type: requires_property
+    from: REQ-mcp-default-tool-profile
+    to: FACT-mcp-instructions-name-unlisted
+    created_at: 2026-11-16T17:27:10.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14f72b733598
+  - type: specified_by
+    from: REQ-mcp-default-tool-profile
+    to: SCEN-mcp-default-tool-profile
+    created_at: 2026-11-16T17:27:10.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8d104bb2e0c
+  - type: specified_by
+    from: REQ-mcp-default-tool-profile
+    to: SCEN-NEG-mcp-default-tool-profile-ALL-LISTED
+    created_at: 2026-11-16T17:27:10.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e1f953d8ff7
+  - type: requires_property
+    from: REQ-mcp-default-tool-profile
+    to: FACT-mcp-full-profile-unlisted-count
+    created_at: 2026-11-16T18:30:05.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfa00a88deaa
+  - type: implements
+    from: SYM-cli-errors-is-kb-rejection
+    to: REQ-cli-rejection-not-retryable
+    created_at: 2026-11-16T14:41:22.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fadc4c83654
+  - type: covered_by
+    from: SYM-cli-errors-is-kb-rejection
+    to: TEST-cli-rejection-not-retryable
+    created_at: 2026-11-16T14:41:22.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ab3fa5ab880
+  - type: requires_property
+    from: REQ-mcp-default-tool-profile
+    to: FACT-mcp-default-profile-tools
+    created_at: 2026-11-16T22:37:05.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5d0a61c1084
+  - type: requires_property
+    from: REQ-mcp-default-tool-profile
+    to: FACT-mcp-empty-kb-bootstrap-tools
+    created_at: 2026-11-16T22:37:12.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d69c30f17dd
+  - type: assumes
+    from: SCEN-NEG-check-staged-owner-block-SPLIT
+    to: FACT-NEG-check-staged-owner-block-SPLIT
+    created_at: 2026-11-16T16:48:17.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72f0933aab6e

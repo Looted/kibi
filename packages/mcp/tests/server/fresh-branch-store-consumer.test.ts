@@ -175,7 +175,11 @@ describe("kibi-mcp on a new branch whose store was never compiled", () => {
     const workspace = freshBranchWorkspace();
     // What an opted-out checkout sees; by default the first store-backed
     // tool compiles the store (next test).
-    const client = await connect(workspace, { KIBI_AUTO_SYNC: "0" });
+    // kb_apply_plan is listed in the full profile once the KB has entities.
+    const client = await connect(workspace, {
+      KIBI_AUTO_SYNC: "0",
+      KIBI_MCP_TOOLS: "full",
+    });
 
     const before = (await call(client, "kb_status", {})) as StatusData;
     expect(before.staleReasons.map((row) => row.code)).toContain(

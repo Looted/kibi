@@ -229,12 +229,11 @@ links:
           }
           const result = await stageAndCheck(TAGS.replace('"tag"', '"label"'));
           assert.strictEqual(result.exitCode, 1, output(result));
-          assert.match(output(result), /symbols_manifest_stale/);
           assert.match(
             output(result),
-            /Not in \.kb\/symbols\.yaml: tagIdSchema/,
+            /\[BLOCKS COMMIT\] tagIdSchema \(src\/tags\.ts:\d+\)/,
           );
-          assert.doesNotMatch(output(result), /createTag \(line/);
+          assert.doesNotMatch(output(result), /\[BLOCKS COMMIT\] createTag/);
           await resetToBase();
         },
       );
@@ -251,9 +250,11 @@ links:
             `${TAGS}\nexport function deleteTag() {\n  return 0;\n}\n`,
           );
           assert.strictEqual(result.exitCode, 1, output(result));
-          assert.match(output(result), /symbols_manifest_stale/);
-          assert.match(output(result), /Not in \.kb\/symbols\.yaml: deleteTag/);
-          assert.doesNotMatch(output(result), /tagIdSchema \(line/);
+          assert.match(
+            output(result),
+            /\[BLOCKS COMMIT\] deleteTag \(src\/tags\.ts:\d+\)/,
+          );
+          assert.doesNotMatch(output(result), /\[BLOCKS COMMIT\] tagIdSchema/);
           await resetToBase();
         },
       );
@@ -325,9 +326,8 @@ links:
             `${TAGS}\nexport function deleteTag() {\n  return 0;\n}\n\nexport const tagHandler = () => 0;\n`,
           );
           assert.strictEqual(result.exitCode, 1, output(result));
-          assert.match(output(result), /Traceability failed/);
-          assert.match(output(result), /deleteTag/);
-          assert.match(output(result), /tagHandler/);
+          assert.match(output(result), /\[BLOCKS COMMIT\] deleteTag/);
+          assert.match(output(result), /\[BLOCKS COMMIT\] tagHandler/);
           await resetToBase();
         },
       );

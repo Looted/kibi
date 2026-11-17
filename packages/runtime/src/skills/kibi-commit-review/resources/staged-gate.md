@@ -34,6 +34,28 @@ symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of stag
 - `--format json` carries the same lists in the diagnostic `evidence`
   (`symbolsManifest[].missing` / `extra`, `uncoveredSymbols[].titles`).
 
+## One block per unowned declaration
+
+A declaration the commit adds or changes that no requirement owns prints
+first, as one `[BLOCKS COMMIT]` block that stands for its
+`symbols_manifest_stale`, `kibi_impact_evidence_missing`,
+`symbol_semantic_review_needed` and `Traceability failed` findings:
+
+```text
+[BLOCKS COMMIT] approveRefund (src/billing/refund.ts:42) is new and no requirement owns it.
+  If one of these already states what it does, link it to that one (never pick one only to pass the gate):
+    REQ-billing-refunds: Refunds are approved by a manager
+      kb_upsert {"type":"req","id":"REQ-billing-refunds",...,"implementedBy":[{"sourceFile":"src/billing/refund.ts","symbol":"approveRefund","coveredBy":["TEST-billing-refunds"]}]}
+  If it is new behavior, record a requirement for it first (template: kb_skills kibi-commit-review), then link it the same way.
+```
+
+The candidates are the requirements the rest of the file implements. Read
+each one and link only one that already states what the declaration does;
+the payload also links it to the tests covering that code (`coveredBy`). If
+none does, record a new requirement first. A type gets a `type-shape` record
+payload instead. `--format json` keeps the underlying findings and lists the
+blocks under `ownerFindings` (`causes` names the ids each one stands for).
+
 ## Blocking findings
 
 | Id or message | Cause | Fix |
@@ -42,7 +64,7 @@ symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of stag
 | `symbols_manifest_stale` | A staged behavior file has a declaration the commit adds or changes with no `.kb/symbols.yaml` entry, the commit removes an entry, or an entry the commit adds, changes or orphans names a declaration that is gone. | Author entries for the listed symbols, re-point or retire entries whose declaration is gone, and stage `.kb/symbols.yaml`. Coordinates are derived locally and never staged. |
 | `symbol_granularity_violation` | A changed behavioral member is owned only by a coarse class or module symbol while a narrower declaration exists. | Add a symbol for the member itself (`title` = `Class.method` or the exported function) with its own links; use `granularity_reason` (`config-artifact`, `module-level-behavior`, `extractor-miss`, `legacy-link`, `test-suite`) only when it is true. |
 | `symbol-coverage` | A changed symbol, or a symbol whose staged manifest entry changed, fails the full-check rule on the staged knowledge. | The symbol `implements` the requirement and is `covered_by` a test that verifies it: through the requirement's scenario (`verified_by` scenario -> test) when it has one, else `verified_by` requirement -> test. A direct requirement -> test link does not count while a scenario exists. The finding's suggestion names the missing link (see `kibi-traceability`). |
-| `entity-context-missing` (staged entity) | A staged requirement, scenario, test, ADR or observation fact has fewer than 12 words of context. | Upsert a sectioned `document.body` (see `kibi-usage`, Entity body contract). |
+| `entity-context-missing` (staged entity) | A staged requirement, scenario, test, ADR or observation fact has fewer than 12 words of context. | Upsert a sectioned `document.body` (see `kibi-usage` resource `resources/recording.md`). |
 | `domain-contradictions`, `kb-consistency`, `scenario-feasibility`, `exception-claim-keys` (staged `.kb/` change) | The staged knowledge introduces a violation the last commit did not have. `kb-consistency` also catches facts that contradict only together and names their requirements. | Fix the knowledge; a contradiction with a recorded rule goes to the person (`kibi-decisions`). |
 | Proposition-complete ingestion | A staged requirement's semantic inventory is missing or no longer matches its prose. | Re-derive it (`kb_model` analyze with the complete prose) or run `kibi migrate` for drift. |
 | `kibi check-generated --staged` drift | The staged `.kb/symbols.yaml` is not in the layout sync writes, or `.kb/symbol-coordinates.yaml` is tracked. | `kibi sync --refresh-symbol-coordinates`, review the diff, stage only the intended hunks (`git add -p`); untrack a tracked coordinates file with `kibi migrate` (or `git rm --cached`). |

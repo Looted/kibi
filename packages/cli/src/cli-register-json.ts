@@ -1,5 +1,8 @@
 import type { Command } from "commander";
-import { CLI_OPERATION_METADATA } from "./cli-operation-metadata.js";
+import {
+  CLI_OPERATION_METADATA,
+  commandSummary,
+} from "./cli-operation-metadata.js";
 import type { OperationName } from "./public/operations/types.js";
 import { noteCliErrorCategory } from "./usage-telemetry.js";
 
@@ -14,6 +17,22 @@ export const INTEGRATED_OPERATIONS: ReadonlySet<string> =
     "kb_graph",
     "kb_check",
   ]);
+
+/**
+ * Narrower operations a broader command covers: `skill` reads skills, `model`
+ * runs the three modelling modes and `upsert` with `dryRun` validates. They
+ * stay runnable (and in their own `--help`) but `kibi --help` does not list
+ * them.
+ */
+export const UNLISTED_OPERATIONS: ReadonlySet<string> = new Set<OperationName>([
+  "kb_skills_list",
+  "kb_skills_load",
+  "kb_skills_read",
+  "kb_semantic_advisor",
+  "kb_model_requirement",
+  "kb_suggest_predicates",
+  "kb_validate_upsert",
+]);
 
 /**
  * The error for a JSON-only command run without `--input`: it names both
@@ -39,8 +58,11 @@ export function registerJsonOnlyCommands(program: Command): void {
     if (INTEGRATED_OPERATIONS.has(metadata.name)) continue;
     const commandName = metadata.cliName.replaceAll(" ", "-");
     program
-      .command(commandName)
+      .command(commandName, {
+        hidden: UNLISTED_OPERATIONS.has(metadata.name),
+      })
       .description(metadata.description)
+      .summary(commandSummary(metadata.description))
       .option("--input <path>", "JSON input file (use - for stdin)")
       .option("--schema", "Print the JSON input schema and exit")
       .action(

@@ -4,7 +4,7 @@ description: "Use Kibi's source-first, exact-Git, migration-aware, proof-aware o
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.50.1
+  version: 3.0.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -15,6 +15,15 @@ metadata:
     - traceability
     - recovery
   resources:
+    - resources/interfaces.md
+    - resources/hook-snippets.md
+    - resources/recording.md
+    - resources/results-and-recovery.md
+    - resources/second-agent-edits.md
+    - resources/domain-subjects.md
+    - resources/quantified-claims.md
+    - resources/predicate-ontology.md
+    - resources/requirement-size.md
     - resources/operation-access.md
     - resources/branch-lifecycle.md
     - resources/source-authoring.md
@@ -31,819 +40,74 @@ metadata:
 ---
 # Kibi Usage
 
-Consult this skill before any Kibi knowledge base operation, on first
-interaction with a Kibi-enabled repo, after stale or dirty status is suspected,
-and before mutations.
-
-Kibi is an agent-native requirements compiler. Use it to retain product intent,
-compile branch-local requirements and scenarios, link symbols to ownership,
-and prove implementation with fresh evidence.
+Kibi records what the code must do and why. Every change runs the same arc.
 
 ## Interface Selection
 
-Use whichever capability is visible and approved. The surfaces are equal peers:
-
-1. If approved Kibi MCP tools are visible, use them.
-2. Otherwise use `npx --no-install kibi ...` from the trusted project-local CLI.
-3. If the operator capability is unavailable or too old for the needed route,
-   stop and identify the missing capability.
-4. Never use a global fallback, an installing runner, or an unapproved route.
-
-Hosts may expose prefixed identifiers such as `kibi_kb_search`,
-`kibi_kb_query`, and `kibi_kb_upsert`; map them to the canonical MCP names.
-
-The MCP server keeps its tool list short. Load skills with `kb_skills`
-(`action: "list" | "load" | "read"`; CLI `kibi skill` or `kibi skills
-list|load|read`). Model prose with `kb_model` (`mode: "analyze"` for the
-semantic advisor, `"requirement"` for strict claims, `"predicates"` for
-ontology predicates; CLI `kibi model` takes the same input, `mode` and
-`requirementId` included; the single-mode routes `semantic-advisor`,
-`model-requirement`, `suggest-predicates` take only their mode's fields). Preflight a write with
-`kb_upsert` plus `dryRun: true` (CLI `upsert` with `"dryRun": true` or
-`validate-upsert`); it validates and writes nothing. Result payloads still name
-catalog operations such as `kb_model_requirement` or `kb_validate_upsert` in
-`recommended_tools` and repair steps; translate them with the list in
-`resources/operation-access.md`.
-
-The CLI JSON route accepts the same business object as MCP:
-
-```bash
-printf '%s\n' '{"query":"checkout","limit":10}' | npx --no-install kibi search --input -
-```
-
-Read `resources/operation-access.md` for the route, result version, effects,
-mutability, and Prolog requirements of each operation.
-The MCP tool list gives long field rules in one short line. Read
-`resources/operation-fields.md` for a field's full rule before relying on a
-detail the short line leaves out.
-
-## Working in a git worktree or another directory
-
-Kibi MCP servers start in one project and answer from its knowledge base.
-Every Kibi MCP tool accepts `workspaceRoot`: when your working directory is not
-the project the server started in (a git worktree, a sibling checkout), pass
-your working directory as `workspaceRoot` on every call. Host plugins with
-pre-tool hooks add it for you. The server answers from that workspace when it
-is a worktree of the same repository or lies under the client's MCP roots.
-
-If a result carries a `workspace_mismatch` diagnostic, the answer came from a
-different workspace than the one you asked for; its `detail.reason` says why.
-Use the CLI from your working directory instead: `npx --no-install kibi ...`
-runs where you are and needs no `workspaceRoot`.
-
-## Reading another repository's knowledge base
-
-When the project declares KB dependencies (`kibi deps status` lists them),
-the tools `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`
-and `kb_graph` take `kb: "<name>"` to answer from that repository's KB at its
-pinned commit (CLI: `--kb <name>`). Reach for it when a question is about a
-library or service this project calls rather than about this project's own
-code. A dependency KB is read-only: never pass `kb` to a
-write, and do not copy its requirements into this project's KB. A
-`DEPENDENCY_NOT_LOCKED` or `DEPENDENCY_LOCK_STALE` error means the pin needs
-`kibi deps lock`, which changes committed files, so ask before running it.
-
-## Reading a hook snippet
-
-On hosts where Kibi hooks are installed, a short block
-arrives before you read or edit a file whose symbols are linked to
-requirements. It is projected from `.kb/symbols.yaml`, not from the store, so
-it is a pointer to the knowledge, never proof. Each line answers one question:
-
-- `Kibi knowledge for <path> (symbol manifest):` and the `- REQ-… — <symbol
-  titles>` rows: the requirements the file's symbols implement, lead
-  requirement first. Read the lead requirement with `kb_query({id})` before
-  changing behavior; add `includeBody: true` to see its authored prose, and
-  fix a stale sentence there with `kb_upsert` `document.body`.
-- `REQ-… must keep true: <claim>` (edit only): what the lead requirement
-  requires, as the claims its facts model (with the operator and members,
-  such as "The greet function must not call console.log") or, without
-  them, its own statement. An edit that breaks one of them is a requirement
-  change: ask before changing the rule (see Decision firmness), and never
-  code around the fact.
-- `Decision: ADR-…` (edit only): the decision behind the lead requirement.
-- `Covered by: TEST-…` and `Test code for: …`: the tests that prove the
-  file's symbols; run or update them with the edit.
-- `The edit is inside <symbol>, which implements REQ-…`: the symbol the edit
-  lands in.
-- `Next layer: …`: the exact `kb_query` and `kb_search(... sourceLocations)`
-  calls that return the full detail.
-- The `kb_check({sourceFiles:[…], includeImpactDiagnostics:true,
-  includeWorkingTreeDiff:true})` line (edit only): run it after the edit. The
-  Stop hook reminds you once per session of files edited without it.
-
-A file already shown this session gets only the one-line `Kibi: this edit to
-<path> is inside <symbol>` update; the facts and tests from its first snippet
-still apply. `Kibi: no symbol in <path> is linked to a requirement yet` means
-the file is unowned, not that no rule covers it. When the note names
-requirements whose titles share the path's words, `kb_query` each one and
-treat a match as the governing rule; otherwise find it with `kb_search` and
-`sourceLocations`. Link the symbol that implements it (for markup, the
-component that renders it) with `implements` through `kb_upsert`. Without a readable manifest (`Kibi: the hook could not read
-.kb/symbols.yaml`) snippets are off for this session; `kb_query({sourceFile})`
-still answers and `kibi sync` regenerates the manifest. The search tip and the
-`.kb/` note appear once per session and need no action.
-
-Before you edit a source file that Kibi tracks, run `kb_search` with that file in `sourceLocations`, and treat both its ranked results and its `data.answer` layer as discovery only, not as the governing text. Then call `kb_query` by `id` on each current governing requirement that the search names, read what each one requires, and make the edit only after those exact reads. A `kb_check`, `kb_status` or `kb_coverage` result does not replace that `kb_query` read. This rule only adds an exact read before the edit and does not change the order of any other step in this workflow. It adds nothing to a modeling or write task: that task still ends with the real `kb_upsert` of every planned fact and requirement and the closing `kb_check`.
-
-For an edit that keeps the governing rule, limit the consultation before the edit to exactly two Kibi calls: `kb_search` with the file in `sourceLocations`, then one `kb_query` (by the governing requirement's `id`, or by `sourceFile` when several requirements govern the file). Do not start with `kb_status`, and do not repeat the search or the query before editing; run `kb_status`, `kb_check` and `kb_coverage` after the edit. This limit applies only to source edits. A task that models a claim keeps its full order, one step after the other: `kb_search`, then the exact `kb_query` of the supplied target, then `kb_model` with `mode: "analyze"` on the complete claim, then `mode: "predicates"` for each relational clause, then `kb_model` with `mode: "requirement"` for a strict or typed-rule clause, and only then the real `kb_upsert` of every planned fact and requirement and the closing `kb_check`. Never call `kb_model` before that exact `kb_query`, and never stop at a dry run.
-
-## Safe workflow
-
-1. Always discover before you mutate: start with `kb_search`, then exact-filter with `kb_query`. Use
-   `kb_status` when branch or freshness confidence matters. `kb_search`
-   defaults to intent ranking, so you can ask it a question ("what governs
-   checkout rounding?"); its `data.answer` layer lists the current governing
-   requirements with linked facts, scenarios, tests, and ADRs, separates
-   superseded requirements, and labels observations as notes. Each governing
-   requirement also carries a `verdict` (`contradiction`, `infeasible`,
-   `unknown`, or `none`, which is not proof), the `exceptions` that exempt it,
-   and the `unknowns` the checks could not decide. Those links and verdicts are
-   discovery, not proof. Answer a question about why a rule is what it is from
-   that requirement's `why`: quote its recorded text; a neighbouring
-   requirement's reason is not this one's; when `why.recorded` is false, say no
-   reason is recorded, do not supply one, and offer to record the person's. Pass `sourceLocations` before changing a source file,
-   and `rankingMode: "legacy"` for literal identifier lookups. A weak answer
-   may add `queryAnalysis.hints` (requirements the question may mean): re-ask
-   in their words, never cite a hint as the rule. See
-   `resources/workflows.md` for the mode recipe.
-2. Resolve genuine ambiguity with the human; use `kb_model` for deterministic
-   interpretation and typed facts.
-3. Create endpoints before relationships and upsert small batches sequentially.
-   Keep the canonical `REQ-* -> SCEN-* -> TEST-*` chain. Recording the
-   behavior a change adds (a requirement with a scenario, and an `implements`
-   link from the symbol) is part of finishing that change, not a separate
-   request: do it without asking. Ask only when the change conflicts with a
-   recorded rule.
-4. Author tracked Markdown/YAML/manifests and relationship shards through Kibi;
-   Kibi never Git-stages or commits those files. Do not read or edit `.kb`
-   directly.
-5. Finish with targeted and final `kb_check`, then read status/coverage and
-   report the five independent closeout fields (not one inferred success flag).
-
-Run `kb_check` with specific rules during iteration and the unfiltered final
-check. Never fire `kb_upsert` calls in parallel; create or confirm endpoint
-entities before linking them. The canonical MCP names are `kb_search`,
-`kb_query`, `kb_model`, `kb_upsert`, and `kb_check`.
-
-For a task that explicitly supplies a malformed concrete mutation payload, locate and read that public request artifact before choosing an entity, preserving its exact entity ID, type, requested changes, and every intended relationship and endpoint. Do not substitute a seeded or convenient entity for the requested target. Start with kb_search, then exact-filter those targets with kb_query, and run kb_upsert with dryRun: true on that same payload (CLI: validate-upsert); validation is not completion. Correct only diagnosed pre-commit errors and revalidate the corrected payload. Once authorized, apply the identical corrected and authorized payload with kb_upsert. If it returns committed_with_repairs, treat the mutation as committed, follow only the required repair actions, and neither retry it nor trigger unrelated semantic backfill for a schema-only repair. Exact-read every changed entity and relationship endpoint with kb_query, then finish with an unfiltered kb_check followed by a final kb_status.
-
-## Closeout fields
-
-End every task with these five independent fields:
-
-```text
-taskOutcome: complete | interim | blocked
-kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
-verificationState: fresh | dirty | unavailable | not_evaluated
-proofState: tested | mixed | unresolved | not_evaluated
-limitationDisposition: none | accepted | unaccepted | not_applicable
-```
-
-`taskOutcome` is whether the requested work finished. The other fields are
-observed system state. A clean check can coexist with unresolved proof.
-
-## Exact Git attachment
-
-The active ref is the exact KB identity. `KIBI_BRANCH` is used verbatim; Git's
-symbolic HEAD is used otherwise. Slash, `@`, Unicode, `main`, `master`, and
-detached states are not normalized or merged. Hashed stores and their
-`branch.json` identity fence are compiled artifacts. A missing exact store is
-created by `kibi sync` from this checkout's tracked sources. Kibi never copies
-stores across branches and never selects merge winners; unresolved authored Git
-conflicts block compilation. See `resources/branch-lifecycle.md` for legacy
-migration, worktrees, quarantine, restore, and purge.
-
-## Typed results and recovery
-
-Every CLI JSON/MCP result has `kibiProtocol`, `operation`, `resultVersion`,
-`status`, `data`, `effects`, `diagnostics`, and typed `nextActions`.
-`status: error` normally means a failed pre-commit operation. The bootstrap
-error `BOOTSTRAP_PLAN_REJECTED` can follow earlier committed actions: inspect
-`data.actionResults` and `data.applied`, then re-plan from the current state.
-Its journal is terminal; never recover or replay it. `BOOTSTRAP_PLAN_INVALID`
-fails preflight before bootstrap writes or a new journal; obtain a corrected
-plan. A migration plan whose actions were refused before changing anything
-returns `status: error`, `MIGRATION_PLAN_REFUSED` and `data.outcome:
-refused`: nothing changed, so read the action `detail` and get a new plan.
-`data.outcome: reconciliation_required` (status success) means an action
-failed mid-way: inspect its effect before retrying. `kb_delete` of an
-authored entity returns status success with `deleted: 0` and `outcome:
-plan_returned` (or `supersession_required` for a requirement): nothing was
-deleted yet, and `nextActions` names the call that does it. If the status is
-`committed_with_repairs`, the mutation already committed: inspect failed effects,
-execute each required repair action in order, and never retry the original
-operation. Record effect failures, followed actions, and unsafe retries in
-diagnostic telemetry.
-
-## Entity body contract
-
-The body is where context lives; front matter is the checked meaning.
-`kb_check` rule `entity-context-missing` blocks a current `req`, `scenario`,
-`test`, `adr` or observation/meta `fact` whose body carries no context: at
-least 12 words that are not a restatement of the title (for a requirement, also
-not of `semantic_text`). Symbols, flags, events and every other fact kind are
-exempt. `kb_upsert` returns the same finding as a warning, including on dryRun.
-
-- `req`: the statement, then `## Context` (why, who asked, constraints) and
-  `## Source` (blockquoted excerpt plus reference). Only text under context
-  headings (Context, Rationale, Why, Background, Source, Notes, Evidence)
-  counts for a requirement, and it never changes the checked meaning:
-  `semantic_text` is written explicitly and context sections are excluded.
-- `scenario`: Given/When/Then prose plus the assumptions it depends on.
-- `test`: what it asserts, how (fixture, entry point), what would make it a
-  false pass.
-- `fact` (`observation`/`meta`): what was seen, where, when, how confirmed.
-- Never invent a reason the requester did not give. Write "Reason not stated"
-  and the source instead. A reason comes from the person or from history you
-  can cite (a commit, pull request, issue, design document): name that source
-  next to it. When history is silent and a reason is still wanted, ask the
-  person; a reason you worked out yourself is written as "Inferred from
-  <what you read>: ..." and stays labelled that way after they approve it.
-  A plausible reason with no source reads as history to the next agent.
-  A sentence on what the rule achieves ("keeps labels recognizable") is a
-  reason too: leave it out unless a source says it. When no source gives the
-  reason, the Context says exactly "Reason not stated." next to who asked.
-- Context says who owns the behavior now. After a split or supersede, a
-  section that still calls the closed requirement the owner ("X decides
-  this") misleads every later reader: re-point it to the current requirement,
-  and keep the old id only in a "Split from" or "Superseded" sentence. Do not
-  paste one context paragraph into sibling requirements it does not fit.
-- State the requirement with `must` or `shall`, and start each claim with its
-  subject, not a pronoun: hooks print claims alone ("It: must be ..." tells
-  the reader nothing).
-- The tag `review:context-missing` is reserved for entities the schema 8
-  migration (`kibi migrate`) acknowledged and recorded in the manifest; it is
-  counted by the advisory `entity-context-acknowledged`. Never add it yourself:
-  on any other entity it is still a violation. Write who asked, the source and
-  "Reason not stated" in the Context section instead.
-- `kb_plan_compile_intent` requires `context` when the plan creates a
-  requirement, and accepts `sourceExcerpt` and `sourceReference`. On update it
-  rewrites the statement and keeps the existing context sections unless you
-  supply new `context` or source.
-
-## Source-first mutation
-
-Use `document.path` when a new entity has no single configured writable target.
-Existing entities preserve body bytes when `document.body` is omitted; a new
-requirement without `document.body` gets `semantic_text` as its body, and
-`kb_check` then blocks it with `entity-context-missing`, so always pass a
-sectioned `document.body` (see Entity body contract). Relationship mutations
-patch canonical shards while preserving unrelated records. Authored entity
-deletion returns a hash-bound approval plan; requirements normally evolve via a
-new entity linked with `supersedes`; set the replaced requirement to
-`status: closed` in the same change, because `kb_check` blocks an open
-superseded requirement and supersession cycles. A requirement that grew to
-cover several behaviors is split the same way; see Requirement size and
-ownership. Kibi compiles `source` from
-the entity's own file and never writes an authored `source` field, so
-`kb_upsert` cannot change one. When `kb_check` blocks a leftover value
-(`source-path-dangling`), run `kibi migrate`: its automatic
-`source_path_rewrite` action removes the value, or rewrites it when the file
-moved. Never hand-edit `.kb/` for it. Read `resources/source-authoring.md`
-before source writes, deletion approval, or recovery.
-
-`kb_apply_plan` applies a whole plan atomically: a failure changes nothing.
-An interrupted plan is settled by the next `kb_apply_plan`, `kb_upsert`, or
-`kb_delete` call, or by `kb_apply_plan` with its `recoveryJournalId`; never
-re-apply the original plan. On a detached HEAD, reads answer from a read-only
-snapshot and writes are refused; check out a branch before mutating.
-
-## Second-agent edits
-
-Recipes for an agent changing a knowledge base another agent or person
-authored. Each one is the order the write path accepts.
-
-1. **New strict requirement with a predicate grounding.** `kb_model` mode
-   `analyze` with the complete prose; copy `inventory_contract` into
-   `semantic_inventory_version`, `semantic_source_field` and
-   `semantic_source_hash`, the prose into `semantic_text`, `propositions`
-   into `semantic_inventory` and the assertive `claim_key`s into
-   `logic_claims`. Reuse (or `kb_upsert`) the subject fact, then call
-   `kb_model` mode `predicates` per clause with `subjectHint` set to that
-   subject fact's `subject_key`: the requirement constrains nothing yet, so
-   the hint is the planned subject and the planned fact gets its
-   `subject_key` (`subjectKey` is a mode `requirement` parameter; mode
-   `predicates` ignores it and warns). `kb_upsert` the returned `applyPlan`
-   fact first (it carries the clause's `claim_key`). Then write the
-   requirement in one `kb_upsert` with the ledger (that clause `status:
-   modeled`), or leave the four scalar ledger fields out and send
-   `semantic_inventory` entries (`{claim_key, status, subjects}`) only for
-   the claims you classify: `kb_upsert` derives the rest, records a claim
-   `modeled` when a grounding link names its `claim_key` and `missing` when
-   nobody classified it, and lists each claim in `inventoryApplied`. Send
-   a sectioned `document.body`, `constrains` to the subject
-   fact, `requires_predicate` to `relationshipTarget` and `specified_by` to
-   its scenario: `specified_by` (req → scenario) is sent in the
-   requirement's write, never in the scenario's, so create the scenario
-   first, with `assumes` links (scenario → `property_value` fact, sent in
-   the scenario's own write) to the values its outcome relies on; add a
-   rejection scenario that assumes a forbidden value next to the success
-   one (see Quantified claims below). Set
-   `expects` only on a scenario that has `assumes` links; `expects: success`
-   without them only yields `scenario-feasibility-unknown` ("assumes
-   nothing"). Between the scenario's write and the requirement's, the
-   check also reports the new success scenario as
-   `scenario-feasibility-unknown` ("not constrained by any current
-   requirement"): that is expected, it clears once the requirement write
-   lands, so do not edit the scenario to silence it. A
-   `modeled` entry and its grounding link must arrive in the same write
-   (`modeled semantic_inventory entries (n) must equal logical grounding
-   relationships (m)`); a clause not grounded yet stays `status: missing`
-   and is switched to `modeled` together with its link later. A partial
-   `{title, status}` upsert (plus relationships) is enough only for an
-   existing entity, whose stored ledger Kibi keeps.
-2. **Changing the text of a grounded requirement.** New prose means new
-   claim keys, so a bare rewrite is refused with `modeled proposition
-   claim_keys must match logical grounding target claim_keys exactly`; the
-   error names the modeled keys no fact declares and the facts whose keys
-   the ledger dropped. Analyze the new prose with the requirement's `id`
-   first: the receipt warns `Claim-key drift against the stored ledger`
-   and names the grounded clauses the new wording drops (the title worded
-   differently from the stored `semantic_text` is the usual cause), before
-   any write. Prefer supersession for a change of meaning: analyze the new prose,
-   write its facts, write the new requirement (`-v2`) with `supersedes` to
-   the old one, then set the old one to `status: closed`. Its scenario
-   follows the same rule as in recipe 1: create the new scenario (with
-   `assumes` to the `property_value` facts it relies on, and `expects` only
-   when it has them) before the `-v2` write that sends `specified_by`, then
-   re-point the old scenario (its `assumes` go in its own write) or close
-   it. For a wording fix
-   that keeps the meaning, re-ground in place: analyze the new prose,
-   `kb_upsert` each grounding fact with the new `claim_key`/`claim_text`
-   (same fact id), then `kb_upsert` the requirement with the new ledger,
-   `semantic_text` and the same grounding links in one write. The requirement
-   write checks the targets' stored claim keys, so the facts go first;
-   between the two writes `kb_check` reports the requirement until the
-   second lands.
-3. **Deleting authored entities.** `kb_delete` on an authored entity that
-   is not a requirement (scenario, test, fact, ADR, …) writes nothing and
-   returns `outcome: plan_returned` with a hash-bound
-   `kibi.entity-deletion-plan.v1` in `deletionPlan`. After review, run
-   `nextActions[0]` unchanged: `kb_apply_plan` with its `input` (`plan` plus
-   `approvedPlanHash: plan.planHash`), or repeat the `kb_delete` call with
-   `approvedPlanHash` to apply the freshly computed plan in one step (a
-   changed source fails with `DELETE_PLAN_HASH_MISMATCH`). `dryRun: true`
-   previews relationship and direct deletes without writing. For an
-   authored requirement the result is `outcome: supersession_required`, the
-   plan carries `supersessionRequired: true` and both routes refuse it
-   (`REQUIREMENT_SUPERSESSION_REQUIRED`): Kibi never deletes an authored
-   requirement. Evolve it instead with a new
-   requirement linked by `supersedes` and close the old one. When the
-   behavior is gone and nothing replaces it (or for an agent-origin
-   requirement nobody approved and nothing links to), upsert it with
-   `status: retired` and a `retired_reason` saying why (keep its `title`);
-   it stays on disk as history and stops governing. Then relink or archive
-   (`status: deprecated`) the facts and scenarios it alone owned, and
-   relink or delete its tests: `kb_check` blocks them under
-   `retired-owner-only`. Leave a requirement that is done and still valid
-   `closed`. A
-   person may remove the file in Git and run `kibi sync`; agents do not edit
-   `.kb/` directly.
-4. **After a commit-time refusal** (`Contradiction detected …
-   (stage=contradiction_check)`, strict-lane pairing, proposition-complete
-   ingestion): the result is `status: error` and nothing was written. The
-   authored file, the relationship shards, the pending-source receipt of an
-   untracked file and the file times are restored, so `kb_check` (including
-   `source-relationship-parity`) stays clean and `kb_status` stays `fresh`;
-   verify both, fix the cause (supersede, pair the lane, re-ground), and
-   resend the whole payload. A `committed_with_repairs` result is the
-   opposite case: the commit stands and only its repair actions are run.
-5. **What `dryRun: true` does and does not check.** It runs every
-   pre-commit validation and, for a `req`, the commit-time contradiction
-   check against a staged, rolled-back copy of the store, so `valid: true`
-   means the commit would accept the payload as far as the store can tell.
-   It writes nothing, so it cannot report what only a write reveals:
-   `DOCUMENT_PATH_REQUIRED` for a new entity with no single writable target,
-   filesystem, lock and receipt failures, a concurrent writer, or
-   `kb_check`-only rules such as `logic-coverage` and `scenario-feasibility`
-   (`entity-context-missing` is returned as a warning).
-
-## Origin and approvals
-
-Entities record `origin` (`kind`: `human`, `agent`, `migration`, or `import`,
-plus optional `ref` and `approved_by`). `kb_upsert` records `kind: agent` on
-entities you create; leave `origin.approved_by` to the person who reviews them,
-and ask for that review with `kibi signoff` (see `kibi-decisions`), never with
-a summary in your own words.
-An exception (a requirement that `exempts` another) exempts nothing until a
-human sets `approved_by`; `kb_check` flags approvals an agent recorded without
-corroboration. Never fill in an approval yourself. Record why a requirement
-exists in `rationale`, or link the ADR that explains it.
-
-An approval covers what the person was shown. A general request ("clean up
-the KB", "get the check to zero") approves no statement, reason, retirement
-or exception: list the specific items (new or changed statements marked as
-such, each reason with its source), ask, and quote the reply you get in
-`origin.ref` of exactly the entities it covered.
-
-A signoff belongs to the change it approves. Ask for it before you open or
-merge the pull request, and when the person answers, record their answer
-(`approved_by` or a `*_waiver_approved_by` field set to them, their words in
-`origin.ref` or `approval_ref`) on the same branch and push it to the same pull
-request. Writing down an answer the person gave is not approving it yourself.
-Never open a separate pull request only to carry a signoff, firmness or waiver
-approval.
-
-## Decision firmness
-
-Requirements and ADRs carry `firmness`, which says what you may do with them.
-Load `kibi-decisions` when a person states a rule, a hook asks before an edit
-of firm code, or a request conflicts with a recorded rule.
-Search answers, `kb_query` rows and hook snippets show it (snippets label only
-`[firm: ask before changing]` and `[exploratory]`; an unlabeled decision is
-`default`).
-
-- `firm`: a human stated it as a rule. Follow it; to change it, ask first.
-  A requirement or ADR with no `firmness` reads as `firm` unless an agent
-  wrote it (`origin.kind: agent`): rules people wrote, imported or carried
-  over from before origins existed are theirs. `kb_check` blocks an explicit
-  `firmness: firm` without `origin.ref` to their words, and a replacement of
-  a firm decision that is not itself firm. Never edit a firm decision's
-  title, statement or (ADR) body in place, by `kb_upsert` or on disk:
-  `kb_upsert` refuses it and `kb_check` reports `decision-firm-edited`
-  unless the edit cites new human words in `origin.ref`. Context sections,
-  tags, status and links stay editable.
-- `default`: a delegated or agent choice (`firmness: default`, or an
-  agent-written decision without `firmness`). Follow it; supersede it only on
-  evidence that it is wrong (a failing test, a measured cost, a constraint it
-  missed), in the same change, listed under "Decisions I changed".
-- `exploratory`: a flagged guess; revisit it when you touch the area.
-
-**A request that conflicts with a recorded rule is a question, whatever the
-rule's firmness.** A conflict means the request would make the rule's
-statement false, including narrowing it or adding an exception; touching the
-same code is not a conflict, and when you cannot tell, ask. The request is not
-evidence against the rule: it is the conflict a person has to decide. Name the rule (id and what it requires) and
-ask whether to change it; do not implement the request and do not supersede
-the rule. Go ahead only when the person has said to change that rule, in this
-task or in reply: then supersede it with `firmness: firm` and `origin.ref` to
-their words (or, for a correction they asked for in place, update it with
-`origin.ref` to those words), and say in the final answer which rule changed.
-
-Set `firmness` explicitly from what a human actually said: only their stated
-rule is `firm` (with `origin.ref` to their words); your own pick is `default`;
-a guess is `exploratory`. A supersede needs a `## Why this changed` section of
-at least 12 words naming the evidence; a preference is not evidence. Never
-cite words nobody said. `kibi-decisions` has the recording and supersede
-payloads.
-
-Conditional clauses ("only when", "only if", "must not ... unless") compile
-into typed `forbid` rules linked by `requires_rule`, not property facts; one
-`kb_model` or `kb_compile_intent` cannot translate stays an `ontology_gap`.
-
-`kb_compile_intent` reports `contradictionAnalysis.outcome: no_conflict` only
-when it could check: Prolog compares only requirements with logic links. When
-the intent is unmodeled or a related current requirement is prose only, the
-outcome is `unresolved` with `reasons` and up to five `reviewCandidates`. Never
-read `unresolved` as consistent. Compare the intent with each candidate's
-`statement`, then compile again with `conflictReviews`
-(`{requirementId, verdict: "conflict" | "no_conflict", note}`). On a conflict
-the plan is `blocked`: ask the human which rule holds (a firm requirement is
-theirs), then supersede or change it, or change the intent (see
-`kibi-decisions`).
-
-## Semantic and proof guardrails
-
-Prolog proves only encoded facts. Keep ambiguity, ontology gaps, incomplete
-grounding, stale snapshots, and failed or unavailable evidence explicit. Use
-`fact_kind: subject` plus `property_value`/`predicate` lanes for contradiction-
-safe normative claims; use `observation` or `meta` for bug/workaround notes and
-`flag` only for actual runtime/config gates. Requirements require scenarios,
-tests, symbol ownership, and fresh proof-bearing receipts before claiming proof.
-For an existing product KB that needs semantic backfill, read
-`resources/kb-improvement.md`, and `resources/proof.md` for the proof workflow.
-Each current requirement has an evidence floor (`required_evidence`, else
-`tested` when firm); certificate proof kinds (exhaustive, typecheck,
-arithmetic, smt, rule, state_machine, regex, source) reach `proved` for the claims their contract names in
-`proves`, and a requirement is proved only when every claim is. A rule
-predicate bound with `harness_for` (scope `harness`) also counts toward
-`proved`; an intent-scope binding stays `tested`. When the `evidence-floor` rule fails, follow Debugging
-proof regressions in `resources/proof.md` and use `kibi proof explain`.
-Load `kibi-provable-code` before writing or refactoring code that implements
-a requirement, when a source read is refused for a computed name, dynamic
-import, reflection or eval, or when deciding how to treat generated code.
-
-## Domain subjects
-
-A subject fact (`fact_kind: subject`) defines one thing in the product: a
-screen, a role, a document, a limit. Its body is the definition (at least 8
-words: what it is, what it includes and what it is not); `kb_check` blocks a
-subject without one (`subject-definition-missing`) and two subjects whose key
-and title read as one (`subject-duplicate`). Relate subjects instead of
-copying them: a dotted key (`drawing.read_only_view`) is part of its prefix,
-and `part_of`, `kind_of` and `distinct_from` name other subject keys. A
-subject that names itself under `part_of`, `kind_of` or `distinct_from`, or a
-chain of broader subjects that leads back to it, is blocked
-(`subject-hierarchy-invalid`).
-
-Every unmodeled `normative`, `condition`, `exception` or `definition` claim
-of a current requirement names the subjects it is about in its inventory
-entry, `subjects: [<subject_key>, ...]` (`claim-subject-missing`), and each
-key must be defined (`claim-subject-undefined`). Prose Kibi cannot compare
-still meets the other requirements on the same subject:
-`kb_query {"factKind":"subject","subjectKey":"<key>"}` returns the
-definition, broader and narrower subjects, every current requirement about
-it or a narrower one, and under `unmodeledClaims` the prose claims Kibi cannot
-compare. `kb_upsert` of a requirement lists those neighbours, on the subject,
-a narrower or a broader one, and warns when a `pair_reviews` entry's `with`
-names no current requirement: read them, and when one contradicts the new claim, or restricts what it
-describes without saying so, ask the person which rule holds (see
-`kibi-decisions`). Pick an existing subject before defining a new one; when
-none fits, define it from what the project's people and code say; when nobody
-has said, write `Definition not stated:` followed by where the subject is
-named and who could define it, rather than inventing one.
-
-A `must` requirement written after the schema 17 upgrade states the behaviour
-it promises as a success scenario (`must-positive-scenario`): a scenario with
-`expects: success` that the requirement links through `specified_by` and that
-`assumes` a `property_value`, predicate or rule fact (a subject fact does not
-count) on one of the requirement's subjects or a narrower one. When the
-requirement names a subject no subject fact defines, define the subject
-first. Write the positive case even when the requirement is prose
-nobody modeled: `scenario-feasibility` then refuses the scenario when another
-current requirement forbids what it assumes, which is how a prose requirement
-that quietly contradicts a modeled one is caught. Must requirements the
-upgrade recorded in `.kb/manifest.json` are exempt; never invent behaviour a
-requirement does not state to satisfy the rule, ask the person instead.
-
-Any write that adds or rewrites a requirement's inventory, even a fix that
-only adds a Context section, must name the subjects of its claims in the same
-write. When `kb_check` or the write result suggests defined subjects, read
-their definitions with `kb_query` and name the one the claim is about:
-choosing among defined subjects is yours to do, not a question for the
-person. Leaving `claim-subject-missing` behind does not finish the task.
-
-An unmodeled rule claim (`missing`, `ontology_gap` or `ambiguous`) is checked
-against every current requirement it pairs with, through a `relates_to` edge
-or a shared subject (`related-requirement-unmodeled`). Model the claim on that
-requirement's subject keys when you can. When it cannot be modeled yet, link
-the two with `relates_to` and record one `pair_reviews` entry on the
-requirement: `with` (the other id), `verdict` (`no_conflict` with
-`separated_by`, the condition that keeps them apart; `interacts` with
-`resolved_by`, which settles how they combine: a scenario either of them
-`specified_by`, a fact either links, a third current requirement, or a
-`condition` or `exception` claim key of either, never the two requirements
-themselves; or `conflict`), `claims` (`{claim_key}` of each unmodeled claim,
-so the verdict goes stale when a claim it does not name appears; a
-`payload_hash` is accepted and ignored) and `origin`. A `conflict` never
-settles a pair: ask the person which rule holds. On a pair with a `must` or
-firm requirement, a verdict whose `origin` is missing or not `kind: human`,
-or that sits on a requirement an agent wrote, counts only once the person
-confirms it and you set `origin.approved_by`; never set it yourself. The
-finding lists each requirement once per problem with the partners it pairs
-with. A claim with status `missing` whose role states no rule (`descriptive`)
-is modeled, set to `ontology_gap` with a reason when no predicate can state
-it, or reviewed; `nonlogical` is accepted only for `rationale`, `example` and
-`subjective` claims.
-
-## Quantified claims: model the dimension
-
-When a claim says every, each, all, any, only, at least, at most, exactly, a
-role, a status or a count, ground it on what varies, never on `= true`: an int
-count or bound (`role_count eq 1`, `uninstrumented_loaded_files eq 0`), a set,
-or a typed rule with a `forall` variable. Keep `value_type: bool` for genuinely
-binary properties (a flag is on). A `shadow_analysis` cue from `kb_model`
-(`mode: "analyze"`) with `kind: quantifier` or `numeric` and `represented:
-false` means the planned grounding hides the dimension. When
-`mode: "predicates"` finds no schema for such a claim, do not stop at the
-ontology-gap observation: call `kb_model` with `mode: "requirement"` and an
-int `subjectKey`/`propertyKey`/`operator`/`value` for the count, and keep the
-gap only when no count, set or rule expresses the claim.
-
-Specify the requirement with scenarios that carry their inputs. Each scenario
-sets `expects` and `assumes` its own `property_value` fact: same `subject_key`
-and `property_key` as the grounding, with the scenario's value. These
-assumed-value facts are linked only by the scenario's `assumes`, never by the
-requirement, so a forbidden value does not contradict the grounding; it is
-what makes the scenario a rejection. Write at least:
-
-- a success scenario assuming an allowed value (`expects: success`);
-- a rejection scenario assuming a forbidden value (`expects: rejection`, or
-  `error`); a scenario that only describes the refusal in prose, without
-  `expects` and `assumes`, does not count;
-- for a quantified claim, cases at zero, one and many when they differ.
-
-```json
-{"type":"fact","id":"FACT-member-role-count-2","properties":{"title":"Member holds two roles","status":"active","fact_kind":"property_value","subject_key":"organization.member","property_key":"role_count","operator":"eq","value_type":"int","value_int":2}}
-{"type":"scenario","id":"SCEN-member-two-roles-rejected","properties":{"title":"A member with two roles is rejected","status":"active","expects":"rejection"},"relationships":[{"type":"assumes","from":"SCEN-member-two-roles-rejected","to":"FACT-member-role-count-2"}]}
-```
-
-Then send `specified_by` to every scenario in the requirement's write.
-Details: `resources/fact-lanes.md`, Model the Dimension, Not the Verdict.
-
-## Predicate Ontology Decision Tree
-
-Call `kb_model` with `mode: "analyze"` on the complete prose before encoding a clause.
-Set requirement `logic_claims` to exactly the assertive `claim_key` values.
-For each relational clause, call `kb_model` with `mode: "predicates"`, that clause, and
-`existingLogicClaims`. If lexical rank is a false positive, retry with the
-reviewed `schemaId`. If `binding_status` is `incomplete`, supply
-`argumentBindings` and retry. Persist `fact_kind: predicate` with the same
-`claim_key` / `claim_text`, then link `REQ -> fact` with `requires_predicate`.
-`claim_key` is derived from `claim_text`, so a ground fact may send the exact
-clause alone and Kibi fills the key in; a sent key must equal the derived one.
-Use `kb_model` with `mode: "requirement"` for strict scalar clauses. Use
-`fact_kind: observation` only for a true ontology gap. The manifest is not
-grounding: run `logic-coverage` so each key binds to one ground fact.
-Relationship direction is fixed, and every `from` in a relationship batch
-must equal the upserted entity ID.
-
-Worked example. `recommendedAction: "provide_argument_bindings"` means a
-schema fits but `unbound_arguments` lists roles Kibi could not read from the
-prose; `bindingHints` (on MCP at `structuredContent.data.bindingHints`, like
-every result field) gives each one's `type`, `allowedValues` (declared
-constants) or `examples`, and why the current value was refused. With a
-`requirementId` whose requirement `constrains` one subject fact, the `subject`
-argument is already bound to that fact's `subject_key` (provenance
-`requirement`); keep it, so the predicate and the subject fact name one
-subject. A schema without a `subject` argument (`permission_rule`) records
-that key as the planned fact's `subject_key` instead; when the requirement
-constrains several subjects, an unbound `subject_key` asks you to pass
-`subjectHint` with one of them. A participant (`actor`, `resource`, entity)
-is a short noun, never a clause of the claim, and an `actor`, `role` or
-`owner` is never the requirement's subject key: the planned fact already
-carries that key as `subject_key`, so `actor = <subject key>` stays unbound
-with a reason. When the claim names no participant for such an argument (the
-value is empty, the subject key or a clause that opens with a gerund such as
-"Discarding a draft while …", and none of the schema's constants or example
-values occurs in the claim), the schema does
-not fit the claim and Kibi answers `record_ontology_gap` with the gap
-observation in `applyPlan`; the candidate stays listed as `incomplete` with
-its `bindingHints`. Write the observation instead of inventing a participant.
-For every other unbound argument, bind it
-from the claim's own words and call again with the same `text` and
-`requirementId`, plus `schemaId` and `argumentBindings` keyed by
-`argument_names` (reuse `argument_constants` values when the schema has them).
-A value that repeats an argument name (`"before_event": "before_event"`) or is
-a bare stop word (`be`, `is`, `the`) stays unbound; never copy field names:
-
-```json
-{"mode":"predicates","text":"Only an annotation owner may delete an annotation.","requirementId":"REQ-annotation-delete-owner","schemaId":"FACT-SCHEMA-PERMISSION-RULE","argumentBindings":{"actor":"annotation_owner","action":"delete","resource":"annotation","decision":"allow"}}
-```
-
-When the retry returns `apply_requires_predicate`, write its `applyPlan` fact,
-then the `relationshipPlan` `requires_predicate` row; its target is
-`relationshipTarget` (the planned `FACT-PRED-…` id), never a candidate's
-`SUGGEST-…` id. A non-empty `existingGrounding` means the requirement already
-grounds the claim (for example a bootstrap `requires_property` fact); the action
-still names the predicate state. `replace_grounding` means a predicate fits but
-a second grounding link would fail, so keep the existing link or apply the
-`replacementPlan` steps unchanged, in order and back to back (predicate fact,
-`kb_delete` of the old link, requirement link; between the last two `kb_check`
-reports both `logic-coverage` and `strict-req-fact-pairing` for the
-requirement, as `expected.kbCheckAfterStep` states; run `kb_check` after the
-last step and apply `rollback` if it is not clean). `keep_existing_grounding`
-means the requirement already links a predicate fact with the candidate's
-`canonical_key` (`existingGrounding[].matchedBy` is `canonical_key` when the
-claim was worded differently), so write nothing. `extend_requirement` means
-the requirement's proposition ledger has no entry for this text, so a link
-cannot be made and no fact is planned: add the clause to the requirement's
-prose (`mode: "requirement"`, or `kb_upsert` with the extended `semantic_text`
-and the ledger `mode: "analyze"` returns) and call `mode: "predicates"` again.
-Read `decisionConflicts` and its warnings whenever `plan` is null: they name
-the stored decision facts the candidate would contradict and the requirements
-that own them. To ask what a proposed rule would conflict with, call
-`mode: "predicates"` with its text and no `requirementId`; nothing is written.
-`provide_argument_bindings` and `record_ontology_gap` mean
-the same as for an ungrounded claim, and the gap observation is not a grounding
-link, so write it exactly as returned (tags, `claim_text`, `document.body`, no
-`claim_key`, no relationships). Record an ontology gap only when no returned schema fits the
-claim, not because bindings were missing.
-A review note is an observation that quotes its claim without `claim_key`, with
-its prose in `document.body`:
-`{"type":"fact","id":"FACT-review-<area>-<behavior>","properties":{"title":"Review: ...","status":"active","fact_kind":"observation","text_ref":"<sourceId>:<reference>","tags":["review:invalid-write"],"claim_text":"<the claim>"},"document":{"body":"<why it needs review, who raised it, the source>"}}`.
-
-To add `specified_by` (or another relationship) to an existing requirement,
-upsert it with its stored `title`, a `status` and the relationship only; Kibi
-keeps the stored proposition ledger when no `semantic_*` or `logic_claims`
-field is sent and `title`/`text_ref` are unchanged.
-
-For conditional relational claims, after the initial `kb_model` predicates call and before any `kb_upsert`—including one needed for a missing schema—call read-only `kb_model` with `mode: "requirement"` to preview suitable scalar or typed-rule modeling. Treat the preview as advisory: do not apply an irrelevant result or create unrequested facts, and retain an approved ground-predicate plan when it captures the whole claim. Preserve supplied arity, ordered argument roles, polarity, bound values, and one claim key per actual assertion; never split arguments across clauses or schemas or alter values to force uniqueness.
-
-## Requirement size and ownership
-
-One requirement states one behavior: what one test observes together. Hooks
-and `kb_query({sourceFile})` return a file's owning requirements to the next
-agent, so a broad requirement or a link from code that decides nothing gives
-that agent the wrong rule. Apply this whenever you write a requirement or an
-`implements` link, not only during a cleanup.
-
-- **Size.** The unfiltered `kb_check` reports `broad_requirement_review` when
-  a current requirement has more than 8 implementing symbols, 6 scenarios,
-  8 tests or 5 dependent requirements. Split it by behavior, never by
-  sentence: clauses one test observes together stay together, and a cohesive
-  vocabulary (a set of states or statuses) stays whole. Keep the parent's
-  sentences verbatim where they still fit, so their claim keys and facts
-  keep binding; new wording is a statement change the person approves.
-  Review findings such as this one are listed in the unfiltered
-  `kb_check` result's `qualityDiagnostics`, not in `violations`: zero
-  violations does not mean the finding is gone. Read its `evidence` counts
-  instead of counting links yourself, and never pass a finding id as a
-  `rules` filter.
-- **Umbrella.** Tag a requirement `umbrella` (or `epic`) only when it is a
-  real feature-level rule whose parts have their own requirements linked to
-  it with `depends_on`. Code that decides one part implements that part's
-  requirement; the umbrella keeps only code that decides the feature as a
-  whole. Never add the tag to clear the finding.
-- **Owner.** `implements` goes on the function that decides the behavior: the
-  one a change to the rule would edit. A wrapper that only delegates, an
-  adapter that forwards to shared code, and a helper that decides nothing do
-  not implement the requirement (when the staged gate still asks for an entry
-  for such a declaration, follow `kibi-commit-review`, Choosing the owner).
-  Every symbol in the manifest must implement a requirement
-  (`symbol-traceability`), so a symbol that decides nothing is removed, not
-  left unlinked: `kb_delete` its id and apply the returned plan.
-  A behavioral symbol implements at most 2
-  requirements (4 for a class, component or module);
-  `multi_requirement_symbol_review` reports more, and `granularity_reason`
-  does not exempt it.
-- **Before you add a link**, read the requirement's current fan-out
-  (`kb_graph` from it, or the `evidence` counts of the review finding). If
-  your link would take it past a threshold, the new code either decides a
-  behavior of its own (record that requirement) or shows the requirement was
-  already broad (split it, or report it). Never choose a requirement because
-  it has room, and never stop at exactly the threshold by leaving out code
-  that does decide the behavior.
-- **Split mechanics.** List the parent's symbols, scenarios and tests with
-  `kb_graph` from the parent and `kb_query` by id; never read or grep `.kb/`
-  to find them. Then, in this order:
-  1. Write each child: the parent's sentences for that behavior verbatim
-     (read them with `kb_query` and `includeBody: true`, not from the file),
-     `supersedes` to the parent, a `specified_by` scenario, a `## Context`
-     quoting the person's approval, a `## Why this changed` section of at
-     least 12 words (the approval, and which behaviors the parent mixed),
-     and the subjects its claims are about (`kb_query` with
-     `factKind: "subject"` lists the defined ones). Do not copy the parent's
-     `required_evidence` or `approved_by`; quote the person's split approval
-     in each child's `origin.ref`.
-  2. Remove the parent's `implements` links in one `kb_delete`
-     relationships call.
-  3. `kb_upsert` each deciding symbol with `implements` to the one child
-     whose behavior it decides.
-  4. Remove each wrapper's symbol entry (`kb_delete` by id, then apply the
-     returned plan).
-  5. Children of one parent usually share a subject, so each pair trips
-     `related-requirement-unmodeled` while its claims are unmodeled. Link
-     each pair with `relates_to` and record a `pair_reviews` entry on one of
-     them: verdict `no_conflict` with `separated_by` naming the behavior that
-     keeps them apart, `claims` with the `{claim_key, payload_hash}` of every
-     unmodeled claim of both, and `origin.kind: agent`. When neither child is
-     `must` or firm, your verdict counts as written: no `approved_by` is
-     needed, so do not stop to ask for one. Write one entry per pair.
-  6. Set the parent `status: closed`, then run the unfiltered `kb_check` and
-     fix what it reports before you finish.
-- **Do not fit the check.** Zero findings is the floor, not the goal. Do not
-  relax a rule, add an exemption, lower `required_evidence`, or add a
-  requirement that only pins a constant ("X shall be 13") unless drift of
-  that constant would be a defect a user sees; one constant is stated in one
-  requirement.
-- **Read the code first.** Before you write or move a statement, confirm the
-  code does what the sentence says; a split child is new text even when the
-  parent was right.
-
-Split, relink, reasons and retirement recipes, the order to run them in and
-the review questions that zero findings does not answer are in
-`resources/kb-quality.md`.
-
-## Symbol-First Traceability
-
-Represent implementation ownership with a `symbol` entity that has
-`sourceFile`, `implements` to the requirement, and `covered_by` to the test.
-Prolog `symbol-coverage` also requires the test to `validates` the requirement
-(or the requirement `verified_by` the test). `covered_by` alone is not
-enough. Code comments such as `// implements REQ-<area>-<behavior>` are not read
-by any Kibi check; the symbol manifest is the only traceability record, so do
-not add them.
-
-Set the symbol's `title` to the behavioral member the extractor can locate in
-`sourceFile`: `ClassName.methodName`, an exported function, or a class, not a
-file or module name. A traceability link (`implements`, `covered_by`, …) from
-a symbol whose `title` names no such member is refused by the granularity gate
-when the file already has granular behavioral symbols, unless the symbol sets
-`granularity_reason` to `config-artifact`, `module-level-behavior`,
-`extractor-miss`, `legacy-link` or `test-suite`.
-
-## Complete Logical Coverage
-
-Decompose all atomic normative clauses into `claim_key`/`claim_text` entries in
-`logic_claims`; human or agent review still confirms that the atomic clauses
-exhaust the prose. Run `logic-coverage` and `domain-contradictions` after
-modeling. Use `status: implemented` only as historical input; use a valid status
-such as `closed`, add an `implemented` tag, and link evidence instead.
-
-## Anti-Patterns and Remediation
-
-Reject reversed relationship direction, a Bug-as-flag record without a runtime
-gate, direct KB-store edits, and a generic `strict kb_upsert.properties` field.
-Reject an invented reason, an `implements` link from code that only delegates,
-an `umbrella` tag or rule change made to clear a review finding, and a
-requirement left `closed` when its behavior is gone (`retired`).
-Keep symbol payloads minimal. Never resend a payload a typed error rejected
-twice; fix the rule and field the error names, or follow `nextActions`.
-
-Kibi may now author tracked Markdown/YAML evidence transactionally. The former
-statement “Kibi operation writes do not automatically stage markdown evidence”
-means Kibi writes do not Git-stage it: review and commit remain ordinary Git
-workflows. When `kibi check --staged` or the pre-commit hook blocks a commit,
-load `kibi-commit-review`.
+Use the approved `kb_*` MCP tools when they are visible (hosts may prefix
+them, such as `kibi_kb_search`). Otherwise use the trusted project-local CLI,
+which takes the same object:
+`printf '%s\n' '{"query":"checkout"}' | npx --no-install kibi search --input -`.
+If neither is available, stop and name the missing capability; never use a
+global or installing runner. In a worktree or another directory, pass
+`workspaceRoot` or run the CLI from there. `resources/interfaces.md` has the
+details and `resources/operation-access.md` maps operation names.
+
+## 1. Search for prior intent
+
+Before changing behaviour, `kb_search` the question with the file in
+`sourceLocations`, then `kb_query({id})` the governing requirement. The search
+answer is discovery; the requirement's statement and `why` are the rule.
+Answer a "why" question from its recorded `why`; when none is recorded, say
+so and never supply one. A file with no linked symbols can still be governed
+by a rule.
+
+## 2. Edit
+
+Hook snippets name the requirements a file implements, what they must keep
+true, and their tests (`resources/hook-snippets.md`). A request that would
+make a recorded requirement or ADR false (narrowing it or adding an exception
+counts; touching its code does not) is a question, not a task: name the rule
+and ask, and change the code or the rule only when the person says so. Load
+`kibi-decisions` when a person states a rule or a request conflicts with one.
+
+## 3. Record
+
+Recording the behaviour a change adds is part of the change and needs no
+permission: a requirement stated with `must`, a `## Context` section with the
+reason and who gave it (write "Reason not stated." rather than inventing
+one), a scenario, and an `implements` link from the symbol. Write with
+`kb_upsert`, endpoints before links, one call at a time. The result reports
+what was written, its warnings and typed `nextActions`: act on those instead
+of reading the entity back. `dryRun: true` is an optional preview for a
+payload you are unsure of; it records nothing. On `committed_with_repairs`
+run the repair actions and never resend the write. Never edit `.kb/` by hand.
+`resources/recording.md` has the body contract and firmness rules.
+
+## 4. Check
+
+Run `kb_check` with `sourceFiles` for the files you changed and fix what it
+reports about your change. `kb_status` says whether the KB is fresh.
+
+## 5. Commit
+
+Kibi writes `.kb` files but never Git-stages or commits them: stage them
+with the code (`git add .kb`). When
+`kibi check --staged` or the pre-commit hook refuses the commit, load
+`kibi-commit-review`.
+
+## Resources
+
+Read one with `kb_skills` (`action: "read"`, `id: "kibi-usage"`,
+`resource`) when the task needs it:
+
+- Modeling a claim: `domain-subjects.md`, `quantified-claims.md`,
+  `predicate-ontology.md`, `fact-lanes.md`, `logic-ir.md`
+- Changing someone else's KB: `second-agent-edits.md`, `source-authoring.md`
+- Requirement size, owners and KB cleanup: `requirement-size.md`,
+  `kb-quality.md`, `kb-improvement.md`
+- Results, recovery, branches: `results-and-recovery.md`,
+  `branch-lifecycle.md`
+- Proof: `proof.md`, `prolog-proofs.md`; UI rules: `ui-requirements.md`
+- Field rules and recipes: `operation-fields.md`, `workflows.md`,
+  `relationship-directions.md`

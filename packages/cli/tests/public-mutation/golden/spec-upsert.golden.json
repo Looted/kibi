@@ -28,7 +28,24 @@
       "properties": {
         "type": "object",
         "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
-        "x-kibi-advertised-description": "Entity fields to persist; must include title and status.",
+        "x-kibi-advertised-description": "Entity fields; must include title and status. Fact, symbol, test and proof fields: kibi-usage resource operation-fields.",
+        "x-kibi-advertised-fields": [
+          "title",
+          "status",
+          "priority",
+          "tags",
+          "links",
+          "text_ref",
+          "origin",
+          "semantic_text",
+          "rationale",
+          "firmness",
+          "approved_by",
+          "approval_ref",
+          "required_evidence",
+          "sourceFile",
+          "symbol_role"
+        ],
         "properties": {
           "title": {
             "type": "string",
@@ -1407,8 +1424,8 @@
       "implementedBy": {
         "type": "array",
         "minItems": 1,
-        "description": "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant). Kibi creates or reuses each symbol and links it with implements; an entry that resolves to no single granular declaration is refused with candidates.",
-        "x-kibi-advertised-description": "req only: the declarations that implement it, each {sourceFile, symbol}; Kibi links each with implements.",
+        "description": "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant), with optional coveredBy test ids. Kibi creates or reuses each symbol, links it with implements and to each coveredBy test with covered_by; an entry that resolves to no single granular declaration is refused with candidates.",
+        "x-kibi-advertised-description": "req only: declarations that implement it, each {sourceFile, symbol, coveredBy?}; linked by implements (and covered_by).",
         "items": {
           "type": "object",
           "additionalProperties": false,
@@ -1421,6 +1438,13 @@
             "symbol": {
               "type": "string",
               "minLength": 1
+            },
+            "coveredBy": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         }

@@ -76,10 +76,12 @@ const REPO_ROOT = resolveRepoRoot();
 export function isolatedPackedSandboxEnv(
   overrides: NodeJS.ProcessEnv = {},
 ): NodeJS.ProcessEnv {
-  // Packed runs are tests: they never send anonymous usage telemetry.
+  // Packed runs are tests: they never send anonymous usage telemetry. They
+  // call every MCP tool, so the server lists the full catalog.
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     KIBI_TELEMETRY: "0",
+    KIBI_MCP_TOOLS: "full",
     ...overrides,
   };
   env.KIBI_BRANCH = undefined;

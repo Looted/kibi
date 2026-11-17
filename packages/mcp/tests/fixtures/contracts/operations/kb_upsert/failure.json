@@ -48,10 +48,17 @@
           "type": "string"
         },
         "implementedBy": {
-          "description": "req only: the declarations that implement it, each {sourceFile, symbol}; Kibi links each with implements.",
+          "description": "req only: declarations that implement it, each {sourceFile, symbol, coveredBy?}; linked by implements (and covered_by).",
           "items": {
             "additionalProperties": false,
             "properties": {
+              "coveredBy": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "sourceFile": {
                 "minLength": 1,
                 "type": "string"
@@ -151,15 +158,8 @@
               }
             }
           ],
-          "description": "Entity fields to persist; must include title and status.",
+          "description": "Entity fields; must include title and status. Fact, symbol, test and proof fields: kibi-usage resource operation-fields.",
           "properties": {
-            "aliases": {
-              "description": "Optional vocabulary aliases for predicate discovery.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
             "approval_ref": {
               "description": "Requirement-only. Optional reference to the exception's approval decision record.",
               "minLength": 1,
@@ -170,175 +170,10 @@
               "minLength": 1,
               "type": "string"
             },
-            "argument_aliases": {
-              "additionalProperties": {
-                "additionalProperties": {
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "type": "object"
-              },
-              "description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant.",
-              "type": "object"
-            },
-            "argument_constants": {
-              "additionalProperties": {
-                "items": {
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "minItems": 1,
-                "type": "array"
-              },
-              "description": "predicate_schema only: allowed constants keyed by argument name; unlisted arguments stay open.",
-              "type": "object"
-            },
-            "argument_descriptions": {
-              "description": "Optional ordered argument explanations.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "argument_names": {
-              "description": "Ordered argument role names for predicate_schema facts.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "argument_types": {
-              "description": "Ordered argument types for predicate_schema facts.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "canonical_key": {
-              "description": "Optional canonical identity key for predicate or strict fact claims.",
-              "type": "string"
-            },
-            "case_waiver": {
-              "description": "Fact-only: why the edge cases derived from this fact are covered elsewhere or cannot occur.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "case_waiver_approved_by": {
-              "description": "Fact-only. The person who accepted case_waiver.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "claim_key": {
-              "description": "Optional key of the clause this fact grounds; Kibi derives it from claim_text, and a sent key must match.",
-              "pattern": "^CLAIM-[A-F0-9]{16}$",
-              "type": "string"
-            },
-            "claim_span_end": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "claim_span_start": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "claim_text": {
-              "description": "Exact atomic requirement clause this fact represents; Kibi derives claim_key from it on a grounding fact.",
-              "type": "string"
-            },
-            "closed_world": {
-              "description": "Optional closed-world marker for strict fact interpretation.",
-              "type": "boolean"
-            },
-            "dimension_waiver": {
-              "description": "Fact-only: why the quantifier in claim_text ranges over nothing; counts once dimension_waiver_approved_by is set.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "dimension_waiver_approved_by": {
-              "description": "Fact-only. The person who accepted dimension_waiver.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "distinct_from": {
-              "description": "Keys this subject or value fact was checked to differ from; silences subject-duplicate and quantity-duplicate.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "examples": {
-              "description": "Optional ground-term examples for a predicate schema.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "exempts_claims": {
-              "description": "Requirement-only: claim keys of the exempted requirement this exception waives; omit to waive all of it.",
-              "items": {
-                "pattern": "^CLAIM-[A-F0-9]{16}$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "fact_kind": {
-              "description": "Optional fact lane: subject, property_value, observation, meta, predicate_schema or predicate.",
-              "enum": [
-                "subject",
-                "property_value",
-                "observation",
-                "meta",
-                "predicate_schema",
-                "predicate",
-                "rule_schema",
-                "rule"
-              ],
-              "type": "string"
-            },
-            "failure_side_waiver": {
-              "description": "Requirement-only: why the requirement has no failure side to test; counts once failure_side_waiver_approved_by is set.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "failure_side_waiver_approved_by": {
-              "description": "Requirement-only. The person who accepted failure_side_waiver.",
-              "minLength": 1,
-              "type": "string"
-            },
             "firmness": {
               "description": "req/adr only: firm (a human's rule, needs origin.ref), default or exploratory. Absent = default if an agent wrote it.",
               "enum": ["firm", "default", "exploratory"],
               "type": "string"
-            },
-            "granularity_reason": {
-              "description": "Optional justification for a coarse file or module-level traceability link when narrower symbols exist.",
-              "enum": [
-                "config-artifact",
-                "module-level-behavior",
-                "extractor-miss",
-                "legacy-link",
-                "test-suite"
-              ],
-              "type": "string"
-            },
-            "key_arguments": {
-              "description": "predicate_schema only: argument names that determine the remaining arguments (a functional dependency).",
-              "items": {
-                "minLength": 1,
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "kind_of": {
-              "description": "subject only: defined subject keys this subject is a kind of (a read-only review is a kind of review view).",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
             },
             "links": {
               "description": "Optional references. Example: ['REQ-cli-gc','https://example.com/spec'].",
@@ -346,32 +181,6 @@
                 "type": "string"
               },
               "type": "array"
-            },
-            "logic_claims": {
-              "description": "Requirement-only: every atomic claim key kb_model mode analyze returned; each must be grounded by a linked fact.",
-              "items": {
-                "pattern": "^CLAIM-[A-F0-9]{16}$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "operator": {
-              "description": "Optional comparison operator for property_value facts, e.g. eq, gt, matches (regex), includes, subset_of, excludes.",
-              "enum": [
-                "eq",
-                "neq",
-                "lt",
-                "lte",
-                "gt",
-                "gte",
-                "matches",
-                "includes",
-                "subset_of",
-                "excludes"
-              ],
-              "type": "string"
             },
             "origin": {
               "additionalProperties": false,
@@ -403,73 +212,8 @@
               "required": ["kind"],
               "type": "object"
             },
-            "owner": {
-              "description": "Optional owner name/team. Example: 'platform-team'.",
-              "type": "string"
-            },
-            "pair_reviews": {
-              "description": "Requirement only: verdicts on related pairs whose unmodeled claims cannot be modeled. Model the claims first.",
-              "items": {
-                "type": "object"
-              },
-              "type": "array"
-            },
-            "part_of": {
-              "description": "subject only: defined subject keys this subject is a part of.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "polarity": {
-              "description": "Optional polarity for property_value or predicate facts.",
-              "enum": ["require", "forbid", "assert", "deny"],
-              "type": "string"
-            },
-            "predicate_args": {
-              "description": "Optional ordered predicate arguments for ontology predicate facts; prefer kb_model mode predicates.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "predicate_arity": {
-              "description": "Required arity for predicate_schema facts.",
-              "minimum": 1,
-              "type": "integer"
-            },
-            "predicate_name": {
-              "description": "Optional predicate name for ontology predicate facts; prefer kb_model mode predicates.",
-              "type": "string"
-            },
-            "predicate_namespace": {
-              "description": "Optional namespace for a project-local predicate schema.",
-              "type": "string"
-            },
             "priority": {
               "description": "Optional priority label. Example: 'high'.",
-              "type": "string"
-            },
-            "proof_bindings": {
-              "description": "test only: native-runner bindings (symbol_id, target) for proof obligations; a rejection returns the full schema.",
-              "items": {
-                "type": "object"
-              },
-              "type": "array"
-            },
-            "proof_contract": {
-              "description": "test only: kibi.proof-contract.v1 for this test; load the kibi-usage resource `proof` first. Rejections give the schema.",
-              "type": "object"
-            },
-            "proof_receipts": {
-              "description": "test only: proof receipts kb_ingest_proof derives; never hand-write them. Send the stored list unchanged or omit it.",
-              "items": {
-                "type": "object"
-              },
-              "type": "array"
-            },
-            "property_key": {
-              "description": "Optional snake_case property key for property_value facts. Example: 'session.timeout_minutes'.",
               "type": "string"
             },
             "rationale": {
@@ -482,71 +226,8 @@
               "enum": ["proved", "tested", "asserted", "unverified"],
               "type": "string"
             },
-            "rule_hash": {
-              "description": "Deterministic hash of canonical rule_ir.",
-              "type": "string"
-            },
-            "rule_ir": {
-              "description": "Schema-validated kibi.logic.v1 rule IR. It is persisted as data and never executed as caller-supplied Prolog.",
-              "type": "object"
-            },
-            "rule_name": {
-              "description": "Stable rule schema name.",
-              "type": "string"
-            },
-            "rule_schema_id": {
-              "description": "Rule schema fact ID used to validate this rule.",
-              "type": "string"
-            },
-            "scope": {
-              "description": "Optional scope qualifier for fact entities.",
-              "type": "string"
-            },
-            "semantic_clauses": {
-              "description": "Optional reviewed atomic decomposition of the prose, used when automatic sentence splitting needs an override.",
-              "items": {
-                "minLength": 1,
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array"
-            },
-            "semantic_inventory": {
-              "description": "Requirement proposition ledger from kb_model mode analyze; preserve entries while modeling each span.",
-              "items": {
-                "type": "object"
-              },
-              "type": "array"
-            },
-            "semantic_inventory_version": {
-              "const": "kibi.semantic-inventory.v1",
-              "description": "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: kibi model).",
-              "type": "string"
-            },
-            "semantic_key": {
-              "description": "Canonical semantic identity of the normalized logical model.",
-              "type": "string"
-            },
-            "semantic_source_field": {
-              "description": "Requirement field whose exact UTF-8 bytes anchor semantic_inventory spans.",
-              "enum": ["semantic_text", "text_ref", "title"],
-              "type": "string"
-            },
-            "semantic_source_hash": {
-              "description": "SHA-256 of the exact semantic source text returned in the advisor inventory contract.",
-              "pattern": "^[a-f0-9]{64}$",
-              "type": "string"
-            },
             "semantic_text": {
               "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans.",
-              "type": "string"
-            },
-            "severity": {
-              "description": "Optional severity label. Example: 'critical'.",
-              "type": "string"
-            },
-            "source": {
-              "description": "Optional provenance string. Example: '.kb/requirements/REQ-cli-gc.md'. Defaults to 'mcp://kibi/upsert'.",
               "type": "string"
             },
             "sourceFile": {
@@ -555,10 +236,6 @@
             },
             "status": {
               "description": "Required lifecycle state; allowed values depend on the entity type. Examples: 'open', 'passing', 'accepted'.",
-              "type": "string"
-            },
-            "subject_key": {
-              "description": "Optional snake_case subject key for strict fact entities. Example: 'user.session'.",
               "type": "string"
             },
             "symbol_role": {
@@ -586,51 +263,6 @@
             },
             "title": {
               "description": "Required short title. Example: 'Protect account settings endpoint'.",
-              "type": "string"
-            },
-            "unit": {
-              "description": "Optional unit for numeric property_value facts.",
-              "type": "string"
-            },
-            "value_bool": {
-              "description": "Optional boolean value for property_value facts.",
-              "type": "boolean"
-            },
-            "value_int": {
-              "description": "Optional integer value for property_value facts.",
-              "type": "integer"
-            },
-            "value_number": {
-              "description": "Optional number value for property_value facts.",
-              "type": "number"
-            },
-            "value_set": {
-              "description": "Optional exact set of values for property_value facts with value_type set, such as the members a domain must have.",
-              "items": {
-                "minLength": 1,
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "value_string": {
-              "description": "Optional string value for property_value facts.",
-              "type": "string"
-            },
-            "value_type": {
-              "description": "Optional value type for property_value facts; pair with exactly one value_string, _int, _number, _bool or _set.",
-              "enum": ["string", "int", "number", "bool", "set"],
-              "type": "string"
-            },
-            "verification_perspective": {
-              "description": "Optional typed verification perspective for test entities. Example: 'consumer'.",
-              "enum": ["internal", "consumer"],
-              "type": "string"
-            },
-            "verification_scope": {
-              "description": "Optional typed verification scope for test entities. Example: 'end_to_end'.",
-              "enum": ["unit", "integration", "end_to_end"],
               "type": "string"
             }
           },
