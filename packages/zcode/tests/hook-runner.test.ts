@@ -1539,7 +1539,7 @@ function linkedWorkspace(requirementStatus = "open") {
   writeFile(
     fixture.cwd,
     ".kb/requirements/REQ-checkout-rounding.md",
-    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_predicate\n    target: FACT-total-rounding-cents\n  - type: relates_to\n    target: ADR-money-as-decimal\n---\n`,
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_predicate\n    target: FACT-total-rounding-cents\n  - type: relates_to\n    target: ADR-money-as-decimal\nrationale: Finance reconciles every order to the cent.\n---\n`,
   );
   writeFile(
     fixture.cwd,
@@ -1591,6 +1591,9 @@ describe("ZCode pre-edit knowledge", () => {
     );
     expect(context).toContain(
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
+    );
+    expect(context).toContain(
+      "\nWhy: Finance reconciles every order to the cent (rationale).\n",
     );
     expect(context).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",

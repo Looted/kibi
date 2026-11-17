@@ -273,19 +273,19 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-12f38fb17656
   - type: implements
-    from: SYM-cli-quantity-layer-value-fact-entry
-    to: REQ-check-quantity-duplicate-pairing
-    created_at: 2026-11-16T16:10:59.734Z
+    from: SYM-agent-core-requirementGroundingLines
+    to: REQ-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:32.833Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-693abb9f3c11
+    id: rel-d4db9f3108be
   - type: covered_by
-    from: SYM-cli-quantity-layer-value-fact-entry
-    to: TEST-check-quantity-duplicate
-    created_at: 2026-11-16T16:10:59.753Z
+    from: SYM-agent-core-requirementGroundingLines
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:57:37.415Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-e98e408256a0
+    id: rel-4e18d01c8d23
   - type: assumes
     from: SCEN-kb-merge-action-branch-moved
     to: FACT-kb-merge-action-branch-moved
@@ -300,6 +300,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92129f164b94
+  - type: implements
+    from: SYM-cli-quantity-layer-value-fact-entry
+    to: REQ-check-quantity-duplicate-pairing
+    created_at: 2026-11-16T16:10:59.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-693abb9f3c11
+  - type: covered_by
+    from: SYM-cli-quantity-layer-value-fact-entry
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:59.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e98e408256a0
   - type: constrains
     from: REQ-apply-plan-checks-contradictions-once
     to: FACT-upsert-sibling-requirements-subject

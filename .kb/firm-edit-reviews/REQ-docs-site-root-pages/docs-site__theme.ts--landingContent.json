@@ -4,10 +4,10 @@
   "sourceFile": "docs-site/theme.ts",
   "symbol": "landingContent",
   "verdict": "keeps",
-  "note": "Two landing-page sentences change wording, one to mention the recorded reason and one to name kibi check --symbol-debt; where and when the site and report are published, and the link checks, are unchanged.",
+  "note": "Landing-page sentences change wording only: the recorded reason in the words of whoever asked, the pre-edit context and search answers naming why a requirement exists, and kibi check --symbol-debt; where and when the site and report are published, and the link checks, are unchanged.",
   "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
-  "codeHash": "sha256:5a54fde6e5b2cfb19a7c93e7fa94b838e92f0fd52730081429de78232346c344",
+  "codeHash": "sha256:0680494908341cbcbc19680fdc35b1026e452e9414f8a2076b9dabad1d5d38ac",
   "startLine": 1447,
   "endLine": 1833,
-  "recordedAt": "2026-11-16T23:53:17.867Z"
+  "recordedAt": "2026-11-17T02:19:14.801Z"
 }

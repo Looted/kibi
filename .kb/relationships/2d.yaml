@@ -503,3 +503,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2339edc0d05
+  - type: assumes
+    from: SCEN-search-answer-governing-statement
+    to: FACT-search-answer-governing-statement
+    created_at: 2026-11-16T15:41:52.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf18fa1636e7
+  - type: verified_by
+    from: SCEN-search-answer-governing-statement
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:41:53.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-353875a98c59

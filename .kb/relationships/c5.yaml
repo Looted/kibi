@@ -293,3 +293,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-188bcb8f956b
+  - type: implements
+    from: SYM-search-answer-requirement-statement-of
+    to: REQ-search-answer-governing-statement
+    created_at: 2026-11-16T15:53:49.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3bcfd791c25
+  - type: covered_by
+    from: SYM-search-answer-requirement-statement-of
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:59:49.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-617970cf488b
