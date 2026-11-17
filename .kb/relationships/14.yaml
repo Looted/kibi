@@ -349,3 +349,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7cab71e4b3d4
+  - type: implements
+    from: SYM-check-tagStagedFindings
+    to: REQ-check-finding-blocks
+    created_at: 2026-11-17T03:08:24.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f03ed077c52
+  - type: covered_by
+    from: SYM-check-tagStagedFindings
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-17T03:08:24.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e358858214ab

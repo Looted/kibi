@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { tagStagedFindings } from "../../../src/commands/check.js";
 import {
   isBlockingFinding,
   tagBlocks,
@@ -51,5 +52,42 @@ describe("tagBlocks", () => {
     const finding = { id: "a" };
     tagBlocks([finding], "commit", true);
     expect(finding).toStrictEqual({ id: "a" });
+  });
+});
+
+describe("tagStagedFindings", () => {
+  test("every staged violation and blocking diagnostic stops the commit; advice stops nothing", () => {
+    expect(
+      tagStagedFindings(
+        [{ rule: "symbol-coverage" }, { rule: "evidence-floor" }],
+        [
+          { id: "staged_file_ownership_missing", blocking: false },
+          { id: "symbols_manifest_stale", severity: "error" },
+        ],
+        [{ id: "symbol_semantic_review_needed", blocking: true }, { id: "q" }],
+      ),
+    ).toStrictEqual({
+      violations: [
+        { rule: "symbol-coverage", blocks: "commit" },
+        { rule: "evidence-floor", blocks: "commit" },
+      ],
+      count: 2,
+      diagnostics: [
+        {
+          id: "staged_file_ownership_missing",
+          blocking: false,
+          blocks: "none",
+        },
+        { id: "symbols_manifest_stale", severity: "error", blocks: "commit" },
+      ],
+      qualityDiagnostics: [
+        {
+          id: "symbol_semantic_review_needed",
+          blocking: true,
+          blocks: "commit",
+        },
+        { id: "q", blocks: "none" },
+      ],
+    });
   });
 });

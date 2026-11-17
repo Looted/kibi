@@ -41151,11 +41151,7 @@ symbols:
       recorded_at: 2026-11-16T09:00:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-check-finding-blocks
-      - type: covered_by
         target: TEST-staged-gate-inherited-symbol-gaps
-      - type: implements
-        target: REQ-check-finding-blocks
       - type: implements
         target: REQ-staged-gate-reports-inherited-symbol-gaps
       - type: covered_by
@@ -44089,3 +44085,16 @@ symbols:
         target: TEST-agent-core-edit-snippet-why
       - type: implements
         target: REQ-requirement-reason-skips-change-notes
+  - id: SYM-check-tagStagedFindings
+    title: tagStagedFindings
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T03:08:23.969Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-finding-blocks
+      - type: implements
+        target: REQ-check-finding-blocks

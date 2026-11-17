@@ -370,20 +370,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2cd0b47634d3
-  - type: implements
-    from: SYM-check-printStagedResult
-    to: REQ-check-finding-blocks
-    created_at: 2026-11-16T19:33:18.079Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2291ec2bb044
-  - type: covered_by
-    from: SYM-check-printStagedResult
-    to: TEST-check-finding-blocks
-    created_at: 2026-11-16T19:35:25.305Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-902050ceddc9
   - type: validates
     from: TEST-kb-upsert-implemented-by
     to: SCEN-kb-upsert-implemented-by-covered-by
