@@ -370,6 +370,34 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85ec123bce7f
+  - type: implements
+    from: SYM-mcp-resolveToolProfile
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:18.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2178bbc12f83
+  - type: covered_by
+    from: SYM-mcp-resolveToolProfile
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:18.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fadba323df22
+  - type: assumes
+    from: SCEN-NEG-upsert-refuses-fact-contradiction-ACCEPTED
+    to: FACT-NEG-upsert-refuses-fact-contradiction-ACCEPTED
+    created_at: 2026-11-16T19:17:13.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-357e74a68bde
+  - type: verified_by
+    from: SCEN-NEG-upsert-refuses-fact-contradiction-ACCEPTED
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:13.102Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-147fe54ba803
   - type: specified_by
     from: REQ-kb-upsert-implemented-by-covered-by
     to: SCEN-kb-upsert-implemented-by-covered-by
@@ -405,20 +433,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fdfde7aa0e72
-  - type: assumes
-    from: SCEN-NEG-upsert-refuses-fact-contradiction-ACCEPTED
-    to: FACT-NEG-upsert-refuses-fact-contradiction-ACCEPTED
-    created_at: 2026-11-16T19:17:13.079Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-357e74a68bde
-  - type: verified_by
-    from: SCEN-NEG-upsert-refuses-fact-contradiction-ACCEPTED
-    to: TEST-upsert-stale-siblings
-    created_at: 2026-11-16T19:17:13.102Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-147fe54ba803
   - type: implements
     from: SYM-knowledge-index-max-reason-chars
     to: REQ-agent-core-edit-snippet-why

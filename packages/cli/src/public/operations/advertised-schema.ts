@@ -13,6 +13,10 @@
  *   resource `operation-fields`, which kb_skills reads.
  * - A choice among string constants (`anyOf` of `{type, const}`) is
  *   advertised as the equivalent `enum`.
+ * - An object whose fields are mostly specialist ones (fact, proof and
+ *   predicate fields of an entity) is marked with {@link ADVERTISED_FIELDS}
+ *   and advertised with only the fields it names. The others stay valid
+ *   input and are listed in full in `operation-fields`.
  *
  * The full schema still validates the input.
  */
@@ -26,6 +30,12 @@ export const ADVERTISED_SUMMARY = "x-kibi-advertised-summary";
  * characters.
  */
 export const ADVERTISED_DESCRIPTION = "x-kibi-advertised-description";
+
+/**
+ * Marks an object schema node advertised with only some of its
+ * `properties`; the value lists the field names to keep.
+ */
+export const ADVERTISED_FIELDS = "x-kibi-advertised-fields";
 
 /** The longest description the MCP server advertises for an input field. */
 export const ADVERTISED_DESCRIPTION_LIMIT = 120;
@@ -74,9 +84,21 @@ export function advertisedInputSchema<T>(schema: T): T {
     if (!isNode(value)) return value;
     const summary = value[ADVERTISED_SUMMARY];
     if (typeof summary === "string") return stub(value, summary);
+    const kept = value[ADVERTISED_FIELDS];
     const entries: [string, unknown][] = [];
     for (const [key, child] of Object.entries(value)) {
-      if (key === ADVERTISED_DESCRIPTION) continue;
+      if (key === ADVERTISED_DESCRIPTION || key === ADVERTISED_FIELDS) continue;
+      if (key === "properties" && Array.isArray(kept) && isNode(child)) {
+        entries.push([
+          key,
+          Object.fromEntries(
+            Object.entries(child)
+              .filter(([name]) => kept.includes(name))
+              .map(([name, field]) => [name, walk(field)]),
+          ),
+        ]);
+        continue;
+      }
       const constants = key === "anyOf" ? stringConstants(child) : undefined;
       if (constants !== undefined) {
         entries.push(["type", "string"], ["enum", constants]);

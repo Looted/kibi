@@ -467,7 +467,10 @@ symbols:
     sourceFile: packages/cli/tests/cli-operation-metadata.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
+    status: active
     relationships:
+      - type: executable_for
+        target: TEST-cli-help-command-summaries
       - type: executable_for
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-engine-signal-shutdown-test
@@ -1040,8 +1043,12 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-release-version
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-default-tool-profile
   - id: SYM-activate
     title: activate
     sourceFile: packages/vscode/src/extension.ts
@@ -2115,6 +2122,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-github-report-integration
@@ -2122,6 +2131,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-cli-help-command-summaries
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-init-command
@@ -2320,11 +2331,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-cli-help-command-summaries
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-register-maintenance-commands
@@ -2363,6 +2378,10 @@ symbols:
         target: REQ-check-changed-commit-verdict
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: implements
+        target: REQ-cli-help-command-summaries
   - id: SYM-cli-register-skills-commands
     title: registerSkillsCommands
     status: active
@@ -5276,6 +5295,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+      - type: executable_for
+        target: TEST-mcp-structured-text-codex
   - id: SYM-mcp-startIntegrationProlog
     title: startIntegrationProlog
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
@@ -24405,9 +24426,16 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tools.ts
     symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:30:37.390Z
     relationships:
       - type: covered_by
+        target: TEST-mcp-structured-text-codex
+      - type: covered_by
         target: TEST-mcp-structured-text-per-host
+      - type: implements
+        target: REQ-mcp-structured-text-codex
       - type: implements
         target: REQ-mcp-structured-text-per-host
   - id: SYM-test-mcp-structured-text-per-host
@@ -40938,8 +40966,10 @@ symbols:
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-15T18:30:52.721Z
+      recorded_at: 2026-11-16T17:27:57.933Z
     relationships:
+      - type: executable_for
+        target: TEST-mcp-upsert-capture-fields
       - type: executable_for
         target: TEST-mcp-upsert-proof-field-stubs
   - id: SYM-cli-advertised-input-schema
@@ -41564,12 +41594,16 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T06:40:28.425Z
+      recorded_at: 2026-11-16T17:30:30.145Z
     relationships:
       - type: covered_by
         target: TEST-mcp-short-field-descriptions
+      - type: covered_by
+        target: TEST-mcp-upsert-capture-fields
       - type: implements
         target: REQ-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-upsert-capture-fields
   - id: SYM-test-kb-upsert-implemented-by
     title: kb_upsert implementedBy suite
     status: active
@@ -43586,19 +43620,6 @@ symbols:
         target: TEST-session-brief
       - type: implements
         target: REQ-session-brief-on-every-surface
-  - id: SYM-mcp-SERVER_INSTRUCTIONS
-    title: SERVER_INSTRUCTIONS
-    status: active
-    sourceFile: packages/mcp/src/server.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T17:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-session-brief
-      - type: implements
-        target: REQ-session-brief-on-every-surface
   - id: SYM-discovery-StatusPayload
     title: StatusPayload
     status: active
@@ -44200,3 +44221,211 @@ symbols:
         target: TEST-kibi-skills-core-arc
       - type: implements
         target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-test-mcp-tool-profile
+    title: tool-profile.test
+    status: active
+    sourceFile: packages/mcp/tests/server/tool-profile.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-default-tool-profile
+  - id: SYM-mcp-TOOL_PROFILES
+    title: TOOL_PROFILES
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+  - id: SYM-cli-ADVERTISED_FIELDS
+    title: ADVERTISED_FIELDS
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-capture-fields
+      - type: implements
+        target: REQ-mcp-upsert-capture-fields
+  - id: SYM-cli-commandSummary
+    title: commandSummary
+    status: active
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: implements
+        target: REQ-cli-help-command-summaries
+  - id: SYM-cli-UNLISTED_OPERATIONS
+    title: UNLISTED_OPERATIONS
+    status: active
+    sourceFile: packages/cli/src/cli-register-json.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: implements
+        target: REQ-cli-help-command-summaries
+  - id: SYM-mcp-DEFAULT_PROFILE_TOOLS
+    title: DEFAULT_PROFILE_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-mcp-default-profile-tools
+  - id: SYM-mcp-BOOTSTRAP_TOOLS
+    title: BOOTSTRAP_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-mcp-bootstrap-tools
+  - id: SYM-mcp-resolveToolProfile
+    title: resolveToolProfile
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-knowledgeBaseIsEmpty
+    title: knowledgeBaseIsEmpty
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-profileToolNames
+    title: profileToolNames
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-serverInstructions
+    title: serverInstructions
+    status: active
+    sourceFile: packages/mcp/src/server.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-mcp-ToolProfile
+    title: ToolProfile
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+  - id: SYM-test-cli-commandSurface
+    title: commandSurface
+    status: active
+    sourceFile: packages/cli/tests/helpers/command-surface.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-help-command-summaries
+  - id: SYM-test-cli-CommandSurface
+    title: CommandSurface
+    status: active
+    sourceFile: packages/cli/tests/helpers/command-surface.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-help-command-summaries
+  - id: SYM-skillopt-run-independent-final-state
+    title: runIndependentFinalState
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:30:08.766Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+  - id: SYM-proof-mcp-default-profile-tools
+    title: mcpDefaultProfileToolsCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T22:37:52.745Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-default-profile-tools
+  - id: SYM-proof-mcp-bootstrap-tools
+    title: mcpBootstrapToolsCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T22:37:54.454Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-bootstrap-tools
