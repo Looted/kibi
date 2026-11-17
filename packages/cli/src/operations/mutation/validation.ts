@@ -264,6 +264,15 @@ export function validateUpsertInput(
       [{ rule: "required", field: input.type ? "id" : "type" }],
     );
   }
+  // The id names the entity's authored file, so it must be a file-name-safe
+  // token: no whitespace, control characters or path separators.
+  if (/[\s\p{Cc}/\\]/u.test(input.id)) {
+    throw new KbRejection(
+      "VALIDATION_FAILED",
+      `'id' must not contain whitespace, control characters or path separators: ${JSON.stringify(input.id)}`,
+      [{ rule: "id_format", field: "id" }],
+    );
+  }
   const entity: Record<string, unknown> = {
     id: input.id,
     type: input.type,

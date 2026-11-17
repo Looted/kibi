@@ -985,6 +985,35 @@ describe("Codex decision guard", () => {
     expect(context).toContain("REQ-checkout-rounding");
   });
 
+  test("a shell in-place edit of source counts as a source edit at Stop", async () => {
+    for (const command of [
+      "sed -i 's/true/false/' src/guard.ts",
+      ["bash", "-lc", "echo x > src/guard.ts"],
+    ]) {
+      const event = session();
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "Bash",
+        tool_input: { command },
+      });
+      const stop = await event({
+        hook_event_name: "Stop",
+        stop_hook_active: false,
+      });
+      expect(stop.reason).toContain("recorded nothing in the knowledge base");
+    }
+    const quiet = session();
+    await quiet({
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_input: { command: "sed -n 1p src/guard.ts" },
+    });
+    expect(
+      (await quiet({ hook_event_name: "Stop", stop_hook_active: false }))
+        .reason ?? "",
+    ).not.toContain("recorded nothing");
+  });
+
   test("Stop continues the turn once with the capture request when source changed and nothing was recorded", async () => {
     const event = session();
     await event({

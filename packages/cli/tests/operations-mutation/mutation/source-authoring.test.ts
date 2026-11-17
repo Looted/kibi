@@ -933,6 +933,34 @@ describe("symbol manifests", () => {
   });
 });
 
+describe("writes into another entity's document", () => {
+  test("refuse a document that holds a different entity", () => {
+    const error = failure(() =>
+      markdown(
+        "req",
+        { id: "REQ-alpha", type: "req" },
+        "---\nid: REQ-beta\ntype: req\n---\nBeta must hold.\n",
+      ),
+    );
+    expect(error.code).toBe("SOURCE_ENTITY_MISMATCH");
+    expect(error.message).toBe(
+      "Authored document holds REQ-beta, not REQ-alpha; write REQ-alpha to its own file or omit document.path",
+    );
+  });
+
+  test("write into a document that holds the same entity or no id", () => {
+    for (const existing of [
+      "---\nid: REQ-alpha\ntype: req\n---\nAlpha must hold.\n",
+      "---\ntitle: draft\n---\nAlpha must hold.\n",
+      "plain body\n",
+    ]) {
+      expect(
+        markdown("req", { id: "REQ-alpha", type: "req" }, existing),
+      ).toContain("id: REQ-alpha");
+    }
+  });
+});
+
 describe("source deletions", () => {
   test("delete a Markdown document only when it holds the entity", () => {
     for (const file of ["a.md", "a.MDX"]) {
