@@ -213,12 +213,13 @@ export function mergeKbManifests(
     };
   }
 
-  const items: unknown[] = [];
+  // Each surviving record, resolved once; the order is decided below.
+  const resolved = new Map<string, unknown>();
   for (const [id, ourRecord] of ours.records) {
     const baseRecord = base.records.get(id);
     const theirRecord = theirs.records.get(id);
     if (!theirRecord) {
-      if (!baseRecord) items.push(ourRecord.node);
+      if (!baseRecord) resolved.set(id, ourRecord.node);
       else if (!same(ourRecord.value, baseRecord.value)) {
         conflicts.push(`${id}: changed on ours but deleted on theirs`);
       }
@@ -228,9 +229,9 @@ export function mergeKbManifests(
       same(ourRecord.value, theirRecord.value) ||
       (baseRecord && same(theirRecord.value, baseRecord.value))
     ) {
-      items.push(ourRecord.node);
+      resolved.set(id, ourRecord.node);
     } else if (baseRecord && same(ourRecord.value, baseRecord.value)) {
-      items.push(theirRecord.node.clone());
+      resolved.set(id, theirRecord.node.clone());
     } else {
       const merged = mergeRecord(
         id,
@@ -239,18 +240,34 @@ export function mergeKbManifests(
         theirRecord.value as Record<string, unknown>,
         conflicts,
       );
-      items.push(ours.doc.createNode(merged));
+      resolved.set(id, ours.doc.createNode(merged));
     }
   }
   for (const [id, theirRecord] of theirs.records) {
     if (ours.records.has(id)) continue;
     const baseRecord = base.records.get(id);
-    if (!baseRecord) items.push(theirRecord.node.clone());
+    if (!baseRecord) resolved.set(id, theirRecord.node.clone());
     else if (!same(theirRecord.value, baseRecord.value)) {
       conflicts.push(`${id}: deleted on ours but changed on theirs`);
     }
   }
   if (conflicts.length > 0) return { status: "conflict", conflicts };
+
+  // Records keep their order on the side being merged in (theirs): merging
+  // the base branch into a pull request then leaves the pull request's diff
+  // to its own records. Records only ours holds follow the record they
+  // follow on ours.
+  const order = [...theirs.records.keys()].filter((id) => resolved.has(id));
+  let previous: string | undefined;
+  for (const id of ours.records.keys()) {
+    if (!resolved.has(id)) continue;
+    if (!theirs.records.has(id)) {
+      const at = previous === undefined ? 0 : order.indexOf(previous) + 1;
+      order.splice(at, 0, id);
+    }
+    previous = id;
+  }
+  const items = order.map((id) => resolved.get(id));
 
   const seq = ours.doc.get(listKey);
   if (isSeq(seq)) seq.items = items;
