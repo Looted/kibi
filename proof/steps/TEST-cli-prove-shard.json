@@ -1,0 +1,11 @@
+{
+  "test_id": "TEST-cli-prove-shard",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/commands/prove-shard.test.ts",
+      "./packages/cli/tests/cli-register-proof.test.ts"
+    ]
+  ]
+}

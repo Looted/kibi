@@ -304,6 +304,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf0d026b1610
+  - type: assumes
+    from: SCEN-cli-prove-shard-disjoint-parts
+    to: FACT-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:21:30.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5c137281775
+  - type: verified_by
+    from: SCEN-cli-prove-shard-disjoint-parts
+    to: TEST-cli-prove-shard
+    created_at: 2026-11-17T11:21:30.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6a645427ce0
   - type: requires_property
     from: REQ-core-snapshot-triples-held-once
     to: FACT-core-snapshot-triples-held-once
