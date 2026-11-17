@@ -234,9 +234,19 @@ describe("strict proof workflow contract", () => {
     expect(reuse.steps.map((step) => step.name)).toContain(
       "Upload proof reuse decision",
     );
+    // A PR may reuse an attested develop push; a develop push that merged a
+    // merge train may reuse the train's proof. Either one skips the run.
     expect(reuse.outputs?.execute).toBe(
-      "${{ steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true' }}",
+      "${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') }}",
     );
+    const train = reuse.steps.find((step) => step.id === "train");
+    expect(train?.name).toBe(
+      "Check whether the develop push can reuse the train's proof",
+    );
+    expect(String(train?.if)).toContain("github.event_name == 'push'");
+    expect(String(train?.if)).toContain("refs/heads/develop");
+    expect(String(train?.run)).toContain("ci-proof-reuse.ts decide-train");
+    expect(train?.["continue-on-error"]).toBe(true);
     for (const job of [workflow.jobs.prove, workflow.jobs.proof]) {
       expect(job.needs).toContain("reuse");
       expect(job.env?.KIBI_PROOF_EXECUTE).toBe(
@@ -252,6 +262,12 @@ describe("strict proof workflow contract", () => {
           continue;
         if (String(step.name).includes("develop proof")) continue;
         if (String(step.name).includes("branch store")) continue;
+        if (String(step.name).includes("reused train's proof report")) {
+          expect(String(step.if), String(step.name)).toContain(
+            "env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != ''",
+          );
+          continue;
+        }
         expect(String(step.if), String(step.name)).toContain(
           "env.KIBI_PROOF_EXECUTE == 'true'",
         );
@@ -270,6 +286,26 @@ describe("strict proof workflow contract", () => {
         (step) => step.name === "Attest successful develop proof",
       )?.if,
     ).toContain("github.event_name == 'push'");
+    // A merge train PR attests its own proof, from the same repository only.
+    for (const name of [
+      "Attest successful develop proof",
+      "Upload develop proof attestation",
+    ]) {
+      expect(
+        String(
+          workflow.jobs.proof.steps.find((step) => step.name === name)?.if,
+        ),
+      ).toContain(
+        "startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository",
+      );
+    }
+    const download = workflow.jobs.proof.steps.find(
+      (step) => step.name === "Download the reused train's proof report",
+    );
+    expect(download?.with).toMatchObject({
+      name: "kibi-requirement-proof",
+      "run-id": "${{ needs.reuse.outputs.train-run-id }}",
+    });
   });
 
   test("a failed sync, validation or proof uploads the branch store", () => {

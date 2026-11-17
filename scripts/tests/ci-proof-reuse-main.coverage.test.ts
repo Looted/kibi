@@ -21,7 +21,11 @@ import os from "node:os";
 import path from "node:path";
 
 import { nodeGit } from "../../packages/cli/src/public/operations/node-ports.js";
-import { assessProofReuse, main } from "../ci-proof-reuse.js";
+import {
+  assessProofReuse,
+  assessTrainProofReuse,
+  main,
+} from "../ci-proof-reuse.js";
 
 const repository = "Looted/kibi";
 const snapshotHash = "d".repeat(64);
@@ -227,7 +231,7 @@ afterEach(() => {
 describe("ci-proof-reuse command line", () => {
   test("rejects an unknown command or a missing output path", async () => {
     const usage =
-      "usage: bun scripts/ci-proof-reuse.ts attest|decide <output-path>";
+      "usage: bun scripts/ci-proof-reuse.ts attest|decide|decide-train <output-path>";
     await expect(main([])).rejects.toThrow(usage);
     await expect(main(["decide"])).rejects.toThrow(usage);
     await expect(main(["publish", "out"])).rejects.toThrow(usage);
@@ -282,8 +286,14 @@ describe("ci-proof-reuse attest", () => {
     const repo = makeRepo();
     process.chdir(repo.root);
     const message =
-      "only a successful develop push may emit a proof attestation";
+      "only a successful develop push or merge train pull request may emit a proof attestation";
     attestEnv(repo, { GITHUB_EVENT_NAME: "pull_request" });
+    await expect(main(["attest", "out"])).rejects.toThrow(message);
+    attestEnv(repo, {
+      GITHUB_EVENT_NAME: "pull_request",
+      PR_HEAD_BRANCH: "merge-train/1",
+      PR_HEAD_REPOSITORY: "someone/fork",
+    });
     await expect(main(["attest", "out"])).rejects.toThrow(message);
     attestEnv(repo, { GITHUB_REF: "refs/heads/master" });
     await expect(main(["attest", "out"])).rejects.toThrow(message);
@@ -296,7 +306,7 @@ describe("ci-proof-reuse attest", () => {
   test("the checkout must match a well-formed attested commit", async () => {
     const repo = makeRepo();
     process.chdir(repo.root);
-    const message = "develop checkout does not match the attested commit";
+    const message = "checkout does not match the attested commit";
     attestEnv(repo, { GITHUB_SHA: "not-a-sha" });
     await expect(main(["attest", "out"])).rejects.toThrow(message);
     attestEnv(repo, { GITHUB_SHA: repo.base });
@@ -311,7 +321,7 @@ describe("ci-proof-reuse attest", () => {
     await expect(main(["attest", "out"])).rejects.toThrow(
       "canonical Kibi workspace snapshot is unavailable",
     );
-    const message = "develop proof snapshot is incompatible or dirty";
+    const message = "proof snapshot is incompatible or dirty";
     for (const snapshot of [
       {
         version: "kibi.workspace-snapshot.v1",
@@ -710,5 +720,269 @@ describe("ci-proof-reuse provenance details", () => {
         input({ runs: [proofRun(head, { path: ".github/workflows/x.yml" })] }),
       ).reason,
     ).toBe("develop proof run provenance is invalid");
+  });
+});
+
+describe("merge train proof attestation and develop reuse", () => {
+  const trainBranch = "merge-train/1700000000000";
+  const trainUrl = `https://github.com/${repository}/actions/runs/456`;
+
+  function trainRun(sha: string, overrides: Record<string, unknown> = {}) {
+    return proofRun(sha, {
+      id: 456,
+      head_branch: trainBranch,
+      event: "pull_request",
+      html_url: trainUrl,
+      head_repository: { full_name: repository },
+      ...overrides,
+    });
+  }
+
+  function trainAttestation(
+    repo: Repo,
+    overrides: Record<string, unknown> = {},
+  ) {
+    return {
+      ...attestationFor(repo.head),
+      source: {
+        repository,
+        branch: trainBranch,
+        sha: repo.head,
+        event: "pull_request",
+        base: repo.base,
+      },
+      run: {
+        id: 456,
+        attempt: 1,
+        workflow: ".github/workflows/proof.yml",
+        url: trainUrl,
+      },
+      ...overrides,
+    };
+  }
+
+  test("a merge train pull request run attests its head and base", async () => {
+    const repo = makeRepo();
+    process.chdir(repo.root);
+    setEnv({
+      GITHUB_EVENT_NAME: "pull_request",
+      GITHUB_REF: "refs/pull/9/merge",
+      GITHUB_REPOSITORY: repository,
+      GITHUB_SHA: repo.merge,
+      GITHUB_RUN_ID: "456",
+      GITHUB_RUN_ATTEMPT: "1",
+      PR_HEAD_BRANCH: trainBranch,
+      PR_HEAD_REPOSITORY: repository.toLowerCase(),
+      PR_HEAD_SHA: repo.head,
+      PR_BASE_SHA: repo.base,
+    });
+    const output = temp("kibi-proof-train-out-");
+    await main(["attest", output]);
+    const written = JSON.parse(
+      readFileSync(path.join(output, "attestation.json"), "utf8"),
+    );
+    expect(written).toStrictEqual(trainAttestation(repo));
+    process.env.PR_BASE_SHA = "nope";
+    await expect(main(["attest", output])).rejects.toThrow(
+      "merge train head or base SHA is invalid",
+    );
+  });
+
+  test("a develop attestation names the train run it reused", async () => {
+    const repo = makeRepo();
+    process.chdir(repo.root);
+    const env = {
+      GITHUB_EVENT_NAME: "push",
+      GITHUB_REF: "refs/heads/develop",
+      GITHUB_REPOSITORY: repository,
+      GITHUB_SHA: repo.merge,
+      GITHUB_RUN_ID: "77",
+      GITHUB_RUN_ATTEMPT: "1",
+    };
+    setEnv({ ...env, KIBI_PROOF_DERIVED_FROM: trainUrl });
+    const output = temp("kibi-proof-derived-out-");
+    await main(["attest", output]);
+    expect(
+      JSON.parse(readFileSync(path.join(output, "attestation.json"), "utf8"))
+        .derived_from,
+    ).toBe(trainUrl);
+    setEnv({ ...env, KIBI_PROOF_DERIVED_FROM: "https://example.com/run" });
+    await expect(main(["attest", output])).rejects.toThrow(
+      "KIBI_PROOF_DERIVED_FROM is not a run of this repository",
+    );
+  });
+
+  async function decideTrain(
+    repo: Repo,
+    fixture: Fixture,
+    extra: Record<string, string> = {},
+  ): Promise<{
+    decision: { mode: string; reason: string; sourceRun?: string };
+    outputs: string;
+  }> {
+    resetCounters(fixture);
+    const githubOutput = path.join(fixture.dir, "github-output");
+    writeFileSync(githubOutput, "");
+    setEnv({
+      PATH: `${fixture.bin}:${savedEnv.PATH}`,
+      KIBI_GH_FIXTURE: fixture.dir,
+      GITHUB_EVENT_NAME: "push",
+      GITHUB_REF: "refs/heads/develop",
+      GITHUB_REPOSITORY: repository,
+      GITHUB_SHA: repo.merge,
+      GITHUB_OUTPUT: githubOutput,
+      ...extra,
+    });
+    const output = path.join(fixture.dir, "decision.json");
+    await main(["decide-train", output]);
+    return {
+      decision: JSON.parse(readFileSync(output, "utf8")),
+      outputs: readFileSync(githubOutput, "utf8"),
+    };
+  }
+
+  function trainFixture(repo: Repo): Fixture {
+    const fixture = makeFixture(repo.head);
+    writeJson(fixture.dir, "runs-success", {
+      total_count: 2,
+      workflow_runs: [
+        trainRun(repo.head),
+        proofRun(repo.head, { id: 9, head_branch: "feature/x" }),
+      ],
+    });
+    writeJson(fixture.dir, "attestation", trainAttestation(repo));
+    return fixture;
+  }
+
+  test("a develop push of a merged train reuses the train's proof", async () => {
+    const repo = makeRepo();
+    process.chdir(repo.root);
+    const fixture = trainFixture(repo);
+    const { decision, outputs } = await decideTrain(repo, fixture);
+    expect(decision).toMatchObject({
+      mode: "reused",
+      reason: "the develop commit has the proven tree of the merged train",
+      sourceRun: trainUrl,
+    });
+    expect(outputs).toBe(
+      `reuse=true\nsource_run_id=456\nsource_run_url=${trainUrl}\n`,
+    );
+    expect(logSpy.mock.calls.flat().join("\n")).toContain(
+      `full proof skipped; reusing successful train proof ${trainUrl}`,
+    );
+  });
+
+  test("a develop push runs the full proof when the train evidence does not hold", async () => {
+    const repo = makeRepo();
+    process.chdir(repo.root);
+    const fixture = trainFixture(repo);
+    writeJson(fixture.dir, "runs-success", {
+      total_count: 0,
+      workflow_runs: [],
+    });
+    expect((await decideTrain(repo, fixture)).decision).toMatchObject({
+      mode: "execute",
+      reason: "no unique successful train proof run for the merged head",
+    });
+    expect((await decideTrain(repo, fixture)).outputs).toBe(
+      "reuse=false\nsource_run_id=\nsource_run_url=\n",
+    );
+    writeJson(fixture.dir, "runs-success", {
+      total_count: 3,
+      workflow_runs: [],
+    });
+    expect((await decideTrain(repo, fixture)).decision.reason).toBe(
+      "train reuse lookup failed: train proof run lookup is incomplete or malformed",
+    );
+    expect(
+      (await decideTrain(repo, fixture, { GITHUB_REF: "refs/heads/master" }))
+        .decision.reason,
+    ).toBe(
+      "train reuse lookup failed: only a develop push reuses a train's proof",
+    );
+    // A develop commit that is not a merge looks nothing up.
+    git(repo.root, "checkout", "-q", "--detach", repo.head);
+    expect(
+      (await decideTrain(repo, fixture, { GITHUB_SHA: repo.head })).decision
+        .reason,
+    ).toBe("develop commit is not a merge of a train");
+  });
+
+  test("assessTrainProofReuse refuses every mismatch", () => {
+    const repo = {
+      root: "",
+      base: "a".repeat(40),
+      head: "b".repeat(40),
+      merge: "c".repeat(40),
+    };
+    const snapshot = {
+      version: SNAPSHOT_VERSION,
+      hash: snapshotHash,
+      dirty: false,
+    };
+    const input = {
+      repository,
+      mergeSha: repo.merge,
+      checkoutSha: repo.merge,
+      parents: [repo.base, repo.head],
+      snapshot,
+      runs: [trainRun(repo.head)] as never[],
+      attestation: trainAttestation(repo) as unknown,
+    };
+    const reason = (overrides: Partial<typeof input>) =>
+      assessTrainProofReuse({ ...input, ...overrides }).reason;
+    expect(assessTrainProofReuse(input).mode).toBe("reused");
+    expect(reason({ parents: [repo.head] })).toBe(
+      "develop commit is not a merge of a train",
+    );
+    expect(reason({ checkoutSha: repo.base })).toBe(
+      "develop commit is not a merge of a train",
+    );
+    expect(reason({ snapshot: { ...snapshot, dirty: true } })).toBe(
+      "develop workspace snapshot is unavailable, incompatible, or dirty",
+    );
+    expect(reason({ runs: [proofRun(repo.head)] as never[] })).toBe(
+      "no unique successful train proof run for the merged head",
+    );
+    for (const run of [
+      { head_sha: repo.base },
+      { event: "push" },
+      { conclusion: "failure" },
+      { path: ".github/workflows/other.yml" },
+      { head_repository: { full_name: "someone/fork" } },
+      { head_repository: null },
+      { html_url: "https://example.com" },
+      { id: 0 },
+      { run_attempt: 0 },
+    ])
+      expect(reason({ runs: [trainRun(repo.head, run)] as never[] })).toBe(
+        "train proof run provenance is invalid",
+      );
+    expect(reason({ attestation: null })).toBe(
+      "train proof attestation is missing or malformed",
+    );
+    for (const overrides of [
+      { outcome: "failed" },
+      { source: { ...trainAttestation(repo).source, base: repo.merge } },
+      {
+        source: {
+          ...trainAttestation(repo).source,
+          branch: "merge-train/other",
+        },
+      },
+      { source: { ...trainAttestation(repo).source, event: "push" } },
+      { run: { ...trainAttestation(repo).run, attempt: 2 } },
+      { artifact: "other" },
+    ])
+      expect(reason({ attestation: trainAttestation(repo, overrides) })).toBe(
+        "train proof attestation does not match the merged train",
+      );
+    expect(
+      reason({
+        attestation: trainAttestation(repo, {
+          snapshot: { version: SNAPSHOT_VERSION, hash: "e".repeat(64) },
+        }),
+      }),
+    ).toBe("canonical Kibi snapshots differ");
   });
 });
