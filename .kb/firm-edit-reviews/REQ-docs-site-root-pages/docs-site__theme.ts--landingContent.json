@@ -4,10 +4,10 @@
   "sourceFile": "docs-site/theme.ts",
   "symbol": "landingContent",
   "verdict": "keeps",
-  "note": "Only landing copy changed: what kb_search returns, the kibi check --symbol-debt sentence, the staged check's one block per unowned declaration and kb_check changed:true after each edit; the root pages still render the same sections and links.",
+  "note": "Merged landing copy only: one FAQ sentence now says how many rules kb_check evaluated; the landing page is still built from docs/ and published at the Pages root.",
   "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
-  "codeHash": "sha256:b23781b52dbfbecc2eb19f0454b02393f50195b85c5440dc6b3f9a4166b7e615",
+  "codeHash": "sha256:6a43c60d8bb9c50a429beab08b308d766fcac991e2cf9be4c5d9ebcce804c37c",
   "startLine": 1447,
   "endLine": 1833,
-  "recordedAt": "2026-11-17T02:57:35.194Z"
+  "recordedAt": "2026-11-17T07:18:06.928Z"
 }

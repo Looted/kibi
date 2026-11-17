@@ -42,8 +42,10 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_check` | `kibi check --input <file|->` |
 | `kb_sparql_remote` | `kibi sparql-remote --input <file|->` |
 
-The MCP server registers 16 tools rather than one per operation. The
-consolidated routes `kibi skill` and `kibi model` match the MCP tools
+The MCP catalog has 16 tools rather than one per operation, and a session
+lists six of them unless the `full` profile is chosen (see the
+[MCP reference](mcp-reference.md#tool-list)); the rest run through the routes
+above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
 `kb_skills` and `kb_model`, and the narrower routes stay available:
 
 - `kibi skill` takes `action: "list" | "load" | "read"` plus `id` and
