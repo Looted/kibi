@@ -20,15 +20,15 @@ id: TEST-kb-upsert-source-entity-guard
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-5c5567ddf379eb0fa8c9bcb3
+    receipt_id: PR-96493349574a8ae5aff6f55c
     test_id: TEST-kb-upsert-source-entity-guard
     scope: end_to_end
     outcome: passed
-    code_snapshot: ea01255979843eae1613367027b109d8dc1220b79358b0c0ad1b69430a2d532a
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-17T18:18:14.299Z'
-    finished_at: '2026-11-17T18:18:14.812Z'
-    artifact_digest: 6bc5fa857f413d1d14fefcc59bbbe26b30091b8483bba00666db245fa1058091
+    code_snapshot: 04e8cd5f88571daca2dfb665c6f2e664510c158b3b32560807258ea7c52c1538
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-17T19:04:24.997Z'
+    finished_at: '2026-11-17T19:04:25.388Z'
+    artifact_digest: ce3b71548745707c602b97f27d34c85102dab76e823f059921078759b8cd2eb3
     contract_hash: 334c289ce948633d72e92abadadb502e4783702c3636f285fcfe48b964401172
     binding_hash: 9beefa8c13a860e704321115aaffe2323aaedebbfb9354d94229df2e7840465a
     fingerprint: 39d6ec7ed1a22a7711ac40bac2fd2cf8523f1c4b70793515a9a7a8ca0fc915a1

@@ -20,6 +20,7 @@ semantic_inventory:
       end: 187
 logic_claims:
   - CLAIM-19F6C81E1C710C8C
+required_evidence: tested
 origin:
   kind: agent
   recorded_at: '2026-11-17T17:02:23.812Z'

@@ -391,3 +391,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-78423c66e63d
+  - type: assumes
+    from: SCEN-NEG-opencode-decision-hooks-VIOLATED
+    to: FACT-NEG-opencode-decision-hooks-VIOLATED
+    created_at: 2026-11-17T19:03:55.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90d8914015d1
+  - type: validates
+    from: TEST-opencode-decision-hooks
+    to: SCEN-NEG-opencode-decision-hooks-VIOLATED
+    created_at: 2026-11-17T19:04:08.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a29fbf4ea8f8

@@ -2,6 +2,7 @@
 title: kb_upsert must refuse to write an entity into an existing authored document that holds another…
 status: open
 firmness: default
+required_evidence: tested
 origin:
   kind: agent
   recorded_at: '2026-11-17T18:13:27.613Z'

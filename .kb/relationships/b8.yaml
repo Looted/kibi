@@ -496,3 +496,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba0a8af8acfb
+  - type: specified_by
+    from: REQ-opencode-decision-hooks
+    to: SCEN-NEG-opencode-decision-hooks-VIOLATED
+    created_at: 2026-11-17T19:04:04.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-661e0386b08b

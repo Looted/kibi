@@ -188,3 +188,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49a2fed377c7
+  - type: specified_by
+    from: REQ-agent-hosts-shell-edits-count
+    to: SCEN-NEG-agent-hosts-shell-edits-count-VIOLATED
+    created_at: 2026-11-17T19:03:59.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a620b55a5101
+  - type: validates
+    from: TEST-kb-upsert-source-entity-guard
+    to: SCEN-kb-upsert-refuse-write-entity-into
+    created_at: 2026-11-17T19:04:06.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a66aa2f36841
+  - type: validates
+    from: TEST-kb-upsert-source-entity-guard
+    to: SCEN-NEG-kb-upsert-refuse-write-entity-into-VIOLATED
+    created_at: 2026-11-17T19:04:06.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5d688a97c74
