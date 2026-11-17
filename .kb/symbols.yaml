@@ -46113,3 +46113,16 @@ symbols:
         target: TEST-closed-firm-requirement-guards
       - type: implements
         target: REQ-pre-edit-hooks-kibi-check-staged
+  - id: SYM-search-ranking-compare-code-units
+    title: compareCodeUnits
+    sourceFile: packages/cli/src/search-ranking.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T19:48:14.075Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-intent-aware-source-discovery
+      - type: implements
+        target: REQ-kibi-intent-aware-source-discovery
