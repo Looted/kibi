@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-kibi-skills-core-arc",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/skills-core-arc.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "--preload",
+      "./scripts/skillopt-eval/offline-test-preload.ts",
+      "./scripts/skillopt-eval/tests/queried-before-write.test.ts"
+    ]
+  ]
+}
