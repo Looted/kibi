@@ -335,20 +335,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-13fb2ef14e9b
-  - type: specified_by
-    from: REQ-check-reports-symbol-debt
-    to: SCEN-check-reports-symbol-debt
-    created_at: 2026-11-16T05:38:14.377Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-878ddf79a792
-  - type: specified_by
-    from: REQ-check-reports-symbol-debt
-    to: SCEN-NEG-check-reports-symbol-debt-SYMBOL-DEBT-BLOCKS
-    created_at: 2026-11-16T05:38:14.395Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0147b0ccaee0
   - type: verified_by
     from: REQ-check-reports-symbol-debt
     to: TEST-check-reports-symbol-debt
@@ -356,3 +342,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-122de15aac7a
+  - type: assumes
+    from: SCEN-NEG-init-gemini-instructions-NOT-WRITTEN
+    to: FACT-init-gemini-md-not-written
+    created_at: 2026-11-16T16:34:55.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f052de41fe3

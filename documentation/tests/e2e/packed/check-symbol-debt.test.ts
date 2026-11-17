@@ -46,10 +46,14 @@ const SYMBOLS = `symbols:
  * E2E: the full check reports symbol debt and exempts linkless
  * non-behavioral records; the bootstrap skill states the staged rule.
  *
- * SCEN-check-reports-symbol-debt — an unscoped `kibi check` reports the
- * unrecorded declarations of a recorded file per file and as a total in
- * JSON and text, and still passes; a rule-scoped check carries no debt
- * (SCEN-NEG-check-symbol-debt-BLOCKS).
+ * SCEN-check-symbol-debt-count — an unscoped `kibi check` counts the
+ * unrecorded declarations of a recorded file on its one-line verdict and
+ * in JSON, lists them per file only with --symbol-debt (kb_check:
+ * includeSymbolDebt), and still passes; a rule-scoped check carries no
+ * debt (SCEN-NEG-check-symbol-debt-count-LISTED-BY-DEFAULT).
+ * SCEN-check-pass-one-line — the passing verdict is one line with the rule
+ * count, and kb_check gives evaluated.ruleCount without rule names
+ * (SCEN-NEG-check-pass-one-line-RULES-LISTED).
  * SCEN-symbol-traceability-behavioral-only — a config record with no
  * implements link raises neither symbol-traceability nor symbol-coverage,
  * while a behavioral record without one is still flagged
@@ -127,7 +131,7 @@ links:
     target: REQ-TAGS-001
 ---
 
-Covers tag creation so the recorded function has qualifying coverage.
+Covers tag creation so the recorded function in this fixture has qualifying test coverage and the check passes.
 `,
           ".kb/symbols.yaml": SYMBOLS,
           "src/tags.ts": `export const tagIdSchema = "tag";
@@ -169,6 +173,12 @@ export function renameTag() {
         const full = await checkJson();
         assert.deepStrictEqual(full.structuredContent?.symbolDebt, {
           total: 2,
+          fileCount: 1,
+        });
+        const listed = await checkJson(["--symbol-debt"]);
+        assert.deepStrictEqual(listed.structuredContent?.symbolDebt, {
+          total: 2,
+          fileCount: 1,
           files: [{ path: "src/tags.ts", unrecorded: ["renameTag", "Tag"] }],
         });
         const flagged = (full.structuredContent?.violations ?? []).filter(
@@ -179,10 +189,36 @@ export function renameTag() {
         assert.deepStrictEqual(flagged, []);
 
         const text = await kibi(sandbox, ["check"]);
+        assert.strictEqual(text.exitCode, 0, output(text));
+        const verdict = text.stdout.split("\n")[0] ?? "";
         assert.match(
-          output(text),
-          /Symbol records \(not blocking\): 2 unrecorded declaration\(s\) in 1 file\(s\)/,
+          verdict,
+          /^✓ No violations\. \d+ rules\. 2 unrecorded declarations in 1 file do not block \(kibi check --symbol-debt lists them\)\.$/,
         );
+        assert.doesNotMatch(output(text), /renameTag/);
+        const textList = await kibi(sandbox, ["check", "--symbol-debt"]);
+        assert.match(output(textList), /src\/tags\.ts \(2\): renameTag, Tag/);
+
+        // kb_check (the CLI JSON route MCP shares) counts the debt and the
+        // rules it ran; includeSymbolDebt lists the declarations.
+        const inputPath = join(sandbox.baseDir, "check-debt.json");
+        writeFileSync(inputPath, "{}");
+        const counted = parseKibiResult<{
+          symbolDebt?: unknown;
+          evaluated?: { ruleCount?: number; rules?: unknown };
+        }>((await kibi(sandbox, ["check", "--input", inputPath])).stdout);
+        assert.deepStrictEqual(counted.symbolDebt, { total: 2, fileCount: 1 });
+        assert.ok((counted.evaluated?.ruleCount ?? 0) > 1);
+        assert.strictEqual(counted.evaluated?.rules, undefined);
+        writeFileSync(inputPath, JSON.stringify({ includeSymbolDebt: true }));
+        const asked = parseKibiResult<{ symbolDebt?: unknown }>(
+          (await kibi(sandbox, ["check", "--input", inputPath])).stdout,
+        );
+        assert.deepStrictEqual(asked.symbolDebt, {
+          total: 2,
+          fileCount: 1,
+          files: [{ path: "src/tags.ts", unrecorded: ["renameTag", "Tag"] }],
+        });
 
         const scoped = await checkJson(["--rules", "symbol-traceability"]);
         assert.strictEqual(scoped.structuredContent?.count, 0);

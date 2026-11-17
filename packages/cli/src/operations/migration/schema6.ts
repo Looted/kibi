@@ -121,6 +121,7 @@ import {
   claimReviewInstruction,
   planProofContractClaimPins,
 } from "./proof-contract-claims.js";
+import { quantityDuplicateActions } from "./quantity-duplicate.js";
 import {
   type RequirementStatusFinding,
   applyDeliveredStatusMappings,
@@ -1276,6 +1277,9 @@ export function buildSchema6MigrationFragment(input: {
       new Set(notStated.map((row) => row.id)),
     ),
   );
+  // Schema 19: value facts that state one quantity under two keys are
+  // reviewed at any schema version too; Kibi never writes distinct_from.
+  actions.push(...quantityDuplicateActions(input.workspaceRoot));
   if (
     statusActions.some(
       (action) => action.id === REQ_STATUS_DELIVERED_MAP_ACTION_ID,

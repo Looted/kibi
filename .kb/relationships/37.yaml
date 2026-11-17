@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c352b185b14
+  - type: implements
+    from: SYM-intent-search-intent-search-evidence
+    to: REQ-search-compact-evidence
+    created_at: 2026-11-16T15:56:22.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39af10bce21c
+  - type: covered_by
+    from: SYM-intent-search-intent-search-evidence
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:58:28.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1418dee8780b

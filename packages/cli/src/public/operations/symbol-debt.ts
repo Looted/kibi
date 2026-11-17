@@ -27,12 +27,21 @@ import { analyzeWorkspaceSources } from "./symbol-granularity-check.js";
 /**
  * Declarations without a symbol record in source files that have at least
  * one record: the debt the staged gate does not judge until a commit adds
- * or changes those declarations. Reported by an unscoped `kibi check`; it
- * never blocks.
+ * or changes those declarations. Reported by an unscoped `kibi check` as
+ * counts, and per file only when asked; it never blocks.
  */
 export interface SymbolDebt {
+  /** Unrecorded declarations. */
   total: number;
-  files: Array<{ path: string; unrecorded: string[] }>;
+  /** Files holding them. */
+  fileCount: number;
+  /** Per file, only when the check was asked to list them. */
+  files?: Array<{ path: string; unrecorded: string[] }>;
+}
+
+/** The debt as counts, with the per-file list only when `list` is set. */
+export function symbolDebtListing(debt: SymbolDebt, list: boolean): SymbolDebt {
+  return list ? debt : { total: debt.total, fileCount: debt.fileCount };
 }
 
 const SYMBOL_RECORDS_QUERY =
@@ -90,11 +99,11 @@ export async function collectSymbolDebt(
   const files = [
     ...new Set(records.map((record) => record.sourceFile as string)),
   ].sort();
-  if (files.length === 0) return { total: 0, files: [] };
+  if (files.length === 0) return { total: 0, fileCount: 0, files: [] };
   const cache = openSourceAnalysisCache(analysisCacheDir, workspaceRoot);
   const sources = await analyzeWorkspaceSources(files, workspaceRoot, cache);
   cache?.save();
-  const debt: SymbolDebt["files"] = [];
+  const debt: NonNullable<SymbolDebt["files"]> = [];
   for (const file of files) {
     const source = sources.get(file);
     if (!source) continue;
@@ -107,6 +116,7 @@ export async function collectSymbolDebt(
   }
   return {
     total: debt.reduce((sum, file) => sum + file.unrecorded.length, 0),
+    fileCount: debt.length,
     files: debt,
   };
 }

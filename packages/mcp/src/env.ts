@@ -15,12 +15,9 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-import fs from "node:fs";
 import {
-  KIBI_PROJECT_ENV_FILE,
   bootstrapKibiEnvironment,
   inspectSecretSource,
-  parseEnvContent,
   resolveEnvFilePath,
   resolveKibiProjectEnvPath,
   resolveKibiWorkspaceRoot,
@@ -28,16 +25,6 @@ import {
 
 function getEnvValue(key: string): string | undefined {
   return process.env[key];
-}
-
-function getTrimmedEnvValue(key: string): string | undefined {
-  const value = getEnvValue(key)?.trim();
-  return value ? value : undefined;
-}
-
-/** Preferred project env file name (`.env.kibi` or `KIBI_ENV_FILE` override). */
-export function getEnvFileName(): string {
-  return getTrimmedEnvValue("KIBI_ENV_FILE") ?? KIBI_PROJECT_ENV_FILE;
 }
 
 export function isMcpDebugEnabled(): boolean {
@@ -88,39 +75,6 @@ export function loadDefaultEnvFile(): LoadEnvResult {
     envFilePath: result.projectEnvPath,
     keysLoaded,
   };
-}
-
-/** @deprecated Prefer bootstrapKibiEnvironment; kept for targeted file tests. */
-export function loadEnvFile(options: {
-  envFileName: string;
-  workspaceRoot: string;
-}): LoadEnvResult {
-  const { envFileName, workspaceRoot } = options;
-  const envFilePath = resolveEnvFilePath(envFileName, workspaceRoot);
-  const keysLoaded: string[] = [];
-
-  if (!fs.existsSync(envFilePath)) {
-    return { loaded: false, envFilePath, keysLoaded };
-  }
-
-  try {
-    const raw = fs.readFileSync(envFilePath, "utf8");
-    for (const { key, value } of parseEnvContent(raw)) {
-      if (!key || Object.prototype.hasOwnProperty.call(process.env, key)) {
-        continue;
-      }
-      process.env[key] = value;
-      keysLoaded.push(key);
-    }
-    return { loaded: true, envFilePath, keysLoaded };
-  } catch (error) {
-    console.error(
-      `[Kibi] Unable to load environment file ${envFilePath}: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-    return { loaded: false, envFilePath, keysLoaded };
-  }
 }
 
 export {

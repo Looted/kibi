@@ -259,6 +259,45 @@ describe("text store errors", () => {
   });
 });
 
+const FACT_RESOLVE =
+  "\n\nTo resolve:\n  1. Change the conflicting requirement in the same kb_apply_plan as this fact, OR\n  2. Supersede one requirement, or scope the two so they no longer constrain one quantity.";
+
+describe("fact contradictions", () => {
+  test("name both requirements of each pair the fact write makes conflict", () => {
+    const record: PrologErrorRecord = {
+      code: "contradiction",
+      message: "m",
+      entityId: "FACT-1",
+      conflicts: [
+        { requirementId: "REQ-A", otherId: "REQ-B", reason: "r" },
+        { requirementId: "REQ-A", otherId: "REQ-B", reason: "r" },
+        { otherId: "REQ-C", reason: "s" },
+      ],
+    };
+    const failure = upsertFailure(
+      "FACT-1",
+      "x (stage=contradiction_check)",
+      record,
+    );
+    expect(failure).toBeInstanceOf(KbRejection);
+    expect((failure as KbRejection).code).toBe("SEMANTIC_CONTRADICTION");
+    expect(failure.message).toBe(
+      `Contradiction detected for fact FACT-1: the write makes current requirements conflict:\n  - REQ-A conflicts with REQ-B: r\n  - FACT-1 conflicts with REQ-C: s${FACT_RESOLVE} (stage=contradiction_check)`,
+    );
+  });
+
+  test("read the pairs from the message when no record came through", () => {
+    expect(
+      formatUpsertError(
+        "FACT-1",
+        "Contradiction detected for fact FACT-1: the write makes current requirements conflict:\n  - REQ-A conflicts with REQ-B: r\n\nTo resolve: ... (stage=c)",
+      ),
+    ).toBe(
+      `Contradiction detected for fact FACT-1: the write makes current requirements conflict:\n  - REQ-A conflicts with REQ-B: r${FACT_RESOLVE} (stage=c)`,
+    );
+  });
+});
+
 describe("store failures", () => {
   test("code a contradiction as a semantic rejection", () => {
     const failure = upsertFailure("REQ-1", "kb_contradiction(['r'-'REQ-2'])");

@@ -22,6 +22,7 @@ afterEach(() => {
 });
 
 type Evaluated = {
+  ruleCount: number;
   rules: string[];
   domainContradictions?: { factPairsExamined: number };
 };
@@ -35,6 +36,7 @@ describe("kibi check reports what it evaluated", () => {
     const data = result.data as Json;
     expect(data.violations).toEqual([]);
     expect(data.evaluated).toEqual({
+      ruleCount: 1,
       rules: ["domain-contradictions"],
       domainContradictions: { factPairsExamined: 0 },
     });
@@ -81,6 +83,7 @@ describe("kibi check reports what it evaluated", () => {
     // number says what ran, not what the KB holds.
     const other = ws.json(["check"], { rules: ["required-fields"] });
     expect((other.data as Json).evaluated).toEqual({
+      ruleCount: 1,
       rules: ["required-fields"],
     });
 

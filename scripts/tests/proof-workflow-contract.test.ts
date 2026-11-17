@@ -260,6 +260,46 @@ describe("strict proof workflow contract", () => {
     ).toContain("github.event_name == 'push'");
   });
 
+  test("a failed sync, validation or proof uploads the branch store", () => {
+    const workflow = Bun.YAML.parse(proofWorkflow) as {
+      jobs: { proof: { steps: Array<Record<string, unknown>> } };
+    };
+    const proofSteps = workflow.jobs.proof.steps;
+    const names = proofSteps.map((step) => step.name);
+    const collect = "Collect the branch store after a failed sync, validation or proof";
+    const upload = "Upload the branch store after a failed sync, validation or proof";
+    expect(
+      proofSteps.find((step) => step.name === "Sync and validate integrity of the proof snapshot")?.id,
+    ).toBe("integrity");
+    expect(
+      proofSteps.find((step) => step.name === "Prove every contracted test through Kibi")?.id,
+    ).toBe("prove");
+    for (const name of [collect, upload]) {
+      const step = proofSteps.find((candidate) => candidate.name === name);
+      expect(step?.if).toBe(
+        "${{ failure() && (steps.integrity.outcome == 'failure' || steps.prove.outcome == 'failure') }}",
+      );
+      // After the last step a local replay runs, so a replay never copies
+      // the store.
+      expect(names.indexOf(name)).toBeGreaterThan(
+        names.indexOf("Enforce evidence floors on a clean snapshot"),
+      );
+    }
+    expect(names.indexOf(upload)).toBe(names.indexOf(collect) + 1);
+    const collectRun = String(
+      proofSteps.find((step) => step.name === collect)?.run,
+    );
+    expect(collectRun).toContain('cp -a .kb/branches "$out/branches"');
+    expect(collectRun).toContain("/tmp/kibi-runtime");
+    expect(
+      proofSteps.find((step) => step.name === upload)?.with,
+    ).toMatchObject({
+      name: "kibi-branch-store",
+      path: "${{ runner.temp }}/kibi-branch-store",
+      "include-hidden-files": true,
+    });
+  });
+
   test("packed proof steps isolate compilation and cleanup", () => {
     const packedSteps = steps.flatMap((entry) =>
       entry.steps.filter(

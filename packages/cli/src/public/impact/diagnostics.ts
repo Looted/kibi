@@ -242,6 +242,7 @@ export function createSemanticReviewDiagnostics(
         suggestion: unlinked
           ? `If the change adds or alters behavior, record it as part of this change; that is part of finishing it, not a separate request, so it needs no permission: kb_search({query:"<the behavior>", sourceLocations:[{path:"${file}"}]}) for a requirement that already describes it and link ${symbol.name} to it; if none does, kb_upsert a requirement with a scenario and link the symbol with implements. If behavior is unchanged (a refactor, renaming), say so in the final report instead.`
           : `Use kb_search and kb_query for ${file}, then verify that ${linkedTargets} actually describe and test the changed behavior or UI copy. Update Kibi links or requirements/tests while the edit context is fresh.`,
+        evidence: { symbol: symbol.name },
       });
     }
   }

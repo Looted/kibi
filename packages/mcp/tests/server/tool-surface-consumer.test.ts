@@ -43,6 +43,21 @@ const AGENT_FACING_TOOLS = [
   "kb_ingest_proof",
 ];
 
+/** The default profile: the core six, listed in catalog order. */
+const CORE_TOOLS = [
+  "kb_query",
+  "kb_search",
+  "kb_status",
+  "kb_skills",
+  "kb_upsert",
+  "kb_check",
+];
+
+/** A freshly initialized KB is empty, so the bootstrap tools are listed too. */
+const EMPTY_KB_TOOLS = [...CORE_TOOLS, "kb_plan_bootstrap", "kb_apply_plan"];
+
+const FULL = { KIBI_MCP_TOOLS: "full" };
+
 type Json = Record<string, unknown>;
 
 const workspaces: string[] = [];
@@ -144,15 +159,35 @@ function requirementFiles(workspace: string): string[] {
 }
 
 describe("kibi-mcp consolidated tool surface", () => {
-  test("lists 16 tools, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
+  test("lists the core tools by default and all 16 in the full profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
     const workspace = initWorkspace();
-    const client = await connect(workspace);
+    const core = await connect(workspace);
+    // The KB is empty after kibi init, so the bootstrap tools are listed.
+    expect((await core.listTools()).tools.map((tool) => tool.name)).toEqual(
+      EMPTY_KB_TOOLS,
+    );
+    const instructions = String(core.getInstructions());
+    expect(instructions).toContain(
+      `This server lists ${[
+        "kb_search",
+        "kb_query",
+        "kb_upsert",
+        "kb_check",
+        "kb_status",
+        "kb_skills",
+        "kb_plan_bootstrap",
+        "kb_apply_plan",
+      ].join(", ")}.`,
+    );
+    expect(instructions).toContain("Set KIBI_MCP_TOOLS=full");
+    const client = await connect(workspace, FULL);
 
     const { tools } = await client.listTools();
     const names = tools.map((tool) => tool.name);
     expect(names).toEqual(AGENT_FACING_TOOLS);
     expect(names).not.toContain("kb_sparql_remote");
     expect(names).not.toContain("kb_job_status");
+    expect(String(client.getInstructions())).not.toContain("This server lists");
 
     // Composite kb_skills returns the routed kb_skills_list payload plus
     // the selector; the narrower operation stays on the CLI.
@@ -192,7 +227,7 @@ describe("kibi-mcp consolidated tool surface", () => {
 
   test("a rejected input keeps its Kibi error code on MCP, as on the CLI JSON route", async () => {
     const workspace = initWorkspace();
-    const client = await connect(workspace);
+    const client = await connect(workspace, FULL);
     const input = {
       intent: "Refunds must not exceed the original charge.",
       mode: "create",
@@ -235,22 +270,37 @@ describe("kibi-mcp consolidated tool surface", () => {
 
   test("advertises each tool within its size budget and spells out a stubbed field when it rejects one", async () => {
     const workspace = initWorkspace();
-    const client = await connect(workspace);
+    const client = await connect(workspace, FULL);
 
     // Every session loads these definitions, so their size is a cost every
-    // host pays. kb_upsert advertises its proof sub-objects as stubs, and
-    // every field description is one short line.
+    // host pays. kb_upsert advertises its capture fields only, and every
+    // field description is one short line.
     const { tools } = await client.listTools();
-    const budget = (name: string) => (name === "kb_upsert" ? 26_000 : 15_000);
+    const budget = (name: string) => (name === "kb_upsert" ? 16_000 : 15_000);
     for (const tool of tools) {
       expect({
         name: tool.name,
         size: JSON.stringify(tool).length <= budget(tool.name),
       }).toEqual({ name: tool.name, size: true });
     }
-    expect(
-      tools.reduce((total, tool) => total + JSON.stringify(tool).length, 0),
-    ).toBeLessThanOrEqual(132_000);
+    const size = (list: typeof tools) =>
+      list.reduce((total, tool) => total + JSON.stringify(tool).length, 0);
+    // What a model reads of a tool: its description and input schema.
+    const modelFacing = (list: typeof tools) =>
+      list.reduce(
+        (total, tool) =>
+          total +
+          (tool.description ?? "").length +
+          JSON.stringify(tool.inputSchema).length,
+        0,
+      );
+    expect(size(tools)).toBeLessThanOrEqual(122_000);
+    expect(modelFacing(tools)).toBeLessThanOrEqual(62_000);
+    // The default profile of an empty KB lists eight tools at about half.
+    const core = (await (await connect(workspace)).listTools()).tools;
+    expect(core.map((tool) => tool.name)).toEqual(EMPTY_KB_TOOLS);
+    expect(size(core)).toBeLessThanOrEqual(64_000);
+    expect(modelFacing(core)).toBeLessThanOrEqual(35_000);
     const longDescriptions: string[] = [];
     const walk = (name: string, value: unknown): void => {
       if (Array.isArray(value)) {
@@ -273,12 +323,11 @@ describe("kibi-mcp consolidated tool surface", () => {
       }
     ).properties;
     expect(JSON.stringify(upsert?.inputSchema).length).toBeLessThanOrEqual(
-      26_000,
+      9_000,
     );
-    expect(fields.proof_contract?.type).toBe("object");
-    expect(JSON.stringify(fields.proof_contract).length).toBeLessThan(400);
-    expect(fields.proof_receipts?.type).toBe("array");
-    expect(JSON.stringify(fields.proof_receipts).length).toBeLessThan(400);
+    expect(Object.keys(fields)).toHaveLength(15);
+    expect(fields.proof_contract).toBeUndefined();
+    expect(fields.proof_receipts).toBeUndefined();
     // The fields that carry the person's intent stay advertised in full.
     expect(fields.origin?.properties).toBeDefined();
     expect(String(fields.firmness?.description)).toContain("origin.ref");
@@ -328,12 +377,16 @@ describe("kibi-mcp consolidated tool surface", () => {
   test("registers optional tools only when KIBI_MCP_OPTIONAL_TOOLS names them", async () => {
     const workspace = initWorkspace();
     const jobOnly = await connect(workspace, {
+      ...FULL,
       KIBI_MCP_OPTIONAL_TOOLS: "kb_job_status",
     });
     const jobNames = (await jobOnly.listTools()).tools.map((t) => t.name);
     expect(jobNames).toEqual([...AGENT_FACING_TOOLS, "kb_job_status"]);
 
-    const all = await connect(workspace, { KIBI_MCP_OPTIONAL_TOOLS: "all" });
+    const all = await connect(workspace, {
+      ...FULL,
+      KIBI_MCP_OPTIONAL_TOOLS: "all",
+    });
     const allNames = (await all.listTools()).tools.map((t) => t.name);
     expect(allNames.sort()).toEqual(
       [...AGENT_FACING_TOOLS, "kb_job_status", "kb_sparql_remote"].sort(),

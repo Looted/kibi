@@ -471,7 +471,10 @@ symbols:
     sourceFile: packages/cli/tests/cli-operation-metadata.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
+    status: active
     relationships:
+      - type: executable_for
+        target: TEST-cli-help-command-summaries
       - type: executable_for
         target: TEST-test-journaled-engine-harness
   - id: SYM-cli-engine-signal-shutdown-test
@@ -1044,8 +1047,12 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-release-version
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-default-tool-profile
   - id: SYM-activate
     title: activate
     sourceFile: packages/vscode/src/extension.ts
@@ -2115,6 +2122,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-github-report-integration
@@ -2122,6 +2131,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-cli-help-command-summaries
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-init-command
@@ -2320,11 +2331,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-cli-help-command-summaries
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-register-maintenance-commands
@@ -2352,11 +2367,15 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-cli-help-command-summaries
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-register-skills-commands
@@ -3240,8 +3259,12 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: covered_by
         target: TEST-cursor-stop-job-vs-plan
+      - type: covered_by
+        target: TEST-session-brief
       - type: implements
         target: REQ-cursor-stop-job-vs-plan
+      - type: implements
+        target: REQ-session-brief-on-every-surface
   - id: SYM-cursor-stopFollowupMessage
     title: stopFollowupMessage
     sourceFile: packages/cursor/src/messages.ts
@@ -3489,8 +3512,6 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -3501,6 +3522,10 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
   - id: SYM-discovery-execute-status
@@ -3524,6 +3549,8 @@ symbols:
         target: TEST-kibi-uncompiled-source-visibility
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-session-brief
       - type: implements
         target: REQ-cli-status-pre-first-sync
       - type: implements
@@ -4679,7 +4706,13 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+      - type: implements
+        target: REQ-kibi-usage-core-arc
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
   - id: SYM-kibi-usage-workflows-guidance
@@ -4761,9 +4794,13 @@ symbols:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
+        target: TEST-session-brief
+      - type: covered_by
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-session-brief-on-every-surface
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -5242,6 +5279,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-operation-interface-parity
+      - type: executable_for
+        target: TEST-mcp-structured-text-codex
   - id: SYM-mcp-startIntegrationProlog
     title: startIntegrationProlog
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
@@ -19295,10 +19334,14 @@ symbols:
     sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-claude-adapter-isolation
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-claude-adapter-isolation
   - id: SYM-agent-core-normalizeWorkspacePath
     title: normalizeWorkspacePath
     status: active
@@ -21764,6 +21807,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-search-answer-layer
       - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: covered_by
         target: TEST-search-answer-hygiene
       - type: covered_by
         target: TEST-search-closed-requirements
@@ -21843,6 +21888,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-search-answer-layer
+      - type: executable_for
+        target: TEST-search-answer-first-layer
       - type: executable_for
         target: TEST-search-answer-requirement-reasons
   - id: SYM-test-kibi-query-fact-filters
@@ -22073,6 +22120,8 @@ symbols:
       recorded_at: 2026-10-04T03:13:45.666Z
     relationships:
       - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: covered_by
         target: TEST-agent-core-edit-snippets
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
@@ -22080,6 +22129,8 @@ symbols:
         target: TEST-codex-edit-snippet-hook
       - type: covered_by
         target: TEST-cursor-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-editKnowledgeContext
@@ -22290,6 +22341,8 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-kibi-search-answer-verdicts
+      - type: covered_by
+        target: TEST-search-answer-first-layer
       - type: covered_by
         target: TEST-search-answer-requirement-reasons
       - type: implements
@@ -24349,9 +24402,16 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tools.ts
     symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:30:37.390Z
     relationships:
       - type: covered_by
+        target: TEST-mcp-structured-text-codex
+      - type: covered_by
         target: TEST-mcp-structured-text-per-host
+      - type: implements
+        target: REQ-mcp-structured-text-codex
       - type: implements
         target: REQ-mcp-structured-text-per-host
   - id: SYM-test-mcp-structured-text-per-host
@@ -37274,10 +37334,14 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:50:51.437Z
     relationships:
-      - type: implements
-        target: REQ-kibi-init-setup-choices
+      - type: covered_by
+        target: TEST-init-gemini-instructions
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-init-gemini-instructions
+      - type: implements
+        target: REQ-kibi-init-setup-choices
   - id: SYM-agent-instructions-write-agent-instructions
     title: writeAgentInstructions
     status: active
@@ -37287,10 +37351,14 @@ symbols:
       kind: agent
       recorded_at: 2026-11-03T15:51:01.621Z
     relationships:
-      - type: implements
-        target: REQ-kibi-init-setup-choices
+      - type: covered_by
+        target: TEST-init-gemini-instructions
       - type: covered_by
         target: TEST-kibi-fresh-clone-setup
+      - type: implements
+        target: REQ-init-gemini-instructions
+      - type: implements
+        target: REQ-kibi-init-setup-choices
   - id: SYM-auto-compile-ensure-branch-store-compiled
     title: ensureBranchStoreCompiled
     status: active
@@ -40855,6 +40923,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-scoped-check-output
       - type: implements
+        target: REQ-check-unscoped-budget
+      - type: implements
         target: REQ-kibi-scoped-check-output
   - id: SYM-test-mcp-upsert-proof-field-stubs
     title: kb_upsert proof field stub suite
@@ -40864,8 +40934,10 @@ symbols:
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-15T18:30:52.721Z
+      recorded_at: 2026-11-16T17:27:57.933Z
     relationships:
+      - type: executable_for
+        target: TEST-mcp-upsert-capture-fields
       - type: executable_for
         target: TEST-mcp-upsert-proof-field-stubs
   - id: SYM-cli-advertised-input-schema
@@ -41083,7 +41155,11 @@ symbols:
       recorded_at: 2026-11-16T09:00:00.000Z
     relationships:
       - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: covered_by
         target: TEST-staged-gate-inherited-symbol-gaps
+      - type: implements
+        target: REQ-check-staged-owner-block
       - type: implements
         target: REQ-staged-gate-reports-inherited-symbol-gaps
   - id: SYM-check-InheritedSymbolGaps
@@ -41106,7 +41182,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-check-printStructuredCheckResult
     title: printStructuredCheckResult
     status: active
@@ -41119,7 +41195,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-check-executor-withSymbolDebtSummary
     title: withSymbolDebtSummary
     status: active
@@ -41132,7 +41208,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-symbol-debt-collectSymbolDebt
     title: collectSymbolDebt
     status: active
@@ -41145,7 +41221,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-symbol-debt-SymbolDebt
     title: SymbolDebt
     status: active
@@ -41166,7 +41242,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-staged-symbols-manifest-unrecordedDeclarations
     title: unrecordedDeclarations
     status: active
@@ -41179,7 +41255,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-staged-symbols-manifest-StagedSymbolsBaseSource
     title: StagedSymbolsBaseSource
     status: active
@@ -41415,12 +41491,16 @@ symbols:
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T06:40:28.425Z
+      recorded_at: 2026-11-16T17:30:30.145Z
     relationships:
       - type: covered_by
         target: TEST-mcp-short-field-descriptions
+      - type: covered_by
+        target: TEST-mcp-upsert-capture-fields
       - type: implements
         target: REQ-mcp-short-field-descriptions
+      - type: implements
+        target: REQ-mcp-upsert-capture-fields
   - id: SYM-test-kb-upsert-implemented-by
     title: kb_upsert implementedBy suite
     status: active
@@ -41446,6 +41526,8 @@ symbols:
         target: TEST-kb-upsert-implemented-by
       - type: implements
         target: REQ-kb-upsert-implemented-by
+      - type: implements
+        target: REQ-kb-upsert-implemented-by-covered-by
   - id: SYM-test-kibi-firm-edit-receipts
     title: Firm-edit receipt suite
     status: active
@@ -41736,6 +41818,8 @@ symbols:
       kind: agent
       recorded_at: 2026-11-16T10:22:28.078Z
     relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
       - type: covered_by
         target: TEST-search-answer-requirement-reasons
       - type: implements
@@ -42609,3 +42693,1401 @@ symbols:
         target: TEST-kibi-cli-legacy-apply-safe
       - type: implements
         target: REQ-kibi-legacy-attachment-engine-refusal
+  - id: SYM-test-mcp-tool-profile
+    title: tool-profile.test
+    status: active
+    sourceFile: packages/mcp/tests/server/tool-profile.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-default-tool-profile
+  - id: SYM-mcp-TOOL_PROFILES
+    title: TOOL_PROFILES
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+  - id: SYM-cli-ADVERTISED_FIELDS
+    title: ADVERTISED_FIELDS
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-capture-fields
+      - type: implements
+        target: REQ-mcp-upsert-capture-fields
+  - id: SYM-cli-commandSummary
+    title: commandSummary
+    status: active
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: implements
+        target: REQ-cli-help-command-summaries
+  - id: SYM-cli-UNLISTED_OPERATIONS
+    title: UNLISTED_OPERATIONS
+    status: active
+    sourceFile: packages/cli/src/cli-register-json.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: implements
+        target: REQ-cli-help-command-summaries
+  - id: SYM-mcp-DEFAULT_PROFILE_TOOLS
+    title: DEFAULT_PROFILE_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-mcp-default-profile-tools
+  - id: SYM-mcp-BOOTSTRAP_TOOLS
+    title: BOOTSTRAP_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-mcp-bootstrap-tools
+  - id: SYM-mcp-resolveToolProfile
+    title: resolveToolProfile
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-knowledgeBaseIsEmpty
+    title: knowledgeBaseIsEmpty
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-profileToolNames
+    title: profileToolNames
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-serverInstructions
+    title: serverInstructions
+    status: active
+    sourceFile: packages/mcp/src/server.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-mcp-ToolProfile
+    title: ToolProfile
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+  - id: SYM-test-cli-commandSurface
+    title: commandSurface
+    status: active
+    sourceFile: packages/cli/tests/helpers/command-surface.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-help-command-summaries
+  - id: SYM-test-cli-CommandSurface
+    title: CommandSurface
+    status: active
+    sourceFile: packages/cli/tests/helpers/command-surface.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-help-command-summaries
+  - id: SYM-skillopt-run-independent-final-state
+    title: runIndependentFinalState
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:30:08.766Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
+  - id: SYM-test-check-quantity-duplicate
+    title: quantity-duplicate consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/quantity-duplicate.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:07.778Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-duplicate-rule
+    title: QUANTITY_DUPLICATE_RULE
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:44.401Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-layer-schema-version
+    title: QUANTITY_LAYER_SCHEMA_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:48.940Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-quantity-word-share
+    title: QUANTITY_WORD_SHARE
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:52.364Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-value
+    title: quantityValue
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:15.583Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-trivial-values
+  - id: SYM-cli-quantity-layer-value-fact-entry
+    title: valueFactEntry
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:42.035Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-code
+    title: QuantityCode
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:02.536Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-signal
+    title: QuantitySignal
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:05.905Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-pair
+    title: quantityPair
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:25.381Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-distinct-from
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-inputs
+    title: QuantityInputs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:12.473Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-layer-quantity-words
+    title: quantityWords
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:18.744Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-declared-distinct
+    title: declaredDistinct
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:22.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-distinct-from
+  - id: SYM-cli-quantity-layer-quantity-duplicate-pairs
+    title: quantityDuplicatePairs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:28.694Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-duplicate-violations
+    title: quantityDuplicateViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:32.113Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-dangling-distinct
+  - id: SYM-cli-quantity-layer-read-quantity-inputs
+    title: readQuantityInputs
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:35.341Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-value-fact-key
+    title: valueFactKey
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:38.624Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate-pairing
+  - id: SYM-cli-quantity-layer-quantity-layer-applies
+    title: quantityLayerApplies
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:45.441Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-collect-quantity-duplicate-violations
+    title: collectQuantityDuplicateViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:48.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-review-code
+    title: QUANTITY_DUPLICATE_REVIEW_CODE
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:51.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-action-prefix
+    title: QUANTITY_DUPLICATE_ACTION_PREFIX
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:54.020Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-plan-quantity-duplicate-reviews
+    title: planQuantityDuplicateReviews
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:56.052Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-actions
+    title: quantityDuplicateActions
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:58.004Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-duplicate-quantity-duplicate-note
+    title: quantityDuplicateNote
+    status: active
+    sourceFile: packages/cli/src/operations/migration/quantity-duplicate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:59.881Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-migrate-quantity-duplicate-review
+  - id: SYM-cli-quantity-warnings-quantity-warning-input
+    title: QuantityWarningInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/quantity-warnings.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:02.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-upsert-names-quantity-twin
+      - type: implements
+        target: REQ-upsert-quantity-previous-value
+  - id: SYM-cli-quantity-warnings-quantity-warnings
+    title: quantityWarnings
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/quantity-warnings.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:05.670Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-upsert-names-quantity-twin
+      - type: implements
+        target: REQ-upsert-quantity-previous-value
+  - id: SYM-cli-quantity-layer-quantity-inputs-from-knowledge
+    title: quantityInputsFromKnowledge
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:44:23.917Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-cli-quantity-layer-staged-quantity-violations
+    title: stagedQuantityViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/quantity-layer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:44:27.306Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-quantity-duplicate
+      - type: implements
+        target: REQ-check-quantity-duplicate
+  - id: SYM-test-upsert-stale-siblings
+    title: stale siblings consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/stale-siblings.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:16:55.754Z
+    relationships:
+      - type: executable_for
+        target: TEST-upsert-stale-siblings
+  - id: SYM-test-upsert-sibling-requirements-unit
+    title: sibling requirements unit suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/sibling-requirements.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:16:58.284Z
+    relationships:
+      - type: executable_for
+        target: TEST-upsert-stale-siblings
+  - id: SYM-cli-sibling-requirements-sibling-requirement
+    title: SiblingRequirement
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:22.067Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-flags-stale-sibling-claim
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-cli-sibling-requirements-sibling-next-action
+    title: SiblingNextAction
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:25.331Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-cli-sibling-requirements-sibling-report
+    title: SiblingReport
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:28.713Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-cli-sibling-requirements-sibling-input
+    title: SiblingInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:31.922Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-dry-run-lists-siblings
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-cli-sibling-requirements-sibling-requirements
+    title: siblingRequirements
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/sibling-requirements.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:35.219Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-flags-stale-sibling-claim
+      - type: implements
+        target: REQ-upsert-lists-sibling-requirements
+  - id: SYM-core-kb-check-fact-contradiction
+    title: check_fact_contradiction
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:38.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-refuses-fact-contradiction
+  - id: SYM-core-kb-upsert-contradiction-baseline
+    title: upsert_contradiction_baseline
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:41.343Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-refuses-fact-contradiction
+  - id: SYM-core-kb-kb-stage-upserts
+    title: kb_stage_upserts
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T19:17:43.911Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-apply-plan-checks-contradictions-once
+  - id: SYM-proof-mcp-default-profile-tools
+    title: mcpDefaultProfileToolsCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T22:37:52.745Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-default-profile-tools
+  - id: SYM-proof-mcp-bootstrap-tools
+    title: mcpBootstrapToolsCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T22:37:54.454Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-bootstrap-tools
+  - id: SYM-test-session-brief
+    title: session-brief.test
+    status: active
+    sourceFile: packages/agent-core/tests/session-brief.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-session-brief
+  - id: SYM-test-agent-instructions-mutation
+    title: agent-instructions-mutation.test
+    status: active
+    sourceFile: packages/cli/tests/commands/agent-instructions-mutation.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-init-gemini-instructions
+  - id: SYM-agent-core-SESSION_BRIEF_LINES
+    title: SESSION_BRIEF_LINES
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-agent-core-SESSION_BRIEF
+    title: SESSION_BRIEF
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-agent-core-sessionBriefWith
+    title: sessionBriefWith
+    status: active
+    sourceFile: packages/agent-core/src/session-brief.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-agent-core-session-brief
+  - id: SYM-claude-sessionStartContext
+    title: sessionStartContext
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-codex-runHook
+    title: runHook
+    status: active
+    sourceFile: packages/codex/src/hook-runner.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-codex-CODEX_SESSION_NOTE
+    title: CODEX_SESSION_NOTE
+    status: active
+    sourceFile: packages/codex/src/messages.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-zcode-SESSION_START_CONTEXT
+    title: SESSION_START_CONTEXT
+    status: active
+    sourceFile: packages/zcode/src/messages.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-discovery-StatusPayload
+    title: StatusPayload
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-agent-instructions-GEMINI_FILE
+    title: GEMINI_FILE
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-agent-instructions-GEMINI_IMPORT_SECTION
+    title: GEMINI_IMPORT_SECTION
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-init-gemini-instructions
+      - type: implements
+        target: REQ-init-gemini-instructions
+  - id: SYM-agent-instructions-AgentInstructionsResult
+    title: AgentInstructionsResult
+    status: active
+    sourceFile: packages/cli/src/commands/agent-instructions.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-symbol-debt-symbol-debt-listing
+    title: symbolDebtListing
+    sourceFile: packages/cli/src/public/operations/symbol-debt.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:52:22.178Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-symbol-debt-count
+  - id: SYM-check-format-symbol-debt-count
+    title: formatSymbolDebtCount
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:52:27.900Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-symbol-debt-count
+  - id: SYM-check-format-check-pass-line
+    title: formatCheckPassLine
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:52:47.470Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-pass-one-line
+  - id: SYM-check-format-shared-describe-evaluated-rules
+    title: describeEvaluatedRules
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:52:56.817Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-pass-one-line
+  - id: SYM-check-CheckOptions
+    title: CheckOptions
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:30:00.000Z
+  - id: SYM-check-executor-CheckInput
+    title: CheckInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:30:00.000Z
+  - id: SYM-check-executor-CheckExecutionOptions
+    title: CheckExecutionOptions
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:30:00.000Z
+  - id: SYM-agent-core-decision-guard-startdecisionsession
+    title: startDecisionSession
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T21:02:46.863Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-stop-capture
+  - id: SYM-claude-session-state-sessionjournal
+    title: sessionJournal
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T21:02:54.217Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-decision-capture-nudges
+  - id: SYM-test-skills-core-arc
+    title: skills-core-arc.test
+    status: active
+    sourceFile: packages/cli/tests/skills-core-arc.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-skills-core-arc
+  - id: SYM-kibi-commit-review-skill-guidance
+    title: kibi-commit-review
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-commit-review/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-commit-review-kb-staging
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-decisions-skill-guidance
+    title: kibi-decisions
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-decisions/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-freshness-skill-guidance
+    title: kibi-freshness
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-freshness/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-traceability-skill-guidance
+    title: kibi-traceability
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-traceability/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-skillopt-queriedBeforeWrite
+    title: queriedBeforeWrite
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-skillopt-OBJECTIVE_WORKFLOWS
+    title: OBJECTIVE_WORKFLOWS
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-test-agent-core-edit-snippet-why
+    title: Shared edit snippet suite
+    status: active
+    sourceFile: packages/agent-core/tests/snippets.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:41:29.013Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-core-edit-snippet-why
+  - id: SYM-search-answer-requirement-statement-of
+    title: requirementStatementOf
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:53:48.612Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-governing-statement
+  - id: SYM-search-answer-reason-source
+    title: reasonSource
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:54:16.306Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-reason-origin
+  - id: SYM-search-answer-search-answer-reason-source
+    title: SearchAnswerReasonSource
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:54:32.667Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-reason-origin
+  - id: SYM-knowledge-index-prose-excerpt
+    title: proseExcerpt
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:06.431Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-max-reason-chars
+    title: MAX_REASON_CHARS
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:11.954Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-snippets-reason-line
+    title: reasonLine
+    sourceFile: packages/agent-core/src/snippets.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:21.322Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-snippets-max-why-chars
+    title: MAX_WHY_CHARS
+    sourceFile: packages/agent-core/src/snippets.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:25.938Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-entity-summary
+    title: EntitySummary
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:37.080Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-entity-reason
+    title: EntityReason
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:45.352Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-intent-search-intent-search-evidence
+    title: IntentSearchEvidence
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:56:19.364Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-search-answer-search-answer-options
+    title: SearchAnswerOptions
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:56:26.472Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-discovery-summarize-match
+    title: summarizeMatch
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:49.198Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-search-answer-fact-at-detail
+    title: factAtDetail
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:57.932Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-search-answer-without-change-notes
+    title: withoutChangeNotes
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:36:54.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-requirement-reason-skips-change-notes
+  - id: SYM-knowledge-index-without-change-notes
+    title: withoutChangeNotes
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:37:01.678Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-requirement-reason-skips-change-notes
+  - id: SYM-owner-findings-collect-owner-findings
+    title: collectOwnerFindings
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:49:15.327Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-without-owned-causes
+    title: withoutOwnedCauses
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:49:19.410Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-format-owner-findings
+    title: formatOwnerFindings
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:49:24.805Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-covering-tests
+    title: coveringTests
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:49:29.571Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-OwnerFinding
+    title: OwnerFinding
+    status: active
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:50:14.857Z
+  - id: SYM-owner-findings-OwnerFindingSymbol
+    title: OwnerFindingSymbol
+    status: active
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:50:22.707Z
+  - id: SYM-test-check-staged-owner-block
+    title: staged check owner block suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/owner-findings.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:51:10.341Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-staged-owner-block
+  - id: SYM-owner-findings-owner-payloads-shown
+    title: OWNER_PAYLOADS_SHOWN
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:11.924Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-cli-upsert-command
+    title: CLI_UPSERT_COMMAND
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:22.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-diagnostics-create-semantic-review-diagnostics
+    title: createSemanticReviewDiagnostics
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:25.636Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-upsert-implemented-by-schema
+    title: IMPLEMENTED_BY_SCHEMA
+    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:32.015Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-implemented-by
+      - type: implements
+        target: REQ-kb-upsert-implemented-by-covered-by
+  - id: SYM-types-ImplementedByInput
+    title: ImplementedByInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:35.200Z

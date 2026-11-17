@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-docs-site-root-pages",
+  "sourceFile": "docs-site/theme.ts",
+  "symbol": "landingContent",
+  "verdict": "keeps",
+  "note": "Only one FAQ sentence changes (kb_check reports how many rules it evaluated); site publishing, root path, report path and link checking are untouched.",
+  "statementHash": "sha256:ff9c2f5a8b650170f5ba1aedbe67503d47e424eee564db79be599ffe88b2852e",
+  "codeHash": "sha256:b842720b63e047df0e024b78814a192553b98bf2026f6701a24166152fcb8926",
+  "startLine": 1447,
+  "endLine": 1833,
+  "recordedAt": "2026-11-17T06:15:52.859Z"
+}

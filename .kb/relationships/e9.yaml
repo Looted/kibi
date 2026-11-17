@@ -440,3 +440,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99b11df7515b
+  - type: implements
+    from: SYM-agent-core-decision-guard-startdecisionsession
+    to: REQ-agent-hosts-stop-capture
+    created_at: 2026-11-16T21:02:48.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e62417c6ee2
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-startdecisionsession
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-11-16T21:02:48.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbc9e13ec76f
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-startdecisionsession
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-16T21:02:48.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e65cec3100e
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-startdecisionsession
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-11-16T21:02:48.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33ea0f4f89e7
+  - type: covered_by
+    from: SYM-agent-core-decision-guard-startdecisionsession
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T21:02:48.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf0ef63e5c55

@@ -344,6 +344,7 @@ describe("executeSearch intent ranking", () => {
     expect(calls.answer).toHaveBeenCalledWith(PROLOG, matches, {
       workspaceRoot: "/ws",
       branch: "kb-main",
+      detail: "summary",
     });
     expect(calls.build).toHaveBeenCalledWith({
       query: "login",
@@ -386,6 +387,35 @@ describe("executeSearch intent ranking", () => {
       type: "req",
       title: "REQ-1",
     });
+  });
+
+  test("summary results leave out graph paths and the answer's fact calls; full keeps both", async () => {
+    const evidence = {
+      normalizedScore: 1,
+      matchedFacets: ["f"],
+      sourceMatches: [],
+      graphPaths: [{ from: "SYM-a", relationships: ["implements"], to: "R" }],
+      abstentionEligible: false,
+    };
+    const calls = intentFakes({ matches: [match("REQ-1", { evidence })] });
+    const summary = await search({ query: "q", hints: false });
+    expect(summary.structuredContent.results[0]).toStrictEqual({
+      entity: { id: "REQ-1", type: "req", title: "REQ-1" },
+      score: 1,
+      reasons: ["title"],
+      evidence: {
+        normalizedScore: 1,
+        matchedFacets: ["f"],
+        sourceMatches: [],
+        abstentionEligible: false,
+      },
+    });
+    expect(calls.answer.mock.calls[0]?.[2]).toMatchObject({
+      detail: "summary",
+    });
+    const full = await search({ query: "q", hints: false, fields: "full" });
+    expect(full.structuredContent.results[0].evidence).toStrictEqual(evidence);
+    expect(calls.answer.mock.calls[1]?.[2]).toMatchObject({ detail: "full" });
   });
 
   test("a forbidden situation is named so in the top matches", async () => {

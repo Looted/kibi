@@ -61,7 +61,7 @@ const WORKFLOW_SIGNALS = [
   "discovery search executed",
   "source-linked query executed",
   "typed relationship applied",
-  "symbol readback after write",
+  "symbol queried before write",
   "final check executed",
   "typed envelope inspected",
   "repair executed after diagnostics",

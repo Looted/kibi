@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import * as fs from "node:fs";
 import * as path from "node:path";
 import { type RelationshipRecord, readShard } from "../relationships/shards.js";
 
@@ -62,35 +61,6 @@ const VALID_RELATIONSHIP_TYPES = new Set([
   "exempts",
   "relates_to",
 ]);
-
-/**
- * Extracts all relationships from relationship shard files in the given directory.
- *
- * @param relationshipsDir - Path to .kb/relationships directory
- * @returns Array of extraction results, one per shard file
- */
-export function extractFromRelationshipShards(
-  relationshipsDir: string,
-): ShardExtractionResult[] {
-  if (!fs.existsSync(relationshipsDir)) {
-    return [];
-  }
-
-  const results: ShardExtractionResult[] = [];
-  const files = fs.readdirSync(relationshipsDir);
-
-  for (const file of files) {
-    if (!file.endsWith(".yaml") && !file.endsWith(".yml")) {
-      continue;
-    }
-
-    const shardPath = path.join(relationshipsDir, file);
-    if (!fs.statSync(shardPath).isFile()) continue;
-    results.push(extractRelationshipShard(shardPath));
-  }
-
-  return results;
-}
 
 /** Parse one changed shard. Callers can hash first and skip unchanged files. */
 export function extractRelationshipShard(
@@ -162,15 +132,6 @@ export function convertRecordToRelationship(
  */
 export function getRelationshipsDir(kbRoot: string): string {
   return path.join(kbRoot, "relationships");
-}
-
-/**
- * Flattens multiple shard extraction results into a single array of relationships.
- */
-export function flattenRelationships(
-  results: ShardExtractionResult[],
-): ExtractedRelationship[] {
-  return results.flatMap((r) => r.relationships);
 }
 
 /**

@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af57bcef6a6f
+  - type: implements
+    from: SYM-discovery-summarize-match
+    to: REQ-search-compact-evidence
+    created_at: 2026-11-16T16:10:50.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b65a91953f1
+  - type: covered_by
+    from: SYM-discovery-summarize-match
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T16:10:50.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f45b0ae6c231

@@ -111,23 +111,6 @@ export function factKindShapeHints(
   return [];
 }
 
-export function assertRuleSchemaArity(
-  argumentNames: unknown,
-  argumentTypes: unknown,
-): void {
-  if (
-    !Array.isArray(argumentNames) ||
-    !Array.isArray(argumentTypes) ||
-    argumentNames.length !== argumentTypes.length
-  ) {
-    throw new KbRejection(
-      "ENTITY_VALIDATION_FAILED",
-      "Entity validation failed: rule_schema argument_names and argument_types must have equal lengths",
-      [{ rule: "rule_schema_arity", field: "argument_types" }],
-    );
-  }
-}
-
 export function validateFactModelingShape(
   entity: Readonly<Record<string, unknown>>,
 ): void {

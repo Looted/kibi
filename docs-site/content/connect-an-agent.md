@@ -7,7 +7,7 @@ If you used the [agent setup prompt](quick-start.md#2-paste-the-setup-prompt-int
 
 Once Kibi is installed in the repository, your agent needs a way to call it. Two surfaces expose the same operations:
 
-- **MCP server** (`kibi-mcp`) — 16 tools such as `kb_search`, `kb_check`, and `kb_upsert` show up in the client's tool list. `kb_search` also answers plain questions, such as "what governs checkout rounding?", with the requirements that apply. The [MCP reference](../reference/mcp.md) lists every tool.
+- **MCP server** (`kibi-mcp`) — six tools, `kb_search`, `kb_query`, `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`, show up in the client's tool list; the other ten operations run through the project CLI with the same input, or show up too with `KIBI_MCP_TOOLS=full`. `kb_search` also answers plain questions, such as "what governs checkout rounding?", with the requirements that apply. The [MCP reference](../reference/mcp.md) lists every tool.
 - **CLI** (`kibi`) — the same operations as JSON on stdin, plus commands you run yourself, such as `kibi report`.
 
 Use whichever surface your client can see. You do not configure both unless you want to.
@@ -17,7 +17,7 @@ Use whichever surface your client can see. You do not configure both unless you 
 
 ## Claude Code
 
-The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what those requirements must keep true and the decision behind them. The same context reaches reads and writes the agent makes through shell commands such as `cat`, `sed -i` or a script, and an in-place write such as `sed -i` hears what must stay true before it runs:
+The `kibi-claude` plugin brings the server, the bundled skills, and hooks that show the agent the linked requirements and tests before it reads or edits code, and before an edit, what those requirements must keep true, why the lead one exists, and the decision behind them. The same context reaches reads and writes the agent makes through shell commands such as `cat`, `sed -i` or a script, and an in-place write such as `sed -i` hears what must stay true before it runs:
 
 ```bash
 claude plugin marketplace add Looted/kibi
