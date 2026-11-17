@@ -412,3 +412,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f2203b73c4e5
+  - type: assumes
+    from: SCEN-ci-proof-search-gates-before-prove
+    to: FACT-ci-proof-search-gates-before-prove
+    created_at: 2026-11-17T10:51:16.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9e22f54347d
+  - type: verified_by
+    from: SCEN-ci-proof-search-gates-before-prove
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:16.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab218b4e52f6

@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-663f8d11950a
+  - type: implements
+    from: SYM-ci-required-job
+    to: REQ-ci-required-check-aggregate
+    created_at: 2026-11-17T10:51:45.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdb8c34b6ad2
+  - type: covered_by
+    from: SYM-ci-required-job
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:45.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cde75c0e2839
