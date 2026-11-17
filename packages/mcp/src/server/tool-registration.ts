@@ -278,6 +278,11 @@ export function registerConfiguredTools<TProlog>(
     },
   });
   register({
+    name: "kb_review_firm_edit",
+    execute: async (context, args) =>
+      getSpec("kb_review_firm_edit").execute(args, context),
+  });
+  register({
     name: "kb_prepare_impact_review",
     execute: async (context, args) =>
       getSpec("kb_prepare_impact_review").execute(args, context),

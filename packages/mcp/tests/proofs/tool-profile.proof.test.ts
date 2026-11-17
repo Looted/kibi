@@ -11,13 +11,13 @@ import {
 } from "../../src/tools-config.js";
 
 /**
- * The tools the default profile lists, and the bootstrap tools it adds while
+ * The tools the core profile lists, and the bootstrap tools it adds while
  * the knowledge base is empty. Kibi reads DEFAULT_PROFILE_TOOLS and
  * BOOTSTRAP_TOOLS itself at ingest (domain_source), so each certificate is
  * checked against the constants, not the names here.
  */
 
-/** The default profile shall list the six core tools. */
+/** The core profile shall list the six core tools and kb_review_firm_edit. */
 export async function mcpDefaultProfileToolsCertificate(): Promise<CodeCertificate> {
   return exhaustiveCertificate({
     testId: "TEST-proof-mcp-default-profile-tools",
@@ -49,11 +49,12 @@ export async function mcpBootstrapToolsCertificate(): Promise<CodeCertificate> {
 }
 
 describe("the MCP default tool profile", () => {
-  test("the default profile lists the six core tools", async () => {
+  test("the core profile lists the six core tools and kb_review_firm_edit", async () => {
     writeCodeCertificate(await mcpDefaultProfileToolsCertificate());
     expect([...DEFAULT_PROFILE_TOOLS].sort()).toEqual([
       "kb_check",
       "kb_query",
+      "kb_review_firm_edit",
       "kb_search",
       "kb_skills",
       "kb_status",

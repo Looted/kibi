@@ -77,7 +77,7 @@ export function serverInstructions(
             )
             .join(
               ", ",
-            )}) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.`,
+            )}) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -).`,
         ]),
   ]);
 }

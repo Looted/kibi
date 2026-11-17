@@ -807,9 +807,9 @@ printf '%s' '{"questions":[{"id":"REQ-042","statement":"Exports stay in CSV.","q
 Records the agent's verdict on its change to code that implements a current
 firm requirement, a rule a person set. `kibi check --staged` blocks such a
 change (`firm_edit_unreviewed`) until every edited symbol has a current
-`keeps` receipt. It is a CLI command, not an MCP tool: the blocking finding
-prints the exact input to pipe in, with the requirement, file and symbol
-filled and the note left empty.
+`keeps` receipt. MCP lists it as `kb_review_firm_edit` in every tool profile.
+The blocking finding prints the exact input to send, with the requirement,
+file and symbol filled and the note left empty.
 
 **Syntax:**
 ```bash

@@ -41570,6 +41570,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-staged-firm-edit-gate
       - type: implements
+        target: REQ-kibi-firm-edit-finding-names-tool
+      - type: implements
         target: REQ-kibi-staged-firm-edit-gate
   - id: SYM-cli-firm-edit-review-state
     title: reviewState

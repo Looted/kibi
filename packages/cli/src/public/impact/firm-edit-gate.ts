@@ -377,7 +377,7 @@ export function createFirmEditGateDiagnostics(
         : `The change edits code that implements ${id}, a firm rule the person set, without a current review of that code: ${listed}. Statement: "${flat}"`,
       suggestion: breaks
         ? `Ask the person whether ${id} should change. With their words, supersede ${id} with kb_upsert (a new requirement with a supersedes link and their words in origin.ref) in this change; otherwise undo the edit.`
-        : `Read the changed code against ${id}. If it still does what ${id} says, write a one-line note on why into this input and pipe it to kibi review-firm-edit --input -, then stage the receipt it writes: ${JSON.stringify(reviewInput)}.${unstagedNote} The receipt is your judgment, not the person's approval. If the change no longer does what ${id} says, set verdict "changes" and ask the person before keeping the change.`,
+        : `Read the changed code against ${id}. If it still does what ${id} says, write a one-line note on why into this input and send it to kb_review_firm_edit (without MCP: pipe it to kibi review-firm-edit --input -), then stage the receipt it writes: ${JSON.stringify(reviewInput)}.${unstagedNote} The receipt is your judgment, not the person's approval. If the change no longer does what ${id} says, set verdict "changes" and ask the person before keeping the change.`,
       evidence: {
         requirement: id,
         statement: flat,

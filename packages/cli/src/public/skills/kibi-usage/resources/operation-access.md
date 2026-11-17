@@ -34,10 +34,11 @@ per operation. Effects are authoritative for mutability and adapter annotations.
 
 ## MCP tools versus catalog operations
 
-The MCP catalog has 16 tools. A session lists six of them (`kb_search`,
-`kb_query`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills`) unless the
-`full` profile is chosen (`KIBI_MCP_TOOLS=full`); the others run through their
-CLI routes with the same input. Most tools carry their catalog operation name; the
+The MCP catalog has 17 tools, and a session lists all of them. A project that
+chooses the `core` profile (`KIBI_MCP_TOOLS=core`) lists seven
+(`kb_search`, `kb_query`, `kb_upsert`, `kb_check`, `kb_status`,
+`kb_skills`, `kb_review_firm_edit`); the others then run through their CLI
+routes with the same input. Most tools carry their catalog operation name; the
 operations below are reached through a consolidated MCP call instead, while the
 CLI keeps their dedicated routes. Result payloads (for example
 `recommended_tools`, `suggested_next_tool`, or repair-plan steps) still name
@@ -50,7 +51,6 @@ catalog operations, so translate them with this list.
 - `kb_model_requirement`: MCP `kb_model` with `mode: "requirement"`; CLI `kibi model-requirement` (`model-requirement`)
 - `kb_suggest_predicates`: MCP `kb_model` with `mode: "predicates"`; CLI `kibi suggest-predicates` (`suggest-predicates`)
 - `kb_validate_upsert`: MCP `kb_upsert` with `dryRun: true`; CLI `kibi validate-upsert` (`validate-upsert`)
-- `kb_review_firm_edit`: MCP none: CLI only, run the `kibi review-firm-edit` input the `firm_edit_unreviewed` finding prints; CLI `kibi review-firm-edit` (`review-firm-edit`)
 - `kb_sparql_remote`: MCP `kb_sparql_remote`, registered only when `KIBI_MCP_OPTIONAL_TOOLS` names it; CLI `kibi sparql-remote` (`sparql-remote`)
 
 The consolidated tools also have their own CLI routes: `kibi skill` for

@@ -7,8 +7,8 @@ property_key: firm_edit_notice
 operator: eq
 value_type: bool
 value_bool: true
-claim_key: CLAIM-DD875FBC8AF85498
-claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kibi review-firm-edit
+claim_key: CLAIM-E5D7DA26835ED6C3
+claim_text: Before an edit changes code that implements a current firm requirement, the Codex, Cursor, ZCode pre-edit hooks must tell the agent, once per requirement per session, to ask the person before an edit that breaks that rule and to record its verdict with kb_review_firm_edit
 text_ref: REQ-agent-hosts-firm-edit-ask
 tags:
   - strict-modeling

@@ -46,22 +46,27 @@ choice for any host (see [Diagnostic usage log](#diagnostic-usage-log-opt-in)).
 
 ### Tool list
 
-The catalog has 16 tools. A session lists only part of it unless the `full`
+The catalog has 17 tools, and a session lists all of them unless the `core`
 profile is chosen:
 
-- **default**: the six tools of every change, `kb_search`, `kb_query`,
-  `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`. While the
-  knowledge base holds no entity yet, `kb_plan_bootstrap` and `kb_apply_plan`
-  are listed too. The `initialize` instructions name the tools left out;
-  each of them runs through the project CLI with the same input
-  (`npx --no-install kibi <command>`, JSON routes with `--input -`).
-- **full**: all 16.
+- **full** (the default): all 17.
+- **core**: the six tools of every change, `kb_search`, `kb_query`,
+  `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`, plus
+  `kb_review_firm_edit`, which records the firm-edit receipt that a blocking
+  `kb_check` finding asks for. While the knowledge base holds no entity yet,
+  `kb_plan_bootstrap` and `kb_apply_plan` are listed too. The `initialize`
+  instructions name the tools left out; each of them runs through the project
+  CLI with the same input (`npx --no-install kibi <command>`, JSON routes with
+  `--input -`).
 
-The profile comes from `kibi-mcp --tools <default|full>`, else
-`KIBI_MCP_TOOLS` in the server environment, else the project's recorded
-choice (`"kibi": { "mcpTools": "full" }` in the root `package.json`, or
-`"mcpTools": "full"` in `.kb/setup.json` in a repository without one), else
-`default`.
+The profile comes from `kibi-mcp --tools <full|core>`, else `KIBI_MCP_TOOLS` in
+the server environment, else the project's recorded choice
+(`"kibi": { "mcpTools": "core" }` in the root `package.json`, or
+`"mcpTools": "core"` in `.kb/setup.json` in a repository without one), else
+`full`. Claude Code and Codex load a tool's schema only when the agent first
+calls it, so the full list costs a name per tool there. On a host that loads
+every schema at the start, `core` saves about 35,000 characters per session,
+but an agent there needs the project CLI for the other operations.
 
 `kb_upsert` advertises the 15 fields that capture a requirement or decision
 and its reason (`title`, `status`, `priority`, `tags`, `links`, `text_ref`,
@@ -76,7 +81,7 @@ one in full.
 | Discovery and reporting | `kb_query`, `kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph` |
 | Skills | `kb_skills` |
 | Modeling (read-only) | `kb_model` |
-| Mutation and validation | `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_ingest_proof` |
+| Mutation and validation | `kb_upsert` (also the `dryRun: true` preflight), `kb_delete`, `kb_check`, `kb_review_firm_edit`, `kb_ingest_proof` |
 | Planning and review | `kb_prepare_impact_review`, `kb_plan_bootstrap`, `kb_compile_intent`, `kb_apply_plan` |
 
 Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
