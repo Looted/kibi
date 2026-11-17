@@ -45,17 +45,3 @@ export function parseHookInput(raw: unknown): HookInput {
   if (input.stop_hook_active === true) parsed.stopHookActive = true;
   return parsed;
 }
-
-export async function readStdin(): Promise<string> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of process.stdin) {
-    // Buffer.from copies a Buffer chunk and encodes a string one.
-    chunks.push(Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-
-export function parseStdinJson(rawInput: string): unknown {
-  const trimmed = rawInput.trim();
-  return trimmed.length === 0 ? {} : JSON.parse(trimmed);
-}

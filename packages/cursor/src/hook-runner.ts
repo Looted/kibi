@@ -28,6 +28,7 @@ import {
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
 import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import {
   type HookTrace,
   appendHookUsage,
@@ -49,7 +50,7 @@ import {
   implementedRequirementIds,
 } from "kibi-agent-core/snippets";
 import { preEditGuidance, readGuidance, writeGuidance } from "./guidance.js";
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import { parseHookInput } from "./hook-input.js";
 import {
   addDirtyPaths,
   clearSessionHookState,
