@@ -94,7 +94,13 @@
       },
       "includeMigrationPlan": {
         "type": "boolean",
-        "description": "With sourceFiles: return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary."
+        "description": "Return the full migrationPlan (its actions, for kb_apply_plan) instead of migrationPlanSummary, which a check with sourceFiles always gives and any other check gives when the result is over its size budget.",
+        "x-kibi-advertised-description": "Return the full migrationPlan (for kb_apply_plan) even when the result would show only its summary."
+      },
+      "includeSymbolDebt": {
+        "type": "boolean",
+        "description": "Without rules or sourceFiles: list the unrecorded declarations per file under symbolDebt.files. By default symbolDebt carries only total and fileCount; the debt never blocks.",
+        "x-kibi-advertised-description": "Without rules or sourceFiles: list unrecorded declarations per file (symbolDebt has counts only by default)."
       },
       "staged": {
         "type": "boolean",
@@ -251,9 +257,12 @@
               "symbolDebt": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["total", "files"],
+                "required": ["total", "fileCount"],
                 "properties": {
                   "total": {
+                    "type": "integer"
+                  },
+                  "fileCount": {
                     "type": "integer"
                   },
                   "files": {
@@ -276,7 +285,7 @@
                     }
                   }
                 },
-                "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record. Non-blocking: the staged gate judges them only when a commit adds or changes them."
+                "description": "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them."
               }
             }
           },

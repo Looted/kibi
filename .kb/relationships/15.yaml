@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a5acd83e0329
+  - type: assumes
+    from: SCEN-check-pass-one-line
+    to: FACT-check-pass-one-line
+    created_at: 2026-11-16T16:00:51.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0cff3135cf8

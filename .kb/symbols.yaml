@@ -40883,6 +40883,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-scoped-check-output
       - type: implements
+        target: REQ-check-unscoped-budget
+      - type: implements
         target: REQ-kibi-scoped-check-output
   - id: SYM-test-mcp-upsert-proof-field-stubs
     title: kb_upsert proof field stub suite
@@ -41134,7 +41136,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-check-printStructuredCheckResult
     title: printStructuredCheckResult
     status: active
@@ -41147,7 +41149,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-check-executor-withSymbolDebtSummary
     title: withSymbolDebtSummary
     status: active
@@ -41160,7 +41162,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-symbol-debt-collectSymbolDebt
     title: collectSymbolDebt
     status: active
@@ -41173,7 +41175,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-symbol-debt-SymbolDebt
     title: SymbolDebt
     status: active
@@ -41194,7 +41196,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-staged-symbols-manifest-unrecordedDeclarations
     title: unrecordedDeclarations
     status: active
@@ -41207,7 +41209,7 @@ symbols:
       - type: covered_by
         target: TEST-check-reports-symbol-debt
       - type: implements
-        target: REQ-check-reports-symbol-debt
+        target: REQ-check-symbol-debt-count
   - id: SYM-staged-symbols-manifest-StagedSymbolsBaseSource
     title: StagedSymbolsBaseSource
     status: active
@@ -43604,3 +43606,79 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T17:00:00.000Z
+  - id: SYM-symbol-debt-symbol-debt-listing
+    title: symbolDebtListing
+    sourceFile: packages/cli/src/public/operations/symbol-debt.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:52:22.178Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-symbol-debt-count
+  - id: SYM-check-format-symbol-debt-count
+    title: formatSymbolDebtCount
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:52:27.900Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-symbol-debt-count
+  - id: SYM-check-format-check-pass-line
+    title: formatCheckPassLine
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:52:47.470Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-pass-one-line
+  - id: SYM-check-format-shared-describe-evaluated-rules
+    title: describeEvaluatedRules
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:52:56.817Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-reports-symbol-debt
+      - type: implements
+        target: REQ-check-pass-one-line
+  - id: SYM-check-CheckOptions
+    title: CheckOptions
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:30:00.000Z
+  - id: SYM-check-executor-CheckInput
+    title: CheckInput
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:30:00.000Z
+  - id: SYM-check-executor-CheckExecutionOptions
+    title: CheckExecutionOptions
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-executor.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:30:00.000Z
