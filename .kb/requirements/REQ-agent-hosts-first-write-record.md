@@ -11,6 +11,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer request: a stated rule is recorded with one kb_record call, translated into one kb_upsert payload, that returns the commit gate''s verdict; facts and other modeling stay on kb_upsert.'
+  approved_by: maintainer
   recorded_at: '2026-11-17T06:45:15.755Z'
 rationale: Agents write what the hook template and the skills show them; while those name kb_upsert for the first write of a rule, kb_record goes unused on every harness and without one.
 semantic_text: The default MCP tool profile must list kb_record. The capture template the hooks give after a rule prompt, in agent-core and in every host adapter, and the kibi-usage and kibi-decisions skills must point the first write of a rule at kb_record (kibi record --input - without MCP), and point modeling at kb_upsert.

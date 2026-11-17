@@ -7,6 +7,7 @@ semantic_text: The default Kibi MCP tool catalog shall hold 17 tools. The option
 origin:
   kind: agent
   ref: 'Maintainer, 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Maintainer decision, 2026-11-17, approving this count change as worded: "Add kb_record to the defaults and pay for it with enum encoding: yes, both in the kb_record PR".'
+  approved_by: maintainer
   recorded_at: '2026-10-28T09:26:59.321Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text

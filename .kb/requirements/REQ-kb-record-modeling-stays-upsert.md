@@ -10,6 +10,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer request: a stated rule is recorded with one kb_record call, translated into one kb_upsert payload, that returns the commit gate''s verdict; facts and other modeling stay on kb_upsert.'
+  approved_by: maintainer
   recorded_at: '2026-11-17T06:46:35.302Z'
 rationale: kb_record stays small only while it takes the rule as stated; accepting or silently dropping facts, links or proof contracts would hide that they were never written.
 semantic_text: kb_record must refuse every input field other than its own, and its refusal must name kb_upsert as the call that records facts, relationships, proof contracts and other modeling.

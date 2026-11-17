@@ -10,6 +10,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer request: a stated rule is recorded with one kb_record call, translated into one kb_upsert payload, that returns the commit gate''s verdict; facts and other modeling stay on kb_upsert.'
+  approved_by: maintainer
   recorded_at: '2026-11-17T06:44:19.647Z'
 rationale: Writing a first rule through kb_upsert means reading its whole schema and building a requirement payload by hand, so agents leave out the reason, the quote or the code links and learn only at commit time what the gate refuses.
 semantic_text: 'kb_record (CLI: kibi record --input -) must take a statement, a why, who said it (user, maintainer or agent), an optional quote, the code that implements the rule as {file, symbol} entries and an optional test id, and record them as one requirement whose body holds the statement, whose reason is the why, whose implementedBy links are the code and, with a test, whose verified_by link and covered_by links go to that test. A rule a user or maintainer stated must be recorded as firm, with origin kind human and the quote as its origin.ref; a rule the agent chose must be recorded as default, with origin kind agent. A committed kb_record must return the commit gate''s verdict on the change (commitAllowed, and every finding with its blocks value), and the steps the requirement still needs, such as its scenario and test, as nextActions with ready inputs.'

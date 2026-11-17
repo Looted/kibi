@@ -10,6 +10,7 @@ tags:
 origin:
   kind: agent
   ref: 'Maintainer request: a stated rule is recorded with one kb_record call, translated into one kb_upsert payload, that returns the commit gate''s verdict; facts and other modeling stay on kb_upsert.'
+  approved_by: maintainer
   recorded_at: '2026-11-17T06:46:18.702Z'
 rationale: A second write path would drift from kb_upsert's validation and let in a rule a hand-written payload is refused for; one payload through kb_upsert keeps a single set of checks for every write.
 semantic_text: kb_record must translate its input into exactly one kb_upsert payload, never setting origin.approved_by, and must write only by running that payload through kb_upsert. For the same knowledge base, the entities, relationships and verdict a kb_record call produces must be identical to those of kb_upsert with that payload followed by kb_check with changed:true for the same files. kb_record with dryRun:true must return that payload and kb_upsert's dry-run result for it, and write nothing.
