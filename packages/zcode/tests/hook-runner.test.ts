@@ -1849,6 +1849,20 @@ describe("ZCode decision guard", () => {
     expect(again).not.toContain("recorded nothing in the knowledge base");
   });
 
+  test("a shell in-place edit of source counts as a source edit at Stop", async () => {
+    const { event } = session();
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_input: { command: "sed -i 's/1/2/' src/checkout.ts" },
+    });
+    expect(
+      expectReminder(await event({ hook_event_name: "Stop" })),
+    ).toStartWith(
+      "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+    );
+  });
+
   test("a new session without an id is not silenced by an earlier one's markers", async () => {
     const { event, fixture } = session();
     const anonymous = (payload: Record<string, unknown>) => event(payload, "");

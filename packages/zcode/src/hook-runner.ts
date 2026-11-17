@@ -2,6 +2,7 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { shellToolEditPaths } from "kibi-agent-core/bash-command";
 import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
@@ -504,12 +505,33 @@ export async function runHook(
         // Only file-mutating tool events create dirty paths; a path argument
         // inside a read-only tool call is not evidence of a change.
         let editedSource: string[] = [];
-        if (isMutatingTool(input.toolName)) {
-          const dirtyPaths = extractMutatedWorkspacePaths(
-            workspace.root,
-            input.cwd,
-            input.toolInput,
-          );
+        // A shell `sed -i` or `>` writes files too; its targets count as
+        // edits just as an Edit call's paths do.
+        const shellEdits = shellToolEditPaths(
+          input.toolName,
+          input.toolInput,
+          input.cwd ?? workspace.root,
+        );
+        if (isMutatingTool(input.toolName) || shellEdits.length > 0) {
+          const dirtyPaths = [
+            ...(isMutatingTool(input.toolName)
+              ? extractMutatedWorkspacePaths(
+                  workspace.root,
+                  input.cwd,
+                  input.toolInput,
+                )
+              : []),
+            ...shellEdits
+              .map(
+                (absolute) =>
+                  canonicalizeWorkspacePath(workspace.root, {
+                    eventCwd: input.cwd,
+                    rawPath: absolute,
+                  })?.workspaceRelative,
+              )
+              .filter((relative) => relative !== undefined)
+              .filter(isMeaningfulTrackedPath),
+          ];
 
           if (dirtyPaths.length > 0) {
             addDirtyPaths(stateDir, dirtyPaths);

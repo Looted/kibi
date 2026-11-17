@@ -5,23 +5,7 @@ import os2 from "node:os";
 import path14 from "node:path";
 import { pathToFileURL } from "node:url";
 
-// ../agent-core/dist/hook-input.js
-async function readStdin() {
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-function parseStdinJson(rawInput) {
-  const trimmed = rawInput.trim();
-  if (trimmed.length === 0) {
-    return {};
-  }
-  return JSON.parse(trimmed);
-}
-
-// src/bash-command.ts
+// ../agent-core/dist/bash-command.js
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -152,6 +136,29 @@ function commandEditPaths(command, cwd) {
       wanted.add(path.resolve(base, name));
   }
   return commandFilePaths(scanned, cwd).filter((absolute) => wanted.has(absolute));
+}
+var SHELL_TOOLS = new Set([
+  "Bash",
+  "shell",
+  "local_shell",
+  "exec_command",
+  "run_shell_command"
+]);
+
+// ../agent-core/dist/hook-input.js
+async function readStdin() {
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+function parseStdinJson(rawInput) {
+  const trimmed = rawInput.trim();
+  if (trimmed.length === 0) {
+    return {};
+  }
+  return JSON.parse(trimmed);
 }
 
 // src/hook-input.ts

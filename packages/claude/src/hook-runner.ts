@@ -3,13 +3,13 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import {
   commandEditPaths,
   commandFilePaths,
   filesChangedSince,
   isSearchCommand,
-} from "./bash-command.js";
+} from "kibi-agent-core/bash-command";
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import { type HookInput, parseHookInput } from "./hook-input.js";
 
 import {
