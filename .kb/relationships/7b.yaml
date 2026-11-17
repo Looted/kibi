@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-45612acd9737
+  - type: implements
+    from: SYM-merge-train-action
+    to: REQ-ci-merge-train-train-checks
+    created_at: 2026-11-17T15:00:38.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ceebcc2734a4
+  - type: covered_by
+    from: SYM-merge-train-action
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T15:00:38.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cf812a9915f

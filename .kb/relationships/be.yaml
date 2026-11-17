@@ -440,3 +440,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-15baf43a73da
+  - type: validates
+    from: TEST-ci-merge-train
+    to: REQ-ci-merge-train-train-checks
+    created_at: 2026-11-17T14:38:43.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc79eabd35e3
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-ci-merge-train-train-checks
+    created_at: 2026-11-17T14:38:43.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bd4c9e2fd64
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-NEG-ci-merge-train-train-checks-VIOLATED
+    created_at: 2026-11-17T14:38:43.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5577fd28d61

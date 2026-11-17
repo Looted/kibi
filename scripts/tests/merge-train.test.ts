@@ -326,6 +326,7 @@ describe("settings", () => {
       repo: "o/r",
       base: "develop",
       checks: ["ci-required", "proof-required"],
+      trainChecks: [],
       kibi: "kibi",
       check: "make gate",
       label: "train",
@@ -339,6 +340,7 @@ describe("settings", () => {
       MERGE_TRAIN_BASE: "main",
       GH_REPO: "o/r",
       MERGE_TRAIN_CHECKS: "all",
+      MERGE_TRAIN_TRAIN_CHECKS: "slow-proof,\n all , e2e",
       MERGE_TRAIN_LABEL: "ship",
       MERGE_TRAIN_MAX: "2",
       MERGE_TRAIN_PREFIX: "trains/",
@@ -347,6 +349,8 @@ describe("settings", () => {
       MERGE_TRAIN_COMMITTER_EMAIL: "bot@example.com",
     });
     expect(custom).toMatchObject({
+      checks: ["all"],
+      trainChecks: ["slow-proof", "e2e"],
       kibi: "",
       check: "",
       label: "ship",
@@ -695,6 +699,7 @@ class World {
       repo: "o/r",
       base: "develop",
       checks: ["ci-required", "proof-required"],
+      trainChecks: [],
       kibi: this.kibi,
       check: "test -f README.md && ! test -f CHECK_FAILS",
       label: "train",
@@ -870,6 +875,31 @@ describe("merge train step", () => {
     expect(w.pulls.find((pr) => pr.number === 2)?.labels).toEqual([]);
   });
 
+  test("train checks: a pull request boards without them, and a train lands only once they passed on its head", () => {
+    const w = new World();
+    w.open(1, { "one.txt": "1\n" });
+    const slow = { trainChecks: ["slow-proof"] };
+    expect(kinds(w.step(slow).actions)).toEqual(["assemble 1"]);
+    const first = w.trainPull();
+
+    // The pull request's checks passed on the train head, but the slow proof
+    // has not reported yet: wait, never land.
+    w.pass(first.head.sha);
+    expect(kinds(w.step(slow).actions)).toEqual(["wait"]);
+    const report = (sha: string, conclusion: string) =>
+      w.checks.set(sha, [
+        ...(w.checks.get(sha) ?? []),
+        { id: w.next++, name: "slow-proof", status: "completed", conclusion },
+      ]);
+
+    // A failed slow proof fails the train like any required check.
+    report(first.head.sha, "failure");
+    expect(kinds(w.step(slow).actions)).toEqual(["rerun"]);
+    report(first.head.sha, "success");
+    expect(kinds(w.step(slow).actions)).toEqual(["land"]);
+    expect(first.state).toBe("merged");
+  });
+
   test("a train goes stale when develop moves and is reassembled on the new tip", () => {
     const w = new World();
     w.open(1, { "one.txt": "1\n" });
@@ -996,6 +1026,10 @@ describe("merge train workflow and action", () => {
       'node --experimental-strip-types --no-warnings "$GITHUB_ACTION_PATH/merge-train.mts"',
     );
     expect(action.inputs.checks.required).toBe(true);
+    expect(action.inputs["train-checks"].default).toBe("");
+    expect(action.runs.steps[0].env.MERGE_TRAIN_TRAIN_CHECKS).toBe(
+      "${{ inputs.train-checks }}",
+    );
     const example = yaml("docs", "examples", "github", "kibi-merge-train.yml");
     expect(example.jobs.train.steps.at(-1).uses).toBe(
       "Looted/kibi/actions/merge-train@master",

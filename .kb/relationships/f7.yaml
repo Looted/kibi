@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e18200b8f596
+  - type: implements
+    from: SYM-merge-train-read
+    to: REQ-ci-merge-train-train-checks
+    created_at: 2026-11-17T14:39:01.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d94c31e3a50
+  - type: covered_by
+    from: SYM-merge-train-read
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T14:39:01.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00a1ee96c6b4
