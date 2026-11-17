@@ -345,8 +345,7 @@ describe("Cursor hook runner", () => {
 
     expect(result.additional_context).toContain("Kibi impact review");
     expect(result.additional_context).toContain("kb_check");
-    expect(result.additional_context).toContain("includeImpactDiagnostics");
-    expect(result.additional_context).toContain("includeWorkingTreeDiff");
+    expect(result.additional_context).toContain("kb_check({changed:true");
     expect(result.additional_context).toContain("symbol granularity");
   });
 
@@ -483,8 +482,7 @@ describe("Cursor hook runner", () => {
     );
 
     const result = await runHook({ hook_event_name: "stop" }, { pluginData });
-    expect(result.followup_message).toContain("includeImpactDiagnostics");
-    expect(result.followup_message).toContain("includeWorkingTreeDiff");
+    expect(result.followup_message).toContain("kb_check({changed:true");
     expect(result.followup_message).toContain(
       "packages/cursor/src/hook-runner.ts",
     );
@@ -613,7 +611,7 @@ describe("Cursor hook runner", () => {
     );
 
     const result = await runHook({ hook_event_name: "stop" }, { pluginData });
-    expect(result.followup_message).toContain("includeImpactDiagnostics");
+    expect(result.followup_message).toContain("kb_check({changed:true");
     expect(result.followup_message).toContain(
       "packages/cursor/src/hook-runner.ts",
     );
@@ -1033,7 +1031,7 @@ describe("Cursor decision guard", () => {
     await event(write);
 
     const stop = await event({ hook_event_name: "stop", status: "completed" });
-    expect(stop.followup_message).toContain("kb_upsert");
+    expect(stop.followup_message).toContain("kb_record");
     expect(stop.followup_message).toContain("kb_check(");
 
     await event(write);
@@ -1164,6 +1162,37 @@ describe("Cursor decision guard", () => {
     expect(stop.followup_message ?? "").not.toContain(
       "recorded nothing in the knowledge base",
     );
+  });
+
+  test("a kb_record call is a record; its dry run is not", async () => {
+    for (const [args, recorded] of [
+      [{ statement: "Totals stay positive.", saidBy: "user" }, true],
+      [
+        { statement: "Totals stay positive.", saidBy: "user", dryRun: true },
+        false,
+      ],
+    ] as const) {
+      const { event, workspace } = conversation();
+      await event({
+        hook_event_name: "postToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+      });
+      await event({
+        hook_event_name: "postToolUse",
+        tool_name: "CallMcpTool",
+        tool_input: { toolName: "kb_record", arguments: args },
+      });
+      const stop = await event({
+        hook_event_name: "stop",
+        status: "completed",
+      });
+      expect(
+        (stop.followup_message ?? "").includes(
+          "recorded nothing in the knowledge base",
+        ),
+      ).toBe(!recorded);
+    }
   });
 
   test("a dry-run MCP upsert is no record; a CLI upsert is", async () => {

@@ -391,6 +391,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0acfead64e30
+  - type: assumes
+    from: SCEN-NEG-mcp-default-profile-lists-kb-record-NOT-LISTED
+    to: FACT-NEG-mcp-default-profile-lists-kb-record-NOT-LISTED
+    created_at: 2026-11-17T07:11:20.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3244c7f7ebfe
   - type: executable_for
     from: SYM-test-ci-proof-reuse-train-merge
     to: TEST-ci-proof-reuse-train-merge

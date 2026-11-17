@@ -216,20 +216,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f868adb96d4e
-  - type: assumes
-    from: SCEN-mcp-structured-text-codex
-    to: FACT-codex-discovery-text-alone
-    created_at: 2026-11-16T17:22:06.328Z
+  - type: implements
+    from: SYM-messages-impact-check-reminder
+    to: REQ-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:30:26.405Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-b850d58d6e62
-  - type: assumes
-    from: SCEN-mcp-structured-text-codex
-    to: FACT-cursor-gemini-discovery-data-copy
-    created_at: 2026-11-16T17:22:06.357Z
+    id: rel-00a410c89441
+  - type: covered_by
+    from: SYM-messages-impact-check-reminder
+    to: TEST-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:34:21.051Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-8c791cebd126
+    id: rel-23b9ee0ba743
   - type: assumes
     from: SCEN-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
     to: FACT-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
@@ -244,3 +244,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23a629e51d38
+  - type: assumes
+    from: SCEN-mcp-structured-text-codex
+    to: FACT-codex-discovery-text-alone
+    created_at: 2026-11-16T17:22:06.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b850d58d6e62
+  - type: assumes
+    from: SCEN-mcp-structured-text-codex
+    to: FACT-cursor-gemini-discovery-data-copy
+    created_at: 2026-11-16T17:22:06.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c791cebd126
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-kb-record-capture
+    created_at: 2026-11-17T06:43:21.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb5f644a75ec
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-kb-record-upsert-equivalence
+    created_at: 2026-11-17T06:43:21.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-054ff9f6b051
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-kb-record-modeling-stays-upsert
+    created_at: 2026-11-17T06:43:21.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b45402227242
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-returns-verdict-NO-VERDICT
+    created_at: 2026-11-17T06:43:21.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2085ac85a61
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-one-upsert-payload-TWO-PAYLOADS
+    created_at: 2026-11-17T06:43:21.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33d6bdf4b523
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-foreign-fields-refused-FIELD-ACCEPTED
+    created_at: 2026-11-17T06:43:21.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a33aaa03b2d9
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-agent-rule-default-FIRM-AGENT-RULE
+    created_at: 2026-11-17T07:11:45.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f6d425215b5
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-capture-inputs-INPUT-DROPPED
+    created_at: 2026-11-17T07:11:45.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-761b1b90d600
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-human-rule-firm-DEFAULT-HUMAN-RULE
+    created_at: 2026-11-17T07:11:45.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-091243fef30e
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-one-upsert-payload-NO-PAYLOAD
+    created_at: 2026-11-17T07:11:45.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd54f95a1feb
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-upsert-equivalence-RESULTS-DIFFER
+    created_at: 2026-11-17T07:11:45.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-529f6269f585
+  - type: validates
+    from: TEST-kb-record
+    to: SCEN-NEG-kb-record-refusal-names-upsert-NO-POINTER
+    created_at: 2026-11-17T07:11:45.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c22a95304161

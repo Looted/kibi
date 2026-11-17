@@ -81,6 +81,7 @@ type StagedCheck = Readonly<{
       suggestion: string;
       requirementIds: string[];
       evidencePaths: string[];
+      blocks: string;
     }>;
     staged: Readonly<{
       files: StagedFile[];
@@ -992,13 +993,19 @@ if (RUN_NODE_TEST_SUITE) {
           suggestion: check.structuredContent.diagnostics[0]?.suggestion,
           requirementIds: [],
           evidencePaths: [],
+          // Advice: it does not stop the commit.
+          blocks: "none",
         },
       ]);
       assert.ok(check.structuredContent.diagnostics[0]?.message);
       assert.ok(check.structuredContent.diagnostics[0]?.suggestion);
+      // The staged coverage report carries the same diagnostics, without
+      // the blocks tag the result adds.
       assert.deepEqual(
         check.structuredContent.staged?.diagnostics,
-        check.structuredContent.diagnostics,
+        check.structuredContent.diagnostics.map(
+          ({ blocks: _blocks, ...diagnostic }) => diagnostic,
+        ),
       );
       assert.deepEqual(check.structuredContent.messages, [
         "No exported symbols or staged entities found in staged files.",

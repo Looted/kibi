@@ -1,0 +1,23 @@
+{
+  "test_id": "TEST-agent-hosts-first-write-record",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/agent-core/tests/decision-guard.test.ts",
+      "./packages/agent-core/tests/kb-mcp-tools.test.ts",
+      "./packages/agent-core/tests/session-brief.test.ts",
+      "./packages/claude/tests/kb-tools.test.ts",
+      "./packages/claude/tests/hook-runner.test.ts",
+      "./packages/codex/tests/hook-runner.test.ts",
+      "./packages/cursor/tests/hook-runner.test.ts",
+      "./packages/zcode/tests/hook-runner.test.ts",
+      "./packages/opencode/tests/kb-tool-event-dry-run.test.ts",
+      "./packages/mcp/tests/server/tool-profile.test.ts",
+      "./packages/mcp/tests/tools-config-exact.test.ts",
+      "./packages/cli/tests/skills-content.test.ts"
+    ]
+  ]
+}

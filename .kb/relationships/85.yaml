@@ -461,6 +461,41 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f301efaf5031
+  - type: specified_by
+    from: REQ-check-changed-commit-verdict
+    to: SCEN-check-changed-commit-verdict
+    created_at: 2026-11-16T19:28:59.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-802d903dafe8
+  - type: specified_by
+    from: REQ-check-changed-commit-verdict
+    to: SCEN-NEG-check-changed-commit-verdict-DIFFERS
+    created_at: 2026-11-16T19:28:59.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27ae3e54f5cf
+  - type: verified_by
+    from: REQ-check-changed-commit-verdict
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T19:28:59.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3fce047f355
+  - type: constrains
+    from: REQ-check-changed-commit-verdict
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-16T19:28:59.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a981c323026
+  - type: requires_property
+    from: REQ-check-changed-commit-verdict
+    to: FACT-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:00.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efe3d02b92d5
   - type: implements
     from: SYM-cli-quantity-duplicate-quantity-duplicate-action-prefix
     to: REQ-migrate-quantity-duplicate-review

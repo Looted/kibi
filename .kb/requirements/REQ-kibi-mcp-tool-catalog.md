@@ -1,20 +1,20 @@
 ---
-title: The Kibi MCP tool catalog holds 16 default tools and two optional ones
+title: The Kibi MCP tool catalog holds 17 default tools and two optional ones
 status: open
 priority: must
 firmness: firm
-semantic_text: The default Kibi MCP tool catalog shall hold 16 tools. The optional Kibi MCP tools shall be kb_sparql_remote and kb_job_status.
+semantic_text: The default Kibi MCP tool catalog shall hold 17 tools. The optional Kibi MCP tools shall be kb_sparql_remote and kb_job_status.
 origin:
   kind: agent
-  ref: 'Maintainer, 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?"'
+  ref: 'Maintainer, 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Maintainer decision, 2026-11-17, approving this count change as worded: "Add kb_record to the defaults and pay for it with enum encoding: yes, both in the kb_record PR".'
   approved_by: maintainer
   recorded_at: '2026-10-28T09:26:59.321Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 84219c9cb98004120805e18cdb577a173860c9af41ea393d7aeddecf0ab3d006
+semantic_source_hash: ec70d69ce3f658ad079b551a3b9187db5edc6e0288731c40f6bd9869be6d66d8
 semantic_inventory:
-  - claim_key: CLAIM-CAB0843663E4D5AC
-    claim_text: The default Kibi MCP tool catalog shall hold 16 tools
+  - claim_key: CLAIM-613EE08AA64C3E95
+    claim_text: The default Kibi MCP tool catalog shall hold 17 tools
     role: normative
     status: modeled
     span:
@@ -28,12 +28,12 @@ semantic_inventory:
       start: 55
       end: 126
 logic_claims:
-  - CLAIM-CAB0843663E4D5AC
+  - CLAIM-613EE08AA64C3E95
   - CLAIM-86C95EB0D9054676
 id: REQ-kibi-mcp-tool-catalog
 type: req
 ---
-The default Kibi MCP tool catalog shall hold 16 tools. The optional Kibi MCP tools shall be kb_sparql_remote and kb_job_status.
+The default Kibi MCP tool catalog shall hold 17 tools. The optional Kibi MCP tools shall be kb_sparql_remote and kb_job_status.
 
 ## Context
 

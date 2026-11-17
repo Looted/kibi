@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
+import { OPERATION_CATALOG } from "../../../src/public/operations/catalog.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { OPERATION_CATALOG } from "../../../src/public/operations/catalog.js";
 
 /**
  * The operations Kibi's catalog defines, read from the name of each catalog entry. Kibi reads every value itself at ingest, so the certificate is checked against the code.
  */
 
-/** A Kibi catalog operation shall be one of the 25 operations the catalog names. */
+/** A Kibi catalog operation shall be one of the 26 operations the catalog names. */
 export async function operationCatalogNamesCertificate(): Promise<CodeCertificate> {
   return exhaustiveCertificate({
     testId: "TEST-proof-operation-catalog-names",
@@ -26,7 +26,7 @@ export async function operationCatalogNamesCertificate(): Promise<CodeCertificat
 }
 
 describe("Kibi operation catalog names", () => {
-  test("A Kibi catalog operation shall be one of the 25 operations the catalog names", async () => {
+  test("A Kibi catalog operation shall be one of the 26 operations the catalog names", async () => {
     writeCodeCertificate(await operationCatalogNamesCertificate());
     expect(OPERATION_CATALOG.map((member) => member.name).sort()).toEqual([
       "kb_apply_plan",
@@ -42,6 +42,7 @@ describe("Kibi operation catalog names", () => {
       "kb_plan_bootstrap",
       "kb_prepare_impact_review",
       "kb_query",
+      "kb_record",
       "kb_review_firm_edit",
       "kb_search",
       "kb_semantic_advisor",

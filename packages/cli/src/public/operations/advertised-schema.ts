@@ -13,6 +13,10 @@
  *   resource `operation-fields`, which kb_skills reads.
  * - A choice among string constants (`anyOf` of `{type, const}`) is
  *   advertised as the equivalent `enum`.
+ * - A string choice too long to be worth its characters (kb_check's rule
+ *   names) is marked with {@link ADVERTISED_OPEN} and advertised as a plain
+ *   string; the full schema still refuses a value outside the choice and
+ *   names the allowed values.
  * - An object whose fields are mostly specialist ones (fact, proof and
  *   predicate fields of an entity) is marked with {@link ADVERTISED_FIELDS}
  *   and advertised with only the fields it names. The others stay valid
@@ -36,6 +40,9 @@ export const ADVERTISED_DESCRIPTION = "x-kibi-advertised-description";
  * `properties`; the value lists the field names to keep.
  */
 export const ADVERTISED_FIELDS = "x-kibi-advertised-fields";
+
+/** Marks a string schema node advertised without its `enum`. */
+export const ADVERTISED_OPEN = "x-kibi-advertised-open";
 
 /** The longest description the MCP server advertises for an input field. */
 export const ADVERTISED_DESCRIPTION_LIMIT = 120;
@@ -88,6 +95,8 @@ export function advertisedInputSchema<T>(schema: T): T {
     const entries: [string, unknown][] = [];
     for (const [key, child] of Object.entries(value)) {
       if (key === ADVERTISED_DESCRIPTION || key === ADVERTISED_FIELDS) continue;
+      if (key === ADVERTISED_OPEN) continue;
+      if (key === "enum" && value[ADVERTISED_OPEN] === true) continue;
       if (key === "properties" && Array.isArray(kept) && isNode(child)) {
         entries.push([
           key,

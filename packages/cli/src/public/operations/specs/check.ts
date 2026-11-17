@@ -1,4 +1,7 @@
-import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
+import {
+  ADVERTISED_DESCRIPTION,
+  ADVERTISED_OPEN,
+} from "../advertised-schema.js";
 import { executeCheck } from "../check-executor.js";
 import type { OperationSpec } from "../types.js";
 import {
@@ -19,10 +22,11 @@ export const checkSpec = {
         items: {
           type: "string",
           enum: [...SELECTABLE_RULE_NAMES],
+          [ADVERTISED_OPEN]: true,
         },
         description: `Optional rule subset. Allowed: ${SELECTABLE_RULES_ALLOWED}. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.`,
         [ADVERTISED_DESCRIPTION]:
-          "Optional rule subset. Omit to run every canonical and advisory rule plus the full-KB audit; selected rules stay scoped.",
+          "Optional rule names (an unknown one is refused with the list). Omit to run every rule plus the full-KB audit.",
       },
       sourceFiles: {
         type: "array",
@@ -52,6 +56,13 @@ export const checkSpec = {
           "When true, inspect staged source changes for impact diagnostics using the shared CLI impact analyzer without shelling out to kibi check.",
         [ADVERTISED_DESCRIPTION]:
           "When true, inspect staged source changes for impact diagnostics, as kibi check --staged does.",
+      },
+      changed: {
+        type: "boolean",
+        description:
+          'When true, run the commit gate (kibi check --staged) over the working tree plus the index, as a commit of every current change would be judged, without touching the real index; with sourceFiles, only those files and .kb are added. Returns commitAllowed and the gate\'s findings, each with blocks: "commit" when it refuses the commit or "none" when it is advice. Without changed, each finding carries blocks: "merge" (fails the full check run in CI), "commit" (a blocking impact diagnostic) or "none". Use after editing code, before finishing: it is the verdict git commit will give.',
+        [ADVERTISED_DESCRIPTION]:
+          "When true, give the commit gate's verdict on every current change (commitAllowed, findings with blocks).",
       },
       includeWorkingTreeDiff: {
         type: "boolean",

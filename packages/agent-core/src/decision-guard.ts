@@ -502,14 +502,14 @@ export function statedReason(prompt: string | undefined): string | undefined {
 
 /** The line that asks for the person's stated reason in `why`. */
 function reasonLine(reason: string): string {
-  return `The request gives its reason ("${reason}"): put that reason in the requirement's why field, in the person's words.`;
+  return `The request gives its reason ("${reason}"): put that reason in the why field, in the person's words.`;
 }
 
 /** Prompt-time note for a request that reads as a rule or decision. */
 export function rulePromptNote(phrase: string, reason?: string): string {
   return [
     `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
-    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it.",
+    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new rule is recorded with kb_record (the statement, the person's reason, saidBy user and the code that enforces it; a changed one with kb_upsert) as part of this change, not after it.",
     ...(reason === undefined ? [] : [reasonLine(reason)]),
   ].join("\n");
 }
@@ -524,53 +524,42 @@ export function captureReminder(rulePhrase: string | undefined): string {
   return rulePhrase === undefined
     ? [
         "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line.",
+        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line.",
       ].join("\n")
     : [
         `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
-        `Record the rule behind "${rulePhrase}" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`,
+        `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`,
       ].join("\n");
 }
 
 /**
  * Post-edit note for the first source edit of a session whose prompt stated
- * a rule: a kb_upsert payload to fill in, so recording the rule and its
- * reason is one call. The write's result lists what is left (subjects, a
- * test) as nextActions with ready payloads.
+ * a rule: a kb_record input to fill in, so recording the rule, its reason
+ * and its code is one call in the agent's words. kb_record writes it as one
+ * kb_upsert payload and returns the commit gate's verdict and what is left
+ * (subjects, a scenario, a test) as nextActions with ready payloads.
  */
 export function ruleCaptureTemplate(
   rulePhrase: string,
   reason?: string,
 ): string {
   const template = {
-    type: "req",
-    id: "REQ-<short-name>",
-    properties: {
-      title: "<the rule in a few words>",
-      status: "open",
-      firmness: "firm",
-      origin: {
-        kind: "agent",
-        ref: "<the person's words and where they said them>",
-      },
-    },
-    document: { body: "<the rule as one shall or must sentence>" },
+    statement: "<the rule as one shall or must sentence>",
     why:
       reason === undefined
         ? "<why the person wants it, in their words; 'Reason not stated' if they gave none>"
         : "<the person's reason, in their words>",
-    implementedBy: [
-      {
-        sourceFile: "<file you changed>",
-        symbol: "<function that enforces it>",
-      },
+    saidBy: "user",
+    quote: "<the person's words, quoted>",
+    code: [
+      { file: "<file you changed>", symbol: "<function that enforces it>" },
     ],
   };
   return [
-    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
+    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:`,
     JSON.stringify(template),
     ...(reason === undefined ? [] : [reasonLine(reason)]),
-    "Then follow the nextActions the result returns.",
+    "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
   ].join("\n");
 }
 
@@ -910,13 +899,17 @@ function record(value: unknown): Record<string, unknown> | null | undefined {
 }
 
 /**
- * Whether a kb_upsert call's input writes a requirement (not a dry run).
- * Hosts pass the MCP arguments, sometimes wrapped in `arguments`.
+ * Whether a kb_upsert call's input writes a requirement (not a dry run). A
+ * kb_record input (a statement and who said it) always writes one. Hosts
+ * pass the MCP arguments, sometimes wrapped in `arguments`.
  */
 export function isRequirementUpsert(toolInput: unknown): boolean {
   const input = record(toolInput);
   const args = record(input?.arguments) ?? record(input?.args) ?? input;
-  return args?.type === "req" && args.dryRun !== true;
+  const recorded =
+    typeof args?.statement === "string" && typeof args.saidBy === "string";
+  if (!args || (args.type !== "req" && !recorded)) return false;
+  return args.dryRun !== true;
 }
 
 /** Modification time of `file`, or NaN when it cannot be read. */

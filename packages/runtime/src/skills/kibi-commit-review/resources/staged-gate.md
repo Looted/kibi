@@ -5,6 +5,12 @@ Reference for `kibi-commit-review`: what `kibi check --staged` and
 impact-review record. The staged check reads blob content from the Git index,
 not the working tree, so a fix counts only once it is staged.
 
+To get the same verdict before staging, run `kb_check` with `changed: true`
+and the edited `sourceFiles` (CLI: `kibi check --changed <paths>`): it judges
+the index plus the working tree on a scratch copy of the index, and each
+finding's `blocks` says whether it stops the commit (`"commit"`) or is advice
+(`"none"`).
+
 ## Reading a finding
 
 ```text

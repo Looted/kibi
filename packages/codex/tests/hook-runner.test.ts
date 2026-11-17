@@ -356,7 +356,7 @@ describe("Codex hook runner workspace opt-in", () => {
     // systemMessage reaches only the person; the agent gets `reason`.
     expect(result).toMatchObject({ continue: true, decision: "block" });
     expect(result.systemMessage).toBeUndefined();
-    expect(result.reason).toContain("includeImpactDiagnostics");
+    expect(result.reason).toContain("kb_check({changed:true");
     expect(result.reason).toContain("src/hook-runner.ts");
   });
 
@@ -636,7 +636,7 @@ describe("Codex pre-edit knowledge", () => {
       additionalContext: [
         "Kibi: no symbol in src/other.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
         "No requirement title matches this file, so nothing recorded is known to cover it.",
-        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.',
+        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_record (statement, why, who said it, code) before the work is reported done.',
       ].join("\n"),
     });
     expect(await write("s1")).toEqual({ continue: true });
@@ -730,7 +730,7 @@ describe("Codex evaluation trace replay", () => {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext: expect.stringContaining(
-          'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true',
+          'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
         ),
       },
     });
@@ -743,7 +743,7 @@ describe("Codex evaluation trace replay", () => {
     expect(stop.decision).toBe("block");
     expect(stop.reason).toContain("recorded nothing in the knowledge base");
     expect(stop.reason).toContain(
-      'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
     );
     expect(
       await event({ hook_event_name: "Stop", stop_hook_active: false }),
@@ -1014,7 +1014,7 @@ describe("Codex decision guard", () => {
       stop_hook_active: false,
     });
     expect(stop).toMatchObject({ continue: true, decision: "block" });
-    expect(stop.reason).toContain("kb_upsert");
+    expect(stop.reason).toContain("kb_record");
     await event({
       hook_event_name: "PostToolUse",
       tool_name: "apply_patch",
@@ -1155,6 +1155,55 @@ describe("Codex decision guard", () => {
       stop_hook_active: false,
     });
     expect(quiet.reason).not.toContain("recorded nothing");
+  });
+
+  test("a kb_record call or kibi record is a record, and asks for a signoff; its dry run is no record", async () => {
+    for (const [toolName, toolInput] of [
+      [
+        "mcp__kibi__kb_record",
+        { statement: "Guards never throw.", saidBy: "user" },
+      ],
+      ["Bash", { command: "kibi record --input rule.json" }],
+    ] as const) {
+      const event = session();
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "apply_patch",
+        tool_input: { command: GUARD_PATCH },
+      });
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: toolName,
+        tool_input: toolInput,
+      });
+      const stop = await event({
+        hook_event_name: "Stop",
+        stop_hook_active: false,
+      });
+      expect(stop.reason).not.toContain("recorded nothing");
+      if (toolName !== "Bash")
+        expect(stop.reason).toContain("run `kibi signoff`");
+    }
+    const dryRun = session();
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_record",
+      tool_input: {
+        statement: "Guards never throw.",
+        saidBy: "user",
+        dryRun: true,
+      },
+    });
+    const asked = await dryRun({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(asked.reason).toContain("recorded nothing");
   });
 
   test("Stop continues once with a signoff request after a requirement is written", async () => {
@@ -1513,7 +1562,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context).toMatch(/\n- \+[345] more requirements: kb_query\(/);
     expect(context).toContain("\nWhy: ");
     expect(context).toContain("\nNext layer: ");
-    expect(context).toEndWith("reports ownership drift after the edit.");
+    expect(context).toEndWith("gives the commit gate's verdict on the edit.");
     expect(context).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
@@ -1938,7 +1987,7 @@ describe("Codex reminders from real payload shapes", () => {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext: expect.stringContaining(
-          'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+          'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
         ),
       },
     });
@@ -2091,7 +2140,7 @@ describe("Codex reminders from real payload shapes", () => {
       continue: true,
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
-        additionalContext: `Kibi impact review: run kb_check({sourceFiles:${JSON.stringify(sourceFiles)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.`,
+        additionalContext: `Kibi impact review: run kb_check({changed:true, sourceFiles:${JSON.stringify(sourceFiles)}}) while this edit is fresh; it gives the commit gate's verdict.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.`,
       },
     });
 

@@ -5,6 +5,7 @@ import {
   analysisCacheDir,
   executeCheck,
   uncompiledBranchStoreViolation,
+  withMergeBlocks,
   withSymbolDebtSummary,
 } from "../../../src/public/operations/check-executor.js";
 import * as format from "../../../src/public/operations/check-format-shared.js";
@@ -638,6 +639,8 @@ describe("executeCheck", () => {
     expect(content.violations.map((row: { rule: string }) => row.rule)).toEqual(
       order,
     );
+    // Every violation says it fails the merge; diagnostics restate them
+    // for the envelope, whose schema is fixed.
     expect(content.diagnostics[0]).toStrictEqual({
       category: "SYNC_ERROR",
       severity: "error",
@@ -650,12 +653,17 @@ describe("executeCheck", () => {
       severity: "error",
       message: "plain found",
     });
+    expect(
+      content.violations.every(
+        (v: { blocks?: string }) => v.blocks === "merge",
+      ),
+    ).toBe(true);
     expect(content.evaluated).toStrictEqual({ ruleCount: 4, rules: ALL_RULES });
     expect(prolog.queries).toEqual([]);
     expect(content.qualityDiagnostics).toStrictEqual([
-      { id: "Q-advisory" },
-      { id: "scoped_check_omitted_quality" },
-      { id: "Q-full" },
+      { id: "Q-advisory", blocks: "none" },
+      { id: "scoped_check_omitted_quality", blocks: "none" },
+      { id: "Q-full", blocks: "none" },
     ]);
     const [fullInput] = calls.full.mock.calls[0];
     expect(fullInput.hardViolationEntityIds).toEqual(
@@ -667,8 +675,11 @@ describe("executeCheck", () => {
       checkedAt: "2026-01-02T00:00:00.000Z",
     });
     expect(await fullInput.proofTestBindings()).toBe("BINDINGS");
+    // The plan repairs the findings as the rules gave them, untagged.
     expect(calls.actions).toHaveBeenCalledWith({
-      violations: content.violations,
+      violations: content.violations.map(
+        ({ blocks: _blocks, ...violation }: { blocks: string }) => violation,
+      ),
       qualityDiagnostics: [{ id: "Q-advisory" }, { id: "Q-full" }],
     });
     expect(result.content[0].type).toBe("text");
@@ -756,9 +767,9 @@ describe("executeCheck", () => {
     });
     const explicit = await run({ rules: ["aggregated"], sourceFiles: ["a"] });
     expect(explicit.structuredContent.qualityDiagnostics).toStrictEqual([
-      { id: "Q-advisory" },
-      { id: "Q-impact" },
-      { id: "Q-staged" },
+      { id: "Q-advisory", blocks: "none" },
+      { id: "Q-impact", blocks: "none" },
+      { id: "Q-staged", blocks: "none" },
     ]);
     expect(calls.scope).not.toHaveBeenCalled();
     const scoped = await run({ sourceFiles: ["a"] });
@@ -767,13 +778,14 @@ describe("executeCheck", () => {
       impactResult,
     );
     expect(scoped.structuredContent.qualityDiagnostics).toStrictEqual([
-      { id: "Q-scoped" },
-      { id: "Q-impact" },
-      { id: "Q-staged" },
+      { id: "Q-scoped", blocks: "none" },
+      { id: "Q-impact", blocks: "none" },
+      { id: "Q-staged", blocks: "none" },
     ]);
     const unscoped = await run({});
     expect(unscoped.structuredContent.qualityDiagnostics[0]).toStrictEqual({
       id: "Q-advisory",
+      blocks: "none",
     });
     expect(calls.full).not.toHaveBeenCalled();
   });
@@ -808,7 +820,12 @@ describe("executeCheck", () => {
     expect(structured.diagnostics).toHaveLength(3);
     expect(structured.omittedViolations.total).toBe(10);
     expect(structured.summarizePlan).toBe(true);
-    expect(fit).toHaveBeenCalledWith(structured, undefined, true, false);
+    expect(fit).toHaveBeenCalledWith(
+      withMergeBlocks(structured),
+      undefined,
+      true,
+      false,
+    );
     // The plan still repairs every finding.
     expect(calls.actions.mock.calls.at(-1)[0].violations).toHaveLength(13);
     expect(scoped.content[0].text.summaryOf.omittedViolations).toEqual(
@@ -820,7 +837,7 @@ describe("executeCheck", () => {
       Object.hasOwn(calls.structured.mock.calls.at(-1)[0], "summarizePlan"),
     ).toBe(false);
     expect(fit).toHaveBeenLastCalledWith(
-      calls.structured.mock.calls.at(-1)[0],
+      withMergeBlocks(calls.structured.mock.calls.at(-1)[0]),
       undefined,
       true,
       true,
@@ -833,11 +850,18 @@ describe("executeCheck", () => {
     expect(Object.hasOwn(full, "omittedViolations")).toBe(false);
     expect(Object.hasOwn(full, "summarizePlan")).toBe(false);
     // An unscoped check keeps to the same budget, with its own hint.
-    expect(fit).toHaveBeenCalledWith(full, undefined, false, false);
-    expect(unscoped.structuredContent).toStrictEqual({
-      ...full,
-      symbolDebt: { total: 0, fileCount: 0 },
-    });
+    expect(fit).toHaveBeenCalledWith(
+      withMergeBlocks(full),
+      undefined,
+      false,
+      false,
+    );
+    expect(unscoped.structuredContent).toStrictEqual(
+      withMergeBlocks({
+        ...full,
+        symbolDebt: { total: 0, fileCount: 0 },
+      }),
+    );
 
     // A rule selection, or the command that prints every finding, is
     // listed in full.
@@ -902,8 +926,8 @@ describe("executeCheck", () => {
     const calls = harness({ rules: ["aggregated"] });
     const result = await run({ rules: ["aggregated"] });
     expect(result.structuredContent.qualityDiagnostics).toStrictEqual([
-      { id: "Q-impact" },
-      { id: "Q-staged" },
+      { id: "Q-impact", blocks: "none" },
+      { id: "Q-staged", blocks: "none" },
     ]);
     expect(calls.full).not.toHaveBeenCalled();
     await run({ rules: ["aggregated"] }, context(), {
@@ -980,7 +1004,9 @@ describe("executeCheck", () => {
     const scoped = await run({ sourceFiles: ["a.ts"] });
     const summaryOf = scoped.content[0].text.summaryOf;
     expect(summaryOf.qualityDiagnostics).toStrictEqual([]);
-    expect(summaryOf.violationGroups).toBe(violationGroups);
+    expect(summaryOf.violationGroups).toStrictEqual([
+      { rule: "aggregated", count: 2, blocks: "merge" },
+    ]);
     expect(summaryOf.truncation).toBe(truncation);
   });
 
@@ -1045,5 +1071,97 @@ describe("executeCheck", () => {
     expect(
       (await run({}, context({ prolog: failing }))).structuredContent.evaluated,
     ).toStrictEqual({ ruleCount: 1, rules: ["domain-contradictions"] });
+  });
+});
+
+describe("withMergeBlocks", () => {
+  test("tags what each finding of the full check stops", () => {
+    const base = {
+      violations: [{ rule: "r" }],
+      count: 1,
+      evaluated: { rules: [] },
+      diagnostics: [{ category: "SYNC_ERROR", severity: "error" }],
+    };
+    expect(
+      withMergeBlocks({
+        ...base,
+        qualityDiagnostics: [
+          { id: "q-block", blocking: true },
+          { id: "q-advice", severity: "warning" },
+        ],
+        impactDiagnostics: [
+          { id: "i-block", severity: "error" },
+          { id: "i-advice", blocking: false },
+        ],
+        violationGroups: [{ rule: "r", count: 2, entityIds: [] }],
+      } as never),
+    ).toStrictEqual({
+      violations: [{ rule: "r", blocks: "merge" }],
+      count: 1,
+      evaluated: { rules: [] },
+      diagnostics: [{ category: "SYNC_ERROR", severity: "error" }],
+      qualityDiagnostics: [
+        { id: "q-block", blocking: true, blocks: "merge" },
+        { id: "q-advice", severity: "warning", blocks: "none" },
+      ],
+      impactDiagnostics: [
+        { id: "i-block", severity: "error", blocks: "commit" },
+        { id: "i-advice", blocking: false, blocks: "none" },
+      ],
+      violationGroups: [
+        { rule: "r", count: 2, entityIds: [], blocks: "merge" },
+      ],
+    } as never);
+    const bare = withMergeBlocks(base as never);
+    for (const key of [
+      "qualityDiagnostics",
+      "impactDiagnostics",
+      "violationGroups",
+    ])
+      expect(Object.hasOwn(bare, key)).toBe(false);
+  });
+});
+
+describe("executeCheck changed", () => {
+  test("runs the commit gate instead of the KB rules", async () => {
+    const calls: unknown[] = [];
+    const prolog = prologPort();
+    const result = await executeCheck(
+      { changed: true, sourceFiles: ["a.ts"], workspaceRoot: "/ws/args" },
+      context({ prolog }),
+      {
+        changedGateRunner: async (...args) => {
+          calls.push(args);
+          return {
+            exitCode: 0,
+            stdout: JSON.stringify({ structuredContent: { violations: [] } }),
+          };
+        },
+      },
+    );
+    expect(calls).toStrictEqual([["/ws/args", ["a.ts"]]]);
+    expect(prolog.queries).toEqual([]);
+    expect(result.structuredContent).toMatchObject({
+      changed: true,
+      commitAllowed: true,
+    });
+    const defaulted: unknown[] = [];
+    await executeCheck({ changed: true }, context({ prolog }), {
+      changedGateRunner: async (...args) => {
+        defaulted.push(args);
+        return { exitCode: 1, stdout: "{}" };
+      },
+    });
+    expect(defaulted).toStrictEqual([[ROOT, undefined]]);
+  });
+
+  test("names a failed gate run", async () => {
+    await expect(
+      executeCheck({ changed: true }, context({ prolog: prologPort() }), {
+        changedGateRunner: async () => {
+          throw new Error("no git");
+        },
+      }),
+    ).rejects.toThrow(/^Check execution failed: no git$/);
   });
 });

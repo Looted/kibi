@@ -116,6 +116,21 @@ export function stampKibiWorkspace(
   return { ...base, [KIBI_WORKSPACE_ARGUMENT]: workspaceRoot };
 }
 
+/**
+ * The operation a Kibi call amounts to for the hooks: kb_record is one
+ * kb_upsert payload run through kb_upsert, so it is a kb_upsert; a dry run
+ * of either only validates, so it is kb_validate_upsert and writes nothing.
+ */
+export function effectiveKbOperation(
+  operation: string,
+  payload: Readonly<Record<string, unknown>>,
+): string {
+  const write = operation === "kb_record" ? "kb_upsert" : operation;
+  return write === "kb_upsert" && payload.dryRun === true
+    ? "kb_validate_upsert"
+    : write;
+}
+
 export type KbMcpToolCall = {
   toolName: string;
   impactCheckRun: boolean;
@@ -150,29 +165,38 @@ export function extractKbMcpToolCall(
       ? readString(nested, TOOL_NAME_KEYS)
       : undefined;
     return nestedTool?.startsWith("kb_")
-      ? { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] }
+      ? {
+          // nestedTool is set only when nested is a record.
+          toolName: effectiveKbOperation(
+            nestedTool,
+            nested as Record<string, unknown>,
+          ),
+          impactCheckRun: false,
+          sourceFiles: [],
+        }
       : undefined;
   }
 
   const payload = readRecord(input, ["arguments", "args"]) ?? input;
-  // A dry-run upsert only validates; report it as the read-only operation
-  // it routes to so hooks do not treat it as a KB write.
-  if (name === "kb_upsert" && readBoolean(payload, ["dryRun"]) === true) {
-    name = "kb_validate_upsert";
-  }
+  // kb_record is a kb_upsert write; a dry run of either only validates, so
+  // hooks do not treat it as a KB write.
+  name = effectiveKbOperation(name, payload);
   const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
   return {
     toolName: name,
+    // The commit gate's verdict on the changes (changed:true) checks them
+    // as fully as the impact diagnostics of the working tree.
     impactCheckRun:
       name === "kb_check" &&
-      readBoolean(payload, [
-        "includeImpactDiagnostics",
-        "include_impact_diagnostics",
-      ]) === true &&
-      readBoolean(payload, [
-        "includeWorkingTreeDiff",
-        "include_working_tree_diff",
-      ]) === true &&
+      (readBoolean(payload, ["changed"]) === true ||
+        (readBoolean(payload, [
+          "includeImpactDiagnostics",
+          "include_impact_diagnostics",
+        ]) === true &&
+          readBoolean(payload, [
+            "includeWorkingTreeDiff",
+            "include_working_tree_diff",
+          ]) === true)) &&
       sourceFiles.length > 0,
     sourceFiles,
   };
@@ -197,6 +221,8 @@ const KIBI_CLI_ROUTES: Readonly<Record<string, string>> = {
   "find-gaps": "kb_find_gaps",
   gaps: "kb_find_gaps",
   upsert: "kb_upsert",
+  // kibi record runs its one payload through kb_upsert.
+  record: "kb_upsert",
   sync: "kb_sync",
 };
 

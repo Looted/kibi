@@ -72,15 +72,20 @@ and ask, and change the code or the rule only when the person says so. Load
 ## 3. Record
 
 Recording the behaviour a change adds is part of the change and needs no
-permission: a requirement stated with `must`, a `## Context` section with the
-reason and who gave it (write "Reason not stated." rather than inventing
-one), a scenario, and an `implements` link from the symbol. Write with
-`kb_upsert`, endpoints before links, one call at a time. The result reports
-what was written, its warnings and typed `nextActions`: act on those instead
-of reading the entity back. `dryRun: true` is an optional preview for a
-payload you are unsure of; it records nothing. On `committed_with_repairs`
-run the repair actions and never resend the write. Never edit `.kb/` by hand.
-`resources/recording.md` has the body contract and firmness rules.
+permission. Record a new rule with one `kb_record` call (CLI:
+`kibi record --input -`): `statement` (one `must` sentence), `why` (the
+reason in the words of whoever gave it; "Reason not stated" rather than
+inventing one), `saidBy` (`user`, `maintainer` or `agent`), their `quote`,
+the `code` that implements it as `{file, symbol}`, and an existing `test`
+if there is one. It writes one `kb_upsert` payload and returns that payload,
+the commit gate's verdict (`commitAllowed`, findings with `blocks`) and the
+steps left, such as the scenario and test, as `nextActions`: act on those
+instead of reading the entity back. `dryRun: true` returns the payload and
+writes nothing. Updates, facts, decisions, proof contracts and other modeling
+go through `kb_upsert`, endpoints before links, one call at a time. On
+`committed_with_repairs` run the repair actions and never resend the write.
+Never edit `.kb/` by hand. `resources/recording.md` has the body contract
+and firmness rules.
 
 ## 4. Check
 
