@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9faad5ac3cc3
+  - type: implements
+    from: SYM-agent-core-readEntitySummary
+    to: REQ-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:18.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31cfdad11f00
+  - type: implements
+    from: SYM-agent-core-readEntitySummary
+    to: REQ-claude-adapter-isolation
+    created_at: 2026-11-16T15:57:25.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d418b90e018
+  - type: covered_by
+    from: SYM-agent-core-readEntitySummary
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:57:25.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34964b128c74

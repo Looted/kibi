@@ -175,6 +175,7 @@ jobs:
         run: sh scripts/proof-gate.sh
 
       - name: Prove every contracted test through Kibi
+        id: prove
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         env:
           # Distinct proof commands run three at a time on the 4-vCPU runner; at four,
@@ -227,6 +228,31 @@ jobs:
           bun run scripts/change-to-proof-eval.ts --repo-kb
           documentation/evaluations/change-to-proof/repo-search-hints-gold.v1.jsonl
           --thresholds documentation/evaluations/change-to-proof/repo-search-hints-thresholds.json
+
+      # A failed sync, validation or proof leaves the branch store as it was:
+      # its RDF snapshot and journal, plus the engine's pid and error files,
+      # so a store-shaped failure can be read after the runner is gone.
+      - name: Collect the branch store after a failed sync, validation or proof
+        if: ${{ failure() && (steps.integrity.outcome == 'failure' || steps.prove.outcome == 'failure') }}
+        run: |
+          out="${RUNNER_TEMP}/kibi-branch-store"
+          mkdir -p "$out/runtime"
+          if [ -d .kb/branches ]; then cp -a .kb/branches "$out/branches"; fi
+          for dir in "${KIBI_RUNTIME_DIR:-}" "${XDG_RUNTIME_DIR:-}" /tmp/kibi-runtime; do
+            if [ -n "$dir" ] && [ -d "$dir" ]; then
+              find "$dir" -maxdepth 1 -type f -name 'kibi-*' -exec cp -p {} "$out/runtime/" \;
+            fi
+          done
+
+      - name: Upload the branch store after a failed sync, validation or proof
+        if: ${{ failure() && (steps.integrity.outcome == 'failure' || steps.prove.outcome == 'failure') }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kibi-branch-store
+          path: ${{ runner.temp }}/kibi-branch-store
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Generate requirement health report
         if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}

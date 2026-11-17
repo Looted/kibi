@@ -1,5 +1,5 @@
 ---
-title: The kb_search answer must take a requirement's reason from its rationale field, then its Why this changed section, then its Why, Rationale or Context section, then its linked ADR
+title: The kb_search answer must take a requirement's reason from its rationale field, then its Why, Rationale or Context section, then its Why this changed section, then its linked ADR
 status: active
 fact_kind: property_value
 origin:
@@ -9,9 +9,9 @@ subject_key: kibi.search_answer.requirement_reasons
 property_key: reason_source_order
 operator: eq
 value_type: string
-value_string: rationale,why_this_changed,section,adr
-claim_key: CLAIM-965B97A9CEFFB691
-claim_text: The kb_search answer must take a requirement's reason from its rationale field, then its Why this changed section, then its Why, Rationale or Context section, then its linked ADR
+value_string: rationale,section,why_this_changed,adr
+claim_key: CLAIM-E2322DB31647469A
+claim_text: The kb_search answer must take a requirement's reason from its rationale field, then its Why, Rationale or Context section, then its Why this changed section, then its linked ADR
 text_ref: REQ-search-answer-reason-source-order
 tags:
   - strict-modeling

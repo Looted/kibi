@@ -3489,8 +3489,6 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -3501,6 +3499,10 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
   - id: SYM-discovery-execute-status
@@ -19301,10 +19303,14 @@ symbols:
     sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-claude-adapter-isolation
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-claude-adapter-isolation
   - id: SYM-agent-core-normalizeWorkspacePath
     title: normalizeWorkspacePath
     status: active
@@ -21770,6 +21776,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-search-answer-layer
       - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: covered_by
         target: TEST-search-answer-hygiene
       - type: covered_by
         target: TEST-search-closed-requirements
@@ -21849,6 +21857,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-search-answer-layer
+      - type: executable_for
+        target: TEST-search-answer-first-layer
       - type: executable_for
         target: TEST-search-answer-requirement-reasons
   - id: SYM-test-kibi-query-fact-filters
@@ -22079,6 +22089,8 @@ symbols:
       recorded_at: 2026-10-04T03:13:45.666Z
     relationships:
       - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: covered_by
         target: TEST-agent-core-edit-snippets
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
@@ -22086,6 +22098,8 @@ symbols:
         target: TEST-codex-edit-snippet-hook
       - type: covered_by
         target: TEST-cursor-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-editKnowledgeContext
@@ -22296,6 +22310,8 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-kibi-search-answer-verdicts
+      - type: covered_by
+        target: TEST-search-answer-first-layer
       - type: covered_by
         target: TEST-search-answer-requirement-reasons
       - type: implements
@@ -41633,6 +41649,8 @@ symbols:
       recorded_at: 2026-11-16T10:22:28.078Z
     relationships:
       - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: covered_by
         target: TEST-search-answer-requirement-reasons
       - type: implements
         target: REQ-search-answer-marks-missing-reason
@@ -43507,3 +43525,208 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-decision-capture-nudges
+  - id: SYM-test-agent-core-edit-snippet-why
+    title: Shared edit snippet suite
+    status: active
+    sourceFile: packages/agent-core/tests/snippets.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:41:29.013Z
+    relationships:
+      - type: executable_for
+        target: TEST-agent-core-edit-snippet-why
+  - id: SYM-search-answer-requirement-statement-of
+    title: requirementStatementOf
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:53:48.612Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-governing-statement
+  - id: SYM-search-answer-reason-source
+    title: reasonSource
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:54:16.306Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-reason-origin
+  - id: SYM-search-answer-search-answer-reason-source
+    title: SearchAnswerReasonSource
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:54:32.667Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-reason-origin
+  - id: SYM-knowledge-index-prose-excerpt
+    title: proseExcerpt
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:06.431Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-max-reason-chars
+    title: MAX_REASON_CHARS
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:11.954Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-snippets-reason-line
+    title: reasonLine
+    sourceFile: packages/agent-core/src/snippets.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:21.322Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-snippets-max-why-chars
+    title: MAX_WHY_CHARS
+    sourceFile: packages/agent-core/src/snippets.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:25.938Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-entity-summary
+    title: EntitySummary
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:37.080Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-entity-reason
+    title: EntityReason
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:45.352Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-intent-search-intent-search-evidence
+    title: IntentSearchEvidence
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:56:19.364Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-search-answer-search-answer-options
+    title: SearchAnswerOptions
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:56:26.472Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-discovery-summarize-match
+    title: summarizeMatch
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:49.198Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-search-answer-fact-at-detail
+    title: factAtDetail
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:57.932Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-search-answer-without-change-notes
+    title: withoutChangeNotes
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:36:54.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-requirement-reason-skips-change-notes
+  - id: SYM-knowledge-index-without-change-notes
+    title: withoutChangeNotes
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:37:01.678Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-requirement-reason-skips-change-notes

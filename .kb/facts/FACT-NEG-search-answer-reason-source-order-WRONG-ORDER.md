@@ -1,5 +1,5 @@
 ---
-title: A requirement's older reason is preferred over the current one
+title: A change note is preferred over the requirement's reason
 status: active
 fact_kind: property_value
 origin:
@@ -9,10 +9,10 @@ subject_key: kibi.search_answer.requirement_reasons
 property_key: reason_source_order
 operator: eq
 value_type: string
-value_string: section,why_this_changed,rationale,adr
+value_string: why_this_changed,section,rationale,adr
 tags:
   - negative-path
 id: FACT-NEG-search-answer-reason-source-order-WRONG-ORDER
 type: fact
 ---
-A superseding requirement has a Why section copied from its predecessor and a Why this changed section; the answer quotes the copied reason instead of why it changed.
+A requirement has a Context section saying why the rule exists and a Why this changed section saying how it was split; the answer quotes the Why this changed section instead of the reason.
