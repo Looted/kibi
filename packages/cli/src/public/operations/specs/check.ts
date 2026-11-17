@@ -1,4 +1,7 @@
-import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
+import {
+  ADVERTISED_DESCRIPTION,
+  ADVERTISED_OPEN,
+} from "../advertised-schema.js";
 import { executeCheck } from "../check-executor.js";
 import type { OperationSpec } from "../types.js";
 import {
@@ -19,10 +22,11 @@ export const checkSpec = {
         items: {
           type: "string",
           enum: [...SELECTABLE_RULE_NAMES],
+          [ADVERTISED_OPEN]: true,
         },
         description: `Optional rule subset. Allowed: ${SELECTABLE_RULES_ALLOWED}. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.`,
         [ADVERTISED_DESCRIPTION]:
-          "Optional rule subset. Omit to run every canonical and advisory rule plus the full-KB audit; selected rules stay scoped.",
+          "Optional rule names (an unknown one is refused with the list). Omit to run every rule plus the full-KB audit.",
       },
       sourceFiles: {
         type: "array",

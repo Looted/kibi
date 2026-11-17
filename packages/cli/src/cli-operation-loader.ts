@@ -74,6 +74,9 @@ export async function loadOperationSpec(
     case "kb_upsert":
       spec = (await import("./public/operations/specs/upsert.js")).upsertSpec;
       break;
+    case "kb_record":
+      spec = (await import("./public/operations/specs/record.js")).recordSpec;
+      break;
     case "kb_delete":
       spec = (await import("./public/operations/specs/mutation.js")).deleteSpec;
       break;

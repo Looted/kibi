@@ -346,3 +346,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d8e8c149f17
+  - type: implements
+    from: SYM-kb-mcp-tools-effective-kb-operation
+    to: REQ-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:45:30.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-172442826495
+  - type: covered_by
+    from: SYM-kb-mcp-tools-effective-kb-operation
+    to: TEST-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:45:30.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73db0a450398

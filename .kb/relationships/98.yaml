@@ -426,3 +426,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28d2f1aaead0
+  - type: assumes
+    from: SCEN-kb-record-modeling-stays-upsert
+    to: FACT-kb-record-foreign-fields-refused
+    created_at: 2026-11-17T06:42:47.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb8ca9a2d0c9
+  - type: assumes
+    from: SCEN-kb-record-modeling-stays-upsert
+    to: FACT-kb-record-refusal-names-upsert
+    created_at: 2026-11-17T06:42:47.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1e4ead45688

@@ -636,7 +636,7 @@ describe("Codex pre-edit knowledge", () => {
       additionalContext: [
         "Kibi: no symbol in src/other.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
         "No requirement title matches this file, so nothing recorded is known to cover it.",
-        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.',
+        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_record (statement, why, who said it, code) before the work is reported done.',
       ].join("\n"),
     });
     expect(await write("s1")).toEqual({ continue: true });
@@ -1014,7 +1014,7 @@ describe("Codex decision guard", () => {
       stop_hook_active: false,
     });
     expect(stop).toMatchObject({ continue: true, decision: "block" });
-    expect(stop.reason).toContain("kb_upsert");
+    expect(stop.reason).toContain("kb_record");
     await event({
       hook_event_name: "PostToolUse",
       tool_name: "apply_patch",
@@ -1155,6 +1155,55 @@ describe("Codex decision guard", () => {
       stop_hook_active: false,
     });
     expect(quiet.reason).not.toContain("recorded nothing");
+  });
+
+  test("a kb_record call or kibi record is a record, and asks for a signoff; its dry run is no record", async () => {
+    for (const [toolName, toolInput] of [
+      [
+        "mcp__kibi__kb_record",
+        { statement: "Guards never throw.", saidBy: "user" },
+      ],
+      ["Bash", { command: "kibi record --input rule.json" }],
+    ] as const) {
+      const event = session();
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "apply_patch",
+        tool_input: { command: GUARD_PATCH },
+      });
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: toolName,
+        tool_input: toolInput,
+      });
+      const stop = await event({
+        hook_event_name: "Stop",
+        stop_hook_active: false,
+      });
+      expect(stop.reason).not.toContain("recorded nothing");
+      if (toolName !== "Bash")
+        expect(stop.reason).toContain("run `kibi signoff`");
+    }
+    const dryRun = session();
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_record",
+      tool_input: {
+        statement: "Guards never throw.",
+        saidBy: "user",
+        dryRun: true,
+      },
+    });
+    const asked = await dryRun({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(asked.reason).toContain("recorded nothing");
   });
 
   test("Stop continues once with a signoff request after a requirement is written", async () => {

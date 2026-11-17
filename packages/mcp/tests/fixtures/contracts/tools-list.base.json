@@ -25,41 +25,18 @@
             "type": "string"
           },
           "factKind": {
-            "anyOf": [
-              {
-                "const": "subject",
-                "type": "string"
-              },
-              {
-                "const": "property_value",
-                "type": "string"
-              },
-              {
-                "const": "predicate",
-                "type": "string"
-              },
-              {
-                "const": "predicate_schema",
-                "type": "string"
-              },
-              {
-                "const": "observation",
-                "type": "string"
-              },
-              {
-                "const": "meta",
-                "type": "string"
-              },
-              {
-                "const": "rule",
-                "type": "string"
-              },
-              {
-                "const": "rule_schema",
-                "type": "string"
-              }
+            "description": "Typed fact filter: list facts of one kind; 'predicate_schema' returns the catalog of askable predicates.",
+            "enum": [
+              "subject",
+              "property_value",
+              "predicate",
+              "predicate_schema",
+              "observation",
+              "meta",
+              "rule",
+              "rule_schema"
             ],
-            "description": "Typed fact filter: list facts of one kind; 'predicate_schema' returns the catalog of askable predicates."
+            "type": "string"
           },
           "id": {
             "description": "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
@@ -89,17 +66,9 @@
             "type": "number"
           },
           "polarity": {
-            "anyOf": [
-              {
-                "const": "assert",
-                "type": "string"
-              },
-              {
-                "const": "deny",
-                "type": "string"
-              }
-            ],
-            "description": "Optional polarity filter for predicate facts. Default: both."
+            "description": "Optional polarity filter for predicate facts. Default: both.",
+            "enum": ["assert", "deny"],
+            "type": "string"
           },
           "predicate": {
             "description": "Typed fact filter: predicate name to ask about; returns its stored facts with arguments, polarity and effect.",
@@ -110,17 +79,9 @@
             "type": "string"
           },
           "scope": {
-            "anyOf": [
-              {
-                "const": "all",
-                "type": "string"
-              },
-              {
-                "const": "current_requirements",
-                "type": "string"
-              }
-            ],
-            "description": "Optional: 'current_requirements' keeps only facts a current (not superseded or retired) requirement requires."
+            "description": "Optional: 'current_requirements' keeps only facts a current (not superseded or retired) requirement requires.",
+            "enum": ["all", "current_requirements"],
+            "type": "string"
           },
           "sourceFile": {
             "description": "Optional source-file substring filter. Example: 'src/auth/login.ts'. Uses KB source linkage, not file-system scanning.",
@@ -138,41 +99,18 @@
             "type": "array"
           },
           "type": {
-            "anyOf": [
-              {
-                "const": "req",
-                "type": "string"
-              },
-              {
-                "const": "scenario",
-                "type": "string"
-              },
-              {
-                "const": "test",
-                "type": "string"
-              },
-              {
-                "const": "adr",
-                "type": "string"
-              },
-              {
-                "const": "flag",
-                "type": "string"
-              },
-              {
-                "const": "event",
-                "type": "string"
-              },
-              {
-                "const": "symbol",
-                "type": "string"
-              },
-              {
-                "const": "fact",
-                "type": "string"
-              }
+            "description": "Optional entity type filter. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
             ],
-            "description": "Optional entity type filter. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'."
+            "type": "string"
           },
           "where": {
             "additionalProperties": {},
@@ -245,20 +183,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -281,20 +207,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -353,20 +267,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -400,17 +302,9 @@
             "type": "boolean"
           },
           "fields": {
-            "anyOf": [
-              {
-                "const": "summary",
-                "type": "string"
-              },
-              {
-                "const": "full",
-                "type": "string"
-              }
-            ],
-            "description": "Optional result detail: 'summary' (metadata, snippet) or 'full' (also bodies, graph paths, fact kb_query calls)."
+            "description": "Optional result detail: 'summary' (metadata, snippet) or 'full' (also bodies, graph paths, fact kb_query calls).",
+            "enum": ["summary", "full"],
+            "type": "string"
           },
           "hints": {
             "description": "Intent-v1, first page: when true (default), a weak answer adds hints from a kibi.search-hints.v1 plugin.",
@@ -448,17 +342,9 @@
             "type": "string"
           },
           "rankingMode": {
-            "anyOf": [
-              {
-                "const": "legacy",
-                "type": "string"
-              },
-              {
-                "const": "intent-v1",
-                "type": "string"
-              }
-            ],
-            "description": "Optional ranking mode: intent-v1 (default, question-aware) or legacy (older lexical ranking)."
+            "description": "Optional ranking mode: intent-v1 (default, question-aware) or legacy (older lexical ranking).",
+            "enum": ["legacy", "intent-v1"],
+            "type": "string"
           },
           "semanticFacets": {
             "additionalProperties": false,
@@ -534,41 +420,18 @@
             "type": "array"
           },
           "type": {
-            "anyOf": [
-              {
-                "const": "req",
-                "type": "string"
-              },
-              {
-                "const": "scenario",
-                "type": "string"
-              },
-              {
-                "const": "test",
-                "type": "string"
-              },
-              {
-                "const": "adr",
-                "type": "string"
-              },
-              {
-                "const": "flag",
-                "type": "string"
-              },
-              {
-                "const": "event",
-                "type": "string"
-              },
-              {
-                "const": "symbol",
-                "type": "string"
-              },
-              {
-                "const": "fact",
-                "type": "string"
-              }
+            "description": "Optional entity type filter to narrow discovery. Example: 'req'.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
             ],
-            "description": "Optional entity type filter to narrow discovery. Example: 'req'."
+            "type": "string"
           },
           "workspaceRoot": {
             "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
@@ -643,20 +506,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -679,20 +530,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -751,20 +590,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -966,20 +793,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -1002,20 +817,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -1074,20 +877,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -1117,21 +908,9 @@
         "additionalProperties": {},
         "properties": {
           "action": {
-            "anyOf": [
-              {
-                "const": "list",
-                "type": "string"
-              },
-              {
-                "const": "load",
-                "type": "string"
-              },
-              {
-                "const": "read",
-                "type": "string"
-              }
-            ],
-            "description": "list, load (needs id) or read (needs id and resource)."
+            "description": "list, load (needs id) or read (needs id and resource).",
+            "enum": ["list", "load", "read"],
+            "type": "string"
           },
           "id": {
             "description": "Bundled skill ID. Example: 'kibi-usage'.",
@@ -1234,20 +1013,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -1270,20 +1037,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -1342,20 +1097,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -1429,41 +1172,18 @@
             "type": "array"
           },
           "type": {
-            "anyOf": [
-              {
-                "const": "req",
-                "type": "string"
-              },
-              {
-                "const": "scenario",
-                "type": "string"
-              },
-              {
-                "const": "test",
-                "type": "string"
-              },
-              {
-                "const": "adr",
-                "type": "string"
-              },
-              {
-                "const": "flag",
-                "type": "string"
-              },
-              {
-                "const": "event",
-                "type": "string"
-              },
-              {
-                "const": "symbol",
-                "type": "string"
-              },
-              {
-                "const": "fact",
-                "type": "string"
-              }
+            "description": "Only report entities of this type. Omit for all types.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
             ],
-            "description": "Only report entities of this type. Omit for all types."
+            "type": "string"
           },
           "workspaceRoot": {
             "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
@@ -1524,20 +1244,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -1560,20 +1268,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -1632,20 +1328,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -1675,21 +1359,9 @@
         "additionalProperties": {},
         "properties": {
           "by": {
-            "anyOf": [
-              {
-                "const": "req",
-                "type": "string"
-              },
-              {
-                "const": "symbol",
-                "type": "string"
-              },
-              {
-                "const": "type",
-                "type": "string"
-              }
-            ],
-            "description": "Report shape: req (proof status and repair plan), symbol (ownership coverage) or type (counts per type)."
+            "description": "Report shape: req (proof status and repair plan), symbol (ownership coverage) or type (counts per type).",
+            "enum": ["req", "symbol", "type"],
+            "type": "string"
           },
           "includeMigrationPreview": {
             "description": "Opt in to a deterministic, read-only kibi.legacy-migration-plan.v1 preview for ready semantic-inventory repair batches.",
@@ -1749,24 +1421,8 @@
           "statuses": {
             "description": "req mode: include only rows whose proofStatus is listed. The summary always covers the whole KB.",
             "items": {
-              "anyOf": [
-                {
-                  "const": "tested",
-                  "type": "string"
-                },
-                {
-                  "const": "missing",
-                  "type": "string"
-                },
-                {
-                  "const": "unresolved",
-                  "type": "string"
-                },
-                {
-                  "const": "not_applicable",
-                  "type": "string"
-                }
-              ]
+              "enum": ["tested", "missing", "unresolved", "not_applicable"],
+              "type": "string"
             },
             "type": "array"
           },
@@ -1851,20 +1507,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -1887,20 +1531,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -1959,20 +1591,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -2008,21 +1628,9 @@
             "type": "integer"
           },
           "direction": {
-            "anyOf": [
-              {
-                "const": "outgoing",
-                "type": "string"
-              },
-              {
-                "const": "incoming",
-                "type": "string"
-              },
-              {
-                "const": "both",
-                "type": "string"
-              }
-            ],
-            "description": "outgoing follows links from each node, incoming follows links pointing at it, both does either."
+            "description": "outgoing follows links from each node, incoming follows links pointing at it, both does either.",
+            "enum": ["outgoing", "incoming", "both"],
+            "type": "string"
           },
           "entityTypes": {
             "description": "Keep only nodes of these types and the edges between them; traversal still passes through other types.",
@@ -2125,20 +1733,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -2161,20 +1757,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -2233,20 +1817,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -2371,87 +1943,32 @@
             "type": "number"
           },
           "mode": {
-            "anyOf": [
-              {
-                "const": "analyze",
-                "type": "string"
-              },
-              {
-                "const": "requirement",
-                "type": "string"
-              },
-              {
-                "const": "predicates",
-                "type": "string"
-              }
-            ],
-            "description": "analyze (advisor receipt), requirement (strict claim write set) or predicates (ontology predicate plan)."
+            "description": "analyze (advisor receipt), requirement (strict claim write set) or predicates (ontology predicate plan).",
+            "enum": ["analyze", "requirement", "predicates"],
+            "type": "string"
           },
           "operator": {
-            "anyOf": [
-              {
-                "const": "eq",
-                "type": "string"
-              },
-              {
-                "const": "gt",
-                "type": "string"
-              },
-              {
-                "const": "gte",
-                "type": "string"
-              },
-              {
-                "const": "lt",
-                "type": "string"
-              },
-              {
-                "const": "lte",
-                "type": "string"
-              },
-              {
-                "const": "neq",
-                "type": "string"
-              },
-              {
-                "const": "bool",
-                "type": "string"
-              },
-              {
-                "const": "polarity",
-                "type": "string"
-              },
-              {
-                "const": "matches",
-                "type": "string"
-              },
-              {
-                "const": "includes",
-                "type": "string"
-              },
-              {
-                "const": "subset_of",
-                "type": "string"
-              },
-              {
-                "const": "excludes",
-                "type": "string"
-              }
+            "description": "Optional claim operator, e.g. eq, gt, lt; sets take eq, includes, subset_of or excludes; matches takes a regex.",
+            "enum": [
+              "eq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "neq",
+              "bool",
+              "polarity",
+              "matches",
+              "includes",
+              "subset_of",
+              "excludes"
             ],
-            "description": "Optional claim operator, e.g. eq, gt, lt; sets take eq, includes, subset_of or excludes; matches takes a regex."
+            "type": "string"
           },
           "polarityHint": {
-            "anyOf": [
-              {
-                "const": "assert",
-                "type": "string"
-              },
-              {
-                "const": "deny",
-                "type": "string"
-              }
-            ],
-            "description": "Optional reviewed polarity override when surface negation does not mean predicate denial."
+            "description": "Optional reviewed polarity override when surface negation does not mean predicate denial.",
+            "enum": ["assert", "deny"],
+            "type": "string"
           },
           "propertyKey": {
             "description": "Optional extracted semantic claim propertyKey. Example: 'Retention Years'.",
@@ -2502,41 +2019,18 @@
             "type": "string"
           },
           "type": {
-            "anyOf": [
-              {
-                "const": "req",
-                "type": "string"
-              },
-              {
-                "const": "scenario",
-                "type": "string"
-              },
-              {
-                "const": "test",
-                "type": "string"
-              },
-              {
-                "const": "adr",
-                "type": "string"
-              },
-              {
-                "const": "flag",
-                "type": "string"
-              },
-              {
-                "const": "event",
-                "type": "string"
-              },
-              {
-                "const": "symbol",
-                "type": "string"
-              },
-              {
-                "const": "fact",
-                "type": "string"
-              }
+            "description": "Entity type context for analysis; only requirements receive deterministic modeling suggestions.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
             ],
-            "description": "Entity type context for analysis; only requirements receive deterministic modeling suggestions."
+            "type": "string"
           },
           "value": {
             "anyOf": [
@@ -2810,40 +2304,17 @@
                     ]
                   },
                   "recommendedAction": {
-                    "anyOf": [
-                      {
-                        "const": "apply_requires_predicate",
-                        "type": "string"
-                      },
-                      {
-                        "const": "provide_argument_bindings",
-                        "type": "string"
-                      },
-                      {
-                        "const": "resolve_schema_reference",
-                        "type": "string"
-                      },
-                      {
-                        "const": "record_ontology_gap",
-                        "type": "string"
-                      },
-                      {
-                        "const": "review_nonlogical",
-                        "type": "string"
-                      },
-                      {
-                        "const": "replace_grounding",
-                        "type": "string"
-                      },
-                      {
-                        "const": "extend_requirement",
-                        "type": "string"
-                      },
-                      {
-                        "const": "keep_existing_grounding",
-                        "type": "string"
-                      }
-                    ]
+                    "enum": [
+                      "apply_requires_predicate",
+                      "provide_argument_bindings",
+                      "resolve_schema_reference",
+                      "record_ontology_gap",
+                      "review_nonlogical",
+                      "replace_grounding",
+                      "extend_requirement",
+                      "keep_existing_grounding"
+                    ],
+                    "type": "string"
                   },
                   "recommendedPredicateSchema": {
                     "anyOf": [
@@ -2935,20 +2406,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -2971,20 +2430,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -3043,20 +2490,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -3080,7 +2515,7 @@
         "readOnlyHint": false,
         "title": "Create or update Kibi entities"
       },
-      "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer a dryRun:true call first because it validates without writing and returns semantic advisor receipts for prose-heavy requirements. Use kb_model (mode requirement) before hand-writing strict property facts from prose, and kb_model (mode predicates) before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). An update keeps the properties and relationships it leaves out: send the fields that change (with title and status) and only the links to add. Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request, then upsert the old requirement with status closed (kb_check blocks a superseded requirement that is not closed). Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. For a requirement send the statement as `document.body` and the reason as `why`; give other entities a prose body (kb_check requires context). Requirement writes return open kb_check steps as nextActions. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates; dryRun:true writes nothing.",
+      "description": "Create or update one entity and its relationships. Use it for modeling, updates and every write kb_record does not take (a newly stated rule is one kb_record call). dryRun:true validates without writing. Model prose with kb_model before hand-writing strict property or predicate facts. An update keeps what it leaves out: send the changed fields (with title and status) and only the links to add. Relationship endpoints must already exist. A requirement that contradicts a current one on the same subject is rejected; to replace it, add a `supersedes` link from the new requirement and upsert the old one with status closed. For a requirement send the statement as `document.body` and the reason as `why` (never invent one: write 'Reason not stated'); give other entities a prose body. A requirement write returns its open kb_check steps as nextActions. Side effects: writes KB; dryRun:true writes nothing.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": {},
@@ -3162,89 +2597,30 @@
                         "type": "string"
                       },
                       "type": {
-                        "anyOf": [
-                          {
-                            "const": "depends_on",
-                            "type": "string"
-                          },
-                          {
-                            "const": "specified_by",
-                            "type": "string"
-                          },
-                          {
-                            "const": "verified_by",
-                            "type": "string"
-                          },
-                          {
-                            "const": "validates",
-                            "type": "string"
-                          },
-                          {
-                            "const": "implements",
-                            "type": "string"
-                          },
-                          {
-                            "const": "covered_by",
-                            "type": "string"
-                          },
-                          {
-                            "const": "executable_for",
-                            "type": "string"
-                          },
-                          {
-                            "const": "constrained_by",
-                            "type": "string"
-                          },
-                          {
-                            "const": "constrains",
-                            "type": "string"
-                          },
-                          {
-                            "const": "requires_property",
-                            "type": "string"
-                          },
-                          {
-                            "const": "requires_predicate",
-                            "type": "string"
-                          },
-                          {
-                            "const": "requires_rule",
-                            "type": "string"
-                          },
-                          {
-                            "const": "guards",
-                            "type": "string"
-                          },
-                          {
-                            "const": "publishes",
-                            "type": "string"
-                          },
-                          {
-                            "const": "consumes",
-                            "type": "string"
-                          },
-                          {
-                            "const": "supersedes",
-                            "type": "string"
-                          },
-                          {
-                            "const": "restates",
-                            "type": "string"
-                          },
-                          {
-                            "const": "assumes",
-                            "type": "string"
-                          },
-                          {
-                            "const": "exempts",
-                            "type": "string"
-                          },
-                          {
-                            "const": "relates_to",
-                            "type": "string"
-                          }
+                        "description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test).",
+                        "enum": [
+                          "depends_on",
+                          "specified_by",
+                          "verified_by",
+                          "validates",
+                          "implements",
+                          "covered_by",
+                          "executable_for",
+                          "constrained_by",
+                          "constrains",
+                          "requires_property",
+                          "requires_predicate",
+                          "requires_rule",
+                          "guards",
+                          "publishes",
+                          "consumes",
+                          "supersedes",
+                          "restates",
+                          "assumes",
+                          "exempts",
+                          "relates_to"
                         ],
-                        "description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test)."
+                        "type": "string"
                       }
                     },
                     "required": ["type", "from", "to"],
@@ -3295,21 +2671,9 @@
                 "type": "string"
               },
               "firmness": {
-                "anyOf": [
-                  {
-                    "const": "firm",
-                    "type": "string"
-                  },
-                  {
-                    "const": "default",
-                    "type": "string"
-                  },
-                  {
-                    "const": "exploratory",
-                    "type": "string"
-                  }
-                ],
-                "description": "req/adr only: firm (a human's rule, needs origin.ref), default or exploratory. Absent = default if an agent wrote it."
+                "description": "req/adr only: firm (a human's rule, needs origin.ref), default or exploratory. Absent = default if an agent wrote it.",
+                "enum": ["firm", "default", "exploratory"],
+                "type": "string"
               },
               "links": {
                 "description": "Optional references. Example: ['REQ-cli-gc','https://example.com/spec'].",
@@ -3329,25 +2693,9 @@
                     "type": "string"
                   },
                   "kind": {
-                    "anyOf": [
-                      {
-                        "const": "human",
-                        "type": "string"
-                      },
-                      {
-                        "const": "agent",
-                        "type": "string"
-                      },
-                      {
-                        "const": "migration",
-                        "type": "string"
-                      },
-                      {
-                        "const": "import",
-                        "type": "string"
-                      }
-                    ],
-                    "description": "Who authored the entity: human, agent, migration (backfilled by kibi migrate) or import."
+                    "description": "Who authored the entity: human, agent, migration (backfilled by kibi migrate) or import.",
+                    "enum": ["human", "agent", "migration", "import"],
+                    "type": "string"
                   },
                   "recorded_at": {
                     "description": "ISO-8601 time the provenance was recorded.",
@@ -3374,25 +2722,9 @@
                 "type": "string"
               },
               "required_evidence": {
-                "anyOf": [
-                  {
-                    "const": "proved",
-                    "type": "string"
-                  },
-                  {
-                    "const": "tested",
-                    "type": "string"
-                  },
-                  {
-                    "const": "asserted",
-                    "type": "string"
-                  },
-                  {
-                    "const": "unverified",
-                    "type": "string"
-                  }
-                ],
-                "description": "Requirement-only: weakest evidence level it accepts. Absent = tested if firm, else unverified."
+                "description": "Requirement-only: weakest evidence level it accepts. Absent = tested if firm, else unverified.",
+                "enum": ["proved", "tested", "asserted", "unverified"],
+                "type": "string"
               },
               "semantic_text": {
                 "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans.",
@@ -3407,33 +2739,16 @@
                 "type": "string"
               },
               "symbol_role": {
-                "anyOf": [
-                  {
-                    "const": "behavioral",
-                    "type": "string"
-                  },
-                  {
-                    "const": "structural",
-                    "type": "string"
-                  },
-                  {
-                    "const": "type-shape",
-                    "type": "string"
-                  },
-                  {
-                    "const": "config",
-                    "type": "string"
-                  },
-                  {
-                    "const": "module",
-                    "type": "string"
-                  },
-                  {
-                    "const": "unknown",
-                    "type": "string"
-                  }
+                "description": "Optional role classification for symbol entities. Example: 'behavioral'.",
+                "enum": [
+                  "behavioral",
+                  "structural",
+                  "type-shape",
+                  "config",
+                  "module",
+                  "unknown"
                 ],
-                "description": "Optional role classification for symbol entities. Example: 'behavioral'."
+                "type": "string"
               },
               "tags": {
                 "description": "Optional categorization tags. Example: ['security','api'].",
@@ -3468,89 +2783,30 @@
                   "type": "string"
                 },
                 "type": {
-                  "anyOf": [
-                    {
-                      "const": "depends_on",
-                      "type": "string"
-                    },
-                    {
-                      "const": "specified_by",
-                      "type": "string"
-                    },
-                    {
-                      "const": "verified_by",
-                      "type": "string"
-                    },
-                    {
-                      "const": "validates",
-                      "type": "string"
-                    },
-                    {
-                      "const": "implements",
-                      "type": "string"
-                    },
-                    {
-                      "const": "covered_by",
-                      "type": "string"
-                    },
-                    {
-                      "const": "executable_for",
-                      "type": "string"
-                    },
-                    {
-                      "const": "constrained_by",
-                      "type": "string"
-                    },
-                    {
-                      "const": "constrains",
-                      "type": "string"
-                    },
-                    {
-                      "const": "requires_property",
-                      "type": "string"
-                    },
-                    {
-                      "const": "requires_predicate",
-                      "type": "string"
-                    },
-                    {
-                      "const": "requires_rule",
-                      "type": "string"
-                    },
-                    {
-                      "const": "guards",
-                      "type": "string"
-                    },
-                    {
-                      "const": "publishes",
-                      "type": "string"
-                    },
-                    {
-                      "const": "consumes",
-                      "type": "string"
-                    },
-                    {
-                      "const": "supersedes",
-                      "type": "string"
-                    },
-                    {
-                      "const": "restates",
-                      "type": "string"
-                    },
-                    {
-                      "const": "assumes",
-                      "type": "string"
-                    },
-                    {
-                      "const": "exempts",
-                      "type": "string"
-                    },
-                    {
-                      "const": "relates_to",
-                      "type": "string"
-                    }
+                  "description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test).",
+                  "enum": [
+                    "depends_on",
+                    "specified_by",
+                    "verified_by",
+                    "validates",
+                    "implements",
+                    "covered_by",
+                    "executable_for",
+                    "constrained_by",
+                    "constrains",
+                    "requires_property",
+                    "requires_predicate",
+                    "requires_rule",
+                    "guards",
+                    "publishes",
+                    "consumes",
+                    "supersedes",
+                    "restates",
+                    "assumes",
+                    "exempts",
+                    "relates_to"
                   ],
-                  "description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test)."
+                  "type": "string"
                 }
               },
               "required": ["type", "from", "to"],
@@ -3559,41 +2815,18 @@
             "type": "array"
           },
           "type": {
-            "anyOf": [
-              {
-                "const": "req",
-                "type": "string"
-              },
-              {
-                "const": "scenario",
-                "type": "string"
-              },
-              {
-                "const": "test",
-                "type": "string"
-              },
-              {
-                "const": "adr",
-                "type": "string"
-              },
-              {
-                "const": "flag",
-                "type": "string"
-              },
-              {
-                "const": "event",
-                "type": "string"
-              },
-              {
-                "const": "symbol",
-                "type": "string"
-              },
-              {
-                "const": "fact",
-                "type": "string"
-              }
+            "description": "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
+            "enum": [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+              "fact"
             ],
-            "description": "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'."
+            "type": "string"
           },
           "why": {
             "description": "req only: why it exists, in the asker's words.",
@@ -3840,20 +3073,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -3876,20 +3097,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -3948,20 +3157,264 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Record a stated rule"
+      },
+      "description": "Record a rule as it is stated: statement, why, saidBy, quote, code and an optional test. Kibi writes it as one kb_upsert payload and returns the commit gate's verdict (commitAllowed, findings with blocks) and the steps left as nextActions. dryRun:true returns the payload and writes nothing. Facts, links, updates and other modeling: kb_upsert.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": {},
+        "properties": {
+          "code": {
+            "description": "Declarations that implement it, each {file, symbol}.",
+            "items": {
+              "additionalProperties": {},
+              "properties": {
+                "file": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "symbol": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": ["file", "symbol"],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "dryRun": {
+            "description": "Return the kb_upsert payload; write nothing.",
+            "type": "boolean"
+          },
+          "quote": {
+            "description": "Their words, recorded as origin.ref; a firm rule needs one.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "saidBy": {
+            "description": "user or maintainer (firm), or agent (default).",
+            "enum": ["user", "maintainer", "agent"],
+            "type": "string"
+          },
+          "statement": {
+            "description": "The rule as one testable must sentence.",
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "test": {
+            "description": "An existing TEST id that checks it.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "why": {
+            "description": "Why it exists, in their words; 'Reason not stated' if none given.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "workspaceRoot": {
+            "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
+            "type": "string"
+          }
+        },
+        "required": ["statement", "why", "saidBy", "code"],
+        "type": "object"
+      },
+      "name": "kb_record",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "commitAllowed": {
+                "type": "boolean"
+              },
+              "dryRun": {
+                "const": true,
+                "type": "boolean"
+              },
+              "errors": {
+                "items": {},
+                "type": "array"
+              },
+              "id": {
                 "type": "string"
               },
-              {
-                "const": "committed_with_repairs",
+              "nextActions": {
+                "items": {
+                  "additionalProperties": {},
+                  "properties": {},
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "preview": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "skippedEffects": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "status": {
                 "type": "string"
               },
-              {
-                "const": "error",
-                "type": "string"
+              "upsert": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "valid": {
+                "type": "boolean"
+              },
+              "verdict": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
+              },
+              "written": {
+                "additionalProperties": {},
+                "properties": {},
+                "type": "object"
               }
-            ]
+            },
+            "required": ["id", "upsert"],
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "minItems": 2,
+            "type": "array"
+          },
+          "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1,
+            "type": "number"
+          },
+          "nextActions": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_record",
+            "type": "string"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_record.v1",
+            "type": "string"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -4085,25 +3538,14 @@
                 "type": "array"
               },
               "outcome": {
-                "anyOf": [
-                  {
-                    "const": "plan_returned",
-                    "type": "string"
-                  },
-                  {
-                    "const": "supersession_required",
-                    "type": "string"
-                  },
-                  {
-                    "const": "plan_applied",
-                    "type": "string"
-                  },
-                  {
-                    "const": "dry_run",
-                    "type": "string"
-                  }
+                "description": "Absent on a direct delete. plan_returned: deletionPlan was returned and nothing was written; nextActions[0].input is the exact kb_apply_plan input. supersession_required: an authored requirement must be superseded with kb_upsert instead. plan_applied: approvedPlanHash matched and the plan was applied. dry_run: dryRun:true previewed the delete and nothing was written.",
+                "enum": [
+                  "plan_returned",
+                  "supersession_required",
+                  "plan_applied",
+                  "dry_run"
                 ],
-                "description": "Absent on a direct delete. plan_returned: deletionPlan was returned and nothing was written; nextActions[0].input is the exact kb_apply_plan input. supersession_required: an authored requirement must be superseded with kb_upsert instead. plan_applied: approvedPlanHash matched and the plan was applied. dry_run: dryRun:true previewed the delete and nothing was written."
+                "type": "string"
               },
               "planHash": {
                 "type": "string"
@@ -4186,20 +3628,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -4222,20 +3652,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -4294,20 +3712,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -4367,286 +3773,9 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Omit to run every canonical and advisory rule plus the full-KB audit; selected rules stay scoped.",
+            "description": "Optional rule names (an unknown one is refused with the list). Omit to run every rule plus the full-KB audit.",
             "items": {
-              "anyOf": [
-                {
-                  "const": "must-priority-coverage",
-                  "type": "string"
-                },
-                {
-                  "const": "symbol-coverage",
-                  "type": "string"
-                },
-                {
-                  "const": "symbol-traceability",
-                  "type": "string"
-                },
-                {
-                  "const": "symbol-granularity",
-                  "type": "string"
-                },
-                {
-                  "const": "symbol-coordinates-missing",
-                  "type": "string"
-                },
-                {
-                  "const": "no-dangling-refs",
-                  "type": "string"
-                },
-                {
-                  "const": "source-relationship-parity",
-                  "type": "string"
-                },
-                {
-                  "const": "branch-store-not-compiled",
-                  "type": "string"
-                },
-                {
-                  "const": "source-path-dangling",
-                  "type": "string"
-                },
-                {
-                  "const": "no-cycles",
-                  "type": "string"
-                },
-                {
-                  "const": "required-fields",
-                  "type": "string"
-                },
-                {
-                  "const": "deprecated-adr-no-successor",
-                  "type": "string"
-                },
-                {
-                  "const": "superseded-requirement-open",
-                  "type": "string"
-                },
-                {
-                  "const": "scenario-feasibility",
-                  "type": "string"
-                },
-                {
-                  "const": "scenario-feasibility-unknown",
-                  "type": "string"
-                },
-                {
-                  "const": "scenario-outcome-mismatch",
-                  "type": "string"
-                },
-                {
-                  "const": "exception-claim-keys",
-                  "type": "string"
-                },
-                {
-                  "const": "numeric-string-value",
-                  "type": "string"
-                },
-                {
-                  "const": "rule-key-arguments-missing",
-                  "type": "string"
-                },
-                {
-                  "const": "domain-contradictions",
-                  "type": "string"
-                },
-                {
-                  "const": "logic-coverage",
-                  "type": "string"
-                },
-                {
-                  "const": "rule-safety",
-                  "type": "string"
-                },
-                {
-                  "const": "rule-verifiability",
-                  "type": "string"
-                },
-                {
-                  "const": "query-plan-safety",
-                  "type": "string"
-                },
-                {
-                  "const": "req-status-vocabulary",
-                  "type": "string"
-                },
-                {
-                  "const": "retired-reason-missing",
-                  "type": "string"
-                },
-                {
-                  "const": "retired-owner-only",
-                  "type": "string"
-                },
-                {
-                  "const": "strict-fact-shape",
-                  "type": "string"
-                },
-                {
-                  "const": "strict-req-fact-pairing",
-                  "type": "string"
-                },
-                {
-                  "const": "predicate-verifiability",
-                  "type": "string"
-                },
-                {
-                  "const": "strict-readiness",
-                  "type": "string"
-                },
-                {
-                  "const": "semantic-completeness",
-                  "type": "string"
-                },
-                {
-                  "const": "related-requirement-unmodeled",
-                  "type": "string"
-                },
-                {
-                  "const": "claim-subject-missing",
-                  "type": "string"
-                },
-                {
-                  "const": "claim-subject-undefined",
-                  "type": "string"
-                },
-                {
-                  "const": "proof-contract-symbols",
-                  "type": "string"
-                },
-                {
-                  "const": "entity-id-style",
-                  "type": "string"
-                },
-                {
-                  "const": "domain-redundancy",
-                  "type": "string"
-                },
-                {
-                  "const": "domain-implication",
-                  "type": "string"
-                },
-                {
-                  "const": "subject-key-identity",
-                  "type": "string"
-                },
-                {
-                  "const": "subject-key-shape",
-                  "type": "string"
-                },
-                {
-                  "const": "ontology-quality",
-                  "type": "string"
-                },
-                {
-                  "const": "exception-unapproved",
-                  "type": "string"
-                },
-                {
-                  "const": "exception-approval-self-attested",
-                  "type": "string"
-                },
-                {
-                  "const": "agent-requirement-unapproved",
-                  "type": "string"
-                },
-                {
-                  "const": "requirement-rationale-missing",
-                  "type": "string"
-                },
-                {
-                  "const": "symbol-owner-superseded",
-                  "type": "string"
-                },
-                {
-                  "const": "adr-unlinked",
-                  "type": "string"
-                },
-                {
-                  "const": "adr-proposed",
-                  "type": "string"
-                },
-                {
-                  "const": "predicate-schema-conformance",
-                  "type": "string"
-                },
-                {
-                  "const": "entity-context-missing",
-                  "type": "string"
-                },
-                {
-                  "const": "subject-definition-missing",
-                  "type": "string"
-                },
-                {
-                  "const": "subject-duplicate",
-                  "type": "string"
-                },
-                {
-                  "const": "quantity-duplicate",
-                  "type": "string"
-                },
-                {
-                  "const": "subject-hierarchy-invalid",
-                  "type": "string"
-                },
-                {
-                  "const": "entity-context-acknowledged",
-                  "type": "string"
-                },
-                {
-                  "const": "decision-firm-unreferenced",
-                  "type": "string"
-                },
-                {
-                  "const": "decision-firm-superseded",
-                  "type": "string"
-                },
-                {
-                  "const": "decision-firm-edited",
-                  "type": "string"
-                },
-                {
-                  "const": "supersedes-reason-missing",
-                  "type": "string"
-                },
-                {
-                  "const": "supersedes-reason-acknowledged",
-                  "type": "string"
-                },
-                {
-                  "const": "policy-ownership",
-                  "type": "string"
-                },
-                {
-                  "const": "policy-markers",
-                  "type": "string"
-                },
-                {
-                  "const": "kb-consistency",
-                  "type": "string"
-                },
-                {
-                  "const": "kb-consistency-unresolved",
-                  "type": "string"
-                },
-                {
-                  "const": "evidence-floor",
-                  "type": "string"
-                },
-                {
-                  "const": "agent-requirement-unapproved-implemented",
-                  "type": "string"
-                },
-                {
-                  "const": "must-positive-scenario",
-                  "type": "string"
-                },
-                {
-                  "const": "proof-contract-claims",
-                  "type": "string"
-                }
-              ]
+              "type": "string"
             },
             "type": "array"
           },
@@ -4897,20 +4026,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -4933,20 +4050,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -5005,20 +4110,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -5357,28 +4450,12 @@
                     "type": "string"
                   },
                   "headTreeSource": {
-                    "anyOf": [
-                      {
-                        "const": "index",
-                        "type": "string"
-                      },
-                      {
-                        "const": "commit",
-                        "type": "string"
-                      }
-                    ]
+                    "enum": ["index", "commit"],
+                    "type": "string"
                   },
                   "kind": {
-                    "anyOf": [
-                      {
-                        "const": "staged",
-                        "type": "string"
-                      },
-                      {
-                        "const": "diff",
-                        "type": "string"
-                      }
-                    ]
+                    "enum": ["staged", "diff"],
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -5426,20 +4503,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -5462,20 +4527,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -5534,20 +4587,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -5633,21 +4674,9 @@
                       "type": "string"
                     },
                     "kind": {
-                      "anyOf": [
-                        {
-                          "const": "intent",
-                          "type": "string"
-                        },
-                        {
-                          "const": "observation",
-                          "type": "string"
-                        },
-                        {
-                          "const": "open_question",
-                          "type": "string"
-                        }
-                      ],
-                      "description": "intent (may become a req), observation (how things are today) or open_question. Default: intent."
+                      "description": "intent (may become a req), observation (how things are today) or open_question. Default: intent.",
+                      "enum": ["intent", "observation", "open_question"],
+                      "type": "string"
                     },
                     "rationale": {
                       "description": "Optional reason the requirement exists, as the source or the human states it. Never invent one.",
@@ -5681,21 +4710,9 @@
                   "additionalProperties": false,
                   "properties": {
                     "authority": {
-                      "anyOf": [
-                        {
-                          "const": "authoritative",
-                          "type": "string"
-                        },
-                        {
-                          "const": "supporting",
-                          "type": "string"
-                        },
-                        {
-                          "const": "stale",
-                          "type": "string"
-                        }
-                      ],
-                      "description": "The human's call: authoritative, supporting, or stale (cited, never a candidate)."
+                      "description": "The human's call: authoritative, supporting, or stale (cited, never a candidate).",
+                      "enum": ["authoritative", "supporting", "stale"],
+                      "type": "string"
                     },
                     "component": {
                       "description": "Optional component the source's claims are about; the first segment of each generated subject_key.",
@@ -5712,44 +4729,18 @@
                       "type": "string"
                     },
                     "kind": {
-                      "anyOf": [
-                        {
-                          "const": "issue_tracker",
-                          "type": "string"
-                        },
-                        {
-                          "const": "wiki",
-                          "type": "string"
-                        },
-                        {
-                          "const": "specification",
-                          "type": "string"
-                        },
-                        {
-                          "const": "design",
-                          "type": "string"
-                        },
-                        {
-                          "const": "decision_log",
-                          "type": "string"
-                        },
-                        {
-                          "const": "support",
-                          "type": "string"
-                        },
-                        {
-                          "const": "chat",
-                          "type": "string"
-                        },
-                        {
-                          "const": "repository_docs",
-                          "type": "string"
-                        },
-                        {
-                          "const": "other",
-                          "type": "string"
-                        }
-                      ]
+                      "enum": [
+                        "issue_tracker",
+                        "wiki",
+                        "specification",
+                        "design",
+                        "decision_log",
+                        "support",
+                        "chat",
+                        "repository_docs",
+                        "other"
+                      ],
+                      "type": "string"
                     },
                     "locator": {
                       "description": "Where the source lives: a URL, project key, space name, or repo-relative path.",
@@ -5808,32 +4799,8 @@
           "entityTypes": {
             "description": "Optional filter to limit candidate generation to specific entity types.",
             "items": {
-              "anyOf": [
-                {
-                  "const": "req",
-                  "type": "string"
-                },
-                {
-                  "const": "scenario",
-                  "type": "string"
-                },
-                {
-                  "const": "test",
-                  "type": "string"
-                },
-                {
-                  "const": "adr",
-                  "type": "string"
-                },
-                {
-                  "const": "fact",
-                  "type": "string"
-                },
-                {
-                  "const": "symbol",
-                  "type": "string"
-                }
-              ]
+              "enum": ["req", "scenario", "test", "adr", "fact", "symbol"],
+              "type": "string"
             },
             "type": "array"
           },
@@ -6022,20 +4989,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -6058,20 +5013,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -6130,20 +5073,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -6195,16 +5126,8 @@
                   "type": "string"
                 },
                 "verdict": {
-                  "anyOf": [
-                    {
-                      "const": "conflict",
-                      "type": "string"
-                    },
-                    {
-                      "const": "no_conflict",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["conflict", "no_conflict"],
+                  "type": "string"
                 }
               },
               "required": ["requirementId", "verdict"],
@@ -6258,17 +5181,9 @@
             "type": "array"
           },
           "mode": {
-            "anyOf": [
-              {
-                "const": "create",
-                "type": "string"
-              },
-              {
-                "const": "update",
-                "type": "string"
-              }
-            ],
-            "description": "Create a new requirement or update an existing one."
+            "description": "Create a new requirement or update an existing one.",
+            "enum": ["create", "update"],
+            "type": "string"
           },
           "proposalDecisions": {
             "description": "Explicit decisions for deterministic traceability proposals. Pending proposals never enter steps.",
@@ -6276,16 +5191,8 @@
               "additionalProperties": {},
               "properties": {
                 "decision": {
-                  "anyOf": [
-                    {
-                      "const": "accept",
-                      "type": "string"
-                    },
-                    {
-                      "const": "reject",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["accept", "reject"],
+                  "type": "string"
                 },
                 "proposalId": {
                   "minLength": 1,
@@ -6433,32 +5340,12 @@
                   "type": "string"
                 },
                 "verificationPerspective": {
-                  "anyOf": [
-                    {
-                      "const": "internal",
-                      "type": "string"
-                    },
-                    {
-                      "const": "consumer",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["internal", "consumer"],
+                  "type": "string"
                 },
                 "verificationScope": {
-                  "anyOf": [
-                    {
-                      "const": "unit",
-                      "type": "string"
-                    },
-                    {
-                      "const": "integration",
-                      "type": "string"
-                    },
-                    {
-                      "const": "end_to_end",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["unit", "integration", "end_to_end"],
+                  "type": "string"
                 }
               },
               "required": ["title", "body"],
@@ -6568,20 +5455,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -6604,20 +5479,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -6676,20 +5539,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -6914,20 +5765,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -6950,20 +5789,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -7022,20 +5849,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [
@@ -7143,16 +5958,8 @@
                   "properties": {
                     "attempts": {},
                     "binding": {
-                      "anyOf": [
-                        {
-                          "const": "native_case",
-                          "type": "string"
-                        },
-                        {
-                          "const": "aggregate_run",
-                          "type": "string"
-                        }
-                      ]
+                      "enum": ["native_case", "aggregate_run"],
+                      "type": "string"
                     },
                     "diagnostics": {
                       "items": {
@@ -7166,32 +5973,15 @@
                       "type": "string"
                     },
                     "outcome": {
-                      "anyOf": [
-                        {
-                          "const": "passed",
-                          "type": "string"
-                        },
-                        {
-                          "const": "failed",
-                          "type": "string"
-                        },
-                        {
-                          "const": "timed_out",
-                          "type": "string"
-                        },
-                        {
-                          "const": "skipped",
-                          "type": "string"
-                        },
-                        {
-                          "const": "interrupted",
-                          "type": "string"
-                        },
-                        {
-                          "const": "errored",
-                          "type": "string"
-                        }
-                      ]
+                      "enum": [
+                        "passed",
+                        "failed",
+                        "timed_out",
+                        "skipped",
+                        "interrupted",
+                        "errored"
+                      ],
+                      "type": "string"
                     },
                     "symbol_id": {
                       "description": "Stable proof symbol ID (SYM-*).",
@@ -7226,64 +6016,30 @@
                     "type": "integer"
                   },
                   "failure_phase": {
-                    "anyOf": [
-                      {
-                        "const": "setup",
-                        "type": "string"
-                      },
-                      {
-                        "const": "collection",
-                        "type": "string"
-                      },
-                      {
-                        "const": "execution",
-                        "type": "string"
-                      },
-                      {
-                        "const": "teardown",
-                        "type": "string"
-                      },
-                      {
-                        "const": "infrastructure",
-                        "type": "string"
-                      }
-                    ]
+                    "enum": [
+                      "setup",
+                      "collection",
+                      "execution",
+                      "teardown",
+                      "infrastructure"
+                    ],
+                    "type": "string"
                   },
                   "finished_at": {
                     "minLength": 1,
                     "type": "string"
                   },
                   "outcome": {
-                    "anyOf": [
-                      {
-                        "const": "passed",
-                        "type": "string"
-                      },
-                      {
-                        "const": "failed",
-                        "type": "string"
-                      },
-                      {
-                        "const": "errored",
-                        "type": "string"
-                      },
-                      {
-                        "const": "cancelled",
-                        "type": "string"
-                      },
-                      {
-                        "const": "timed_out",
-                        "type": "string"
-                      },
-                      {
-                        "const": "interrupted",
-                        "type": "string"
-                      },
-                      {
-                        "const": "no_results",
-                        "type": "string"
-                      }
-                    ]
+                    "enum": [
+                      "passed",
+                      "failed",
+                      "errored",
+                      "cancelled",
+                      "timed_out",
+                      "interrupted",
+                      "no_results"
+                    ],
+                    "type": "string"
                   },
                   "started_at": {
                     "minLength": 1,
@@ -7416,20 +6172,8 @@
                   "type": "string"
                 },
                 "severity": {
-                  "anyOf": [
-                    {
-                      "const": "info",
-                      "type": "string"
-                    },
-                    {
-                      "const": "warning",
-                      "type": "string"
-                    },
-                    {
-                      "const": "error",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["info", "warning", "error"],
+                  "type": "string"
                 },
                 "suggestion": {
                   "type": "string"
@@ -7452,20 +6196,8 @@
                   "type": "string"
                 },
                 "status": {
-                  "anyOf": [
-                    {
-                      "const": "completed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "failed",
-                      "type": "string"
-                    },
-                    {
-                      "const": "not_applicable",
-                      "type": "string"
-                    }
-                  ]
+                  "enum": ["completed", "failed", "not_applicable"],
+                  "type": "string"
                 }
               },
               "required": ["kind", "status"],
@@ -7524,20 +6256,8 @@
             "type": "string"
           },
           "status": {
-            "anyOf": [
-              {
-                "const": "success",
-                "type": "string"
-              },
-              {
-                "const": "committed_with_repairs",
-                "type": "string"
-              },
-              {
-                "const": "error",
-                "type": "string"
-              }
-            ]
+            "enum": ["success", "committed_with_repairs", "error"],
+            "type": "string"
           }
         },
         "required": [

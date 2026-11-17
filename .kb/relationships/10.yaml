@@ -398,3 +398,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-89a62d4ef1ba
+  - type: constrains
+    from: REQ-kb-record-capture
+    to: FACT-SUBJECT-KIBI-KB-RECORD
+    created_at: 2026-11-17T06:44:20.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29f0877e6372
+  - type: requires_property
+    from: REQ-kb-record-capture
+    to: FACT-kb-record-capture-inputs
+    created_at: 2026-11-17T06:44:20.906Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05c42efdcae9
+  - type: requires_property
+    from: REQ-kb-record-capture
+    to: FACT-kb-record-human-rule-firm
+    created_at: 2026-11-17T06:44:20.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72ac7cb67606
+  - type: requires_property
+    from: REQ-kb-record-capture
+    to: FACT-kb-record-agent-rule-default
+    created_at: 2026-11-17T06:44:20.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb3f3d5af395
+  - type: requires_property
+    from: REQ-kb-record-capture
+    to: FACT-kb-record-returns-verdict
+    created_at: 2026-11-17T06:44:21.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ce1ea8f7992
+  - type: specified_by
+    from: REQ-kb-record-capture
+    to: SCEN-kb-record-capture
+    created_at: 2026-11-17T06:44:21.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19db511aad2a
+  - type: specified_by
+    from: REQ-kb-record-capture
+    to: SCEN-NEG-kb-record-returns-verdict-NO-VERDICT
+    created_at: 2026-11-17T06:44:21.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67a7d4dabb79
+  - type: verified_by
+    from: REQ-kb-record-capture
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:44:21.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4440978dcd1c
+  - type: specified_by
+    from: REQ-kb-record-capture
+    to: SCEN-NEG-kb-record-agent-rule-default-FIRM-AGENT-RULE
+    created_at: 2026-11-17T07:11:35.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-815456a4b291
+  - type: specified_by
+    from: REQ-kb-record-capture
+    to: SCEN-NEG-kb-record-capture-inputs-INPUT-DROPPED
+    created_at: 2026-11-17T07:11:35.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bb166b2d2db
+  - type: specified_by
+    from: REQ-kb-record-capture
+    to: SCEN-NEG-kb-record-human-rule-firm-DEFAULT-HUMAN-RULE
+    created_at: 2026-11-17T07:11:35.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16719932191f

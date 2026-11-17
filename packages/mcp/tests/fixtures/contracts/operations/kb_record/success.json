@@ -1,0 +1,105 @@
+{
+  "input": {
+    "code": [
+      {
+        "file": "src/contract.ts",
+        "symbol": "contract"
+      }
+    ],
+    "dryRun": true,
+    "saidBy": "agent",
+    "statement": "Contract seeds cover every operation.",
+    "why": "Reason not stated"
+  },
+  "structuredContent": {
+    "dryRun": true,
+    "id": "REQ-contract-seeds-cover-every-operation",
+    "skippedEffects": ["kb-write", "workspace-write"],
+    "upsert": {
+      "document": {
+        "body": "Contract seeds cover every operation.\n"
+      },
+      "id": "REQ-contract-seeds-cover-every-operation",
+      "implementedBy": [
+        {
+          "sourceFile": "src/contract.ts",
+          "symbol": "contract"
+        }
+      ],
+      "properties": {
+        "firmness": "default",
+        "origin": {
+          "kind": "agent"
+        },
+        "status": "open",
+        "title": "Contract seeds cover every operation"
+      },
+      "type": "req",
+      "why": "Reason not stated"
+    },
+    "valid": true
+  },
+  "tool": {
+    "description": "Record a rule as it is stated: statement, why, saidBy, quote, code and an optional test. Kibi writes it as one kb_upsert payload and returns the commit gate's verdict (commitAllowed, findings with blocks) and the steps left as nextActions. dryRun:true returns the payload and writes nothing. Facts, links, updates and other modeling: kb_upsert.",
+    "inputSchema": {
+      "properties": {
+        "code": {
+          "description": "Declarations that implement it, each {file, symbol}.",
+          "items": {
+            "properties": {
+              "file": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "symbol": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["file", "symbol"],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "dryRun": {
+          "description": "Return the kb_upsert payload; write nothing.",
+          "type": "boolean"
+        },
+        "quote": {
+          "description": "Their words, recorded as origin.ref; a firm rule needs one.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "saidBy": {
+          "description": "user or maintainer (firm), or agent (default).",
+          "enum": ["user", "maintainer", "agent"],
+          "type": "string"
+        },
+        "statement": {
+          "description": "The rule as one testable must sentence.",
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "test": {
+          "description": "An existing TEST id that checks it.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "why": {
+          "description": "Why it exists, in their words; 'Reason not stated' if none given.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "workspaceRoot": {
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
+          "type": "string"
+        }
+      },
+      "required": ["statement", "why", "saidBy", "code"],
+      "type": "object"
+    },
+    "name": "kb_record"
+  }
+}

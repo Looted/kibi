@@ -1,5 +1,6 @@
 import {
   canonicalKbToolName,
+  effectiveKbOperation,
   kibiCliOperation,
 } from "kibi-agent-core/kb-mcp-tools";
 
@@ -94,14 +95,9 @@ export function extractMcpKbUsage(
   const operation = canonicalKbOperation(toolName);
   if (!operation) return undefined;
   const payload = payloadOf(toolInput);
-  // A dry-run upsert only validates: like the shared extractKbMcpToolCall,
-  // report the read-only operation it routes to, so it records nothing.
-  return usageFromPayload(
-    operation === "kb_upsert" && payload.dryRun === true
-      ? "kb_validate_upsert"
-      : operation,
-    payload,
-  );
+  // Like the shared extractKbMcpToolCall: kb_record is a kb_upsert write,
+  // and a dry run of either only validates, so it records nothing.
+  return usageFromPayload(effectiveKbOperation(operation, payload), payload);
 }
 
 /**

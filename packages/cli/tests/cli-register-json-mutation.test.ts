@@ -33,12 +33,12 @@ describe("JSON-only commands", () => {
       (metadata) => metadata.name === "kb_upsert",
     )?.description as string;
     expect(upsert?.summary()).toBe(
-      "Create or update one entity and optional relationships.",
+      "Create or update one entity and its relationships.",
     );
     // The command's own help keeps the whole description.
     expect(upsert?.description()).toBe(description);
     expect(help).toMatch(
-      /^ {2}upsert \[options\] +Create or update one entity and optional relationships\.$/m,
+      /^ {2}upsert \[options\] +Create or update one entity and its relationships\.$/m,
     );
     expect(help).not.toContain(description);
     expect([...UNLISTED_OPERATIONS].sort()).toEqual([

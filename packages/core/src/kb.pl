@@ -308,18 +308,43 @@ write_store_repair(Directory, Loaded, Repaired, Extra) :-
                         []),
         (close(Stream), rename_file(TmpPath, Path))).
 
-% SWI-Prolog's rdf_db fails to write journals ("invalid term_t ... out of
-% range") for graphs whose URI is roughly 230 characters or longer.  Store
-% paths inside deep workspaces reach that length, so those stores use a short
-% digest-based graph URI; shorter paths keep the file:// URI they always had.
+% rdf_persistency names a graph's journal and snapshot files after the graph
+% URI, percent-encoding every character except ASCII letters, digits and `_`,
+% so a `/`, `-` or `.` takes three bytes.  A file name over the file system's
+% 255-byte limit makes the journal write throw inside SWI's RDF monitor, and
+% SWI-Prolog 10.0.2 aborts the whole process on an exception there ("invalid
+% term_t ... out of range").  A store whose file:// URI would encode to a name
+% that, with the longest suffix rdf_persistency adds (`.trp.new`), exceeds the
+% limit uses a short digest-based graph URI instead; every other store keeps
+% the file:// URI it always had.
 journal_expected_graph_uri(Directory, Expected) :-
     atom_concat('file://', Directory, FileURI),
-    atom_length(FileURI, Length),
-    (   Length =< 200
+    (   journal_file_name_fits(FileURI)
     ->  Expected = FileURI
     ;   sha_hash(Directory, Hash, [algorithm(sha1)]),
         hash_atom(Hash, Digest),
         atom_concat('urn:kibi:store:', Digest, Expected)
+    ).
+
+% The longest file rdf_persistency derives from a graph name is
+% `<encoded name>.trp.new` (8 bytes of suffix), so the encoded name may take
+% at most 255 - 8 bytes.
+journal_file_name_fits(GraphURI) :-
+    atom_codes(GraphURI, Codes),
+    foldl(journal_encoded_length, Codes, 0, Length),
+    Length =< 247.
+
+% Bounds rdf_persistency's url_to_filename/2 encoding from above: ASCII
+% letters, digits and `_` take one byte, a newline six (`%0D%0A`) and any
+% other character at most three (a space, written as `+`, takes one).
+journal_encoded_length(Code, Length0, Length) :-
+    (   (   Code =:= 0'_
+        ;   Code < 128, code_type(Code, alnum)
+        )
+    ->  Length is Length0 + 1
+    ;   Code =:= 0'\n
+    ->  Length is Length0 + 6
+    ;   Length is Length0 + 3
     ).
 
 journal_graph_uri(Directory, GraphURI) :-

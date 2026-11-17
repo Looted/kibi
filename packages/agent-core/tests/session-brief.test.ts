@@ -16,7 +16,7 @@ describe("session brief", () => {
     expect(search).toStartWith("- Before changing behaviour, kb_search");
     expect(search).toContain("kb_query the requirement that governs it");
     expect(record).toStartWith("- When the person states a rule");
-    expect(record).toContain("with their reason (kb_upsert");
+    expect(record).toContain("with their reason (kb_record); a decision goes through kb_upsert");
     expect(check).toStartWith("- Before finishing, stage the change");
     expect(check).toContain("`kibi check --staged`");
     expect(conflict).toContain(
