@@ -831,6 +831,14 @@
               "additionalProperties": true
             },
             "description": "Each implementedBy entry's symbolId and whether it was created."
+          },
+          "relatedRequirements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Current requirements on the same terms."
           }
         }
       },

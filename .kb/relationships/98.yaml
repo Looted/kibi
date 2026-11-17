@@ -398,3 +398,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28d2f1aaead0
+  - type: implements
+    from: SYM-decision-guard-stated-reason
+    to: REQ-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:13:52.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bfd22cacc54
+  - type: covered_by
+    from: SYM-decision-guard-stated-reason
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:21:13.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85fa2982a5bb

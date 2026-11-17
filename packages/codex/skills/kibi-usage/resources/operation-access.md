@@ -34,7 +34,10 @@ per operation. Effects are authoritative for mutability and adapter annotations.
 
 ## MCP tools versus catalog operations
 
-The MCP server registers 16 tools. Most carry their catalog operation name; the
+The MCP catalog has 16 tools. A session lists six of them (`kb_search`,
+`kb_query`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills`) unless the
+`full` profile is chosen (`KIBI_MCP_TOOLS=full`); the others run through their
+CLI routes with the same input. Most tools carry their catalog operation name; the
 operations below are reached through a consolidated MCP call instead, while the
 CLI keeps their dedicated routes. Result payloads (for example
 `recommended_tools`, `suggested_next_tool`, or repair-plan steps) still name

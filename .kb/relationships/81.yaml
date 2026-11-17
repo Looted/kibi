@@ -363,3 +363,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c46b35dc5e1
+  - type: executable_for
+    from: SYM-test-kb-upsert-capture-with-why
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:17:38.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b43d9045e2b1

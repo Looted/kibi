@@ -1879,23 +1879,46 @@ function instructingAdverb(sentence) {
   }
   return;
 }
-function statedRule(prompt) {
-  for (const sentence of requestSentences(prompt)) {
+function ruleMatch(prompt) {
+  const sentences = requestSentences(prompt);
+  for (const [index, sentence] of sentences.entries()) {
     if (sentence.endsWith("?") && (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence)))
       continue;
     const match = RULE_PHRASES.exec(sentence);
     if (match)
-      return match[0].toLowerCase();
+      return { phrase: match[0].toLowerCase(), sentences, index };
     const adverb = instructingAdverb(sentence);
     if (adverb)
-      return adverb;
+      return { phrase: adverb, sentences, index };
   }
   return;
 }
-function rulePromptNote(phrase) {
+function statedRule(prompt) {
+  return ruleMatch(prompt)?.phrase;
+}
+var REASON_MARKER = /\b(?:because|so that)\b/i;
+var MAX_REASON_CHARS2 = 200;
+function statedReason(prompt) {
+  const match = prompt === undefined ? undefined : ruleMatch(prompt);
+  if (match === undefined)
+    return;
+  for (const sentence of match.sentences.slice(match.index, match.index + 2)) {
+    const marker = REASON_MARKER.exec(sentence);
+    if (marker === null)
+      continue;
+    const reason = sentence.slice(marker.index).replace(/[.!]+$/, "");
+    return reason.length > MAX_REASON_CHARS2 ? `${reason.slice(0, MAX_REASON_CHARS2 - 1).trimEnd()}…` : reason;
+  }
+  return;
+}
+function reasonLine2(reason) {
+  return `The request gives its reason ("${reason}"): put that reason in the requirement's why field, in the person's words.`;
+}
+function rulePromptNote(phrase, reason) {
   return [
     `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
-    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it."
+    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it.",
+    ...reason === undefined ? [] : [reasonLine2(reason)]
   ].join(`
 `);
 }
@@ -1910,7 +1933,7 @@ function captureReminder(rulePhrase) {
   ].join(`
 `);
 }
-function ruleCaptureTemplate(rulePhrase) {
+function ruleCaptureTemplate(rulePhrase, reason) {
   const template = {
     type: "req",
     id: "REQ-<short-name>",
@@ -1923,17 +1946,8 @@ function ruleCaptureTemplate(rulePhrase) {
         ref: "<the person's words and where they said them>"
       }
     },
-    document: {
-      body: `<the rule as one shall or must sentence>
-
-## Context
-
-<who asked for the rule and why, in their words; write 'Reason not stated' when they gave no reason>
-
-## Source
-
-<the person's words, verbatim>`
-    },
+    document: { body: "<the rule as one shall or must sentence>" },
+    why: reason === undefined ? "<why the person wants it, in their words; 'Reason not stated' if they gave none>" : "<the person's reason, in their words>",
     implementedBy: [
       {
         sourceFile: "<file you changed>",
@@ -1944,7 +1958,8 @@ function ruleCaptureTemplate(rulePhrase) {
   return [
     `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:`,
     JSON.stringify(template),
-    "kb_check then asks for a scenario and a test that prove the rule; add them in this change or name them as still to do in the final report."
+    ...reason === undefined ? [] : [reasonLine2(reason)],
+    "Then follow the nextActions the result returns."
   ].join(`
 `);
 }
@@ -2074,9 +2089,17 @@ function recordRequest(session, prompt, now = Date.now()) {
     markDecisionFlag(session, "rule-prompt");
     try {
       writeMarker(sessionPath(session, "rule-phrase"), rule);
+      writeMarker(sessionPath(session, "rule-reason"), statedReason(prompt) ?? "");
     } catch {}
   }
   return rule;
+}
+function sessionRuleReason(session) {
+  let reason = "";
+  try {
+    reason = String(fs5.readFileSync(sessionPath(session, "rule-reason")));
+  } catch {}
+  return reason || undefined;
 }
 function sessionRulePhrase(session) {
   let phrase = "";
@@ -2089,7 +2112,7 @@ function claimRuleCaptureTemplate(session, editingSource = false) {
   const phrase = sessionRulePhrase(session);
   if (phrase === undefined || !(editingSource || hasDecisionFlag(session, "source-edited")) || hasDecisionFlag(session, "kb-recorded") || !claimDecisionFlag(session, "capture-template"))
     return;
-  return ruleCaptureTemplate(phrase);
+  return ruleCaptureTemplate(phrase, sessionRuleReason(session));
 }
 function requestWords(session) {
   try {
@@ -3640,7 +3663,7 @@ async function runHook(rawInput, environment = {}) {
           continue: true,
           hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
-            additionalContext: rulePromptNote(rule)
+            additionalContext: rulePromptNote(rule, statedReason(input.prompt))
           }
         };
       }
