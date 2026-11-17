@@ -47,7 +47,9 @@ export function getCoreModulePathOverride(
   fileName: string,
 ): string | undefined {
   const envKey = `KIBI_${fileName.replace(/\W/g, "_").toUpperCase()}_PATH`;
-  return getEnvValue(envKey);
+  // A blank override is unset, as every env value is.
+  const value = getEnvValue(envKey);
+  return value === undefined || value.length === 0 ? undefined : value;
 }
 
 export type LoadEnvResult = {

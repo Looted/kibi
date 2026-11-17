@@ -974,7 +974,12 @@ export function buildActionsFromStatus(input: {
         autoApplicable: true,
       }),
     );
-  } else if (storeState === "incomplete" || storeState === "unreadable") {
+  } else if (
+    (storeState === "incomplete" || storeState === "unreadable") &&
+    // A legacy literal-named store is moved by the legacy attachment action;
+    // recovering would rebuild the store that migration just moved.
+    store?.errorCode !== "legacy_branch_store"
+  ) {
     actions.push(
       migrationAction({
         id: "branch-store-recover",

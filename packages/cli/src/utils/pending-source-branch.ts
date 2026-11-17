@@ -17,6 +17,7 @@
 */
 
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { resolveActiveBranch } from "./branch-resolver.js";
 
 /**
@@ -55,31 +56,57 @@ export function pendingReceiptScope(
 
 /**
  * Decides whether a pending source missing from this checkout is committed on
- * another local branch. That branch's Git owns the bytes, so the receipt's
- * file was not lost: it was committed somewhere else, often on a branch made
- * after the receipt was written. The local branches are listed once, on the
- * first path asked about; outside Git nothing is committed anywhere.
+ * another local branch with the bytes its receipt recorded. That branch's Git
+ * owns those bytes, so the receipt's file was not lost: it was committed
+ * somewhere else, often on a branch made after the receipt was written. A
+ * file at the same path with other content is not the receipt's file, so it
+ * does not count. The local branches are listed once, on the first path
+ * asked about; outside Git nothing is committed anywhere.
  */
 export function committedOnLocalBranch(
   workspaceRoot: string,
-): (relative: string) => boolean {
+): (relative: string, afterHash: string) => boolean {
   let refs: readonly string[] | undefined;
-  return (relative) => {
+  return (relative, afterHash) => {
     refs ??= localBranchRefs(workspaceRoot);
     if (refs.length === 0) return false;
-    let output: string;
+    let output: Buffer;
     try {
-      output = execFileSync("git", ["cat-file", "--batch-check"], {
+      output = execFileSync("git", ["cat-file", "--batch"], {
         cwd: workspaceRoot,
         input: refs.map((ref) => `${ref}:${relative}\n`).join(""),
-        encoding: "utf8",
         stdio: ["pipe", "pipe", "ignore"],
+        maxBuffer: 1024 * 1024 * 1024,
       });
     } catch {
       return false;
     }
-    return output.split("\n").some((line) => / blob \d+$/.test(line));
+    return batchBlobs(output).some(
+      (bytes) => createHash("sha256").update(bytes).digest("hex") === afterHash,
+    );
   };
+}
+
+/**
+ * The blob contents in `git cat-file --batch` output. Each object is a
+ * `<oid> <type> <size>` header line, its bytes and a newline; a name Git
+ * cannot resolve is one `<name> missing` line.
+ */
+function batchBlobs(output: Buffer): Buffer[] {
+  const blobs: Buffer[] = [];
+  let offset = 0;
+  while (offset < output.length) {
+    const lineEnd = output.indexOf(0x0a, offset);
+    // Git ends every header with a newline.
+    const header = output.subarray(offset, lineEnd).toString("utf8");
+    offset = lineEnd + 1;
+    const match = / (blob|tree|commit|tag) (\d+)$/.exec(header);
+    if (match === null) continue;
+    const size = Number(match[2]);
+    if (match[1] === "blob") blobs.push(output.subarray(offset, offset + size));
+    offset += size + 1;
+  }
+  return blobs;
 }
 
 function localBranchRefs(workspaceRoot: string): readonly string[] {
