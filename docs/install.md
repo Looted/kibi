@@ -864,6 +864,17 @@ is not preferred (it can pull unrelated app secrets into Kibi). Restart
 long-running MCP or host processes after changing env files. Do not put secrets
 in `package.json`.
 
+The project file and the legacy `.env` come with the checkout, so Kibi lets
+them set only provider secrets (such as `TYPESAFE_API_KEY`) and provider
+settings (`KIBI_JEV_*`). It ignores any other `KIBI_*` key there, such as
+`KIBI_NODE_PATH`, `KIBI_SWIPL`, `KIBI_KB_PL_PATH`, `KIBI_RUNTIME_DIR`,
+`KIBI_ENV_FILE`, `KIBI_WORKSPACE` or `KIBI_BRANCH`, and process variables such
+as `PATH`, `HOME`, `TMPDIR`, `NODE_OPTIONS`, `NODE_*`, `LD_*`, `DYLD_*`,
+`BUN_*`, `GIT_*`, `XDG_*`, `SWI_HOME_DIR` and the proxy variables, so a cloned
+repository cannot choose what Kibi runs or loads. Each command names the
+ignored keys once on stderr (never their values). Set those keys in the process
+environment or in `~/.config/kibi/env`, which Kibi applies unfiltered.
+
 Optional settings:
 
 | Variable | Role |

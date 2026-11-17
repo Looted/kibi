@@ -285,6 +285,10 @@ export const CLI_MUTATION_MODULES = {
   ],
   "packages/cli/src/env/bootstrap.ts": [
     "packages/cli/tests/env/bootstrap-mutation.test.ts",
+    "packages/cli/tests/env/workspace-env-policy.test.ts",
+  ],
+  "packages/cli/src/env/workspace-env-policy.ts": [
+    "packages/cli/tests/env/workspace-env-policy.test.ts",
   ],
   "packages/cli/src/report/html-report.ts": [
     "packages/cli/tests/report/html-report-mutation.test.ts",
@@ -1852,6 +1856,7 @@ export const MUTATION_SHARDS = [
     "packages/cli/src/traceability/impact-record-validation.ts",
     "packages/cli/src/traceability/impact-knowledge.ts",
     "packages/cli/src/env/bootstrap.ts",
+    "packages/cli/src/env/workspace-env-policy.ts",
     "packages/cli/src/proof/command-test-report.ts",
     "packages/cli/src/cli-register-reporting.ts",
     "packages/cli/src/commands/graph.ts",
