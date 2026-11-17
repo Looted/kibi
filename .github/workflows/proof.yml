@@ -241,7 +241,7 @@ jobs:
       # its RDF snapshot and journal, plus the engine's pid and error files,
       # so a store-shaped failure can be read after the runner is gone.
       - name: Collect the branch store after a failed sync, validation or proof
-        if: ${{ always() && (steps.integrity.outcome == 'failure' || steps.integrity.outcome == 'success' || steps.prove.outcome == 'failure') }}
+        if: ${{ failure() && (steps.integrity.outcome == 'failure' || steps.prove.outcome == 'failure') }}
         run: |
           out="${RUNNER_TEMP}/kibi-branch-store"
           mkdir -p "$out/runtime"
@@ -255,7 +255,7 @@ jobs:
           done
 
       - name: Upload the branch store after a failed sync, validation or proof
-        if: ${{ always() && (steps.integrity.outcome == 'failure' || steps.integrity.outcome == 'success' || steps.prove.outcome == 'failure') }}
+        if: ${{ failure() && (steps.integrity.outcome == 'failure' || steps.prove.outcome == 'failure') }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: kibi-branch-store
