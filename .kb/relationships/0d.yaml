@@ -336,6 +336,62 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-004229aceed3
   - type: validates
+    from: TEST-kibi-skills-core-arc
+    to: SCEN-kibi-usage-core-arc
+    created_at: 2026-11-16T15:37:02.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee935d523f11
+  - type: validates
+    from: TEST-kibi-skills-core-arc
+    to: SCEN-NEG-kibi-usage-core-arc-OVERSIZED-BODY
+    created_at: 2026-11-16T15:37:03.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24aacc130845
+  - type: validates
+    from: TEST-kibi-skills-core-arc
+    to: SCEN-kibi-commit-review-kb-staging
+    created_at: 2026-11-16T15:37:03.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7476d8e96cd3
+  - type: validates
+    from: TEST-kibi-skills-core-arc
+    to: SCEN-NEG-kibi-commit-review-kb-staging-NEVER-OPEN
+    created_at: 2026-11-16T15:37:03.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da2f934851e0
+  - type: validates
+    from: TEST-kibi-skills-core-arc
+    to: SCEN-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:37:03.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a697d29a136d
+  - type: validates
+    from: TEST-kibi-skills-core-arc
+    to: SCEN-NEG-kibi-skills-write-without-ritual-THREE-CALLS
+    created_at: 2026-11-16T15:37:03.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fc27428825a
+  - type: executable_for
+    from: SYM-proof-non-behavioral-symbol-roles
+    to: TEST-proof-non-behavioral-symbol-roles
+    created_at: 2026-11-16T11:03:57.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39b1e56443ff
+  - type: executable_for
+    from: SYM-test-upsert-stale-siblings
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:16:56.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05155068c82f
+  - type: validates
     from: TEST-check-reports-symbol-debt
     to: SCEN-check-symbol-debt-count
     created_at: 2026-11-16T15:51:54.035Z
@@ -363,17 +419,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e0982b0c3bbe
-  - type: executable_for
-    from: SYM-proof-non-behavioral-symbol-roles
-    to: TEST-proof-non-behavioral-symbol-roles
-    created_at: 2026-11-16T11:03:57.365Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-39b1e56443ff
-  - type: executable_for
-    from: SYM-test-upsert-stale-siblings
-    to: TEST-upsert-stale-siblings
-    created_at: 2026-11-16T19:16:56.379Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-05155068c82f

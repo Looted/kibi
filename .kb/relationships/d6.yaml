@@ -473,6 +473,48 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-ccd36464f8fb
   - type: constrains
+    from: REQ-kibi-usage-core-arc
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
+    created_at: 2026-11-16T15:37:25.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2832ab1888a
+  - type: requires_property
+    from: REQ-kibi-usage-core-arc
+    to: FACT-kibi-usage-topic-guidance-in-resources
+    created_at: 2026-11-16T15:37:25.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec149dc04d5a
+  - type: specified_by
+    from: REQ-kibi-usage-core-arc
+    to: SCEN-kibi-usage-core-arc
+    created_at: 2026-11-16T15:37:25.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3142fc8aabf7
+  - type: specified_by
+    from: REQ-kibi-usage-core-arc
+    to: SCEN-NEG-kibi-usage-core-arc-OVERSIZED-BODY
+    created_at: 2026-11-16T15:37:25.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-580a30df881f
+  - type: requires_property
+    from: REQ-kibi-usage-core-arc
+    to: FACT-kibi-usage-body-under-budget
+    created_at: 2026-11-16T15:46:24.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae573a7a6a43
+  - type: requires_property
+    from: REQ-kibi-usage-core-arc
+    to: FACT-kibi-usage-body-core-arc-only
+    created_at: 2026-11-16T15:46:24.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f8ddfaf8932
+  - type: constrains
     from: REQ-check-quantity-duplicate-pairing
     to: FACT-check-quantity-duplicate-subject
     created_at: 2026-11-16T16:10:12.666Z

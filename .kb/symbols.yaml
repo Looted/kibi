@@ -4683,7 +4683,13 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+      - type: implements
+        target: REQ-kibi-usage-core-arc
       - type: implements
         target: REQ-skillopt-predicate-first-requirements
   - id: SYM-kibi-usage-workflows-guidance
@@ -41850,6 +41856,102 @@ symbols:
         target: TEST-engine-client-core-modules-from-engine
       - type: implements
         target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-test-skills-core-arc
+    title: skills-core-arc.test
+    status: active
+    sourceFile: packages/cli/tests/skills-core-arc.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-skills-core-arc
+  - id: SYM-kibi-commit-review-skill-guidance
+    title: kibi-commit-review
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-commit-review/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-commit-review-kb-staging
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-decisions-skill-guidance
+    title: kibi-decisions
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-decisions/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-freshness-skill-guidance
+    title: kibi-freshness
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-freshness/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-traceability-skill-guidance
+    title: kibi-traceability
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-traceability/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-skillopt-queriedBeforeWrite
+    title: queriedBeforeWrite
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-skillopt-OBJECTIVE_WORKFLOWS
+    title: OBJECTIVE_WORKFLOWS
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
   - id: SYM-test-check-restated-twin-facts
     title: Restated twin facts consumer suite
     status: active
@@ -41862,167 +41964,35 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-check-restated-twin-facts
-  - id: SYM-owner-findings-collect-owner-findings
-    title: collectOwnerFindings
-    sourceFile: packages/cli/src/traceability/owner-findings.ts
+  - id: SYM-stryker-MUTATION_SHARDS
+    title: MUTATION_SHARDS
     status: active
-    symbol_role: behavioral
+    sourceFile: stryker.conf.mjs
+    symbol_role: config
     origin:
       kind: agent
-      recorded_at: 2026-11-16T16:49:15.327Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-staged-owner-block
-      - type: implements
-        target: REQ-check-staged-owner-block
-  - id: SYM-owner-findings-without-owned-causes
-    title: withoutOwnedCauses
-    sourceFile: packages/cli/src/traceability/owner-findings.ts
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-check-policy-rules-PolicyRuleHead
+    title: PolicyRuleHead
     status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:49:19.410Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-staged-owner-block
-      - type: implements
-        target: REQ-check-staged-owner-block
-  - id: SYM-owner-findings-format-owner-findings
-    title: formatOwnerFindings
-    sourceFile: packages/cli/src/traceability/owner-findings.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:49:24.805Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-staged-owner-block
-      - type: implements
-        target: REQ-check-staged-owner-block
-  - id: SYM-owner-findings-covering-tests
-    title: coveringTests
-    sourceFile: packages/cli/src/traceability/owner-findings.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:49:29.571Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-staged-owner-block
-      - type: implements
-        target: REQ-check-staged-owner-block
-  - id: SYM-owner-findings-OwnerFinding
-    title: OwnerFinding
-    status: active
-    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
     symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16T16:50:14.857Z
-  - id: SYM-owner-findings-OwnerFindingSymbol
-    title: OwnerFindingSymbol
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-source-authoring-writePendingSourceReceipt
+    title: writePendingSourceReceipt
     status: active
-    sourceFile: packages/cli/src/traceability/owner-findings.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:50:22.707Z
-  - id: SYM-test-check-staged-owner-block
-    title: staged check owner block suite
-    status: active
-    sourceFile: packages/cli/tests/traceability/owner-findings.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:51:10.341Z
-    relationships:
-      - type: executable_for
-        target: TEST-check-staged-owner-block
-  - id: SYM-owner-findings-owner-payloads-shown
-    title: OWNER_PAYLOADS_SHOWN
-    sourceFile: packages/cli/src/traceability/owner-findings.ts
-    status: active
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T18:14:11.924Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-staged-owner-block
-      - type: implements
-        target: REQ-check-staged-owner-block
-  - id: SYM-owner-findings-cli-upsert-command
-    title: CLI_UPSERT_COMMAND
-    sourceFile: packages/cli/src/traceability/owner-findings.ts
-    status: active
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T18:14:22.102Z
-    relationships:
-      - type: covered_by
-        target: TEST-check-staged-owner-block
-      - type: implements
-        target: REQ-check-staged-owner-block
-  - id: SYM-diagnostics-create-semantic-review-diagnostics
-    title: createSemanticReviewDiagnostics
-    sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T18:14:25.636Z
+      recorded_at: 2026-11-16T15:00:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-check-staged-owner-block
+        target: TEST-kibi-pending-receipt-branch-scope
       - type: implements
-        target: REQ-check-staged-owner-block
-  - id: SYM-upsert-implemented-by-schema
-    title: IMPLEMENTED_BY_SCHEMA
-    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
-    status: active
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T18:14:32.015Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-implemented-by
-      - type: implements
-        target: REQ-kb-upsert-implemented-by-covered-by
-  - id: SYM-types-ImplementedByInput
-    title: ImplementedByInput
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/types.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T18:14:35.200Z
-  - id: SYM-test-kb-upsert-missing-endpoint-rejection
-    title: Upsert store-refusal classification suite
-    status: active
-    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T13:35:43.768Z
-    relationships:
-      - type: executable_for
-        target: TEST-kb-upsert-missing-endpoint-rejection
-  - id: SYM-test-cli-prove-empty-selection
-    title: kibi prove command suite
-    status: active
-    sourceFile: packages/cli/tests/proof/prove-command.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T13:35:47.344Z
-    relationships:
-      - type: executable_for
-        target: TEST-cli-prove-empty-selection
+        target: REQ-kibi-pending-receipt-branch-scope
   - id: SYM-check-inheritedSymbolGapsOf
     title: inheritedSymbolGapsOf
     status: active
@@ -42106,35 +42076,30 @@ symbols:
         target: REQ-search-answer-reason-source-order
       - type: implements
         target: REQ-upsert-notes-missing-reason
-  - id: SYM-stryker-MUTATION_SHARDS
-    title: MUTATION_SHARDS
+  - id: SYM-test-kb-upsert-missing-endpoint-rejection
+    title: Upsert store-refusal classification suite
     status: active
-    sourceFile: stryker.conf.mjs
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-  - id: SYM-check-policy-rules-PolicyRuleHead
-    title: PolicyRuleHead
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-  - id: SYM-source-authoring-writePendingSourceReceipt
-    title: writePendingSourceReceipt
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
     symbol_role: behavioral
+    granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
+      recorded_at: 2026-11-16T13:35:43.768Z
     relationships:
-      - type: covered_by
-        target: TEST-kibi-pending-receipt-branch-scope
-      - type: implements
-        target: REQ-kibi-pending-receipt-branch-scope
+      - type: executable_for
+        target: TEST-kb-upsert-missing-endpoint-rejection
+  - id: SYM-test-cli-prove-empty-selection
+    title: kibi prove command suite
+    status: active
+    sourceFile: packages/cli/tests/proof/prove-command.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:47.344Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-prove-empty-selection
   - id: SYM-test-cli-rejection-not-retryable
     title: CLI protocol error envelope suite
     status: active
@@ -43730,3 +43695,140 @@ symbols:
         target: TEST-agent-core-edit-snippet-why
       - type: implements
         target: REQ-requirement-reason-skips-change-notes
+  - id: SYM-owner-findings-collect-owner-findings
+    title: collectOwnerFindings
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:49:15.327Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-without-owned-causes
+    title: withoutOwnedCauses
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:49:19.410Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-format-owner-findings
+    title: formatOwnerFindings
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:49:24.805Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-covering-tests
+    title: coveringTests
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:49:29.571Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-OwnerFinding
+    title: OwnerFinding
+    status: active
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:50:14.857Z
+  - id: SYM-owner-findings-OwnerFindingSymbol
+    title: OwnerFindingSymbol
+    status: active
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:50:22.707Z
+  - id: SYM-test-check-staged-owner-block
+    title: staged check owner block suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/owner-findings.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:51:10.341Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-staged-owner-block
+  - id: SYM-owner-findings-owner-payloads-shown
+    title: OWNER_PAYLOADS_SHOWN
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:11.924Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-owner-findings-cli-upsert-command
+    title: CLI_UPSERT_COMMAND
+    sourceFile: packages/cli/src/traceability/owner-findings.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:22.102Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-diagnostics-create-semantic-review-diagnostics
+    title: createSemanticReviewDiagnostics
+    sourceFile: packages/cli/src/public/impact/diagnostics.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:25.636Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-staged-owner-block
+      - type: implements
+        target: REQ-check-staged-owner-block
+  - id: SYM-upsert-implemented-by-schema
+    title: IMPLEMENTED_BY_SCHEMA
+    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:32.015Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-implemented-by
+      - type: implements
+        target: REQ-kb-upsert-implemented-by-covered-by
+  - id: SYM-types-ImplementedByInput
+    title: ImplementedByInput
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T18:14:35.200Z
