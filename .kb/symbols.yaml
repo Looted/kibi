@@ -46076,3 +46076,11 @@ symbols:
         target: TEST-symbol-id-minting
       - type: implements
         target: REQ-symbol-id-kb-upsert-implementedby-kibi
+  - id: SYM-firm-decision-edit-decision-claim-field
+    title: DecisionClaimField
+    status: active
+    sourceFile: packages/cli/src/firm-decision-edit.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T19:14:32.625Z

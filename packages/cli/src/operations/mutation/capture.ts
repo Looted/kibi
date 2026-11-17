@@ -379,7 +379,7 @@ export async function captureFollowUp(
     step(
       "entity-context-missing",
       { type: "req", id, properties: head, why: WHY_PLACEHOLDER },
-      `kb_check blocks ${id} until its body says why it exists, in 12 words or more with its Source: send the person's reason as why.`,
+      `kb_check blocks ${id} until its body says why it exists, in 12 words or more with its Source: send the person's reason as why, in their words. Never pad it to reach 12 words; cite their words as origin.ref, which the body keeps as its Source.`,
     );
 
   const gaps = await reads.subjectGaps(entity);
