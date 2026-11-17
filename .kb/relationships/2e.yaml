@@ -217,3 +217,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f34e71a4e5f0
+  - type: assumes
+    from: SCEN-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    to: FACT-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    created_at: 2026-11-17T11:21:31.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97854880f8f2
+  - type: verified_by
+    from: SCEN-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    to: TEST-cli-prove-shard
+    created_at: 2026-11-17T11:21:31.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11aa2b4848d0

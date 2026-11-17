@@ -370,3 +370,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a7016da7fed
+  - type: implements
+    from: SYM-ci-proof-shards-verify
+    to: REQ-ci-proof-shards-cover-full-run
+    created_at: 2026-11-17T11:22:11.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8bc58814341
+  - type: covered_by
+    from: SYM-ci-proof-shards-verify
+    to: TEST-ci-proof-shards-join
+    created_at: 2026-11-17T11:22:11.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1756b74429f9
