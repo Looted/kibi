@@ -469,6 +469,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d0f88978803b
   - type: implements
+    from: SYM-skillopt-queriedBeforeWrite
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T16:04:57.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b8e8ba88fe6
+  - type: covered_by
+    from: SYM-skillopt-queriedBeforeWrite
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T16:04:57.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-794e30337057
+  - type: implements
     from: SYM-cli-quantity-layer-quantity-word-share
     to: REQ-check-quantity-duplicate-pairing
     created_at: 2026-11-16T16:10:52.957Z

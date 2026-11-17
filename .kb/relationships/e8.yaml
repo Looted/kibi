@@ -258,6 +258,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23fca5149fef
+  - type: assumes
+    from: SCEN-NEG-kibi-skills-write-without-ritual-THREE-CALLS
+    to: FACT-kibi-skills-write-ritual-taught
+    created_at: 2026-11-16T15:45:36.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da6faedbaf53
+  - type: assumes
+    from: SCEN-NEG-kibi-skills-write-without-ritual-THREE-CALLS
+    to: FACT-kibi-skills-write-preview-required-taught
+    created_at: 2026-11-16T15:45:36.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-725cc31b2272
   - type: constrains
     from: REQ-kibi-search-hints-when-asked
     to: FACT-search-hint-limits-component

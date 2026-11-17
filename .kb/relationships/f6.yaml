@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-61470ac231ba
+  - type: implements
+    from: SYM-010
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:30:11.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-891e0022df14
+  - type: covered_by
+    from: SYM-010
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:30:12.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b48507d5f998

@@ -342,6 +342,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7aa0f93baf43
+  - type: implements
+    from: SYM-mcp-knowledgeBaseIsEmpty
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:30.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a073a2b39f6
+  - type: covered_by
+    from: SYM-mcp-knowledgeBaseIsEmpty
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:30.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-380b395fe6cf
   - type: validates
     from: TEST-proof-advertised-description-limit
     to: SCEN-mcp-short-field-descriptions

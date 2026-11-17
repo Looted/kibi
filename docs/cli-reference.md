@@ -42,8 +42,10 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_check` | `kibi check --input <file|->` |
 | `kb_sparql_remote` | `kibi sparql-remote --input <file|->` |
 
-The MCP server registers 16 tools rather than one per operation. The
-consolidated routes `kibi skill` and `kibi model` match the MCP tools
+The MCP catalog has 16 tools rather than one per operation, and a session
+lists six of them unless the `full` profile is chosen (see the
+[MCP reference](mcp-reference.md#tool-list)); the rest run through the routes
+above with the same input. The consolidated routes `kibi skill` and `kibi model` match the MCP tools
 `kb_skills` and `kb_model`, and the narrower routes stay available:
 
 - `kibi skill` takes `action: "list" | "load" | "read"` plus `id` and
@@ -921,6 +923,20 @@ Validates knowledge base integrity and runs inference rules.
 When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown under `.kb/` or authored `.kb/symbols.yaml` entries. An edit where every declaration the commit adds or changes already has a `.kb/symbols.yaml` entry (and no entry the commit is judged on names a gone declaration) needs nothing more: coordinates are derived locally and never staged. No declaration line in a note or commit message waives the diagnostic: staged evidence or full manifest coverage are the only ways to clear `kibi_impact_evidence_missing`.
 
 A commit is judged only on what it changes. Compared with the base tree, a declaration is in the change when its title is new or its text differs once comments and whitespace are dropped (a declaration that only moved or was reformatted is not); a record is judged when the commit removes it, adds or changes it, or removes or renames its declaration. A copied file and an added file are judged on every declaration. Gaps the commit did not cause (unchanged declarations with no record, untouched records whose declaration was already gone) never block: the text output prints one `Symbol records: <file> has N declaration(s) without a .kb/symbols.yaml record that this commit did not add or change ...` line per file, `--format json` lists them under `inheritedSymbolGaps`, and no action is required.
+
+One declaration that the commit adds or changes and that no requirement owns is printed as one block, first, instead of up to four findings for the same cause (`symbols_manifest_stale`, `kibi_impact_evidence_missing`, `symbol_semantic_review_needed` and the `Traceability failed` row):
+
+```text
+[BLOCKS COMMIT] renameTag (src/tags.ts:5) is new and no requirement owns it.
+  If one of these already states what it does, link it to that one (never pick one only to pass the gate):
+    REQ-tags-001: Tag creation
+      kb_upsert {"type":"req","id":"REQ-tags-001","properties":{"title":"Tag creation","status":"open"},"implementedBy":[{"sourceFile":"src/tags.ts","symbol":"renameTag","coveredBy":["TEST-tags-001"]}]}
+  If it is new behavior, record a requirement for it first (template: kb_skills kibi-commit-review), then link it the same way.
+
+CLI: pipe a kb_upsert input to npx --no-install kibi upsert --input -. Then: git add .kb && git commit
+```
+
+The candidates are the requirements other code in the same file implements, in id order; Kibi never picks one. The first three get a paste-ready `kb_upsert` input, whose `coveredBy` names the tests that cover that other code; the rest are named. A type, interface or enum gets a symbol record with `symbol_role: type-shape` instead, since it needs no requirement link. A declaration that has a record but no `implements` link says so ("has a symbol record but no requirement owns it"). Findings that also name other declarations stay as they were. `--format json` keeps every underlying finding under `violations` and `qualityDiagnostics` and adds `ownerFindings`: per declaration, `blocks: "commit"`, `symbol`, `file`, `line`, `state` (`new` or `unlinked`), `typeShape`, `causes` (the ids it stands for), `candidates` (`id`, `title`, `status`, `tests`) and `payloads`.
 
 Both `kibi_impact_evidence_missing` and `symbols_manifest_stale` carry `Detail:` lines that name the cause per file: how many declarations the commit adds or changes and exactly which of the judged ones are missing from `.kb/symbols.yaml` (with their definition lines). When the Detail lines list uncovered symbols, fix the cause first — author `.kb/symbols.yaml` entries for those symbols (`kibi upsert`), each with a `symbol_role`; behavioral code also needs `implements`/`covered_by` links, and a function, class, method, property, accessor or a variable holding a function always does — and re-point or retire entries listed as evidence without a matching symbol; the same comparison drives the printed `Suggestion:`. The comparison is by symbol title: coordinates are derived, so a declaration that only moved is never a finding. Detail lines name every symbol, never a shortened list; the `--json` diagnostic `evidence` (`symbolsManifest[].missing`/`extra`, `uncoveredSymbols[].titles`) carries the same complete lists.
 

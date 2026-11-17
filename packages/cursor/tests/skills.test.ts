@@ -137,10 +137,16 @@ describe("kibi-cursor skills", () => {
   });
 
   test("kibi-usage includes status and source-mismatch guardrails", () => {
-    const raw = fs.readFileSync(
-      path.join(skillsRoot, "kibi-usage", "SKILL.md"),
-      "utf8",
-    );
+    const usageRoot = path.join(skillsRoot, "kibi-usage");
+    const resourcesRoot = path.join(usageRoot, "resources");
+    // The core body stays short; topic guidance ships as resources beside it.
+    const raw = [
+      fs.readFileSync(path.join(usageRoot, "SKILL.md"), "utf8"),
+      ...fs
+        .readdirSync(resourcesRoot)
+        .sort()
+        .map((name) => fs.readFileSync(path.join(resourcesRoot, name), "utf8")),
+    ].join("\n");
 
     expect(raw).toContain("kibiProtocol");
     expect(raw).toContain("committed_with_repairs");

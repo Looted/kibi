@@ -468,3 +468,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c06f9ba627f
+  - type: validates
+    from: TEST-proof-mcp-default-profile-tools
+    to: SCEN-mcp-default-tool-profile
+    created_at: 2026-11-16T22:37:51.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd61b0e38f7c

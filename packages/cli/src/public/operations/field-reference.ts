@@ -1,4 +1,7 @@
-import { ADVERTISED_DESCRIPTION } from "./advertised-schema.js";
+import {
+  ADVERTISED_DESCRIPTION,
+  ADVERTISED_FIELDS,
+} from "./advertised-schema.js";
 import type { OperationSpec } from "./types.js";
 
 /**
@@ -14,8 +17,10 @@ const isNode = (value: unknown): value is Node =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
 /**
- * `[field path, full description]` of each node with a short description,
- * first occurrence of each path only.
+ * `[field path, full description]` of each node the MCP server advertises in
+ * short: a node with a short description, and a field left out of an object
+ * that advertises only some of its fields. First occurrence of each path
+ * only.
  */
 export function shortenedFields(schema: unknown): [string, string][] {
   const found = new Map<string, string>();
@@ -31,10 +36,21 @@ export function shortenedFields(schema: unknown): [string, string][] {
       !found.has(at)
     )
       found.set(at, value.description);
+    const kept = value[ADVERTISED_FIELDS];
     for (const [key, child] of Object.entries(value)) {
       if (key === "properties" && isNode(child)) {
-        for (const [name, field] of Object.entries(child))
-          walk(field, at === "" ? name : `${at}.${name}`);
+        for (const [name, field] of Object.entries(child)) {
+          const fieldPath = at === "" ? name : `${at}.${name}`;
+          if (
+            Array.isArray(kept) &&
+            !kept.includes(name) &&
+            isNode(field) &&
+            typeof field.description === "string" &&
+            !found.has(fieldPath)
+          )
+            found.set(fieldPath, field.description);
+          walk(field, fieldPath);
+        }
       } else if (key === "items") {
         walk(child, `${at}[]`);
       } else {
@@ -74,7 +90,7 @@ export function operationFieldReference(
   return [
     "# Kibi Operation Fields",
     "",
-    "Generated from the public `OperationSpec` catalog by `scripts/generate-operation-fields.ts`. The MCP tool list advertises these input fields with a short description; this is the full rule for each. Fields not listed are advertised in full.",
+    "Generated from the public `OperationSpec` catalog by `scripts/generate-operation-fields.ts`. The MCP tool list advertises these input fields with a short description, or leaves them out (the specialist fields of a `kb_upsert` entity, which stay valid input); this is the full rule for each. Fields not listed are advertised in full.",
     "",
     ...WORKSPACE_ROOT,
     ...sections,

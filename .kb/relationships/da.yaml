@@ -717,3 +717,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-242dee0e6085
+  - type: implements
+    from: SYM-cli-register-reporting-commands
+    to: REQ-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:22.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57a995f01056
+  - type: covered_by
+    from: SYM-cli-register-reporting-commands
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:22.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a59ada73c446

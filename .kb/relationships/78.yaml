@@ -266,6 +266,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b2317d2ccee4
   - type: implements
+    from: SYM-upsert-implemented-by-schema
+    to: REQ-kb-upsert-implemented-by-covered-by
+    created_at: 2026-11-16T18:14:33.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63201021945b
+  - type: covered_by
+    from: SYM-upsert-implemented-by-schema
+    to: TEST-kb-upsert-implemented-by
+    created_at: 2026-11-16T18:14:33.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09ba85ecf8c5
+  - type: implements
     from: SYM-cli-quantity-layer-quantity-value
     to: REQ-check-quantity-duplicate-trivial-values
     created_at: 2026-11-16T16:10:56.539Z
