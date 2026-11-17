@@ -216,6 +216,57 @@ export function storeLockTakeoverReason(
   };
 }
 
+/** Store-root record of the last duplicate-triple repair (see kb.pl). */
+const STORE_REPAIR_FILE = ".kibi-store-repair.json";
+
+/**
+ * How long a duplicate-triple repair stays visible in kb_status and kibi
+ * doctor. The repair runs inside whichever engine attached the store first,
+ * usually a detached one whose stderr nobody reads.
+ */
+const STORE_REPAIR_VISIBLE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * An informational notice that the engine repaired this branch store on
+ * attach: its snapshot held some triples twice (an earlier release wrote it
+ * while SWI-Prolog's rdf_db still held unreclaimed reindexed triples), and
+ * the engine kept one copy of each and rewrote the snapshot.
+ */
+export function storeRepairReason(
+  storePath: string,
+  now: Date = new Date(),
+): Record<string, unknown> | null {
+  const recordPath = path.join(storePath, STORE_REPAIR_FILE);
+  let record: Record<string, unknown>;
+  try {
+    record = JSON.parse(String(readFileSync(recordPath))) as Record<
+      string,
+      unknown
+    >;
+  } catch {
+    return null;
+  }
+  const at = typeof record.at === "string" ? record.at : "";
+  const age = now.getTime() - Date.parse(at);
+  if (Number.isNaN(age) || age < 0 || age > STORE_REPAIR_VISIBLE_MS)
+    return null;
+  const count = (value: unknown): number =>
+    typeof value === "number" && Number.isFinite(value) ? value : 0;
+  const duplicatedTriples = count(record.duplicatedTriples);
+  const removedCopies = count(record.removedCopies);
+  return {
+    code: "branch_store_repaired",
+    path: recordPath,
+    entityIds: [],
+    blocking: false,
+    at,
+    duplicatedTriples,
+    removedCopies,
+    loadedTriples: count(record.loadedTriples),
+    detail: `Kibi repaired this branch store at ${at}: its snapshot held ${duplicatedTriples} triple(s) twice, so the engine removed ${removedCopies} duplicate copies and rewrote the snapshot. Nothing needs repair now; answers given from this store before the repair could show superseded or doubled values.`,
+  };
+}
+
 export function branchStoreReason(
   inspection: BranchStoreInspection,
 ): Record<string, unknown> | null {
