@@ -4,7 +4,7 @@ When a claim says every, each, all, any, only, at least, at most, exactly, a
 role, a status or a count, ground it on what varies, never on `= true`: an int
 count or bound (`role_count eq 1`, `uninstrumented_loaded_files eq 0`), a set,
 or a typed rule with a `forall` variable. Keep `value_type: bool` for genuinely
-binary properties (a flag is on). A `shadow_analysis` cue from `kb_model`
+binary properties (a flag is on). A `shadow_analysis` cue from `kb_model` (full MCP profile only; CLI `kibi model --input -`)
 (`mode: "analyze"`) with `kind: quantifier` or `numeric` and `represented:
 false` means the planned grounding hides the dimension. When
 `mode: "predicates"` finds no schema for such a claim, do not stop at the

@@ -4,7 +4,7 @@ Kibi stores human prose as readable requirement text, but verifiable meaning bel
 
 ## Two-pass extraction
 
-1. Run `kb_model` with `mode: "analyze"` over the complete text. Supply explicit `clauses` when sentence splitting could hide a condition, exception, definition, descriptive assertion, threshold, quantity, or temporal qualifier.
+1. Run `kb_model` (full MCP profile only; CLI `kibi model --input -`) with `mode: "analyze"` over the complete text. Supply explicit `clauses` when sentence splitting could hide a condition, exception, definition, descriptive assertion, threshold, quantity, or temporal qualifier.
 2. Audit the returned `propositions` against the original UTF-8 text. Every assertive span must be `modeled`, `ambiguous`, `ontology_gap`, or `missing`; rationale, examples, and subjective commentary are `nonlogical` and remain readable prose.
 3. For each assertive proposition, submit up to three typed `interpretations` when alternatives are plausible. Kibi compares canonical semantic keys; materially different valid interpretations remain unresolved regardless of confidence.
 4. Apply only a validated plan, then read back the requirement, rule schema, rule fact, and all relationship targets. Run `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, and `domain-contradictions` before the final unfiltered check.

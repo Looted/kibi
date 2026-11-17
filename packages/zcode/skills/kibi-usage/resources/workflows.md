@@ -126,7 +126,7 @@ The canonical workflow for any KB operation follows this pattern:
 1. **Discover**: `kb_search` with focused probes or a direct question; read `data.answer`, and pick the mode above
 2. **Confirm**: `kb_query` for exact IDs and state
 3. **Inspect**: `kb_status` when freshness matters
-4. **Decompose**: `kb_model` (`mode: "analyze"`) on the complete normative prose; verify or supply every atomic clause
+4. **Decompose**: `kb_model` (full MCP profile only; CLI `kibi model --input -`) (`mode: "analyze"`) on the complete normative prose; verify or supply every atomic clause
 5. **Choose per-clause lanes**: strict facts for scalar claims; `kb_model` `mode: "predicates"` for approved ground ontology relations; `kb_model` `mode: "requirement"` with `kibi.logic.v1` for conditions, exceptions, modalities, quantifiers, cardinality, and bounded temporal rules; observation review for ambiguity, nonlogical prose, and ontology gaps
 6. **Preflight (optional)**: `kb_upsert` with `dryRun: true` previews a payload you are unsure of; the real write returns the same validation
 7. **Create endpoints**: validated `kb_upsert` for new entities, sequentially
