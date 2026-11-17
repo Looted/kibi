@@ -45399,6 +45399,76 @@ symbols:
         target: TEST-kibi-staged-firm-edit-gate
       - type: implements
         target: REQ-kibi-staged-firm-edit-gate
+  - id: SYM-merge-train-settings-from-env
+    title: settingsFromEnv
+    status: active
+    sourceFile: actions/merge-train/merge-train.mts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T14:38:36.260Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-train-checks
+  - id: SYM-merge-train-read
+    title: MergeTrain.read
+    status: active
+    sourceFile: actions/merge-train/merge-train.mts
+    symbol_role: behavioral
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T14:39:00.705Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-train-checks
+  - id: SYM-merge-train-settings
+    title: Settings
+    status: active
+    sourceFile: actions/merge-train/merge-train.mts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T15:00:28.020Z
+  - id: SYM-merge-train-merge-train-checks-of
+    title: MergeTrain.checksOf
+    sourceFile: actions/merge-train/merge-train.mts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T15:00:35.538Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-train-checks
+  - id: SYM-merge-train-action
+    title: Kibi merge train action inputs (actions/merge-train/action.yml)
+    status: active
+    sourceFile: actions/merge-train/action.yml
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - ci
+      - proof
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T15:00:38.158Z
+    relationships:
+      - type: covered_by
+        target: TEST-ci-merge-train
+      - type: implements
+        target: REQ-ci-merge-train-train-checks
   - id: SYM-ci-proof-reuse-tree-precheck
     title: provenTreeCanMatch
     status: active
