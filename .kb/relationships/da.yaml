@@ -640,20 +640,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9c856f3242a
-  - type: implements
-    from: SYM-cli-register-reporting-commands
-    to: REQ-cli-help-command-summaries
-    created_at: 2026-11-16T17:31:22.452Z
+  - type: assumes
+    from: SCEN-kb-upsert-related-requirements-ONE
+    to: FACT-kb-upsert-related-requirements-ONE
+    created_at: 2026-11-16T16:25:56.483Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-57a995f01056
-  - type: covered_by
-    from: SYM-cli-register-reporting-commands
-    to: TEST-cli-help-command-summaries
-    created_at: 2026-11-16T17:31:22.573Z
+    id: rel-ddb6ffa199d3
+  - type: verified_by
+    from: SCEN-kb-upsert-related-requirements-ONE
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:25:56.566Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-a59ada73c446
+    id: rel-1e5a0b82dc88
   - type: implements
     from: SYM-kb-merge-action-candidates
     to: REQ-kb-merge-action-skip-forks
@@ -717,3 +717,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-242dee0e6085
+  - type: implements
+    from: SYM-cli-register-reporting-commands
+    to: REQ-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:22.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57a995f01056
+  - type: covered_by
+    from: SYM-cli-register-reporting-commands
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:22.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a59ada73c446
