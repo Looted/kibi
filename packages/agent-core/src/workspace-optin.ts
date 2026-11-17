@@ -2,9 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 /**
- * Workspace opt-in for the Kibi ZCode plugin.
+ * Workspace opt-in for the Kibi agent plugins (Claude Code, Codex, ZCode).
  *
- * The plugin may be installed and enabled globally, but it must stay silent in
+ * A plugin may be installed and enabled globally, but it must stay silent in
  * workspaces that never adopted Kibi. A workspace is opted in when its Kibi
  * project root owns `.kb/manifest.json` (the lifecycle manifest `kibi init`
  * creates). Executable availability, global installation, or plugin
@@ -18,6 +18,9 @@ import path from "node:path";
  * enclosing repositories — including unrelated checkouts above a worktree —
  * from leaking opt-in into this workspace; a Git worktree carries its own
  * `.git` file, so its root is evaluated independently of the main checkout.
+ *
+ * The plugins' standalone `bin/mcp-launcher.cjs` scripts keep their own copy
+ * of this walk because they run without any installed dependency.
  */
 
 export const KIBI_WORKSPACE_ENV_KEYS = [
@@ -46,10 +49,6 @@ function hasGitBoundary(directory: string): boolean {
   return fs.existsSync(path.join(directory, ".git"));
 }
 
-function resolutionFor(root: string): KibiWorkspaceResolution {
-  return { root, optedIn: hasKibiManifest(root) };
-}
-
 export function resolveKibiWorkspace(
   startDir: string | undefined,
   env: NodeJS.ProcessEnv = process.env,
@@ -57,7 +56,8 @@ export function resolveKibiWorkspace(
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path.resolve(value));
+      const root = path.resolve(value);
+      return { root, optedIn: hasKibiManifest(root) };
     }
   }
 

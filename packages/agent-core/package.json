@@ -53,6 +53,14 @@
     "./session-brief": {
       "types": "./dist/session-brief.d.ts",
       "default": "./dist/session-brief.js"
+    },
+    "./workspace-optin": {
+      "types": "./dist/workspace-optin.d.ts",
+      "default": "./dist/workspace-optin.js"
+    },
+    "./hook-input": {
+      "types": "./dist/hook-input.d.ts",
+      "default": "./dist/hook-input.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],
