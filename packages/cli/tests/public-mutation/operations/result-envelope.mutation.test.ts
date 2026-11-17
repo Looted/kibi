@@ -727,7 +727,7 @@ describe("envelopeDiagnostic", () => {
   });
 
   test("every severity in the envelope enum is kept", () => {
-    for (const severity of ["info", "warning", "error"])
+    for (const severity of ["info", "warning", "error"] as const)
       expect(envelopeDiagnostic({ message: "m", severity })).toStrictEqual({
         message: "m",
         severity,

@@ -44500,3 +44500,11 @@ symbols:
         target: TEST-kibi-env-workspace-file-key-policy
       - type: implements
         target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-types-kibi-result
+    title: KibiResult
+    status: active
+    sourceFile: packages/cli/src/public/operations/types.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T07:40:17.626Z
