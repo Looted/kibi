@@ -244,7 +244,12 @@ describe("validateRelationshipSources and formatRelationshipSourceMismatch", () 
     });
   });
 
-  test("refuses a relationship from the entity to itself", async () => {
+  test("refuses an entity that supersedes itself, and no other self link", async () => {
+    expect(
+      validateRelationshipSources("REQ-1", [
+        { type: "relates_to", from: "REQ-1", to: "REQ-1" },
+      ]),
+    ).toBeUndefined();
     expect(
       await rejection(() =>
         validateRelationshipSources("REQ-1", [
