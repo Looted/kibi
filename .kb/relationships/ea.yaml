@@ -328,3 +328,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac9ac9a05c85
+  - type: executable_for
+    from: SYM-test-core-journal-file-name-fits
+    to: TEST-core-journal-file-name-fits
+    created_at: 2026-11-17T06:00:18.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a40b6d249bf

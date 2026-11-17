@@ -44061,3 +44061,28 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T18:14:35.200Z
+  - id: SYM-test-core-journal-file-name-fits
+    title: kb_storage_lane journal file name tests
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:00:18.100Z
+    relationships:
+      - type: executable_for
+        target: TEST-core-journal-file-name-fits
+  - id: SYM-core-journal-expected-graph-uri
+    title: journal_expected_graph_uri
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T06:00:34.848Z
+    relationships:
+      - type: covered_by
+        target: TEST-core-journal-file-name-fits
+      - type: implements
+        target: REQ-core-journal-file-name-fits
