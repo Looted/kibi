@@ -68,6 +68,16 @@ describe("KB merge workflow", () => {
     }
   });
 
+  test("leaves PRs boarded on the merge train to the train", () => {
+    // The train merges manifests itself; a push to a boarded PR would
+    // restart its checks under the train. Both the listing and the merge
+    // skip the train label, so a train-labelled PR never gets a swipl build.
+    expect(find[index(find, isAction)]?.with?.["skip-label"]).toBe("train");
+    expect(resolve[index(resolve, isAction)]?.with?.["skip-label"]).toBe(
+      "train",
+    );
+  });
+
   test("runs the proof gate as the check the action passes before pushing", () => {
     const merge = index(resolve, isAction);
     expect(resolve[merge]?.with?.check).toBe("sh scripts/proof-gate.sh");

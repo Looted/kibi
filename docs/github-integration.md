@@ -356,6 +356,7 @@ the action's merge commit or push; the `check` input is the gate.
 | `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. A relative path resolves from the workspace. |
 | `check` | `$KIBI check` | Shell command run in the merged tree before the push. `$KIBI` and `$KIBI_BRANCH` are set. `""` runs none. |
 | `attempts` | `3` | Tries per branch when the branch moves while it is being merged. |
+| `skip-label` | `""` | Pull requests with this label are left alone. Set it to your merge train's label (`train`): the train merges the manifests itself, and a push to a boarded pull request would restart its checks. |
 | `github-token` | `github.token` | Token `gh` uses to list pull requests. |
 
 The action needs `git` 2.38 or newer, `gh` and `jq`, which GitHub-hosted
