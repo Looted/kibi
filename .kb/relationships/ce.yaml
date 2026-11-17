@@ -559,20 +559,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af860bd05e88
-  - type: implements
-    from: SYM-claude-session-state-empty
-    to: REQ-claude-firm-edit-confirmation
-    created_at: 2026-11-16T21:23:25.870Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4ed5d5ba8281
-  - type: covered_by
-    from: SYM-claude-session-state-empty
-    to: TEST-claude-edit-snippet-hook
-    created_at: 2026-11-16T21:23:25.959Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-735ba6e1bf2a
   - type: covered_by
     from: SYM-cli-search-answer-requirement-reason
     to: TEST-search-answer-first-layer

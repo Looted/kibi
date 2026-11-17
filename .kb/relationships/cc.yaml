@@ -377,10 +377,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c4eb07d95dbd
-  - type: covered_by
-    from: SYM-claude-session-state-event
-    to: TEST-claude-edit-snippet-hook
-    created_at: 2026-11-16T21:23:32.601Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4c2b8d396f5a

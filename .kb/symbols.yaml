@@ -42767,41 +42767,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-firm-edit-receipts
-  - id: SYM-claude-session-state-empty
-    title: emptySessionState
-    status: active
-    sourceFile: packages/claude/src/session-state.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T21:23:24.685Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: implements
-        target: REQ-claude-firm-edit-confirmation
-  - id: SYM-claude-session-state-event
-    title: SessionEvent
-    status: active
-    sourceFile: packages/claude/src/session-state.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T21:23:31.321Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-  - id: SYM-claude-session-state-type
-    title: SessionState
-    status: active
-    sourceFile: packages/claude/src/session-state.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T21:23:37.750Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
   - id: SYM-cli-firm-edit-requirement-statement
     title: requirementStatement
     status: active
@@ -44696,6 +44661,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-hosts-rule-reason-capture
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-hosts-rule-reason-capture
   - id: SYM-session-state-session-state
@@ -44709,6 +44676,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-hosts-rule-reason-capture
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-hosts-rule-reason-capture
   - id: SYM-session-state-empty-session-state
@@ -44722,8 +44691,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-hosts-rule-reason-capture
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-claude-firm-edit-confirmation
   - id: SYM-types-validate-upsert-payload
     title: ValidateUpsertPayload
     sourceFile: packages/cli/src/operations/mutation/types.ts
