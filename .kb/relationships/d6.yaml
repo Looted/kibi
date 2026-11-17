@@ -549,3 +549,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b491cb6022a3
+  - type: executable_for
+    from: SYM-proof-kb-upsert-related-requirements-cap
+    to: TEST-proof-kb-upsert-related-requirements-cap
+    created_at: 2026-11-17T08:28:26.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d69e55918320

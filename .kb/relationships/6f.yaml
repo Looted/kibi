@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f50f89f3e57
+  - type: covered_by
+    from: SYM-capture-max-related-requirements
+    to: TEST-proof-kb-upsert-related-requirements-cap
+    created_at: 2026-11-17T08:28:35.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46b1b1e96319

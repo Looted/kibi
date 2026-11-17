@@ -42140,6 +42140,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kb-upsert-capture-with-why
+      - type: covered_by
+        target: TEST-proof-kb-upsert-related-requirements-cap
       - type: implements
         target: REQ-kb-upsert-related-current-requirements
   - id: SYM-capture-max-related-statement
@@ -44493,3 +44495,17 @@ symbols:
         target: TEST-kibi-env-workspace-file-key-policy
       - type: implements
         target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-proof-kb-upsert-related-requirements-cap
+    title: relatedRequirementsCapCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/related-requirements-cap.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T08:28:24.990Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-kb-upsert-related-requirements-cap
