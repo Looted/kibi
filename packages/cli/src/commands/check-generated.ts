@@ -112,8 +112,13 @@ function sourcePaths(symbols: Buffer): {
 export async function checkGeneratedManifests(
   options: {
     changedOnly?: boolean;
+    /** Print only problems, not the passing notes. */
+    quiet?: boolean;
   } = {},
 ): Promise<{ exitCode: number }> {
+  const note = (message: string) => {
+    if (!options.quiet) console.log(message);
+  };
   let snapshotDir: string | undefined;
   try {
     const snapshot = captureStagedSnapshot(process.cwd());
@@ -148,7 +153,7 @@ export async function checkGeneratedManifests(
     // A freshly initialized, empty symbols manifest has nothing to normalize.
     if (symbolCount === 0) {
       assertUnchanged();
-      console.log("kibi: staged symbols manifest is empty; nothing to check.");
+      note("kibi: staged symbols manifest is empty; nothing to check.");
       return { exitCode: 0 };
     }
     const nonRegularEntries = [...nonRegularPaths];
@@ -168,7 +173,7 @@ export async function checkGeneratedManifests(
         !changed.has(KB_PATHS.symbolCoordinates)
       ) {
         assertUnchanged();
-        console.log("kibi: staged symbols manifest unchanged.");
+        note("kibi: staged symbols manifest unchanged.");
         return { exitCode: 0 };
       }
     }
@@ -198,7 +203,7 @@ export async function checkGeneratedManifests(
       );
       return { exitCode: 1 };
     }
-    console.log("kibi: staged generated manifests are current.");
+    note("kibi: staged generated manifests are current.");
     return { exitCode: 0 };
   } catch (error) {
     console.error(

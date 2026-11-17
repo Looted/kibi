@@ -91,6 +91,36 @@ describe("changedCheckContent", () => {
     ).toBe(true);
   });
 
+  test("a refusal reported only on stderr is listed in the messages", () => {
+    const generated = changedCheckContent({
+      exitCode: 1,
+      stdout: gateJson({ messages: ["Staged files: 1 total"] }),
+      stderr:
+        "kibi: generated manifest drift in staged snapshot: .kb/symbols.yaml\n  Run kibi sync.  \n\nStaged files: 1 total\n",
+    });
+    expect(generated.commitAllowed).toBe(false);
+    expect(generated.messages).toStrictEqual([
+      "Staged files: 1 total",
+      "kibi: generated manifest drift in staged snapshot: .kb/symbols.yaml",
+      "Run kibi sync.",
+    ]);
+    expect(changedCheckSummary(generated)).toBe(
+      "✗ A commit of these changes is refused:\nStaged files: 1 total\nkibi: generated manifest drift in staged snapshot: .kb/symbols.yaml\nRun kibi sync.",
+    );
+    // The operational error is not repeated; a passing run's stderr and a
+    // run without stderr add nothing.
+    expect(
+      changedCheckContent({ ...REFUSED, stderr: "boom\n" }).messages,
+    ).toStrictEqual(["Staged files: 1 total", "2"]);
+    expect(
+      changedCheckContent({
+        exitCode: 0,
+        stdout: gateJson({}),
+        stderr: "noise",
+      }).messages,
+    ).toStrictEqual([]);
+  });
+
   test("an output that is not JSON throws", () => {
     expect(() =>
       changedCheckContent({ exitCode: 1, stdout: "not json" }),

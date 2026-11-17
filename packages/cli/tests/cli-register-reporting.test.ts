@@ -168,7 +168,31 @@ describe("kibi check", () => {
     expect(process.exitCode).toBe(2);
   });
 
+  test("--changed runs the generated-manifest check, as the hook does, and fails when it fails", async () => {
+    const checkSpy = stub(check, "checkCommand", { exitCode: 0 });
+    const generated = stub(checkGenerated, "checkGeneratedManifests", {
+      exitCode: 0,
+    });
+    const wrap = spyOn(changedIndex, "withChangedIndex").mockImplementation(
+      (async (_root: string, _paths: unknown, fn: () => Promise<unknown>) =>
+        fn()) as never,
+    );
+    restores.push(() => wrap.mockRestore());
+    await run("check", "--changed");
+    expect(process.exitCode).toBe(0);
+    generated.mockImplementation((async () => ({ exitCode: 1 })) as never);
+    await run("check", "--changed", "--format", "json");
+    expect(process.exitCode).toBe(1);
+    expect(plainCalls(generated)).toStrictEqual([
+      [{ changedOnly: true, quiet: true }],
+      [{ changedOnly: true, quiet: true }],
+    ]);
+    // The staged check still runs, so its findings are listed too.
+    expect(checkSpy.mock.calls.length).toBe(2);
+  });
+
   test("--changed runs the staged check over the changed index", async () => {
+    stub(checkGenerated, "checkGeneratedManifests", { exitCode: 0 });
     const checkSpy = stub(check, "checkCommand", { exitCode: 1 });
     const seen: unknown[] = [];
     const wrap = spyOn(changedIndex, "withChangedIndex").mockImplementation(

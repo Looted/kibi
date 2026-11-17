@@ -8,7 +8,12 @@ import { type FindingBlocks, tagBlocks } from "./finding-blocks.js";
 import type { OperationResult } from "./types.js";
 
 /** What `kibi check --changed --format json` printed, and how it exited. */
-export type ChangedGateRun = Readonly<{ exitCode: number; stdout: string }>;
+export type ChangedGateRun = Readonly<{
+  exitCode: number;
+  stdout: string;
+  /** What it printed on stderr: the generated-manifest check's problems. */
+  stderr?: string;
+}>;
 
 /** Runs the commit gate over the working tree plus the index. */
 export type ChangedGateRunner = (
@@ -76,7 +81,7 @@ export function createChangedGateRunner(
             ),
           );
         // A child killed by a signal has no exit code: it did not pass.
-        else resolve({ exitCode: code ?? 1, stdout });
+        else resolve({ exitCode: code ?? 1, stdout, stderr });
       });
     });
 }
@@ -169,6 +174,23 @@ export function changedCheckContent(run: ChangedGateRun): ChangedCheckContent {
   };
   const gate = parsed.structuredContent ?? {};
   const violations = tagBlocks(list(gate.violations), "commit", true);
+  const messages = Array.isArray(gate.messages)
+    ? (gate.messages as unknown[]).map(String)
+    : [];
+  // A refusal no finding explains came from a check that reports on stderr
+  // (the generated-manifest check the pre-commit hook also runs).
+  const refusal =
+    run.exitCode === 0
+      ? []
+      : (run.stderr ?? "")
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(
+            (line) =>
+              line !== "" &&
+              line !== gate.operationalError &&
+              !messages.includes(line),
+          );
   return {
     changed: true,
     commitAllowed: run.exitCode === 0,
@@ -176,9 +198,7 @@ export function changedCheckContent(run: ChangedGateRun): ChangedCheckContent {
     count: violations.length,
     diagnostics: tagBlocks(list(gate.diagnostics), "commit"),
     qualityDiagnostics: tagBlocks(list(gate.qualityDiagnostics), "commit"),
-    messages: Array.isArray(gate.messages)
-      ? (gate.messages as unknown[]).map(String)
-      : [],
+    messages: [...messages, ...refusal],
     ...(gate.staged !== undefined ? { staged: gate.staged } : {}),
     ...(gate.ownerFindings !== undefined
       ? { ownerFindings: gate.ownerFindings }
@@ -198,7 +218,9 @@ export function changedCheckSummary(content: ChangedCheckContent): string {
   ].filter((finding) => finding.blocks === "commit").length;
   const head = content.commitAllowed
     ? "✓ A commit of these changes passes the commit gate."
-    : `✗ A commit of these changes is refused: ${blocking} ${blocking === 1 ? "finding blocks" : "findings block"} the commit.`;
+    : blocking === 0
+      ? "✗ A commit of these changes is refused:"
+      : `✗ A commit of these changes is refused: ${blocking} ${blocking === 1 ? "finding blocks" : "findings block"} the commit.`;
   return [head, ...content.messages, content.operationalError ?? ""]
     .filter((line) => line !== "")
     .join("\n");
