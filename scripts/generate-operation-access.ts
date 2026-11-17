@@ -64,7 +64,7 @@ ${rows.join("\n")}
 
 ## MCP tools versus catalog operations
 
-The MCP server registers 16 tools. Most carry their catalog operation name; the
+The MCP server registers 17 tools. Most carry their catalog operation name; the
 operations below are reached through a consolidated MCP call instead, while the
 CLI keeps their dedicated routes. Result payloads (for example
 \`recommended_tools\`, \`suggested_next_tool\`, or repair-plan steps) still name

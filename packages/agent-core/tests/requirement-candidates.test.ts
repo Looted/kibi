@@ -269,7 +269,7 @@ describe("candidate requirements for an unlinked file", () => {
     const note = unownedSourceNote("src/routes/tokens.ts");
     expect(note).toContain("that does not mean no recorded rule covers");
     expect(note).toContain("nothing recorded is known to cover it");
-    expect(note).toContain("is recorded with kb_upsert");
+    expect(note).toContain("is recorded with kb_record");
     expect(note.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
   });
 });

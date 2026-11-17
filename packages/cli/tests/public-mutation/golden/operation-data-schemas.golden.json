@@ -924,6 +924,61 @@
       }
     ]
   },
+  "kb_record": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "upsert"],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "upsert": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "written": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "verdict": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "commitAllowed": {
+        "type": "boolean"
+      },
+      "status": {
+        "type": "string"
+      },
+      "nextActions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "dryRun": {
+        "const": true
+      },
+      "preview": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "valid": {
+        "type": "boolean"
+      },
+      "errors": {
+        "type": "array",
+        "items": {}
+      },
+      "skippedEffects": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
   "kb_delete": {
     "type": "object",
     "additionalProperties": false,

@@ -1,5 +1,5 @@
 ---
-title: The MCP server must list only kb_search, kb_query, kb_upsert, kb_check, kb_status and kb_skills unless the full tool profile is chosen
+title: The MCP server must list only kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status and kb_skills unless the full tool profile is chosen
 status: active
 fact_kind: property_value
 subject_key: kibi.mcp.tool_catalog
@@ -11,11 +11,12 @@ origin:
   recorded_at: '2026-11-16T20:00:00.000Z'
 tags:
   - tool-surface
-claim_text: The MCP server must list only kb_search, kb_query, kb_upsert, kb_check, kb_status and kb_skills unless the full tool profile is chosen
-claim_key: CLAIM-C7E3D235BB6D6979
+claim_text: The MCP server must list only kb_search, kb_query, kb_record, kb_upsert, kb_check, kb_status and kb_skills unless the full tool profile is chosen
+claim_key: CLAIM-7DDAFB6E5A4B6A32
 value_set:
   - kb_search
   - kb_query
+  - kb_record
   - kb_upsert
   - kb_check
   - kb_status

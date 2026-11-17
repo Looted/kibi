@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbbc5577216b
+  - type: assumes
+    from: SCEN-NEG-kb-record-one-upsert-payload-NO-PAYLOAD
+    to: FACT-NEG-kb-record-one-upsert-payload-NO-PAYLOAD
+    created_at: 2026-11-17T07:11:10.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b19d7884db2

@@ -1216,7 +1216,7 @@ describe("decision capture", () => {
     expect(text).toContain(
       'Kibi: this request reads as a rule or decision (it says "from now on").',
     );
-    expect(text).toContain("recorded with kb_upsert");
+    expect(text).toContain("recorded with kb_record");
     expect(text).toContain("as part of this change, not after it");
     expect(await prompt(fixture, "Rename the helper to sum.")).toEqual({});
   });
@@ -1250,7 +1250,7 @@ describe("decision capture", () => {
     expect(text).toStartWith(
       [
         'Kibi: the person\'s request said "must", this session changed source files, and nothing was recorded in the knowledge base.',
-        'Record the rule behind "must" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "must" is not a rule.',
+        'Record the rule behind "must" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "must" is not a rule.',
       ].join("\n"),
     );
     expect(text).not.toContain("when there was none");
@@ -1279,7 +1279,7 @@ describe("decision capture", () => {
     expect(await withRecord.stop()).toBeUndefined();
   });
 
-  test("the first source edit of a rule session gets the kb_upsert capture template once", async () => {
+  test("the first source edit of a rule session gets the kb_record capture template once", async () => {
     const fixture = createKibiWorkspace();
     await prompt(fixture, "Totals must never be negative.");
     const { post } = session(fixture);
@@ -1422,6 +1422,22 @@ describe("decision capture", () => {
       dryRun: true,
     });
     expect(await preview.stop()).toBeUndefined();
+
+    // kb_record writes a requirement through kb_upsert; its dry run does not.
+    const recorded = createKibiWorkspace();
+    const viaRecord = session(recorded);
+    await viaRecord.post("mcp__kibi__kb_record", {
+      statement: "Totals stay positive.",
+      saidBy: "user",
+    });
+    expect(await viaRecord.stop()).toContain("run `kibi signoff`");
+    const recordPreview = session(createKibiWorkspace());
+    await recordPreview.post("mcp__kibi__kb_record", {
+      statement: "Totals stay positive.",
+      saidBy: "user",
+      dryRun: true,
+    });
+    expect(await recordPreview.stop()).toBeUndefined();
 
     const shown = createKibiWorkspace();
     const withView = session(shown);

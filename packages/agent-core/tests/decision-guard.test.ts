@@ -838,56 +838,46 @@ describe("statedRule and notes", () => {
     expect(rulePromptNote("never")).toBe(
       [
         'Kibi: this request reads as a rule or decision (it says "never").',
-        "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it.",
+        "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new rule is recorded with kb_record (the statement, the person's reason, saidBy user and the code that enforces it; a changed one with kb_upsert) as part of this change, not after it.",
       ].join("\n"),
     );
     expect(captureReminder("never")).toBe(
       [
         'Kibi: the person\'s request said "never", this session changed source files, and nothing was recorded in the knowledge base.',
-        'Record the rule behind "never" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "never" is not a rule.',
+        'Record the rule behind "never" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "never" is not a rule.',
       ].join("\n"),
     );
     expect(captureReminder("never")).not.toContain("when there was none");
     expect(captureReminder(undefined)).toBe(
       [
         "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line.",
+        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line.",
       ].join("\n"),
     );
   });
 
-  test("the capture template quotes the phrase and is one kb_upsert payload", () => {
+  test("the capture template quotes the phrase and is one kb_record input", () => {
     const [intro, payload, ...rest] = ruleCaptureTemplate("must").split("\n");
-    expect(rest).toEqual(["Then follow the nextActions the result returns."]);
+    expect(rest).toEqual([
+      "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+    ]);
     expect(intro).toBe(
-      'Kibi: the request said "must" and this session now changes source files. Record that rule in this change with one kb_upsert call; fill in this template:',
+      'Kibi: the request said "must" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:',
     );
     expect(JSON.parse(payload as string)).toEqual({
-      type: "req",
-      id: "REQ-<short-name>",
-      properties: {
-        title: "<the rule in a few words>",
-        status: "open",
-        firmness: "firm",
-        origin: {
-          kind: "agent",
-          ref: "<the person's words and where they said them>",
-        },
-      },
-      document: { body: "<the rule as one shall or must sentence>" },
+      statement: "<the rule as one shall or must sentence>",
       why: "<why the person wants it, in their words; 'Reason not stated' if they gave none>",
-      implementedBy: [
-        {
-          sourceFile: "<file you changed>",
-          symbol: "<function that enforces it>",
-        },
+      saidBy: "user",
+      quote: "<the person's words, quoted>",
+      code: [
+        { file: "<file you changed>", symbol: "<function that enforces it>" },
       ],
     });
   });
 
   test("a stated reason is asked for in why by the note and the template", () => {
     const ask =
-      "The request gives its reason (\"because longer ones get skipped\"): put that reason in the requirement's why field, in the person's words.";
+      'The request gives its reason ("because longer ones get skipped"): put that reason in the why field, in the person\'s words.';
     expect(rulePromptNote("must", "because longer ones get skipped")).toBe(
       `${rulePromptNote("must")}\n${ask}`,
     );
@@ -899,7 +889,9 @@ describe("statedRule and notes", () => {
       "<the person's reason, in their words>",
     );
     expect(line).toBe(ask);
-    expect(last).toBe("Then follow the nextActions the result returns.");
+    expect(last).toBe(
+      "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+    );
   });
 });
 
@@ -1020,6 +1012,14 @@ describe("session markers", () => {
     expect(isRequirementUpsert({ type: "req", dryRun: true })).toBe(false);
     expect(isRequirementUpsert({ type: "symbol" })).toBe(false);
     expect(isRequirementUpsert(undefined)).toBe(false);
+    // A kb_record input always writes a requirement, unless a dry run.
+    const recorded = { statement: "Keys rotate.", saidBy: "user" };
+    expect(isRequirementUpsert(recorded)).toBe(true);
+    expect(isRequirementUpsert({ arguments: recorded })).toBe(true);
+    expect(isRequirementUpsert({ ...recorded, dryRun: true })).toBe(false);
+    expect(isRequirementUpsert({ statement: "Keys rotate." })).toBe(false);
+    expect(isRequirementUpsert({ saidBy: "user" })).toBe(false);
+    expect(isRequirementUpsert({ statement: 1, saidBy: "user" })).toBe(false);
   });
 
   test("signoff reminder needs a requirement write newer than the last view, once", () => {

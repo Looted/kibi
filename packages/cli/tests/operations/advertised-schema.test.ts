@@ -6,11 +6,13 @@ import {
   ADVERTISED_DESCRIPTION,
   ADVERTISED_DESCRIPTION_LIMIT,
   ADVERTISED_FIELDS,
+  ADVERTISED_OPEN,
   ADVERTISED_SUMMARY,
   advertisedFieldSchemaHints,
   advertisedInputSchema,
 } from "../../src/public/operations/advertised-schema.js";
 import { listSpecs } from "../../src/public/operations/catalog.js";
+import { checkSpec } from "../../src/public/operations/specs/check.js";
 import { upsertSpec } from "../../src/public/operations/specs/upsert.js";
 
 const contract = {
@@ -246,6 +248,45 @@ describe("advertised input schemas", () => {
     expect(ADVERTISED_SUMMARY).toBe("x-kibi-advertised-summary");
     expect(ADVERTISED_DESCRIPTION).toBe("x-kibi-advertised-description");
     expect(ADVERTISED_FIELDS).toBe("x-kibi-advertised-fields");
+    expect(ADVERTISED_OPEN).toBe("x-kibi-advertised-open");
+  });
+
+  test("advertise an open choice as a plain string and refuse an unknown value with the list", () => {
+    const schema = {
+      type: "object",
+      properties: {
+        names: {
+          type: "array",
+          items: { type: "string", enum: ["a", "b"], [ADVERTISED_OPEN]: true },
+        },
+        other: { type: "string", enum: ["c", "d"] },
+      },
+    };
+    expect(advertisedInputSchema(schema) as unknown).toEqual({
+      type: "object",
+      properties: {
+        names: { type: "array", items: { type: "string" } },
+        other: { type: "string", enum: ["c", "d"] },
+      },
+    });
+    expect(prepareOperationInput({ names: ["a"] }, schema).valid).toBe(true);
+    expect(prepareOperationInput({ names: ["z"] }, schema)).toMatchObject({
+      valid: false,
+      errors: ["/names/0 must be equal to one of the allowed values: a,b"],
+    });
+    // kb_check's rule names are advertised open and still checked in full.
+    const rules = (
+      advertisedInputSchema(checkSpec.businessInputSchema) as {
+        properties: { rules: unknown };
+      }
+    ).properties.rules;
+    expect(rules).toMatchObject({ type: "array", items: { type: "string" } });
+    const refused = prepareOperationInput(
+      { rules: ["no-such-rule"] },
+      checkSpec.businessInputSchema,
+    );
+    expect(refused.valid).toBe(false);
+    expect(JSON.stringify(refused)).toContain("symbol-coverage");
   });
 
   test("walk into lists and leave null values and other choices as they are", () => {

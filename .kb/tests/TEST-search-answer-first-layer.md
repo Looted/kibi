@@ -22,17 +22,17 @@ id: TEST-search-answer-first-layer
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-72325d270171622e350f50ae
+    receipt_id: PR-efde98179da901798c79496c
     test_id: TEST-search-answer-first-layer
     scope: end_to_end
     outcome: passed
-    code_snapshot: f5912dc3fe126b68be0d7f2a26b4ef3d9aa6714b20db0c96de55004948d8c1d8
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T17:51:09.261Z'
-    finished_at: '2026-11-16T17:51:36.145Z'
-    artifact_digest: 7de3c5677f24e02add876284808f74c51dabfe2145b26deafb5dec4c99756e20
+    code_snapshot: df84fc91d0f807889519f20a576fcd787807fc96a14d6cb59f83a53eb62a9ce7
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-17T07:51:49.938Z'
+    finished_at: '2026-11-17T07:52:05.769Z'
+    artifact_digest: b69f4cfabb7e16e5e74514814381e8ae4c5f1ae363e262c250fad63df68e3308
     contract_hash: 52dfb01c7e4dc38f26ff1b9e54d30afdc01c27a2bc244bf4c618063e49fbc02d
-    binding_hash: e16fc470391563cddde0cf5a7e7a5702b49f6709c550d3e290314ef7e3e6bd76
+    binding_hash: d7f6565e2a2456e9c62fcfe99b54b54bb26858b16962ed1067f55dd7b1322387
     fingerprint: 91f91298196d96e55a13d2c41a78833837832da7e4e53823ca35c05bcae96586
     fingerprint_components:
       contract: 52dfb01c7e4dc38f26ff1b9e54d30afdc01c27a2bc244bf4c618063e49fbc02d

@@ -46,6 +46,13 @@ const SEED_INPUTS = {
     id: "REQ-CONTRACT-002",
     properties: { title: "Add parity test coverage", status: "open" },
   },
+  kb_record: {
+    statement: "Parity cases must cover every operation.",
+    why: "Reason not stated",
+    saidBy: "agent",
+    code: [{ file: "src/contract.ts", symbol: "contract" }],
+    dryRun: true,
+  },
   kb_validate_upsert: {
     type: "req",
     id: "REQ-CONTRACT-002",

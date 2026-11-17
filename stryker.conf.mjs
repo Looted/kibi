@@ -815,6 +815,12 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/operations/mutation/omitted-properties.ts": [
     "packages/cli/tests/operations-mutation/mutation/omitted-properties.test.ts",
   ],
+  "packages/cli/src/operations/mutation/record.ts": [
+    "packages/cli/tests/operations-mutation/mutation/record.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/record-execute.ts": [
+    "packages/cli/tests/operations-mutation/mutation/record-execute.test.ts",
+  ],
   "packages/cli/src/operations/mutation/origin.ts": [
     "packages/cli/tests/operations-mutation/mutation/origin.test.ts",
   ],

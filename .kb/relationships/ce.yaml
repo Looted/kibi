@@ -566,3 +566,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6ffad324ca2c
+  - type: implements
+    from: SYM-record-record-upsert-payload
+    to: REQ-kb-record-capture
+    created_at: 2026-11-17T06:44:24.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc2b2cb62221
+  - type: covered_by
+    from: SYM-record-record-upsert-payload
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:44:24.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf991887b0b7
+  - type: implements
+    from: SYM-record-record-upsert-payload
+    to: REQ-kb-record-upsert-equivalence
+    created_at: 2026-11-17T06:46:22.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d609d53a4b3

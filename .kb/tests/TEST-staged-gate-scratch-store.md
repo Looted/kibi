@@ -20,15 +20,15 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-e1175560121b0e66702d7dae
+    receipt_id: PR-343b6a3e9beea4726638b5df
     test_id: TEST-staged-gate-scratch-store
     scope: end_to_end
     outcome: passed
-    code_snapshot: 2d2e51abb29a0062a03c6b5eac4f61123e6660d452df84971e95c70ec8930502
-    environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-16T20:49:01.411Z'
-    finished_at: '2026-11-16T20:49:28.894Z'
-    artifact_digest: 08d4b9f7a77eab2fb31d2a98df9b0304457d06953c44a6c1e4ac15266b6971ed
+    code_snapshot: df84fc91d0f807889519f20a576fcd787807fc96a14d6cb59f83a53eb62a9ce7
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-17T07:52:14.949Z'
+    finished_at: '2026-11-17T07:52:36.667Z'
+    artifact_digest: 2924430a7ff78179206ffe0799d998d67ea830eabef866b69cd5f9f63365dc5d
     contract_hash: e006222ed4a7d9ff00b7ff57c1ab1bf719955547d841c769002068e14682aa77
     binding_hash: 4eef904b33072c1b1cb445abd0e402fe96e2dcb50e067e2b123c01c5e7f33bd3
     fingerprint: bf9093a5a1a5a2f6009d68b6189d7cc9349f315dc1408061bb4581fcc40aad08
