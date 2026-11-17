@@ -601,3 +601,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b8b51fe5f840
+  - type: executable_for
+    from: SYM-test-kibi-builtin-ts-syntactic-parse
+    to: TEST-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:21.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f8887cffb6e

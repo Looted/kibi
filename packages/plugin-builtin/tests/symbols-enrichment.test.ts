@@ -103,6 +103,49 @@ async function enrichTitles(
 }
 
 describe("enrichSymbolCoordinatesWithTsMorph", () => {
+  test("reads source files into a syntax-only project that resolves no imports", async () => {
+    const options: unknown[] = [];
+    const files: string[][] = [];
+    const add = Project.prototype.addSourceFileAtPath;
+    spies.push(
+      spyOn(Project.prototype, "addSourceFileAtPath").mockImplementation(
+        function (
+          this: Project,
+          ...args: Parameters<Project["addSourceFileAtPath"]>
+        ) {
+          const added = add.apply(this, args);
+          options.push(this.getCompilerOptions());
+          files.push(
+            this.getSourceFiles().map((file) =>
+              path.basename(file.getFilePath()),
+            ),
+          );
+          return added;
+        },
+      ),
+    );
+    setSystemTime(new Date(NOW));
+    const root = workspace({
+      "src/a.ts":
+        'import { b } from "./b.js";\nfunction listed() { return b; }\nexport { listed };\n',
+      "src/b.ts": "export const b = 1;\n",
+    });
+    const [entry] = await enrichSymbolCoordinatesWithTsMorph(
+      [{ id: "SYM-listed", title: "listed", sourceFile: "src/a.ts" }],
+      root,
+    );
+    expect(entry).toStrictEqual({
+      id: "SYM-listed",
+      title: "listed",
+      sourceFile: "src/a.ts",
+      ...at(2, 9, 2, 31),
+    });
+    expect(options).toStrictEqual([
+      { noLib: true, noResolve: true, types: [] },
+    ]);
+    expect(files).toStrictEqual([["a.ts"]]);
+  });
+
   test("binds bare titles to exported, internal and unique member declarations", async () => {
     const titles: Array<[string, ReturnType<typeof at> | undefined]> = [
       ["Twin", at(1, 12, 1, 21)],

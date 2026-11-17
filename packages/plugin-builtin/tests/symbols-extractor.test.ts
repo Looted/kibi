@@ -131,7 +131,7 @@ describe("v1 symbol extractor", () => {
     expect(result.symbols.map((symbol) => symbol.name)).toStrictEqual(["only"]);
   });
 
-  test("reuses one project across analyses and drops each analyzed file", () => {
+  test("reuses one syntax-only project across analyses and drops each analyzed file", () => {
     const projects = captureProjects();
     const extractor = createBuiltinTsMorphSymbolExtractor();
     extractor.analyze({ path: "src/a.ts", content: "export const a = 1;" });
@@ -139,7 +139,26 @@ describe("v1 symbol extractor", () => {
     expect(projects).toHaveLength(2);
     expect(projects[0]).toBe(projects[1] as Project);
     expect(projects[0]?.getSourceFiles()).toStrictEqual([]);
-    expect(projects[0]?.getCompilerOptions()).toStrictEqual({});
+    expect(projects[0]?.getCompilerOptions()).toStrictEqual({
+      noLib: true,
+      noResolve: true,
+      types: [],
+    });
+  });
+
+  test("still finds names exported by a local export list", () => {
+    const result = createBuiltinTsMorphSymbolExtractor().analyze({
+      path: "src/listed.ts",
+      content: [
+        'import { other } from "./missing.js";',
+        "function listed(): string { return other; }",
+        "class Hidden {}",
+        "export { listed };",
+      ].join("\n"),
+    });
+    expect(result.symbols.map((symbol) => symbol.name)).toStrictEqual([
+      "listed",
+    ]);
   });
 
   test("keeps the class symbol when its member walk fails", () => {

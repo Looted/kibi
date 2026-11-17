@@ -28,7 +28,9 @@
  *
  * With no train open it assembles one from the admitted pull requests: the
  * train label, not a draft, from this repository, and every required check
- * passed on the current head. Assembly merges each head into the base tip in
+ * passed on the current head. A train lands only when the required checks and
+ * the train checks passed on its head, so a check that is too slow to run on
+ * every pull request runs once per train. Assembly merges each head into the base tip in
  * pull request order with `kibi merge-driver`, runs `kibi sync` and the check
  * after each merge, and ejects a pull request that conflicts or fails the
  * check before anything expensive runs.
@@ -36,6 +38,9 @@
  * Configuration comes from the environment (the action sets it):
  *   MERGE_TRAIN_BASE    base branch (required)
  *   MERGE_TRAIN_CHECKS  required check names, comma or newline separated
+ *   MERGE_TRAIN_TRAIN_CHECKS  check names a train must also pass before it
+ *                       lands, but a pull request needs not to board, such as
+ *                       a slow proof that runs only on trains
  *   MERGE_TRAIN_KIBI    command that runs the base branch's Kibi
  *   MERGE_TRAIN_CHECK   shell command run after each merge; "" runs none
  *   MERGE_TRAIN_LABEL   boarding label (default "train")
@@ -283,6 +288,8 @@ export type Settings = Readonly<{
   repo: string;
   base: string;
   checks: readonly string[];
+  /** Checks only a train must pass; a pull request boards without them. */
+  trainChecks: readonly string[];
   kibi: string;
   check: string;
   label: string;
@@ -342,8 +349,8 @@ export class MergeTrain {
     return result.stdout.trim();
   }
 
-  checksOf(sha: string): Checks {
-    const { repo, checks } = this.settings;
+  checksOf(sha: string, checks = this.settings.checks): Checks {
+    const { repo } = this.settings;
     const response = this.api(
       `repos/${repo}/commits/${sha}/check-runs?per_page=100`,
     ) as {
@@ -374,7 +381,10 @@ export class MergeTrain {
           branch: pr.head.ref,
           headSha: pr.head.sha,
           meta,
-          checks: this.checksOf(pr.head.sha),
+          checks: this.checksOf(pr.head.sha, [
+            ...this.settings.checks,
+            ...this.settings.trainChecks,
+          ]),
         });
         continue;
       }
@@ -642,10 +652,12 @@ export function settingsFromEnv(env: NodeJS.ProcessEnv): Settings {
   if (!base) throw new Error("MERGE_TRAIN_BASE names the base branch");
   if (!repo || !/^[\w.-]+\/[\w.-]+$/.test(repo))
     throw new Error("GH_REPO names the repository as owner/name");
-  const checks = (env.MERGE_TRAIN_CHECKS ?? "")
-    .split(/[\n,]/)
-    .map((name) => name.trim())
-    .filter(Boolean);
+  const names = (value: string | undefined) =>
+    (value ?? "")
+      .split(/[\n,]/)
+      .map((name) => name.trim())
+      .filter(Boolean);
+  const checks = names(env.MERGE_TRAIN_CHECKS);
   if (checks.length === 0)
     throw new Error("MERGE_TRAIN_CHECKS names at least one required check");
   const max = Number(env.MERGE_TRAIN_MAX || "8");
@@ -655,6 +667,9 @@ export function settingsFromEnv(env: NodeJS.ProcessEnv): Settings {
     repo,
     base,
     checks,
+    trainChecks: names(env.MERGE_TRAIN_TRAIN_CHECKS).filter(
+      (name) => !checks.includes(name),
+    ),
     kibi: env.MERGE_TRAIN_KIBI?.trim() ?? "",
     check: env.MERGE_TRAIN_CHECK ?? "",
     label: env.MERGE_TRAIN_LABEL?.trim() || "train",

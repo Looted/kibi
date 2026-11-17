@@ -21,7 +21,10 @@ import { parseEntityFromList, parseListOfLists } from "../../prolog/codec.js";
 import { unrecordedDeclarations } from "../../traceability/staged-symbols-manifest.js";
 import { normalizeSourceFile } from "../impact/source-changes.js";
 import type { PrologPort } from "./runtime-types.js";
-import { openSourceAnalysisCache } from "./source-analysis-cache.js";
+import {
+  type SourceAnalysisCache,
+  withSourceAnalysisCache,
+} from "./source-analysis-cache.js";
 import { analyzeWorkspaceSources } from "./symbol-granularity-check.js";
 
 /**
@@ -82,8 +85,11 @@ function manifestRecord(
 export async function collectSymbolDebt(
   prolog: Pick<PrologPort, "query">,
   workspaceRoot: string,
-  /** A branch store directory to keep parsed analyses in across runs. */
-  analysisCacheDir?: string,
+  /**
+   * A branch store directory to keep parsed analyses in across runs, or a
+   * cache the caller opened and saves.
+   */
+  analysisCache?: string | SourceAnalysisCache | null,
 ): Promise<SymbolDebt> {
   const rows = await prolog.query(SYMBOL_RECORDS_QUERY);
   if (!rows.success) {
@@ -100,9 +106,11 @@ export async function collectSymbolDebt(
     ...new Set(records.map((record) => record.sourceFile as string)),
   ].sort();
   if (files.length === 0) return { total: 0, fileCount: 0, files: [] };
-  const cache = openSourceAnalysisCache(analysisCacheDir, workspaceRoot);
-  const sources = await analyzeWorkspaceSources(files, workspaceRoot, cache);
-  cache?.save();
+  const sources = await withSourceAnalysisCache(
+    analysisCache,
+    workspaceRoot,
+    (cache) => analyzeWorkspaceSources(files, workspaceRoot, cache),
+  );
   const debt: NonNullable<SymbolDebt["files"]> = [];
   for (const file of files) {
     const source = sources.get(file);

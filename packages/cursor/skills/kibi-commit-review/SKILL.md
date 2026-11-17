@@ -2,7 +2,7 @@
 id: kibi-commit-review
 name: kibi-commit-review
 description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, staging the tracked Kibi evidence with git add (symbol coordinates are derived and never staged), kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, how merge commits and migration renames are judged, and which requirement a newly listed symbol belongs to without making that requirement too broad."
-version: 1.9.1
+version: 1.10.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -127,7 +127,7 @@ firmness or waiver approval into a separate pull request.
 When the repository's base commit carries `.kibi/impact-policy.json`, the gate
 also demands a content-bound review record at `.kibi/impact-review.json`
 (`Staged impact review failed: impact_review_invalid ...`). Prepare it with
-`kb_prepare_impact_review` (`scope: {"kind":"staged"}`, or `{"kind":"diff",
+`kb_prepare_impact_review` (core MCP profile: CLI `kibi prepare-impact-review --input -`) (`scope: {"kind":"staged"}`, or `{"kind":"diff",
 "baseCommit":"<40-hex sha>","headCommit":"<40-hex sha>"}` for a pull
 request). It is read-only: it returns per-file evidence, requirement scopes,
 residual review obligations and an unauthored record template. Draft each

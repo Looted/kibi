@@ -3,7 +3,7 @@
 Recipes for an agent changing a knowledge base another agent or person
 authored. Each one is the order the write path accepts.
 
-1. **New strict requirement with a predicate grounding.** `kb_model` mode
+1. **New strict requirement with a predicate grounding.** `kb_model` (core MCP profile: CLI `kibi model --input -`) mode
    `analyze` with the complete prose; copy `inventory_contract` into
    `semantic_inventory_version`, `semantic_source_field` and
    `semantic_source_hash`, the prose into `semantic_text`, `propositions`
@@ -65,7 +65,7 @@ authored. Each one is the order the write path accepts.
    write checks the targets' stored claim keys, so the facts go first;
    between the two writes `kb_check` reports the requirement until the
    second lands.
-3. **Deleting authored entities.** `kb_delete` on an authored entity that
+3. **Deleting authored entities.** `kb_delete` (core MCP profile: CLI `kibi delete --input -`) on an authored entity that
    is not a requirement (scenario, test, fact, ADR, …) writes nothing and
    returns `outcome: plan_returned` with a hash-bound
    `kibi.entity-deletion-plan.v1` in `deletionPlan`. After review, run

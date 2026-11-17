@@ -34,7 +34,9 @@ import { dirname, join, resolve } from "node:path";
 import type { HostSourceAnalysisResultV2 } from "../../../src/plugins/source-analysis-service.js";
 import {
   SOURCE_ANALYSIS_CACHE_FILE,
+  type SourceAnalysisCache,
   openSourceAnalysisCache,
+  withSourceAnalysisCache,
 } from "../../../src/public/operations/source-analysis-cache.js";
 
 const roots: string[] = [];
@@ -364,4 +366,41 @@ for (let round = 0; round < 40; round += 1) {
     );
     expect(reads).toBeGreaterThan(0);
   }, 60_000);
+});
+
+describe("withSourceAnalysisCache", () => {
+  test("opens a store's cache, reads through it and saves it afterwards", async () => {
+    const { root, store } = workspace();
+    const result = await withSourceAnalysisCache(store, root, async (cache) => {
+      cache?.set("a.ts", "export {}\n", analysis("fresh"));
+      expect(existsSync(cachePath(store))).toBe(false);
+      return "done";
+    });
+    expect(result).toBe("done");
+    expect(
+      Object.values(readCache(store).entries).map((e) => e.symbols[0]?.name),
+    ).toStrictEqual(["fresh"]);
+  });
+
+  test("uses an open cache as given and leaves saving it to its owner", async () => {
+    const { root } = workspace();
+    let saved = 0;
+    const open: SourceAnalysisCache = {
+      get: () => undefined,
+      set: () => undefined,
+      save: () => {
+        saved += 1;
+      },
+    };
+    expect(
+      await withSourceAnalysisCache(open, root, async (cache) => cache),
+    ).toBe(open);
+    expect(
+      await withSourceAnalysisCache(null, root, async (cache) => cache),
+    ).toBeNull();
+    expect(
+      await withSourceAnalysisCache(undefined, root, async (cache) => cache),
+    ).toBeNull();
+    expect(saved).toBe(0);
+  });
 });

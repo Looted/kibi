@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "Still runs the rules with selection and staged focus and exits nonzero on violations. The passing text is one line, --symbol-debt lists the debt, and the staged refusal groups the findings of one unowned declaration into one block while the JSON keeps every finding.",
+  "note": "Same rules and verdict; the staged coverage step only reads committed knowledge files through the snapshot's batched blob reader.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:2872e2f994f7c18b9b506559aee16ae1dbcc894f292ae6edb6e2395d5e84ed5d",
-  "startLine": 797,
-  "endLine": 1714,
-  "recordedAt": "2026-11-16T23:34:13.543Z"
+  "codeHash": "sha256:d228d1aa93b6bb3e734cbb01ba2753b1cad6d4c3f6bb2e49dbb16200f963308c",
+  "startLine": 821,
+  "endLine": 1739,
+  "recordedAt": "2026-11-17T06:06:54.132Z"
 }

@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-decisions
   id: kibi-decisions
-  version: 1.14.0
+  version: 1.15.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -113,7 +113,7 @@ name the missing capability. Never read or edit `.kb/` files directly.
   the `code` that enforces it. That one call writes a firm requirement with
   their words as `origin.ref`, their reason as its `why`, and the
   `implements` links; then follow its `nextActions` for the scenario and
-  test. Use `kb_compile_intent` first when the rule may touch several
+  test. Use `kb_compile_intent` (core MCP profile: CLI `kibi compile-intent --input -`) first when the rule may touch several
   requirements, and `kb_upsert` for anything `kb_record` does not take.
   When the person said why, put their reason in `why`, in their words. When
   they gave none, write "Reason not stated" and never a reason of your own;

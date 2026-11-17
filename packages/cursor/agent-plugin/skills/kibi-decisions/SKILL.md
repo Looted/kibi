@@ -2,7 +2,7 @@
 id: kibi-decisions
 name: kibi-decisions
 description: "Use when the person states a rule or decision (must, never, always, from now on, we decided), when a Kibi hook asks to confirm or warns about an edit to code that implements a firm requirement, when the Stop hook says source files changed but nothing was recorded, when kb_check quotes requirement_statement_unverified, or when a request conflicts with a recorded requirement or ADR. Covers reading firmness and origin, recording a person's rule as firm with origin.ref, superseding with a Why this changed section, the kb_compile_intent unresolved/reviewCandidates/conflictReviews loop, asking before overriding a firm rule, putting decisions to the person as one numbered kibi signoff --questions view, and getting a batch of statement changes, splits, reasons or retirements approved during a knowledge base cleanup."
-version: 1.14.0
+version: 1.15.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -110,7 +110,7 @@ name the missing capability. Never read or edit `.kb/` files directly.
   the `code` that enforces it. That one call writes a firm requirement with
   their words as `origin.ref`, their reason as its `why`, and the
   `implements` links; then follow its `nextActions` for the scenario and
-  test. Use `kb_compile_intent` first when the rule may touch several
+  test. Use `kb_compile_intent` (core MCP profile: CLI `kibi compile-intent --input -`) first when the rule may touch several
   requirements, and `kb_upsert` for anything `kb_record` does not take.
   When the person said why, put their reason in `why`, in their words. When
   they gave none, write "Reason not stated" and never a reason of your own;

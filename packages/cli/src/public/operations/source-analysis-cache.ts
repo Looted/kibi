@@ -204,3 +204,23 @@ export function openSourceAnalysisCache(
     },
   };
 }
+
+/**
+ * Run `read` with the analysis cache a caller names: a branch store
+ * directory is opened here and saved after `read`; an open cache (or null)
+ * is used as it is and saved by whoever opened it. A check opens one cache
+ * for every step that parses sources, because each save keeps only the
+ * entries its own run used: two steps saving in turn evicted each other's
+ * files, so every check parsed every symbol's file again.
+ */
+export async function withSourceAnalysisCache<T>(
+  source: string | SourceAnalysisCache | null | undefined,
+  workspaceRoot: string,
+  read: (cache: SourceAnalysisCache | null) => Promise<T>,
+): Promise<T> {
+  if (source !== undefined && typeof source !== "string") return read(source);
+  const cache = openSourceAnalysisCache(source, workspaceRoot);
+  const result = await read(cache);
+  cache?.save();
+  return result;
+}

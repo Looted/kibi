@@ -33,7 +33,7 @@ plan. A migration plan whose actions were refused before changing anything
 returns `status: error`, `MIGRATION_PLAN_REFUSED` and `data.outcome:
 refused`: nothing changed, so read the action `detail` and get a new plan.
 `data.outcome: reconciliation_required` (status success) means an action
-failed mid-way: inspect its effect before retrying. `kb_delete` of an
+failed mid-way: inspect its effect before retrying. `kb_delete` (core MCP profile: CLI `kibi delete --input -`) of an
 authored entity returns status success with `deleted: 0` and `outcome:
 plan_returned` (or `supersession_required` for a requirement): nothing was
 deleted yet, and `nextActions` names the call that does it. If the status is

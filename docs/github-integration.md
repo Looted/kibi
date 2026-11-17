@@ -385,8 +385,8 @@ checks passed on.
   with a comment before any expensive run. The branch is opened as a pull
   request into the default branch, so your usual workflows run on it.
 - **Landing.** The train merges, as a merge commit, only when every check in
-  `checks` passed on the exact head it assembled and the default branch has
-  not moved since. The default branch then has the proven tree, and GitHub
+  `checks` and `train-checks` passed on the exact head it assembled and the
+  default branch has not moved since. The default branch then has the proven tree, and GitHub
   marks each boarded pull request merged.
 - **Failure.** A failed train re-runs its failed jobs once. If it fails again,
   it is closed and each half is proven as its own train. Only a train of one
@@ -395,6 +395,16 @@ checks passed on.
 - **Moves.** A train is closed and assembled again on the new tip when the
   default branch moves, its branch moves, or a member loses its label or its
   passing checks.
+
+### Run a slow check once per train
+
+A check too slow to run on every pull request, such as a full proof that takes
+hours, can run only on train branches: trigger it in your workflow for pull
+requests whose head branch starts with `merge-train/`, and name its check in
+`train-checks` instead of `checks`. A pull request then boards on its own
+checks, and the train lands only after the slow check also passed on its
+assembled head. A failed slow check is re-run once and bisected like any other
+required check.
 
 Each run takes one step and exits. Run it when your check workflows finish,
 when the label is added, and on a schedule as a backstop, as the example does.
@@ -444,6 +454,7 @@ from, so a later pull request can reuse it in turn.
 | --- | --- | --- |
 | `base` | repository default branch | Branch the trains merge into. |
 | `checks` | required | Required check names, comma or newline separated. |
+| `train-checks` | `""` | Checks a train must also pass before it lands, but a pull request does not need to board. |
 | `label` | `train` | Label that boards a pull request. |
 | `max` | `8` | Most pull requests in one train. |
 | `kibi` | `node_modules/.bin/kibi` | Command that runs the default branch's Kibi. `""` skips `kibi sync`. |

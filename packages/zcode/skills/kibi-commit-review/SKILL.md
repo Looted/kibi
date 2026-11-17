@@ -4,7 +4,7 @@ description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a 
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-commit-review
-  version: 1.9.1
+  version: 1.10.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -129,7 +129,7 @@ firmness or waiver approval into a separate pull request.
 When the repository's base commit carries `.kibi/impact-policy.json`, the gate
 also demands a content-bound review record at `.kibi/impact-review.json`
 (`Staged impact review failed: impact_review_invalid ...`). Prepare it with
-`kb_prepare_impact_review` (`scope: {"kind":"staged"}`, or `{"kind":"diff",
+`kb_prepare_impact_review` (core MCP profile: CLI `kibi prepare-impact-review --input -`) (`scope: {"kind":"staged"}`, or `{"kind":"diff",
 "baseCommit":"<40-hex sha>","headCommit":"<40-hex sha>"}` for a pull
 request). It is read-only: it returns per-file evidence, requirement scopes,
 residual review obligations and an unauthored record template. Draft each

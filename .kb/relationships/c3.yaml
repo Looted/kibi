@@ -601,3 +601,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a0d64a6eb3d7
+  - type: implements
+    from: SYM-source-analysis-cache-with-source-analysis-cache
+    to: REQ-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:09.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4137eccfe15f
+  - type: covered_by
+    from: SYM-source-analysis-cache-with-source-analysis-cache
+    to: TEST-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:09.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7273854feb12

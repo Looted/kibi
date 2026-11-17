@@ -30,7 +30,7 @@ that agent the wrong rule. Apply this whenever you write a requirement or an
   for such a declaration, follow `kibi-commit-review`, Choosing the owner).
   Every symbol in the manifest must implement a requirement
   (`symbol-traceability`), so a symbol that decides nothing is removed, not
-  left unlinked: `kb_delete` its id and apply the returned plan.
+  left unlinked: `kb_delete` (core MCP profile: CLI `kibi delete --input -`) its id and apply the returned plan.
   A behavioral symbol implements at most 2
   requirements (4 for a class, component or module);
   `multi_requirement_symbol_review` reports more, and `granularity_reason`

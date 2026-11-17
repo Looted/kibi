@@ -120,6 +120,30 @@ test(pure_memo_caches_and_bounds_its_size) :-
     retractall(requirement_proof:pure_memo(_, _, _)),
     retractall(requirement_proof:pure_memo_size(_)).
 
+test(proof_contract_hash_memoizes_contract_text) :-
+    rqp_forget_memo,
+    Text = "{\"b\":1,\"a\":[true]}",
+    requirement_proof:compute_proof_contract_hash(Text, Direct),
+    requirement_proof:proof_contract_hash(Text, First),
+    assertion(First == Direct),
+    assertion(requirement_proof:pure_memo(_, proof_contract_hash, Direct)),
+    requirement_proof:proof_contract_hash(Text, Second),
+    assertion(Second == Direct),
+    atom_string(Atom, Text),
+    requirement_proof:proof_contract_hash(Atom, FromAtom),
+    assertion(FromAtom == Direct).
+
+test(proof_contract_hash_hashes_dicts_without_the_memo) :-
+    rqp_forget_memo,
+    requirement_proof:proof_contract_hash(_{a:[true], b:1}, Hash),
+    requirement_proof:compute_proof_contract_hash("{\"b\":1,\"a\":[true]}", Direct),
+    assertion(Hash == Direct),
+    assertion(\+ requirement_proof:pure_memo(_, proof_contract_hash, _)).
+
+test(proof_contract_hash_rejects_text_that_is_not_an_object, [fail]) :-
+    rqp_forget_memo,
+    requirement_proof:proof_contract_hash("[1]", _).
+
 :- end_tests(requirement_proof_normalizers).
 
 rqp_full_stages(Overrides, Stages) :-
