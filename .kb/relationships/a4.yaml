@@ -489,3 +489,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71dc409bee9d
+  - type: validates
+    from: TEST-kibi-cli-legacy-apply-safe
+    to: SCEN-kibi-legacy-attachment-engine-refusal
+    created_at: 2026-11-16T20:46:18.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca7cd93785c5
+  - type: validates
+    from: TEST-kibi-cli-legacy-apply-safe
+    to: SCEN-NEG-kibi-legacy-attachment-engine-refusal-EMPTY-HASHED-STORE
+    created_at: 2026-11-16T20:46:18.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9afe4c04146

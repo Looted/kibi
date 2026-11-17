@@ -44,10 +44,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-migration-plan-contract
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-legacy-attachment-engine-refusal
+      - type: implements
+        target: REQ-kibi-migration-plan-contract
   - id: SYM-kibi-migrate-plan-command
     title: migratePlanCommand
     sourceFile: packages/cli/src/commands/migrate.ts
@@ -832,12 +836,12 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-engine-single-writer-protocol
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
       - type: covered_by
         target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-kibi-engine-single-writer-protocol
   - id: SYM-cli-engine-client-query
     title: EngineClient.query
     sourceFile: packages/cli/src/engine.ts
@@ -968,8 +972,6 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-engine-single-writer-protocol
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
       - type: covered_by
@@ -980,6 +982,8 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-engine-daemon-package-versions
+      - type: implements
+        target: REQ-kibi-engine-single-writer-protocol
   - id: SYM-cli-engine-commands
     title: storageCompactCommand
     sourceFile: packages/cli/src/commands/engine.ts
@@ -41701,6 +41705,132 @@ symbols:
         target: TEST-kibi-proof-steps-directory
       - type: implements
         target: REQ-kibi-proof-step-settings
+  - id: SYM-test-kb-upsert-missing-endpoint-rejection
+    title: Upsert store-refusal classification suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:43.768Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-missing-endpoint-rejection
+  - id: SYM-test-cli-prove-empty-selection
+    title: kibi prove command suite
+    status: active
+    sourceFile: packages/cli/tests/proof/prove-command.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:47.344Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-prove-empty-selection
+  - id: SYM-cli-use-core-module-goal
+    title: useCoreModuleGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:20.225Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-cli-is-core-module-goal
+    title: isCoreModuleGoal
+    status: active
+    sourceFile: packages/cli/src/prolog/codec.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:23.142Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-test-engine-client-core-modules-from-engine
+    title: Engine client core-module loading suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/core-module-goal.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:28.228Z
+    relationships:
+      - type: executable_for
+        target: TEST-engine-client-core-modules-from-engine
+  - id: SYM-test-prolog-permission-error-names-refusal
+    title: Prolog permission error message suite
+    status: active
+    sourceFile: packages/cli/tests/prolog/error-terms-parse.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:30.861Z
+    relationships:
+      - type: executable_for
+        target: TEST-prolog-permission-error-names-refusal
+  - id: SYM-cli-parse-prolog-error-term
+    title: parsePrologErrorTerm
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:00:44.213Z
+    relationships:
+      - type: covered_by
+        target: TEST-prolog-permission-error-names-refusal
+      - type: implements
+        target: REQ-prolog-permission-error-names-refusal
+  - id: SYM-engine-session-record-module-load
+    title: EngineSession.recordModuleLoad
+    status: active
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:24.362Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-subject-domain-read-subject-domain
+    title: readSubjectDomain
+    status: active
+    sourceFile: packages/cli/src/public/operations/subject-domain.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:27.485Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
+  - id: SYM-traceability-validate-staged-symbol-coverage
+    title: validateStagedSymbolCoverage
+    status: active
+    sourceFile: packages/cli/src/traceability/validate.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:10:30.738Z
+    relationships:
+      - type: covered_by
+        target: TEST-engine-client-core-modules-from-engine
+      - type: implements
+        target: REQ-engine-client-core-modules-from-engine
   - id: SYM-cli-search-answer-requirement-reason
     title: requirementReason
     status: active
@@ -41810,456 +41940,6 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-search-answer-reason-chars
-  - id: SYM-cli-use-core-module-goal
-    title: useCoreModuleGoal
-    status: active
-    sourceFile: packages/cli/src/prolog/codec.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:20.225Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-cli-is-core-module-goal
-    title: isCoreModuleGoal
-    status: active
-    sourceFile: packages/cli/src/prolog/codec.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:23.142Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-test-engine-client-core-modules-from-engine
-    title: Engine client core-module loading suite
-    status: active
-    sourceFile: packages/cli/tests/prolog/core-module-goal.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:28.228Z
-    relationships:
-      - type: executable_for
-        target: TEST-engine-client-core-modules-from-engine
-  - id: SYM-test-prolog-permission-error-names-refusal
-    title: Prolog permission error message suite
-    status: active
-    sourceFile: packages/cli/tests/prolog/error-terms-parse.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:30.861Z
-    relationships:
-      - type: executable_for
-        target: TEST-prolog-permission-error-names-refusal
-  - id: SYM-cli-parse-prolog-error-term
-    title: parsePrologErrorTerm
-    status: active
-    sourceFile: packages/cli/src/prolog/error-terms.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:00:44.213Z
-    relationships:
-      - type: covered_by
-        target: TEST-prolog-permission-error-names-refusal
-      - type: implements
-        target: REQ-prolog-permission-error-names-refusal
-  - id: SYM-engine-session-record-module-load
-    title: EngineSession.recordModuleLoad
-    status: active
-    sourceFile: packages/cli/src/engine.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:24.362Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-subject-domain-read-subject-domain
-    title: readSubjectDomain
-    status: active
-    sourceFile: packages/cli/src/public/operations/subject-domain.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:27.485Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-traceability-validate-staged-symbol-coverage
-    title: validateStagedSymbolCoverage
-    status: active
-    sourceFile: packages/cli/src/traceability/validate.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:10:30.738Z
-    relationships:
-      - type: covered_by
-        target: TEST-engine-client-core-modules-from-engine
-      - type: implements
-        target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-capture-with-requirement-capture
-    title: withRequirementCapture
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:11:59.897Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-requirement-why
-  - id: SYM-capture-capture-follow-up
-    title: captureFollowUp
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:12:30.133Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-capture-next-actions
-  - id: SYM-capture-prolog-capture-reads
-    title: prologCaptureReads
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:12:36.034Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-capture-next-actions
-  - id: SYM-capture-evidence-floor-of
-    title: evidenceFloorOf
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:12:41.725Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-capture-next-actions
-  - id: SYM-subject-warnings-claim-subject-gaps
-    title: claimSubjectGaps
-    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:12:47.351Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-capture-next-actions
-  - id: SYM-capture-related-current-requirements
-    title: relatedCurrentRequirements
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:13:10.836Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-related-current-requirements
-  - id: SYM-decision-guard-stated-reason
-    title: statedReason
-    sourceFile: packages/agent-core/src/decision-guard.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:13:50.098Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hosts-rule-reason-capture
-      - type: implements
-        target: REQ-agent-hosts-rule-reason-capture
-  - id: SYM-decision-guard-session-rule-reason
-    title: sessionRuleReason
-    sourceFile: packages/agent-core/src/decision-guard.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:14:06.180Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hosts-rule-reason-capture
-      - type: implements
-        target: REQ-agent-hosts-rule-reason-capture
-  - id: SYM-test-kb-upsert-capture-with-why
-    title: kb_upsert capture with why consumer suite
-    status: active
-    sourceFile: packages/cli/tests/consumer/upsert-capture-with-why.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:17:36.301Z
-    relationships:
-      - type: executable_for
-        target: TEST-kb-upsert-capture-with-why
-  - id: SYM-types-upsert-input
-    title: UpsertInput
-    sourceFile: packages/cli/src/operations/mutation/types.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:40:03.779Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-requirement-why
-  - id: SYM-types-upsert-payload
-    title: UpsertPayload
-    sourceFile: packages/cli/src/operations/mutation/types.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:40:07.541Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-requirement-why
-  - id: SYM-upsert-why-schema
-    title: WHY_SCHEMA
-    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
-    status: active
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:40:10.489Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-requirement-why
-  - id: SYM-capture-why-placeholder
-    title: WHY_PLACEHOLDER
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:40:13.296Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-requirement-why
-  - id: SYM-capture-capture-next-action
-    title: CaptureNextAction
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:40:34.646Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-capture-next-actions
-  - id: SYM-subject-warnings-claim-subject-missing-prefix
-    title: claimSubjectMissingPrefix
-    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:40:40.368Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-capture-next-actions
-  - id: SYM-subject-warnings-claim-subject-gap
-    title: ClaimSubjectGap
-    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:40:48.501Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-capture-next-actions
-  - id: SYM-capture-related-requirement
-    title: RelatedRequirement
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:08.638Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-related-current-requirements
-  - id: SYM-capture-max-related-requirements
-    title: MAX_RELATED_REQUIREMENTS
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:12.964Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-related-current-requirements
-  - id: SYM-capture-max-related-statement
-    title: MAX_RELATED_STATEMENT
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:17.070Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-related-current-requirements
-  - id: SYM-implemented-by-implemented-by-deps
-    title: ImplementedByDeps
-    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:21.293Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-related-current-requirements
-  - id: SYM-mutation-implemented-by-implemented-by-deps
-    title: IMPLEMENTED_BY_DEPS
-    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
-    status: active
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:25.652Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-related-current-requirements
-  - id: SYM-capture-capture-reads
-    title: CaptureReads
-    sourceFile: packages/cli/src/operations/mutation/capture.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:29.618Z
-    relationships:
-      - type: covered_by
-        target: TEST-kb-upsert-capture-with-why
-      - type: implements
-        target: REQ-kb-upsert-related-current-requirements
-  - id: SYM-session-state-session-event
-    title: SessionEvent
-    sourceFile: packages/claude/src/session-state.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:46.709Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hosts-rule-reason-capture
-      - type: implements
-        target: REQ-agent-hosts-rule-reason-capture
-  - id: SYM-session-state-session-state
-    title: SessionState
-    sourceFile: packages/claude/src/session-state.ts
-    status: active
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:52.497Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hosts-rule-reason-capture
-      - type: implements
-        target: REQ-agent-hosts-rule-reason-capture
-  - id: SYM-session-state-empty-session-state
-    title: emptySessionState
-    sourceFile: packages/claude/src/session-state.ts
-    status: active
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:41:56.748Z
-    relationships:
-      - type: covered_by
-        target: TEST-agent-hosts-rule-reason-capture
-      - type: implements
-        target: REQ-agent-hosts-rule-reason-capture
-  - id: SYM-stryker-MUTATION_SHARDS
-    title: MUTATION_SHARDS
-    status: active
-    sourceFile: stryker.conf.mjs
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-  - id: SYM-check-policy-rules-PolicyRuleHead
-    title: PolicyRuleHead
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-  - id: SYM-source-authoring-writePendingSourceReceipt
-    title: writePendingSourceReceipt
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T15:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-pending-receipt-branch-scope
-      - type: implements
-        target: REQ-kibi-pending-receipt-branch-scope
   - id: SYM-test-check-restated-twin-facts
     title: Restated twin facts consumer suite
     status: active
@@ -42355,196 +42035,35 @@ symbols:
         target: REQ-search-answer-reason-source-order
       - type: implements
         target: REQ-upsert-notes-missing-reason
-  - id: SYM-test-kb-upsert-missing-endpoint-rejection
-    title: Upsert store-refusal classification suite
+  - id: SYM-stryker-MUTATION_SHARDS
+    title: MUTATION_SHARDS
     status: active
-    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
+    sourceFile: stryker.conf.mjs
+    symbol_role: config
     origin:
       kind: agent
-      recorded_at: 2026-11-16T13:35:43.768Z
-    relationships:
-      - type: executable_for
-        target: TEST-kb-upsert-missing-endpoint-rejection
-  - id: SYM-test-cli-prove-empty-selection
-    title: kibi prove command suite
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-check-policy-rules-PolicyRuleHead
+    title: PolicyRuleHead
     status: active
-    sourceFile: packages/cli/tests/proof/prove-command.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
+    sourceFile: packages/cli/src/public/operations/check-policy-rules.ts
+    symbol_role: type-shape
     origin:
       kind: agent
-      recorded_at: 2026-11-16T13:35:47.344Z
-    relationships:
-      - type: executable_for
-        target: TEST-cli-prove-empty-selection
-  - id: SYM-test-cli-rejection-not-retryable
-    title: CLI protocol error envelope suite
+      recorded_at: 2026-11-16T15:00:00.000Z
+  - id: SYM-source-authoring-writePendingSourceReceipt
+    title: writePendingSourceReceipt
     status: active
-    sourceFile: packages/cli/tests/cli-protocol-mutation.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T14:40:50.875Z
-    relationships:
-      - type: executable_for
-        target: TEST-cli-rejection-not-retryable
-  - id: SYM-cli-errors-is-kb-rejection
-    title: isKbRejection
-    status: active
-    sourceFile: packages/cli/src/cli-errors.ts
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
     symbol_role: behavioral
     origin:
       kind: agent
-      recorded_at: 2026-11-16T14:41:22.080Z
+      recorded_at: 2026-11-16T15:00:00.000Z
     relationships:
       - type: covered_by
-        target: TEST-cli-rejection-not-retryable
+        target: TEST-kibi-pending-receipt-branch-scope
       - type: implements
-        target: REQ-cli-rejection-not-retryable
-  - id: SYM-proof-scoped-check-budget
-    title: scopedCheckBudgetCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:01:44.044Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-scoped-check-budget
-  - id: SYM-const-scoped-check-budget-chars
-    title: SCOPED_CHECK_BUDGET_CHARS
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:01:47.164Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-scoped-check-budget
-  - id: SYM-proof-advertised-description-limit
-    title: advertisedDescriptionLimitCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:02:34.446Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-advertised-description-limit
-  - id: SYM-const-advertised-description-limit
-    title: ADVERTISED_DESCRIPTION_LIMIT
-    status: active
-    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:02:37.619Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-advertised-description-limit
-  - id: SYM-proof-checked-as-sent-ledger-fields
-    title: checkedAsSentFieldsCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - exhaustive
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:03:13.312Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-checked-as-sent-ledger-fields
-  - id: SYM-const-ledger-contract-fields
-    title: CONTRACT_FIELDS
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:03:16.641Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-checked-as-sent-ledger-fields
-  - id: SYM-proof-non-behavioral-symbol-roles
-    title: nonBehavioralRolesCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - source
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:03:56.501Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-non-behavioral-symbol-roles
-  - id: SYM-proof-behavioral-symbol-kinds
-    title: behavioralKindsCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - source
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:04:07.565Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-behavioral-symbol-kinds
-  - id: SYM-proof-staged-passing-review-states
-    title: stagedPassingReviewStatesCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - exhaustive
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:04:44.289Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-staged-passing-review-states
-  - id: SYM-const-staged-passing-review-states
-    title: STAGED_PASSING_REVIEW_STATES
-    status: active
-    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:04:47.502Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-staged-passing-review-states
-  - id: SYM-source-code-readers-extract-script-references
-    title: extractScriptReferences
-    status: active
-    sourceFile: packages/cli/src/operations/proof/source-code-readers.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:06:32.168Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-source-proof-kinds
-      - type: implements
-        target: REQ-kibi-env-reader-presence-tests
+        target: REQ-kibi-pending-receipt-branch-scope
   - id: SYM-test-kb-merge-action
     title: Kibi KB merge action suite
     status: active
@@ -43004,6 +42523,378 @@ symbols:
         target: TEST-ci-kb-merge-resolution
       - type: executable_for
         target: TEST-kb-merge-action
+  - id: SYM-test-cli-rejection-not-retryable
+    title: CLI protocol error envelope suite
+    status: active
+    sourceFile: packages/cli/tests/cli-protocol-mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:40:50.875Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-rejection-not-retryable
+  - id: SYM-cli-errors-is-kb-rejection
+    title: isKbRejection
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:41:22.080Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
+  - id: SYM-proof-scoped-check-budget
+    title: scopedCheckBudgetCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:01:44.044Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-scoped-check-budget
+  - id: SYM-const-scoped-check-budget-chars
+    title: SCOPED_CHECK_BUDGET_CHARS
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:01:47.164Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-scoped-check-budget
+  - id: SYM-proof-advertised-description-limit
+    title: advertisedDescriptionLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:02:34.446Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-advertised-description-limit
+  - id: SYM-const-advertised-description-limit
+    title: ADVERTISED_DESCRIPTION_LIMIT
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:02:37.619Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-advertised-description-limit
+  - id: SYM-proof-checked-as-sent-ledger-fields
+    title: checkedAsSentFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:13.312Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-checked-as-sent-ledger-fields
+  - id: SYM-const-ledger-contract-fields
+    title: CONTRACT_FIELDS
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:16.641Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-checked-as-sent-ledger-fields
+  - id: SYM-proof-non-behavioral-symbol-roles
+    title: nonBehavioralRolesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:56.501Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-non-behavioral-symbol-roles
+  - id: SYM-proof-behavioral-symbol-kinds
+    title: behavioralKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:07.565Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-behavioral-symbol-kinds
+  - id: SYM-proof-staged-passing-review-states
+    title: stagedPassingReviewStatesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:44.289Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-staged-passing-review-states
+  - id: SYM-const-staged-passing-review-states
+    title: STAGED_PASSING_REVIEW_STATES
+    status: active
+    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:47.502Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-staged-passing-review-states
+  - id: SYM-source-code-readers-extract-script-references
+    title: extractScriptReferences
+    status: active
+    sourceFile: packages/cli/src/operations/proof/source-code-readers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:06:32.168Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-env-reader-presence-tests
+  - id: SYM-branch-store-locator-unmigrated-legacy-store-refusal
+    title: unmigratedLegacyStoreRefusal
+    sourceFile: packages/cli/src/utils/branch-store-locator.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:45:09.394Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-legacy-attachment-engine-refusal
+  - id: SYM-branch-resolver-legacy-attachment-refusal
+    title: legacyAttachmentRefusal
+    sourceFile: packages/cli/src/utils/branch-resolver.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:45:14.032Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-cli-legacy-apply-safe
+      - type: implements
+        target: REQ-kibi-legacy-attachment-engine-refusal
+  - id: SYM-test-mcp-tool-profile
+    title: tool-profile.test
+    status: active
+    sourceFile: packages/mcp/tests/server/tool-profile.test.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-default-tool-profile
+  - id: SYM-mcp-TOOL_PROFILES
+    title: TOOL_PROFILES
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+  - id: SYM-cli-ADVERTISED_FIELDS
+    title: ADVERTISED_FIELDS
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-capture-fields
+      - type: implements
+        target: REQ-mcp-upsert-capture-fields
+  - id: SYM-cli-commandSummary
+    title: commandSummary
+    status: active
+    sourceFile: packages/cli/src/cli-operation-metadata.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: implements
+        target: REQ-cli-help-command-summaries
+  - id: SYM-cli-UNLISTED_OPERATIONS
+    title: UNLISTED_OPERATIONS
+    status: active
+    sourceFile: packages/cli/src/cli-register-json.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-help-command-summaries
+      - type: implements
+        target: REQ-cli-help-command-summaries
+  - id: SYM-mcp-DEFAULT_PROFILE_TOOLS
+    title: DEFAULT_PROFILE_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-mcp-default-profile-tools
+  - id: SYM-mcp-BOOTSTRAP_TOOLS
+    title: BOOTSTRAP_TOOLS
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-mcp-bootstrap-tools
+  - id: SYM-mcp-resolveToolProfile
+    title: resolveToolProfile
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-knowledgeBaseIsEmpty
+    title: knowledgeBaseIsEmpty
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-profileToolNames
+    title: profileToolNames
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+  - id: SYM-mcp-serverInstructions
+    title: serverInstructions
+    status: active
+    sourceFile: packages/mcp/src/server.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-default-tool-profile
+      - type: covered_by
+        target: TEST-session-brief
+      - type: implements
+        target: REQ-mcp-default-tool-profile
+      - type: implements
+        target: REQ-session-brief-on-every-surface
+  - id: SYM-mcp-ToolProfile
+    title: ToolProfile
+    status: active
+    sourceFile: packages/mcp/src/tools-config.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+  - id: SYM-test-cli-commandSurface
+    title: commandSurface
+    status: active
+    sourceFile: packages/cli/tests/helpers/command-surface.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-help-command-summaries
+  - id: SYM-test-cli-CommandSurface
+    title: CommandSurface
+    status: active
+    sourceFile: packages/cli/tests/helpers/command-surface.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-help-command-summaries
+  - id: SYM-skillopt-run-independent-final-state
+    title: runIndependentFinalState
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T20:30:08.766Z
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-logical-evidence-fidelity
+      - type: implements
+        target: REQ-skillopt-logical-evidence-fidelity
   - id: SYM-test-check-quantity-duplicate
     title: quantity-duplicate consumer suite
     status: active
@@ -43496,19 +43387,34 @@ symbols:
         target: TEST-upsert-stale-siblings
       - type: implements
         target: REQ-apply-plan-checks-contradictions-once
-  - id: SYM-types-validate-upsert-payload
-    title: ValidateUpsertPayload
-    sourceFile: packages/cli/src/operations/mutation/types.ts
+  - id: SYM-proof-mcp-default-profile-tools
+    title: mcpDefaultProfileToolsCertificate
     status: active
-    symbol_role: type-shape
+    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
     origin:
       kind: agent
-      recorded_at: 2026-11-16T22:25:48.524Z
+      recorded_at: 2026-11-16T22:37:52.745Z
     relationships:
-      - type: covered_by
-        target: TEST-upsert-stale-siblings
-      - type: implements
-        target: REQ-upsert-dry-run-lists-siblings
+      - type: executable_for
+        target: TEST-proof-mcp-default-profile-tools
+  - id: SYM-proof-mcp-bootstrap-tools
+    title: mcpBootstrapToolsCertificate
+    status: active
+    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T22:37:54.454Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-mcp-bootstrap-tools
   - id: SYM-test-session-brief
     title: session-brief.test
     status: active
@@ -43769,6 +43675,102 @@ symbols:
         target: TEST-claude-edit-snippet-hook
       - type: implements
         target: REQ-claude-decision-capture-nudges
+  - id: SYM-test-skills-core-arc
+    title: skills-core-arc.test
+    status: active
+    sourceFile: packages/cli/tests/skills-core-arc.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-skills-core-arc
+  - id: SYM-kibi-commit-review-skill-guidance
+    title: kibi-commit-review
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-commit-review/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-commit-review-kb-staging
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-decisions-skill-guidance
+    title: kibi-decisions
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-decisions/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-freshness-skill-guidance
+    title: kibi-freshness
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-freshness/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-kibi-traceability-skill-guidance
+    title: kibi-traceability
+    status: active
+    sourceFile: packages/cli/src/public/skills/kibi-traceability/SKILL.md
+    symbol_role: config
+    granularity_reason: config-artifact
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-skillopt-queriedBeforeWrite
+    title: queriedBeforeWrite
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
+  - id: SYM-skillopt-OBJECTIVE_WORKFLOWS
+    title: OBJECTIVE_WORKFLOWS
+    status: active
+    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:00:00.000Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-skills-core-arc
+      - type: implements
+        target: REQ-kibi-skills-write-without-ritual
   - id: SYM-test-agent-core-edit-snippet-why
     title: Shared edit snippet suite
     status: active
@@ -43974,310 +43976,6 @@ symbols:
         target: TEST-agent-core-edit-snippet-why
       - type: implements
         target: REQ-requirement-reason-skips-change-notes
-  - id: SYM-test-mcp-tool-profile
-    title: tool-profile.test
-    status: active
-    sourceFile: packages/mcp/tests/server/tool-profile.test.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    granularity_reason: test-suite
-    relationships:
-      - type: executable_for
-        target: TEST-mcp-default-tool-profile
-  - id: SYM-mcp-TOOL_PROFILES
-    title: TOOL_PROFILES
-    status: active
-    sourceFile: packages/mcp/src/tools-config.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-  - id: SYM-cli-ADVERTISED_FIELDS
-    title: ADVERTISED_FIELDS
-    status: active
-    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-upsert-capture-fields
-      - type: implements
-        target: REQ-mcp-upsert-capture-fields
-  - id: SYM-cli-commandSummary
-    title: commandSummary
-    status: active
-    sourceFile: packages/cli/src/cli-operation-metadata.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-cli-help-command-summaries
-      - type: implements
-        target: REQ-cli-help-command-summaries
-  - id: SYM-cli-UNLISTED_OPERATIONS
-    title: UNLISTED_OPERATIONS
-    status: active
-    sourceFile: packages/cli/src/cli-register-json.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-cli-help-command-summaries
-      - type: implements
-        target: REQ-cli-help-command-summaries
-  - id: SYM-mcp-DEFAULT_PROFILE_TOOLS
-    title: DEFAULT_PROFILE_TOOLS
-    status: active
-    sourceFile: packages/mcp/src/tools-config.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-mcp-default-profile-tools
-  - id: SYM-mcp-BOOTSTRAP_TOOLS
-    title: BOOTSTRAP_TOOLS
-    status: active
-    sourceFile: packages/mcp/src/tools-config.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-mcp-bootstrap-tools
-  - id: SYM-mcp-resolveToolProfile
-    title: resolveToolProfile
-    status: active
-    sourceFile: packages/mcp/src/tools-config.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-default-tool-profile
-      - type: implements
-        target: REQ-mcp-default-tool-profile
-  - id: SYM-mcp-knowledgeBaseIsEmpty
-    title: knowledgeBaseIsEmpty
-    status: active
-    sourceFile: packages/mcp/src/tools-config.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-default-tool-profile
-      - type: implements
-        target: REQ-mcp-default-tool-profile
-  - id: SYM-mcp-profileToolNames
-    title: profileToolNames
-    status: active
-    sourceFile: packages/mcp/src/tools-config.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-default-tool-profile
-      - type: implements
-        target: REQ-mcp-default-tool-profile
-  - id: SYM-mcp-serverInstructions
-    title: serverInstructions
-    status: active
-    sourceFile: packages/mcp/src/server.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-default-tool-profile
-      - type: covered_by
-        target: TEST-session-brief
-      - type: implements
-        target: REQ-mcp-default-tool-profile
-      - type: implements
-        target: REQ-session-brief-on-every-surface
-  - id: SYM-mcp-ToolProfile
-    title: ToolProfile
-    status: active
-    sourceFile: packages/mcp/src/tools-config.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-  - id: SYM-test-cli-commandSurface
-    title: commandSurface
-    status: active
-    sourceFile: packages/cli/tests/helpers/command-surface.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: executable_for
-        target: TEST-cli-help-command-summaries
-  - id: SYM-test-cli-CommandSurface
-    title: CommandSurface
-    status: active
-    sourceFile: packages/cli/tests/helpers/command-surface.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:00:00.000Z
-    relationships:
-      - type: executable_for
-        target: TEST-cli-help-command-summaries
-  - id: SYM-skillopt-run-independent-final-state
-    title: runIndependentFinalState
-    status: active
-    sourceFile: scripts/skillopt-eval/runtime/final-state.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T20:30:08.766Z
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-logical-evidence-fidelity
-      - type: implements
-        target: REQ-skillopt-logical-evidence-fidelity
-  - id: SYM-proof-mcp-default-profile-tools
-    title: mcpDefaultProfileToolsCertificate
-    status: active
-    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - exhaustive
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T22:37:52.745Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-mcp-default-profile-tools
-  - id: SYM-proof-mcp-bootstrap-tools
-    title: mcpBootstrapToolsCertificate
-    status: active
-    sourceFile: packages/mcp/tests/proofs/tool-profile.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - exhaustive
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T22:37:54.454Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-mcp-bootstrap-tools
-  - id: SYM-test-skills-core-arc
-    title: skills-core-arc.test
-    status: active
-    sourceFile: packages/cli/tests/skills-core-arc.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:00:00.000Z
-    relationships:
-      - type: executable_for
-        target: TEST-kibi-skills-core-arc
-  - id: SYM-kibi-commit-review-skill-guidance
-    title: kibi-commit-review
-    status: active
-    sourceFile: packages/cli/src/public/skills/kibi-commit-review/SKILL.md
-    symbol_role: config
-    granularity_reason: config-artifact
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-skills-core-arc
-      - type: implements
-        target: REQ-kibi-commit-review-kb-staging
-      - type: implements
-        target: REQ-kibi-skills-write-without-ritual
-  - id: SYM-kibi-decisions-skill-guidance
-    title: kibi-decisions
-    status: active
-    sourceFile: packages/cli/src/public/skills/kibi-decisions/SKILL.md
-    symbol_role: config
-    granularity_reason: config-artifact
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-skills-core-arc
-      - type: implements
-        target: REQ-kibi-skills-write-without-ritual
-  - id: SYM-kibi-freshness-skill-guidance
-    title: kibi-freshness
-    status: active
-    sourceFile: packages/cli/src/public/skills/kibi-freshness/SKILL.md
-    symbol_role: config
-    granularity_reason: config-artifact
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-skills-core-arc
-      - type: implements
-        target: REQ-kibi-skills-write-without-ritual
-  - id: SYM-kibi-traceability-skill-guidance
-    title: kibi-traceability
-    status: active
-    sourceFile: packages/cli/src/public/skills/kibi-traceability/SKILL.md
-    symbol_role: config
-    granularity_reason: config-artifact
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-skills-core-arc
-      - type: implements
-        target: REQ-kibi-skills-write-without-ritual
-  - id: SYM-skillopt-queriedBeforeWrite
-    title: queriedBeforeWrite
-    status: active
-    sourceFile: scripts/skillopt-eval/runtime/codex-cell-defaults.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-skills-core-arc
-      - type: implements
-        target: REQ-kibi-skills-write-without-ritual
-  - id: SYM-skillopt-OBJECTIVE_WORKFLOWS
-    title: OBJECTIVE_WORKFLOWS
-    status: active
-    sourceFile: scripts/skillopt-eval/fixtures/objective-expectations.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T16:00:00.000Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-skills-core-arc
-      - type: implements
-        target: REQ-kibi-skills-write-without-ritual
   - id: SYM-owner-findings-collect-owner-findings
     title: collectOwnerFindings
     sourceFile: packages/cli/src/traceability/owner-findings.ts
@@ -44452,3 +44150,335 @@ symbols:
         target: TEST-kibi-env-workspace-file-key-policy
       - type: implements
         target: REQ-kibi-env-workspace-file-key-policy
+  - id: SYM-capture-with-requirement-capture
+    title: withRequirementCapture
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:11:59.897Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-capture-capture-follow-up
+    title: captureFollowUp
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:30.133Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-capture-prolog-capture-reads
+    title: prologCaptureReads
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:36.034Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-capture-evidence-floor-of
+    title: evidenceFloorOf
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:41.725Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-subject-warnings-claim-subject-gaps
+    title: claimSubjectGaps
+    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:12:47.351Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-capture-related-current-requirements
+    title: relatedCurrentRequirements
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:13:10.836Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-decision-guard-stated-reason
+    title: statedReason
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:13:50.098Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-decision-guard-session-rule-reason
+    title: sessionRuleReason
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:14:06.180Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-test-kb-upsert-capture-with-why
+    title: kb_upsert capture with why consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/upsert-capture-with-why.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:17:36.301Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-capture-with-why
+  - id: SYM-types-upsert-input
+    title: UpsertInput
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:03.779Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-types-upsert-payload
+    title: UpsertPayload
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:07.541Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-upsert-why-schema
+    title: WHY_SCHEMA
+    sourceFile: packages/cli/src/public/operations/specs/upsert.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:10.489Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-capture-why-placeholder
+    title: WHY_PLACEHOLDER
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:13.296Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-requirement-why
+  - id: SYM-capture-capture-next-action
+    title: CaptureNextAction
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:34.646Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-subject-warnings-claim-subject-missing-prefix
+    title: claimSubjectMissingPrefix
+    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:40.368Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-subject-warnings-claim-subject-gap
+    title: ClaimSubjectGap
+    sourceFile: packages/cli/src/operations/mutation/subject-warnings.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:40:48.501Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-capture-next-actions
+  - id: SYM-capture-related-requirement
+    title: RelatedRequirement
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:08.638Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-capture-max-related-requirements
+    title: MAX_RELATED_REQUIREMENTS
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:12.964Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-capture-max-related-statement
+    title: MAX_RELATED_STATEMENT
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:17.070Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-implemented-by-implemented-by-deps
+    title: ImplementedByDeps
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:21.293Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-mutation-implemented-by-implemented-by-deps
+    title: IMPLEMENTED_BY_DEPS
+    sourceFile: packages/cli/src/operations/mutation/implemented-by.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:25.652Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-capture-capture-reads
+    title: CaptureReads
+    sourceFile: packages/cli/src/operations/mutation/capture.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:29.618Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-capture-with-why
+      - type: implements
+        target: REQ-kb-upsert-related-current-requirements
+  - id: SYM-session-state-session-event
+    title: SessionEvent
+    sourceFile: packages/claude/src/session-state.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:46.709Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-session-state-session-state
+    title: SessionState
+    sourceFile: packages/claude/src/session-state.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:52.497Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-session-state-empty-session-state
+    title: emptySessionState
+    sourceFile: packages/claude/src/session-state.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:41:56.748Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-hosts-rule-reason-capture
+      - type: implements
+        target: REQ-agent-hosts-rule-reason-capture
+  - id: SYM-types-validate-upsert-payload
+    title: ValidateUpsertPayload
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T22:25:48.524Z
+    relationships:
+      - type: covered_by
+        target: TEST-upsert-stale-siblings
+      - type: implements
+        target: REQ-upsert-dry-run-lists-siblings

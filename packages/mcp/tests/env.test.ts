@@ -191,6 +191,12 @@ describe("env file loading behavior", () => {
     expect(getCoreModulePathOverride("discovery.pl")).toBe("/tmp/discovery.pl");
   });
 
+  test("getCoreModulePathOverride treats an empty override as unset", () => {
+    process.env.KIBI_DISCOVERY_PL_PATH = "";
+
+    expect(getCoreModulePathOverride("discovery.pl")).toBeUndefined();
+  });
+
   test("getKbPlPathOverride returns generic kb.pl override", () => {
     process.env.KIBI_KB_PL_PATH = "/tmp/kb.pl";
 
