@@ -36,7 +36,10 @@ import {
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import {
+  extractKbMcpToolCall,
+  stampKibiWorkspace,
+} from "kibi-agent-core/kb-mcp-tools";
 import {
   type IndexedSymbol,
   loadKnowledgeIndex,
@@ -51,7 +54,12 @@ import {
 } from "kibi-agent-core/snippets";
 
 type Summarize = ReturnType<typeof createEntitySummarizer>;
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import {
+  parseHookInput,
+  parseStdinJson,
+  readStdin,
+} from "kibi-agent-core/hook-input";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   addDirtyPaths,
   clearDirtyPaths,
@@ -60,7 +68,6 @@ import {
   resolvePluginDataDir,
   resolveSessionStateDir,
 } from "./hook-state.js";
-import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   DIRECT_KB_EDIT_WARNING,
   SESSION_START_CONTEXT,
@@ -75,7 +82,6 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
-import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ZcodeHookEvent =
   | "SessionStart"
