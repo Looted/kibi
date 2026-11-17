@@ -7,14 +7,19 @@ import path from "node:path";
 import { firmRequirementsTouched } from "../src/decision-guard";
 import {
   FIRM_EDIT_RECEIPT_VERSION,
+  FIRM_EDIT_REMOVED_CODE_HASH,
   FIRM_EDIT_REVIEWS_DIR,
   type FirmEditReceipt,
   firmEditCodeHash,
+  firmEditLegacyReceiptPath,
   firmEditReceiptMismatch,
   firmEditReceiptPath,
   firmEditReviewed,
   firmEditStatementHash,
   parseFirmEditReceipt,
+  readFirmEditReceipt,
+  readRequirementStatement,
+  requirementStatementFromDocument,
   serializeFirmEditReceipt,
 } from "../src/firm-edit-review";
 import type { EntitySummary, IndexedSymbol } from "../src/knowledge-index";
@@ -100,18 +105,184 @@ describe("hashes", () => {
 });
 
 describe("receipt paths", () => {
-  test("one file per requirement and symbol, with file-safe names", () => {
+  const digest = (text: string) =>
+    createHash("sha256").update(text).digest("hex").slice(0, 32);
+
+  test("one file per requirement and symbol, named by a hash of both", () => {
     expect(firmEditReceiptPath("REQ-a", "src/keys.ts", "expireKey")).toBe(
+      `${FIRM_EDIT_REVIEWS_DIR}/REQ-a/expireKey--${digest("src/keys.ts\0expireKey")}.json`,
+    );
+    expect(
+      firmEditReceiptPath("REQ-a.b_c", "a b/c$d.ts", "Key Store/rotate"),
+    ).toBe(
+      `.kb/firm-edit-reviews/REQ-a.b_c/Key_Store__rotate--${digest("a b/c$d.ts\0Key Store/rotate")}.json`,
+    );
+  });
+
+  test("paths that one file-safe name would merge get their own files", () => {
+    expect(firmEditReceiptPath("REQ-a", "src/a b.ts", "f")).not.toBe(
+      firmEditReceiptPath("REQ-a", "src/a_b.ts", "f"),
+    );
+    expect(firmEditLegacyReceiptPath("REQ-a", "src/a b.ts", "f")).toBe(
+      firmEditLegacyReceiptPath("REQ-a", "src/a_b.ts", "f") as string,
+    );
+  });
+
+  test("a long path or symbol name keeps the file name short", () => {
+    const long = `src/${"a".repeat(300)}.ts`;
+    const name = (firmEditReceiptPath("REQ-a", long, "s".repeat(300)) as string)
+      .split("/")
+      .at(-1) as string;
+    expect(name).toBe(
+      `${"s".repeat(48)}--${digest(`${long}\0${"s".repeat(300)}`)}.json`,
+    );
+    expect(firmEditLegacyReceiptPath("REQ-a", long, "f")).toBeUndefined();
+  });
+
+  test("the name earlier releases wrote", () => {
+    expect(firmEditLegacyReceiptPath("REQ-a", "src/keys.ts", "expireKey")).toBe(
       `${FIRM_EDIT_REVIEWS_DIR}/REQ-a/src__keys.ts--expireKey.json`,
     );
     expect(
-      firmEditReceiptPath("REQ-a.b_c", "a b/c$d.ts", "KeyStore.rotate"),
+      firmEditLegacyReceiptPath("REQ-a.b_c", "a b/c$d.ts", "KeyStore.rotate"),
     ).toBe(".kb/firm-edit-reviews/REQ-a.b_c/a_b__c_d.ts--KeyStore.rotate.json");
   });
 
   test("an id that is not a requirement id has none", () => {
-    for (const id of ["SYM-a", "REQ-", "REQ-a/b", "../REQ-a", "xREQ-a"])
+    for (const id of ["SYM-a", "REQ-", "REQ-a/b", "../REQ-a", "xREQ-a"]) {
       expect(firmEditReceiptPath(id, "a.ts", "f")).toBeUndefined();
+      expect(firmEditLegacyReceiptPath(id, "a.ts", "f")).toBeUndefined();
+    }
+  });
+
+  test("a receipt reads from its file, else from the earlier name, when it names the pair", () => {
+    const files = new Map<string, string>();
+    const read = () =>
+      readFirmEditReceipt(
+        "REQ-key-expiry",
+        "src/keys.ts",
+        "expireKey",
+        (file) => files.get(file),
+      );
+    const legacy = firmEditLegacyReceiptPath(
+      "REQ-key-expiry",
+      "src/keys.ts",
+      "expireKey",
+    ) as string;
+    const current = firmEditReceiptPath(
+      "REQ-key-expiry",
+      "src/keys.ts",
+      "expireKey",
+    ) as string;
+    expect(read()).toBeUndefined();
+    files.set(legacy, serializeFirmEditReceipt(receipt({ note: "old" })));
+    expect(read()?.note).toBe("old");
+    files.set(current, serializeFirmEditReceipt(receipt({ note: "new" })));
+    expect(read()?.note).toBe("new");
+    // A file holding another pair's receipt (a merged legacy name) is not it.
+    for (const other of [
+      receipt({ requirementId: "REQ-other" }),
+      receipt({ sourceFile: "src/key_s.ts" }),
+      receipt({ symbol: "renderKey" }),
+    ]) {
+      files.delete(current);
+      files.set(legacy, serializeFirmEditReceipt(other));
+      expect(read()).toBeUndefined();
+    }
+    expect(
+      readFirmEditReceipt("SYM-a", "src/keys.ts", "expireKey", () => {
+        throw new Error("not read");
+      }),
+    ).toBeUndefined();
+  });
+});
+
+describe("requirement statements", () => {
+  const doc = (front: string, body = "") =>
+    `---\nid: REQ-a\n${front}---\n${body}`;
+
+  test("semantic_text in every scalar form", () => {
+    expect(
+      requirementStatementFromDocument(doc("semantic_text: Keys expire.\n")),
+    ).toBe("Keys expire.");
+    expect(
+      requirementStatementFromDocument(
+        doc(
+          "semantic_text: >-\n  Keys must\n  expire soon.\n\n  Second para.\ntitle: T\n",
+        ),
+      ),
+    ).toBe("Keys must expire soon. Second para.");
+    expect(
+      requirementStatementFromDocument(
+        doc("semantic_text: |\n  One.\n\n  Two.\n"),
+      ),
+    ).toBe("One. Two.");
+    expect(
+      requirementStatementFromDocument(
+        doc('semantic_text: "Say \\"no\\" to\\told keys:\\n always\\\\."\n'),
+      ),
+    ).toBe('Say "no" to\told keys:\n always\\.');
+    expect(
+      requirementStatementFromDocument(doc('semantic_text: "open quote\n')),
+    ).toBe("open quote");
+    expect(
+      requirementStatementFromDocument(
+        doc("semantic_text: 'It''s ninety\n  days.'\n"),
+      ),
+    ).toBe("It's ninety days.");
+    expect(
+      requirementStatementFromDocument(doc("semantic_text: 'open\n")),
+    ).toBe("open");
+    expect(
+      requirementStatementFromDocument(
+        doc("semantic_text: Keys expire\n  after ninety days. # a comment\n"),
+      ),
+    ).toBe("Keys expire after ninety days.");
+    expect(
+      requirementStatementFromDocument(
+        doc("semantic_text:\n  Indented plain.\n"),
+      ),
+    ).toBe("Indented plain.");
+  });
+
+  test("without semantic_text: the body without headings and context, else the title", () => {
+    expect(
+      requirementStatementFromDocument(
+        doc(
+          "title: T\n",
+          "\n# Heading\n\n- First rule.\n\n> Quoted.\n\n## Context\n\nWhy.\n\n### Detail\n\nStill context.\n\n## Scope\n\n1. Back in.\n",
+        ),
+      ),
+    ).toBe("First rule. Quoted. Back in.");
+    expect(
+      requirementStatementFromDocument(
+        doc(
+          "title: Keys expire\nsemantic_text: ''\n",
+          "\n## **Notes**\n\nOnly context.\n",
+        ),
+      ),
+    ).toBe("Keys expire");
+    expect(
+      requirementStatementFromDocument(doc("status: open\n")),
+    ).toBeUndefined();
+    expect(requirementStatementFromDocument(doc("title:\n"))).toBeUndefined();
+    expect(requirementStatementFromDocument("no front matter")).toBeUndefined();
+    expect(requirementStatementFromDocument("---\ntitle: T\n")).toBeUndefined();
+    expect(requirementStatementFromDocument("---\r\ntitle: T\r\n---\r\n")).toBe(
+      "T",
+    );
+  });
+
+  test("read from the workspace's requirement document", () => {
+    const root = workspace();
+    fs.mkdirSync(path.join(root, ".kb/requirements"), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, ".kb/requirements/REQ-a.md"),
+      doc("semantic_text: Keys expire.\n"),
+    );
+    expect(readRequirementStatement(root, "REQ-a")).toBe("Keys expire.");
+    expect(readRequirementStatement(root, "REQ-missing")).toBeUndefined();
+    expect(readRequirementStatement(root, "../REQ-a")).toBeUndefined();
   });
 });
 
@@ -190,6 +361,31 @@ describe("firmEditReceiptMismatch", () => {
     ).toBeUndefined();
   });
 
+  test("the receipt's code matches wherever it now sits in the file", () => {
+    expect(
+      firmEditReceiptMismatch(receipt(), {
+        statement: STATEMENT,
+        content: `// header\n\n${SOURCE}`,
+      }),
+    ).toBeUndefined();
+    expect(
+      firmEditReceiptMismatch(
+        receipt({
+          codeHash: FIRM_EDIT_REMOVED_CODE_HASH,
+          startLine: 0,
+          endLine: 0,
+        }),
+        { statement: STATEMENT, content: SOURCE },
+      ),
+    ).toBe("code-changed");
+    expect(
+      firmEditReceiptMismatch(receipt({ startLine: 3, endLine: 1 }), {
+        statement: STATEMENT,
+        content: SOURCE,
+      }),
+    ).toBe("code-changed");
+  });
+
   test("names what changed since the receipt", () => {
     expect(
       firmEditReceiptMismatch(receipt(), {
@@ -236,26 +432,66 @@ function store(root: string, value: FirmEditReceipt | string): void {
   );
 }
 
-describe("firmEditReviewed", () => {
-  const statementOf = (id: string) =>
-    id === "REQ-key-expiry"
-      ? { statement: STATEMENT, title: "Keys expire" }
-      : {};
-  const expire = { title: "expireKey" };
+function requirement(root: string, front: string): void {
+  fs.mkdirSync(path.join(root, ".kb/requirements"), { recursive: true });
+  fs.writeFileSync(
+    path.join(root, ".kb/requirements/REQ-key-expiry.md"),
+    `---\nid: REQ-key-expiry\n${front}---\n`,
+  );
+}
 
-  test("a current keeps receipt reviews the symbol", () => {
+describe("firmEditReviewed", () => {
+  const expire = { title: "expireKey" };
+  const askedAt = Date.parse("2026-11-15T00:00:00.000Z");
+  const asked = (id: string) => (id === "REQ-key-expiry" ? askedAt : undefined);
+
+  test("a keeps receipt recorded after this session asked reviews the symbol", () => {
     const root = workspace();
+    requirement(
+      root,
+      "semantic_text: >-\n  API keys must expire  ninety days\n\n  after they are created.\n",
+    );
     store(root, receipt());
-    const reviewed = firmEditReviewed(root, "src/keys.ts", statementOf);
+    const reviewed = firmEditReviewed(root, "src/keys.ts", asked);
     expect(reviewed("REQ-key-expiry", expire)).toBe(true);
     // The file is read once, so a second answer reuses it.
     fs.rmSync(path.join(root, "src/keys.ts"));
     expect(reviewed("REQ-key-expiry", expire)).toBe(true);
   });
 
+  test("a receipt from before the question, or with no question asked, does not", () => {
+    const root = workspace();
+    requirement(root, `semantic_text: ${STATEMENT.replace("\n", " ")}\n`);
+    store(root, receipt());
+    expect(
+      firmEditReviewed(
+        root,
+        "src/keys.ts",
+        () => undefined,
+      )("REQ-key-expiry", expire),
+    ).toBe(false);
+    expect(
+      firmEditReviewed(
+        root,
+        "src/keys.ts",
+        () => Date.parse(receipt().recordedAt) + 1,
+      )("REQ-key-expiry", expire),
+    ).toBe(false);
+    expect(
+      firmEditReviewed(root, "src/keys.ts", () =>
+        Date.parse(receipt().recordedAt),
+      )("REQ-key-expiry", expire),
+    ).toBe(true);
+    store(root, receipt({ recordedAt: "not a time" }));
+    expect(
+      firmEditReviewed(root, "src/keys.ts", asked)("REQ-key-expiry", expire),
+    ).toBe(false);
+  });
+
   test("no receipt, a stale one, a changes verdict or another symbol's does not", () => {
     const root = workspace();
-    const reviewed = () => firmEditReviewed(root, "src/keys.ts", statementOf);
+    const reviewed = () => firmEditReviewed(root, "src/keys.ts", asked);
+    requirement(root, `semantic_text: ${STATEMENT.replace("\n", " ")}\n`);
     expect(reviewed()("REQ-key-expiry", expire)).toBe(false);
     for (const value of [
       receipt({ verdict: "changes" }),
@@ -271,22 +507,13 @@ describe("firmEditReviewed", () => {
     }
     store(root, receipt());
     expect(reviewed()("REQ-key-expiry", expire)).toBe(true);
-    expect(reviewed()("REQ-unknown", expire)).toBe(false);
-    // Without the requirement's statement nothing can match.
-    expect(
-      firmEditReviewed(root, "src/keys.ts", () => ({}))(
-        "REQ-key-expiry",
-        expire,
-      ),
-    ).toBe(false);
     // Without prose the title is the statement.
-    expect(
-      firmEditReviewed(root, "src/keys.ts", () => ({ title: STATEMENT }))(
-        "REQ-key-expiry",
-        expire,
-      ),
-    ).toBe(true);
-    expect(reviewed()("SYM-not-a-requirement", expire)).toBe(false);
+    requirement(root, `title: ${STATEMENT.replace("\n", " ")}\n`);
+    expect(reviewed()("REQ-key-expiry", expire)).toBe(true);
+    // Without the requirement's document nothing can match.
+    fs.rmSync(path.join(root, ".kb/requirements/REQ-key-expiry.md"));
+    expect(reviewed()("REQ-key-expiry", expire)).toBe(false);
+    requirement(root, `semantic_text: ${STATEMENT.replace("\n", " ")}\n`);
     fs.rmSync(path.join(root, "src/keys.ts"));
     expect(reviewed()("REQ-key-expiry", expire)).toBe(false);
   });

@@ -409,3 +409,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-333116cb8965
+  - type: covered_by
+    from: SYM-cli-review-firm-edit-spec
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:24:58.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaf69a068b21

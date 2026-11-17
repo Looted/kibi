@@ -328,6 +328,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa333f9e3bea
+  - type: covered_by
+    from: SYM-cli-review-firm-edit-deps
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:24:46.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff1e8e47f7cc
   - type: assumes
     from: SCEN-NEG-kibi-commit-review-kb-staging-NEVER-OPEN
     to: FACT-kibi-commit-review-guidance-never-open

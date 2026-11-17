@@ -19,6 +19,7 @@ import {
   createSymbolGranularityDiagnostics,
 } from "./diagnostics.js";
 import { createFirmEditGateDiagnostics } from "./firm-edit-gate.js";
+import { stagedFirmEditGateOptions } from "./firm-edit-staged.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
@@ -176,6 +177,16 @@ export async function analyzeChangedFileImpact(
     snapshotKnowledge
       ? snapshotEntities.get(id)
       : readWorkspaceRequirement(workspaceRoot, id);
+  const readTree = (tree: string, file: string): string | undefined => {
+    try {
+      return (snapshot as NonNullable<typeof snapshot>)
+        .readGit(["show", `${tree}:${file}`])
+        .toString("utf8");
+    } catch {
+      // A file the tree does not hold has no text.
+    }
+    return undefined;
+  };
   const requirementChanged = (requirement: { source: string }) =>
     snapshot
       ? snapshot.inventory.some((file) => file.path === requirement.source)
@@ -199,28 +210,69 @@ export async function analyzeChangedFileImpact(
             readRequirement,
             requirementChanged,
           }),
-          ...createFirmEditGateDiagnostics({
-            symbolsByFile,
-            readContent: (file) => contentByFile.get(file),
-            readRequirement,
-            requirementChanged,
-            readReceipt: (receiptPath) => {
-              try {
-                return snapshot
-                  ? snapshot
-                      .readGit(["show", `${snapshot.headTree}:${receiptPath}`])
-                      .toString("utf8")
-                  : // rationale: with the empty encoding Bun returns a Buffer,
-                    // which the receipt parser's JSON.parse reads as the
-                    // same text.
-                    // Stryker disable next-line StringLiteral
-                    readFileSync(path.join(workspaceRoot, receiptPath), "utf8");
-              } catch {
-                // A receipt that cannot be read counts as missing.
-              }
-              return undefined;
-            },
-          }),
+          ...createFirmEditGateDiagnostics(
+            snapshot
+              ? await stagedFirmEditGateOptions({
+                  sourceFiles: (snapshotSources ?? []).filter(
+                    (file) => file.content !== undefined,
+                  ),
+                  // Every declaration, each with the hunks it owns, so a
+                  // symbol the change only removes lines from is still seen.
+                  extractAll: (file) =>
+                    extractSymbolsFromStagedFileAsync(
+                      { ...file, status: "A" },
+                      manifestLookup,
+                      {
+                        analyzeText: async () =>
+                          (analyses?.get(file.path) as SourceChangeAnalysis)
+                            .after,
+                      },
+                    ),
+                  changedPaths: new Set(
+                    snapshot.inventory.flatMap((file) =>
+                      file.oldPath === undefined
+                        ? [file.path]
+                        : [file.path, file.oldPath],
+                    ),
+                  ),
+                  knowledge: snapshotKnowledge ?? [],
+                  readBaseKnowledge: () => {
+                    try {
+                      return readSnapshotKnowledge(
+                        snapshot.readGit,
+                        snapshot.baseTree,
+                        snapshot.readBlobs,
+                      );
+                    } catch {
+                      // Knowledge the base cannot compile names no removal.
+                      return [];
+                    }
+                  },
+                  readChanged: (file) => readTree(snapshot.headTree, file),
+                  readBase: (file) => readTree(snapshot.baseTree, file),
+                  readContent: (file) => contentByFile.get(file),
+                  readReceipt: (receiptPath) =>
+                    readTree(snapshot.headTree, receiptPath),
+                  hasUnstagedChanges: () => false,
+                })
+              : {
+                  symbolsByFile,
+                  readContent: (file) => contentByFile.get(file),
+                  readRequirement,
+                  requirementChanged,
+                  readReceipt: (receiptPath) => {
+                    try {
+                      return readFileSync(
+                        path.join(workspaceRoot, receiptPath),
+                        "utf8",
+                      );
+                    } catch {
+                      // A receipt that cannot be read counts as missing.
+                    }
+                    return undefined;
+                  },
+                },
+          ),
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeManifestResults,
             symbolsByFile,
