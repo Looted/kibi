@@ -5,7 +5,7 @@ import type {
   OperationContext,
   PrologPort,
 } from "kibi-cli/operations/runtime-types";
-import { getSpec } from "kibi-runtime";
+import { KbRejection, getSpec } from "kibi-runtime";
 
 import type { DiagnosticErrorFields } from "../../src/diagnostics.js";
 import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
@@ -845,6 +845,50 @@ describe.serial("server tools coverage", () => {
       code: "PLAN_STALE",
       message: "Plan snapshot moved.",
       retryable: true,
+    });
+  });
+
+  test("addTool answers a refusal with the CLI's OPERATION_FAILED envelope", async () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const refusal = new KbRejection(
+      "SEMANTIC_CONTRADICTION",
+      "Upsert execution failed: REQ-a and REQ-b contradict.",
+    );
+    const wrapped = new Error("wrapper", { cause: refusal });
+    for (const [index, failure] of [refusal, wrapped].entries()) {
+      addTool(
+        server,
+        `refused_tool_${index}`,
+        "refused tool",
+        {},
+        mock(async (): Promise<unknown> => {
+          throw failure;
+        }),
+        runtime,
+      );
+    }
+    const [direct, cause] = (await Promise.all(
+      [0, 1].map((index) =>
+        invokeTool(getRegisteredTool(registered, `refused_tool_${index}`), {}),
+      ),
+    )) as {
+      structuredContent: {
+        status: string;
+        error: { code: string; message: string; retryable: boolean };
+      };
+      isError?: boolean;
+    }[];
+    expect(direct?.isError).toBe(true);
+    expect(direct?.structuredContent.error).toEqual({
+      code: "OPERATION_FAILED",
+      message: "Upsert execution failed: REQ-a and REQ-b contradict.",
+      retryable: false,
+    });
+    expect(cause?.structuredContent.error).toEqual({
+      code: "OPERATION_FAILED",
+      message: "wrapper",
+      retryable: false,
     });
   });
 

@@ -1038,6 +1038,39 @@ export function renderYamlRelationshipDeletion(
 }
 
 /**
+ * A Markdown document without an `id` holds the entity sync derives an id
+ * for (from its path and title), so a write into it replaces that entity
+ * unless the store already reads this entity from that very file. The
+ * front-matter id check in renderEntityDocument cannot see such a document.
+ */
+function assertIdlessDocumentHeld(
+  context: OperationContext,
+  input: UpsertInput,
+  existing: Readonly<Record<string, unknown>> | undefined,
+  absolute: string,
+  before: string | undefined,
+): void {
+  if (before === undefined || !/\.mdx?$/i.test(absolute)) return;
+  const { frontmatter } = bodyAndFrontmatter(before);
+  if (Object.keys(frontmatter).length === 0 || frontmatter.id != null) return;
+  // The file the store reads this entity from, resolved as a write to it is.
+  if (
+    authoredPath(existing?.source) !== undefined &&
+    sourcePath(
+      context,
+      { type: input.type, id: input.id, properties: {} },
+      input,
+      existing,
+    ) === absolute
+  )
+    return;
+  throw new OperationError(
+    "SOURCE_ENTITY_MISMATCH",
+    `Authored document ${path.relative(context.workspaceRoot, absolute).replaceAll("\\", "/")} holds another entity (it has no id, so sync derives one from its path and title), not ${input.id}; write ${input.id} to its own file or omit document.path`,
+  );
+}
+
+/**
  * The bytes an upsert of `entity` publishes at `relativePath`, merged into the
  * document's current content. Compile plans render their documents with it
  * so a plan writes exactly what `kb_upsert` would.
@@ -1130,6 +1163,7 @@ export async function renderSourceWrite(
   // keeps its authored formatting (and the workspace snapshot stays stable).
   // Only valid when the document already exists; a new document still needs
   // the canonical render.
+  assertIdlessDocumentHeld(context, input, existing, absolute, before);
   const after =
     before !== undefined && sourceDocumentOverride !== undefined
       ? sourceDocumentOverride

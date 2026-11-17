@@ -5,6 +5,7 @@ import {
   type ConsumerWorkspace,
   type Json,
   QUOTA_SUBJECT,
+  adviseProse,
   authorQuotaRequirement,
   checkViolations,
   createConsumerWorkspace,
@@ -249,5 +250,52 @@ describe("one quantity stated under two names", () => {
       ),
     );
     expect(staged().quantity).toEqual([]);
+  }, 300_000);
+  test("a requirement written with its value fact and its code in one call names the twin", () => {
+    const prose = "A client must be capped at 500 calls per window.";
+    const { propositions } = adviseProse(workspace, prose);
+    const [claim] = propositions;
+    if (claim === undefined) throw new Error("no proposition");
+    const fact = upsert({
+      type: "fact",
+      id: "FACT-quota-call-cap",
+      properties: {
+        title: "Call cap per window",
+        status: "active",
+        fact_kind: "property_value",
+        subject_key: "client.call_quota",
+        property_key: "call_cap",
+        operator: "lte",
+        value_type: "int",
+        value_int: 500,
+        claim_key: claim.claim_key,
+        claim_text: claim.claim_text,
+      },
+    });
+    expect(fact.status, JSON.stringify(fact)).toBe("success");
+    const result = upsert({
+      type: "req",
+      id: "REQ-quota-call-cap",
+      properties: {
+        title: "A client is capped at 500 calls per window",
+        status: "open",
+        semantic_text: prose,
+        semantic_inventory: [{ claim_key: claim.claim_key, status: "modeled" }],
+      },
+      relationships: [
+        {
+          type: "requires_property",
+          from: "REQ-quota-call-cap",
+          to: "FACT-quota-call-cap",
+        },
+      ],
+      implementedBy: [{ sourceFile: "src/quota.ts", symbol: "remainingCalls" }],
+    });
+    expect(result.status, JSON.stringify(result)).toBe("success");
+    expect(quantityNotes(result)).toContainEqual(
+      expect.stringContaining(
+        "FACT-quota-call-cap (client.call_quota.call_cap = 500) states the same quantity as FACT-quota-ceiling",
+      ),
+    );
   }, 300_000);
 });

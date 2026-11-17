@@ -292,9 +292,7 @@ function withStoredLedger(
     if (own[field] === undefined && recorded[field] !== undefined)
       kept[field] = recorded[field];
   const properties = { ...kept, ...own };
-  const inventory = Array.isArray(properties.semantic_inventory)
-    ? properties.semantic_inventory.filter(isRecord)
-    : [];
+  const inventory = [properties.semantic_inventory].flat().filter(isRecord);
   return {
     input: { ...input, properties },
     applied: inventory.map((entry) => ({

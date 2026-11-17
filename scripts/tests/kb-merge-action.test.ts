@@ -299,4 +299,55 @@ git push -q origin HEAD:refs/heads/feature/one
       "KB_MERGE_ATTEMPTS must be a positive integer",
     );
   });
+  test("fails when the pull requests cannot be listed", () => {
+    const fx = new Fixture();
+    manifestConflict(fx);
+    write(
+      path.join(fx.bin, "gh"),
+      "#!/bin/sh\necho 'HTTP 403: Resource not accessible by integration' >&2\nexit 1\n",
+      0o755,
+    );
+    for (const env of [{}, { KB_MERGE_LIST_ONLY: "true" }]) {
+      const run = fx.run(env);
+      expect(run.status).not.toBe(0);
+      expect(run.stderr).toContain(
+        "Could not list the open pull requests into develop",
+      );
+      expect(run.calls).toEqual([]);
+    }
+  });
+
+  test("reports a refused push as git's error without retrying", () => {
+    const fx = new Fixture();
+    manifestConflict(fx);
+    const before = fx.tip("feature/one");
+    write(
+      path.join(fx.remote, "hooks", "pre-receive"),
+      "#!/bin/sh\necho 'protected branch' >&2\nexit 1\n",
+      0o755,
+    );
+    const run = fx.run();
+    expect(run.status).not.toBe(0);
+    expect(run.outputs.failed).toEqual(["feature/one"]);
+    expect(run.stdout).not.toContain("the branch moved");
+    expect(run.stdout).toContain("feature/one: not pushed: ");
+    expect(run.stdout).toContain("protected branch");
+    expect(run.calls.filter((call) => call === "merge-driver")).toHaveLength(1);
+    expect(fx.tip("feature/one")).toBe(before);
+  });
+
+  test("routes the manifests once however often it runs in one clone", () => {
+    const fx = new Fixture();
+    manifestConflict(fx);
+    fx.run();
+    fx.run();
+    const attributes = readFileSync(
+      path.join(fx.ws, ".git", "info", "attributes"),
+      "utf8",
+    )
+      .split("\n")
+      .filter(Boolean);
+    expect(attributes).toEqual([...new Set(attributes)]);
+    expect(attributes.length).toBeGreaterThan(0);
+  });
 });

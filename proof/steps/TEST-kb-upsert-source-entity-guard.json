@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kb-upsert-source-entity-guard",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/operations-mutation/mutation/source-authoring.test.ts"
+    ]
+  ]
+}

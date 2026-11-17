@@ -32,6 +32,7 @@ import {
   relatedCurrentRequirements,
   withRequirementCapture,
 } from "./capture.js";
+import { quantityWarnings } from "./quantity-warnings.js";
 import type {
   ImplementedByInput,
   ImplementedByLink,
@@ -39,6 +40,10 @@ import type {
   UpsertPayload,
 } from "./types.js";
 import { executeUpsert, validateUpsertForCommit } from "./upsert.js";
+
+type ValidatedRequirement = Awaited<
+  ReturnType<typeof validateUpsertForCommit>
+>["validated"];
 
 const ISSUE = { rule: "implemented_by_unresolved", field: "implementedBy" };
 
@@ -421,11 +426,14 @@ export type ImplementedByDeps = Readonly<{
   ) => Promise<readonly Record<string, unknown>[]>;
   /** What the capture steps read; none without a store. */
   captureReads: (context: OperationContext) => CaptureReads | undefined;
+  /** The requirement's quantity-duplicate warnings once its code is linked. */
+  quantityWarnings: typeof quantityWarnings;
 }>;
 
 export const IMPLEMENTED_BY_DEPS: ImplementedByDeps = {
   execute: executeUpsert,
   validate: validateUpsertForCommit,
+  quantityWarnings,
   // kb_upsert requires Prolog, so the operation runtime always supplies it.
   storedSymbols: (context) =>
     loadEntitiesPaged(context.prolog as PrologPort, "symbol"),
@@ -531,8 +539,11 @@ async function executeLinkedUpsert(
 
   const { dryRun: _dryRun, ...commitRequirement } = requirement;
   const links = steps.map((step) => step.link);
+  // Set by validateSymbols, which every write runs before it executes.
+  let checkedRequirement!: ValidatedRequirement;
   const validateSymbols = async () => {
     const checked = await deps.validate(commitRequirement, context);
+    checkedRequirement = checked.validated;
     const staged = {
       entities: new Map([[input.id, checked.validated.entity]]),
       relationships: [...checked.validated.relationships],
@@ -573,6 +584,18 @@ async function executeLinkedUpsert(
       );
     }
   }
+  // The requirement's quantity warnings were read before its symbols linked
+  // it to their code, so a twin that shares that code is named only now.
+  const linkedWarnings = deps.quantityWarnings({
+    type: input.type,
+    id: input.id,
+    entity: checkedRequirement.entity,
+    relationships: checkedRequirement.relationships,
+    workspaceRoot: context.workspaceRoot,
+  });
+  const added = linkedWarnings.filter(
+    (warning) => !merged.warnings.includes(warning),
+  );
   return {
     ...result,
     content: [
@@ -582,6 +605,10 @@ async function executeLinkedUpsert(
         text: `Linked ${written.length} implementing symbol(s): ${written.map((link) => `${link.symbolId}${link.created ? " (new)" : ""}`).join(", ")}.`,
       },
     ],
-    structuredContent: { ...merged, implementedBy: written },
+    structuredContent: {
+      ...merged,
+      ...(added.length > 0 ? { warnings: [...merged.warnings, ...added] } : {}),
+      implementedBy: written,
+    },
   };
 }

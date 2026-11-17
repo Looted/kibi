@@ -1361,7 +1361,7 @@ describe("prove selection", () => {
     );
     expect(goals).toEqual([
       "findall([S,T], (kb_relationship(specified_by, 'REQ-1', S), (kb_relationship(verified_by, S, T) ; kb_relationship(validates, T, S))), Rows)",
-      "findall(T, kb_relationship(validates, T, 'REQ-1'), Rows)",
+      "findall(T, (kb_relationship(validates, T, 'REQ-1') ; kb_relationship(verified_by, 'REQ-1', T)), Rows)",
     ]);
     expect(h.loads).toEqual([{ type: "test", projection: "proof_contract" }]);
     expect(h.ingests.map((call) => call.testIds)).toEqual([

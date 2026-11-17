@@ -45943,3 +45943,28 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-17T17:45:40.136Z
+  - id: SYM-test-kb-upsert-source-entity-guard
+    title: Source authoring suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/source-authoring.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T18:13:17.639Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-source-entity-guard
+  - id: SYM-source-authoring-render-source-write
+    title: renderSourceWrite
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T18:13:29.003Z
+    relationships:
+      - type: covered_by
+        target: TEST-kb-upsert-source-entity-guard
+      - type: implements
+        target: REQ-kb-upsert-refuse-write-entity-into

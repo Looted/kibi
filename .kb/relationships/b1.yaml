@@ -405,3 +405,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c029ee3331e2
+  - type: executable_for
+    from: SYM-test-kb-upsert-source-entity-guard
+    to: TEST-kb-upsert-source-entity-guard
+    created_at: 2026-11-17T18:13:18.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3caa607b1696
