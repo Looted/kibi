@@ -503,6 +503,8 @@ describe("secret attribution", () => {
     keysLoadedFromUser: [],
     keysLoadedFromProject: [],
     keysLoadedFromLegacy: [],
+    keysIgnoredFromProject: [],
+    keysIgnoredFromLegacy: [],
   } as const;
 
   test("reads the attributed source while the value is set", () => {
