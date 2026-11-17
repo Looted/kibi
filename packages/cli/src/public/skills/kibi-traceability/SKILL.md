@@ -2,7 +2,7 @@
 id: kibi-traceability
 name: kibi-traceability
 description: "Maintain source-first requirement, scenario, test, symbol, and proof traceability through Kibi's peer interfaces. Use when linking a code symbol to a requirement (implements, covered_by, executable_for), choosing which function owns a behavior, moving or removing links, or when kb_check reports broad_requirement_review, multi_requirement_symbol_review, coarse_anchor_only_review, symbol-coverage or missing_production_symbol_coverage."
-version: 2.5.0
+version: 2.6.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -96,7 +96,8 @@ so a loose link is wrong context, not harmless extra coverage.
   `missing_production_symbol_coverage`.
 - After link work, run the unfiltered `kb_check` and read `qualityDiagnostics`
   as well as `violations`; a check scoped by `rules` leaves out the full-KB
-  review findings.
+  review findings. A result over its size budget comes back `truncated` with
+  them as counts by id; `kibi check --format json` lists every one.
 
 ## Typed recovery and proof
 

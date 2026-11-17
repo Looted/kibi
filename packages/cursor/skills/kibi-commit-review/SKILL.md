@@ -2,7 +2,7 @@
 id: kibi-commit-review
 name: kibi-commit-review
 description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a commit (kibi_impact_evidence_missing, symbols_manifest_stale, symbol_granularity_violation, symbol-coverage, kibi check-generated drift, Staged impact review failed), or when preparing a commit or pull-request impact review. Covers reading the per-file Detail lines, authoring .kb/symbols.yaml symbol entries through kb_upsert, staging the tracked Kibi evidence with git add (symbol coordinates are derived and never staged), kb_prepare_impact_review for a staged or diff scope, the kibi signoff requirements summary to show before a commit, how merge commits and migration renames are judged, and which requirement a newly listed symbol belongs to without making that requirement too broad."
-version: 1.6.0
+version: 1.7.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -76,7 +76,9 @@ Never read or open any file under `.kb`, not even read-only with a file tool to 
    read its `qualityDiagnostics`. The staged gate does not judge requirement
    size, so a link that makes a requirement too broad
    (`broad_requirement_review`) shows only there, and can fail a project's
-   CI gate after the commit passed.
+   CI gate after the commit passed. A result over its size budget comes back
+   `truncated` with advisory findings as counts by id; `kibi check --format
+   json` lists every one.
 
 Keep the source change as small as the task. Reshaping a function the task
 did not need (extracting a helper, renaming an export) adds declarations the

@@ -314,13 +314,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-703b499aec05
-  - type: implements
-    from: SYM-check-formatSymbolDebt
-    to: REQ-check-reports-symbol-debt
-    created_at: 2026-11-16T05:45:15.522Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-7ace38f58595
   - type: covered_by
     from: SYM-check-formatSymbolDebt
     to: TEST-check-reports-symbol-debt
@@ -426,3 +419,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a41172e0d32
+  - type: implements
+    from: SYM-check-formatSymbolDebt
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:54:17.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb50cf91559f

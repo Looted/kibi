@@ -328,3 +328,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9a9bec3844e4
+  - type: implements
+    from: SYM-check-format-check-pass-line
+    to: REQ-check-pass-one-line
+    created_at: 2026-11-16T15:52:48.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28ab26d8510e
+  - type: covered_by
+    from: SYM-check-format-check-pass-line
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T15:56:47.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9fcf48438d8
