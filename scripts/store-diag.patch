@@ -1,0 +1,344 @@
+diff --git a/packages/cli/src/engine.ts b/packages/cli/src/engine.ts
+index 3d64f92f6..3955d373a 100644
+--- a/packages/cli/src/engine.ts
++++ b/packages/cli/src/engine.ts
+@@ -1160,7 +1160,14 @@ export class EngineClient {
+                 ],
+                 {
+                   detached: true,
+-                  stdio: "ignore",
++                  // Store integrity diagnostics (diagnostic branch only).
++                  stdio: process.env.KIBI_ENGINE_STDERR_LOG
++                    ? [
++                        "ignore",
++                        openSync(process.env.KIBI_ENGINE_STDERR_LOG, "a"),
++                        openSync(process.env.KIBI_ENGINE_STDERR_LOG, "a"),
++                      ]
++                    : "ignore",
+                   env: {
+                     ...process.env,
+                     KIBI_ENGINE_PROTOCOL: String(ENGINE_PROTOCOL_VERSION),
+diff --git a/packages/cli/src/prolog.ts b/packages/cli/src/prolog.ts
+index 91e9d0f7d..20d0aaa6a 100644
+--- a/packages/cli/src/prolog.ts
++++ b/packages/cli/src/prolog.ts
+@@ -17,7 +17,7 @@
+ */
+ 
+ import { type ChildProcess, spawn } from "node:child_process";
+-import { existsSync } from "node:fs";
++import { appendFileSync, existsSync } from "node:fs";
+ import { createRequire } from "node:module";
+ import path from "node:path";
+ import { performance } from "node:perf_hooks";
+@@ -330,6 +330,16 @@ export class PrologProcess {
+     });
+ 
+     this.process.stderr.on("data", (chunk: Buffer) => {
++      // Store integrity diagnostics (diagnostic branch only): keep the
++      // Prolog stderr of every session, with the client pid.
++      const diagLog = process.env.KIBI_ENGINE_STDERR_LOG;
++      if (diagLog)
++        try {
++          appendFileSync(
++            diagLog,
++            `[pid ${process.pid} swipl ${this.process?.pid}] ${chunk.toString("utf8")}`,
++          );
++        } catch {}
+       this.appendErrorChunk(chunk);
+     });
+ 
+diff --git a/packages/core/src/kb.pl b/packages/core/src/kb.pl
+index 92330b3e0..d1969d0b8 100644
+--- a/packages/core/src/kb.pl
++++ b/packages/core/src/kb.pl
+@@ -108,6 +108,68 @@ kb_uri('urn-kibi:').
+ % RDF namespace for KB entities and relationships
+ :- kb_uri(URI), rdf_register_prefix(kb, URI).
+ :- rdf_register_prefix(xsd, 'http://www.w3.org/2001/XMLSchema#').
++
++% ------------------------------------------------------------------
++% Store integrity diagnostics (temporary, diagnostic branch only).
++% With KIBI_STORE_DIAG_LOG set, every entity and relationship write, attach,
++% detach, save and RDF transaction boundary is appended to that file with a
++% sequence number, the pid, the writing thread, the RDF generation and the
++% running threads. A write that leaves a property or relationship with more
++% than one triple is logged as a dup_after_write line.
++% ------------------------------------------------------------------
++kb_diag_file(File) :-
++    getenv('KIBI_STORE_DIAG_LOG', File),
++    File \== ''.
++
++kb_diag(Event, Detail) :-
++    (   kb_diag_file(File)
++    ->  (   catch(kb_diag_(File, Event, Detail), E, (print_message(warning, E), fail))
++        ->  true
++        ;   format(user_error, "kb_diag failed: ~q~n", [Event])
++        )
++    ;   true
++    ).
++
++kb_diag_(File, Event, Detail) :-
++    with_mutex(kb_diag,
++               ( flag(kb_diag_seq, N0, N0 + 1),
++                 N is N0 + 1,
++                 thread_self(Thread),
++                 current_prolog_flag(pid, Pid),
++                 (   catch(rdf_generation(Gen), _, fail) -> true ; Gen = none ),
++                 findall(T, thread_property(T, status(running)), Threads),
++                 get_time(Now),
++                 setup_call_cleanup(
++                     open(File, append, Stream),
++                     format(Stream, "~w ~3f pid=~w thread=~w gen=~w threads=~w ~w ~q~n",
++                            [N, Now, Pid, Thread, Gen, Threads, Event, Detail]),
++                     close(Stream)) )).
++
++kb_diag_entity_dups(EntityURI, Id, Props, Graph) :-
++    (   kb_diag_file(_)
++    ->  forall(( member(Key=_, [type=x|Props]),
++                 (   Key == type
++                 ->  PropURI = 'urn-kibi:type'
++                 ;   format(atom(PropURI), 'kb:~w', [Key])
++                 ),
++                 aggregate_all(count, rdf(EntityURI, PropURI, _, Graph), Count),
++                 Count > 1 ),
++               kb_diag(dup_after_write, entity(Id, Key, Count)))
++    ;   true
++    ).
++
++kb_diag_monitor(Event) :-
++    (   Event = transaction(BeginOrEnd, Id)
++    ->  kb_diag(transaction, BeginOrEnd-Id)
++    ;   true
++    ).
++
++:- initialization(
++       (   kb_diag_file(_)
++       ->  rdf_monitor(kb_diag_monitor, [transaction]),
++           kb_diag(module_loaded, kb)
++       ;   true
++       )).
+ :- rdf_meta
+     kb_entity(?, ?, ?),
+     kb_relationship(?, ?, ?).
+@@ -165,6 +227,7 @@ kb_uri('urn-kibi:').
+ % backwards-compatible temporary KBs.
+ % Creates directory if it doesn't exist.
+ kb_attach(Directory) :-
++    kb_diag(kb_attach, Directory),
+     (   kb_attached(_)
+     ->  throw(error(permission_error(attach, kb, Directory), kb_attach/1))
+     ;   true
+@@ -339,6 +402,7 @@ kb_throw_store_locked(PersistencyDirectory, Directory, Original) :-
+ % Safely detach from KB without persisting pending changes.
+ % Call kb_save/0 explicitly before kb_detach/0 when durability is required.
+ kb_detach :-
++    kb_diag(kb_detach, none),
+     % Every step is a no-op when nothing is attached, so detaching an
+     % unattached KB needs no separate guard.
+     (   kb_storage_mode(journaled)
+@@ -441,6 +505,7 @@ kb_save_legacy_locked(Directory) :-
+ % appends RDF edits to a per-source journal; flushing with min_size(16384)
+ % makes a compact binary snapshot only after a journal reaches 16 MiB.
+ kb_save_journaled :-
++    kb_diag(kb_save_journaled, none),
+     (   kb_attached(Directory)
+     ->  with_kb_mutex(kb_save_journaled_locked(Directory))
+     ;   true
+@@ -590,6 +655,7 @@ journal_bytes(Directory, Bytes) :-
+ 
+ %% kb_storage_compact
+ kb_storage_compact :-
++    kb_diag(kb_storage_compact, none),
+     % mutalog-disable-next-line goal_true: a legacy store records no journal sentinel stamp, so the save inside the compaction fails for it as well
+     kb_storage_mode(journaled),
+     kb_attached(Directory),
+@@ -958,7 +1024,9 @@ kb_assert_entity_no_audit(Type, Props) :-
+         forall(
+             member(Key=Value, Props),
+             store_property(EntityURI, Key, Value, Graph)
+-        )
++        ),
++        kb_diag(assert_entity, Id),
++        kb_diag_entity_dups(EntityURI, Id, Props, Graph)
+     )),
+     kb_refresh_entity_index(Id).
+ 
+@@ -2062,7 +2130,14 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
+         % Upsert semantics: ensure the exact triple isn't duplicated.
+         rdf_retractall(FromURI, RelURI, ToURI, Graph),
+         % Assert relationship triple
+-        rdf_assert(FromURI, RelURI, ToURI, Graph)
++        rdf_assert(FromURI, RelURI, ToURI, Graph),
++        kb_diag(assert_relationship, rel(RelType, FromId, ToId)),
++        (   kb_diag_file(_),
++            aggregate_all(count, rdf(FromURI, RelURI, ToURI, Graph), RelCount),
++            RelCount > 1
++        ->  kb_diag(dup_after_write, rel(RelType, FromId, ToId, RelCount))
++        ;   true
++        )
+     )).
+ 
+ validate_symbol_role_compatibility(RelType, FromId, _ToId) :-
+diff --git a/scripts/store-diag-replay.pl b/scripts/store-diag-replay.pl
+new file mode 100644
+index 000000000..3e6dc052b
+--- /dev/null
++++ b/scripts/store-diag-replay.pl
+@@ -0,0 +1,48 @@
++% Store integrity diagnostics (diagnostic branch only): rebuild a branch
++% store from its snapshot (.trp) and journal (.jrn) in a fresh process and
++% print the counts the live engine is compared against.
++:- use_module(library(semweb/rdf_db)).
++
++:- dynamic replay_graph/1.
++
++apply_entry(start(_)) :- !.
++apply_entry(end(_)) :- !.
++apply_entry(assert(S, P, O)) :- !, replay_graph(G), rdf_assert(S, P, O, G).
++apply_entry(assert(S, P, O, _)) :- !, replay_graph(G), rdf_assert(S, P, O, G).
++apply_entry(retract(S, P, O)) :- !, rdf_retractall(S, P, O).
++apply_entry(retract(S, P, O, _)) :- !, rdf_retractall(S, P, O).
++apply_entry(Entry) :- throw(error(domain_error(journal_entry, Entry), _)).
++
++replay_journal(File) :-
++    setup_call_cleanup(
++        open(File, read, Stream),
++        replay_stream(Stream),
++        close(Stream)).
++
++replay_stream(Stream) :-
++    read_term(Stream, Term, []),
++    (   Term == end_of_file
++    ->  true
++    ;   apply_entry(Term),
++        replay_stream(Stream)
++    ).
++
++main :-
++    current_prolog_flag(argv, [Snapshot, Journal|_]),
++    (   Snapshot \== '-' -> rdf_load_db(Snapshot) ; true ),
++    (   rdf_graph(G0) -> assertz(replay_graph(G0)) ; assertz(replay_graph(replay)) ),
++    (   Journal \== '-' -> replay_journal(Journal) ; true ),
++    store_counts(Counts),
++    format("~w~n", [Counts]).
++
++store_counts(json{triples: Triples, relationships: Relationships, duplicates: Dups}) :-
++    aggregate_all(count, rdf(_, _, _), Triples),
++    aggregate_all(count,
++                  ( rdf(S, _, O), atom(O),
++                    sub_atom(S, 0, _, _, 'kb:entity/'),
++                    sub_atom(O, 0, _, _, 'kb:entity/') ),
++                  Relationships),
++    aggregate_all(count,
++                  ( rdf(S1, P1, _), sub_atom(P1, 0, _, _, 'kb:'), P1 \== 'kb:tags',
++                    aggregate_all(count, rdf(S1, P1, _), C), C > 1 ),
++                  Dups).
+diff --git a/scripts/store-diag.ts b/scripts/store-diag.ts
+new file mode 100644
+index 000000000..bc0b92003
+--- /dev/null
++++ b/scripts/store-diag.ts
+@@ -0,0 +1,102 @@
++/**
++ * Store integrity diagnostics (diagnostic branch only). Compares the live
++ * engine's in-memory store with a fresh replay of the branch store's snapshot
++ * and journal, lists in-memory properties with more than one value, and
++ * exits 1 when the two disagree.
++ */
++import { execFileSync } from "node:child_process";
++import { readdirSync, statSync, writeFileSync } from "node:fs";
++import path from "node:path";
++import { EngineClient } from "../packages/cli/src/engine.js";
++
++const root = process.cwd();
++const branch = process.env.KIBI_BRANCH ?? "develop";
++const out = process.argv[2];
++
++function files(dir: string, suffix: string): string[] {
++  const found: string[] = [];
++  for (const entry of readdirSync(dir)) {
++    const full = path.join(dir, entry);
++    if (statSync(full).isDirectory()) found.push(...files(full, suffix));
++    else if (full.endsWith(suffix)) found.push(full);
++  }
++  return found;
++}
++
++const engine = new EngineClient({
++  workspaceRoot: root,
++  branch,
++  timeout: 300_000,
++});
++await engine.start();
++// Keys an entity holds exactly once; a second value is the corruption the
++// strict-fact-shape rule reports.
++const singleKeys =
++  "[id, title, status, source, created_at, updated_at, fact_kind, subject_key, property_key, operator, value_type, value_string, value_int, value_number, value_bool, value_set, claim_key, claim_text, text_ref, symbol_role, sourceFile]";
++const dupGoal = (props: string, suffix: string) =>
++  `findall(K${suffix}, (member(K${suffix}=_, ${props}), memberchk(K${suffix}, ${singleKeys})), Ks${suffix}), msort(Ks${suffix}, S${suffix}), clumped(S${suffix}, Cl${suffix})`;
++const live = await engine.query(
++  [
++    "aggregate_all(count, rdf(_, _, _), Triples)",
++    "aggregate_all(count, (rdf(S0, _, O0), atom(O0), sub_atom(S0, 0, _, _, 'kb:entity/'), sub_atom(O0, 0, _, _, 'kb:entity/')), Relationships)",
++    "aggregate_all(count, kb_entity(_, _, _), Entities)",
++    `aggregate_all(count, (kb_entity(_, _, Props1), ${dupGoal("Props1", "1")}, member(_-N1, Cl1), N1 > 1), DupCount)`,
++    `findall(Id2-K2-N2, limit(50, (kb_entity(Id2, _, Props2), ${dupGoal("Props2", "2")}, member(K2-N2, Cl2), N2 > 1)), Dups)`,
++    "findall(T, thread_property(T, status(running)), Threads)",
++  ].join(", "),
++);
++if (!live.success) console.error("live query failed:", live.error);
++const bindings = live.bindings ?? {};
++const memory = {
++  triples: Number(bindings.Triples),
++  relationships: Number(bindings.Relationships),
++  entities: Number(bindings.Entities),
++  duplicates: Number(bindings.DupCount),
++  duplicateExamples: String(bindings.Dups ?? ""),
++  threads: bindings.Threads,
++};
++
++const store = path.join(root, ".kb", "branches");
++const snapshot = files(store, ".trp")[0] ?? "-";
++const journal = files(store, ".jrn")[0] ?? "-";
++const replayText = execFileSync(
++  "swipl",
++  [
++    "-q",
++    "-g",
++    "main",
++    "-t",
++    "halt",
++    path.join(root, "scripts/store-diag-replay.pl"),
++    snapshot,
++    journal,
++  ],
++  { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
++).trim();
++const replay = JSON.parse(
++  replayText.replace(/^json\(\[|\]\)$/g, "").length > 0
++    ? toJson(replayText)
++    : "{}",
++) as { triples: number; relationships: number; duplicates: number };
++
++function toJson(dict: string): string {
++  // json{a:1,b:2} -> {"a":1,"b":2}
++  return dict.replace(/^json\{/, "{").replace(/([a-z_]+):/g, '"$1":');
++}
++
++const report = { branch, snapshot, journal, memory, replay };
++const text = JSON.stringify(report, null, 2);
++console.log(text);
++if (out) writeFileSync(out, `${text}\n`);
++const mismatch =
++  memory.triples !== replay.triples ||
++  memory.relationships !== replay.relationships ||
++  memory.duplicates > 0 ||
++  replay.duplicates > 0;
++if (mismatch) {
++  console.error(
++    "::error::Store integrity: the engine's in-memory store differs from a replay of its snapshot and journal (see the report above).",
++  );
++  process.exit(1);
++}
++process.exit(0);

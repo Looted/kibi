@@ -1,6 +1,6 @@
 name: Store integrity sampling (diagnostics)
 
-# Throwaway: samples sync + check twenty times in parallel to catch the
+# Throwaway: runs the strict proof job's full prefix twenty times in parallel to catch the
 # intermittent in-memory store mismatch. Not for develop.
 on:
   push:
@@ -21,19 +21,54 @@ jobs:
     uses: ./.github/workflows/swipl-ci-bundle.yml
 
   sample:
-    name: Sample ${{ matrix.sample }}
+    name: Sample ${{ matrix.sample }} (${{ matrix.tree }})
     needs: [swipl-bundle]
     runs-on: ubuntu-latest
+    env:
+      KIBI_BRANCH: ${{ matrix.tree == 'develop' && 'develop' || github.ref_name }}
     strategy:
       fail-fast: false
       matrix:
-        sample: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        include:
+          - { sample: 1, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 2, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 3, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 4, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 5, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 6, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 7, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 8, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 9, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 10, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 11, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 12, tree: develop, sha: 3c832bde73d1e861bc46d2471f08e82122bc6a14 }
+          - { sample: 13, tree: "774", sha: a883528721795da6224beb416aa81843a981feaf }
+          - { sample: 14, tree: "774", sha: a883528721795da6224beb416aa81843a981feaf }
+          - { sample: 15, tree: "774", sha: a883528721795da6224beb416aa81843a981feaf }
+          - { sample: 16, tree: "774", sha: a883528721795da6224beb416aa81843a981feaf }
+          - { sample: 17, tree: diag, sha: "" }
+          - { sample: 18, tree: diag, sha: "" }
+          - { sample: 19, tree: diag, sha: "" }
+          - { sample: 20, tree: diag, sha: "" }
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
+
+      - name: Switch to the tree under test with the diagnostics applied
+        if: ${{ matrix.sha != '' }}
+        run: |
+          cp scripts/store-diag.patch "$RUNNER_TEMP/store-diag.patch"
+          git fetch --depth 1 origin "${{ matrix.sha }}"
+          git checkout --force "${{ matrix.sha }}"
+          git apply "$RUNNER_TEMP/store-diag.patch"
+          git log --oneline -1
+
+      - name: Tree under test
+        id: tree
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -45,7 +80,7 @@ jobs:
         with:
           node-version: "26.7.0"
 
-      - name: Install dependencies
+      - name: Install dependencies for canonical snapshot
         run: bun install --frozen-lockfile
 
       - name: Bootstrap Ubuntu packages
@@ -56,23 +91,120 @@ jobs:
         with:
           verify-resolver: 'true'
 
-      - name: Build
+      - name: Provision strict-proof host prerequisites
+        env:
+          UV_VERSION: "0.9.26"
+          CODEX_CLI_VERSION: "0.144.6"
+          PNPM_VERSION: "10.24.0"
+          ELAN_VERSION: "v4.1.2"
+          ELAN_INIT_SHA256: "4bacca9502cb89736fe63d2685abc2947cfbf34dc87673504f1bb4c43eda9264"
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          npm install --global "@openai/codex@${CODEX_CLI_VERSION}"
+          npm install --global "pnpm@${PNPM_VERSION}"
+          curl --fail --silent --show-error --location --output elan-init.sh \
+            "https://raw.githubusercontent.com/leanprover/elan/${ELAN_VERSION}/elan-init.sh"
+          echo "${ELAN_INIT_SHA256}  elan-init.sh" | sha256sum --check
+          sh elan-init.sh -y --default-toolchain "$(cat proof/lean/lean-toolchain)"
+          rm elan-init.sh
+          export PATH="$HOME/.elan/bin:$PATH"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          test "$(pnpm --version)" = "$PNPM_VERSION"
+          /usr/bin/swipl -g "use_module(library(clpq))" -t halt
+          lake --version
+          uv sync --project tools/skillopt --frozen
+          uv run --project tools/skillopt python tools/skillopt/verify_pin.py
+
+      - name: Install proof-only dependencies
+        run: cd .opencode && bun install --frozen-lockfile
+
+      - name: Build packages used by packed proof contracts
         run: bun run build
 
-      - name: Reject generated manifest drift
+      - name: Reject generated manifest drift in committed snapshot
         run: bun packages/cli/bin/kibi check-generated --staged
 
-      - name: Sync, compare the store and check
+      - name: Compile packed proof tests
+        run: bun run compile:e2e:packed
+
+      - name: Sync and validate integrity of the proof snapshot
         id: integrity
         run: |
           mkdir -p "$(dirname "$KIBI_STORE_DIAG_LOG")"
           bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
           bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-sync.json"
-          bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
-          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-check.json"
+          if ! git diff --quiet -- .kb/symbols.yaml; then
+            echo '::error::Kibi rewrote .kb/symbols.yaml during sync.'
+            exit 1
+          fi
+          status=0
+          bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability || status=$?
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-check.json" || status=$?
+          exit "$status"
+
+      - name: Reject evidence-floor regressions before executing contracts
+        id: gate
+        run: |
+          status=0
+          sh scripts/proof-gate.sh || status=$?
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-gate.json" || status=$?
+          exit "$status"
+
+      - name: Prove every contracted test through Kibi
+        id: prove
+        env:
+          KIBI_PROOF_STEP_CONCURRENCY: "3"
+          GH_TOKEN: ${{ github.token }}
+          CI_HEAD_SHA: ${{ steps.tree.outputs.sha }}
+          PR_HEAD_REPOSITORY: ${{ github.repository }}
+        run: |
+          results="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kibi-unit-test-results.json"
+          rm -f "$results"
+          bun scripts/ci-unit-results.ts fetch "$results" &
+          fetcher=$!
+          status=0
+          KIBI_PROOF_UNIT_RESULTS="$results" bun packages/cli/bin/kibi prove --all || status=$?
+          kill "$fetcher" 2>/dev/null || true
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-prove.json" || status=$?
+          exit "$status"
+
+      - name: Enforce evidence floors on a clean snapshot
+        id: fresh
+        run: |
+          status=0
+          sh scripts/proof-gate.sh --fresh-evidence --write-certificates "$RUNNER_TEMP/kb-certificates.json" || status=$?
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-fresh-gate.json" || status=$?
+          exit "$status"
+
+      - name: Re-check KB certificates with the independent checker
+        id: certs
+        run: |
+          status=0
+          bun packages/cli/bin/kibi check --certificates "$RUNNER_TEMP/kb-certificates.json" || status=$?
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-certificates.json" || status=$?
+          exit "$status"
+
+      - name: Gate kb_search answers on the repository gold set
+        id: search
+        run: |
+          status=0
+          bun run scripts/change-to-proof-eval.ts --repo-kb documentation/evaluations/change-to-proof/repo-search-gold.v4.jsonl --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json || status=$?
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-search.json" || status=$?
+          exit "$status"
+
+      - name: Gate kb_search hints on reworded questions
+        id: hints
+        run: |
+          status=0
+          bun run scripts/change-to-proof-eval.ts --repo-kb documentation/evaluations/change-to-proof/repo-search-hints-gold.v1.jsonl --thresholds documentation/evaluations/change-to-proof/repo-search-hints-thresholds.json || status=$?
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-hints.json" || status=$?
+          exit "$status"
 
       - name: Collect the branch store
-        if: ${{ failure() && steps.integrity.outcome == 'failure' }}
+        if: ${{ failure() }}
         run: |
           out="${RUNNER_TEMP}/kibi-branch-store"
           mkdir -p "$out/runtime"
@@ -86,10 +218,10 @@ jobs:
           done
 
       - name: Upload the branch store
-        if: ${{ failure() && steps.integrity.outcome == 'failure' }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: kibi-branch-store-${{ matrix.sample }}
+          name: kibi-branch-store-${{ matrix.sample }}-${{ matrix.tree }}
           path: ${{ runner.temp }}/kibi-branch-store
           include-hidden-files: true
           if-no-files-found: warn
