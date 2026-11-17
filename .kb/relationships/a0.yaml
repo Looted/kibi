@@ -447,3 +447,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-208524a4b12f
+  - type: implements
+    from: SYM-core-write-store-repair
+    to: REQ-core-snapshot-duplicate-repair
+    created_at: 2026-11-17T09:11:49.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-145018b7cec5
+  - type: covered_by
+    from: SYM-core-write-store-repair
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:11:49.093Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b302a74ac5c9
