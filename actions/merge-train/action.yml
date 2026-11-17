@@ -20,6 +20,14 @@ inputs:
       only when these passed on its current head, and a train merges only when
       they passed on its assembled head.
     required: true
+  train-checks:
+    description: >-
+      Check names a train must also pass, on its assembled head, before it
+      merges, but that a pull request does not need to board, comma or newline
+      separated. Use it for a check too slow to run on every pull request, such
+      as a full proof that your workflows run only on train branches.
+    required: false
+    default: ""
   label:
     description: Label that boards a pull request.
     required: false
@@ -64,6 +72,7 @@ runs:
         GH_REPO: ${{ github.repository }}
         MERGE_TRAIN_BASE: ${{ inputs.base || github.event.repository.default_branch }}
         MERGE_TRAIN_CHECKS: ${{ inputs.checks }}
+        MERGE_TRAIN_TRAIN_CHECKS: ${{ inputs.train-checks }}
         MERGE_TRAIN_LABEL: ${{ inputs.label }}
         MERGE_TRAIN_MAX: ${{ inputs.max }}
         MERGE_TRAIN_KIBI_INPUT: ${{ inputs.kibi }}
