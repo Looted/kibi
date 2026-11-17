@@ -246,6 +246,16 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     if (literals.length === 0) {
       return description ? z.any().describe(description) : z.any();
     }
+    // An all-string enum stays an enum on the wire: z.enum is advertised as
+    // `{"type":"string","enum":[...]}`, where a union of literals would be
+    // re-emitted as one `anyOf` branch per value.
+    const strings = literals.filter(
+      (value): value is string => typeof value === "string",
+    );
+    if (strings.length > 1 && strings.length === literals.length) {
+      const choices = z.enum(strings as [string, ...string[]]);
+      return description ? choices.describe(description) : choices;
+    }
     const literalSchemas = literals.map((value) => z.literal(value));
     if (literalSchemas.length === 1) {
       return singleLiteralOrAny(literalSchemas, description);
