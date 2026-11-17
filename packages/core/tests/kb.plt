@@ -21,6 +21,7 @@
 :- use_module(kb_isolation_child, [wait_for_isolation_files/2]).
 :- use_module(library(yall)).
 :- use_module(library(semweb/rdf11)).
+
 :- use_module(library(filesex)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
@@ -398,24 +399,14 @@ store_snapshot_file(Dir, Snapshot) :-
     !.
 
 % Holds SWI-Prolog's background rdf_db garbage collector while Goal runs,
-% so only the goal's own collection reclaims anything.
-% rdf_db starts that thread when it first has garbage to collect.
+% so only the goal's own collection reclaims anything.  rdf_db starts that
+% thread when it first has garbage to collect.
 :- meta_predicate with_rdf_gc_paused(0).
 with_rdf_gc_paused(Goal) :-
     rdf_assert('urn:kibi-test:gc', 'urn:kibi-test:started', 'urn:kibi-test:yes', kibi_test_gc),
     rdf_retractall(_, _, _, kibi_test_gc),
     wait_for_rdf_gc_thread(100),
-    thread_self(Me),
-    mutex_create(Pause),
-    setup_call_cleanup(
-        mutex_lock(Pause),
-        ( thread_signal('__rdf_GC',
-                        ( thread_send_message(Me, rdf_gc_paused),
-                          with_mutex(Pause, true) )),
-          thread_get_message(rdf_gc_paused),
-          call(Goal) ),
-        ( mutex_unlock(Pause),
-          mutex_destroy(Pause) )).
+    kb:with_background_rdf_gc_held(Goal).
 
 wait_for_rdf_gc_thread(_) :-
     catch(thread_property('__rdf_GC', status(running)), _, fail),

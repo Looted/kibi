@@ -537,23 +537,55 @@ kb_sync_checkpoint :-
     kb_save_journaled.
 
 %% kb_flush_journals(+Options)
-% rdf_flush_journals/1, with the store's garbage collected first.  A snapshot
-% written while SWI-Prolog's rdf_db still holds reindexed triples that its
-% garbage collector has not reclaimed can contain each of those triples twice,
-% and every later load then returns both copies.  Collecting first leaves no
-% such triple, so it runs only when a snapshot is about to be written.
+% rdf_flush_journals/1, written while no triple is reindexed.  A snapshot
+% written while SWI-Prolog's rdf_db holds reindexed triples that its garbage
+% collector has not reclaimed can contain each of those triples twice, and
+% every later load then returns both copies.  rdf_db's background collector
+% can also start reindexing (optimizing its hash tables) while the snapshot is
+% being written, so it is held for the write, and the store is collected and
+% optimized in this thread first.  When that cannot finish, the journal is
+% kept instead: loading a journal never doubles a triple, and a later save
+% writes the snapshot.  Only a write that makes a snapshot pays for this.
 kb_flush_journals(Options) :-
     (   snapshot_due(Options)
-    ->  collect_store_garbage
-    ;   true
-    ),
-    rdf_flush_journals(Options).
+    ->  with_background_rdf_gc_held(
+            (   collect_store_garbage
+            ->  rdf_flush_journals(Options)
+            ;   true
+            ))
+    ;   rdf_flush_journals(Options)
+    ).
 
-% rdf_gc/0 repeats until nothing is left to collect, which never happens while
-% another thread's open query holds the generation a triple was reindexed in.
-% This gives such a reader about a second, and then says that the snapshot
-% may hold duplicates, which kb_repair_duplicate_triples/2 removes on the next
-% attach.
+% with_background_rdf_gc_held(:Goal): runs Goal while rdf_db's background
+% garbage-collection thread waits on kb_rdf_gc_hold.  The thread takes the
+% signal between two collections, so this waits for it to finish the one it
+% is running.  A thread that does not answer within ten seconds (or that does
+% not exist yet) is not waited for; when it answers later it passes the
+% released mutex at once.  Inside a hold this thread already has, Goal runs
+% as it is.
+:- meta_predicate with_background_rdf_gc_held(0).
+with_background_rdf_gc_held(Goal) :-
+    thread_self(Me),
+    (   catch(mutex_property(kb_rdf_gc_hold, status(locked(Me, _))), _, fail)
+    ->  call(Goal)
+    ;   catch(thread_property('__rdf_GC', status(running)), _, fail)
+    ->  Ref = gc_hold(Me),
+        setup_call_cleanup(
+            mutex_lock(kb_rdf_gc_hold),
+            ( catch(thread_signal('__rdf_GC',
+                                  ( thread_send_message(Me, rdf_gc_held(Ref)),
+                                    with_mutex(kb_rdf_gc_hold, true) )),
+                    _, true),
+              ignore(thread_get_message(Me, rdf_gc_held(Ref), [timeout(10)])),
+              call(Goal) ),
+            mutex_unlock(kb_rdf_gc_hold))
+    ;   call(Goal)
+    ).
+
+% rdf_gc/0 repeats until nothing is left to collect or optimize, which never
+% happens while another thread's open query holds the generation a triple was
+% reindexed in.  This gives such a reader about a second, and then fails,
+% saying on stderr that the snapshot waits for a later save.
 collect_store_garbage :-
     collect_store_garbage(50).
 
@@ -561,12 +593,14 @@ collect_store_garbage(Rounds) :-
     rdf_db:rdf_gc_info_(Info),
     arg(2, Info, Garbage),
     arg(3, Info, Reindexed),
-    (   Garbage + Reindexed =:= 0
+    arg(4, Info, Optimizable),
+    (   Garbage + Reindexed + Optimizable =:= 0
     ->  true
     ;   Rounds =:= 0
     ->  format(user_error,
-               'kibi: writing a store snapshot while ~D reindexed and ~D garbage triples are not yet reclaimed; the next attach repairs any duplicate it holds~n',
-               [Reindexed, Garbage])
+               'kibi: kept the store journal instead of writing a snapshot: ~D reindexed and ~D garbage triples are not yet reclaimed; a later save writes it~n',
+               [Reindexed, Garbage]),
+        fail
     ;   rdf_db:rdf_gc(_),
         rdf_db:rdf_gc_info_(After),
         (   After == Info
