@@ -363,3 +363,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5bca4db4c36
+  - type: assumes
+    from: SCEN-mcp-upsert-capture-fields
+    to: FACT-mcp-upsert-advertises-capture-fields
+    created_at: 2026-11-16T17:22:03.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4608a404b8f8
+  - type: assumes
+    from: SCEN-mcp-upsert-capture-fields
+    to: FACT-operation-fields-describes-unadvertised
+    created_at: 2026-11-16T17:22:03.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a46379bb4134

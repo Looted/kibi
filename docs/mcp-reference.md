@@ -37,14 +37,39 @@ and no envelope.
 
 The discovery tools (`kb_query`, `kb_search`, `kb_status`,
 `kb_prepare_impact_review`) also put the `data` JSON in front of their text
-summary, for hosts that hide `structuredContent` from the agent. On Claude
-Code, which shows `structuredContent`, the text is the summary alone, so each
-result is sent once. `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed` overrides that
+summary, for hosts that hide `structuredContent` from the agent: Gemini CLI
+and Cursor give the model the text content only. Claude Code shows
+`structuredContent`, and Codex gives the model the serialized
+`structuredContent` in place of the text whenever a result has it, so on
+those two hosts the text is the summary alone and each result is sent once. `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed` overrides that
 choice for any host (see [Diagnostic usage log](#diagnostic-usage-log-opt-in)).
 
 ### Tool list
 
-The server registers 16 tools by default:
+The catalog has 16 tools. A session lists only part of it unless the `full`
+profile is chosen:
+
+- **default**: the six tools of every change, `kb_search`, `kb_query`,
+  `kb_upsert`, `kb_check`, `kb_status` and `kb_skills`. While the
+  knowledge base holds no entity yet, `kb_plan_bootstrap` and `kb_apply_plan`
+  are listed too. The `initialize` instructions name the tools left out;
+  each of them runs through the project CLI with the same input
+  (`npx --no-install kibi <command>`, JSON routes with `--input -`).
+- **full**: all 16.
+
+The profile comes from `kibi-mcp --tools <default|full>`, else
+`KIBI_MCP_TOOLS` in the server environment, else the project's recorded
+choice (`"kibi": { "mcpTools": "full" }` in the root `package.json`, or
+`"mcpTools": "full"` in `.kb/setup.json` in a repository without one), else
+`default`.
+
+`kb_upsert` advertises the 15 fields that capture a requirement or decision
+and its reason (`title`, `status`, `priority`, `tags`, `links`, `text_ref`,
+`origin`, `semantic_text`, `rationale`, `firmness`, `approved_by`,
+`approval_ref`, `required_evidence`, `sourceFile`, `symbol_role`). Fact,
+symbol, test, proof and predicate fields stay valid input; the kibi-usage
+resource `operation-fields` (`kb_skills` with `action: "read"`) lists each
+one in full.
 
 | Area | Tools |
 |---|---|
@@ -55,7 +80,8 @@ The server registers 16 tools by default:
 | Planning and review | `kb_prepare_impact_review`, `kb_plan_bootstrap`, `kb_compile_intent`, `kb_apply_plan` |
 
 Two more tools are opt-in. Set `KIBI_MCP_OPTIONAL_TOOLS` in the server
-environment to a comma-separated list of names, or `all`:
+environment to a comma-separated list of names, or `all`; a tool named
+there is listed in either profile:
 
 - `kb_sparql_remote`: remote SPARQL `SELECT` queries ([below](#kb_sparql_remote)).
 - `kb_job_status`: polls `kb_check` and `kb_apply_plan` jobs started with
@@ -1007,9 +1033,9 @@ While opted in, every row carries `interface`, `host`, `package_version`, and
 versions. Host plugins set `KIBI_MCP_HOST` for attribution only; it is not an
 opt-in signal and never enables logging on its own. The same value decides
 whether the discovery tools repeat their `data` JSON in the text part:
-`claude-code` (or a client that calls itself `claude-code` on initialize) gets
-the text summary alone because the host shows `structuredContent`, and every
-other host keeps the JSON copy. `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed`
+`claude-code` and `codex` (or a client that calls itself `claude-code` or
+`codex-mcp-client` on initialize) get the text summary alone because the host
+gives the model `structuredContent`, and every other host keeps the JSON copy. `KIBI_MCP_STRUCTURED_TEXT=omit` or `embed`
 overrides that for any host. CLI rows take `host` from
 `KIBI_HOST` (or `KIBI_MCP_HOST`) and recognize Claude Code shells; otherwise
 they record `unknown`. Rows record business arguments and agent-supplied

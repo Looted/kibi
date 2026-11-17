@@ -190,6 +190,8 @@ describe("kb_model predicate plans apply through the MCP server unchanged", () =
         env: isolatedMcpSandboxEnv({
           KIBI_BRANCH: "main",
           KIBI_WORKSPACE: workspace,
+          // kb_model and kb_delete are in the full profile.
+          KIBI_MCP_TOOLS: "full",
         }),
         stdio: ["pipe", "pipe", "pipe"],
       }),

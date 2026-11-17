@@ -36,9 +36,12 @@ async function buildRuntimeBundle(
 ): Promise<Uint8Array> {
   const entryPath = resolve(privateRoot, "kibi-mcp-entry.ts");
   const outputRoot = resolve(privateRoot, "kibi-mcp-bundle");
+  // Evaluation tasks call every catalog tool (kb_model, kb_compile_intent,
+  // kb_delete, ...), so the staged server lists the full tool profile unless
+  // the run names one.
   await writeFile(
     entryPath,
-    `import { fileURLToPath } from "node:url";\nimport { startServer } from ${JSON.stringify(resolve(sourceWorktree, "packages/mcp/dist/server.js"))};\nprocess.env.KIBI_NODE_PATH = fileURLToPath(new URL("../node", import.meta.url));\nawait startServer();\n`,
+    `import { fileURLToPath } from "node:url";\nimport { startServer } from ${JSON.stringify(resolve(sourceWorktree, "packages/mcp/dist/server.js"))};\nprocess.env.KIBI_NODE_PATH = fileURLToPath(new URL("../node", import.meta.url));\nprocess.env.KIBI_MCP_TOOLS ??= "full";\nawait startServer();\n`,
     { encoding: "utf8", mode: 0o600 },
   );
   const build = await Bun.build({

@@ -6,7 +6,7 @@ import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 
 import * as diagnostics from "../../src/diagnostics.js";
 import * as env from "../../src/env.js";
-import { startServer } from "../../src/server.js";
+import { serverInstructions, startServer } from "../../src/server.js";
 import * as docs from "../../src/server/docs.js";
 import { KIBI_ICONS } from "../../src/server/icons.js";
 import * as tools from "../../src/server/tools.js";
@@ -47,7 +47,13 @@ describe("startServer", () => {
     const setRouter = spyOn(router, "setWorkspaceRouter");
     spies.push(setRouter);
 
-    await startServer();
+    const profile = process.env.KIBI_MCP_TOOLS;
+    Reflect.deleteProperty(process.env, "KIBI_MCP_TOOLS");
+    try {
+      await startServer();
+    } finally {
+      if (profile !== undefined) process.env.KIBI_MCP_TOOLS = profile;
+    }
 
     expect(order).toStrictEqual([
       "keepStdoutForProtocol",
@@ -85,13 +91,29 @@ describe("startServer", () => {
       version,
       icons: KIBI_ICONS,
     });
+    // This repository's knowledge base is not empty: the default profile
+    // lists the six core tools and the instructions say where the rest is.
+    const listed = new Set([
+      "kb_search",
+      "kb_query",
+      "kb_upsert",
+      "kb_check",
+      "kb_status",
+      "kb_skills",
+    ]);
+    expect(inner._instructions).toBe(serverInstructions(listed));
     expect(inner._instructions).toBe(
       [
         SESSION_BRIEF,
         "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_upsert writes; kb_check validates; kb_status reports freshness.",
         "Workflow guidance: kb_skills with action load and id kibi-usage. For first-time repository setup, use the kibi-bootstrap prompt.",
+        "This server lists kb_search, kb_query, kb_upsert, kb_check, kb_status, kb_skills. The other Kibi operations (kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_delete, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.",
       ].join("\n"),
     );
+    expect(
+      (tools.registerAllTools as unknown as { mock: { calls: unknown[][] } })
+        .mock.calls[0]?.[2],
+    ).toStrictEqual(listed);
     expect(setRouter).toHaveBeenCalledTimes(1);
     const installed = setRouter.mock.calls[0]?.[0];
     expect(installed).toBeInstanceOf(router.WorkspaceRouter);

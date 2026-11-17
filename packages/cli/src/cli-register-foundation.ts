@@ -1,7 +1,10 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
 import type { JsonInvocation } from "./cli-json-command.js";
-import { getCliOperationMetadata } from "./cli-operation-metadata.js";
+import {
+  commandSummary,
+  getCliOperationMetadata,
+} from "./cli-operation-metadata.js";
 import type { initCommand } from "./commands/init.js";
 import type { migrateCommand } from "./commands/migrate.js";
 import type { queryCommand } from "./commands/query.js";
@@ -149,6 +152,7 @@ export function registerFoundationCommands(program: Command): void {
     .command("query [type]")
     .alias("kb-query")
     .description(getCliOperationMetadata("kb_query").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_query").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--id <id>", "Query specific entity by ID")
     .option("--tag <tag>", "Filter by tag")
@@ -189,6 +193,7 @@ export function registerFoundationCommands(program: Command): void {
   program
     .command("search [query]")
     .description(getCliOperationMetadata("kb_search").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_search").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--type <type>", "Filter by entity type")
     .option("--format <format>", "Output format: json|table", "table")
@@ -215,6 +220,7 @@ export function registerFoundationCommands(program: Command): void {
   program
     .command("status")
     .description(getCliOperationMetadata("kb_status").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_status").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--format <format>", "Output format: json|table", "table")
     .option("--kb <name>", KB_OPTION_DESCRIPTION)
