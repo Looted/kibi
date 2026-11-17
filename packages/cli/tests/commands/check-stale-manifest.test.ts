@@ -270,12 +270,20 @@ export interface GreetOptions {
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(1);
-      expect(output).toContain("symbols_manifest_stale");
+      // The stale-manifest finding is one of the causes the declaration's
+      // block stands for; the block names the declaration and its line.
       expect(output).toContain(
-        "Not in .kb/symbols.yaml: GreetOptions (line 5)",
+        "[BLOCKS COMMIT] GreetOptions (src/greet.ts:5) is a new type with no symbol record.",
       );
-      expect(output).toContain(
-        "Author .kb/symbols.yaml entries for the listed declarations",
+      expect(output).toContain('"symbol_role":"type-shape"');
+      const json = runKibi(
+        kibiBin,
+        ["check", "--staged", "--format", "json"],
+        tmpDir,
+      );
+      expect(json.stdout).toContain("symbols_manifest_stale");
+      expect(json.stdout).toContain(
+        "Not in .kb/symbols.yaml: GreetOptions (line 5)",
       );
     },
     TEST_TIMEOUT_MS,
