@@ -160,7 +160,7 @@ function pendingSourcePaths(
       // A file committed on another local branch (one made after the
       // receipt, say) was not lost: that branch's Git owns it, and the
       // receipt is retired below.
-      if (committedOnBranch(relative)) {
+      if (committedOnBranch(relative, receipt.afterHash)) {
         committedElsewhere.add(relative);
         continue;
       }

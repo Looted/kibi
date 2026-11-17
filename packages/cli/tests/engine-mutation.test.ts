@@ -3017,6 +3017,35 @@ describe("engine lifecycle", () => {
     ).rejects.toThrow("Invalid Kibi engine branch name: ../x");
   });
 
+  test("refuse to open a branch whose only store is a legacy one", async () => {
+    const workspace = tempDir();
+    const legacy = path.join(workspace, ".kb", "branches", "main");
+    fs.mkdirSync(legacy, { recursive: true });
+    const hashed = path.join(
+      workspace,
+      ".kb",
+      "branches",
+      createHash("sha256").update("main").digest("hex"),
+    );
+    const refusal = `Legacy branch store ${path.join(fs.realpathSync(workspace), ".kb", "branches", "main")} for 'main' must be migrated before the KB engine opens it. Preview the migration with 'kibi migrate', then apply it with 'kibi migrate --apply-safe <planHash>'.`;
+    await expect(
+      runEngineDaemon({
+        workspaceRoot: workspace,
+        branch: "main",
+        socketPath: engineSocketPath(workspace, "main"),
+      }),
+    ).rejects.toThrow(new Error(refusal));
+    const client = new EngineClient({
+      workspaceRoot: workspace,
+      branch: "main",
+    });
+    await expect(client.start()).rejects.toThrow(new Error(refusal));
+    expect(fs.existsSync(hashed)).toBe(false);
+    expect(
+      fs.readdirSync(path.join(workspace, ".kb", "branches")),
+    ).toStrictEqual(["main"]);
+  });
+
   test("stop the session when the boot fails", async () => {
     const stub = stubProlog((goal) =>
       goal.startsWith("kb_attach")

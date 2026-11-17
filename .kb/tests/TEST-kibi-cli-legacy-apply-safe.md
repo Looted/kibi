@@ -21,17 +21,17 @@ id: TEST-kibi-cli-legacy-apply-safe
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-62d3014107dcd6ba84fa8a47
+    receipt_id: PR-ec2f74a693e596c54dd899d5
     test_id: TEST-kibi-cli-legacy-apply-safe
     scope: end_to_end
     outcome: passed
-    code_snapshot: 74284b201bd04638572e1428f8a6da015b606b0ed1d21e942c94eb0d46d140f1
+    code_snapshot: d2839dc0b8e74a5e594e2725498277221d4dd0e28682de9804c12c5fad892930
     environment_hash: 0fe4faff3abd9383846f773ccd03a2e551c0e1792023b3084ed58b8687bccfaa
-    started_at: '2026-11-15T17:20:42.330Z'
-    finished_at: '2026-11-15T17:22:00.813Z'
-    artifact_digest: 4dbf8c568832956c2be97b5c85e9701468a2b31af1bbe0829261acc00fbac4bb
+    started_at: '2026-11-17T06:55:49.168Z'
+    finished_at: '2026-11-17T06:55:54.560Z'
+    artifact_digest: aeb635924257d974626e805557a6fa3951d23d95f9d7c129a59fb9d1ab9c70d0
     contract_hash: 04ecc74ae76309468a50a6cd4d52e4bb22bac0340b3a9a60d3c863323d256100
-    binding_hash: b32a439957938bbe4d594cae096716942bcb9ddb163f7eafe31ee479d2f1bdb3
+    binding_hash: 722f4fd9e34e5b18ace8923fe18590d6fa726e1b2cb7e45cb00c4dc4b8dfc213
     fingerprint: 7f323a4b7466964ce33aafb33ce49787055be0288295fd32dac96ba5e10aaf35
     fingerprint_components:
       contract: 04ecc74ae76309468a50a6cd4d52e4bb22bac0340b3a9a60d3c863323d256100
@@ -56,4 +56,4 @@ proof_receipts:
     kind: e2e
     evidence_level: tested
 ---
-Packed end-to-end test documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts: in an installed project it moves the compiled store to its legacy literal path, previews the plan with kibi migrate --format json, checks that no hashed store exists, applies the plan's hash with kibi migrate --apply-safe, and checks that the legacy migration applied, only the hashed store remains and kibi query still returns the requirement.
+Packed end-to-end test documentation/tests/e2e/packed/legacy-attachment-cli-apply.test.ts: in an installed project it moves the compiled store to its legacy literal path, then checks that kibi query, kibi check and kibi engine status are refused with directions to kibi migrate --apply-safe and create no hashed store. It previews the plan with kibi migrate --format json, checks that no hashed store exists and that the plan holds no branch store recovery, applies the plan's hash with kibi migrate --apply-safe, and checks that the legacy migration applied, no recovery ran, only the hashed store remains and kibi query still returns the requirement.
