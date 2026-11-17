@@ -79,6 +79,13 @@ import {
 } from "../traceability/impact-evaluator.js";
 import { IMPACT_REVIEW_PATH } from "../traceability/impact-review.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
+import {
+  type OwnerFinding,
+  collectOwnerFindings,
+  coveringTests,
+  formatOwnerFindings,
+  withoutOwnedCauses,
+} from "../traceability/owner-findings.js";
 import { readSnapshotKnowledge } from "../traceability/snapshot-knowledge.js";
 import {
   collectIntroducedConsistencyViolations,
@@ -473,6 +480,7 @@ export function printStagedResult(input: {
   messages?: readonly string[];
   operationalError?: string;
   inheritedSymbolGaps?: readonly InheritedSymbolGaps[];
+  ownerFindings?: readonly OwnerFinding[];
 }): void {
   const violations = input.violations ?? [];
   const qualityDiagnostics = input.qualityDiagnostics ?? [];
@@ -494,6 +502,10 @@ export function printStagedResult(input: {
           ),
           staged: input.coverage,
           messages: input.messages ?? [],
+          ...(input.ownerFindings !== undefined &&
+          input.ownerFindings.length > 0
+            ? { ownerFindings: input.ownerFindings }
+            : {}),
           ...(input.inheritedSymbolGaps
             ? { inheritedSymbolGaps: input.inheritedSymbolGaps }
             : {}),
@@ -1448,6 +1460,30 @@ export async function checkCommand(
             ? "✓ No violations found in staged files."
             : "✓ No violations found in staged symbols.";
 
+        // One block per declaration nothing owns stands for every finding
+        // it caused; the JSON keeps those findings with their ids.
+        const ownerFindings = collectOwnerFindings({
+          traceability: violationsRaw,
+          diagnostics: stagedKibiDiagnostics,
+          symbols: allSymbols,
+          candidatesByFile: new Map(
+            stagedCoverage.files.map((file) => [
+              file.path,
+              file.requirementIds,
+            ]),
+          ),
+          readRequirement: (id) =>
+            snapshotEntities.find((result) => result.entity.id === id)?.entity,
+          testsFor: (file, requirementId) =>
+            coveringTests(snapshotEntities, file, requirementId),
+        });
+        const shown = withoutOwnedCauses(
+          ownerFindings,
+          stagedKibiDiagnostics,
+          violationsRaw,
+        );
+        const ownerText = formatOwnerFindings(ownerFindings);
+
         if (
           violationsRaw.length > 0 ||
           coverageViolations.length > 0 ||
@@ -1462,9 +1498,11 @@ export async function checkCommand(
               ...contextViolations,
             ],
             qualityDiagnostics: stagedKibiDiagnostics,
+            ownerFindings,
             messages: [
-              ...(stagedKibiDiagnostics.length > 0
-                ? [formatStagedKibiDiagnostics(stagedKibiDiagnostics)]
+              ...(ownerText.length > 0 ? [ownerText] : []),
+              ...(shown.diagnostics.length > 0
+                ? [formatStagedKibiDiagnostics(shown.diagnostics)]
                 : []),
               ...(contextViolations.length > 0
                 ? formatConsistencyViolations(
@@ -1475,8 +1513,8 @@ export async function checkCommand(
               ...(coverageViolations.length > 0
                 ? [formatCoverageViolations(coverageViolations)]
                 : []),
-              ...(violationsRaw.length > 0
-                ? [formatStagedViolations(violationsRaw)]
+              ...(shown.traceability.length > 0
+                ? [formatStagedViolations(shown.traceability)]
                 : []),
             ],
           });
@@ -1489,8 +1527,12 @@ export async function checkCommand(
             format: options.format,
             coverage: stagedCoverage,
             qualityDiagnostics: stagedKibiDiagnostics,
+            ownerFindings,
             messages: [
-              formatStagedKibiDiagnostics(stagedKibiDiagnostics),
+              ...(ownerText.length > 0 ? [ownerText] : []),
+              ...(shown.diagnostics.length > 0
+                ? [formatStagedKibiDiagnostics(shown.diagnostics)]
+                : []),
               // Advisory-only findings still pass; say so explicitly.
               ...(!blocking ? [passMessage] : []),
             ],

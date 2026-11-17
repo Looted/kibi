@@ -405,3 +405,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe0e27930f8e
+  - type: implements
+    from: SYM-knowledge-index-entity-reason
+    to: REQ-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:47.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6142def5edaf
+  - type: covered_by
+    from: SYM-knowledge-index-entity-reason
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:58:41.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bc9bf9b6a4d

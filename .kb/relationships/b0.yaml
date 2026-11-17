@@ -322,6 +322,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-d97f17fdc944
   - type: implements
+    from: SYM-diagnostics-create-semantic-review-diagnostics
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T18:14:26.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a990b192ade4
+  - type: covered_by
+    from: SYM-diagnostics-create-semantic-review-diagnostics
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T18:14:26.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-205f737fd4d8
+  - type: implements
     from: SYM-core-kb-upsert-contradiction-baseline
     to: REQ-upsert-refuses-fact-contradiction
     created_at: 2026-11-16T19:17:41.917Z
@@ -335,3 +349,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7825f931e9f4
+  - type: assumes
+    from: SCEN-NEG-requirement-reason-change-notes-QUOTED
+    to: FACT-NEG-requirement-reason-change-notes-QUOTED
+    created_at: 2026-11-16T17:36:41.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4197a956330c
+  - type: verified_by
+    from: SCEN-NEG-requirement-reason-change-notes-QUOTED
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T17:36:41.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3c9a3cefb1e
+  - type: verified_by
+    from: SCEN-NEG-requirement-reason-change-notes-QUOTED
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T17:36:41.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b380118223a4

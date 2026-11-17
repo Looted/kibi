@@ -249,6 +249,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/traceability/staged-diagnostics.ts": [
     "packages/cli/tests/traceability/staged-diagnostics-contract.test.ts",
   ],
+  "packages/cli/src/traceability/owner-findings.ts": [
+    "packages/cli/tests/traceability/owner-findings.test.ts",
+  ],
   "packages/cli/src/traceability/staged-entity-context.ts": [
     "packages/cli/tests/traceability/staged-entity-context.test.ts",
   ],

@@ -3,9 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  type EntityReason,
   type EntitySummary,
   type FactClaim,
   type IndexedSymbol,
+  proseExcerpt,
   readEntitySummary,
 } from "./knowledge-index.js";
 import type { RequirementHead } from "./requirement-candidates.js";
@@ -14,8 +16,9 @@ import type { RequirementHead } from "./requirement-candidates.js";
  * Progressive-disclosure snippets shared by every host adapter.
  *
  * Each snippet is the first layer only: requirement IDs with titles, the
- * symbols that link them, what the lead requirement must keep true and the
- * decision behind it (edits only), and the exact follow-up call that opens the
+ * symbols that link them, what the lead requirement must keep true, why it
+ * exists and the decision behind it (edits only), and the exact follow-up
+ * call that opens the
  * next layer. Text is phrased as project facts rather than instructions (hosts
  * may treat imperative out-of-band text as a possible prompt injection) and
  * stays within a small budget so repeated reads never flood the context.
@@ -27,6 +30,12 @@ const MAX_TESTS = 3;
 const MAX_TITLE = 80;
 const MAX_GROUNDING = 2;
 const MAX_CLAIM = 160;
+/** Characters of the lead requirement's reason on the Why line. */
+export const MAX_WHY_CHARS = 240;
+/** The Why line's reason when the snippet must shrink to fit. */
+const SHORT_WHY_CHARS = 160;
+/** The Why line's reason in the last layout, for long paths. */
+const TIGHT_WHY_CHARS = 100;
 /** Files larger than this are not scanned to locate an edit. */
 const MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 export const MAX_SNIPPET_CHARS = 1200;
@@ -314,10 +323,38 @@ function withoutClosingStop(text: string): string {
   return text.replace(/[.\s]+$/, "");
 }
 
+/** How the Why line names where a reason was recorded. */
+const REASON_LABELS: Readonly<
+  Record<Extract<EntityReason, { recorded: true }>["from"], string>
+> = {
+  rationale: "rationale",
+  why_this_changed: "Why this changed",
+  section: "context section",
+};
+
 /**
- * What a requirement says must stay true and the decision behind it (a
- * linked ADR), read from its frontmatter links and relationship-shard
- * records. Each linked fact is shown as the claim it models, with its
+ * The `Why:` line for a requirement: its recorded reason, at most
+ * `maxChars` characters, labelled with where it was recorded and who it came
+ * from and when; or that no reason is recorded. Undefined when the
+ * requirement's document could not be read whole.
+ */
+export function reasonLine(
+  summary: EntitySummary,
+  maxChars: number = MAX_WHY_CHARS,
+): string | undefined {
+  const why = summary.why;
+  if (!why) return undefined;
+  if (!why.recorded) return "Why: no reason is recorded.";
+  // A recorded reason always holds prose, so the excerpt is never empty.
+  const text = proseExcerpt([why.text], maxChars) as string;
+  const said = why.by ? `; ${why.by}${why.on ? `, ${why.on}` : ""}` : "";
+  return `Why: ${withoutClosingStop(text)} (${REASON_LABELS[why.from]}${said}).`;
+}
+
+/**
+ * What a requirement says must stay true, why it exists (its recorded
+ * reason, unless `whyChars` is 0) and the decision behind it (a linked ADR),
+ * read from its frontmatter links and relationship-shard records. Each linked fact is shown as the claim it models, with its
  * operator and members (a fact without typed fields by its title); without
  * one the requirement's own statement is shown. Fact IDs are internal and
  * never shown. A retired requirement is not current policy, so its grounding
@@ -326,9 +363,10 @@ function withoutClosingStop(text: string): string {
 export function requirementGroundingLines(
   requirementId: string,
   summarize: Summarize,
-  options: { maxFacts?: number } = {},
+  options: { maxFacts?: number; whyChars?: number } = {},
 ): string[] {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
+  const whyChars = options.whyChars ?? MAX_WHY_CHARS;
   const requirement = summarize(requirementId);
   if (isRetiredStatus(requirement.status)) return [];
   const links = requirement.links ?? [];
@@ -373,6 +411,8 @@ export function requirementGroundingLines(
       );
     }
   }
+  const why = whyChars > 0 ? reasonLine(requirement, whyChars) : undefined;
+  if (why) lines.push(why);
   const adr = adrs[0];
   if (adr) lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
   return lines;
@@ -430,9 +470,54 @@ function requirementOwners(
   return { owners, requirementIds };
 }
 
+/** How much a snippet shows; later layouts show less to fit the budget. */
+type SnippetLayout = {
+  requirements: number;
+  facts: number;
+  whyChars: number;
+  tests: boolean;
+};
+
+/**
+ * Layouts tried in turn until a snippet fits its budget: fewer requirements
+ * and grounding claims go first, then a shorter reason, then the test lines,
+ * so the Why line and the next-layer calls are not cut off the end.
+ */
+const SNIPPET_LAYOUTS: readonly SnippetLayout[] = [
+  {
+    requirements: MAX_REQUIREMENTS,
+    facts: MAX_GROUNDING,
+    whyChars: MAX_WHY_CHARS,
+    tests: true,
+  },
+  {
+    requirements: 3,
+    facts: MAX_GROUNDING,
+    whyChars: MAX_WHY_CHARS,
+    tests: true,
+  },
+  { requirements: 2, facts: 1, whyChars: MAX_WHY_CHARS, tests: true },
+  { requirements: 2, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
+  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
+  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: false },
+  { requirements: 1, facts: 1, whyChars: TIGHT_WHY_CHARS, tests: false },
+];
+
+/** The first layout whose text fits `maxChars`, else the last one cut to fit. */
+function fitLayouts(
+  compose: (layout: SnippetLayout) => string,
+  maxChars: number,
+): string {
+  const texts = SNIPPET_LAYOUTS.map(compose);
+  const fits = texts.find((text) => text.length <= maxChars);
+  return fits ?? truncate(texts.at(-1) as string, maxChars);
+}
+
 /**
  * Knowledge snippet for a file with requirement-linked symbols, or undefined
- * when the manifest links nothing to it.
+ * when the manifest links nothing to it. An edit snippet gives the lead
+ * requirement's recorded reason on a `Why:` line; a snippet over its budget
+ * lists fewer requirements and claims before anything is cut.
  */
 export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
   const { relativePath, symbols, surface, summarize } = input;
@@ -448,64 +533,73 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
     return undefined;
   }
 
-  const lines: string[] = [
-    `Kibi knowledge for ${relativePath} (symbol manifest):`,
-  ];
-  for (const requirementId of requirementIds.slice(0, MAX_REQUIREMENTS)) {
-    const symbolTitles = owners.get(requirementId) as string[];
-    lines.push(
-      `- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`,
-    );
-  }
-  if (requirementIds.length > MAX_REQUIREMENTS) {
-    lines.push(
-      `- +${requirementIds.length - MAX_REQUIREMENTS} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`,
-    );
-  }
   const leadId = requirementIds[0];
-  if (surface === "edit" && leadId) {
-    lines.push(...requirementGroundingLines(leadId, summarize));
-  }
-  if (tests.length > 0) {
-    lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
-  }
-  if (executes.length > 0) {
-    lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
-  }
-
   const primaryFocus = focus[0];
-  if (primaryFocus) {
-    const owner = primaryFocus.implements[0];
-    const verb =
-      surface === "edit" ? "The edit is inside" : "These lines are inside";
-    lines.push(
-      owner
-        ? `${verb} ${primaryFocus.title}, which implements ${owner}.`
-        : `${verb} ${primaryFocus.title}.`,
-    );
-  }
+  const compose = (layout: SnippetLayout): string => {
+    const lines: string[] = [
+      `Kibi knowledge for ${relativePath} (symbol manifest):`,
+    ];
+    for (const requirementId of requirementIds.slice(0, layout.requirements)) {
+      const symbolTitles = owners.get(requirementId) as string[];
+      lines.push(
+        `- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`,
+      );
+    }
+    if (requirementIds.length > layout.requirements) {
+      lines.push(
+        `- +${requirementIds.length - layout.requirements} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`,
+      );
+    }
+    const grounding =
+      surface === "edit" && leadId
+        ? requirementGroundingLines(leadId, summarize, {
+            maxFacts: layout.facts,
+            whyChars: layout.whyChars,
+          })
+        : [];
+    lines.push(...grounding);
+    if (layout.tests && tests.length > 0) {
+      lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
+    }
+    if (layout.tests && executes.length > 0) {
+      lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
+    }
 
-  const location = primaryFocus
-    ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}`
-    : `{path:${jsonString(relativePath)}}`;
-  const next = [
-    leadId
-      ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text and why it exists`
-      : undefined,
-    `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`,
-  ].filter((part): part is string => part !== undefined);
-  lines.push(`Next layer: ${next.join("; ")}.`);
+    if (primaryFocus) {
+      const owner = primaryFocus.implements[0];
+      const verb =
+        surface === "edit" ? "The edit is inside" : "These lines are inside";
+      lines.push(
+        owner
+          ? `${verb} ${primaryFocus.title}, which implements ${owner}.`
+          : `${verb} ${primaryFocus.title}.`,
+      );
+    }
 
-  if (surface === "edit") lines.push(impactCheckLine(relativePath));
+    const location = primaryFocus
+      ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}`
+      : `{path:${jsonString(relativePath)}}`;
+    // With the reason on the Why line, the full text is what the call adds.
+    const reasonShown = grounding.some((line) => line.startsWith("Why: "));
+    const next = [
+      leadId
+        ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text${reasonShown ? "" : " and why it exists"}`
+        : undefined,
+      `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`,
+    ].filter((part): part is string => part !== undefined);
+    lines.push(`Next layer: ${next.join("; ")}.`);
 
-  return truncate(lines.join("\n"), input.maxChars ?? MAX_SNIPPET_CHARS);
+    if (surface === "edit") lines.push(impactCheckLine(relativePath));
+    return lines.join("\n");
+  };
+  return fitLayouts(compose, input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 
 /**
  * Reduced edit snippet for a file whose descriptive snippet (requirements,
  * symbols, tests, next-layer calls) was already shown this session: which
- * symbol the edit lands in, what the lead requirement must keep true and the
- * decision behind it, and the impact check. The descriptive parts are not
+ * symbol the edit lands in, what the lead requirement must keep true, why it
+ * exists and the decision behind it, and the impact check. The descriptive parts are not
  * repeated. Undefined when no symbol of the file implements a requirement
  * and the edit lands in no symbol.
  */
@@ -524,9 +618,18 @@ export function editKnowledgeUpdate(input: SnippetInput): string | undefined {
     );
   }
   if (!leadId) return lines[0];
-  lines.push(...requirementGroundingLines(leadId, summarize));
-  lines.push(impactCheckLine(relativePath));
-  return truncate(lines.join("\n"), input.maxChars ?? MAX_SNIPPET_CHARS);
+  return fitLayouts(
+    (layout) =>
+      [
+        ...lines,
+        ...requirementGroundingLines(leadId, summarize, {
+          maxFacts: layout.facts,
+          whyChars: layout.whyChars,
+        }),
+        impactCheckLine(relativePath),
+      ].join("\n"),
+    input.maxChars ?? MAX_SNIPPET_CHARS,
+  );
 }
 
 /**

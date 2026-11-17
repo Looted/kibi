@@ -40,6 +40,28 @@ symbols_manifest_stale: .kb/symbols.yaml does not cover the declarations of stag
 - `--format json` carries the same lists in the diagnostic `evidence`
   (`symbolsManifest[].missing` / `extra`, `uncoveredSymbols[].titles`).
 
+## One block per unowned declaration
+
+A declaration the commit adds or changes that no requirement owns prints
+first, as one `[BLOCKS COMMIT]` block that stands for its
+`symbols_manifest_stale`, `kibi_impact_evidence_missing`,
+`symbol_semantic_review_needed` and `Traceability failed` findings:
+
+```text
+[BLOCKS COMMIT] approveRefund (src/billing/refund.ts:42) is new and no requirement owns it.
+  If one of these already states what it does, link it to that one (never pick one only to pass the gate):
+    REQ-billing-refunds: Refunds are approved by a manager
+      kb_upsert {"type":"req","id":"REQ-billing-refunds",...,"implementedBy":[{"sourceFile":"src/billing/refund.ts","symbol":"approveRefund","coveredBy":["TEST-billing-refunds"]}]}
+  If it is new behavior, record a requirement for it first (template: kb_skills kibi-commit-review), then link it the same way.
+```
+
+The candidates are the requirements the rest of the file implements. Read
+each one and link only one that already states what the declaration does;
+the payload also links it to the tests covering that code (`coveredBy`). If
+none does, record a new requirement first. A type gets a `type-shape` record
+payload instead. `--format json` keeps the underlying findings and lists the
+blocks under `ownerFindings` (`causes` names the ids each one stands for).
+
 ## Blocking findings
 
 | Id or message | Cause | Fix |

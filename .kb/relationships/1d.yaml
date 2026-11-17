@@ -419,13 +419,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f09fefe12aa
-  - type: assumes
-    from: SCEN-init-gemini-instructions
-    to: FACT-init-gemini-imports-agents
-    created_at: 2026-11-16T16:34:53.263Z
+  - type: implements
+    from: SYM-discovery-execute-search
+    to: REQ-kibi-discovery-search
+    created_at: 2026-11-16T15:58:12.764Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-4234eb3930c1
+    id: rel-ea5ac9a8f197
+  - type: covered_by
+    from: SYM-discovery-execute-search
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:58:12.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74937eac1be9
   - type: executable_for
     from: SYM-test-kb-upsert-missing-endpoint-rejection
     to: TEST-kb-upsert-missing-endpoint-rejection
@@ -433,3 +440,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c784fb6c1432
+  - type: assumes
+    from: SCEN-init-gemini-instructions
+    to: FACT-init-gemini-imports-agents
+    created_at: 2026-11-16T16:34:53.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4234eb3930c1

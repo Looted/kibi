@@ -853,7 +853,7 @@ function cursorLinkedWorkspace(): string {
   );
   write(
     ".kb/requirements/REQ-checkout-rounding.md",
-    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n\nTotals round half up to two decimals.\n",
+    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n\nTotals round half up to two decimals.\n\n## Context\n\nFinance reconciles every order to the cent.\n",
   );
   write(
     ".kb/facts/FACT-total-rounding-cents.md",
@@ -907,6 +907,9 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
     );
     expect(snippet).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
+    );
+    expect(snippet).toContain(
+      "\nWhy: Finance reconciles every order to the cent (context section).\n",
     );
     expect(snippet).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",

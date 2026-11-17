@@ -516,7 +516,7 @@ function linkedWorkspace(requirementStatus = "open"): string {
   writeFile(
     root,
     ".kb/requirements/REQ-checkout-rounding.md",
-    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n`,
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\nrationale: Finance reconciles every order to the cent.\norigin:\n  kind: human\n  recorded_at: '2026-10-01T00:00:00Z'\n---\n`,
   );
   writeFile(
     root,
@@ -1433,6 +1433,9 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
+    expect(context).toContain(
+      "\nWhy: Finance reconciles every order to the cent (rationale; human, 2026-10-01).\n",
+    );
     expect(context).toContain("\nCovered by: TEST-checkout-rounding.\n");
     expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
 
@@ -1444,7 +1447,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(additionalContextOf(await preEdit("codex-e2e-2"))).toBe(context);
   }, 30_000);
 
-  test("a file owning more requirements than fit is cut at the snippet budget after its grounding and decision", async () => {
+  test("a file owning more requirements than fit lists fewer of them and keeps its grounding, reason, decision and next calls", async () => {
     const cwd = linkedWorkspace();
     const pluginData = createTempRoot("kibi-codex-e2e-data-");
     tempRoots.push(pluginData);
@@ -1493,12 +1496,16 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
       ),
     );
 
-    expect(context.length).toBe(MAX_SNIPPET_CHARS);
-    expect(context).toEndWith("…");
+    // Fewer requirements are listed, so nothing is cut off the end.
+    expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+    expect(context).not.toEndWith("…");
     expect(context).toContain(
       "\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
-    expect(context).toContain("\n- +2 more requirements: kb_query(");
+    expect(context).toMatch(/\n- \+[345] more requirements: kb_query\(/);
+    expect(context).toContain("\nWhy: ");
+    expect(context).toContain("\nNext layer: ");
+    expect(context).toEndWith("reports ownership drift after the edit.");
     expect(context).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );

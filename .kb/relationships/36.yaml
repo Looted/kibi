@@ -482,3 +482,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73e99a241cd8
+  - type: implements
+    from: SYM-owner-findings-format-owner-findings
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T16:49:26.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec5122cb3f2c
+  - type: covered_by
+    from: SYM-owner-findings-format-owner-findings
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T16:49:26.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87394966658f

@@ -384,3 +384,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-902050ceddc9
+  - type: validates
+    from: TEST-kb-upsert-implemented-by
+    to: SCEN-kb-upsert-implemented-by-covered-by
+    created_at: 2026-11-16T16:48:26.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4eb7ce2a46b7
+  - type: validates
+    from: TEST-kb-upsert-implemented-by
+    to: SCEN-NEG-kb-upsert-implemented-by-covered-by-UNLINKED
+    created_at: 2026-11-16T16:48:26.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f52019dad0a4
+  - type: implements
+    from: SYM-check-printStagedResult
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T16:49:35.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c7fa911192c
+  - type: covered_by
+    from: SYM-check-printStagedResult
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T16:49:35.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-221b7e24fecb

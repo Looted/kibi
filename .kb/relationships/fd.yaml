@@ -433,3 +433,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d80fd49c6e71
+  - type: executable_for
+    from: SYM-test-agent-core-edit-snippet-why
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:41:31.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fb5cbebecf1
+  - type: implements
+    from: SYM-search-answer-without-change-notes
+    to: REQ-requirement-reason-skips-change-notes
+    created_at: 2026-11-16T17:36:56.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a22d8fcfba3a
+  - type: covered_by
+    from: SYM-search-answer-without-change-notes
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T17:37:46.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17a7dd63b8b4
