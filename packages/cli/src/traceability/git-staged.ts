@@ -318,6 +318,21 @@ export function supportedStagedFiles(
 }
 
 /**
+ * Where a diff removes lines without adding any: for each such hunk, the
+ * new-file line after which the lines were removed (0 when they were at the
+ * top of the file). A `-U0` hunk that only removes lines has no new-file
+ * range, so `parseHunksFromDiff` does not see it.
+ */
+export function parseDeletionPoints(diffText: string): number[] {
+  const points: number[] = [];
+  for (const match of diffText.matchAll(
+    /^@@\s+-\d+(?:,\d+)?\s+\+(\d+),0\s+@@/gm,
+  ))
+    points.push(Number(match[1]));
+  return points;
+}
+
+/**
  * Parse unified diff hunks (new-file coordinates) from git diff output
  */
 export function parseHunksFromDiff(
