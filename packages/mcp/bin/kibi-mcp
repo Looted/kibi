@@ -91,7 +91,7 @@ Starts the Kibi MCP server over stdio.
 Options:
   --diagnostic-mode  enable diagnostic logging to .kb/usage.log
   --tools <profile>  tools to list: full (every tool, the default) or
-                     core (seven core tools, plus the bootstrap tools
+                     core (eight core tools, plus the bootstrap tools
                      while the KB is empty)
   --print-resolution print kibi-mcp startup resolution JSON and exit
   -h, --help         show help
