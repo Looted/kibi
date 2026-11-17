@@ -307,3 +307,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90d105deb714
+  - type: constrains
+    from: REQ-ci-required-check-aggregate
+    to: FACT-SUBJECT-kibi-ci-required-checks
+    created_at: 2026-11-17T10:51:27.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f792b3b2109
+  - type: requires_property
+    from: REQ-ci-required-check-aggregate
+    to: FACT-ci-required-check-aggregate
+    created_at: 2026-11-17T10:51:27.763Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a13c52e0345
+  - type: specified_by
+    from: REQ-ci-required-check-aggregate
+    to: SCEN-ci-required-check-aggregate
+    created_at: 2026-11-17T10:51:27.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8b52cc9019b
+  - type: specified_by
+    from: REQ-ci-required-check-aggregate
+    to: SCEN-NEG-ci-required-check-aggregate-VIOLATED
+    created_at: 2026-11-17T10:51:27.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ab03fea9c2d

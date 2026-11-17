@@ -426,3 +426,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7bc9bf9b6a4d
+  - type: validates
+    from: TEST-ci-required-checks-workflow-contract
+    to: REQ-ci-proof-search-gates-before-prove
+    created_at: 2026-11-17T10:51:31.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0da8ad6c4c4e
+  - type: validates
+    from: TEST-ci-required-checks-workflow-contract
+    to: REQ-ci-required-check-aggregate
+    created_at: 2026-11-17T10:51:31.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbaa5e32af6c
+  - type: validates
+    from: TEST-ci-required-checks-workflow-contract
+    to: SCEN-ci-proof-search-gates-before-prove
+    created_at: 2026-11-17T10:51:31.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35afd468d782
+  - type: validates
+    from: TEST-ci-required-checks-workflow-contract
+    to: SCEN-NEG-ci-proof-search-gates-before-prove-VIOLATED
+    created_at: 2026-11-17T10:51:31.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebda2f296ace
+  - type: validates
+    from: TEST-ci-required-checks-workflow-contract
+    to: SCEN-ci-required-check-aggregate
+    created_at: 2026-11-17T10:51:31.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b8679140586
+  - type: validates
+    from: TEST-ci-required-checks-workflow-contract
+    to: SCEN-NEG-ci-required-check-aggregate-VIOLATED
+    created_at: 2026-11-17T10:51:31.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f7bbbc1ce11

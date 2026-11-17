@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eec4ea9a3ff4
+  - type: implements
+    from: SYM-ci-proof-search-gate-steps
+    to: REQ-ci-proof-search-gates-before-prove
+    created_at: 2026-11-17T10:51:43.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b34ee0b3744
+  - type: covered_by
+    from: SYM-ci-proof-search-gate-steps
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:43.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-632a65675a57
