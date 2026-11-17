@@ -2,7 +2,24 @@
   "ENTITY_PROPERTIES_SCHEMA": {
     "type": "object",
     "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
-    "x-kibi-advertised-description": "Entity fields to persist; must include title and status.",
+    "x-kibi-advertised-description": "Entity fields; must include title and status. Fact, symbol, test and proof fields: kibi-usage resource operation-fields.",
+    "x-kibi-advertised-fields": [
+      "title",
+      "status",
+      "priority",
+      "tags",
+      "links",
+      "text_ref",
+      "origin",
+      "semantic_text",
+      "rationale",
+      "firmness",
+      "approved_by",
+      "approval_ref",
+      "required_evidence",
+      "sourceFile",
+      "symbol_role"
+    ],
     "properties": {
       "title": {
         "type": "string",

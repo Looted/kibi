@@ -381,3 +381,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac031914baa2
+  - type: executable_for
+    from: SYM-proof-mcp-bootstrap-tools
+    to: TEST-proof-mcp-bootstrap-tools
+    created_at: 2026-11-16T22:37:54.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51fcd10e485b

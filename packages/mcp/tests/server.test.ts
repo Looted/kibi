@@ -313,8 +313,43 @@ describe("MCP Server", () => {
     await killServer(proc);
   });
 
-  test("should handle tools/list request", async () => {
+  test("lists the six core tools by default in a workspace with knowledge", async () => {
+    // This repository's own knowledge base is not empty, so the bootstrap
+    // tools stay out too.
     const proc = startServer();
+    try {
+      await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2025-11-25",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
+        },
+      });
+      const response = await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/list",
+      });
+      const tools = (response.result as { tools: { name: string }[] }).tools;
+      expect(tools.map((tool) => tool.name)).toEqual([
+        "kb_query",
+        "kb_search",
+        "kb_status",
+        "kb_skills",
+        "kb_upsert",
+        "kb_check",
+      ]);
+    } finally {
+      proc.kill();
+    }
+  });
+
+  test("should handle tools/list request", async () => {
+    // --tools full lists the whole catalog.
+    const proc = startServer({ args: ["--tools", "full"] });
 
     // Initialize first
     await sendRequest(proc, {
@@ -644,7 +679,7 @@ describe("MCP Server", () => {
       });
       const proc = startServer({
         cwd: tempRoot,
-        env: { KIBI_WORKSPACE: tempRoot },
+        env: { KIBI_WORKSPACE: tempRoot, KIBI_MCP_TOOLS: "full" },
       });
 
       try {

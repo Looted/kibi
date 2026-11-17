@@ -1,7 +1,10 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
 import type { JsonInvocation } from "./cli-json-command.js";
-import { getCliOperationMetadata } from "./cli-operation-metadata.js";
+import {
+  commandSummary,
+  getCliOperationMetadata,
+} from "./cli-operation-metadata.js";
 import type { checkCommand } from "./commands/check.js";
 import {
   KB_OPTION_DESCRIPTION,
@@ -36,6 +39,9 @@ export function registerReportingCommands(program: Command): void {
     .command("find-gaps [type]")
     .alias("gaps")
     .description(getCliOperationMetadata("kb_find_gaps").description)
+    .summary(
+      commandSummary(getCliOperationMetadata("kb_find_gaps").description),
+    )
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option(
       "--missing-rel <rels>",
@@ -121,6 +127,7 @@ export function registerReportingCommands(program: Command): void {
   program
     .command("coverage")
     .description(getCliOperationMetadata("kb_coverage").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_coverage").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--by <group>", "Coverage mode: req|symbol|type", "req")
     .option("--tag <tags>", "Comma-separated tag filter")
@@ -180,6 +187,7 @@ export function registerReportingCommands(program: Command): void {
   program
     .command("graph")
     .description(getCliOperationMetadata("kb_graph").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_graph").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--from <ids>", "Comma-separated seed IDs")
     .option("--relationships <rels>", "Comma-separated relationship filter")
@@ -210,6 +218,7 @@ export function registerReportingCommands(program: Command): void {
   program
     .command("check")
     .description(getCliOperationMetadata("kb_check").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_check").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option(
       "--fix",

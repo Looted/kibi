@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-mcp-bootstrap-tools",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/proofs/tool-profile.proof.test.ts"
+    ]
+  ]
+}
