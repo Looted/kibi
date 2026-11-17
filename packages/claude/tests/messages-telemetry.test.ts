@@ -44,18 +44,18 @@ describe("Claude Code messages", () => {
 
   test("the stop reminder for one file", () => {
     expect(stopReminder(["src/a.ts"])).toBe(
-      'Kibi: 1 source file changed this session without a Kibi impact check: src/a.ts.\nkb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports requirement ownership, stale traceability, and symbol-manifest drift for it. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.',
+      'Kibi: 1 source file changed this session without a Kibi impact check: src/a.ts.\nkb_check({changed:true, sourceFiles:["src/a.ts"]}) gives the commit gate\'s verdict on it: each finding says whether it blocks the commit. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.',
     );
   });
 
   test("the stop reminder names at most eight files and counts the rest", () => {
     const eight = Array.from({ length: 8 }, (_, i) => `f${i}`);
     expect(stopReminder(eight)).toBe(
-      `Kibi: 8 source files changed this session without a Kibi impact check: ${eight.join(", ")}.\nkb_check({sourceFiles:${JSON.stringify(eight)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports requirement ownership, stale traceability, and symbol-manifest drift for them. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
+      `Kibi: 8 source files changed this session without a Kibi impact check: ${eight.join(", ")}.\nkb_check({changed:true, sourceFiles:${JSON.stringify(eight)}}) gives the commit gate's verdict on them: each finding says whether it blocks the commit. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
     );
     const ten = [...eight, "f8", "f9"];
     expect(stopReminder(ten)).toBe(
-      `Kibi: 10 source files changed this session without a Kibi impact check: ${eight.join(", ")} +2.\nkb_check({sourceFiles:${JSON.stringify(eight)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports requirement ownership, stale traceability, and symbol-manifest drift for them. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
+      `Kibi: 10 source files changed this session without a Kibi impact check: ${eight.join(", ")} +2.\nkb_check({changed:true, sourceFiles:${JSON.stringify(eight)}}) gives the commit gate's verdict on them: each finding says whether it blocks the commit. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
     );
   });
 });

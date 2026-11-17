@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-agent-core-shared-hook-inputs",
+  "sourceFile": "packages/agent-core/src/kb-mcp-tools.ts",
+  "symbol": "extractKbMcpToolCall",
+  "verdict": "keeps",
+  "note": "Still the one shared recognizer every host uses; it also counts a kb_check with changed:true and source files as the impact check, the same for every host.",
+  "statementHash": "sha256:d5ceb4a4ff3c0df848a33ffba649c15eb1f41f2addad2b90871850daa12d414c",
+  "codeHash": "sha256:fcdcf0be54f14a5471510f1b05ef4d4b67f3b782c844a6ef5b731f49f7d416d9",
+  "startLine": 140,
+  "endLine": 182,
+  "recordedAt": "2026-11-16T19:28:27.143Z"
+}

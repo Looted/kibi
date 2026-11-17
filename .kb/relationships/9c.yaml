@@ -297,3 +297,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ebe23a04ffe
+  - type: assumes
+    from: SCEN-NEG-kb-record-upsert-equivalence-RESULTS-DIFFER
+    to: FACT-NEG-kb-record-upsert-equivalence-RESULTS-DIFFER
+    created_at: 2026-11-17T07:11:13.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9359d7ec0be1

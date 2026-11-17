@@ -1008,6 +1008,21 @@ describe("merge train workflow and action", () => {
       "proof-required",
     ]);
     expect(step.with.check).toBe("sh scripts/proof-gate.sh");
+    // use-bundled-swipl downloads the archive the same run built, so the
+    // train job needs the bundle job, under the same label condition.
+    expect(
+      workflow.jobs.train.steps.some(
+        (s: { uses?: string }) =>
+          s.uses === "./.github/actions/use-bundled-swipl",
+      ),
+    ).toBe(true);
+    expect(workflow.jobs["swipl-bundle"].uses).toBe(
+      "./.github/workflows/swipl-ci-bundle.yml",
+    );
+    expect(workflow.jobs.train.needs).toEqual(["swipl-bundle"]);
+    expect(workflow.jobs["swipl-bundle"].if).toBe(
+      "${{ github.event_name != 'pull_request_target' || github.event.label.name == 'train' }}",
+    );
     expect(step.with["github-token"]).toBe(
       "${{ secrets.KIBI_MERGE_TOKEN || github.token }}",
     );

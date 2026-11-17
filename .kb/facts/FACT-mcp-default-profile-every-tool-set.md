@@ -20,6 +20,7 @@ value_set:
   - kb_coverage
   - kb_graph
   - kb_model
+  - kb_record
   - kb_upsert
   - kb_delete
   - kb_check

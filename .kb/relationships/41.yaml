@@ -496,6 +496,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c32099c59a4c
+  - type: assumes
+    from: SCEN-NEG-kb-record-foreign-fields-refused-FIELD-ACCEPTED
+    to: FACT-NEG-kb-record-foreign-fields-refused-FIELD-ACCEPTED
+    created_at: 2026-11-17T06:42:52.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23d3809c5538
   - type: covered_by
     from: SYM-cli-quantity-layer-quantity-word-share
     to: TEST-proof-quantity-word-share

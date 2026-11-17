@@ -56,6 +56,7 @@ import { createFirmEditGateDiagnostics } from "../public/impact/firm-edit-gate.j
 import { stagedFirmEditGateOptions } from "../public/impact/firm-edit-staged.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
+import { tagBlocks } from "../public/operations/finding-blocks.js";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
 import type { SymbolDebt } from "../public/operations/symbol-debt.js";
@@ -472,6 +473,28 @@ export interface InheritedSymbolGaps {
   orphaned: readonly string[];
 }
 
+/**
+ * The staged gate's findings, each saying what it stops: a violation, or a
+ * blocking diagnostic, refuses the commit; any other diagnostic is advice.
+ */
+export function tagStagedFindings(
+  violations: readonly unknown[],
+  diagnostics: readonly unknown[],
+  qualityDiagnostics: readonly unknown[],
+): {
+  violations: object[];
+  count: number;
+  diagnostics: object[];
+  qualityDiagnostics: object[];
+} {
+  return {
+    violations: tagBlocks(violations as object[], "commit", true),
+    count: violations.length,
+    diagnostics: tagBlocks(diagnostics as object[], "commit"),
+    qualityDiagnostics: tagBlocks(qualityDiagnostics as object[], "commit"),
+  };
+}
+
 export function printStagedResult(input: {
   format: "text" | "json" | undefined;
   coverage: StagedFileCoverageResult | null;
@@ -488,10 +511,11 @@ export function printStagedResult(input: {
     console.log(
       JSON.stringify({
         structuredContent: {
-          violations,
-          count: violations.length,
-          diagnostics: input.coverage?.diagnostics ?? [],
-          qualityDiagnostics,
+          ...tagStagedFindings(
+            violations,
+            input.coverage?.diagnostics ?? [],
+            qualityDiagnostics,
+          ),
           staged: input.coverage,
           messages: input.messages ?? [],
           ...(input.ownerFindings !== undefined &&

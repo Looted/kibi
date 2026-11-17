@@ -10,7 +10,8 @@
       "--max-concurrency=1",
       "./packages/mcp/tests/server/tool-surface-consumer.test.ts",
       "./packages/cli/tests/operations/advertised-schema.test.ts",
-      "./packages/cli/tests/operations/field-reference.test.ts"
+      "./packages/cli/tests/operations/field-reference.test.ts",
+      "./packages/mcp/tests/server/json-schema-to-zod-exact.test.ts"
     ]
   ]
 }

@@ -18,8 +18,8 @@
 
 import { existsSync } from "node:fs";
 import type { ExtractionResult } from "../extractors/markdown.js";
-import { toPrologAtom } from "../prolog/codec.js";
 import type { PrologProcess } from "../prolog.js";
+import { toPrologAtom } from "../prolog/codec.js";
 import type { Violation } from "../public/check-types.js";
 import {
   isCurrentAuthoredEntity,
@@ -147,6 +147,9 @@ export async function collectStagedEvidenceFloorViolations(
         },
       },
       new Set(REQUIREMENT_PROOF_RULES),
+      // Only the staged requirements are judged, so only their proofs are
+      // evaluated: every requirement's took minutes on a large store.
+      { requirementIds: [...held] },
     );
     return findings.filter((finding) => held.has(finding.entityId));
   } finally {

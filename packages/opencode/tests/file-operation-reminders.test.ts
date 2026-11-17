@@ -119,8 +119,7 @@ describe("deriveFileOperationReminder", () => {
 
       const reminder = result.lifecycleReminder ?? "";
       expect(reminder).toContain("kb_check");
-      expect(reminder).toContain("includeImpactDiagnostics");
-      expect(reminder).toContain("includeWorkingTreeDiff");
+      expect(reminder).toContain("kb_check({changed:true");
       expect(reminder).toContain("packages/opencode/src/existing.ts");
       expect(reminder).toContain("semantic review");
       expect(reminder).toContain("linked requirements/tests");

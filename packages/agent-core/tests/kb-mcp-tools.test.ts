@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   KIBI_WORKSPACE_ARGUMENT,
   canonicalKbToolName,
+  effectiveKbOperation,
   extractKbMcpToolCall,
   extractKbMcpToolName,
   hostKbOperation,
@@ -156,6 +157,33 @@ describe("extractKbMcpToolCall", () => {
     );
   });
 
+  test("the commit gate's verdict on the files counts as the impact check", () => {
+    expect(
+      extractKbMcpToolCall("kb_check", {
+        changed: true,
+        sourceFiles: ["src/a.ts"],
+      }),
+    ).toStrictEqual({
+      toolName: "kb_check",
+      impactCheckRun: true,
+      sourceFiles: ["src/a.ts"],
+    });
+    for (const call of [
+      { changed: true },
+      { changed: "true", sourceFiles: ["src/a.ts"] },
+      { changed: false, sourceFiles: ["src/a.ts"] },
+    ])
+      expect(extractKbMcpToolCall("kb_check", call)?.impactCheckRun).toBe(
+        false,
+      );
+    expect(
+      extractKbMcpToolCall("kb_search", {
+        changed: true,
+        sourceFiles: ["src/a.ts"],
+      })?.impactCheckRun,
+    ).toBe(false);
+  });
+
   test("source files keep non-empty strings from the first array", () => {
     expect(
       extractKbMcpToolCall("kb_check", { sourceFiles: ["a", "", 3, null, "b"] })
@@ -179,6 +207,38 @@ describe("extractKbMcpToolCall", () => {
     ).toBe("kb_upsert");
     expect(extractKbMcpToolCall("kb_check", { dryRun: true })?.toolName).toBe(
       "kb_check",
+    );
+  });
+
+  test("kb_record is a kb_upsert write, and its dry run validation only", () => {
+    expect(extractKbMcpToolCall("mcp__kibi__kb_record", {})?.toolName).toBe(
+      "kb_upsert",
+    );
+    expect(
+      extractKbMcpToolCall("kb_record", { arguments: { dryRun: true } })
+        ?.toolName,
+    ).toBe("kb_validate_upsert");
+    expect(
+      extractKbMcpToolCall("CallMcpTool", {
+        arguments: { name: "kb_record", dryRun: true },
+      })?.toolName,
+    ).toBe("kb_validate_upsert");
+    expect(
+      extractKbMcpToolCall("CallMcpTool", { args: { name: "kb_record" } })
+        ?.toolName,
+    ).toBe("kb_upsert");
+    expect(effectiveKbOperation("kb_record", {})).toBe("kb_upsert");
+    expect(effectiveKbOperation("kb_record", { dryRun: true })).toBe(
+      "kb_validate_upsert",
+    );
+    expect(effectiveKbOperation("kb_upsert", { dryRun: false })).toBe(
+      "kb_upsert",
+    );
+    expect(effectiveKbOperation("kb_delete", { dryRun: true })).toBe(
+      "kb_delete",
+    );
+    expect(effectiveKbOperation("kb_record", { dryRun: "true" })).toBe(
+      "kb_upsert",
     );
   });
 
@@ -228,6 +288,7 @@ describe("CLI and host operations", () => {
       "find-gaps": "kb_find_gaps",
       gaps: "kb_find_gaps",
       upsert: "kb_upsert",
+      record: "kb_upsert",
       sync: "kb_sync",
     };
     for (const [route, operation] of Object.entries(routes)) {

@@ -19,7 +19,7 @@ proof_contract:
     - symbol_id: SYM-TOOLS
       measure: count
   proves:
-    - CLAIM-CAB0843663E4D5AC
+    - CLAIM-613EE08AA64C3E95
 origin:
   kind: agent
   recorded_at: '2026-10-28T09:29:59.255Z'
@@ -27,20 +27,20 @@ id: TEST-proof-mcp-default-tool-count
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-9837beff1449026cf919d718
+    receipt_id: PR-bca35dd491c236244a8e84cc
     test_id: TEST-proof-mcp-default-tool-count
     scope: unit
     outcome: passed
-    code_snapshot: 6712d2faaeb276bece810a9f47b776cabff5dc9c840f0c7ef69c09efba35fb39
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T09:33:08.936Z'
-    finished_at: '2026-10-28T09:33:09.242Z'
-    artifact_digest: 9547aa1434672d7fc57af99319cbcb19ef207e7657fe027598e2d8dee682244e
-    contract_hash: 05218e557a29f30919dcbb2e908d6251cb46341f82b67dcc90e1e52eb70fe0cf
-    binding_hash: 692c42b4b2f8b1e64b82769afb973b15d19b89d0068b7b8132239368280b4c14
-    fingerprint: c02a77e30a2217fcd14147931ee8ca3fcec4e14a67dbed3e572db58b2811cde4
+    code_snapshot: df84fc91d0f807889519f20a576fcd787807fc96a14d6cb59f83a53eb62a9ce7
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-17T07:48:25.689Z'
+    finished_at: '2026-11-17T07:48:26.017Z'
+    artifact_digest: ce5ecee143c3931045c005b8b1106d3a6ce2cad63a3aec2d46c9e6d4bcb72379
+    contract_hash: 75a2d013e33dbc6ce983d8bdc15b63e903d4d2b18a98b1f27ab8801d5ff6e8db
+    binding_hash: b49a1ae66b0ba8e4f9d4f986cf2817ec80a848a371b02456c284139f683956b0
+    fingerprint: 299223fdaddead9b52792a5b5b9f38cde3a18b1aba366edb354fdfcb5d97a74a
     fingerprint_components:
-      contract: 05218e557a29f30919dcbb2e908d6251cb46341f82b67dcc90e1e52eb70fe0cf
+      contract: 75a2d013e33dbc6ce983d8bdc15b63e903d4d2b18a98b1f27ab8801d5ff6e8db
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -69,13 +69,13 @@ proof_receipts:
       value_type: int
       assumptions:
         - operator: eq
-          value: 16
+          value: 17
       claim:
         operator: eq
-        value: 16
-    certificate_digest: c2e4be88d2ace1f0e8b709c40c23b63375f845c8bb535483d1040dfbda12ba62
+        value: 17
+    certificate_digest: 6de71ed8f9f687ad7a10986e1cff250ee51fcd8d50729c4688a8131df5cb7a4d
     claim_bindings:
-      - claim_key: CLAIM-CAB0843663E4D5AC
+      - claim_key: CLAIM-613EE08AA64C3E95
         requirement_id: REQ-kibi-mcp-tool-catalog
         fact_id: FACT-mcp-default-tool-count
         binding: derived
@@ -83,7 +83,7 @@ proof_receipts:
         obligation:
           kind: numeric_constraint
           operator: eq
-          value: 16
+          value: 17
           value_type: int
           variable: default_tool_count
 ---

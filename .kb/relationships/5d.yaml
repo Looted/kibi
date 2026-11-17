@@ -622,6 +622,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c5445c23e81
+  - type: executable_for
+    from: SYM-test-check-changed-commit-verdict
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T19:24:21.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72cb194db6ad
+  - type: covered_by
+    from: SYM-const-advertised-description-limit
+    to: TEST-proof-advertised-description-limit
+    created_at: 2026-11-16T11:02:38.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2273e7c2e21
   - type: constrains
     from: REQ-mcp-upsert-capture-fields
     to: FACT-SUBJECT-KIBI-UPSERT-FIELD-GUIDANCE
@@ -657,10 +671,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23f11f469475
-  - type: covered_by
-    from: SYM-const-advertised-description-limit
-    to: TEST-proof-advertised-description-limit
-    created_at: 2026-11-16T11:02:38.336Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c2273e7c2e21

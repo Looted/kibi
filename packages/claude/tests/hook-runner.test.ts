@@ -265,7 +265,7 @@ describe("pre-edit snippets", () => {
     );
     expect(text).toContain('symbol:"computeTotal"');
     expect(text).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
   });
 
@@ -353,7 +353,7 @@ describe("pre-edit snippets", () => {
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
       "Why: Finance reconciles every order to the cent (context section).",
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
     // Same symbol again: nothing new to say.
     expect(
@@ -384,7 +384,9 @@ describe("pre-edit snippets", () => {
       "Kibi: this edit to src/checkout.ts changes code that implements REQ-checkout-rounding, REQ-currency-display.",
     );
     expect(text).toContain("REQ-checkout-rounding must keep true:");
-    expect(text).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(text).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     expect(text).not.toContain("Kibi knowledge for");
   });
 
@@ -566,7 +568,7 @@ describe("evaluation trace replays", () => {
     );
     expect(edit).toContain("REQ-checkout-rounding must keep true: ");
     expect(edit).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
     // What the Read already showed is not repeated.
     expect(edit).not.toContain("Kibi knowledge for");
@@ -809,7 +811,9 @@ describe("shell commands", () => {
     );
     expect(text).toContain("REQ-checkout-rounding");
     expect(text).toContain("must keep true");
-    expect(text).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(text).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     expect(await stop()).toContain("src/checkout.ts");
   });
 
@@ -840,7 +844,9 @@ describe("shell commands", () => {
     const before = await pre("Bash", { command });
     expect(before).toContain("REQ-checkout-rounding");
     expect(before).toContain("must keep true");
-    expect(before).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(before).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     write(fixture.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// sed\n`);
     // Already said before the edit: not repeated after it.
     expect(await post("Bash", { command })).toEqual({});
@@ -1225,7 +1231,7 @@ describe("decision capture", () => {
     expect(text).toContain(
       'Kibi: this request reads as a rule or decision (it says "from now on").',
     );
-    expect(text).toContain("recorded with kb_upsert");
+    expect(text).toContain("recorded with kb_record");
     expect(text).toContain("as part of this change, not after it");
     expect(await prompt(fixture, "Rename the helper to sum.")).toEqual({});
   });
@@ -1259,7 +1265,7 @@ describe("decision capture", () => {
     expect(text).toStartWith(
       [
         'Kibi: the person\'s request said "must", this session changed source files, and nothing was recorded in the knowledge base.',
-        'Record the rule behind "must" with kb_upsert as a requirement linked to the code that implements it before the work is reported done, or say in the final report why "must" is not a rule.',
+        'Record the rule behind "must" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "must" is not a rule.',
       ].join("\n"),
     );
     expect(text).not.toContain("when there was none");
@@ -1288,7 +1294,7 @@ describe("decision capture", () => {
     expect(await withRecord.stop()).toBeUndefined();
   });
 
-  test("the first source edit of a rule session gets the kb_upsert capture template once", async () => {
+  test("the first source edit of a rule session gets the kb_record capture template once", async () => {
     const fixture = createKibiWorkspace();
     await prompt(fixture, "Totals must never be negative.");
     const { post } = session(fixture);
@@ -1431,6 +1437,22 @@ describe("decision capture", () => {
       dryRun: true,
     });
     expect(await preview.stop()).toBeUndefined();
+
+    // kb_record writes a requirement through kb_upsert; its dry run does not.
+    const recorded = createKibiWorkspace();
+    const viaRecord = session(recorded);
+    await viaRecord.post("mcp__kibi__kb_record", {
+      statement: "Totals stay positive.",
+      saidBy: "user",
+    });
+    expect(await viaRecord.stop()).toContain("run `kibi signoff`");
+    const recordPreview = session(createKibiWorkspace());
+    await recordPreview.post("mcp__kibi__kb_record", {
+      statement: "Totals stay positive.",
+      saidBy: "user",
+      dryRun: true,
+    });
+    expect(await recordPreview.stop()).toBeUndefined();
 
     const shown = createKibiWorkspace();
     const withView = session(shown);

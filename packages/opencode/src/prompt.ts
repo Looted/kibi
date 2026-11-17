@@ -537,7 +537,7 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
         ? [`Missing: ${context.kbFreshness.missingEvidence.join(", ")}`]
         : []),
       "Resolution:",
-      "- **KB updated**: run `kb_search` for discovery, then `kb_upsert`/`kb_delete` for mutations, then `kb_check`.",
+      "- **KB updated**: run `kb_search` for discovery, then `kb_record` for a stated rule (`kb_upsert`/`kb_delete` for other mutations), then `kb_check`.",
       "- **No KB impact**: include a no-impact rationale in your final report after source-linked discovery via `kb_search`/`kb_query(sourceFile=...)` and `kb_check`.",
     ]
       .filter(Boolean)

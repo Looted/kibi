@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-core-journal-file-name-fits",
+  "steps": [
+    [
+      "swipl",
+      "-q",
+      "-g",
+      "load_test_files([]),run_tests(kb_storage_lane),halt",
+      "-t",
+      "halt",
+      "packages/core/tests/kb.plt"
+    ]
+  ]
+}

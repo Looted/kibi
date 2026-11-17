@@ -395,6 +395,12 @@
         "mandatory": false
       },
       {
+        "flags": "--changed [paths...]",
+        "description": "Judge the working tree plus the index as the commit gate would (--staged over a scratch index; the real index is untouched). Paths limit it to those files and .kb",
+        "default": null,
+        "mandatory": false
+      },
+      {
         "flags": "--min-links <n>",
         "description": "Minimum number of links required for symbol coverage",
         "default": "1",

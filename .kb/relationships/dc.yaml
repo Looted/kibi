@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d6441f216ff7
+  - type: assumes
+    from: SCEN-NEG-kb-record-returns-verdict-NO-VERDICT
+    to: FACT-NEG-kb-record-returns-verdict-NO-VERDICT
+    created_at: 2026-11-17T06:42:50.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb1b3deaaf8b

@@ -41,6 +41,29 @@ describe("kb tool evidence", () => {
     expect(tools).toEqual(["kb_validate_upsert", "kb_upsert"]);
   });
 
+  it("records kb_record as the kb_upsert it runs, and its dry run as validation", () => {
+    const tools: string[] = [];
+    const env = envRecording(tools);
+    for (const args of [{ statement: "s", saidBy: "user" }, { dryRun: true }])
+      handleKbToolEvent(
+        env,
+        {
+          type: "tool.execute.after",
+          properties: { tool: "kibi_kb_record", args },
+        } as never,
+        "s1",
+      );
+    handleKbToolEvent(
+      env,
+      {
+        type: "tool.execute.after",
+        properties: { tool: "kibi_kb_record" },
+      } as never,
+      "s1",
+    );
+    expect(tools).toEqual(["kb_upsert", "kb_validate_upsert", "kb_upsert"]);
+  });
+
   it("records Kibi MCP tools under their server-prefixed host names", () => {
     const tools: string[] = [];
     const env = envRecording(tools);

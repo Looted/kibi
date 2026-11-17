@@ -541,6 +541,57 @@
         }
       }
     },
+    "kb_record": {
+      "input": {
+        "statement": "Contract seeds cover every operation.",
+        "why": "Reason not stated",
+        "saidBy": "agent",
+        "code": [
+          {
+            "file": "src/contract.ts",
+            "symbol": "contract"
+          }
+        ],
+        "dryRun": true
+      },
+      "success": {
+        "structuredContent": {
+          "id": "REQ-contract-seeds-cover-every-operation",
+          "upsert": {
+            "type": "req",
+            "id": "REQ-contract-seeds-cover-every-operation",
+            "properties": {
+              "title": "Contract seeds cover every operation",
+              "status": "open",
+              "firmness": "default",
+              "origin": {
+                "kind": "agent"
+              }
+            },
+            "document": {
+              "body": "Contract seeds cover every operation.\n"
+            },
+            "why": "Reason not stated",
+            "implementedBy": [
+              {
+                "sourceFile": "src/contract.ts",
+                "symbol": "contract"
+              }
+            ]
+          },
+          "dryRun": true,
+          "valid": true,
+          "skippedEffects": ["kb-write", "workspace-write"]
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "kb_record does not take properties: it records a rule from its statement, why, saidBy, quote, code and test. Facts, relationships, proof contracts and other modeling go through kb_upsert."
+        }
+      }
+    },
     "kb_delete": {
       "input": {
         "ids": ["REQ-CONTRACT-001"]

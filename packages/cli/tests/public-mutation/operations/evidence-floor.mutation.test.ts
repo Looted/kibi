@@ -430,6 +430,32 @@ describe("collectEvidenceFloorViolations", () => {
     ).toStrictEqual(["REQ-A"]);
   });
 
+  test("requirementIds scopes the evaluation to those requirements", async () => {
+    bindings(null);
+    schema(11);
+    const prolog = fakeProlog(rowsAnswer([base]));
+    await collectEvidenceFloorViolations(context({ prolog }), RULES, {
+      snapshotEvidence: CLEAN,
+      requirementIds: ["REQ-A", "REQ-it's"],
+    });
+    expect(prolog.goals[0]).toContain(
+      `discovery:evidence_floor_json(ids(['REQ-A', 'REQ-it''s']), strict_snapshot, _{}, 'abc', `,
+    );
+    await collectEvidenceFloorViolations(context({ prolog }), RULES, {
+      snapshotEvidence: CLEAN,
+      requirementIds: [],
+    });
+    expect(prolog.goals[1]).toContain(
+      "discovery:evidence_floor_json(ids([]), strict_snapshot, _{}, 'abc', ",
+    );
+    await collectEvidenceFloorViolations(context({ prolog }), RULES, {
+      snapshotEvidence: CLEAN,
+    });
+    expect(prolog.goals[2]).toContain(
+      "discovery:evidence_floor_json(strict_snapshot, _{}, 'abc', ",
+    );
+  });
+
   test("an older or missing schema is not judged", async () => {
     bindings(null);
     const prolog = fakeProlog(rowsAnswer([base]));

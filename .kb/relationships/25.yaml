@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d3c23e74095
+  - type: assumes
+    from: SCEN-core-journal-file-name-fits
+    to: FACT-core-journal-file-name-max-bytes
+    created_at: 2026-11-17T06:00:20.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74c0dab54146
+  - type: verified_by
+    from: SCEN-core-journal-file-name-fits
+    to: TEST-core-journal-file-name-fits
+    created_at: 2026-11-17T06:00:20.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1200c1ff7d0b
