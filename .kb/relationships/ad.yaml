@@ -297,3 +297,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8582c4aa664
+  - type: implements
+    from: SYM-claude-session-state-sessionjournal
+    to: REQ-claude-decision-capture-nudges
+    created_at: 2026-11-16T21:02:55.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf071e7cc1e5
+  - type: covered_by
+    from: SYM-claude-session-state-sessionjournal
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T21:02:55.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6cdf0764186

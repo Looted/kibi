@@ -92,9 +92,16 @@ export function extractMcpKbUsage(
   toolInput: unknown,
 ): KbUsage | undefined {
   const operation = canonicalKbOperation(toolName);
-  return operation
-    ? usageFromPayload(operation, payloadOf(toolInput))
-    : undefined;
+  if (!operation) return undefined;
+  const payload = payloadOf(toolInput);
+  // A dry-run upsert only validates: like the shared extractKbMcpToolCall,
+  // report the read-only operation it routes to, so it records nothing.
+  return usageFromPayload(
+    operation === "kb_upsert" && payload.dryRun === true
+      ? "kb_validate_upsert"
+      : operation,
+    payload,
+  );
 }
 
 /**
