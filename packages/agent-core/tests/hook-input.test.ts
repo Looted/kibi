@@ -3,13 +3,13 @@ import { describe, expect, test } from "bun:test";
 import { Readable } from "node:stream";
 import { parseHookInput, parseStdinJson, readStdin } from "../src/hook-input";
 
-describe("ZCode hook input", () => {
+describe("hook input", () => {
   test("Given non-object input When parsing Then an empty event is returned", () => {
     expect(parseHookInput(null)).toEqual({ event: "" });
     expect(parseHookInput([])).toEqual({ event: "" });
   });
 
-  test("Given ZCode snake_case fields When parsing Then fields are normalized", () => {
+  test("Given snake_case fields When parsing Then fields are normalized", () => {
     expect(
       parseHookInput({
         hook_event_name: "PreToolUse",

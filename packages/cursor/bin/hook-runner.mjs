@@ -2050,6 +2050,22 @@ function readText2(file) {
   return "";
 }
 
+// ../agent-core/dist/hook-input.js
+async function readStdin() {
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+function parseStdinJson(rawInput) {
+  const trimmed = rawInput.trim();
+  if (trimmed.length === 0) {
+    return {};
+  }
+  return JSON.parse(trimmed);
+}
+
 // ../agent-core/dist/hook-usage-log.js
 import { randomUUID as randomUUID4 } from "node:crypto";
 import fs8 from "node:fs";
@@ -3198,20 +3214,6 @@ function parseHookInput(input) {
     parsed.status = status;
   }
   return parsed;
-}
-async function readStdin() {
-  const chunks = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks).toString("utf8");
-}
-function parseStdinJson(rawInput) {
-  const trimmed = rawInput.trim();
-  if (trimmed.length === 0) {
-    return {};
-  }
-  return JSON.parse(trimmed);
 }
 
 // src/hook-state-storage.ts
