@@ -3714,7 +3714,7 @@ ${advisory}` : BOOTSTRAP_REMINDER
       case "stop": {
         const state = loadHookState(stateDir);
         const shouldClearSession = state.dirtyPaths.length > 0 || state.kbCheckRun || state.planDelivered;
-        if (input.status === "aborted" || input.status === "error") {
+        if (!kibiReady || input.status === "aborted" || input.status === "error") {
           if (shouldClearSession) {
             clearSessionHookState(stateDir);
           }

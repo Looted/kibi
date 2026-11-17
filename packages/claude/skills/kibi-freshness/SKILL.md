@@ -5,7 +5,7 @@ license: AGPL-3.0-or-later
 metadata:
   displayName: kibi-freshness
   id: kibi-freshness
-  version: 2.4.0
+  version: 2.5.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -46,7 +46,7 @@ echo '{}' | npx --no-install kibi status --input -
   editor/config paths such as editor dot-directories; do not silently ignore them.
 - Use `kb_query`, or `query --input`, with `sourceFile` and text references for source-linked discovery.
 - Re-run `kb_search`, or `search --input`, after sync gaps or stale context are detected.
-- If knowledge must change, use the selected interface's `kb_upsert`/`upsert` or `kb_delete`/`delete` operation sequentially, then finish with `kb_check`/`check`.
+- If knowledge must change, use the selected interface's `kb_upsert`/`upsert` or `kb_delete`/`delete` operation sequentially (MCP lists `kb_delete` only in the full profile; CLI `kibi delete --input -`), then finish with `kb_check`/`check`.
 - If status returns `migrationPlan.version: kibi.migration-plan.v2`, inspect its
   hash, scope, dependencies, and safety classes. Apply only ready automatic
   actions with explicit hash/action approval through `kb_apply_plan` or

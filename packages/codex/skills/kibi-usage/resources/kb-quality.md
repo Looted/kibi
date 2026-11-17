@@ -6,7 +6,7 @@ requirements, narrowing `implements` links, writing missing context, retiring
 dead knowledge, or auditing a KB someone calls finished. Adding typed facts to
 prose requirements is a different job: see `resources/kb-improvement.md`.
 
-Every step goes through Kibi operations (`kb_upsert`, `kb_delete`,
+Every step goes through Kibi operations (`kb_upsert`, `kb_delete` (full MCP profile only; CLI `kibi delete --input -`),
 `kb_apply_plan`, `kibi migrate`, `kibi prove`). Do not read or edit `.kb/`.
 
 ## What the bar is

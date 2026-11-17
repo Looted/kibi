@@ -69,7 +69,7 @@ before source writes, deletion approval, or recovery.
 
 `kb_apply_plan` applies a whole plan atomically: a failure changes nothing.
 An interrupted plan is settled by the next `kb_apply_plan`, `kb_upsert`, or
-`kb_delete` call, or by `kb_apply_plan` with its `recoveryJournalId`; never
+`kb_delete` (full MCP profile only; CLI `kibi delete --input -`) call, or by `kb_apply_plan` with its `recoveryJournalId`; never
 re-apply the original plan. On a detached HEAD, reads answer from a read-only
 snapshot and writes are refused; check out a branch before mutating.
 
@@ -144,7 +144,7 @@ payloads.
 
 Conditional clauses ("only when", "only if", "must not ... unless") compile
 into typed `forbid` rules linked by `requires_rule`, not property facts; one
-`kb_model` or `kb_compile_intent` cannot translate stays an `ontology_gap`.
+`kb_model` (full MCP profile only; CLI `kibi model --input -`) or `kb_compile_intent` (full MCP profile only; CLI `kibi compile-intent --input -`) cannot translate stays an `ontology_gap`.
 
 `kb_compile_intent` reports `contradictionAnalysis.outcome: no_conflict` only
 when it could check: Prolog compares only requirements with logic links. When

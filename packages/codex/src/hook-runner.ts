@@ -2,6 +2,7 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { shellToolEditPaths } from "kibi-agent-core/bash-command";
 import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
@@ -156,6 +157,30 @@ function isKnownEditTool(toolName: string | undefined): boolean {
   // runtime Set.has(undefined) is false, so dropping it changes nothing.
   // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && editableTools.has(toolName);
+}
+
+/**
+ * Workspace-relative files a shell call writes in place (`sed -i`, `perl -i`,
+ * `>` and `>>` targets, `tee`), so a shell edit counts as a source edit just
+ * as an Edit or apply_patch call does.
+ */
+function shellEditedPaths(
+  workspaceRoot: string,
+  input: ReturnType<typeof parseHookInput>,
+): string[] {
+  return shellToolEditPaths(
+    input.toolName,
+    input.toolInput,
+    input.cwd ?? workspaceRoot,
+  )
+    .map(
+      (absolute) =>
+        canonicalizeWorkspacePath(workspaceRoot, {
+          eventCwd: input.cwd,
+          rawPath: absolute,
+        })?.workspaceRelative,
+    )
+    .filter((relative) => relative !== undefined);
 }
 
 /** `base` is the directory the call's relative paths resolve against. */
@@ -559,16 +584,18 @@ export async function runHook(
         // `apply_patch` names its files only in the patch text, so the explicit
         // path fields alone would leave those edits untracked and the Stop
         // reminder silent.
-        const dirtyPaths = extractEditedPaths(input.toolInput).filter(
-          isMeaningfulTrackedPath,
-        );
+        const shellEdits = shellEditedPaths(workspace.root, input);
+        const dirtyPaths = [
+          ...extractEditedPaths(input.toolInput),
+          ...shellEdits,
+        ].filter(isMeaningfulTrackedPath);
 
         if (dirtyPaths.length > 0) {
           addDirtyPaths(stateDir, dirtyPaths);
         }
         const session = { stateDir, sessionId: input.sessionId };
         if (
-          isKnownEditTool(input.toolName) &&
+          (isKnownEditTool(input.toolName) || shellEdits.length > 0) &&
           dirtyPaths.some(isSourceImpactRelevantPath)
         ) {
           markDecisionFlag(session, "source-edited");

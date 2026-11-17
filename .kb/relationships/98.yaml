@@ -364,6 +364,48 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-8113c86123b9
   - type: implements
+    from: SYM-cli-UNLISTED_OPERATIONS
+    to: REQ-cli-help-command-summaries
+    created_at: 2026-11-16T17:23:39.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59e4578da23e
+  - type: covered_by
+    from: SYM-cli-UNLISTED_OPERATIONS
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T17:23:39.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-419db2666e35
+  - type: executable_for
+    from: SYM-test-check-quantity-duplicate
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:08.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c764b6111999
+  - type: implements
+    from: SYM-cli-execute-upsert-request
+    to: REQ-kb-upsert-implemented-by-covered-by
+    created_at: 2026-11-16T16:50:03.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-473d0bff8544
+  - type: implements
+    from: SYM-temp-kb-consultOverlay
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-17T06:03:01.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6e20692f7f5
+  - type: covered_by
+    from: SYM-temp-kb-consultOverlay
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-17T06:03:01.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a4f5c4b1764
+  - type: implements
     from: SYM-decision-guard-stated-reason
     to: REQ-agent-hosts-rule-reason-capture
     created_at: 2026-11-16T16:13:52.033Z
@@ -378,33 +420,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-85fa2982a5bb
   - type: executable_for
-    from: SYM-test-check-quantity-duplicate
-    to: TEST-check-quantity-duplicate
-    created_at: 2026-11-16T16:10:08.436Z
+    from: SYM-proof-quantity-trivial-numbers
+    to: TEST-proof-quantity-trivial-numbers
+    created_at: 2026-11-17T06:00:07.091Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-c764b6111999
-  - type: implements
-    from: SYM-cli-UNLISTED_OPERATIONS
-    to: REQ-cli-help-command-summaries
-    created_at: 2026-11-16T17:23:39.370Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-59e4578da23e
-  - type: covered_by
-    from: SYM-cli-UNLISTED_OPERATIONS
-    to: TEST-cli-help-command-summaries
-    created_at: 2026-11-16T17:23:39.402Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-419db2666e35
-  - type: implements
-    from: SYM-cli-execute-upsert-request
-    to: REQ-kb-upsert-implemented-by-covered-by
-    created_at: 2026-11-16T16:50:03.001Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-473d0bff8544
+    id: rel-28d2f1aaead0
   - type: assumes
     from: SCEN-kb-record-modeling-stays-upsert
     to: FACT-kb-record-foreign-fields-refused
@@ -419,10 +440,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1e4ead45688
-  - type: executable_for
-    from: SYM-proof-quantity-trivial-numbers
-    to: TEST-proof-quantity-trivial-numbers
-    created_at: 2026-11-17T06:00:07.091Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-28d2f1aaead0

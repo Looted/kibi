@@ -40,6 +40,26 @@ describe("validateUpsertInput golden cases", () => {
   }
 });
 
+describe("an entity id", () => {
+  test("must be a file-name-safe token", () => {
+    for (const id of [
+      "bad id with spaces",
+      "REQ-a/b",
+      "REQ-a\\b",
+      "REQ-\tx",
+      "REQ-\u0007",
+    ]) {
+      expect(
+        outcome({ type: "req", id, properties: { title: "T" } } as UpsertInput),
+      ).toStrictEqual({
+        code: "VALIDATION_FAILED",
+        message: `'id' must not contain whitespace, control characters or path separators: ${JSON.stringify(id)}`,
+        issues: [{ rule: "id_format", field: "id" }],
+      });
+    }
+  });
+});
+
 describe("a retired requirement", () => {
   const upsert = (type: string, properties: Record<string, unknown>) =>
     outcome({

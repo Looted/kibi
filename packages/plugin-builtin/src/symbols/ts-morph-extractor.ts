@@ -39,7 +39,7 @@ import type {
   SourceFile,
   VariableDeclaration,
 } from "ts-morph";
-import { tsMorph } from "./ts-morph-runtime.js";
+import { createSyntacticProject, tsMorph } from "./ts-morph-runtime.js";
 import {
   SUPPORTED_SOURCE_EXTENSIONS,
   chooseScriptKind,
@@ -98,7 +98,7 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
   let project: Project | undefined;
   const getProject = (): Project => {
     // Without a tsconfig path the project reads no tsconfig files.
-    project ??= new (tsMorph().Project)();
+    project ??= createSyntacticProject();
     return project;
   };
 
@@ -148,9 +148,7 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
   // analysis rebuild a program over the whole lib closure.
   let project: Project | undefined;
   const getProject = (): Project => {
-    project ??= new (tsMorph().Project)({
-      compilerOptions: { noLib: true, noResolve: true, types: [] },
-    });
+    project ??= createSyntacticProject();
     return project;
   };
 

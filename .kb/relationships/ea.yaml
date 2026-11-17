@@ -328,13 +328,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac9ac9a05c85
-  - type: executable_for
-    from: SYM-test-core-journal-file-name-fits
-    to: TEST-core-journal-file-name-fits
-    created_at: 2026-11-17T06:00:18.865Z
+  - type: implements
+    from: SYM-ts-morph-runtime-create-syntactic-project
+    to: REQ-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:26.923Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-1a40b6d249bf
+    id: rel-a390aa53e2f0
+  - type: covered_by
+    from: SYM-ts-morph-runtime-create-syntactic-project
+    to: TEST-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:26.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e73e5981568
   - type: assumes
     from: SCEN-kibi-env-workspace-file-provider-keys
     to: FACT-env-workspace-files-non-provider-kibi-keys
@@ -391,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a32f9c47ae19
+  - type: executable_for
+    from: SYM-test-core-journal-file-name-fits
+    to: TEST-core-journal-file-name-fits
+    created_at: 2026-11-17T06:00:18.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a40b6d249bf
