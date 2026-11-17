@@ -1556,7 +1556,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
     expect(context).toContain(
-      "\nWhy: Finance reconciles every order to the cent (rationale; human, 2026-10-01).\n",
+      "\nWhy: Finance reconciles every order to the cent (REQ-checkout-rounding rationale; human, 2026-10-01).\n",
     );
     expect(context).toContain("\nCovered by: TEST-checkout-rounding.\n");
     expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);

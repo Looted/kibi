@@ -920,7 +920,7 @@ function withoutChangeNotes(lines) {
 }
 function recordedReason(rationale, body) {
   const field = proseExcerpt(withoutChangeNotes([rationale ?? ""]), MAX_REASON_CHARS);
-  if (field)
+  if (field && !NO_REASON_STATED.test(field))
     return { text: field, from: "rationale" };
   const sections = [];
   let current;
@@ -1484,8 +1484,8 @@ var RETIRED_STATUS2 = /supersed|deprecat|reject|obsolete|retired|archived|remove
 function isRetiredStatus(status) {
   return RETIRED_STATUS2.test(String(status));
 }
-function describeEntity(summary) {
-  const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+function describeEntity(summary, supersededBy) {
+  const retired = supersededBy ? ` (${summary.status ?? "closed"}, superseded by ${supersededBy})` : isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
   const firmness = !retired && (summary.firmness === "firm" || summary.firmness === "exploratory") ? summary.firmness === "firm" ? " [firm: ask before changing]" : " [exploratory]" : "";
   const notable = `${retired}${firmness}`;
   const title = displayTitle(summary);
@@ -1615,15 +1615,17 @@ var REASON_LABELS = {
   why_this_changed: "Why this changed",
   section: "context section"
 };
-function reasonLine(summary, maxChars = MAX_WHY_CHARS) {
+function reasonLine(summary, maxChars = MAX_WHY_CHARS, requirementId) {
   const why = summary.why;
   if (!why)
     return;
+  const of = requirementId ? ` for ${requirementId}` : "";
   if (!why.recorded)
-    return "Why: no reason is recorded.";
+    return `Why: no reason is recorded${of}.`;
   const text = proseExcerpt([why.text], maxChars);
   const said = why.by ? `; ${why.by}${why.on ? `, ${why.on}` : ""}` : "";
-  return `Why: ${withoutClosingStop(text)} (${REASON_LABELS[why.from]}${said}).`;
+  const owner = requirementId ? `${requirementId} ` : "";
+  return `Why: ${withoutClosingStop(text)} (${owner}${REASON_LABELS[why.from]}${said}).`;
 }
 function requirementGroundingLines(requirementId, summarize, options = {}) {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
@@ -1650,7 +1652,7 @@ function requirementGroundingLines(requirementId, summarize, options = {}) {
       lines.push(`${requirementId} must keep true: ${shown.map((claim) => truncate(claim, MAX_CLAIM)).join("; ")}${more}.`);
     }
   }
-  const why = whyChars > 0 ? reasonLine(requirement, whyChars) : undefined;
+  const why = whyChars > 0 ? reasonLine(requirement, whyChars, requirementId) : undefined;
   if (why)
     lines.push(why);
   const adr = adrs[0];
@@ -1670,6 +1672,31 @@ function createEntitySummarizer(workspaceRoot) {
       summaries.set(entityId, summary);
     }
     return summary;
+  };
+}
+function replacedAmong(requirementIds, summarize) {
+  const listed = new Set(requirementIds);
+  const replaced = new Map;
+  for (const id of requirementIds) {
+    const summary = summarize(id);
+    if (summary.status === "closed" || isRetiredStatus(summary.status))
+      continue;
+    for (const link of summary.links ?? [])
+      if (link.type === "supersedes" && link.target !== id && listed.has(link.target) && !replaced.has(link.target))
+        replaced.set(link.target, id);
+  }
+  return replaced;
+}
+function currentFirstOwners(symbols, focus, summarize) {
+  const { owners, requirementIds } = requirementOwners(symbols, focus);
+  const replaced = replacedAmong(requirementIds, summarize);
+  return {
+    owners,
+    requirementIds: [
+      ...requirementIds.filter((id) => !replaced.has(id)),
+      ...requirementIds.filter((id) => replaced.has(id))
+    ],
+    replaced
   };
 }
 function requirementOwners(symbols, focus) {
@@ -1717,7 +1744,7 @@ function fitLayouts(compose, maxChars) {
 function fileKnowledgeSnippet(input) {
   const { relativePath, symbols, surface, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
-  const { owners, requirementIds } = requirementOwners(symbols, focus);
+  const { owners, requirementIds, replaced } = currentFirstOwners(symbols, focus, summarize);
   const tests = [
     ...new Set(symbols.flatMap((symbol) => symbol.coveredBy))
   ].sort();
@@ -1735,7 +1762,7 @@ function fileKnowledgeSnippet(input) {
     ];
     for (const requirementId of requirementIds.slice(0, layout.requirements)) {
       const symbolTitles = owners.get(requirementId);
-      lines.push(`- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
+      lines.push(`- ${describeEntity(summarize(requirementId), replaced.get(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`);
     }
     if (requirementIds.length > layout.requirements) {
       lines.push(`- +${requirementIds.length - layout.requirements} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`);
@@ -1773,7 +1800,7 @@ function fileKnowledgeSnippet(input) {
 function editKnowledgeUpdate(input) {
   const { relativePath, symbols, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
-  const { requirementIds } = requirementOwners(symbols, focus);
+  const { requirementIds } = currentFirstOwners(symbols, focus, summarize);
   const leadId = requirementIds[0];
   const lines = [];
   const focused = focusUpdate(relativePath, symbols, input.focus);

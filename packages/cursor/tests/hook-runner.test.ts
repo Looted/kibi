@@ -973,7 +973,7 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
     expect(snippet).toContain(
-      "\nWhy: Finance reconciles every order to the cent (context section).\n",
+      "\nWhy: Finance reconciles every order to the cent (REQ-checkout-rounding context section).\n",
     );
     expect(snippet).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",

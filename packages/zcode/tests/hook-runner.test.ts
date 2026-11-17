@@ -1593,7 +1593,7 @@ describe("ZCode pre-edit knowledge", () => {
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
     );
     expect(context).toContain(
-      "\nWhy: Finance reconciles every order to the cent (rationale).\n",
+      "\nWhy: Finance reconciles every order to the cent (REQ-checkout-rounding rationale).\n",
     );
     expect(context).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",

@@ -351,7 +351,7 @@ describe("pre-edit snippets", () => {
     expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
-      "Why: Finance reconciles every order to the cent (context section).",
+      "Why: Finance reconciles every order to the cent (REQ-checkout-rounding context section).",
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
       'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
