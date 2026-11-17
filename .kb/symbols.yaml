@@ -3489,8 +3489,6 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-discovery-search
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -3501,6 +3499,10 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-mcp-search-discovery
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-kibi-discovery-search
       - type: implements
         target: REQ-kibi-search-answer-layer-v2
   - id: SYM-discovery-execute-status
@@ -19301,10 +19303,14 @@ symbols:
     sourceFile: packages/agent-core/src/knowledge-index.ts
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-claude-adapter-isolation
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
       - type: covered_by
         target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-claude-adapter-isolation
   - id: SYM-agent-core-normalizeWorkspacePath
     title: normalizeWorkspacePath
     status: active
@@ -21770,6 +21776,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-search-answer-layer
       - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: covered_by
         target: TEST-search-answer-hygiene
       - type: covered_by
         target: TEST-search-closed-requirements
@@ -21849,6 +21857,8 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-kibi-search-answer-layer
+      - type: executable_for
+        target: TEST-search-answer-first-layer
       - type: executable_for
         target: TEST-search-answer-requirement-reasons
   - id: SYM-test-kibi-query-fact-filters
@@ -22079,6 +22089,8 @@ symbols:
       recorded_at: 2026-10-04T03:13:45.666Z
     relationships:
       - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: covered_by
         target: TEST-agent-core-edit-snippets
       - type: covered_by
         target: TEST-claude-edit-snippet-hook
@@ -22086,6 +22098,8 @@ symbols:
         target: TEST-codex-edit-snippet-hook
       - type: covered_by
         target: TEST-cursor-edit-snippet-hook
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
       - type: implements
         target: REQ-agent-core-edit-snippets
   - id: SYM-agent-core-editKnowledgeContext
@@ -22296,6 +22310,8 @@ symbols:
         target: TEST-kibi-search-answer-layer
       - type: covered_by
         target: TEST-kibi-search-answer-verdicts
+      - type: covered_by
+        target: TEST-search-answer-first-layer
       - type: covered_by
         target: TEST-search-answer-requirement-reasons
       - type: implements
@@ -41617,30 +41633,115 @@ symbols:
         target: TEST-kibi-proof-steps-directory
       - type: implements
         target: REQ-kibi-proof-step-settings
-  - id: SYM-test-kb-upsert-missing-endpoint-rejection
-    title: Upsert store-refusal classification suite
+  - id: SYM-cli-search-answer-requirement-reason
+    title: requirementReason
     status: active
-    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
+    sourceFile: packages/cli/src/search-answer.ts
     symbol_role: behavioral
-    granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T13:35:43.768Z
+      recorded_at: 2026-11-16T10:22:28.078Z
     relationships:
-      - type: executable_for
-        target: TEST-kb-upsert-missing-endpoint-rejection
-  - id: SYM-test-cli-prove-empty-selection
-    title: kibi prove command suite
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-marks-missing-reason
+      - type: implements
+        target: REQ-search-answer-reason-source-order
+  - id: SYM-cli-search-answer-prose-excerpt
+    title: proseExcerpt
     status: active
-    sourceFile: packages/cli/tests/proof/prove-command.test.ts
+    sourceFile: packages/cli/src/search-answer.ts
     symbol_role: behavioral
-    granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T13:35:47.344Z
+      recorded_at: 2026-11-16T10:22:31.344Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-reason-length
+  - id: SYM-cli-search-answer-markdown-sections
+    title: markdownSections
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:22:34.521Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-reason-source-order
+  - id: SYM-cli-search-answer-adr-excerpt
+    title: adrExcerpt
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:22:37.669Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-search-answer-layer
+      - type: implements
+        target: REQ-kibi-search-answer-layer-v2
+  - id: SYM-cli-search-answer-note
+    title: answerNote
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:30:25.660Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-marks-missing-reason
+  - id: SYM-cli-search-answer-reason-type
+    title: SearchAnswerReason
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:30:29.027Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-marks-missing-reason
+  - id: SYM-cli-search-answer-requirement-type
+    title: SearchAnswerRequirement
+    status: active
+    sourceFile: packages/cli/src/search-answer.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:30:32.546Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-search-answer-gives-recorded-reason
+  - id: SYM-proof-search-answer-reason-chars
+    title: searchAnswerReasonCharsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/search-answer-limits.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:12:54.061Z
     relationships:
       - type: executable_for
-        target: TEST-cli-prove-empty-selection
+        target: TEST-proof-search-answer-reason-chars
   - id: SYM-cli-use-core-module-goal
     title: useCoreModuleGoal
     status: active
@@ -41743,125 +41844,185 @@ symbols:
         target: TEST-engine-client-core-modules-from-engine
       - type: implements
         target: REQ-engine-client-core-modules-from-engine
-  - id: SYM-cli-search-answer-requirement-reason
-    title: requirementReason
+  - id: SYM-test-agent-core-edit-snippet-why
+    title: Shared edit snippet suite
     status: active
-    sourceFile: packages/cli/src/search-answer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:22:28.078Z
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-requirement-reasons
-      - type: implements
-        target: REQ-search-answer-marks-missing-reason
-      - type: implements
-        target: REQ-search-answer-reason-source-order
-  - id: SYM-cli-search-answer-prose-excerpt
-    title: proseExcerpt
-    status: active
-    sourceFile: packages/cli/src/search-answer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:22:31.344Z
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-requirement-reasons
-      - type: implements
-        target: REQ-search-answer-reason-length
-  - id: SYM-cli-search-answer-markdown-sections
-    title: markdownSections
-    status: active
-    sourceFile: packages/cli/src/search-answer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:22:34.521Z
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-requirement-reasons
-      - type: implements
-        target: REQ-search-answer-reason-source-order
-  - id: SYM-cli-search-answer-adr-excerpt
-    title: adrExcerpt
-    status: active
-    sourceFile: packages/cli/src/search-answer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:22:37.669Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-search-answer-layer
-      - type: implements
-        target: REQ-kibi-search-answer-layer-v2
-  - id: SYM-cli-search-answer-note
-    title: answerNote
-    status: active
-    sourceFile: packages/cli/src/search-answer.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:30:25.660Z
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-requirement-reasons
-      - type: implements
-        target: REQ-search-answer-marks-missing-reason
-  - id: SYM-cli-search-answer-reason-type
-    title: SearchAnswerReason
-    status: active
-    sourceFile: packages/cli/src/search-answer.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:30:29.027Z
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-requirement-reasons
-      - type: implements
-        target: REQ-search-answer-marks-missing-reason
-  - id: SYM-cli-search-answer-requirement-type
-    title: SearchAnswerRequirement
-    status: active
-    sourceFile: packages/cli/src/search-answer.ts
-    symbol_role: type-shape
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T10:30:32.546Z
-    relationships:
-      - type: covered_by
-        target: TEST-search-answer-requirement-reasons
-      - type: implements
-        target: REQ-search-answer-gives-recorded-reason
-  - id: SYM-proof-search-answer-reason-chars
-    title: searchAnswerReasonCharsCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/search-answer-limits.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T13:12:54.061Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-search-answer-reason-chars
-  - id: SYM-test-check-restated-twin-facts
-    title: Restated twin facts consumer suite
-    status: active
-    sourceFile: packages/cli/tests/consumer/restated-twin-facts.test.ts
+    sourceFile: packages/agent-core/tests/snippets.test.ts
     symbol_role: behavioral
     granularity_reason: test-suite
     origin:
       kind: agent
-      recorded_at: 2026-11-16T10:52:50.700Z
+      recorded_at: 2026-11-16T15:41:29.013Z
     relationships:
       - type: executable_for
-        target: TEST-check-restated-twin-facts
+        target: TEST-agent-core-edit-snippet-why
+  - id: SYM-search-answer-requirement-statement-of
+    title: requirementStatementOf
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:53:48.612Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-governing-statement
+  - id: SYM-search-answer-reason-source
+    title: reasonSource
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:54:16.306Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-reason-origin
+  - id: SYM-search-answer-search-answer-reason-source
+    title: SearchAnswerReasonSource
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:54:32.667Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-answer-reason-origin
+  - id: SYM-knowledge-index-prose-excerpt
+    title: proseExcerpt
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:06.431Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-max-reason-chars
+    title: MAX_REASON_CHARS
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:11.954Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-snippets-reason-line
+    title: reasonLine
+    sourceFile: packages/agent-core/src/snippets.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:21.322Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-snippets-max-why-chars
+    title: MAX_WHY_CHARS
+    sourceFile: packages/agent-core/src/snippets.ts
+    status: active
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:25.938Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-entity-summary
+    title: EntitySummary
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:37.080Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-knowledge-index-entity-reason
+    title: EntityReason
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:55:45.352Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-agent-core-edit-snippet-why
+  - id: SYM-intent-search-intent-search-evidence
+    title: IntentSearchEvidence
+    sourceFile: packages/cli/src/intent-search.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:56:19.364Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-search-answer-search-answer-options
+    title: SearchAnswerOptions
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T15:56:26.472Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-discovery-summarize-match
+    title: summarizeMatch
+    sourceFile: packages/cli/src/public/operations/discovery-executors.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:49.198Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
+  - id: SYM-search-answer-fact-at-detail
+    title: factAtDetail
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T16:10:57.932Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-first-layer
+      - type: implements
+        target: REQ-search-compact-evidence
   - id: SYM-check-inheritedSymbolGapsOf
     title: inheritedSymbolGapsOf
     status: active
@@ -41875,6 +42036,18 @@ symbols:
         target: TEST-staged-gate-inherited-symbol-gaps
       - type: implements
         target: REQ-staged-gate-reports-inherited-symbol-gaps
+  - id: SYM-test-check-restated-twin-facts
+    title: Restated twin facts consumer suite
+    status: active
+    sourceFile: packages/cli/tests/consumer/restated-twin-facts.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T10:52:50.700Z
+    relationships:
+      - type: executable_for
+        target: TEST-check-restated-twin-facts
   - id: SYM-test-upsert-reason-notes
     title: kb_upsert reason note consumer suite
     status: active
@@ -41945,6 +42118,32 @@ symbols:
         target: REQ-search-answer-reason-source-order
       - type: implements
         target: REQ-upsert-notes-missing-reason
+  - id: SYM-search-answer-without-change-notes
+    title: withoutChangeNotes
+    sourceFile: packages/cli/src/search-answer.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:36:54.722Z
+    relationships:
+      - type: covered_by
+        target: TEST-search-answer-requirement-reasons
+      - type: implements
+        target: REQ-requirement-reason-skips-change-notes
+  - id: SYM-knowledge-index-without-change-notes
+    title: withoutChangeNotes
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T17:37:01.678Z
+    relationships:
+      - type: covered_by
+        target: TEST-agent-core-edit-snippet-why
+      - type: implements
+        target: REQ-requirement-reason-skips-change-notes
   - id: SYM-stryker-MUTATION_SHARDS
     title: MUTATION_SHARDS
     status: active
@@ -41974,6 +42173,196 @@ symbols:
         target: TEST-kibi-pending-receipt-branch-scope
       - type: implements
         target: REQ-kibi-pending-receipt-branch-scope
+  - id: SYM-test-kb-upsert-missing-endpoint-rejection
+    title: Upsert store-refusal classification suite
+    status: active
+    sourceFile: packages/cli/tests/operations-mutation/mutation/contradictions.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:43.768Z
+    relationships:
+      - type: executable_for
+        target: TEST-kb-upsert-missing-endpoint-rejection
+  - id: SYM-test-cli-prove-empty-selection
+    title: kibi prove command suite
+    status: active
+    sourceFile: packages/cli/tests/proof/prove-command.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T13:35:47.344Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-prove-empty-selection
+  - id: SYM-test-cli-rejection-not-retryable
+    title: CLI protocol error envelope suite
+    status: active
+    sourceFile: packages/cli/tests/cli-protocol-mutation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:40:50.875Z
+    relationships:
+      - type: executable_for
+        target: TEST-cli-rejection-not-retryable
+  - id: SYM-cli-errors-is-kb-rejection
+    title: isKbRejection
+    status: active
+    sourceFile: packages/cli/src/cli-errors.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T14:41:22.080Z
+    relationships:
+      - type: covered_by
+        target: TEST-cli-rejection-not-retryable
+      - type: implements
+        target: REQ-cli-rejection-not-retryable
+  - id: SYM-proof-scoped-check-budget
+    title: scopedCheckBudgetCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:01:44.044Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-scoped-check-budget
+  - id: SYM-const-scoped-check-budget-chars
+    title: SCOPED_CHECK_BUDGET_CHARS
+    status: active
+    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:01:47.164Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-scoped-check-budget
+  - id: SYM-proof-advertised-description-limit
+    title: advertisedDescriptionLimitCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - arithmetic
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:02:34.446Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-advertised-description-limit
+  - id: SYM-const-advertised-description-limit
+    title: ADVERTISED_DESCRIPTION_LIMIT
+    status: active
+    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:02:37.619Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-advertised-description-limit
+  - id: SYM-proof-checked-as-sent-ledger-fields
+    title: checkedAsSentFieldsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:13.312Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-checked-as-sent-ledger-fields
+  - id: SYM-const-ledger-contract-fields
+    title: CONTRACT_FIELDS
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:16.641Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-checked-as-sent-ledger-fields
+  - id: SYM-proof-non-behavioral-symbol-roles
+    title: nonBehavioralRolesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:03:56.501Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-non-behavioral-symbol-roles
+  - id: SYM-proof-behavioral-symbol-kinds
+    title: behavioralKindsCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - source
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:07.565Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-behavioral-symbol-kinds
+  - id: SYM-proof-staged-passing-review-states
+    title: stagedPassingReviewStatesCertificate
+    status: active
+    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
+    symbol_role: behavioral
+    tags:
+      - proof
+      - exhaustive
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:44.289Z
+    relationships:
+      - type: executable_for
+        target: TEST-proof-staged-passing-review-states
+  - id: SYM-const-staged-passing-review-states
+    title: STAGED_PASSING_REVIEW_STATES
+    status: active
+    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
+    symbol_role: config
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:04:47.502Z
+    relationships:
+      - type: covered_by
+        target: TEST-proof-staged-passing-review-states
+  - id: SYM-source-code-readers-extract-script-references
+    title: extractScriptReferences
+    status: active
+    sourceFile: packages/cli/src/operations/proof/source-code-readers.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T11:06:32.168Z
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-source-proof-kinds
+      - type: implements
+        target: REQ-kibi-env-reader-presence-tests
   - id: SYM-test-kb-merge-action
     title: Kibi KB merge action suite
     status: active
@@ -42433,204 +42822,6 @@ symbols:
         target: TEST-ci-kb-merge-resolution
       - type: executable_for
         target: TEST-kb-merge-action
-  - id: SYM-test-cli-rejection-not-retryable
-    title: CLI protocol error envelope suite
-    status: active
-    sourceFile: packages/cli/tests/cli-protocol-mutation.test.ts
-    symbol_role: behavioral
-    granularity_reason: test-suite
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T14:40:50.875Z
-    relationships:
-      - type: executable_for
-        target: TEST-cli-rejection-not-retryable
-  - id: SYM-cli-errors-is-kb-rejection
-    title: isKbRejection
-    status: active
-    sourceFile: packages/cli/src/cli-errors.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T14:41:22.080Z
-    relationships:
-      - type: covered_by
-        target: TEST-cli-rejection-not-retryable
-      - type: implements
-        target: REQ-cli-rejection-not-retryable
-  - id: SYM-proof-scoped-check-budget
-    title: scopedCheckBudgetCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:01:44.044Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-scoped-check-budget
-  - id: SYM-const-scoped-check-budget-chars
-    title: SCOPED_CHECK_BUDGET_CHARS
-    status: active
-    sourceFile: packages/cli/src/public/operations/check-format-shared.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:01:47.164Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-scoped-check-budget
-  - id: SYM-proof-advertised-description-limit
-    title: advertisedDescriptionLimitCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - arithmetic
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:02:34.446Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-advertised-description-limit
-  - id: SYM-const-advertised-description-limit
-    title: ADVERTISED_DESCRIPTION_LIMIT
-    status: active
-    sourceFile: packages/cli/src/public/operations/advertised-schema.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:02:37.619Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-advertised-description-limit
-  - id: SYM-proof-checked-as-sent-ledger-fields
-    title: checkedAsSentFieldsCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - exhaustive
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:03:13.312Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-checked-as-sent-ledger-fields
-  - id: SYM-const-ledger-contract-fields
-    title: CONTRACT_FIELDS
-    status: active
-    sourceFile: packages/cli/src/operations/mutation/requirement-semantics.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:03:16.641Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-checked-as-sent-ledger-fields
-  - id: SYM-proof-non-behavioral-symbol-roles
-    title: nonBehavioralRolesCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - source
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:03:56.501Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-non-behavioral-symbol-roles
-  - id: SYM-proof-behavioral-symbol-kinds
-    title: behavioralKindsCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - source
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:04:07.565Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-behavioral-symbol-kinds
-  - id: SYM-proof-staged-passing-review-states
-    title: stagedPassingReviewStatesCertificate
-    status: active
-    sourceFile: packages/cli/tests/proofs/claims/merged-requirement-constants.proof.test.ts
-    symbol_role: behavioral
-    tags:
-      - proof
-      - exhaustive
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:04:44.289Z
-    relationships:
-      - type: executable_for
-        target: TEST-proof-staged-passing-review-states
-  - id: SYM-const-staged-passing-review-states
-    title: STAGED_PASSING_REVIEW_STATES
-    status: active
-    sourceFile: packages/cli/src/public/impact/firm-edit-gate.ts
-    symbol_role: config
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:04:47.502Z
-    relationships:
-      - type: covered_by
-        target: TEST-proof-staged-passing-review-states
-  - id: SYM-source-code-readers-extract-script-references
-    title: extractScriptReferences
-    status: active
-    sourceFile: packages/cli/src/operations/proof/source-code-readers.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T11:06:32.168Z
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-source-proof-kinds
-      - type: implements
-        target: REQ-kibi-env-reader-presence-tests
-  - id: SYM-agent-core-decision-guard-startdecisionsession
-    title: startDecisionSession
-    status: active
-    sourceFile: packages/agent-core/src/decision-guard.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T21:02:46.863Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-cursor-kibi-plugin-v1
-      - type: covered_by
-        target: TEST-zcode-kibi-plugin-v1
-      - type: implements
-        target: REQ-agent-hosts-stop-capture
-  - id: SYM-claude-session-state-sessionjournal
-    title: sessionJournal
-    status: active
-    sourceFile: packages/claude/src/session-state.ts
-    symbol_role: behavioral
-    origin:
-      kind: agent
-      recorded_at: 2026-11-16T21:02:54.217Z
-    relationships:
-      - type: covered_by
-        target: TEST-claude-edit-snippet-hook
-      - type: implements
-        target: REQ-claude-decision-capture-nudges
   - id: SYM-test-check-quantity-duplicate
     title: quantity-duplicate consumer suite
     status: active
@@ -43364,3 +43555,35 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-16T16:30:00.000Z
+  - id: SYM-agent-core-decision-guard-startdecisionsession
+    title: startDecisionSession
+    status: active
+    sourceFile: packages/agent-core/src/decision-guard.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T21:02:46.863Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-agent-hosts-stop-capture
+  - id: SYM-claude-session-state-sessionjournal
+    title: sessionJournal
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-16T21:02:54.217Z
+    relationships:
+      - type: covered_by
+        target: TEST-claude-edit-snippet-hook
+      - type: implements
+        target: REQ-claude-decision-capture-nudges

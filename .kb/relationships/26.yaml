@@ -363,6 +363,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3c38ae26e65
+  - type: assumes
+    from: SCEN-requirement-reason-skips-change-notes
+    to: FACT-requirement-reason-change-notes
+    created_at: 2026-11-16T17:36:39.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1ec9494b0fa
+  - type: verified_by
+    from: SCEN-requirement-reason-skips-change-notes
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T17:36:39.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c8123a2a667
+  - type: verified_by
+    from: SCEN-requirement-reason-skips-change-notes
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T17:36:39.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7610522619b
   - type: implements
     from: SYM-cli-quantity-duplicate-quantity-duplicate-review-code
     to: REQ-migrate-quantity-duplicate-review
