@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { KIBI_WORKSPACE_ARGUMENT } from "../../../../agent-core/src/kb-mcp-tools.js";
+import { KIBI_WORKSPACE_ENV_KEYS } from "../../../../agent-core/src/workspace-optin.js";
 import {
   type CodeCertificate,
   exhaustiveCertificate,
   regexCertificate,
   writeCodeCertificate,
 } from "../../../src/public/proof-certificates.js";
-import { KIBI_WORKSPACE_ENV_KEYS } from "../../../../claude/src/workspace-optin.js";
-import { KIBI_WORKSPACE_ARGUMENT } from "../../../../agent-core/src/kb-mcp-tools.js";
 
 /**
  * The environment variables an agent plugin reads the Kibi workspace from, and the tool argument it passes the workspace in. Kibi reads every value itself at ingest, so the certificate is checked against the code.
@@ -17,7 +17,7 @@ export async function claudeWorkspaceEnvKeysCertificate(): Promise<CodeCertifica
   return exhaustiveCertificate({
     testId: "TEST-proof-claude-workspace-env-keys",
     domain: {
-      symbolId: "SYM-claude-KIBI_WORKSPACE_ENV_KEYS",
+      symbolId: "SYM-agent-core-KIBI_WORKSPACE_ENV_KEYS",
       members: [...KIBI_WORKSPACE_ENV_KEYS],
     },
     check: (member) => {
