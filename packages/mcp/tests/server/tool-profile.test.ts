@@ -32,10 +32,11 @@ function workspace(files: Record<string, string> = {}): string {
 }
 
 describe("MCP tool profile", () => {
-  test("the default profile names the six core tools and the bootstrap pair", () => {
+  test("the default profile names the seven core tools and the bootstrap pair", () => {
     expect([...DEFAULT_PROFILE_TOOLS]).toEqual([
       "kb_search",
       "kb_query",
+      "kb_record",
       "kb_upsert",
       "kb_check",
       "kb_status",
@@ -165,13 +166,13 @@ describe("MCP tool profile", () => {
     expect(full).toBe(
       [
         SESSION_BRIEF,
-        "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_upsert writes; kb_check validates; kb_status reports freshness.",
+        "kb_search answers a question with the governing requirements, facts, ADRs and tests; kb_query looks up an exact id or sourceFile; kb_record records a stated rule; kb_upsert writes and models; kb_check validates; kb_status reports freshness.",
         "Workflow guidance: kb_skills with action load and id kibi-usage. For first-time repository setup, use the kibi-bootstrap prompt.",
       ].join("\n"),
     );
     const listed = serverInstructions(new Set(["kb_search", "kb_query"]));
     expect(listed).toBe(
-      `${full}\nThis server lists kb_search, kb_query. The other Kibi operations (kb_status, kb_skills, kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_upsert, kb_delete, kb_check, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.`,
+      `${full}\nThis server lists kb_search, kb_query. The other Kibi operations (kb_status, kb_skills, kb_find_gaps, kb_coverage, kb_graph, kb_model, kb_upsert, kb_record, kb_delete, kb_check, kb_prepare_impact_review, kb_plan_bootstrap, kb_compile_intent, kb_apply_plan, kb_ingest_proof) run through the project CLI with the same input: npx --no-install kibi <command> (kibi --help lists them; JSON routes read --input -). Set KIBI_MCP_TOOLS=full to list them all here.`,
     );
     // An optional tool enabled by name is listed, so it is not sent to the CLI.
     const withSparql = serverInstructions(

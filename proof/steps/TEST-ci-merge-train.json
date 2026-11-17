@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-ci-merge-train",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./scripts/tests/merge-train.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "test_id": "TEST-staged-gate-scratch-store",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "200000",
+      "./packages/cli/tests/prolog-remaining.coverage.test.ts",
+      "./packages/cli/tests/traceability/temp-kb.test.ts",
+      "./packages/cli/tests/traceability/temp-kb-mutation.test.ts",
+      "./packages/cli/tests/public-mutation/operations/evidence-floor.mutation.test.ts"
+    ],
+    [
+      "swipl",
+      "-q",
+      "-s",
+      "packages/core/tests/discovery.plt",
+      "-g",
+      "run_tests(discovery_proof_evidence)",
+      "-t",
+      "halt"
+    ]
+  ]
+}

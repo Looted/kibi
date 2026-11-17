@@ -398,3 +398,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b532127942b
+  - type: covered_by
+    from: SYM-claude-captureReminder
+    to: TEST-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:57:30.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79b92e5741f4

@@ -412,3 +412,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7610522619b
+  - type: executable_for
+    from: SYM-test-ci-merge-train
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:59.862Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d10d5a590f6a

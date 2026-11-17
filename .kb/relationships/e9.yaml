@@ -434,12 +434,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3346001bdca3
   - type: assumes
-    from: SCEN-kibi-proof-steps-directory
-    to: FACT-proof-steps-ambiguous-default-source-refused
-    created_at: 2026-11-16T20:47:19.528Z
+    from: SCEN-check-finding-blocks
+    to: FACT-check-finding-blocks
+    created_at: 2026-11-16T20:33:41.420Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-99b11df7515b
+    id: rel-a37fe89f306f
   - type: implements
     from: SYM-agent-core-decision-guard-startdecisionsession
     to: REQ-agent-hosts-stop-capture
@@ -475,3 +475,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf0ef63e5c55
+  - type: assumes
+    from: SCEN-kibi-proof-steps-directory
+    to: FACT-proof-steps-ambiguous-default-source-refused
+    created_at: 2026-11-16T20:47:19.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99b11df7515b

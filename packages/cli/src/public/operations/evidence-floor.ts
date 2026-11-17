@@ -124,6 +124,11 @@ export type EvidenceFloorOptions = Readonly<{
    */
   checkedAt?: string;
   snapshotEvidence?: Awaited<ReturnType<typeof readWorkspaceSnapshot>>;
+  /**
+   * Evaluate only these requirements' proofs instead of every
+   * requirement's: the staged check judges the ones a commit stages.
+   */
+  requirementIds?: readonly string[];
 }>;
 
 function floorSource(row: EvidenceFloorRow): string {
@@ -245,6 +250,7 @@ export async function readRequirementProofPayload(
   context: OperationContext,
   snapshotEvidence?: Awaited<ReturnType<typeof readWorkspaceSnapshot>>,
   checkedAt: string = context.clock().toISOString(),
+  requirementIds?: readonly string[],
 ): Promise<RequirementProofPayload> {
   const prolog = context.prolog ?? (await context.ensureProlog?.());
   if (prolog === undefined) return {};
@@ -252,7 +258,11 @@ export async function readRequirementProofPayload(
   const snapshot = evidence.available ? evidence.snapshot.hash : "unknown";
   const { perContractTestBindings } = await import("./specs/reporting.js");
   const bindings = await perContractTestBindings({ ...context, prolog });
-  const goal = `discovery:evidence_floor_json(${bindings === null ? "strict_snapshot, _{}" : `per_contract, ${bindings}`}, ${toPrologAtom(snapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
+  const scope =
+    requirementIds === undefined
+      ? ""
+      : `ids([${requirementIds.map((id) => toPrologAtom(id)).join(", ")}]), `;
+  const goal = `discovery:evidence_floor_json(${scope}${bindings === null ? "strict_snapshot, _{}" : `per_contract, ${bindings}`}, ${toPrologAtom(snapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
   return runOperationJsonQuery<RequirementProofPayload>(
     prolog,
     "discovery.pl",
@@ -456,6 +466,7 @@ export async function collectEvidenceFloorViolations(
     context,
     snapshotEvidence,
     checkedAt,
+    options.requirementIds,
   );
   const rows = payload.rows ?? [];
   const approvalFloor = schemaVersion >= APPROVAL_FLOOR_SCHEMA_VERSION;

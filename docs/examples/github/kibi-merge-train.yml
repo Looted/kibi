@@ -1,0 +1,82 @@
+# Kibi merge train: land labelled pull requests in batches, each batch proven
+# once.
+#
+# Copy this file to .github/workflows/kibi-merge-train.yml. Setup, tokens,
+# rulesets and limits:
+# https://github.com/Looted/kibi/blob/develop/docs/github-integration.md#land-pull-requests-in-a-merge-train
+#
+# A person adds the `train` label to a pull request whose required checks
+# passed. Each run of this workflow takes one step: it merges the boarded pull
+# requests into one merge-train/ branch with `kibi merge-driver` (running
+# `kibi sync` and the check after each merge), opens that branch as a pull
+# request so your checks run on it once, and merges it only when the required
+# checks passed on the exact head it assembled. A failed train re-runs its
+# failed jobs once, then proves each half separately; only a train of one that
+# fails twice ejects its pull request, with a comment.
+#
+# Token: pull requests and pushes made with the default GITHUB_TOKEN start no
+# workflows, so the train's checks would never run. Add a repository secret
+# KIBI_MERGE_TOKEN (a fine-grained personal access token or GitHub App token
+# limited to this repository, with Contents, Pull requests, Issues, Actions and
+# Workflows read/write).
+#
+# Required checks: list in `checks` the checks your ruleset requires (one
+# aggregate job per workflow is easiest). Replace "CI" in `workflow_run` with
+# the names of the workflows that report them.
+#
+# Version: pin the action to a full commit SHA of Looted/kibi (shown here as
+# master). It needs Node.js 22.6 or newer, git and gh.
+
+name: Kibi merge train
+
+on:
+  pull_request_target:
+    types: [labeled]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kibi-merge-train
+  cancel-in-progress: false
+
+jobs:
+  train:
+    if: ${{ github.event_name != 'pull_request_target' || github.event.label.name == 'train' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+      checks: read
+    steps:
+      # Kibi comes from the default branch. The boarded pull requests are
+      # merged in a scratch worktree of this checkout and never installed.
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - uses: Looted/kibi/actions/merge-train@master
+        with:
+          checks: ci-required
+          kibi: node_modules/.bin/kibi
+          # Runs in the train after each merge; a pull request that fails it
+          # is ejected before the train is pushed. Use your own gate here.
+          check: $KIBI check
+          github-token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}

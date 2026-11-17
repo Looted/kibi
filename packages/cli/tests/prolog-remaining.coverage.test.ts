@@ -701,6 +701,54 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     await prolog.terminate();
   });
 
+  test("a scratch process (saveAfterWrites false) writes without kb_save", async () => {
+    const restoreEnvFn = isolateKibiEnv();
+    restores.push(restoreEnvFn);
+    const children: FakeChild[] = [];
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const created = fakeChild({ echoTrue: true });
+        children.push(created);
+        return created;
+      }),
+    );
+    restores.push(() => spawn.mockRestore());
+    const last = (): FakeChild => {
+      const child = children.at(-1);
+      if (child === undefined) throw new Error("spawn was not called");
+      return child;
+    };
+    const stdin = (): NonNullable<FakeChild["stdin"]> => {
+      const stream = last().stdin;
+      if (!stream) throw new Error("spawned Prolog child has no stdin");
+      return stream;
+    };
+    const prolog = new PrologProcess({
+      swiplPath: "/usr/bin/env",
+      oneShot: false,
+      timeout: 500,
+      saveAfterWrites: false,
+    });
+    await prolog.start();
+    const writes: string[] = [];
+    stdin().write = (chunk: string) => {
+      writes.push(String(chunk));
+      last().stderr?.emit("data", Buffer.from(STDERR_FRAME_END));
+      last().stdout?.emit(
+        "data",
+        Buffer.from("__KIBI_QUERY_FRAME_END__\ntrue.\n\n"),
+      );
+      return true;
+    };
+    const result = await prolog.query("kb_assert_entity(req, [])");
+    expect(result.success).toBe(true);
+    // Saving the whole store after every batch made a large staged
+    // projection quadratic; the scratch store is only queried in-process.
+    expect(writes.join("")).toContain("kb_assert_entity(req, [])");
+    expect(writes.join("")).not.toContain("kb_save");
+    await prolog.terminate();
+  });
+
   test("answers only once the frame goal's own toplevel answer has been read", async () => {
     const restoreEnvFn = isolateKibiEnv();
     restores.push(restoreEnvFn);

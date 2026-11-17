@@ -48,6 +48,14 @@ inputs:
     description: Tries per branch when the branch moves while it is being merged.
     required: false
     default: "3"
+  skip-label:
+    description: >-
+      Pull requests with this label are left alone, for example the label a
+      merge train boards with: the train merges the manifests itself, and a
+      push to a boarded pull request would restart its checks. Empty skips
+      none.
+    required: false
+    default: ""
   github-token:
     description: >-
       Token gh uses to list pull requests (needs pull-requests read). Pushes
@@ -84,6 +92,7 @@ runs:
         KB_MERGE_KIBI_INPUT: ${{ inputs.kibi }}
         KB_MERGE_CHECK: ${{ inputs.check }}
         KB_MERGE_ATTEMPTS: ${{ inputs.attempts }}
+        KB_MERGE_SKIP_LABEL: ${{ inputs.skip-label }}
       run: |
         set -euo pipefail
         kibi="${KB_MERGE_KIBI_INPUT:-node_modules/.bin/kibi}"

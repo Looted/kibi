@@ -1942,6 +1942,38 @@ describe("ZCode decision guard", () => {
     expectQuiet(await event({ hook_event_name: "Stop" }));
   });
 
+  test("a kb_record call keeps Stop from asking for the decision record; its dry run does not", async () => {
+    for (const [dryRun, quiet] of [
+      [false, true],
+      [true, false],
+    ] as const) {
+      const { event, fixture } = session();
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+      });
+      await runHook(
+        {
+          hook_event_name: "PostToolUse",
+          session_id: "s1",
+          cwd: fixture.cwd,
+          tool_name: "mcp__kibi__kb_record",
+          tool_input: {
+            statement: "Totals stay positive.",
+            saidBy: "user",
+            dryRun,
+          },
+        },
+        { pluginData: fixture.pluginData },
+      );
+      const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
+      expect(reminder.includes("recorded nothing in the knowledge base")).toBe(
+        !quiet,
+      );
+    }
+  });
+
   test("a kb_upsert keeps Stop from asking for the decision record", async () => {
     const { event, fixture } = session();
     await event({
@@ -1987,7 +2019,7 @@ describe("ZCode reminders from Claude-compatible payloads", () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-post");
     const first = await runHook(editPost(cwd), { pluginData, env: {} });
     expect(expectAdditionalContext(first, "PostToolUse")).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
     expectQuiet(await runHook(editPost(cwd), { pluginData, env: {} }));
   });

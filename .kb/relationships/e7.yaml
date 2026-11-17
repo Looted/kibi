@@ -475,3 +475,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd61b0e38f7c
+  - type: constrains
+    from: REQ-kb-record-upsert-equivalence
+    to: FACT-SUBJECT-KIBI-KB-RECORD
+    created_at: 2026-11-17T06:46:19.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07d8c9902546
+  - type: requires_property
+    from: REQ-kb-record-upsert-equivalence
+    to: FACT-kb-record-one-upsert-payload
+    created_at: 2026-11-17T06:46:19.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1a75f2c13e4
+  - type: requires_property
+    from: REQ-kb-record-upsert-equivalence
+    to: FACT-kb-record-upsert-equivalence
+    created_at: 2026-11-17T06:46:19.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-588415bc8cc5
+  - type: specified_by
+    from: REQ-kb-record-upsert-equivalence
+    to: SCEN-kb-record-upsert-equivalence
+    created_at: 2026-11-17T06:46:19.848Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-531e0f222001
+  - type: specified_by
+    from: REQ-kb-record-upsert-equivalence
+    to: SCEN-NEG-kb-record-one-upsert-payload-TWO-PAYLOADS
+    created_at: 2026-11-17T06:46:19.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e828782cc9d6
+  - type: verified_by
+    from: REQ-kb-record-upsert-equivalence
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:46:19.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8d92685f60a
+  - type: specified_by
+    from: REQ-kb-record-upsert-equivalence
+    to: SCEN-NEG-kb-record-one-upsert-payload-NO-PAYLOAD
+    created_at: 2026-11-17T07:11:41.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-532b4e0d9b16
+  - type: specified_by
+    from: REQ-kb-record-upsert-equivalence
+    to: SCEN-NEG-kb-record-upsert-equivalence-RESULTS-DIFFER
+    created_at: 2026-11-17T07:11:41.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4852a636e8e

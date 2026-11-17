@@ -89,6 +89,19 @@ describe("Kibi MCP usage", () => {
     );
   });
 
+  test("kb_record is reported as the kb_upsert it runs, its dry run as validation", () => {
+    expect(
+      extractMcpKbUsage("mcp__plugin_kibi-claude_kibi__kb_record", {
+        statement: "Totals stay positive.",
+        saidBy: "user",
+      })?.operation,
+    ).toBe("kb_upsert");
+    expect(
+      extractMcpKbUsage("kb_record", { arguments: { dryRun: true } })
+        ?.operation,
+    ).toBe("kb_validate_upsert");
+  });
+
   test("empty and non-string values are dropped", () => {
     expect(
       extractMcpKbUsage("kb_query", {
@@ -131,6 +144,22 @@ describe("Kibi MCP usage", () => {
         checkAll: false,
       });
     }
+  });
+
+  test("a changed check without a source filter covers every edit", () => {
+    expect(extractMcpKbUsage("kb_check", { changed: true })?.checkAll).toBe(
+      true,
+    );
+    expect(
+      extractMcpKbUsage("kb_check", { changed: true, sourceFiles: ["a.ts"] })
+        ?.checkAll,
+    ).toBe(false);
+    expect(extractMcpKbUsage("kb_check", { changed: "true" })?.checkAll).toBe(
+      false,
+    );
+    expect(extractMcpKbUsage("kb_search", { changed: true })?.checkAll).toBe(
+      false,
+    );
   });
 
   test("only a working-tree check without a source filter covers every edit", () => {

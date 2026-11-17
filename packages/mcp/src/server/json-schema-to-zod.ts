@@ -212,6 +212,41 @@ function describeGuardBranch(branch: JsonRecord): string {
   return parts.join(" ");
 }
 
+/**
+ * The values of a choice published as a string enum: two or more distinct
+ * strings and nothing else. A single value stays a literal.
+ */
+function stringChoices(
+  values: readonly unknown[],
+): [string, string, ...string[]] | undefined {
+  if (
+    values.length < 2 ||
+    !values.every((value) => typeof value === "string") ||
+    new Set(values).size !== values.length
+  )
+    return undefined;
+  return values as [string, string, ...string[]];
+}
+
+/**
+ * The constant of an anyOf branch that holds a `const` and at most
+ * `type: "string"`; stringChoices keeps only string constants.
+ */
+function stringConstant(branch: unknown): unknown {
+  const { type, const: value, ...rest } = (branch ?? {}) as JsonRecord;
+  return Object.keys(rest).length === 0 &&
+    (type === undefined || type === "string")
+    ? value
+    : undefined;
+}
+
+/** `schema` with `description` when that is non-empty text. */
+function described(schema: z.ZodTypeAny, description: unknown): z.ZodTypeAny {
+  return typeof description === "string" && description !== ""
+    ? schema.describe(description)
+    : schema;
+}
+
 export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   // A missing or primitive schema has none of the keywords below, so it
   // becomes an undescribed z.any().
@@ -246,16 +281,8 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     if (literals.length === 0) {
       return description ? z.any().describe(description) : z.any();
     }
-    // An all-string enum stays an enum on the wire: z.enum is advertised as
-    // `{"type":"string","enum":[...]}`, where a union of literals would be
-    // re-emitted as one `anyOf` branch per value.
-    const strings = literals.filter(
-      (value): value is string => typeof value === "string",
-    );
-    if (strings.length > 1 && strings.length === literals.length) {
-      const choices = z.enum(strings as [string, ...string[]]);
-      return description ? choices.describe(description) : choices;
-    }
+    const strings = stringChoices(literals);
+    if (strings !== undefined) return described(z.enum(strings), description);
     const literalSchemas = literals.map((value) => z.literal(value));
     if (literalSchemas.length === 1) {
       return singleLiteralOrAny(literalSchemas, description);
@@ -281,6 +308,11 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   // input validation. Guard oneOf branches on an object are enforced as a
   // refinement in the object case below instead.
   const anyOfVariants = Array.isArray(obj.anyOf) ? obj.anyOf : [];
+  // A choice among string constants is the same constraint as a string
+  // enum, which hosts read in a fraction of the characters.
+  const constants = stringChoices(anyOfVariants.map(stringConstant));
+  if (constants !== undefined)
+    return described(z.enum(constants), obj.description);
   if (anyOfVariants.length > 0) {
     const variants = anyOfVariants.map((variant) =>
       jsonSchemaToZod(variant),

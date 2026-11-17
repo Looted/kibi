@@ -315,6 +315,27 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e11f25c92380
   - type: assumes
+    from: SCEN-NEG-apply-plan-checks-contradictions-once-INTERMEDIATE
+    to: FACT-NEG-apply-plan-checks-contradictions-once-INTERMEDIATE
+    created_at: 2026-11-16T19:17:19.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab00a9234b56
+  - type: verified_by
+    from: SCEN-NEG-apply-plan-checks-contradictions-once-INTERMEDIATE
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:19.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac9ac9a05c85
+  - type: executable_for
+    from: SYM-test-core-journal-file-name-fits
+    to: TEST-core-journal-file-name-fits
+    created_at: 2026-11-17T06:00:18.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a40b6d249bf
+  - type: assumes
     from: SCEN-kibi-env-workspace-file-provider-keys
     to: FACT-env-workspace-files-non-provider-kibi-keys
     created_at: 2026-11-16T20:40:39.347Z
@@ -349,17 +370,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-84c6547bd7f8
-  - type: assumes
-    from: SCEN-NEG-apply-plan-checks-contradictions-once-INTERMEDIATE
-    to: FACT-NEG-apply-plan-checks-contradictions-once-INTERMEDIATE
-    created_at: 2026-11-16T19:17:19.300Z
+  - type: validates
+    from: TEST-cli-prove-shard
+    to: REQ-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:22:01.682Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-ab00a9234b56
-  - type: verified_by
-    from: SCEN-NEG-apply-plan-checks-contradictions-once-INTERMEDIATE
-    to: TEST-upsert-stale-siblings
-    created_at: 2026-11-16T19:17:19.335Z
+    id: rel-3d0432025fdb
+  - type: validates
+    from: TEST-cli-prove-shard
+    to: SCEN-cli-prove-shard-disjoint-parts
+    created_at: 2026-11-17T11:22:01.713Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-ac9ac9a05c85
+    id: rel-56de455e8a98
+  - type: validates
+    from: TEST-cli-prove-shard
+    to: SCEN-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    created_at: 2026-11-17T11:22:01.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a32f9c47ae19

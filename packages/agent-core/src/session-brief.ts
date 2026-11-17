@@ -13,7 +13,7 @@
 export const SESSION_BRIEF_LINES: readonly string[] = [
   "Kibi records this repository's requirements and decisions with their reasons.",
   "- Before changing behaviour, kb_search for the recorded intent and kb_query the requirement that governs it.",
-  "- When the person states a rule or makes a decision, record it with their reason (kb_upsert: who decided and why).",
+  "- When the person states a rule, record it with their reason (kb_record); a decision goes through kb_upsert.",
   "- Before finishing, stage the change with its .kb files and run the commit check, `kibi check --staged`.",
   "A request that would make a recorded requirement or decision false (narrowing it or adding an exception counts; touching its code does not) is a question, not a task: name the rule and ask.",
 ];

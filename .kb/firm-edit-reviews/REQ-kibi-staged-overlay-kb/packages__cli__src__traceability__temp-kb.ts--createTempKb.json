@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-staged-overlay-kb",
+  "sourceFile": "packages/cli/src/traceability/temp-kb.ts",
+  "symbol": "createTempKb",
+  "verdict": "keeps",
+  "note": "The overlay is still a temporary KB that leaves the branch store untouched; it only skips saving itself to disk after each write batch, since it is thrown away.",
+  "statementHash": "sha256:b2eca05482370a7ad25353b3b474c9bd808bb100077a51a1a0e50860f8f07e70",
+  "codeHash": "sha256:9051fef3663729deb339786d5864e79e262d469b818225c886be4c14cfd05568",
+  "startLine": 486,
+  "endLine": 539,
+  "recordedAt": "2026-11-16T19:28:27.143Z"
+}

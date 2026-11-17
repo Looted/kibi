@@ -229,6 +229,29 @@ git push -q origin HEAD:refs/heads/feature/one
     );
   });
 
+  test("leaves PRs with KB_MERGE_SKIP_LABEL alone", () => {
+    const fx = new Fixture();
+    manifestConflict(fx, "feature/one");
+    fx.commit(
+      "feature/two",
+      { ".kb/symbols.yaml": "- SYM-a\n- SYM-two\n" },
+      "develop~1",
+    );
+    fx.pulls.push({ head: "feature/two", labels: ["docs", "train"] });
+    const two = fx.tip("feature/two");
+
+    const run = fx.run({ KB_MERGE_SKIP_LABEL: "train" });
+    expect(run.status, run.stderr).toBe(0);
+    expect(run.outputs.merged).toEqual(["feature/one"]);
+    expect(fx.tip("feature/two")).toBe(two);
+    expect(run.stderr).toContain(
+      "feature/two: skipped, the pull request has the train label",
+    );
+
+    const listed = fx.run({ KB_MERGE_LIST_ONLY: "true" });
+    expect(listed.outputs.branches).toContain("feature/two");
+  });
+
   test("list-only names the manifest-only branches and changes nothing", () => {
     const fx = new Fixture();
     manifestConflict(fx, "feature/one");

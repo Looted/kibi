@@ -80,6 +80,10 @@ jobs:
           # to any other branch checks only that branch.
           branches: ${{ github.event_name == 'push' && github.ref_name != 'develop' && github.ref_name || '' }}
           list-only: "true"
+          # The merge train boards PRs labelled `train` and merges their
+          # manifests itself; refreshing one would restart its checks under
+          # the train.
+          skip-label: train
 
   swipl-bundle:
     name: Bundled SWI-Prolog
@@ -137,3 +141,4 @@ jobs:
           branches: ${{ needs.find-conflicts.outputs.branches }}
           kibi: node ${{ github.workspace }}/packages/cli/bin/kibi
           check: sh scripts/proof-gate.sh
+          skip-label: train

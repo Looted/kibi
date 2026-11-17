@@ -499,7 +499,9 @@ describe("createTempKb", () => {
       readFileSync(path.join(ctx.kbPath, "nested", "kb.rdf"), "utf8"),
     ).toBe("data");
     expect(readFileSync(ctx.overlayPath, "utf8")).toBe("");
-    expect(fake.options).toStrictEqual([{ timeout: 120000, oneShot: false }]);
+    expect(fake.options).toStrictEqual([
+      { timeout: 120000, oneShot: false, saveAfterWrites: false },
+    ]);
     expect(fake.events).toStrictEqual(["start"]);
     expect(fake.queries).toStrictEqual([`kb_attach('${ctx.kbPath}')`]);
     expect(once.mock.calls.map((call): unknown => call[0])).toStrictEqual([

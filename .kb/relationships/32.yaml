@@ -482,6 +482,20 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e9b5571267b
+  - type: implements
+    from: SYM-agent-core-extractKbMcpToolCall
+    to: REQ-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:32:47.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a38c71a904d
+  - type: covered_by
+    from: SYM-agent-core-extractKbMcpToolCall
+    to: TEST-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:34:04.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be089d8d87bb
   - type: assumes
     from: SCEN-upsert-lists-sibling-requirements
     to: FACT-upsert-lists-sibling-requirements
@@ -496,3 +510,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ae463fc2d30
+  - type: assumes
+    from: SCEN-NEG-ci-proof-reuse-no-wait-on-changed-tree-VIOLATED
+    to: FACT-NEG-ci-proof-reuse-no-wait-on-changed-tree-VIOLATED
+    created_at: 2026-11-17T10:51:15.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73f18008bb1c
+  - type: verified_by
+    from: SCEN-NEG-ci-proof-reuse-no-wait-on-changed-tree-VIOLATED
+    to: TEST-ci-proof-reuse-decide-before-wait
+    created_at: 2026-11-17T10:51:15.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-284ac5b1c37f

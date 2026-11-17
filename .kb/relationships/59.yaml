@@ -321,3 +321,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1da376c8d558
+  - type: assumes
+    from: SCEN-NEG-check-changed-commit-verdict-DIFFERS
+    to: FACT-NEG-check-changed-commit-verdict-DIFFERS
+    created_at: 2026-11-16T19:24:00.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c95b554c968f
+  - type: assumes
+    from: SCEN-NEG-ci-required-check-aggregate-VIOLATED
+    to: FACT-NEG-ci-required-check-aggregate-VIOLATED
+    created_at: 2026-11-17T10:51:19.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-212a52f706ef
+  - type: verified_by
+    from: SCEN-NEG-ci-required-check-aggregate-VIOLATED
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:19.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-642d997c0580

@@ -719,6 +719,23 @@ const BASE_DATA_SCHEMAS: Readonly<
       ),
     ],
   },
+  kb_record: objectData(
+    {
+      id: stringValue,
+      upsert: recordValue,
+      written: recordValue,
+      verdict: recordValue,
+      commitAllowed: booleanValue,
+      status: stringValue,
+      nextActions: recordArray,
+      dryRun: { const: true },
+      preview: recordValue,
+      valid: booleanValue,
+      errors: valueArray,
+      skippedEffects: stringArray,
+    },
+    ["id", "upsert"],
+  ),
   kb_delete: objectData({
     deleted: integerValue,
     relationships_deleted: integerValue,
@@ -772,6 +789,20 @@ const BASE_DATA_SCHEMAS: Readonly<
         violationGroups: recordArray,
         truncated: { const: true },
         truncation: recordValue,
+        changed: {
+          const: true,
+          description:
+            "Set by changed:true: the commit gate judged the working tree plus the index.",
+        },
+        commitAllowed: {
+          ...booleanValue,
+          description:
+            "changed:true only. True when a commit of these changes passes the commit gate.",
+        },
+        messages: stringArray,
+        staged: recordValue,
+        ownerFindings: valueArray,
+        operationalError: stringValue,
         symbolDebt: {
           ...objectData(
             {
@@ -943,6 +974,10 @@ const EFFECT_OVERRIDES: Readonly<
   kb_plan_bootstrap: {},
   kb_validate_upsert: {},
   kb_upsert: {
+    "kb-write": { destructive: true, retrySafety: "unsafe" },
+    "workspace-write": { destructive: true, retrySafety: "unsafe" },
+  },
+  kb_record: {
     "kb-write": { destructive: true, retrySafety: "unsafe" },
     "workspace-write": { destructive: true, retrySafety: "unsafe" },
   },

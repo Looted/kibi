@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7679e1cf731
+  - type: assumes
+    from: SCEN-NEG-kb-record-agent-rule-default-FIRM-AGENT-RULE
+    to: FACT-NEG-kb-record-agent-rule-default-FIRM-AGENT-RULE
+    created_at: 2026-11-17T07:11:00.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20d9b6339ccc

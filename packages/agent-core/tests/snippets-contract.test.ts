@@ -220,7 +220,7 @@ describe("unowned and unreadable notes", () => {
     ).toEqual([
       "Kibi: no symbol in src/a.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
       'Requirements whose titles share words with this path or the request: REQ-a: A; REQ-b: B. kb_query({id:"REQ-a"}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).',
-      'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/a.ts"}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + scenario + symbol implements link) as part of the change.',
+      'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/a.ts"}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_record (statement, why, who said it, code) as part of the change.',
     ]);
   });
 
@@ -242,7 +242,7 @@ describe("unowned and unreadable notes", () => {
     expect(unownedSourceNote("a.ts").split("\n")).toEqual([
       "Kibi: no symbol in a.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
       "No requirement title matches this file, so nothing recorded is known to cover it.",
-      'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"a.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.',
+      'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"a.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_record (statement, why, who said it, code) before the work is reported done.',
     ]);
   });
 
@@ -494,7 +494,7 @@ describe("fileKnowledgeSnippet", () => {
       "Test code for: R1.",
       "The edit is inside helper.",
       'Next layer: kb_search({query:"<topic>", sourceLocations:[{path:"a.ts", symbol:"helper"}]}) answers with governing requirements, facts, decisions, and tests.',
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["a.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
     expect(
       fileKnowledgeSnippet({
