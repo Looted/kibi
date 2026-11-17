@@ -4,10 +4,10 @@
   "sourceFile": "packages/cli/src/commands/check.ts",
   "symbol": "checkCommand",
   "verdict": "keeps",
-  "note": "The staged check also passes deleted source files and their base declarations to the firm-edit gate; validation, staged focus and non-zero exit on violations are unchanged.",
+  "note": "Only passes the KB's entity ids to the owner findings so a type's paste-ready record gets a free id; validation, staged focus and the exit code are unchanged.",
   "statementHash": "sha256:06953d78300eac2bed021a23f2a7178c7973af4ce47e6afdbe500f844e8b114a",
-  "codeHash": "sha256:ef45924657b920e593b21ddde3ab4c17ea29081b47b4ef7e800eb1e7728c1807",
+  "codeHash": "sha256:ddbea6843da593a3aa277809ecd614593df8b7e4ad4f8f059accfa1f1a7a4847",
   "startLine": 822,
-  "endLine": 1812,
-  "recordedAt": "2026-11-17T18:31:52.444Z"
+  "endLine": 1813,
+  "recordedAt": "2026-11-17T19:09:26.110Z"
 }

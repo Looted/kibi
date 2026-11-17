@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-import path from "node:path";
 import { collectGranularityCandidates } from "kibi-plugin-builtin";
 import {
   InputError,
@@ -21,6 +19,7 @@ import {
   getNonBehavioralSymbolNames,
   getSymbolRole,
 } from "../../public/symbol-granularity.js";
+import { mintSymbolId } from "../../traceability/symbol-id.js";
 import {
   normalizeRepoRelativePath,
   resolveWorkspaceSourceAbsolute,
@@ -57,21 +56,6 @@ function listed(names: readonly string[]): string {
   return names.length === 0
     ? "none"
     : `${shown.join(", ")}${hidden > 0 ? `, and ${hidden} more` : ""}`;
-}
-
-function slug(value: string): string {
-  const ascii = value
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .replace(/[^A-Za-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .toLowerCase();
-  // A name with letters the ASCII slug drops (non-ASCII ones), or with no
-  // letter or digit at all (as `$`), keeps a short hash of itself, so it
-  // never mints an empty id part or one another name shares.
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: the ASCII range.
-  if (ascii !== "" && /^[\x00-\x7F]*$/.test(value)) return ascii;
-  const hash = createHash("sha256").update(value).digest("hex").slice(0, 8);
-  return ascii === "" ? hash : `${ascii}-${hash}`;
 }
 
 function entries(input: UpsertInput): readonly ImplementedByInput[] {
@@ -319,19 +303,7 @@ async function symbolSteps(
       });
       continue;
     }
-    const parsed = path.posix.parse(entry.sourceFile);
-    const directory = path.posix.basename(parsed.dir);
-    const symbol = slug(entry.symbol);
-    const options = [
-      `SYM-${slug(parsed.name)}-${symbol}`,
-      `SYM-${slug(directory)}-${slug(parsed.name)}-${symbol}`,
-      `SYM-${slug(path.posix.join(parsed.dir, parsed.name))}-${symbol}`,
-    ];
-    let id = options.find((option) => !taken.has(option));
-    // The path-qualified id is taken too: number the file-qualified one.
-    for (let suffix = 2; id === undefined; suffix += 1)
-      if (!taken.has(`${options[0]}-${suffix}`)) id = `${options[0]}-${suffix}`;
-    taken.add(id);
+    const id = mintSymbolId(entry.sourceFile, entry.symbol, taken);
     const role = getSymbolRole(entry.candidate);
     steps.push({
       link: {

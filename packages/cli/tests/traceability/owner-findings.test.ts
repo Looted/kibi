@@ -199,6 +199,31 @@ describe("collectOwnerFindings", () => {
     expect(finding?.payloads[0]?.id).toBe("SYM-shapes-tag-record");
   });
 
+  test("a type's record id is never one the KB or another finding holds", () => {
+    const shape = (file: string) => ({
+      name: "LIMIT",
+      location: { file, startLine: 1 },
+      role: "type-shape",
+    });
+    const findings = collectOwnerFindings({
+      traceability: [],
+      diagnostics: [
+        manifest("lib/newmod.ts", [{ title: "LIMIT", line: 1 }]),
+        manifest("src/newmod.ts", [{ title: "LIMIT", line: 1 }]),
+      ],
+      symbols: [shape("lib/newmod.ts"), shape("src/newmod.ts")],
+      candidatesByFile: new Map(),
+      readRequirement,
+      takenIds: ["SYM-newmod-limit"],
+    });
+    expect(
+      findings.map((finding) => [finding.file, finding.payloads[0]?.id]),
+    ).toEqual([
+      ["lib/newmod.ts", "SYM-lib-newmod-limit"],
+      ["src/newmod.ts", "SYM-src-newmod-limit"],
+    ]);
+  });
+
   test("falls back to the extracted line, then to 0", () => {
     const findings = collectOwnerFindings({
       traceability: [],
@@ -582,7 +607,7 @@ describe("formatOwnerFindings", () => {
           "  If it is new behavior, record a requirement for it first (template: kb_skills kibi-commit-review), then link it the same way.",
         ].join("\n"),
         [
-          "[BLOCKS COMMIT] Shape (src/c.ts:1) is a new type with no symbol record. A type needs a record with symbol_role type-shape, not a requirement link:",
+          "[BLOCKS COMMIT] Shape (src/c.ts:1) is new and has no symbol record. A type, interface, enum or constant needs a record with symbol_role type-shape, not a requirement link:",
           `  kb_upsert ${JSON.stringify({
             type: "symbol",
             id: "SYM-c-shape",

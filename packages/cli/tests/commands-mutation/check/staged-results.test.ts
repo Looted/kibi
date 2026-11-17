@@ -544,9 +544,15 @@ describe("staged verdicts", () => {
         candidatesByFile: Map<string, string[]>;
         readRequirement: (id: string) => unknown;
         testsFor: (file: string, req: string) => unknown;
+        takenIds: unknown;
       },
     ];
     expect(input.traceability).toBe(raw);
+    expect(input.takenIds).toEqual(
+      (h.world.entities as Array<{ entity: { id: string } }>).map(
+        (result) => result.entity.id,
+      ),
+    );
     expect([...input.candidatesByFile]).toEqual([["src/a.ts", ["REQ-a"]]]);
     expect(input.readRequirement("REQ-a")).toEqual({
       id: "REQ-a",

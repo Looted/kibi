@@ -46038,3 +46038,41 @@ symbols:
         target: TEST-kb-upsert-source-entity-guard
       - type: implements
         target: REQ-kb-upsert-refuse-write-entity-into
+  - id: SYM-test-symbol-id-minting
+    title: Owner findings suite
+    status: active
+    sourceFile: packages/cli/tests/traceability/owner-findings.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T18:54:14.909Z
+    relationships:
+      - type: executable_for
+        target: TEST-symbol-id-minting
+  - id: SYM-symbol-id-mint-symbol-id
+    title: mintSymbolId
+    sourceFile: packages/cli/src/traceability/symbol-id.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T18:54:24.500Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-id-minting
+      - type: implements
+        target: REQ-symbol-id-kb-upsert-implementedby-kibi
+  - id: SYM-symbol-id-symbol-id-slug
+    title: symbolIdSlug
+    sourceFile: packages/cli/src/traceability/symbol-id.ts
+    status: active
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T18:54:26.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-symbol-id-minting
+      - type: implements
+        target: REQ-symbol-id-kb-upsert-implementedby-kibi

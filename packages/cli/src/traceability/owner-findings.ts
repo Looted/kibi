@@ -17,6 +17,7 @@
  */
 
 import type { KibiImpactDiagnostic } from "./staged-diagnostics.js";
+import { mintSymbolId } from "./symbol-id.js";
 import type { Violation as TraceabilityViolation } from "./validate.js";
 
 /**
@@ -67,19 +68,6 @@ export type OwnerFindingSymbol = Readonly<{
 }>;
 
 const key = (file: string, name: string) => `${file}\0${name}`;
-
-/** The symbol id kb_upsert implementedBy would give: SYM-<file>-<name>. */
-function symbolId(file: string, name: string): string {
-  const slug = (value: string) =>
-    value
-      .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-      .replace(/[^A-Za-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-      .toLowerCase();
-  const base = file.slice(file.lastIndexOf("/") + 1);
-  const dot = base.lastIndexOf(".");
-  return `SYM-${slug(dot > 0 ? base.slice(0, dot) : base)}-${slug(name)}`;
-}
 
 type ManifestEvidence = ReadonlyArray<{
   path: string;
@@ -156,7 +144,10 @@ export function collectOwnerFindings(input: {
   ) => Readonly<{ title?: unknown; status?: unknown }> | undefined;
   /** The tests covering the file's code that implements a requirement. */
   testsFor?: (file: string, requirementId: string) => readonly string[];
+  /** Every entity id the KB holds, so a type's new record never reuses one. */
+  takenIds?: Iterable<string>;
 }): OwnerFinding[] {
+  const taken = new Set(input.takenIds ?? []);
   const symbols = new Map(
     input.symbols.map((symbol) => [
       key(symbol.location.file, symbol.name),
@@ -236,7 +227,7 @@ export function collectOwnerFindings(input: {
       ? [
           {
             type: "symbol",
-            id: symbolId(file, name),
+            id: mintSymbolId(file, name, taken),
             properties: {
               title: name,
               status: "active",
@@ -347,7 +338,7 @@ export function formatOwnerFindings(findings: readonly OwnerFinding[]): string {
     const at = `${finding.symbol} (${finding.file}:${finding.line})`;
     if (finding.typeShape)
       return [
-        `[BLOCKS COMMIT] ${at} is a new type with no symbol record. A type needs a record with symbol_role type-shape, not a requirement link:`,
+        `[BLOCKS COMMIT] ${at} is new and has no symbol record. A type, interface, enum or constant needs a record with symbol_role type-shape, not a requirement link:`,
         `  kb_upsert ${JSON.stringify(finding.payloads[0])}`,
       ].join("\n");
     const lines = [

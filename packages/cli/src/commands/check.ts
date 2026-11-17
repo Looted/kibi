@@ -1565,6 +1565,7 @@ export async function checkCommand(
             snapshotEntities.find((result) => result.entity.id === id)?.entity,
           testsFor: (file, requirementId) =>
             coveringTests(snapshotEntities, file, requirementId),
+          takenIds: snapshotEntities.map((result) => result.entity.id),
         });
         const shown = withoutOwnedCauses(
           ownerFindings,

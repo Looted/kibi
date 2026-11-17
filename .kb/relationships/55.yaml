@@ -307,3 +307,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0b26f9b4dd2
+  - type: verified_by
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: TEST-symbol-id-minting
+    created_at: 2026-11-17T18:54:23.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b43a5feb1ba2
+  - type: requires_property
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: FACT-minted-symbol-ids-held-elsewhere
+    created_at: 2026-11-17T18:55:19.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8af624742039
+  - type: constrains
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-17T18:55:19.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cba18cb8b8ff
+  - type: specified_by
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: SCEN-symbol-id-minting
+    created_at: 2026-11-17T19:07:20.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-734ec8da1f12
+  - type: specified_by
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: SCEN-NEG-symbol-id-minting-VIOLATED
+    created_at: 2026-11-17T19:07:20.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99b9953e964b
