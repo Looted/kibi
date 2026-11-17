@@ -45919,3 +45919,27 @@ symbols:
     origin:
       kind: agent
       recorded_at: 2026-11-17T17:21:29.041Z
+  - id: SYM-record-execute-record-payload
+    title: RecordPayload
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/record-execute.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:45:35.694Z
+  - id: SYM-record-id-chars
+    title: ID_CHARS
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/record.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:45:37.877Z
+  - id: SYM-validation-max-id-bytes
+    title: MAX_ID_BYTES
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/validation.ts
+    symbol_role: type-shape
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T17:45:40.136Z

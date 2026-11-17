@@ -725,6 +725,7 @@ const BASE_DATA_SCHEMAS: Readonly<
       upsert: recordValue,
       written: recordValue,
       verdict: recordValue,
+      verdictError: stringValue,
       commitAllowed: booleanValue,
       status: stringValue,
       nextActions: recordArray,

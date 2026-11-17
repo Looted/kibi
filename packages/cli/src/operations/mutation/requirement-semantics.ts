@@ -14,6 +14,7 @@ import {
   storedEntityLookup,
 } from "./stored-entity.js";
 import type { StagedUpsertState, UpsertInput } from "./types.js";
+import { isPartialSemanticInventory } from "./validation.js";
 
 /** The fields that make up a requirement's proposition ledger. */
 const SEMANTIC_CONTRACT_FIELDS = [
@@ -276,6 +277,36 @@ async function groundedClaimKeys(
 }
 
 /**
+ * A write whose entries are valid only over the stored ledger (full entries
+ * sent without the semantic_text they were read from, as a step built from
+ * the stored inventory sends them) is written with the stored ledger fields
+ * it leaves out, which is how its authored file reads afterwards.
+ */
+function withStoredLedger(
+  input: UpsertInput,
+  recorded: Readonly<Record<string, unknown>>,
+): { input: UpsertInput; applied: readonly ServerInventoryEntry[] } {
+  const own = input.properties ?? {};
+  const kept: Record<string, unknown> = {};
+  for (const field of SEMANTIC_CONTRACT_FIELDS)
+    if (own[field] === undefined && recorded[field] !== undefined)
+      kept[field] = recorded[field];
+  const properties = { ...kept, ...own };
+  const inventory = Array.isArray(properties.semantic_inventory)
+    ? properties.semantic_inventory.filter(isRecord)
+    : [];
+  return {
+    input: { ...input, properties },
+    applied: inventory.map((entry) => ({
+      claim_key: stringValue(entry.claim_key),
+      role: stringValue(entry.role),
+      status: stringValue(entry.status),
+      claim_text: stringValue(entry.claim_text),
+    })),
+  };
+}
+
+/**
  * A requirement write that sends none of the inventory fields gets the
  * contract the semantic advisor derives for its prose, instead of a
  * rejection that prints that contract for the caller to send back. Each
@@ -307,15 +338,21 @@ export async function withServerSemanticInventory(
   // status and subjects), keyed by claim_key.
   const sentEntries = entriesByClaimKey(sentProperties.semantic_inventory);
   const own = input.properties ?? {};
+  const partial = isPartialSemanticInventory(sentProperties.semantic_inventory);
   const alone = boundaryOf(input, own, relationships);
-  if (alone.applicable && alone.errors.length === 0) return { input };
+  if (!partial && alone.applicable && alone.errors.length === 0)
+    return { input };
   const stored = await storedRequirement(input.id, lookup, staged);
   const recorded: Record<string, unknown> = {};
   for (const field of BOUNDARY_FIELDS) {
     if (stored?.[field] !== undefined) recorded[field] = stored[field];
   }
   const written = boundaryOf(input, { ...recorded, ...own }, relationships);
-  if (!written.applicable || written.errors.length === 0) return { input };
+  if (!written.applicable) return { input };
+  // Partial entries are completed below from the prose; full ones that are
+  // valid over the stored ledger are written with it.
+  if (written.errors.length === 0 && !partial)
+    return withStoredLedger(input, recorded);
   // The ledger is derived from the prose the write leaves on record: the
   // stored prose under the payload's own fields, without any ledger field,
   // since the derived contract replaces them all.

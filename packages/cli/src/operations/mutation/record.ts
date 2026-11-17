@@ -43,6 +43,8 @@ export const MAX_TITLE = 100;
 
 /** How many words of the statement name a recorded requirement. */
 export const ID_WORDS = 6;
+/** The most characters of statement words a derived id keeps. */
+export const ID_CHARS = 80;
 
 /** Words that say nothing about what the rule is about. */
 const FILLER = new Set([
@@ -118,7 +120,13 @@ export function recordIdBase(statement: string): string {
   const words = (statement.toLowerCase().match(/[a-z0-9]+/g) ?? []).filter(
     (word) => !FILLER.has(word),
   );
-  return `REQ-${words.slice(0, ID_WORDS).join("-") || "rule"}`;
+  // Capped so the id, with a -N suffix, stays a valid file name.
+  const joined = words
+    .slice(0, ID_WORDS)
+    .join("-")
+    .slice(0, ID_CHARS)
+    .replace(/-+$/, "");
+  return `REQ-${joined || "rule"}`;
 }
 
 /**

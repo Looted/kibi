@@ -306,7 +306,7 @@ describe("withRequirementCapture", () => {
     expect(goals).toHaveLength(1);
   });
 
-  test("a body without semantic_text records its statement only when none is stored", async () => {
+  test("a body without semantic_text records its statement when none is stored or it states another", async () => {
     const body =
       "Totals must be rounded.\n\n## Context\n\nThe auditors asked.\n";
     const fresh = await withRequirementCapture(
@@ -316,12 +316,22 @@ describe("withRequirementCapture", () => {
     );
     expect(fresh.properties.semantic_text).toBe("Totals must be rounded.");
     expect(fresh.document).toEqual({ body });
+    const restated = await withRequirementCapture(
+      req({ document: { body } }),
+      context(),
+      store({
+        entities: { "REQ-snippet-cap": { semantic_text: "Stored." } },
+      }),
+    );
+    expect(restated.properties.semantic_text).toBe("Totals must be rounded.");
     const kept = req({ document: { body } });
     const stored = await withRequirementCapture(
       kept,
       context(),
       store({
-        entities: { "REQ-snippet-cap": { semantic_text: "Stored." } },
+        entities: {
+          "REQ-snippet-cap": { semantic_text: "Totals must be rounded. " },
+        },
       }),
     );
     expect(stored).toEqual(kept);
@@ -472,9 +482,21 @@ describe("captureFollowUp", () => {
             title: "REQ-snippet-cap",
             status: "open",
             semantic_inventory: [
-              { ...INVENTORY[0], subjects: ["hooks.limits"] },
-              { ...INVENTORY[1], subjects: ["hooks.limits"] },
-              INVENTORY[2],
+              {
+                claim_key: "C1",
+                status: "missing",
+                subjects: ["hooks.limits"],
+              },
+              {
+                claim_key: "C2",
+                status: "missing",
+                subjects: ["hooks.limits"],
+              },
+              {
+                claim_key: "C3",
+                status: "missing",
+                subjects: ["hooks.snippets"],
+              },
             ],
           },
         },
@@ -519,7 +541,9 @@ describe("captureFollowUp", () => {
     );
     expect(none.nextActions[0]?.input).toMatchObject({
       properties: {
-        semantic_inventory: [{ ...INVENTORY[0], subjects: ["<subject_key>"] }],
+        semantic_inventory: [
+          { claim_key: "C1", status: "missing", subjects: ["<subject_key>"] },
+        ],
       },
     });
     const bare = await captureFollowUp(

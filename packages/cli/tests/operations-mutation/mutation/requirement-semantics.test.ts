@@ -684,7 +684,7 @@ describe("withServerSemanticInventory decisions", () => {
     expect(statuses(junk)).toStrictEqual(["missing", "missing"]);
   });
 
-  test("a stored ledger that completes the write leaves it alone", async () => {
+  test("a stored ledger that completes the write is written with it", async () => {
     const properties = { status: "open", semantic_text: NEW_TEXT };
     const contract = semanticInventoryContract(
       { type: "req", id: "REQ-1", properties },
@@ -693,9 +693,45 @@ describe("withServerSemanticInventory decisions", () => {
       }).receipt,
     );
     const input = open({ semantic_text: NEW_TEXT });
-    expect(
-      await fill(input, { stored: { ...properties, ...contract } }),
-    ).toStrictEqual({ input });
+    const result = await fill(input, {
+      stored: { ...properties, ...contract },
+    });
+    expect(result.input).toStrictEqual({
+      ...input,
+      properties: { ...contract, ...input.properties },
+    });
+    expect(result.applied?.map((entry) => entry.claim_key)).toStrictEqual(
+      (contract.semantic_inventory as { claim_key: string }[]).map(
+        (entry) => entry.claim_key,
+      ),
+    );
+  });
+
+  test("full entries sent without their stored semantic_text are written over it", async () => {
+    const properties = { status: "open", semantic_text: NEW_TEXT };
+    const contract = semanticInventoryContract(
+      { type: "req", id: "REQ-1", properties },
+      analyzeSemanticAdvisorInput({
+        payload: { type: "req", id: "REQ-1", properties, relationships: [] },
+      }).receipt,
+    );
+    const entries = (
+      contract.semantic_inventory as Record<string, unknown>[]
+    ).map((entry) => ({ ...entry, subjects: ["user.log"] }));
+    const sent = open({
+      title: "Users must keep a log.",
+      semantic_inventory: entries,
+    });
+    const result = await fill(sent, { stored: { ...properties, ...contract } });
+    expect(result.input.properties).toMatchObject({
+      semantic_text: NEW_TEXT,
+      semantic_source_field: "semantic_text",
+      semantic_inventory: entries,
+    });
+    expect(result.applied?.[0]).toMatchObject({
+      status: entries[0]?.status,
+      role: entries[0]?.role,
+    });
   });
 
   test("a stored source that leaves no prose to check leaves the write alone", async () => {

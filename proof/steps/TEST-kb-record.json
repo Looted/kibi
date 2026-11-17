@@ -8,7 +8,8 @@
       "600000",
       "./packages/cli/tests/operations-mutation/mutation/record.test.ts",
       "./packages/cli/tests/operations-mutation/mutation/record-execute.test.ts",
-      "./packages/cli/tests/consumer/record-equivalence.test.ts"
+      "./packages/cli/tests/consumer/record-equivalence.test.ts",
+      "./packages/cli/tests/consumer/record-subject-step.test.ts"
     ]
   ]
 }

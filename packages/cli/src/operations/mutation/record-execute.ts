@@ -1,4 +1,6 @@
-import { InputError, OperationError } from "../../cli-errors.js";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { InputError } from "../../cli-errors.js";
 import { prepareOperationInput } from "../../cli-validate.js";
 import type { ChangedCheckContent } from "../../public/operations/changed-check.js";
 import type {
@@ -26,6 +28,8 @@ export type RecordPayload = Readonly<{
   written?: UpsertPayload;
   /** kb_check changed:true over the recorded code. */
   verdict?: ChangedCheckContent;
+  /** Why the verdict is missing when kb_check failed after the write. */
+  verdictError?: string;
   commitAllowed?: boolean;
   status?: string;
   nextActions?: readonly unknown[];
@@ -51,7 +55,15 @@ export type RecordDeps = Readonly<{
 
 export const RECORD_DEPS: RecordDeps = {
   // kb_record requires Prolog, so the operation runtime always supplies it.
-  exists: (context) => prologCaptureReads(context.prolog as PrologPort).exists,
+  // An id is taken when the store holds it or its authored file exists: a
+  // file sync has not compiled yet would otherwise be overwritten.
+  exists: (context) => {
+    const stored = prologCaptureReads(context.prolog as PrologPort).exists;
+    return async (id) =>
+      existsSync(
+        path.join(context.workspaceRoot, ".kb", "requirements", `${id}.md`),
+      ) || (await stored(id));
+  },
   upsert: upsertSpec.execute,
   check: checkSpec.execute as unknown as RecordDeps["check"],
 };
@@ -124,11 +136,24 @@ export async function executeRecord(
   try {
     verdict = await deps.check({ changed: true, sourceFiles: files }, context);
   } catch (error) {
-    throw new OperationError(
-      "RECORD_VERDICT_FAILED",
-      `${id} was written by kb_upsert; kb_check changed:true failed after it: ${error instanceof Error ? error.message : String(error)}. Run kb_check with changed:true for ${files.join(", ")} to get the verdict.`,
-      true,
-    );
+    // The write stands, so the call succeeded: a retry would record the rule
+    // again under a new id. The verdict is reported as unavailable instead.
+    const verdictError = `${id} was written by kb_upsert; kb_check changed:true failed after it: ${error instanceof Error ? error.message : String(error)}. Do not record the rule again; run kb_check with changed:true for ${files.join(", ")} to get the verdict.`;
+    return {
+      content: [
+        { type: "text", text: `Recorded ${id} through kb_upsert.` },
+        ...result.content,
+        { type: "text", text: verdictError },
+      ],
+      structuredContent: {
+        id,
+        upsert: payload,
+        written,
+        verdictError,
+        ...(written.status !== undefined ? { status: written.status } : {}),
+        nextActions: written.nextActions ?? [],
+      },
+    };
   }
   const gate = verdict.structuredContent as ChangedCheckContent;
   return {

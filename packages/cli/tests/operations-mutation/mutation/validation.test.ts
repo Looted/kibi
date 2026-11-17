@@ -4,6 +4,7 @@ import path from "node:path";
 import { KbRejection } from "../../../src/cli-errors.js";
 import type { UpsertInput } from "../../../src/operations/mutation/types.js";
 import {
+  MAX_ID_BYTES,
   isAllowedGranularityReason,
   isUpsertEntityProperty,
   validateUpsertInput,
@@ -48,15 +49,39 @@ describe("an entity id", () => {
       "REQ-a\\b",
       "REQ-\tx",
       "REQ-\u0007",
+      ".",
+      "..",
+      "...",
     ]) {
       expect(
         outcome({ type: "req", id, properties: { title: "T" } } as UpsertInput),
       ).toStrictEqual({
         code: "VALIDATION_FAILED",
-        message: `'id' must not contain whitespace, control characters or path separators: ${JSON.stringify(id)}`,
+        message: `'id' must not contain whitespace, control characters or path separators, or be only dots: ${JSON.stringify(id)}`,
         issues: [{ rule: "id_format", field: "id" }],
       });
     }
+  });
+
+  test("must fit a file name", () => {
+    const id = `REQ-${"é".repeat(99)}`;
+    expect(MAX_ID_BYTES).toBe(200);
+    expect(
+      outcome({ type: "req", id, properties: { title: "T" } } as UpsertInput),
+    ).toStrictEqual({
+      code: "VALIDATION_FAILED",
+      message: `'id' must be at most 200 bytes, since it names the entity's file: ${JSON.stringify(id.slice(0, 40))}...`,
+      issues: [{ rule: "id_length", field: "id" }],
+    });
+    expect(
+      JSON.stringify(
+        outcome({
+          type: "req",
+          id: `REQ-${"e".repeat(196)}`,
+          properties: { title: "T" },
+        } as UpsertInput),
+      ),
+    ).not.toContain("id_length");
   });
 });
 
