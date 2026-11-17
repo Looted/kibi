@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: "Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair. Also use for knowledge base quality work: cleaning up or auditing a KB, clearing kibi check review findings (broad_requirement_review, multi_requirement_symbol_review, coarse_anchor_only_review, entity-context-missing), splitting a requirement that covers several behaviors, choosing which function owns a behavior, writing why a requirement exists, and retiring knowledge whose behavior is gone."
-version: 3.0.0
+version: 3.1.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi

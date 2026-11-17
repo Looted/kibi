@@ -4,7 +4,7 @@ description: "Maintain source-first requirement, scenario, test, symbol, and pro
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-traceability
-  version: 2.7.0
+  version: 2.8.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -47,7 +47,7 @@ sequential `kb_upsert`, then run final check and coverage. Kibi authors tracked
 files transactionally but never Git-stages or commits them. Do not read or edit
 `.kb` directly.
 
-Use `kb_delete` only for intentional cleanup; `dryRun: true` previews any
+Use `kb_delete` (full MCP profile only; CLI `kibi delete --input -`) only for intentional cleanup; `dryRun: true` previews any
 delete without writing. Authored entity deletion returns `outcome:
 plan_returned` with a hash-bound plan whose `nextActions[0].input` is the exact
 `kb_apply_plan` input; requirements return `supersession_required` and evolve

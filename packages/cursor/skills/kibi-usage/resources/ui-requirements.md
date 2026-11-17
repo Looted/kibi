@@ -121,7 +121,7 @@ diagnostics (`symbol_semantic_review_needed`).
 
 ## Workflow
 
-1. `kb_model` (`mode: "analyze"`) on the full description; audit or supply `clauses`.
+1. `kb_model` (full MCP profile only; CLI `kibi model --input -`) (`mode: "analyze"`) on the full description; audit or supply `clauses`.
 2. Relational clauses: `kb_model` (`mode: "predicates"`), apply the predicate plan and
    `requires_predicate`.
 3. Scalar placement/alignment/order clauses: `kb_model` (`mode: "requirement"`), apply the strict

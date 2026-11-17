@@ -72,7 +72,7 @@ blocks under `ownerFindings` (`causes` names the ids each one stands for).
 | `symbol-coverage` | A changed symbol, or a symbol whose staged manifest entry changed, fails the full-check rule on the staged knowledge. | The symbol `implements` the requirement and is `covered_by` a test that verifies it: through the requirement's scenario (`verified_by` scenario -> test) when it has one, else `verified_by` requirement -> test. A direct requirement -> test link does not count while a scenario exists. The finding's suggestion names the missing link (see `kibi-traceability`). |
 | `entity-context-missing` (staged entity) | A staged requirement, scenario, test, ADR or observation fact has fewer than 12 words of context. | Upsert a sectioned `document.body` (see `kibi-usage` resource `resources/recording.md`). |
 | `domain-contradictions`, `kb-consistency`, `scenario-feasibility`, `exception-claim-keys` (staged `.kb/` change) | The staged knowledge introduces a violation the last commit did not have. `kb-consistency` also catches facts that contradict only together and names their requirements. | Fix the knowledge; a contradiction with a recorded rule goes to the person (`kibi-decisions`). |
-| Proposition-complete ingestion | A staged requirement's semantic inventory is missing or no longer matches its prose. | Re-derive it (`kb_model` analyze with the complete prose) or run `kibi migrate` for drift. |
+| Proposition-complete ingestion | A staged requirement's semantic inventory is missing or no longer matches its prose. | Re-derive it (`kb_model` (full MCP profile only; CLI `kibi model --input -`) analyze with the complete prose) or run `kibi migrate` for drift. |
 | `kibi check-generated --staged` drift | The staged `.kb/symbols.yaml` is not in the layout sync writes, or `.kb/symbol-coordinates.yaml` is tracked. | `kibi sync --refresh-symbol-coordinates`, review the diff, stage only the intended hunks (`git add -p`); untrack a tracked coordinates file with `kibi migrate` (or `git rm --cached`). |
 | `Staged impact review failed: impact_review_invalid: ...` | The base commit has `.kibi/impact-policy.json` and the staged `.kibi/impact-review.json` is missing, stale or incomplete. The message names the cause (missing review path, stale fingerprint, ...). | Prepare a fresh record (below). Any later staged change makes the fingerprints stale again, so prepare it last. |
 
@@ -124,7 +124,7 @@ for the file's declarations.
 
 ## Impact-review record
 
-`kb_prepare_impact_review` (CLI `prepare-impact-review --input`) takes only
+`kb_prepare_impact_review` (full MCP profile only; CLI `kibi prepare-impact-review --input -`) takes only
 `scope`: `{"kind":"staged"}`, or
 `{"kind":"diff","baseCommit":"<sha>","headCommit":"<sha>"}` with full
 lowercase 40- or 64-hex commit ids. It returns `status: ready_for_authoring`,
