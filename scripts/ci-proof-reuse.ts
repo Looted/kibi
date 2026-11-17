@@ -212,8 +212,8 @@ function requiredEnv(name: string): string {
   return value;
 }
 
-async function currentSnapshot(): Promise<Snapshot> {
-  const snapshot = await nodeGit.workspaceSnapshot?.(process.cwd());
+async function currentSnapshot(root = process.cwd()): Promise<Snapshot> {
+  const snapshot = await nodeGit.workspaceSnapshot?.(root);
   if (!snapshot)
     throw new Error("canonical Kibi workspace snapshot is unavailable");
   return snapshot;
@@ -455,6 +455,51 @@ async function attest(outputDirectory: string): Promise<void> {
   );
 }
 
+/** Make `sha` readable in a shallow checkout (actions/checkout fetches one commit). */
+async function ensureCommit(sha: string): Promise<void> {
+  try {
+    await git("cat-file", "-e", `${sha}^{commit}`);
+  } catch {
+    await git("fetch", "--no-tags", "--depth=1", "origin", sha);
+  }
+}
+
+/** The canonical snapshot of a commit's tracked files, read from a scratch worktree. */
+async function committedSnapshot(sha: string): Promise<string> {
+  await ensureCommit(sha);
+  const directory = await mkdtemp(path.join(os.tmpdir(), "kibi-proof-tree-"));
+  try {
+    await git("worktree", "add", "--detach", "--quiet", directory, sha);
+    return (await currentSnapshot(directory)).hash;
+  } finally {
+    await git("worktree", "remove", "--force", directory);
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+/**
+ * A develop proof can be reused only when the merge snapshot equals the proven
+ * one. When the committed trees of the merge and of the proven commit already
+ * hash differently, no proof of that commit can match, so the caller runs the
+ * full proof at once instead of waiting for develop's own run to finish.
+ */
+async function provenTreeCanMatch(
+  provenSha: string,
+  mergeSha: string,
+): Promise<boolean> {
+  const [proven, merge] = [
+    await committedSnapshot(provenSha),
+    await committedSnapshot(mergeSha),
+  ];
+  return proven === merge;
+}
+
+class ProofCannotMatch extends Error {
+  constructor(readonly mergeSnapshot: string) {
+    super("the merge changes files the proven snapshot covers");
+  }
+}
+
 async function decide(outputPath: string): Promise<void> {
   let decision: ReuseDecision;
   try {
@@ -468,6 +513,12 @@ async function decide(outputPath: string): Promise<void> {
     const mergeParents = (await git("show", "-s", "--format=%P", "HEAD"))
       .split(" ")
       .filter(Boolean);
+    if (
+      SHA.test(provenSha) &&
+      SHA.test(checkoutSha) &&
+      !(await provenTreeCanMatch(provenSha, checkoutSha))
+    )
+      throw new ProofCannotMatch(snapshot.hash);
     await waitForDevelopProof(repository, provenSha);
     const developHeadBefore = await developHead(repository);
     const runs = await findProofRun(repository, provenSha);
@@ -493,9 +544,15 @@ async function decide(outputPath: string): Promise<void> {
       attestation,
     });
   } catch (error) {
-    decision = execute(
-      `reuse lookup failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
+    decision =
+      error instanceof ProofCannotMatch
+        ? execute(
+            "the merge changes files the proven snapshot covers; no develop proof can match",
+            { mergeSnapshot: error.mergeSnapshot },
+          )
+        : execute(
+            `reuse lookup failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
   }
   await writeFile(outputPath, `${JSON.stringify(decision, null, 2)}\n`);
   if (process.env.GITHUB_OUTPUT)

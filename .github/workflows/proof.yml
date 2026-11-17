@@ -72,7 +72,7 @@ jobs:
         timeout-minutes: 75
         env:
           GH_TOKEN: ${{ github.token }}
-          KIBI_PROOF_REUSE_WAIT_SECONDS: ${{ github.base_ref == 'master' && '3600' || '900' }}
+          KIBI_PROOF_REUSE_WAIT_SECONDS: ${{ github.base_ref == 'master' && '3600' || '2400' }}
           PR_BASE_REF: ${{ github.base_ref }}
           PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
           PR_HEAD_BRANCH: ${{ github.head_ref }}
@@ -167,6 +167,28 @@ jobs:
           fi
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
+      # Asks the repository's own KB the versioned gold questions through the
+      # built CLI and fails on recall@3, superseded results, abstention or warm
+      # latency below the committed thresholds. They need only the synced KB,
+      # so they run before the long proof run and fail fast; they run alone
+      # on the runner, because concurrent proof steps would skew the latency.
+      - name: Gate kb_search answers on the repository gold set
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: >-
+          bun run scripts/change-to-proof-eval.ts --repo-kb
+          documentation/evaluations/change-to-proof/repo-search-gold.v4.jsonl
+          --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
+
+      # Reworded questions the lexical ranker misses: with the repository's
+      # search-hints plugin active, the expected requirement must be in the
+      # top three or among the hints.
+      - name: Gate kb_search hints on reworded questions
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: >-
+          bun run scripts/change-to-proof-eval.ts --repo-kb
+          documentation/evaluations/change-to-proof/repo-search-hints-gold.v1.jsonl
+          --thresholds documentation/evaluations/change-to-proof/repo-search-hints-thresholds.json
+
       # Every current requirement's floor, before re-proving: receipts that
       # are only older than the code count as pending re-proof, so grounding,
       # contradiction and link regressions fail before the long proof run.
@@ -208,26 +230,6 @@ jobs:
       - name: Re-check KB certificates with the independent checker
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bun packages/cli/bin/kibi check --certificates "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/kb-certificates.json"
-
-      # Asks the repository's own KB the versioned gold questions through the
-      # built CLI and fails on recall@3, superseded results, abstention or warm
-      # latency below the committed thresholds.
-      - name: Gate kb_search answers on the repository gold set
-        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: >-
-          bun run scripts/change-to-proof-eval.ts --repo-kb
-          documentation/evaluations/change-to-proof/repo-search-gold.v4.jsonl
-          --thresholds documentation/evaluations/change-to-proof/repo-search-thresholds.json
-
-      # Reworded questions the lexical ranker misses: with the repository's
-      # search-hints plugin active, the expected requirement must be in the
-      # top three or among the hints.
-      - name: Gate kb_search hints on reworded questions
-        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
-        run: >-
-          bun run scripts/change-to-proof-eval.ts --repo-kb
-          documentation/evaluations/change-to-proof/repo-search-hints-gold.v1.jsonl
-          --thresholds documentation/evaluations/change-to-proof/repo-search-hints-thresholds.json
 
       # A failed sync, validation or proof leaves the branch store as it was:
       # its RDF snapshot and journal, plus the engine's pid and error files,
@@ -321,3 +323,25 @@ jobs:
       - name: Deploy proof report and documentation to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+
+  # The one CI check a ruleset requires. It needs every other job, runs even
+  # when one fails or is skipped, and passes only when all of them succeeded,
+  # so renaming or splitting a job never leaves the ruleset requiring a check
+  # that no longer reports.
+  proof-required:
+    name: proof-required
+    if: ${{ always() && github.actor != 'nektos/act' }}
+    needs: [swipl-bundle, proof]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every proof job to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          failed="$(jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"' <<<"$RESULTS")"
+          if [ -n "$failed" ]; then
+            echo "::error::These proof jobs did not succeed:"
+            echo "$failed"
+            exit 1
+          fi
