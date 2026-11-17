@@ -76,7 +76,7 @@ if (cmd === "check") { log("check " + process.env.KIBI_BRANCH); process.exit(0);
 process.exit(3);
 `;
 
-type Pull = { head: string; cross?: boolean };
+type Pull = { head: string; cross?: boolean; labels?: string[] };
 
 export class Fixture {
   readonly root = mkdtempSync(path.join(os.tmpdir(), "kibi-kb-merge-action-"));
@@ -150,7 +150,10 @@ export class Fixture {
     write(
       path.join(this.root, "pulls.tsv"),
       this.pulls
-        .map((p) => `${p.head}\t${p.cross ? "true" : "false"}\n`)
+        .map(
+          (p) =>
+            `${p.head}\t${p.cross ? "true" : "false"}\t${(p.labels ?? []).join(",")}\n`,
+        )
         .join(""),
     );
     if (!existsSync(this.ws)) {

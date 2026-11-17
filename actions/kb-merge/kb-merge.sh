@@ -29,6 +29,10 @@
 #   KB_MERGE_LIST_ONLY  true: print the branches that need a merge and stop
 #   KB_MERGE_ATTEMPTS   tries per branch when the branch moves (default 3)
 #   KB_MERGE_REMOTE     remote to fetch from and push to (default origin)
+#   KB_MERGE_SKIP_LABEL pull requests with this label are left alone, for
+#                       example the label a merge train boards with: the train
+#                       merges manifests itself, and a push to a boarded PR
+#                       would restart its checks under the train. Empty: none.
 #
 # gh (with GH_TOKEN) lists the open pull requests. Results go to stdout,
 # to GITHUB_OUTPUT (branches, merged, blocked, failed as JSON arrays) and to
@@ -44,6 +48,7 @@ CHECK="${KB_MERGE_CHECK:-}"
 LIST_ONLY="${KB_MERGE_LIST_ONLY:-false}"
 ATTEMPTS="${KB_MERGE_ATTEMPTS:-3}"
 REMOTE="${KB_MERGE_REMOTE:-origin}"
+SKIP_LABEL="${KB_MERGE_SKIP_LABEL:-}"
 
 # The manifests `kibi merge-driver` merges, and the derived coordinate cache
 # that branches from before KB schema 13 may still track.
@@ -91,22 +96,27 @@ wanted_branches() {
   fi
 }
 
-# Prints "<head>\t<cross-repository>" for every open PR into BASE.
+# Prints "<head>\t<cross-repository>\t<labels, newline-free, comma joined>"
+# for every open PR into BASE.
 open_pulls() {
   gh pr list --base "$BASE" --state open --limit 500 \
-    --json headRefName,isCrossRepository \
-    --jq '.[] | "\(.headRefName)\t\(.isCrossRepository)"'
+    --json headRefName,isCrossRepository,labels \
+    --jq '.[] | "\(.headRefName)\t\(.isCrossRepository)\t\([.labels[].name] | join(","))"'
 }
 
 candidates() {
-  local wanted pulls head cross
+  local wanted pulls head cross labels
   wanted=$(wanted_branches)
   pulls=$(open_pulls)
-  while IFS=$'\t' read -r head cross; do
+  while IFS=$'\t' read -r head cross labels; do
     [ -n "$head" ] || continue
     if [ -n "$wanted" ] && ! grep -Fxq -- "$head" <<<"$wanted"; then continue; fi
     if [ "$cross" = "true" ]; then
       echo "$head: skipped, the pull request comes from a fork and cannot be pushed to" >&2
+      continue
+    fi
+    if [ -n "$SKIP_LABEL" ] && tr ',' '\n' <<<"$labels" | grep -Fxq -- "$SKIP_LABEL"; then
+      echo "$head: skipped, the pull request has the $SKIP_LABEL label" >&2
       continue
     fi
     printf '%s\n' "$head"
