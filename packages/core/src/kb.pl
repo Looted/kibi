@@ -117,24 +117,23 @@ kb_uri('urn-kibi:').
 % running threads. A write that leaves a property or relationship with more
 % than one triple is logged as a dup_after_write line.
 % ------------------------------------------------------------------
-:- dynamic kb_diag_seq/1.
-kb_diag_seq(0).
-
 kb_diag_file(File) :-
     getenv('KIBI_STORE_DIAG_LOG', File),
     File \== ''.
 
 kb_diag(Event, Detail) :-
     (   kb_diag_file(File)
-    ->  catch(kb_diag_(File, Event, Detail), _, true)
+    ->  (   catch(kb_diag_(File, Event, Detail), E, (print_message(warning, E), fail))
+        ->  true
+        ;   format(user_error, "kb_diag failed: ~q~n", [Event])
+        )
     ;   true
     ).
 
 kb_diag_(File, Event, Detail) :-
     with_mutex(kb_diag,
-               ( retract(kb_diag_seq(N0)),
+               ( flag(kb_diag_seq, N0, N0 + 1),
                  N is N0 + 1,
-                 assertz(kb_diag_seq(N)),
                  thread_self(Thread),
                  current_prolog_flag(pid, Pid),
                  (   catch(rdf_generation(Gen), _, fail) -> true ; Gen = none ),
