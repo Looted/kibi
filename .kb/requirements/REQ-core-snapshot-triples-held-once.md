@@ -10,6 +10,7 @@ tags:
 origin:
   kind: agent
   ref: 'Proof job store-integrity investigation: matrix samples on develop and on PR trees failed the search evals and strict-fact-shape because a fresh load of the branch store held triples twice.'
+  approved_by: maintainer
   recorded_at: '2026-11-17T09:10:04.356Z'
 rationale: SWI-Prolog's rdf_db keeps reindexed triples until its garbage collector reclaims them, and a snapshot written before then saved each of them twice. Every later load (a new engine, a restarted daemon, the search evals) then saw superseded kb_search answers, strict-fact-shape reporting several value fields, doubled relationships and missing fields, depending on garbage-collection timing.
 semantic_text: Every branch store snapshot Kibi writes must hold each triple once, so that a fresh load of the store (snapshot and journal) answers each triple once through rdf/4 as well as rdf/3.

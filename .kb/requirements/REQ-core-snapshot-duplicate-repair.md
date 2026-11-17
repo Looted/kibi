@@ -10,6 +10,7 @@ tags:
 origin:
   kind: agent
   ref: 'Proof job store-integrity investigation: matrix samples on develop and on PR trees failed the search evals and strict-fact-shape because a fresh load of the branch store held triples twice.'
+  approved_by: maintainer
   recorded_at: '2026-11-17T09:10:08.037Z'
 rationale: Releases before this fix wrote such snapshots, so stores on users' disks can already hold duplicates. A repair that only fixed them silently would hide that answers given before it may have been wrong.
 semantic_text: When an engine attaches a branch store whose snapshot holds a triple more than once, it must keep one copy of each such triple, rewrite the snapshot, report the repair on stderr, and record it so that kb_status lists it as a notice and kibi doctor shows the Branch store check as a warning for seven days after the repair.
