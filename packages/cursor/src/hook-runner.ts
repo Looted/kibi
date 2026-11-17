@@ -27,7 +27,6 @@ import {
   statedReason,
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
-import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import {
   type HookTrace,
@@ -146,7 +145,6 @@ function firmNotice(
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly,
-    reviewed: firmEditReviewed(workspaceRoot, linked.relativePath, summarize),
   });
   if (ids.length === 0) return undefined;
   settleFirmRequirements(session, ids);
