@@ -60,4 +60,4 @@ After an upgrade from an older Kibi, a branch can still be attached through its 
 
 ## Source
 
-> Proposed with the fix; awaiting maintainer approval of the wording.
+> Maintainer decision, 2026-11-17, approving the statement as worded: "Approved"
