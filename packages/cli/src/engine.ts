@@ -1160,7 +1160,14 @@ export class EngineClient {
                 ],
                 {
                   detached: true,
-                  stdio: "ignore",
+                  // Store integrity diagnostics (diagnostic branch only).
+                  stdio: process.env.KIBI_ENGINE_STDERR_LOG
+                    ? [
+                        "ignore",
+                        openSync(process.env.KIBI_ENGINE_STDERR_LOG, "a"),
+                        openSync(process.env.KIBI_ENGINE_STDERR_LOG, "a"),
+                      ]
+                    : "ignore",
                   env: {
                     ...process.env,
                     KIBI_ENGINE_PROTOCOL: String(ENGINE_PROTOCOL_VERSION),

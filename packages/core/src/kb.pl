@@ -108,6 +108,69 @@ kb_uri('urn-kibi:').
 % RDF namespace for KB entities and relationships
 :- kb_uri(URI), rdf_register_prefix(kb, URI).
 :- rdf_register_prefix(xsd, 'http://www.w3.org/2001/XMLSchema#').
+
+% ------------------------------------------------------------------
+% Store integrity diagnostics (temporary, diagnostic branch only).
+% With KIBI_STORE_DIAG_LOG set, every entity and relationship write, attach,
+% detach, save and RDF transaction boundary is appended to that file with a
+% sequence number, the pid, the writing thread, the RDF generation and the
+% running threads. A write that leaves a property or relationship with more
+% than one triple is logged as a dup_after_write line.
+% ------------------------------------------------------------------
+:- dynamic kb_diag_seq/1.
+kb_diag_seq(0).
+
+kb_diag_file(File) :-
+    getenv('KIBI_STORE_DIAG_LOG', File),
+    File \== ''.
+
+kb_diag(Event, Detail) :-
+    (   kb_diag_file(File)
+    ->  catch(kb_diag_(File, Event, Detail), _, true)
+    ;   true
+    ).
+
+kb_diag_(File, Event, Detail) :-
+    with_mutex(kb_diag,
+               ( retract(kb_diag_seq(N0)),
+                 N is N0 + 1,
+                 assertz(kb_diag_seq(N)),
+                 thread_self(Thread),
+                 current_prolog_flag(pid, Pid),
+                 (   catch(rdf_generation(Gen), _, fail) -> true ; Gen = none ),
+                 findall(T, thread_property(T, status(running)), Threads),
+                 get_time(Now),
+                 setup_call_cleanup(
+                     open(File, append, Stream),
+                     format(Stream, "~w ~3f pid=~w thread=~w gen=~w threads=~w ~w ~q~n",
+                            [N, Now, Pid, Thread, Gen, Threads, Event, Detail]),
+                     close(Stream)) )).
+
+kb_diag_entity_dups(EntityURI, Id, Props, Graph) :-
+    (   kb_diag_file(_)
+    ->  forall(( member(Key=_, [type=x|Props]),
+                 (   Key == type
+                 ->  PropURI = 'urn-kibi:type'
+                 ;   format(atom(PropURI), 'kb:~w', [Key])
+                 ),
+                 aggregate_all(count, rdf(EntityURI, PropURI, _, Graph), Count),
+                 Count > 1 ),
+               kb_diag(dup_after_write, entity(Id, Key, Count)))
+    ;   true
+    ).
+
+kb_diag_monitor(Event) :-
+    (   Event = transaction(BeginOrEnd, Id)
+    ->  kb_diag(transaction, BeginOrEnd-Id)
+    ;   true
+    ).
+
+:- initialization(
+       (   kb_diag_file(_)
+       ->  rdf_monitor(kb_diag_monitor, [transaction]),
+           kb_diag(module_loaded, kb)
+       ;   true
+       )).
 :- rdf_meta
     kb_entity(?, ?, ?),
     kb_relationship(?, ?, ?).
@@ -165,6 +228,7 @@ kb_uri('urn-kibi:').
 % backwards-compatible temporary KBs.
 % Creates directory if it doesn't exist.
 kb_attach(Directory) :-
+    kb_diag(kb_attach, Directory),
     (   kb_attached(_)
     ->  throw(error(permission_error(attach, kb, Directory), kb_attach/1))
     ;   true
@@ -339,6 +403,7 @@ kb_throw_store_locked(PersistencyDirectory, Directory, Original) :-
 % Safely detach from KB without persisting pending changes.
 % Call kb_save/0 explicitly before kb_detach/0 when durability is required.
 kb_detach :-
+    kb_diag(kb_detach, none),
     % Every step is a no-op when nothing is attached, so detaching an
     % unattached KB needs no separate guard.
     (   kb_storage_mode(journaled)
@@ -441,6 +506,7 @@ kb_save_legacy_locked(Directory) :-
 % appends RDF edits to a per-source journal; flushing with min_size(16384)
 % makes a compact binary snapshot only after a journal reaches 16 MiB.
 kb_save_journaled :-
+    kb_diag(kb_save_journaled, none),
     (   kb_attached(Directory)
     ->  with_kb_mutex(kb_save_journaled_locked(Directory))
     ;   true
@@ -590,6 +656,7 @@ journal_bytes(Directory, Bytes) :-
 
 %% kb_storage_compact
 kb_storage_compact :-
+    kb_diag(kb_storage_compact, none),
     % mutalog-disable-next-line goal_true: a legacy store records no journal sentinel stamp, so the save inside the compaction fails for it as well
     kb_storage_mode(journaled),
     kb_attached(Directory),
@@ -958,7 +1025,9 @@ kb_assert_entity_no_audit(Type, Props) :-
         forall(
             member(Key=Value, Props),
             store_property(EntityURI, Key, Value, Graph)
-        )
+        ),
+        kb_diag(assert_entity, Id),
+        kb_diag_entity_dups(EntityURI, Id, Props, Graph)
     )),
     kb_refresh_entity_index(Id).
 
@@ -2062,7 +2131,14 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
         % Upsert semantics: ensure the exact triple isn't duplicated.
         rdf_retractall(FromURI, RelURI, ToURI, Graph),
         % Assert relationship triple
-        rdf_assert(FromURI, RelURI, ToURI, Graph)
+        rdf_assert(FromURI, RelURI, ToURI, Graph),
+        kb_diag(assert_relationship, rel(RelType, FromId, ToId)),
+        (   kb_diag_file(_),
+            aggregate_all(count, rdf(FromURI, RelURI, ToURI, Graph), RelCount),
+            RelCount > 1
+        ->  kb_diag(dup_after_write, rel(RelType, FromId, ToId, RelCount))
+        ;   true
+        )
     )).
 
 validate_symbol_role_compatibility(RelType, FromId, _ToId) :-

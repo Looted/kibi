@@ -29,6 +29,10 @@ env:
   # The intervals differential must run its CLP(Q)/CLP(FD) oracle here.
   KIBI_REQUIRE_ORACLE: "1"
   KIBI_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && 'master' || github.head_ref || github.ref_name }}
+  # Store integrity diagnostics: every entity and relationship write, the
+  # engine's stderr, and a memory-versus-journal comparison at each check.
+  KIBI_STORE_DIAG_LOG: ${{ github.workspace }}/../kibi-store-diag/writes.log
+  KIBI_ENGINE_STDERR_LOG: ${{ github.workspace }}/../kibi-store-diag/engine-stderr.log
 
 jobs:
   swipl-bundle:
@@ -160,12 +164,15 @@ jobs:
         id: integrity
         if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: |
+          mkdir -p "$(dirname "$KIBI_STORE_DIAG_LOG")"
           bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-sync.json"
           if ! git diff --quiet -- .kb/symbols.yaml; then
             echo '::error::Kibi rewrote .kb/symbols.yaml during sync. Run kibi sync --refresh-symbol-coordinates and commit the reviewed manifest changes.'
             exit 1
           fi
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-check.json"
 
       # Every current requirement's floor, before re-proving: receipts that
       # are only older than the code count as pending re-proof, so grounding,
@@ -197,6 +204,7 @@ jobs:
           status=0
           KIBI_PROOF_UNIT_RESULTS="$results" bun packages/cli/bin/kibi prove --all || status=$?
           kill "$fetcher" 2>/dev/null || true
+          bun scripts/store-diag.ts "$(dirname "$KIBI_STORE_DIAG_LOG")/report-after-prove.json" || status=$?
           exit "$status"
 
       # Also saves the kb-consistency certificates the gate re-checked, so an
@@ -233,10 +241,12 @@ jobs:
       # its RDF snapshot and journal, plus the engine's pid and error files,
       # so a store-shaped failure can be read after the runner is gone.
       - name: Collect the branch store after a failed sync, validation or proof
-        if: ${{ failure() && (steps.integrity.outcome == 'failure' || steps.prove.outcome == 'failure') }}
+        if: ${{ always() && (steps.integrity.outcome == 'failure' || steps.integrity.outcome == 'success' || steps.prove.outcome == 'failure') }}
         run: |
           out="${RUNNER_TEMP}/kibi-branch-store"
           mkdir -p "$out/runtime"
+          diag="$(dirname "$KIBI_STORE_DIAG_LOG")"
+          if [ -d "$diag" ]; then cp -a "$diag" "$out/diag"; fi
           if [ -d .kb/branches ]; then cp -a .kb/branches "$out/branches"; fi
           for dir in "${KIBI_RUNTIME_DIR:-}" "${XDG_RUNTIME_DIR:-}" /tmp/kibi-runtime; do
             if [ -n "$dir" ] && [ -d "$dir" ]; then
@@ -245,7 +255,7 @@ jobs:
           done
 
       - name: Upload the branch store after a failed sync, validation or proof
-        if: ${{ failure() && (steps.integrity.outcome == 'failure' || steps.prove.outcome == 'failure') }}
+        if: ${{ always() && (steps.integrity.outcome == 'failure' || steps.integrity.outcome == 'success' || steps.prove.outcome == 'failure') }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: kibi-branch-store

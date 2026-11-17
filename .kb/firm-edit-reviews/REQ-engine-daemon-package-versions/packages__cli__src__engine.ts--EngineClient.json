@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-engine-daemon-package-versions",
+  "sourceFile": "packages/cli/src/engine.ts",
+  "symbol": "EngineClient",
+  "verdict": "keeps",
+  "note": "Only redirects daemon stdout/stderr to a log file when KIBI_ENGINE_STDERR_LOG is set; handshake and version checks unchanged.",
+  "statementHash": "sha256:c5f74a923d19597827d14c1d6fe6ea3ba0234a31133a81e4b4561fecf4ed488f",
+  "codeHash": "sha256:489979f6c01fbb3dd77a6e0a4ec8d91fb8fde2f04f7e975bc5afbd13dcd4ef73",
+  "startLine": 1045,
+  "endLine": 1638,
+  "recordedAt": "2026-11-17T03:18:44.832Z"
+}

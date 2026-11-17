@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-core-prolog-process-management",
+  "sourceFile": "packages/cli/src/prolog.ts",
+  "symbol": "PrologProcess.start",
+  "verdict": "keeps",
+  "note": "Only appends engine stderr to a log file when KIBI_STORE_DIAG_LOG-style env is set; lifecycle and framing unchanged.",
+  "statementHash": "sha256:1ce46b0cba8e8c6a95f47924d496776b9ab4911acbf16eab1525203ffaab6444",
+  "codeHash": "sha256:71e2d874daa372a95e40aea0159c6d1de16159636b764c1c3365345377096e06",
+  "startLine": 281,
+  "endLine": 362,
+  "recordedAt": "2026-11-17T03:18:44.832Z"
+}

@@ -17,7 +17,7 @@
 */
 
 import { type ChildProcess, spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { appendFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
@@ -330,6 +330,16 @@ export class PrologProcess {
     });
 
     this.process.stderr.on("data", (chunk: Buffer) => {
+      // Store integrity diagnostics (diagnostic branch only): keep the
+      // Prolog stderr of every session, with the client pid.
+      const diagLog = process.env.KIBI_ENGINE_STDERR_LOG;
+      if (diagLog)
+        try {
+          appendFileSync(
+            diagLog,
+            `[pid ${process.pid} swipl ${this.process?.pid}] ${chunk.toString("utf8")}`,
+          );
+        } catch {}
       this.appendErrorChunk(chunk);
     });
 
