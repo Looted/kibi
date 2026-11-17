@@ -368,28 +368,83 @@ const RULE_PHRASES =
 
 /**
  * "never" and "always" set a rule only as an instruction: at the start of a
- * clause ("Never log keys", "and always require 2FA"), or after a phrase that
- * asks for the behavior ("make sure we never", "ensure keys always"). In a
- * description of how the code behaves today ("keys currently never expire")
- * they state a fact, not a rule.
+ * clause ("Never log keys", "and always require 2FA", "also never ..."), or
+ * after a phrase that asks for the behavior ("make sure we never", "ensure
+ * keys always", "remember to always", "users may never"). In a description
+ * of how the code behaves today ("keys currently never expire") they state a
+ * fact, not a rule.
  */
 const IMPERATIVE_ADVERB =
-  /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please)\s+|\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+)(never|always)\b/i;
+  /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please|also|let['’]?s|let us)\s+)(never|always)\b(?!-)(?!\s+mind\b)/i;
+
+/** A phrase that asks for the behavior, so the adverb after it instructs. */
+const ASKING_ADVERB =
+  /(?:\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+|\b(?:remember|need|want|be sure|try) to\s+|\b(?:may|shall|can)\s+(?=never)|\b(?:we|you)\s+(?=(?:never|always)\s+(?:want|need) to\b))(never|always)\b(?!-)/i;
+
+/**
+ * At a clause start the adverb instructs only when a verb in its base form
+ * follows: "and always have been stored", "never invalidated", "always
+ * crashes" and "Always a pleasure" describe.
+ */
+const DESCRIBING_NEXT_WORD =
+  /^\s+(?:a|an|the|have been|has|had|been|was|were|is|are|am|did|does|\w+ed|\w*[^s\W]s)\b/i;
 
 /** A question that asks for a change ("Can you make sure ...?") is a request. */
 const REQUEST_QUESTION =
   /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i;
 
+/** A request question that asks to be told something ("Could you tell me why ...?"). */
+const ASKS_TO_BE_TOLD =
+  /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\s+(?:tell|explain|show)\b/i;
+
 /** Fenced and inline code, whose words are not the person's phrasing. */
-const CODE_SPANS = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
+const CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
+
+/** List, heading and number markers before a line's words. */
+const LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
+
+/** Emphasis markers around words ("**Never**", "_always_"). */
+const EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
+
+/**
+ * Lines that are not the person's own request text: an indented code block
+ * (four spaces or a tab, after a blank line or at the start) and quoted
+ * text (`>`), such as a reviewer's words pasted in.
+ */
+function requestLines(text: string): string[] {
+  const lines: string[] = [];
+  let previous: "blank" | "code" | "text" = "blank";
+  for (const line of text.split("\n")) {
+    if (/^(?: {4}|\t)/.test(line) && previous !== "text") {
+      previous = "code";
+      continue;
+    }
+    previous = line.trim() === "" ? "blank" : "text";
+    if (/^\s*>/.test(line)) continue;
+    lines.push(line.trim().replace(LINE_MARKERS, "").replace(EMPHASIS, ""));
+  }
+  return lines;
+}
 
 /** The request's sentences, with code removed; a question keeps its `?`. */
 function requestSentences(prompt: string): string[] {
   // An empty piece matches no rule phrase, so pieces are not filtered.
-  return prompt
-    .replace(CODE_SPANS, " ")
-    .split(/(?<=[.!?])\s|\n/)
+  return requestLines(prompt.replace(CODE_SPANS, " "))
+    .flatMap((line) => line.split(/(?<=[.!?])\s/))
     .map((sentence) => sentence.trim());
+}
+
+/** The adverb ("never" or "always") that instructs in `sentence`, or undefined. */
+function instructingAdverb(sentence: string): string | undefined {
+  const asked = ASKING_ADVERB.exec(sentence);
+  if (asked) return (asked[1] as string).toLowerCase();
+  const pattern = new RegExp(IMPERATIVE_ADVERB.source, "gi");
+  for (const match of sentence.matchAll(pattern)) {
+    const rest = sentence.slice((match.index as number) + match[0].length);
+    if (!DESCRIBING_NEXT_WORD.test(rest))
+      return (match[1] as string).toLowerCase();
+  }
+  return undefined;
 }
 
 /** The rule phrase of `prompt`, the request's sentences, and which one holds it. */
@@ -398,16 +453,15 @@ function ruleMatch(
 ): { phrase: string; sentences: string[]; index: number } | undefined {
   const sentences = requestSentences(prompt);
   for (const [index, sentence] of sentences.entries()) {
-    if (sentence.endsWith("?") && !REQUEST_QUESTION.test(sentence)) continue;
+    if (
+      sentence.endsWith("?") &&
+      (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence))
+    )
+      continue;
     const match = RULE_PHRASES.exec(sentence);
     if (match) return { phrase: match[0].toLowerCase(), sentences, index };
-    const adverb = IMPERATIVE_ADVERB.exec(sentence);
-    if (adverb)
-      return {
-        phrase: (adverb[1] as string).toLowerCase(),
-        sentences,
-        index,
-      };
+    const adverb = instructingAdverb(sentence);
+    if (adverb) return { phrase: adverb, sentences, index };
   }
   return undefined;
 }
@@ -561,17 +615,119 @@ export type DecisionFlag =
   | "requirement-recorded"
   | "signoff-asked";
 
+/** The key of markers for events that carry no session id. */
+const UNATTRIBUTED = "unattributed";
+
+/**
+ * A session without an id idle this long has ended: the next prompt starts it
+ * afresh, so a later session does not inherit its markers.
+ */
+const UNATTRIBUTED_IDLE_MS = 2 * 60 * 60 * 1000;
+
+/** Markers of any session left untouched this long are removed. */
+const STALE_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
+
+function sessionKey(session: DecisionSession): string {
+  return createHash("sha256")
+    .update(session.sessionId?.trim() || UNATTRIBUTED)
+    .digest("hex")
+    .slice(0, 32);
+}
+
+/** Where the decision guard keeps every session's markers. */
+function guardRoot(session: DecisionSession): string {
+  if (!session.stateDir) throw new Error();
+  return path.join(session.stateDir, "decision-guard");
+}
+
 /**
  * The marker file `name` of the session. Throws without a state directory,
  * so every caller's best-effort `catch` also covers "nothing to remember".
  */
 function sessionPath(session: DecisionSession, name: string): string {
-  if (!session.stateDir) throw new Error();
-  const key = createHash("sha256")
-    .update(session.sessionId?.trim() || "unattributed")
-    .digest("hex")
-    .slice(0, 32);
-  return path.join(session.stateDir, "decision-guard", key, name);
+  return path.join(guardRoot(session), sessionKey(session), name);
+}
+
+/** Newest modification time of `files`; NaN when none can be read. */
+function newestOf(files: readonly string[]): number {
+  let newest = Number.NaN;
+  for (const file of files) {
+    try {
+      const time = fs.statSync(file).mtimeMs;
+      if (!(time <= newest)) newest = time;
+    } catch {
+      // Missing: it adds no activity.
+    }
+  }
+  return newest;
+}
+
+/** The marker files in `dir`, none when it cannot be read. */
+function markerFiles(dir: string): string[] {
+  try {
+    return fs.readdirSync(dir).map((name) => path.join(dir, name));
+  } catch {
+    return [];
+  }
+}
+
+/** Remove `target`, best effort: a file or directory that stays is harmless. */
+function removeQuietly(target: string): void {
+  try {
+    fs.rmSync(target, { recursive: true, force: true });
+  } catch {
+    // Left in place.
+  }
+}
+
+/**
+ * Start or continue a host session's markers, and say whether an earlier
+ * session's state was dropped. Events without a session id share one key, so
+ * a session start that does not resume drops what an earlier session without
+ * one left, and so does a prompt after UNATTRIBUTED_IDLE_MS without activity.
+ * `hostFiles` are the host's own state files of the session: they count as
+ * activity and are dropped with the markers. A session start also removes
+ * the markers of any session untouched for STALE_SESSION_MS.
+ */
+export function startDecisionSession(
+  session: DecisionSession,
+  cause: "startup" | "resume" | "prompt",
+  options: { now?: number; hostFiles?: readonly string[] } = {},
+): boolean {
+  const now = options.now ?? Date.now();
+  const hostFiles = options.hostFiles ?? [];
+  let root: string;
+  try {
+    root = guardRoot(session);
+  } catch {
+    return false;
+  }
+  const own = sessionKey(session);
+  let dropped = false;
+  if (!session.sessionId?.trim() && cause !== "resume") {
+    const files = [...markerFiles(path.join(root, own)), ...hostFiles];
+    dropped =
+      cause === "startup" || newestOf(files) < now - UNATTRIBUTED_IDLE_MS;
+    if (dropped) {
+      for (const file of files) removeQuietly(file);
+    }
+  }
+  if (cause === "prompt") return dropped;
+  let keys: string[] = [];
+  try {
+    keys = fs.readdirSync(root);
+  } catch {
+    // No markers yet.
+  }
+  for (const key of keys) {
+    if (key === own) continue;
+    const dir = path.join(root, key);
+    // A directory without markers is left over too.
+    if (!(newestOf(markerFiles(dir)) >= now - STALE_SESSION_MS)) {
+      removeQuietly(dir);
+    }
+  }
+  return dropped;
 }
 
 function writeMarker(file: string, content: string) {
@@ -641,7 +797,9 @@ export function claimDecisionFlag(
 export function recordRequest(
   session: DecisionSession,
   prompt: string,
+  now = Date.now(),
 ): string | undefined {
+  startDecisionSession(session, "prompt", { now });
   const rule = statedRule(prompt);
   try {
     writeMarker(
@@ -696,14 +854,17 @@ export function sessionRulePhrase(
 /**
  * The rule capture template, the first time a session whose prompt read as a
  * rule changes source files before anything is recorded; otherwise undefined.
+ * A host that delivers it before the edit passes `editingSource` for an edit
+ * of a source file, which counts as the change.
  */
 export function claimRuleCaptureTemplate(
   session: DecisionSession,
+  editingSource = false,
 ): string | undefined {
   const phrase = sessionRulePhrase(session);
   if (
     phrase === undefined ||
-    !hasDecisionFlag(session, "source-edited") ||
+    !(editingSource || hasDecisionFlag(session, "source-edited")) ||
     hasDecisionFlag(session, "kb-recorded") ||
     !claimDecisionFlag(session, "capture-template")
   )
