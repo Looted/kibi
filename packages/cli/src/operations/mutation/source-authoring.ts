@@ -550,6 +550,16 @@ function renderEntityDocument(
   const existing = existingContent
     ? bodyAndFrontmatter(existingContent)
     : { frontmatter: {}, body: "" };
+  // A document.path naming another entity's file would replace that entity
+  // with this one: the other entity vanishes from the sources and its links
+  // dangle. Only the entity a document already holds may be written into it.
+  const heldId = existing.frontmatter.id;
+  if (heldId !== undefined && heldId !== null && String(heldId) !== entity.id) {
+    throw new OperationError(
+      "SOURCE_ENTITY_MISMATCH",
+      `Authored document holds ${String(heldId)}, not ${String(entity.id)}; write ${String(entity.id)} to its own file or omit document.path`,
+    );
+  }
   // A generated "Definition not stated" body never replaces a subject's
   // authored definition.
   const keepsDefinition =

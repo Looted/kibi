@@ -215,3 +215,34 @@ export function commandEditPaths(command: string, cwd: string): string[] {
     wanted.has(absolute),
   );
 }
+
+/** Hosts' shell tool names: a `sed -i` or `>` through them edits files too. */
+const SHELL_TOOLS = new Set([
+  "Bash",
+  "shell",
+  "local_shell",
+  "exec_command",
+  "run_shell_command",
+]);
+
+/**
+ * Absolute paths of existing files a shell tool call writes in place, or
+ * none when the call is not a shell call. Hosts pass the command as a string
+ * or an argv array; both are read.
+ */
+export function shellToolEditPaths(
+  toolName: string | undefined,
+  toolInput: unknown,
+  cwd: string,
+): string[] {
+  if (toolName === undefined || !SHELL_TOOLS.has(toolName)) return [];
+  const raw =
+    toolInput !== null && typeof toolInput === "object"
+      ? (toolInput as { command?: unknown }).command
+      : undefined;
+  const command = Array.isArray(raw)
+    ? raw.filter((part) => typeof part === "string").join(" ")
+    : raw;
+  if (typeof command !== "string") return [];
+  return commandEditPaths(command, cwd);
+}

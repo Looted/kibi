@@ -25,7 +25,7 @@ import type {
   Project,
   SourceFile,
 } from "ts-morph";
-import { tsMorph } from "./ts-morph-runtime.js";
+import { createSyntacticProject, tsMorph } from "./ts-morph-runtime.js";
 import {
   SUPPORTED_SOURCE_EXTENSIONS,
   isPrivateClassMember,
@@ -83,7 +83,7 @@ export async function enrichSymbolCoordinatesWithTsMorph(
   workspaceRoot: string,
 ): Promise<ManifestSymbolEntry[]> {
   // Without a tsconfig path the project reads no tsconfig files.
-  const project = new (tsMorph().Project)();
+  const project = createSyntacticProject();
   const sourceFileCache = new Map<string, SourceFile>();
 
   // Add every source file before the first declaration lookup. Export checks

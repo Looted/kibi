@@ -247,6 +247,11 @@ describe("strict proof workflow contract", () => {
     expect(String(train?.if)).toContain("refs/heads/develop");
     expect(String(train?.run)).toContain("ci-proof-reuse.ts decide-train");
     expect(train?.["continue-on-error"]).toBe(true);
+    // decide-train reads the merge commit's parents from git; a depth-1
+    // checkout has none, so a landed train could never be recognised.
+    expect(
+      reuse.steps.find((step) => step.name === "Checkout")?.with,
+    ).toMatchObject({ ref: "${{ github.sha }}", "fetch-depth": 2 });
     for (const job of [workflow.jobs.prove, workflow.jobs.proof]) {
       expect(job.needs).toContain("reuse");
       expect(job.env?.KIBI_PROOF_EXECUTE).toBe(

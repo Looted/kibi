@@ -17,7 +17,7 @@
 */
 
 import type { SourceSymbolKind } from "kibi-plugin-sdk";
-import { tsMorph } from "./ts-morph-runtime.js";
+import { createSyntacticProject } from "./ts-morph-runtime.js";
 import { chooseScriptKind, isPrivateClassMember } from "./ts-morph-shared.js";
 
 export interface GranularitySymbolCandidate {
@@ -36,7 +36,7 @@ export function collectGranularityCandidates(
   // Without a tsconfig path the project reads no tsconfig files.
   // The suffix keeps an in-memory file from colliding with a directory or
   // another source file at the same path.
-  const source = new (tsMorph().Project)().createSourceFile(
+  const source = createSyntacticProject().createSourceFile(
     `${filePath}::granularity`,
     content,
     {

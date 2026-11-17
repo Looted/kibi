@@ -220,6 +220,28 @@ describe("kibi-plugin-builtin", () => {
     );
   });
 
+  test("granularity candidates come from a syntax-only project", () => {
+    const options: unknown[] = [];
+    const createSourceFile = Project.prototype.createSourceFile;
+    spies.push(
+      spyOn(Project.prototype, "createSourceFile").mockImplementation(function (
+        this: Project,
+        ...args: Parameters<Project["createSourceFile"]>
+      ) {
+        options.push(this.getCompilerOptions());
+        return createSourceFile.apply(this, args);
+      }),
+    );
+    const found = collectGranularityCandidates(
+      "src/listed.ts",
+      "export function listed() {}",
+    );
+    expect(found).toStrictEqual([{ name: "listed", kind: "function" }]);
+    expect(options).toStrictEqual([
+      { noLib: true, noResolve: true, types: [] },
+    ]);
+  });
+
   // executable_for TEST-capability-plugin-builtin-parity-v1
   test("granularity helpers and onlyCandidate are exported", () => {
     const found = collectGranularityCandidates(

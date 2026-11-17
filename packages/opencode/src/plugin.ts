@@ -9,6 +9,7 @@ import {
   invalidateKibiOpencodePackage,
   runBunInstallForOpenCodePlugin,
 } from "./auto-update.js";
+import { createDecisionHooks } from "./decision-hooks.js";
 import { getE2eCoverageSignal } from "./e2e-coverage-signals.js";
 import {
   buildDirtyRelevantFingerprint,
@@ -168,6 +169,12 @@ export interface PluginInput {
       submitPrompt?: () => void | Promise<void>;
     };
     app: { log: (payload: Record<string, unknown>) => Promise<void> };
+    session?: {
+      prompt?: (payload: {
+        path: { id: string };
+        body: { parts: { type: "text"; text: string }[] };
+      }) => Promise<unknown>;
+    };
   };
 }
 
@@ -203,9 +210,17 @@ export interface Hooks {
     output: SystemTransformOutput,
   ) => void | Promise<void>;
   "chat.params"?: (input: unknown, output: unknown) => void | Promise<void>;
+  "chat.message"?: (
+    input: { sessionID?: string } | undefined,
+    output: { parts?: unknown } | undefined,
+  ) => void | Promise<void>;
+  "tool.execute.before"?: (
+    input: { tool?: string; sessionID?: string } | undefined,
+    output: { args?: unknown } | undefined,
+  ) => void | Promise<void>;
   "tool.execute.after"?: (
     input: { tool?: string; sessionID?: string; args?: unknown } | undefined,
-    output?: unknown,
+    output?: { output?: unknown } | undefined,
   ) => void | Promise<void>;
 }
 
@@ -578,8 +593,34 @@ const kibiOpencodePlugin: Plugin = async (
     lintRequirementDoc,
   };
 
+  // The decision hooks the other hosts run (rule capture, firm-edit ask,
+  // idle capture request), only in a workspace with a root Kibi manifest.
+  const decisions = [
+    "root_active",
+    "root_partial",
+    "hybrid_root_plus_vendored",
+  ].includes(rootWorkContext.posture)
+    ? createDecisionHooks({
+        workspaceRoot: rootWorkContext.worktreeRoot,
+        prompt: async (sessionId, text) => {
+          await input.client?.session?.prompt?.({
+            path: { id: sessionId },
+            body: { parts: [{ type: "text", text }] },
+          });
+        },
+      })
+    : undefined;
+  if (decisions) {
+    hooks["chat.message"] = async (message, output) => {
+      decisions.chatMessage(message?.sessionID, output?.parts);
+    };
+    hooks["tool.execute.before"] = async (toolCall, output) => {
+      decisions.beforeTool(toolCall?.tool, toolCall?.sessionID, output?.args);
+    };
+  }
+
   // Opt-in usage rows for the lookup-before-first-edit telemetry metric.
-  hooks["tool.execute.after"] = async (toolCall) => {
+  hooks["tool.execute.after"] = async (toolCall, output) => {
     recordOpencodeToolTelemetry({
       worktree: rootWorkContext.worktreeRoot,
       tool: toolCall?.tool,
@@ -587,9 +628,27 @@ const kibiOpencodePlugin: Plugin = async (
       sessionId: toolCall?.sessionID,
       startedAt: new Date(),
     });
+    const note = decisions?.afterTool(
+      toolCall?.tool,
+      toolCall?.sessionID,
+      toolCall?.args,
+    );
+    if (note !== undefined && output) {
+      output.output =
+        typeof output.output === "string" && output.output !== ""
+          ? `${output.output}\n\n${note}`
+          : note;
+    }
   };
 
   hooks.event = async ({ event }) => {
+    if (event.type === "session.idle" && decisions) {
+      const sessionId = event.properties?.sessionID;
+      await decisions.sessionIdle(
+        typeof sessionId === "string" ? sessionId : undefined,
+      );
+      return;
+    }
     if (isKbToolEventType(event.type)) {
       handleKbToolEvent(eventEnv, event, input.sessionId);
       return;

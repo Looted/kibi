@@ -41,6 +41,15 @@ afterEach(() => {
   }
 });
 
+/** A workspace that adopted Kibi: it holds `.kb/manifest.json`. */
+function kibiWorkspaceRoot(): string {
+  const root = createTempRoot("kibi-cursor-workspace-");
+  tempRoots.push(root);
+  fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
+  fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}\n");
+  return root;
+}
+
 /**
  * A current keeps receipt for computeTotal, spanning the whole file, bound to
  * the requirement's prose.
@@ -422,10 +431,12 @@ describe("Cursor hook runner", () => {
   });
 
   test("stop returns a short freshness follow-up once and clears tracked paths", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "Write",
         tool_input: { file_path: ".kb/requirements/REQ-cursor.md" },
@@ -433,15 +444,18 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
 
     expect(result.followup_message).toBe(
       "Kibi: sync or record no-impact after 1 edited file.",
     );
     expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
-    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
-      {},
-    );
+    expect(
+      await runHook({ cwd: kibiCwd, hook_event_name: "stop" }, { pluginData }),
+    ).toEqual({});
   });
 
   test("stop stays quiet for test-only edits", async () => {
@@ -462,10 +476,12 @@ describe("Cursor hook runner", () => {
   });
 
   test("stop prompts impact-enabled kb_check after source edits without impact check", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "Write",
         tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
@@ -474,6 +490,7 @@ describe("Cursor hook runner", () => {
     );
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "CallMcpTool",
         tool_input: { toolName: "kb_check" },
@@ -481,7 +498,10 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
     expect(result.followup_message).toContain("kb_check({changed:true");
     expect(result.followup_message).toContain(
       "packages/cursor/src/hook-runner.ts",
@@ -489,10 +509,12 @@ describe("Cursor hook runner", () => {
   });
 
   test("stop asks only for the decision record after impact-enabled kb_check covers source edits", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "Write",
         tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
@@ -501,6 +523,7 @@ describe("Cursor hook runner", () => {
     );
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "CallMcpTool",
         tool_input: {
@@ -515,21 +538,26 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const stop = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const stop = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
     expect(stop.followup_message).toStartWith(
       "Kibi: this session changed source files and recorded nothing in the knowledge base.",
     );
     expect(stop.followup_message).not.toContain("kb_check(");
-    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
-      {},
-    );
+    expect(
+      await runHook({ cwd: kibiCwd, hook_event_name: "stop" }, { pluginData }),
+    ).toEqual({});
   });
 
   test("stop summarizes KB mutations briefly", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "kb_upsert",
         tool_input: { type: "fact", id: "FACT-001" },
@@ -537,7 +565,10 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
 
     expect(result.followup_message).toBe("Kibi KB updated (kb_upsert).");
   });
@@ -591,10 +622,12 @@ describe("Cursor hook runner", () => {
   });
 
   test("stop still prompts after CreatePlan when source was edited", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "CreatePlan",
         tool_input: {},
@@ -603,6 +636,7 @@ describe("Cursor hook runner", () => {
     );
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "Write",
         tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
@@ -610,7 +644,10 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
     expect(result.followup_message).toContain("kb_check({changed:true");
     expect(result.followup_message).toContain(
       "packages/cursor/src/hook-runner.ts",
@@ -618,10 +655,12 @@ describe("Cursor hook runner", () => {
   });
 
   test("stop still summarizes KB mutations after CreatePlan", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "create_plan",
         tool_input: {},
@@ -630,6 +669,7 @@ describe("Cursor hook runner", () => {
     );
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "kb_upsert",
         tool_input: { type: "fact", id: "FACT-001" },
@@ -637,7 +677,10 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
     expect(result.followup_message).toBe("Kibi KB updated (kb_upsert).");
   });
 
@@ -1015,6 +1058,31 @@ describe("Cursor decision guard", () => {
     expect(message).toContain(
       ruleCaptureTemplate("must not", "because refunds drift"),
     );
+  });
+
+  test("stop asks nothing in a workspace that never adopted Kibi", async () => {
+    const workspace = createTempRoot("kibi-cursor-plain-");
+    tempRoots.push(workspace);
+    fs.mkdirSync(path.join(workspace, "src"), { recursive: true });
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    const event = (payload: Record<string, unknown>) =>
+      runHook(
+        {
+          conversation_id: "plain-1",
+          workspace_roots: [workspace],
+          ...payload,
+        },
+        { pluginData },
+      );
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    expect(
+      await event({ hook_event_name: "stop", status: "completed" }),
+    ).toEqual({});
   });
 
   test("stop asks once for the decision record when source changed and nothing was recorded", async () => {

@@ -50,6 +50,35 @@ describe("mergeKbManifests", () => {
     expect(content.startsWith(HEADER)).toBe(true);
   });
 
+  test("keeps the merged-in side's order and places our additions after their predecessor", () => {
+    const base = manifest(symbol("SYM-a"), symbol("SYM-b"), symbol("SYM-c"));
+    // Theirs reordered the list (as another merge may have) and added one.
+    const theirs = manifest(
+      symbol("SYM-c"),
+      symbol("SYM-a"),
+      symbol("SYM-b"),
+      symbol("SYM-theirs"),
+    );
+    const ours = manifest(
+      symbol("SYM-ours-first"),
+      symbol("SYM-a"),
+      symbol("SYM-b"),
+      symbol("SYM-c"),
+      symbol("SYM-ours"),
+    );
+
+    expect(ids(merged(base, ours, theirs))).toEqual([
+      "SYM-ours-first",
+      "SYM-c",
+      "SYM-ours",
+      "SYM-a",
+      "SYM-b",
+      "SYM-theirs",
+    ]);
+    // Merging theirs into ours leaves ours' diff to its own records.
+    expect(ids(merged(base, base, theirs))).toEqual(ids(theirs));
+  });
+
   test("reproduces the input bytes when nothing changed", () => {
     const text = manifest(symbol("SYM-a"), symbol("SYM-b"));
 

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-builtin-ts-symbols",
+  "sourceFile": "packages/plugin-builtin/src/symbols/ts-morph-granularity.ts",
+  "symbol": "collectGranularityCandidates",
+  "verdict": "keeps",
+  "note": "Still parses with ts-morph, names methods Class.method and skips private members; only the project no longer loads lib declarations or resolves imports, and output is identical.",
+  "statementHash": "sha256:7af54592e92b459278076886e9e599dcb062a7eb23ff6a170a4159e01928d166",
+  "codeHash": "sha256:e8720dffc0f9b17747172e282ba103cf368c6f87b4cbd1b9870ece21bb92f2f7",
+  "startLine": 32,
+  "endLine": 100,
+  "recordedAt": "2026-11-17T06:06:54.132Z"
+}

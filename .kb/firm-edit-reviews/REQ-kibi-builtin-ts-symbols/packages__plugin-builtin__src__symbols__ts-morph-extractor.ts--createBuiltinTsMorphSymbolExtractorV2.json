@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-builtin-ts-symbols",
+  "sourceFile": "packages/plugin-builtin/src/symbols/ts-morph-extractor.ts",
+  "symbol": "createBuiltinTsMorphSymbolExtractorV2",
+  "verdict": "keeps",
+  "note": "Still parses with ts-morph, names methods Class.method and skips private members; only the project no longer loads lib declarations or resolves imports, and output is identical.",
+  "statementHash": "sha256:7af54592e92b459278076886e9e599dcb062a7eb23ff6a170a4159e01928d166",
+  "codeHash": "sha256:34dd73d6b5b2d5feab66ff0937de8d7766414b4581d83a5dc05c5e0268b90449",
+  "startLine": 143,
+  "endLine": 252,
+  "recordedAt": "2026-11-17T06:06:54.132Z"
+}

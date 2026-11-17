@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import {
@@ -8,10 +9,28 @@ import {
   commandFilePaths,
   filesChangedSince,
   isSearchCommand,
+  shellToolEditPaths,
 } from "../src/bash-command";
-import { cleanupTempDirs, tempDir, write } from "./fixture";
 
-afterEach(cleanupTempDirs);
+const temporaryRoots: string[] = [];
+
+function tempDir(prefix: string): string {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  temporaryRoots.push(directory);
+  return directory;
+}
+
+function write(root: string, relativePath: string, content: string): void {
+  const target = path.join(root, relativePath);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, content);
+}
+
+afterEach(() => {
+  for (const directory of temporaryRoots.splice(0)) {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
 
 function workspace(files: readonly string[]): string {
   const root = tempDir("kibi-claude-bash-");
@@ -449,5 +468,50 @@ describe("files a command writes in place", () => {
       path.join(root, "a.ts"),
     ]);
     expect(commandEditPaths(`x${fits}`, root)).toStrictEqual([]);
+  });
+});
+
+describe("shellToolEditPaths", () => {
+  test("reads a shell call's command string or argv", () => {
+    const root = tempDir("kibi-shell-tool-");
+    write(root, "src/a.ts", "x\n");
+    const target = path.join(root, "src/a.ts");
+    for (const toolName of [
+      "Bash",
+      "shell",
+      "local_shell",
+      "exec_command",
+      "run_shell_command",
+    ]) {
+      expect(
+        shellToolEditPaths(
+          toolName,
+          { command: "sed -i 's/x/y/' src/a.ts" },
+          root,
+        ),
+      ).toEqual([target]);
+    }
+    expect(
+      shellToolEditPaths(
+        "shell",
+        { command: ["bash", "-lc", "echo y > src/a.ts", 3] },
+        root,
+      ),
+    ).toEqual([target]);
+  });
+
+  test("names nothing for other tools, reads or missing commands", () => {
+    const root = tempDir("kibi-shell-tool-");
+    write(root, "src/a.ts", "x\n");
+    for (const [toolName, toolInput] of [
+      ["Edit", { command: "sed -i 's/x/y/' src/a.ts" }],
+      [undefined, { command: "sed -i 's/x/y/' src/a.ts" }],
+      ["Bash", { command: "sed -n 1p src/a.ts" }],
+      ["Bash", { command: 3 }],
+      ["Bash", null],
+      ["Bash", "sed -i 's/x/y/' src/a.ts"],
+    ] as const) {
+      expect(shellToolEditPaths(toolName, toolInput, root)).toEqual([]);
+    }
   });
 });

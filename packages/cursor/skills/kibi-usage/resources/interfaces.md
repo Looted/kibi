@@ -26,6 +26,17 @@ catalog operations such as `kb_model_requirement` or `kb_validate_upsert` in
 `recommended_tools` and repair steps; translate them with the list in
 `resources/operation-access.md`.
 
+By default the MCP server lists `kb_search`, `kb_query`, `kb_record`,
+`kb_upsert`, `kb_check`, `kb_status` and `kb_skills`. `kb_model`,
+`kb_compile_intent`, `kb_delete`, `kb_prepare_impact_review` and the other
+tools are listed only in the full MCP profile; without it, run them
+through the CLI with the same input (`kibi model --input -`,
+`kibi compile-intent --input -`, `kibi delete --input -`,
+`kibi prepare-impact-review --input -`). To list every tool, start the server
+with `KIBI_MCP_TOOLS=full` or `kibi-mcp --tools full`, or set it for the
+project with `"kibi": { "mcpTools": "full" }` in package.json or
+`"mcpTools": "full"` in `.kb/setup.json`.
+
 The CLI JSON route accepts the same business object as MCP:
 
 ```bash

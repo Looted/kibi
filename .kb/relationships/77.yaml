@@ -363,6 +363,27 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5bca4db4c36
+  - type: assumes
+    from: SCEN-mcp-upsert-capture-fields
+    to: FACT-mcp-upsert-advertises-capture-fields
+    created_at: 2026-11-16T17:22:03.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4608a404b8f8
+  - type: assumes
+    from: SCEN-mcp-upsert-capture-fields
+    to: FACT-operation-fields-describes-unadvertised
+    created_at: 2026-11-16T17:22:03.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a46379bb4134
+  - type: executable_for
+    from: SYM-test-check-analysis-cache-shared
+    to: TEST-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:03.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54a435cad32d
   - type: constrains
     from: REQ-kb-upsert-capture-next-actions
     to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
@@ -391,17 +412,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e1ca5efd7cf
-  - type: assumes
-    from: SCEN-mcp-upsert-capture-fields
-    to: FACT-mcp-upsert-advertises-capture-fields
-    created_at: 2026-11-16T17:22:03.890Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4608a404b8f8
-  - type: assumes
-    from: SCEN-mcp-upsert-capture-fields
-    to: FACT-operation-fields-describes-unadvertised
-    created_at: 2026-11-16T17:22:03.951Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a46379bb4134

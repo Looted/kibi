@@ -289,7 +289,7 @@ left:
   A and B are both in the list and every A comes before every B. Name
   middleware with `names_from`: a
   zero-argument factory export such as `requireAuth()` names the
-  middleware it returns `requireAuth`. Write the fact with `kb_model`
+  middleware it returns `requireAuth`. Write the fact with `kb_model` (full MCP profile only; CLI `kibi model --input -`)
   (requirement mode, `operator` plus a list `value`) or `kb_upsert`. The
   receipt stales when a file the read touched changes, and the claim binds
   with scope `source`. `value_source` accepts `{source, measure: count}`.

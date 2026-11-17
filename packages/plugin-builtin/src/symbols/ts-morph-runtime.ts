@@ -31,3 +31,16 @@ export function tsMorph(): typeof TsMorph {
   loaded ??= createRequire(import.meta.url)("ts-morph") as typeof TsMorph;
   return loaded;
 }
+
+/**
+ * A ts-morph project for per-file, syntax-level analysis. Export checks ask
+ * the type checker for the declaration's own file symbol, which needs neither
+ * the default library files nor the file's imports; with them, every program
+ * built for an export check parsed the whole lib closure and resolved the
+ * file's module graph from disk.
+ */
+export function createSyntacticProject(): TsMorph.Project {
+  return new (tsMorph().Project)({
+    compilerOptions: { noLib: true, noResolve: true, types: [] },
+  });
+}

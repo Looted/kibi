@@ -71,6 +71,7 @@ import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-
 import { collectProofContractClaimViolations } from "./proof-contract-claims.js";
 import { collectQuantityDuplicateViolations } from "./quantity-layer.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
+import { openSourceAnalysisCache } from "./source-analysis-cache.js";
 import {
   SOURCE_PATH_DANGLING_RULE,
   collectSourcePathDanglingViolations,
@@ -464,11 +465,17 @@ export async function executeCheck(
     const sourcePathFindings = rulesAllowlist.has(SOURCE_PATH_DANGLING_RULE)
       ? collectSourcePathDanglingViolations(workspaceRoot)
       : [];
+    // One analysis cache serves every step that parses sources and is saved
+    // once, after the last of them.
+    const analysisCache = openSourceAnalysisCache(
+      analysisCacheDir(context, workspaceRoot, options),
+      workspaceRoot,
+    );
     const symbolGranularityFindings = await collectSymbolGranularityViolations(
       prolog,
       workspaceRoot,
       rulesAllowlist,
-      analysisCacheDir(context, workspaceRoot, options),
+      analysisCache,
     );
     const symbolCoordinateFindings =
       await collectSymbolCoordinatesMissingViolations(
@@ -626,16 +633,13 @@ export async function executeCheck(
     // field out instead of failing the check.
     const symbolDebt =
       !hasExplicitRules && args.sourceFiles === undefined
-        ? await collectSymbolDebt(
-            prolog,
-            workspaceRoot,
-            analysisCacheDir(context, workspaceRoot, options),
-          )
+        ? await collectSymbolDebt(prolog, workspaceRoot, analysisCache)
             .then((debt) =>
               symbolDebtListing(debt, args.includeSymbolDebt === true),
             )
             .catch(() => undefined)
         : undefined;
+    analysisCache?.save();
     // A rule selection lists its findings in full; any other check keeps to
     // the size budget, and the debt list, when asked for, comes on top.
     const fitted =

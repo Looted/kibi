@@ -1584,14 +1584,43 @@ negated_member(m(Role, Owner, FactId, Key, Scope, Type, Unit, Op, Value, Text),
 property_constraints(ScenarioId, Keys, Window, Constraints) :-
     findall(rc(Member, Applicability, Exempt),
         (   member(Subject-Property, Keys),
-            kb:current_req(ReqId),
-            kb:effective_req_property_fact(ReqId, Subject, FactId, Property, _, _, _, _, _, _, From, To),
+            current_property_fact(Subject, Property, ReqId, FactId, From, To),
             property_member(requirement, ReqId, FactId, Member),
             validity_applicability(Window, From, To, Applicability),
             exemption_flag(ScenarioId, ReqId, FactId, Exempt)
         ),
         Constraints0),
     sort(Constraints0, Constraints).
+
+%% current_property_fact(?Subject, ?Property, -ReqId, -FactId, -From, -To)
+% The property facts of current requirements, as
+%   kb:current_req(ReqId),
+%   kb:effective_req_property_fact(ReqId, Subject, FactId, Property, _, _, _,
+%                                  _, _, _, From, To)
+% gives them. Every scenario asks for the facts of its assumed keys, and
+% walking every current requirement per key and scenario dominated the
+% feasibility check, so the facts are listed once per KB generation and
+% looked up by key. Inside a transaction (what-if staging) the KB is not the
+% generation's, so they are read afresh.
+current_property_fact(Subject, Property, ReqId, FactId, From, To) :-
+    (   \+ rdf_db:rdf_active_transaction(_),
+        kb:index_verification_key(property_fact_index, Key)
+    ->  (   kb:kb_property_fact_index(Key, _, _, _, _, _, _)
+        ->  true
+        ;   retractall(kb:kb_property_fact_index(_, _, _, _, _, _, _)),
+            forall(live_property_fact(S, P, R, F, Fr, T),
+                   assertz(kb:kb_property_fact_index(Key, S, P, R, F, Fr, T))),
+            % The marker row keeps an empty listing from being rebuilt.
+            assertz(kb:kb_property_fact_index(Key, -, -, -, -, -, -))
+        ),
+        kb:kb_property_fact_index(Key, Subject, Property, ReqId, FactId, From, To),
+        ReqId \== (-)
+    ;   live_property_fact(Subject, Property, ReqId, FactId, From, To)
+    ).
+
+live_property_fact(Subject, Property, ReqId, FactId, From, To) :-
+    kb:current_req(ReqId),
+    kb:effective_req_property_fact(ReqId, Subject, FactId, Property, _, _, _, _, _, _, From, To).
 
 exemption_flag(ScenarioId, ReqId, FactId, Exempt) :-
     (   constraint_exempt(ScenarioId, ReqId, FactId)

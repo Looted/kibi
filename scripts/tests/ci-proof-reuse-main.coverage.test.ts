@@ -908,6 +908,40 @@ describe("merge train proof attestation and develop reuse", () => {
     ).toBe("develop commit is not a merge of a train");
   });
 
+  test("a develop push in a depth-1 checkout says its parents are hidden", async () => {
+    const repo = makeRepo();
+    const fixture = trainFixture(repo);
+    const shallow = temp("kibi-proof-main-shallow-");
+    execFileSync("git", [
+      "clone",
+      "-q",
+      "--depth",
+      "1",
+      "--branch",
+      "master",
+      `file://${repo.root}`,
+      shallow,
+    ]);
+    process.chdir(shallow);
+    expect((await decideTrain(repo, fixture)).decision.reason).toBe(
+      "train reuse lookup failed: the checkout is shallow and hides HEAD's parents; fetch at least depth 2",
+    );
+    // At depth 2 the same merge is recognised and reused.
+    const deeper = temp("kibi-proof-main-depth2-");
+    execFileSync("git", [
+      "clone",
+      "-q",
+      "--depth",
+      "2",
+      "--branch",
+      "master",
+      `file://${repo.root}`,
+      deeper,
+    ]);
+    process.chdir(deeper);
+    expect((await decideTrain(repo, fixture)).decision.mode).toBe("reused");
+  });
+
   test("assessTrainProofReuse refuses every mismatch", () => {
     const repo = {
       root: "",

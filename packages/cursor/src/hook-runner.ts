@@ -609,7 +609,13 @@ export async function runHook(
           state.kbCheckRun ||
           state.planDelivered;
 
-        if (input.status === "aborted" || input.status === "error") {
+        // A workspace that never adopted Kibi gets no follow-up: nothing in it
+        // can be recorded or checked.
+        if (
+          !kibiReady ||
+          input.status === "aborted" ||
+          input.status === "error"
+        ) {
           if (shouldClearSession) {
             clearSessionHookState(stateDir);
           }

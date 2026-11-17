@@ -260,6 +260,9 @@ describe(
       };
       try {
         mkdirSync(join(workspace, "src"), { recursive: true });
+        // The stop hook speaks only in a workspace that adopted Kibi.
+        mkdirSync(join(workspace, ".kb"), { recursive: true });
+        writeFileSync(join(workspace, ".kb", "manifest.json"), "{}\n");
         hook({
           hook_event_name: "postToolUse",
           tool_name: "CreatePlan",
