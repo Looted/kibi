@@ -2367,15 +2367,11 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-check-changed-commit-verdict
-      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
-      - type: implements
-        target: REQ-check-changed-commit-verdict
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: covered_by
@@ -44429,3 +44425,16 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-proof-mcp-bootstrap-tools
+  - id: SYM-cli-register-reporting-run-changed-check
+    title: runChangedCheck
+    status: active
+    sourceFile: packages/cli/src/cli-register-reporting.ts
+    symbol_role: behavioral
+    origin:
+      kind: agent
+      recorded_at: 2026-11-17T05:05:18.357Z
+    relationships:
+      - type: covered_by
+        target: TEST-check-changed-commit-verdict
+      - type: implements
+        target: REQ-check-changed-commit-verdict

@@ -16,6 +16,27 @@ async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   await executor.runJsonInvocation(invocation);
 }
 
+/**
+ * kibi check --changed: the staged gate over a scratch index holding the
+ * working tree plus the index (only the named paths and .kb when paths are
+ * given), so the real index is never written.
+ */
+export async function runChangedCheck(
+  changed: boolean | string[],
+  checkOptions: Parameters<typeof checkCommand>[0],
+): Promise<Awaited<ReturnType<typeof checkCommand>>> {
+  const { withChangedIndex } = await import("./traceability/changed-index.js");
+  return withChangedIndex(
+    process.cwd(),
+    Array.isArray(changed) ? changed : undefined,
+    async () =>
+      (await import("./commands/check.js")).checkCommand({
+        ...checkOptions,
+        staged: true,
+      }),
+  );
+}
+
 export function registerReportingCommands(program: Command): void {
   program
     .command("check-generated")
@@ -301,20 +322,8 @@ export function registerReportingCommands(program: Command): void {
               "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged or --changed",
             );
           const { writeCertificates, changed, ...checkOptions } = options;
-          if (changed !== undefined) {
-            const { withChangedIndex } = await import(
-              "./traceability/changed-index.js"
-            );
-            return withChangedIndex(
-              process.cwd(),
-              Array.isArray(changed) ? changed : undefined,
-              async () =>
-                (await import("./commands/check.js")).checkCommand({
-                  ...checkOptions,
-                  staged: true,
-                }),
-            );
-          }
+          if (changed !== undefined)
+            return runChangedCheck(changed, checkOptions);
           const result = await (
             await import("./commands/check.js")
           ).checkCommand(checkOptions);
