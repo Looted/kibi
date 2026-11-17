@@ -23,6 +23,7 @@ import {
   inspectBranchStore,
   storeLockJournalReason,
   storeLockTakeoverReason,
+  storeRepairReason,
   uncompiledBranchStoreReason,
 } from "../../src/utils/branch-store.js";
 
@@ -339,6 +340,61 @@ describe("store lock reasons", () => {
     expect(storeLockTakeoverReason(s, at)?.detail).toContain(
       "a holder that died",
     );
+  });
+});
+
+describe("store repair notice", () => {
+  test("a duplicate-triple repair is visible for a week after it happened", () => {
+    const s = fresh();
+    const at = "2026-11-17T08:50:24Z";
+    const repairedAt = new Date(at);
+    const week = 7 * 24 * 60 * 60 * 1000;
+    expect(storeRepairReason(s, repairedAt)).toBeNull();
+    const record = path.join(s, ".kibi-store-repair.json");
+    write(
+      record,
+      JSON.stringify({
+        at,
+        loadedTriples: 310012,
+        duplicatedTriples: 34150,
+        removedCopies: 34150,
+      }),
+    );
+    expect(storeRepairReason(s, repairedAt)).toStrictEqual({
+      code: "branch_store_repaired",
+      path: record,
+      entityIds: [],
+      blocking: false,
+      at,
+      duplicatedTriples: 34150,
+      removedCopies: 34150,
+      loadedTriples: 310012,
+      detail:
+        "Kibi repaired this branch store at 2026-11-17T08:50:24Z: its snapshot held 34150 triple(s) twice, so the engine removed 34150 duplicate copies and rewrote the snapshot. Nothing needs repair now; answers given from this store before the repair could show superseded or doubled values.",
+    });
+    expect(
+      storeRepairReason(s, new Date(repairedAt.getTime() + week)),
+    ).not.toBeNull();
+    expect(
+      storeRepairReason(s, new Date(repairedAt.getTime() + week + 1)),
+    ).toBeNull();
+    expect(storeRepairReason(s, new Date(repairedAt.getTime() - 1))).toBeNull();
+  });
+
+  test("an unreadable or undated record is not reported", () => {
+    const s = fresh();
+    const record = path.join(s, ".kibi-store-repair.json");
+    write(record, "{not json");
+    expect(storeRepairReason(s)).toBeNull();
+    write(record, JSON.stringify({ removedCopies: 3 }));
+    expect(storeRepairReason(s)).toBeNull();
+    write(
+      record,
+      JSON.stringify({ at: "2026-11-17T00:00:00Z", removedCopies: "3" }),
+    );
+    expect(
+      storeRepairReason(s, new Date("2026-11-17T00:00:00Z"))?.removedCopies,
+    ).toBe(0);
   });
 });
 

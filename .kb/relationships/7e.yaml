@@ -426,3 +426,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb50cf91559f
+  - type: validates
+    from: TEST-core-snapshot-duplicate-triples
+    to: SCEN-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:09:03.563Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f757424b255a
+  - type: validates
+    from: TEST-core-snapshot-duplicate-triples
+    to: SCEN-NEG-core-snapshot-triples-held-once-HELD-TWICE
+    created_at: 2026-11-17T09:09:03.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62720273414f
+  - type: validates
+    from: TEST-core-snapshot-duplicate-triples
+    to: SCEN-core-snapshot-duplicate-repair
+    created_at: 2026-11-17T09:09:03.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fb5c7f0b855
+  - type: validates
+    from: TEST-core-snapshot-duplicate-triples
+    to: SCEN-NEG-core-snapshot-duplicate-repair-UNREPORTED
+    created_at: 2026-11-17T09:09:03.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-525db373498c

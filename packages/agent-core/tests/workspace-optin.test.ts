@@ -24,9 +24,9 @@ afterEach(() => {
   }
 });
 
-describe("codex workspace opt-in resolution", () => {
+describe("workspace opt-in resolution", () => {
   test("marks a workspace opted in when its root owns .kb/manifest.json", () => {
-    const workspace = createTempRoot("kibi-zcode-optin-");
+    const workspace = createTempRoot("kibi-agent-core-optin-");
     optInWorkspace(workspace);
 
     expect(resolveKibiWorkspace(workspace)).toEqual({
@@ -36,7 +36,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("stays unconfigured when .kb exists without a manifest", () => {
-    const workspace = createTempRoot("kibi-zcode-unconfigured-");
+    const workspace = createTempRoot("kibi-agent-core-unconfigured-");
     fs.mkdirSync(path.join(workspace, ".kb"));
 
     const resolution = resolveKibiWorkspace(workspace);
@@ -46,7 +46,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("resolves subdirectories to the opted-in repository root", () => {
-    const workspace = createTempRoot("kibi-zcode-subdir-");
+    const workspace = createTempRoot("kibi-agent-core-subdir-");
     optInWorkspace(workspace);
     const nested = path.join(workspace, "packages", "codex", "src");
     fs.mkdirSync(nested, { recursive: true });
@@ -58,7 +58,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("treats a git worktree root with its own manifest as opted in", () => {
-    const worktree = createTempRoot("kibi-zcode-worktree-");
+    const worktree = createTempRoot("kibi-agent-core-worktree-");
     optInWorkspace(worktree);
     // Git worktrees carry a .git file, not a directory.
     fs.writeFileSync(
@@ -73,7 +73,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("does not inherit opt-in from an unrelated enclosing repository", () => {
-    const enclosing = createTempRoot("kibi-zcode-enclosing-");
+    const enclosing = createTempRoot("kibi-agent-core-enclosing-");
     optInWorkspace(enclosing);
     const nested = path.join(enclosing, "vendored-project");
     fs.mkdirSync(path.join(nested, ".git"), { recursive: true });
@@ -85,7 +85,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("reports a plain repository without Kibi as unconfigured at its root", () => {
-    const workspace = createTempRoot("kibi-zcode-plain-");
+    const workspace = createTempRoot("kibi-agent-core-plain-");
     fs.mkdirSync(path.join(workspace, ".git"), { recursive: true });
     const nested = path.join(workspace, "src");
     fs.mkdirSync(nested);
@@ -97,9 +97,9 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("honors the supported Kibi workspace environment overrides", () => {
-    const workspace = createTempRoot("kibi-zcode-env-");
+    const workspace = createTempRoot("kibi-agent-core-env-");
     optInWorkspace(workspace);
-    const elsewhere = createTempRoot("kibi-zcode-env-other-");
+    const elsewhere = createTempRoot("kibi-agent-core-env-other-");
 
     for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"]) {
       const resolution = resolveKibiWorkspace(elsewhere, {
@@ -110,7 +110,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("treats an empty cwd as the process cwd", () => {
-    const workspace = createTempRoot("kibi-zcode-cwd-");
+    const workspace = createTempRoot("kibi-agent-core-cwd-");
     optInWorkspace(workspace);
 
     expect(
@@ -124,9 +124,9 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("ignores blank environment overrides", () => {
-    const workspace = createTempRoot("kibi-zcode-env-blank-");
+    const workspace = createTempRoot("kibi-agent-core-env-blank-");
     optInWorkspace(workspace);
-    const other = createTempRoot("kibi-zcode-env-blank-other-");
+    const other = createTempRoot("kibi-agent-core-env-blank-other-");
     optInWorkspace(other);
 
     expect(
@@ -144,7 +144,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("reads process.env by default", () => {
-    const workspace = createTempRoot("kibi-zcode-env-default-");
+    const workspace = createTempRoot("kibi-agent-core-env-default-");
     optInWorkspace(workspace);
     const saved = process.env.KIBI_ROOT;
     process.env.KIBI_ROOT = workspace;
@@ -160,7 +160,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("a missing or blank start directory walks from the process cwd", () => {
-    const workspace = createTempRoot("kibi-zcode-cwd-walk-");
+    const workspace = createTempRoot("kibi-agent-core-cwd-walk-");
     const nested = path.join(workspace, "nested");
     fs.mkdirSync(nested);
     const previous = process.cwd();
@@ -183,7 +183,7 @@ describe("codex workspace opt-in resolution", () => {
   });
 
   test("a start directory without manifest or git ancestors is its own root", () => {
-    const workspace = createTempRoot("kibi-zcode-no-boundary-");
+    const workspace = createTempRoot("kibi-agent-core-no-boundary-");
     const nested = path.join(workspace, "a", "b");
     fs.mkdirSync(nested, { recursive: true });
 

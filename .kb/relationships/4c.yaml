@@ -356,3 +356,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ac646f206a49
+  - type: assumes
+    from: SCEN-core-snapshot-duplicate-repair
+    to: FACT-core-snapshot-duplicate-repair
+    created_at: 2026-11-17T09:11:39.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6168e9063e87
