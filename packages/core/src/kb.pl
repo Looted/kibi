@@ -208,6 +208,7 @@ kb_attach_journaled(Directory) :-
     % staged migration can have been atomically moved after the graph was
     % first persisted, so accept the single restored graph URI as well.
     journal_graph_uri(Directory, GraphURI),
+    kb_repair_duplicate_triples(Directory, GraphURI),
     read_journal_metadata(Directory, Generation, Sequence),
     assert(kb_attached(Directory)),
     assert(kb_graph(GraphURI)),
@@ -224,6 +225,87 @@ kb_attach_journaled(Directory) :-
 
     load_kb_pl_files(Directory),
     kb_rebuild_indexes.
+
+%% kb_repair_duplicate_triples(+Directory, +GraphURI)
+% A snapshot written while rdf_db still held reindexed triples that its
+% garbage collector had not reclaimed holds each of them twice (see
+% kb_flush_journals/1), so loading it gives rdf/4 two copies of every such
+% triple, while rdf/3 still answers each triple once.  Kibi before this repair
+% wrote such snapshots, so a store on disk can carry them.  The repair keeps
+% one copy of each duplicated triple, writes a clean snapshot, says so on
+% stderr and records it in .kibi-store-repair.json for kb_status and
+% kibi doctor.  A repair that fails leaves the store as it loaded.
+kb_repair_duplicate_triples(Directory, GraphURI) :-
+    catch(repair_duplicate_triples(Directory, GraphURI), Error,
+          print_message(warning, Error)).
+
+repair_duplicate_triples(Directory, GraphURI) :-
+    (   store_has_duplicate_triples
+    ->  findall(S-P-O, rdf(S, P, O, GraphURI), Triples),
+        msort(Triples, Sorted),
+        duplicated_triples(Sorted, Duplicated, 0, Extra),
+        (   Duplicated == []
+        ->  true
+        ;   length(Triples, Loaded),
+            length(Duplicated, Repaired),
+            rdf_transaction(
+                forall(member(S-P-O, Duplicated),
+                       ( rdf_retractall(S, P, O, GraphURI),
+                         rdf_assert(S, P, O, GraphURI) ))),
+            kb_flush_journals([]),
+            format(user_error,
+                   'kibi: repaired branch store ~w: removed ~D duplicate copies of ~D triples (~D loaded)~n',
+                   [Directory, Extra, Repaired, Loaded]),
+            write_store_repair(Directory, Loaded, Repaired, Extra)
+        )
+    ;   true
+    ).
+
+% Every graph counts each copy it holds while rdf/3 answers each triple once,
+% so the two differ only when some triple is held twice (or by two graphs,
+% which the repair then finds nothing to change in).
+store_has_duplicate_triples :-
+    rdf_statistics(triples(Held)),
+    aggregate_all(count, rdf(_, _, _), Distinct),
+    Held > Distinct.
+
+% duplicated_triples(+Sorted, -Duplicated, +Extra0, -Extra): the triples that
+% occur more than once in Sorted, each once, and the number of extra copies.
+duplicated_triples([], [], Extra, Extra).
+duplicated_triples([T, T|Rest], [T|Duplicated], Extra0, Extra) :-
+    !,
+    skip_copies(T, Rest, Remaining, Extra0, Extra1),
+    duplicated_triples(Remaining, Duplicated, Extra1, Extra).
+duplicated_triples([_|Rest], Duplicated, Extra0, Extra) :-
+    duplicated_triples(Rest, Duplicated, Extra0, Extra).
+
+% skip_copies(+T, +List, -Rest, +Extra0, -Extra): drops the further copies of
+% T that start List, and adds to Extra0 every copy of T after the first.
+skip_copies(T, [T|Rest], Remaining, Extra0, Extra) :-
+    !,
+    Extra1 is Extra0 + 1,
+    skip_copies(T, Rest, Remaining, Extra1, Extra).
+skip_copies(_, Rest, Rest, Extra0, Extra) :-
+    Extra is Extra0 + 1.
+
+kb_store_repair_path(Directory, Path) :-
+    atom_concat(Directory, '/.kibi-store-repair.json', Path).
+
+write_store_repair(Directory, Loaded, Repaired, Extra) :-
+    kb_store_repair_path(Directory, Path),
+    get_time(Now),
+    stamp_date_time(Now, NowUTC, 'UTC'),
+    format_time(atom(At), '%FT%TZ', NowUTC),
+    atom_concat(Path, '.tmp', TmpPath),
+    setup_call_cleanup(
+        open(TmpPath, write, Stream),
+        json_write_dict(Stream,
+                        _{at:At,
+                          loadedTriples:Loaded,
+                          duplicatedTriples:Repaired,
+                          removedCopies:Extra},
+                        []),
+        (close(Stream), rename_file(TmpPath, Path))).
 
 % SWI-Prolog's rdf_db fails to write journals ("invalid term_t ... out of
 % range") for graphs whose URI is roughly 230 characters or longer.  Store
@@ -342,7 +424,7 @@ kb_detach :-
     % Every step is a no-op when nothing is attached, so detaching an
     % unattached KB needs no separate guard.
     (   kb_storage_mode(journaled)
-    ->  catch(rdf_flush_journals([min_size(16384)]), _, true),
+    ->  catch(kb_flush_journals([min_size(16384)]), _, true),
         catch(rdf_detach_db, _, true),
         catch(kb_remove_lock_owner, _, true)
     ;   true
@@ -454,12 +536,66 @@ kb_sync_checkpoint :-
     kb_mark_dirty,
     kb_save_journaled.
 
+%% kb_flush_journals(+Options)
+% rdf_flush_journals/1, with the store's garbage collected first.  A snapshot
+% written while SWI-Prolog's rdf_db still holds reindexed triples that its
+% garbage collector has not reclaimed can contain each of those triples twice,
+% and every later load then returns both copies.  Collecting first leaves no
+% such triple, so it runs only when a snapshot is about to be written.
+kb_flush_journals(Options) :-
+    (   snapshot_due(Options)
+    ->  collect_store_garbage
+    ;   true
+    ),
+    rdf_flush_journals(Options).
+
+% rdf_gc/0 repeats until nothing is left to collect, which never happens while
+% another thread's open query holds the generation a triple was reindexed in.
+% This gives such a reader about a second, and then says that the snapshot
+% may hold duplicates, which kb_repair_duplicate_triples/2 removes on the next
+% attach.
+collect_store_garbage :-
+    collect_store_garbage(50).
+
+collect_store_garbage(Rounds) :-
+    rdf_db:rdf_gc_info_(Info),
+    arg(2, Info, Garbage),
+    arg(3, Info, Reindexed),
+    (   Garbage + Reindexed =:= 0
+    ->  true
+    ;   Rounds =:= 0
+    ->  format(user_error,
+               'kibi: writing a store snapshot while ~D reindexed and ~D garbage triples are not yet reclaimed; the next attach repairs any duplicate it holds~n',
+               [Reindexed, Garbage])
+    ;   rdf_db:rdf_gc(_),
+        rdf_db:rdf_gc_info_(After),
+        (   After == Info
+        ->  sleep(0.02)
+        ;   true
+        ),
+        Next is Rounds - 1,
+        collect_store_garbage(Next)
+    ).
+
+% True when rdf_flush_journals(Options) would write a snapshot for a graph:
+% without min_size(KB) for any graph with a journal, and with it only for a
+% journal of KB or more.
+snapshot_due(Options) :-
+    rdf_journal_file(_Graph, JournalFile),
+    exists_file(JournalFile),
+    (   memberchk(min_size(KB), Options)
+    ->  size_file(JournalFile, Size),
+        Size / 1024 >= KB
+    ;   true
+    ),
+    !.
+
 kb_save_journaled_locked(Directory) :-
     ensure_journal_sentinel_current(Directory),
     (   kb_dirty
     ->  kb_stage(journal_flush),
         % mutalog-disable-next-line goal_true,literal: this only folds a journal of 16 MiB or more into a snapshot; the store holds the same triples either way
-        rdf_flush_journals([min_size(16384)]),
+        kb_flush_journals([min_size(16384)]),
         next_journal_commit(Generation, Sequence),
         write_journal_head(Directory, Generation, Sequence),
         retractall(kb_attached_snapshot(_)),
@@ -620,7 +756,7 @@ kb_storage_compact_locked(Directory) :-
     % first so CURRENT never points at an older commit sequence.
     kb_save_journaled_locked(Directory),
     % mutalog-disable-next-line literal: an unbound option names no option, so [_] flushes every journal too
-    rdf_flush_journals([]),
+    kb_flush_journals([]),
     (   kb_generation(Generation) -> true ; Generation = 'generation-1' ),
     (   kb_commit_sequence(Sequence) -> true ; Sequence = 0 ),
     write_journal_head(Directory, Generation, Sequence).

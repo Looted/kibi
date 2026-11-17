@@ -384,6 +384,49 @@ test(entity_pages_follow_writes_between_pages, [setup(setup_kb), cleanup(cleanup
 
 :- end_tests(kb_relationships).
 
+make_journaled_store(Dir) :-
+    make_directory_path(Dir),
+    atom_concat(Dir, '/storage.json', Marker),
+    setup_call_cleanup(
+        open(Marker, write, Out),
+        format(Out, '{"format":"kibi.rdf-journal.v1","schemaVersion":1}~n', []),
+        close(Out)).
+
+store_snapshot_file(Dir, Snapshot) :-
+    atom_concat(Dir, '/rdf', Rdf),
+    directory_member(Rdf, Snapshot, [extensions([trp]), recursive(true)]),
+    !.
+
+% Holds SWI-Prolog's background rdf_db garbage collector while Goal runs,
+% so only the goal's own collection reclaims anything.
+% rdf_db starts that thread when it first has garbage to collect.
+:- meta_predicate with_rdf_gc_paused(0).
+with_rdf_gc_paused(Goal) :-
+    rdf_assert('urn:kibi-test:gc', 'urn:kibi-test:started', 'urn:kibi-test:yes', kibi_test_gc),
+    rdf_retractall(_, _, _, kibi_test_gc),
+    wait_for_rdf_gc_thread(100),
+    thread_self(Me),
+    mutex_create(Pause),
+    setup_call_cleanup(
+        mutex_lock(Pause),
+        ( thread_signal('__rdf_GC',
+                        ( thread_send_message(Me, rdf_gc_paused),
+                          with_mutex(Pause, true) )),
+          thread_get_message(rdf_gc_paused),
+          call(Goal) ),
+        ( mutex_unlock(Pause),
+          mutex_destroy(Pause) )).
+
+wait_for_rdf_gc_thread(_) :-
+    catch(thread_property('__rdf_GC', status(running)), _, fail),
+    !.
+wait_for_rdf_gc_thread(Tries) :-
+    Tries > 0,
+    sleep(0.01),
+    Next is Tries - 1,
+    wait_for_rdf_gc_thread(Next).
+
+
 :- begin_tests(kb_persistence).
 
 test(journal_persistence, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
@@ -465,6 +508,106 @@ test(journaled_store_survives_long_workspace_path, [setup(cleanup_test_kb), clea
     kb_entity('long-path-req', Type, _),
     kb_detach,
     assertion(Type == req).
+
+% SWI-Prolog's rdf_db keeps retracted and reindexed triples until its garbage
+% collector reclaims them, and a snapshot written before then can hold a
+% reindexed triple twice.  With the background collector held, a compaction
+% must still leave nothing to reclaim when it writes the snapshot.
+test(snapshot_write_collects_garbage_first, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    make_journaled_store(Dir),
+    kb_attach(Dir),
+    with_rdf_gc_paused((
+        forall(between(1, 20, I),
+               ( format(atom(Id), 'gc-req-~d', [I]),
+                 kb_commit_upsert(req, [
+                     id=Id,
+                     title="Garbage before snapshot",
+                     status=active,
+                     created_at="2026-11-17T00:00:00Z",
+                     updated_at="2026-11-17T00:00:00Z",
+                     source="test://kb.plt"
+                 ], [], true, _) )),
+        forall(between(1, 20, I),
+               ( format(atom(Id), 'gc-req-~d', [I]),
+                 kb_retract_entity(Id) )),
+        kb_save,
+        rdf_db:rdf_gc_info_(Before),
+        arg(2, Before, GarbageBefore),
+        assertion(GarbageBefore > 0),
+        kb_storage_compact,
+        rdf_db:rdf_gc_info_(After),
+        arg(2, After, GarbageAfter),
+        arg(3, After, ReindexedAfter)
+    )),
+    kb_detach,
+    assertion(GarbageAfter == 0),
+    assertion(ReindexedAfter == 0).
+
+% A snapshot an earlier release saved with every triple twice is repaired on
+% attach: each triple is held once, the repaired snapshot loads clean, and
+% the repair is recorded for kb_status and kibi doctor.
+test(attach_repairs_snapshot_with_duplicate_triples, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    make_journaled_store(Dir),
+    kb_attach(Dir),
+    kb_commit_upsert(req, [
+        id='dup-req',
+        title="Duplicated on disk",
+        status=active,
+        created_at="2026-11-17T00:00:00Z",
+        updated_at="2026-11-17T00:00:00Z",
+        source="test://kb.plt"
+    ], [], true, _),
+    kb_storage_compact,
+    kb:kb_graph(Graph),
+    aggregate_all(count, rdf(_, _, _, Graph), Distinct),
+    kb_detach,
+    store_snapshot_file(Dir, Snapshot),
+    % Loading a snapshot twice holds every triple twice, as the damaged
+    % snapshots did.
+    rdf_load_db(Snapshot),
+    rdf_load_db(Snapshot),
+    aggregate_all(count, rdf(_, _, _, Graph), Doubled),
+    assertion(Doubled =:= 2 * Distinct),
+    rdf_save_db(Snapshot, Graph),
+    rdf_unload_graph(Graph),
+    kb_attach(Dir),
+    aggregate_all(count, rdf(_, _, _, Graph), Attached),
+    kb_entity('dup-req', _, Props),
+    kb_detach,
+    assertion(Attached =:= Distinct),
+    assertion(findall(T, member(title=T, Props), [_])),
+    rdf_load_db(Snapshot),
+    aggregate_all(count, rdf(_, _, _, Graph), Reloaded),
+    rdf_unload_graph(Graph),
+    assertion(Reloaded =:= Distinct),
+    atom_concat(Dir, '/.kibi-store-repair.json', RepairFile),
+    read_file_to_string(RepairFile, RepairText, []),
+    atom_json_dict(RepairText, Repair, []),
+    assertion(Repair.removedCopies =:= Distinct),
+    assertion(Repair.duplicatedTriples =:= Distinct),
+    assertion(Repair.loadedTriples =:= 2 * Distinct).
+
+% A store that holds every triple once is attached without a repair record.
+test(attach_leaves_clean_snapshot_unrecorded, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    make_journaled_store(Dir),
+    kb_attach(Dir),
+    kb_commit_upsert(req, [
+        id='clean-req',
+        title="Held once",
+        status=active,
+        created_at="2026-11-17T00:00:00Z",
+        updated_at="2026-11-17T00:00:00Z",
+        source="test://kb.plt"
+    ], [], true, _),
+    kb_storage_compact,
+    kb_detach,
+    kb_attach(Dir),
+    kb_detach,
+    atom_concat(Dir, '/.kibi-store-repair.json', RepairFile),
+    assertion(\+ exists_file(RepairFile)).
 
 :- end_tests(kb_persistence).
 

@@ -1322,6 +1322,34 @@ describe("branch store check", () => {
     expect((await check("Branch store"))?.message).toBe("Compiled for main");
   });
 
+  test("warn about a store the engine repaired on attach", async () => {
+    const warningsBefore = (await report()).warnings;
+    const repair = spyOn(branchStore, "storeRepairReason").mockReturnValue({
+      code: "branch_store_repaired",
+      detail: "Kibi repaired this branch store.",
+    });
+    expect(await check("Branch store")).toStrictEqual({
+      name: "Branch store",
+      passed: true,
+      warning: true,
+      remediation:
+        "Nothing to do; rerun kibi check if it ran on this branch before the repair",
+      message: "Compiled for main (g1). Kibi repaired this branch store.",
+      details: {
+        branch: "main",
+        path: "/store",
+        state: "ready",
+        generation: "g1",
+        storeRepair: {
+          code: "branch_store_repaired",
+          detail: "Kibi repaired this branch store.",
+        },
+      },
+    });
+    expect(repair).toHaveBeenCalledWith("/store");
+    expect((await report()).warnings).toBe(warningsBefore + 1);
+  });
+
   test("append a lock takeover to every outcome", async () => {
     s.takeover.mockReturnValue({ detail: "Lock taken over." });
     expect(await check("Branch store")).toStrictEqual({

@@ -60,6 +60,7 @@ import {
   branchStoreCompilation,
   inspectBranchStore,
   storeLockTakeoverReason,
+  storeRepairReason,
   uncompiledBranchStoreReason,
 } from "../utils/branch-store.js";
 import {
@@ -1086,15 +1087,26 @@ function checkBranchStore(): DoctorCheckResult {
       : message;
   const takeoverDetails = takeover ? { lockTakeover: takeover } : {};
   if (compilation.compiled) {
+    // A repair on attach fixed the store; it is shown as a warning so that
+    // a store damaged by an earlier release does not pass unnoticed.
+    const repair = storeRepairReason(store.path);
     return {
       passed: true,
+      ...(repair
+        ? {
+            warning: true,
+            remediation:
+              "Nothing to do; rerun kibi check if it ran on this branch before the repair",
+          }
+        : {}),
       message: withTakeover(
-        `Compiled for ${branch}${compilation.generation ? ` (${compilation.generation})` : ""}`,
+        `Compiled for ${branch}${compilation.generation ? ` (${compilation.generation})` : ""}${repair ? `. ${String(repair.detail)}` : ""}`,
       ),
       details: {
         ...details,
         generation: compilation.generation,
         ...takeoverDetails,
+        ...(repair ? { storeRepair: repair } : {}),
       },
     };
   }
