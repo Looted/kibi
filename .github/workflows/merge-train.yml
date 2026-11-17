@@ -41,9 +41,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  # use-bundled-swipl installs the SWI-Prolog archive this job uploads in the
+  # same run, as in the CI and KB merge workflows.
+  swipl-bundle:
+    name: Bundled SWI-Prolog
+    if: ${{ github.event_name != 'pull_request_target' || github.event.label.name == 'train' }}
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
   train:
     name: Advance the merge train
-    if: ${{ github.event_name != 'pull_request_target' || github.event.label.name == 'train' }}
+    needs: [swipl-bundle]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:

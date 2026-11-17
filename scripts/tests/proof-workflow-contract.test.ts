@@ -273,6 +273,14 @@ describe("strict proof workflow contract", () => {
         );
       }
     }
+    // A failed shard proof fails its own job, not just the join.
+    const shardRun = String(
+      workflow.jobs.prove.steps.find((step) => step.id === "prove")?.run,
+    );
+    expect(shardRun.indexOf("set -o pipefail")).toBeGreaterThan(-1);
+    expect(shardRun.indexOf("set -o pipefail")).toBeLessThan(
+      shardRun.indexOf('| tee "$out/prove.log"'),
+    );
     const names = workflow.jobs.proof.steps.map((step) => step.name);
     expect(names.indexOf("Attest successful develop proof")).toBeGreaterThan(
       names.indexOf("Generate requirement health report"),
