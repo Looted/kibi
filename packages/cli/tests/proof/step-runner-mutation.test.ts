@@ -238,20 +238,38 @@ function stepsDirectory(files: Record<string, string>): string {
 }
 
 describe("loadProofSteps", () => {
-  test("reads proof/steps, one file per test in name order, before proof/steps.json", () => {
+  test("reads proof/steps, one regular non-dot *.json file per test in name order", () => {
     expect(DEFAULT_PROOF_STEPS_DIR).toBe("proof/steps");
     const root = stepsDirectory({
       "T-b.json": JSON.stringify({ test_id: "T-b", steps: [["b"]] }),
       "T-a.json": JSON.stringify({ test_id: "T-a", steps: [["a"]] }),
       "README.md": "not steps",
+      // An AppleDouble file is not a step file.
+      "._T-b.json": "\u0000",
+    });
+    mkdirSync(path.join(root, DEFAULT_PROOF_STEPS_DIR, "nested.json"));
+    expect(loadProofSteps(root)).toStrictEqual([
+      { test_id: "T-a", steps: [["a"]] },
+      { test_id: "T-b", steps: [["b"]] },
+    ]);
+  });
+
+  test("refuses proof/steps beside proof/steps.json unless a source is named", () => {
+    const root = stepsDirectory({
+      "T-a.json": JSON.stringify({ test_id: "T-a", steps: [["a"]] }),
     });
     writeFileSync(
       path.join(root, DEFAULT_PROOF_STEPS_PATH),
       JSON.stringify([{ test_id: "T-old", steps: [["old"]] }]),
     );
-    expect(loadProofSteps(root)).toStrictEqual([
+    expect(rejection(() => loadProofSteps(root))).toBe(
+      "kibi proof run-steps: both proof/steps/ and proof/steps.json exist; move each entry of proof/steps.json to proof/steps/<test_id>.json and delete it, or remove the proof/steps directory",
+    );
+    expect(loadProofSteps(root, DEFAULT_PROOF_STEPS_DIR)).toStrictEqual([
       { test_id: "T-a", steps: [["a"]] },
-      { test_id: "T-b", steps: [["b"]] },
+    ]);
+    expect(loadProofSteps(root, DEFAULT_PROOF_STEPS_PATH)).toStrictEqual([
+      { test_id: "T-old", steps: [["old"]] },
     ]);
   });
 
@@ -304,10 +322,10 @@ describe("loadProofSteps", () => {
     }
   });
 
-  test("an empty steps directory has no steps, and a broken file names itself", () => {
-    const empty = stepsDirectory({});
+  test("an empty steps directory says it has no step files, and a broken file names itself", () => {
+    const empty = stepsDirectory({ "README.md": "no steps" });
     expect(rejection(() => loadProofSteps(empty))).toBe(
-      "kibi proof run-steps: the steps file must be a non-empty JSON array of {test_id, steps}",
+      `kibi proof run-steps: no step files in ${path.join(empty, DEFAULT_PROOF_STEPS_DIR)}; add one <test_id>.json file per proof-bearing test`,
     );
     const broken = stepsDirectory({ "T-a.json": "{" });
     expect(rejection(() => loadProofSteps(broken))).toStartWith(

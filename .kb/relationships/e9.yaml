@@ -475,3 +475,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf0ef63e5c55
+  - type: assumes
+    from: SCEN-kibi-proof-steps-directory
+    to: FACT-proof-steps-ambiguous-default-source-refused
+    created_at: 2026-11-16T20:47:19.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99b11df7515b

@@ -73,6 +73,9 @@ export type KibiResult<T = unknown> = {
     readonly severity?: "info" | "warning" | "error";
     readonly message: string;
     readonly detail?: unknown;
+    readonly category?: string;
+    readonly suggestion?: string;
+    readonly file?: string;
   }[];
   readonly nextActions: readonly {
     readonly operation: OperationName | string;

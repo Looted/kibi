@@ -5,6 +5,7 @@ import {
   UPSERT_DRY_RUN_INVALID,
   appendPayloadCountField,
   codedErrorOf,
+  envelopeDiagnostic,
   failedEffectStatus,
   normalizeResultPayload,
   operationData,
@@ -386,15 +387,50 @@ describe("toKibiResult diagnostics", () => {
     ]);
   });
 
-  test("leaves what a finding blocks in the data, not the envelope", () => {
+  test("keeps what a finding blocks in detail, leaving the source row as it was", () => {
     const tagged = { message: "m", severity: "error", blocks: "commit" };
     const result = toKibiResult(readSpec, { diagnostics: [tagged] });
     expect(result.diagnostics).toStrictEqual([
-      { message: "m", severity: "error" },
+      { message: "m", severity: "error", detail: { blocks: "commit" } },
     ]);
-    expect(tagged.blocks).toBe("commit");
+    expect(tagged).toStrictEqual({
+      message: "m",
+      severity: "error",
+      blocks: "commit",
+    });
   });
 
+  test("maps a staged-file gate diagnostic to the envelope shape", () => {
+    const gate = {
+      id: "staged_file_ownership_missing",
+      severity: "warning",
+      blocking: false,
+      path: "src/x.ts",
+      message:
+        "Staged text file has no source-linked requirement ownership: src/x.ts",
+      suggestion: "Add a symbol.",
+      requirementIds: [],
+      evidencePaths: [],
+      blocks: "merge",
+    };
+    expect(
+      toKibiResult(readSpec, { diagnostics: [gate] }).diagnostics,
+    ).toStrictEqual([
+      {
+        message: gate.message,
+        severity: "warning",
+        suggestion: "Add a symbol.",
+        code: "staged_file_ownership_missing",
+        file: "src/x.ts",
+        detail: {
+          blocking: false,
+          requirementIds: [],
+          evidencePaths: [],
+          blocks: "merge",
+        },
+      },
+    ]);
+  });
   test("ignores diagnostics that are not a list", () => {
     expect(
       toKibiResult(readSpec, { diagnostics: "plain" }).diagnostics,
@@ -610,5 +646,91 @@ describe("appendPayloadCountField", () => {
       hits: null,
       result_summary: "rows count unavailable",
     });
+  });
+});
+
+describe("envelopeDiagnostic", () => {
+  test("keeps an envelope-shaped diagnostic as it is", () => {
+    const shaped = {
+      message: "m",
+      severity: "info" as const,
+      code: "C",
+      category: "cat",
+      suggestion: "s",
+      file: "f",
+      detail: [1],
+    };
+    expect(envelopeDiagnostic(shaped)).toStrictEqual(shaped);
+  });
+
+  test("an explicit code and file win over id and path, which move to detail", () => {
+    expect(
+      envelopeDiagnostic({
+        message: "m",
+        code: "C",
+        id: "I",
+        file: "F",
+        path: "P",
+      }),
+    ).toStrictEqual({
+      message: "m",
+      code: "C",
+      file: "F",
+      detail: { id: "I", path: "P" },
+    });
+  });
+
+  test("non-string id, path and text fields, and unknown severities, move to detail", () => {
+    expect(
+      envelopeDiagnostic({
+        message: "m",
+        severity: "blocking",
+        id: 7,
+        path: ["a"],
+        category: 1,
+        suggestion: null,
+      }),
+    ).toStrictEqual({
+      message: "m",
+      detail: {
+        severity: "blocking",
+        id: 7,
+        path: ["a"],
+        category: 1,
+        suggestion: null,
+      },
+    });
+  });
+
+  test("extra fields merge into an object detail; the detail's own keys win", () => {
+    expect(
+      envelopeDiagnostic({
+        message: "m",
+        blocks: "commit",
+        x: 1,
+        detail: { x: 2 },
+      }),
+    ).toStrictEqual({ message: "m", detail: { blocks: "commit", x: 2 } });
+  });
+
+  test("a non-object detail is kept under detail.detail beside the extra fields", () => {
+    expect(
+      envelopeDiagnostic({ message: "m", blocks: "commit", detail: "why" }),
+    ).toStrictEqual({
+      message: "m",
+      detail: { blocks: "commit", detail: "why" },
+    });
+    expect(envelopeDiagnostic({ message: "m", detail: null })).toStrictEqual({
+      message: "m",
+      detail: null,
+    });
+  });
+
+  test("every severity in the envelope enum is kept", () => {
+    for (const severity of ["info", "warning", "error"] as const)
+      expect(envelopeDiagnostic({ message: "m", severity })).toStrictEqual({
+        message: "m",
+        severity,
+      });
   });
 });

@@ -164,6 +164,31 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     await runtime.close(context, { status: "success", result: undefined });
   });
 
+  test("refuses an engine-backed operation on a legacy attachment before the engine starts", async () => {
+    const warn = spyOn(console, "warn").mockImplementation(() => {});
+    restores.push(() => warn.mockRestore());
+    const resolve = spyOn(
+      branchResolver,
+      "resolveBranchAttachment",
+    ).mockReturnValue({
+      gitBranch: "develop",
+      kbBranch: "develop",
+      storePath: "/workspace/.kb/branches/develop",
+      kind: "legacy_compat",
+      migrationRequired: true,
+    } as never);
+    restores.push(() => resolve.mockRestore());
+    const start = spyOn(EngineClient.prototype, "start");
+    restores.push(() => start.mockRestore());
+    const runtime = createCliRuntime({ workspaceRoot: "/workspace" });
+    await expect(runtime.open(readSpec)).rejects.toThrow(
+      new Error(
+        "Legacy branch store /workspace/.kb/branches/develop for 'develop' must be migrated before 'kb_query' runs. Preview the migration with 'kibi migrate', then apply it with 'kibi migrate --apply-safe <planHash>'.",
+      ),
+    );
+    expect(start).not.toHaveBeenCalled();
+  });
+
   test("names the standalone workspace error when git is unavailable", async () => {
     const events: string[] = [];
     const resolve = spyOn(
