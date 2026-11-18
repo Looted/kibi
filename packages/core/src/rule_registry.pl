@@ -67,6 +67,7 @@ known_rule('predicate-schema-conformance').
 known_rule('entity-context-missing').
 known_rule('subject-definition-missing').
 known_rule('subject-duplicate').
+known_rule('quantity-duplicate').
 known_rule('subject-hierarchy-invalid').
 known_rule('entity-context-acknowledged').
 known_rule('decision-firm-unreferenced').
@@ -136,6 +137,7 @@ rule_enforcement_class('predicate-schema-conformance', advisory).
 rule_enforcement_class('entity-context-missing', canonical).
 rule_enforcement_class('subject-definition-missing', canonical).
 rule_enforcement_class('subject-duplicate', canonical).
+rule_enforcement_class('quantity-duplicate', canonical).
 rule_enforcement_class('subject-hierarchy-invalid', canonical).
 rule_enforcement_class('entity-context-acknowledged', advisory).
 rule_enforcement_class('decision-firm-unreferenced', canonical).
@@ -205,6 +207,7 @@ rule_implementation('predicate-schema-conformance', typescript).
 rule_implementation('entity-context-missing', typescript).
 rule_implementation('subject-definition-missing', typescript).
 rule_implementation('subject-duplicate', typescript).
+rule_implementation('quantity-duplicate', typescript).
 rule_implementation('subject-hierarchy-invalid', typescript).
 rule_implementation('entity-context-acknowledged', typescript).
 rule_implementation('decision-firm-unreferenced', typescript).
@@ -306,8 +309,8 @@ rule_predicate_arity('kb-consistency', 1).
 rule_predicate_arity('kb-consistency-unresolved', 1).
 
 rule_description('must-priority-coverage', 'Every current must-priority requirement (not superseded, retired, or closed without the implemented tag) must have a scenario and a test').
-rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path').
-rule_description('symbol-traceability', 'Production symbols must directly implement requirements for ownership; covered_by is coverage only and executable_for is test identity only').
+rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path; a linkless record whose symbol_role is structural, type-shape, config or module owes none').
+rule_description('symbol-traceability', 'Production symbols must directly implement requirements for ownership, except a linkless record whose symbol_role is structural, type-shape, config or module; covered_by is coverage only and executable_for is test identity only').
 rule_description('symbol-granularity', 'A symbol with traceability relationships must not link its source file coarsely while narrower behavioral symbols are available, unless it carries an allowed granularity_reason; the staged gate\'s symbol_granularity_violation evaluated KB-wide').
 rule_description('symbol-coordinates-missing', 'Advisory: an active symbol names a source file that exists, but Kibi could not place it there (the declaration was not found, the file is unreadable to the analyzer, or a declared plugin or grammar pack is missing), so its link is checked against no code').
 rule_description('no-dangling-refs', 'All relationship targets must exist in the KB').
@@ -358,6 +361,7 @@ rule_description('predicate-schema-conformance', 'Predicate facts match a predic
 rule_description('entity-context-missing', 'A current requirement, scenario, test, ADR or observation/meta fact must carry body context: at least 12 words of prose (requirements: under a Context, Rationale, Why, Background, Source, Notes or Evidence heading) that do not restate the title or semantic_text; entities tagged review:context-missing are acknowledged legacy and exempt').
 rule_description('subject-definition-missing', 'An active subject fact is a domain definition: its body must say what the subject is (at least 8 words of prose, each Chinese or Japanese character counting as a word, that do not restate the title or subject_key and add at least 3 words of their own beyond them and function words), and must not be a template that 3 or more subjects repeat with only the key or title changed; a body opening with \'Definition not stated:\' records the gap instead').
 rule_description('subject-duplicate', 'Two active subject facts define one thing twice when they carry the same subject_key, or when their keys have the same words up to simple plurals, or when their subject_key and title words mostly coincide (token Jaccard at least 0.7, plurals and function words removed); a pair is exempt when one key\'s words begin the other\'s (an ancestor and its descendant), when the keys sit under different parents, or when either lists the other under distinct_from, part_of or kind_of').
+rule_description('quantity-duplicate', 'Two active property_value facts, each grounded by a current requirement through requires_property, state one quantity under different subject_key.property_key when their values are equal and comparable (numbers other than 0 and 1 after unit canonicalization, or sets of at least two members), the requirements are implemented by symbols in one source file, and one signal holds: a shared implementing symbol, a proof value_source that implements the other requirement, or property keys or claim texts sharing at least half the words of the shorter; a pair is exempt when one requirement grounds both or either fact lists the other\'s key under distinct_from. A distinct_from entry on a value fact that names no active value fact is also reported').
 rule_description('subject-hierarchy-invalid', 'Active subject facts form a hierarchy: no subject lists its own key under part_of, kind_of or distinct_from, and following part_of, kind_of and nearest defined dotted prefixes upward never leads back to the subject it started from').
 rule_description('entity-context-acknowledged', 'Informational: how many current entities carry the review:context-missing tag, so the legacy context backlog stays visible; one summary finding per check').
 rule_description('decision-firm-unreferenced', 'A requirement or ADR marked firmness: firm must name the human words it rests on: origin.ref (or approval_ref on a requirement); Kibi checks that the reference is present, not that it is genuine').

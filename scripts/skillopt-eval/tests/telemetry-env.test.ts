@@ -120,6 +120,24 @@ for await (const chunk of Bun.stdin.stream()) {
     process.env.KIBI_TELEMETRY = "1";
     try {
       const input = new PassThrough();
+      const output = new PassThrough();
+      // End input only after the fake server has answered initialize: it
+      // writes the telemetry file before it reads stdin, and the broker stops
+      // it once input ends, so a fixed delay could cut that write short.
+      const answered = new Promise<void>((resolve, reject) => {
+        let seen = "";
+        const timer = setTimeout(
+          () => reject(new Error("no initialize response within 10s")),
+          10_000,
+        );
+        output.on("data", (chunk: Buffer) => {
+          seen += chunk.toString("utf8");
+          if (seen.includes('"id":1')) {
+            clearTimeout(timer);
+            resolve();
+          }
+        });
+      });
       const attempt = runMcpBroker(
         {
           downstream: {
@@ -132,12 +150,12 @@ for await (const chunk of Bun.stdin.stream()) {
           toolTimeoutMs: 2_000,
           killGraceMs: 50,
         },
-        { input, output: new PassThrough(), error: new PassThrough() },
+        { input, output, error: new PassThrough() },
       );
       input.write(
         `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} })}\n`,
       );
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await answered;
       input.end();
       await attempt;
     } finally {

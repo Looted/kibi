@@ -4,7 +4,7 @@ description: "Use when kibi check --staged or the Kibi pre-commit hook blocks a 
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-commit-review
-  version: 1.5.0
+  version: 1.10.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -27,7 +27,7 @@ Use the visible approved MCP tools or the trusted project-local CLI as equal
 peer interfaces (CLI JSON: `printf '%s\n' '{}' | npx --no-install kibi status
 --input -`). The gate itself is CLI: `npx --no-install kibi check --staged`
 (add `--format json` for the full evidence). If neither surface is available,
-stop and name the missing capability. Never read or edit `.kb/` files directly.
+stop and name the missing capability. Never edit `.kb/` files by hand.
 
 ## When this applies
 
@@ -36,15 +36,25 @@ stop and name the missing capability. Never read or edit `.kb/` files directly.
 - You are about to commit or open a pull request and want the impact review
   ready first.
 
-Never read or open any file under `.kb`, not even read-only with a file tool to look at symbols or coordinates; doing so fails the session even when nothing is written. What you need is already shown elsewhere: the gate's `Detail:` lines, `kb_query` by `sourceFile` or `id`, and `kb_check` with `staged: true` show which symbols and coordinates are covered and which are missing. Before deciding what the change is, always run `kb_search` with `sourceLocations` for each named file and `kb_query` the requirement that governs it, even when the edit looks coordinate-only or seems to contradict a firm rule. When a write is authorized, keep the supplied target and its intended edges, query those targets first, validate the exact payload with `kb_upsert` and `dryRun: true`, then send that same payload with `kb_upsert` and exact-read the result back with `kb_query` before the final checks. Distinct authorized payloads may need several sequential writes, but never resend a write that is already committed, and let typed `nextActions` drive recovery. A passing dry run is validation only, not completion.
+Do not edit `.kb` files by hand; staging `.kb` with `git add` is expected.
+Read what the gate needs through Kibi instead of opening `.kb` files: the
+gate's `Detail:` lines, `kb_query` by `sourceFile` or `id`, and `kb_check`
+with `staged: true` show which symbols and coordinates are covered and which
+are missing. Before deciding what the change is, run `kb_search` with
+`sourceLocations` for each named file and `kb_query` the requirement that
+governs it, even when the edit looks coordinate-only. When a write is
+authorized, keep the supplied target and its intended edges and send it with
+`kb_upsert`: the result reports what was written and its typed `nextActions`,
+so no read-back is needed. `dryRun: true` is an optional preview and records
+nothing. Never resend a write that already committed.
 
 ## Steps
 
 1. **Read the whole failure.** Each finding names an id, the files, `Detail:`
    lines and a `Suggestion:`. Detail lines are complete per file: how many
-   symbols extraction finds in the staged content, how many the staged
-   evidence covers, and every symbol missing from `.kb/symbols.yaml` with its
-   line. The common ids and their fixes are in `resources/staged-gate.md`.
+   of its declarations the commit adds or changes, and every one of those
+   missing from `.kb/symbols.yaml` with its line. Declarations the commit did
+   not touch are not judged. The common ids and their fixes are in `resources/staged-gate.md`.
 2. **Find the owning knowledge.** `kb_search` with `sourceLocations` for each
    named file (or `kb_query({sourceFile})`), then `kb_query` the requirements,
    scenarios and tests it returns. Run `kb_check` with `sourceFiles`,
@@ -78,7 +88,9 @@ Never read or open any file under `.kb`, not even read-only with a file tool to 
    read its `qualityDiagnostics`. The staged gate does not judge requirement
    size, so a link that makes a requirement too broad
    (`broad_requirement_review`) shows only there, and can fail a project's
-   CI gate after the commit passed.
+   CI gate after the commit passed. A result over its size budget comes back
+   `truncated` with advisory findings as counts by id; `kibi check --format
+   json` lists every one.
 
 Keep the source change as small as the task. Reshaping a function the task
 did not need (extracting a helper, renaming an export) adds declarations the
@@ -117,7 +129,7 @@ firmness or waiver approval into a separate pull request.
 When the repository's base commit carries `.kibi/impact-policy.json`, the gate
 also demands a content-bound review record at `.kibi/impact-review.json`
 (`Staged impact review failed: impact_review_invalid ...`). Prepare it with
-`kb_prepare_impact_review` (`scope: {"kind":"staged"}`, or `{"kind":"diff",
+`kb_prepare_impact_review` (core MCP profile: CLI `kibi prepare-impact-review --input -`) (`scope: {"kind":"staged"}`, or `{"kind":"diff",
 "baseCommit":"<40-hex sha>","headCommit":"<40-hex sha>"}` for a pull
 request). It is read-only: it returns per-file evidence, requirement scopes,
 residual review obligations and an unauthored record template. Draft each

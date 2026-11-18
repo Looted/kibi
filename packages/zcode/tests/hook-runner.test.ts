@@ -5,9 +5,18 @@ import os from "node:os";
 import path from "node:path";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 
 import {
   captureReminder,
+  ruleCaptureTemplate,
+  rulePromptNote,
   signoffReminder,
 } from "kibi-agent-core/decision-guard";
 
@@ -174,6 +183,37 @@ async function recordKbUpsert(
       tool_input: {},
     },
     { pluginData },
+  );
+}
+
+/** A current keeps receipt for computeTotal, spanning the whole file. */
+function writeKeepsReceipt(root: string): void {
+  const content = fs.readFileSync(path.join(root, "src/checkout.ts"), "utf8");
+  const lines = content.split("\n").length;
+  const file = path.join(
+    root,
+    firmEditReceiptPath(
+      "REQ-checkout-rounding",
+      "src/checkout.ts",
+      "computeTotal",
+    ) as string,
+  );
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(
+    file,
+    serializeFirmEditReceipt({
+      version: FIRM_EDIT_RECEIPT_VERSION,
+      requirementId: "REQ-checkout-rounding",
+      sourceFile: "src/checkout.ts",
+      symbol: "computeTotal",
+      verdict: "keeps",
+      note: "Still rounds to cents.",
+      statementHash: firmEditStatementHash("Checkout totals round to cents"),
+      codeHash: firmEditCodeHash(content, 1, lines) as string,
+      startLine: 1,
+      endLine: lines,
+      recordedAt: "2026-11-16T00:00:00.000Z",
+    }),
   );
 }
 
@@ -1499,7 +1539,7 @@ function linkedWorkspace(requirementStatus = "open") {
   writeFile(
     fixture.cwd,
     ".kb/requirements/REQ-checkout-rounding.md",
-    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_predicate\n    target: FACT-total-rounding-cents\n  - type: relates_to\n    target: ADR-money-as-decimal\n---\n`,
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: requires_predicate\n    target: FACT-total-rounding-cents\n  - type: relates_to\n    target: ADR-money-as-decimal\nrationale: Finance reconciles every order to the cent.\n---\n`,
   );
   writeFile(
     fixture.cwd,
@@ -1551,6 +1591,9 @@ describe("ZCode pre-edit knowledge", () => {
     );
     expect(context).toContain(
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
+    );
+    expect(context).toContain(
+      "\nWhy: Finance reconciles every order to the cent (REQ-checkout-rounding rationale).\n",
     );
     expect(context).toContain(
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
@@ -1682,6 +1725,34 @@ describe("ZCode decision guard", () => {
     ).toStartWith(FIRM_NOTICE);
   });
 
+  test("a shell call that writes firm code in place gets the firm-edit notice", async () => {
+    const { event } = session();
+    const shell = (command: string) => ({
+      hook_event_name: "PreToolUse",
+      tool_name: "Bash",
+      tool_input: { command },
+    });
+    expect(await event(shell("cat src/checkout.ts"))).toEqual({
+      continue: true,
+    });
+    expect(
+      expectAdditionalContext(
+        await event(shell("sed -i s/1/2/ src/checkout.ts")),
+        "PreToolUse",
+      ),
+    ).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement",
+    );
+  });
+
+  test("a keeps receipt from an earlier session does not stop the firm-edit notice in a new session", async () => {
+    const { event, edit, fixture } = session();
+    writeKeepsReceipt(fixture.cwd);
+    expect(JSON.stringify(await event(edit))).toContain(
+      "which implements a firm requirement",
+    );
+  });
+
   test("a patch that only deletes implements comments gets no firm-edit notice; the same patch with a code change does", async () => {
     const { event, fixture } = session();
     writeFile(
@@ -1767,6 +1838,15 @@ describe("ZCode decision guard", () => {
         prompt: "Rename computeTotal.",
       }),
     ).toEqual({ continue: true });
+    expect(
+      expectAdditionalContext(
+        await event({
+          hook_event_name: "UserPromptSubmit",
+          prompt: "Totals must not be rounded, because refunds drift.",
+        }),
+        "UserPromptSubmit",
+      ),
+    ).toBe(rulePromptNote("must not", "because refunds drift"));
   });
 
   test("Stop asks once for the decision record when source changed and nothing was recorded", async () => {
@@ -1789,6 +1869,87 @@ describe("ZCode decision guard", () => {
     expect(again).not.toContain("recorded nothing in the knowledge base");
   });
 
+  test("a shell in-place edit of source counts as a source edit at Stop", async () => {
+    const { event } = session();
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_input: { command: "sed -i 's/1/2/' src/checkout.ts" },
+    });
+    expect(
+      expectReminder(await event({ hook_event_name: "Stop" })),
+    ).toStartWith(
+      "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+    );
+  });
+
+  test("a new session without an id is not silenced by an earlier one's markers", async () => {
+    const { event, fixture } = session();
+    const anonymous = (payload: Record<string, unknown>) => event(payload, "");
+    const write = {
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+    };
+    await anonymous({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    await anonymous(write);
+    expect(
+      expectReminder(await anonymous({ hook_event_name: "Stop" })),
+    ).toStartWith(captureReminder("must not"));
+    // A new session starts clean: no stale rule phrase, and it is asked.
+    await anonymous({ hook_event_name: "SessionStart" });
+    await anonymous(write);
+    expect(
+      expectReminder(await anonymous({ hook_event_name: "Stop" })),
+    ).toStartWith(captureReminder(undefined));
+  });
+
+  test("a rule session gets the capture template after its first source edit, and Stop quotes the rule phrase", async () => {
+    const { event, fixture } = session();
+    await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    const write = {
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+    };
+    const first = expectAdditionalContext(await event(write), "PostToolUse");
+    expect(first).toContain(`\n\n${ruleCaptureTemplate("must not")}`);
+    expect(JSON.stringify(await event(write))).not.toContain(
+      "fill in this template",
+    );
+    const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
+    expect(reminder).toStartWith(captureReminder("must not"));
+    expect(reminder).not.toContain("when there was none");
+
+    // A non-source edit claims nothing, even after an earlier source edit
+    // that came before the rule was stated.
+    const docs = session();
+    await docs.event({
+      hook_event_name: "PostToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(docs.fixture.cwd, "src/checkout.ts") },
+    });
+    await docs.event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must not be rounded from now on.",
+    });
+    expect(
+      JSON.stringify(
+        await docs.event({
+          hook_event_name: "PostToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: path.join(docs.fixture.cwd, "README.md") },
+        }),
+      ),
+    ).not.toContain("fill in this template");
+  });
+
   test("Stop asks once for a signoff view after a requirement is written", async () => {
     const { event } = session();
     await event({
@@ -1799,6 +1960,38 @@ describe("ZCode decision guard", () => {
     const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
     expect(reminder).toContain("run `kibi signoff`");
     expectQuiet(await event({ hook_event_name: "Stop" }));
+  });
+
+  test("a kb_record call keeps Stop from asking for the decision record; its dry run does not", async () => {
+    for (const [dryRun, quiet] of [
+      [false, true],
+      [true, false],
+    ] as const) {
+      const { event, fixture } = session();
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: path.join(fixture.cwd, "src/checkout.ts") },
+      });
+      await runHook(
+        {
+          hook_event_name: "PostToolUse",
+          session_id: "s1",
+          cwd: fixture.cwd,
+          tool_name: "mcp__kibi__kb_record",
+          tool_input: {
+            statement: "Totals stay positive.",
+            saidBy: "user",
+            dryRun,
+          },
+        },
+        { pluginData: fixture.pluginData },
+      );
+      const reminder = expectReminder(await event({ hook_event_name: "Stop" }));
+      expect(reminder.includes("recorded nothing in the knowledge base")).toBe(
+        !quiet,
+      );
+    }
   });
 
   test("a kb_upsert keeps Stop from asking for the decision record", async () => {
@@ -1846,7 +2039,7 @@ describe("ZCode reminders from Claude-compatible payloads", () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-post");
     const first = await runHook(editPost(cwd), { pluginData, env: {} });
     expect(expectAdditionalContext(first, "PostToolUse")).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
     expectQuiet(await runHook(editPost(cwd), { pluginData, env: {} }));
   });
@@ -2272,9 +2465,10 @@ describe("ZCode hook runner exact decisions", () => {
     expect(await hook(dryRun, stop, QUIET)).toStrictEqual(
       context(
         "Stop",
-        [captureReminder(false), impactCheckReminder(["src/checkout.ts"])].join(
-          "\n",
-        ),
+        [
+          captureReminder(undefined),
+          impactCheckReminder(["src/checkout.ts"]),
+        ].join("\n"),
       ),
     );
   });
@@ -2284,7 +2478,7 @@ describe("ZCode hook runner exact decisions", () => {
     await hook(captureOnly, write(captureOnly, "src/checkout.ts"));
     await hook(captureOnly, impactCheck(["src/checkout.ts"]));
     expect(await hook(captureOnly, stop)).toStrictEqual(
-      context("Stop", captureReminder(false)),
+      context("Stop", captureReminder(undefined)),
     );
     expect(actions(captureOnly).at(-1)).toStrictEqual([
       "Stop",

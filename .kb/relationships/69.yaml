@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd25cad68ca6
+  - type: assumes
+    from: SCEN-NEG-kibi-cli-legacy-apply-safe-EMPTY-HASHED-STORE
+    to: FACT-NEG-kibi-cli-legacy-apply-safe-EMPTY-HASHED-STORE
+    created_at: 2026-11-15T17:19:06.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59aa59e45c3e
+  - type: executable_for
+    from: SYM-test-mcp-tool-profile
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:22:22.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b61f196912fe

@@ -510,3 +510,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c69910adda6
+  - type: validates
+    from: TEST-agent-hosts-rule-phrase-detection
+    to: REQ-agent-hosts-rule-phrase-detection
+    created_at: 2026-11-15T18:53:11.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09418b0b2de7
+  - type: validates
+    from: TEST-agent-hosts-rule-phrase-detection
+    to: SCEN-agent-hosts-rule-phrase-detection
+    created_at: 2026-11-15T18:53:11.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a27d8a6b9dac
+  - type: implements
+    from: SYM-claude-statedRule
+    to: REQ-agent-hosts-rule-phrase-detection
+    created_at: 2026-11-15T18:53:14.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3c7cf384521
+  - type: covered_by
+    from: SYM-claude-statedRule
+    to: TEST-agent-hosts-rule-phrase-detection
+    created_at: 2026-11-15T18:53:14.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-815eced38766
+  - type: implements
+    from: SYM-cli-evidence-floor-check
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T19:32:20.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95e087cb60fe
+  - type: covered_by
+    from: SYM-cli-evidence-floor-check
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:35:43.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd34be1bcb07
+  - type: implements
+    from: SYM-core-kb-check-fact-contradiction
+    to: REQ-upsert-refuses-fact-contradiction
+    created_at: 2026-11-16T19:17:39.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e31801b3f4ee
+  - type: covered_by
+    from: SYM-core-kb-check-fact-contradiction
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:39.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9917ffd35d5a

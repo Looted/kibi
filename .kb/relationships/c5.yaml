@@ -251,3 +251,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ade0b779778f
+  - type: constrains
+    from: REQ-search-answer-marks-missing-reason
+    to: FACT-search-answer-reasons-subject
+    created_at: 2026-11-16T10:21:05.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34b0aed7efd3
+  - type: requires_property
+    from: REQ-search-answer-marks-missing-reason
+    to: FACT-search-answer-marks-missing-reason
+    created_at: 2026-11-16T10:21:05.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b80b0bcf9bfc
+  - type: specified_by
+    from: REQ-search-answer-marks-missing-reason
+    to: SCEN-search-answer-marks-missing-reason
+    created_at: 2026-11-16T10:21:05.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38d038512e04
+  - type: specified_by
+    from: REQ-search-answer-marks-missing-reason
+    to: SCEN-NEG-search-answer-marks-missing-reason-UNMARKED
+    created_at: 2026-11-16T10:21:05.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da033a933aa3
+  - type: implements
+    from: SYM-implemented-by-implemented-by-deps
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:22.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-643b8ce93e46
+  - type: covered_by
+    from: SYM-implemented-by-implemented-by-deps
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:42:33.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-188bcb8f956b
+  - type: implements
+    from: SYM-search-answer-requirement-statement-of
+    to: REQ-search-answer-governing-statement
+    created_at: 2026-11-16T15:53:49.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3bcfd791c25
+  - type: covered_by
+    from: SYM-search-answer-requirement-statement-of
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:59:49.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-617970cf488b

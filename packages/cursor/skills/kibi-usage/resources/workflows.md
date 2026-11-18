@@ -92,10 +92,16 @@ On the first page, intent mode also returns an answer layer in `data.answer`
 (`kibi.search-answer.v1`; turn it off with `answer: false`):
 
 - `governing` — current requirements matched by the query or linked to a
-  matched entity, each with `via` (how it was reached) and its linked `facts`,
-  `scenarios`, `tests`, and `adrs`. A requirement with more linked facts than
+  matched entity, each with `via` (how it was reached), its `statement`, and
+  its linked `facts`, `scenarios`, `tests`, and `adrs`. A requirement with more linked facts than
   the answer lists carries `moreFacts` (`count` and the `kb_query` `ask` that
-  lists them all); never read a short `facts` list as the whole rule.
+  lists them all); never read a short `facts` list as the whole rule. Each
+  also carries `why`, its recorded reason: `{ recorded: true, text, from }`
+  (`from` is `rationale`, `section`, `why_this_changed` or `adr`, tried in
+  that order, split and supersede notes skipped; `said` gives who it came
+  from and when) or
+  `{ recorded: false }`. A fact's `kb_query` call (`ask`) and each result's
+  graph paths come only with `fields: "full"`.
 - `rationale` — ADRs that explain the decisions.
 - `notGoverning` — superseded, retired or deprecated requirements, with `supersededBy`
   when known. Never read these as current policy; superseded entities are also
@@ -120,9 +126,9 @@ The canonical workflow for any KB operation follows this pattern:
 1. **Discover**: `kb_search` with focused probes or a direct question; read `data.answer`, and pick the mode above
 2. **Confirm**: `kb_query` for exact IDs and state
 3. **Inspect**: `kb_status` when freshness matters
-4. **Decompose**: `kb_model` (`mode: "analyze"`) on the complete normative prose; verify or supply every atomic clause
+4. **Decompose**: `kb_model` (core MCP profile: CLI `kibi model --input -`) (`mode: "analyze"`) on the complete normative prose; verify or supply every atomic clause
 5. **Choose per-clause lanes**: strict facts for scalar claims; `kb_model` `mode: "predicates"` for approved ground ontology relations; `kb_model` `mode: "requirement"` with `kibi.logic.v1` for conditions, exceptions, modalities, quantifiers, cardinality, and bounded temporal rules; observation review for ambiguity, nonlogical prose, and ontology gaps
-6. **Preflight**: `kb_upsert` with `dryRun: true` for every intended entity or relationship payload
+6. **Preflight (optional)**: `kb_upsert` with `dryRun: true` previews a payload you are unsure of; the real write returns the same validation
 7. **Create endpoints**: validated `kb_upsert` for new entities, sequentially
 8. **Link**: validated `kb_upsert` with `requires_rule`, `requires_predicate`, `constrains`, or `requires_property`, sequentially
 9. **Validate coverage and consistency**: targeted `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then final full `kb_check`

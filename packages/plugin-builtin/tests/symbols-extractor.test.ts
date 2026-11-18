@@ -131,7 +131,7 @@ describe("v1 symbol extractor", () => {
     expect(result.symbols.map((symbol) => symbol.name)).toStrictEqual(["only"]);
   });
 
-  test("reuses one project across analyses and drops each analyzed file", () => {
+  test("reuses one syntax-only project across analyses and drops each analyzed file", () => {
     const projects = captureProjects();
     const extractor = createBuiltinTsMorphSymbolExtractor();
     extractor.analyze({ path: "src/a.ts", content: "export const a = 1;" });
@@ -139,7 +139,26 @@ describe("v1 symbol extractor", () => {
     expect(projects).toHaveLength(2);
     expect(projects[0]).toBe(projects[1] as Project);
     expect(projects[0]?.getSourceFiles()).toStrictEqual([]);
-    expect(projects[0]?.getCompilerOptions()).toStrictEqual({});
+    expect(projects[0]?.getCompilerOptions()).toStrictEqual({
+      noLib: true,
+      noResolve: true,
+      types: [],
+    });
+  });
+
+  test("still finds names exported by a local export list", () => {
+    const result = createBuiltinTsMorphSymbolExtractor().analyze({
+      path: "src/listed.ts",
+      content: [
+        'import { other } from "./missing.js";',
+        "function listed(): string { return other; }",
+        "class Hidden {}",
+        "export { listed };",
+      ].join("\n"),
+    });
+    expect(result.symbols.map((symbol) => symbol.name)).toStrictEqual([
+      "listed",
+    ]);
   });
 
   test("keeps the class symbol when its member walk fails", () => {
@@ -346,6 +365,48 @@ describe("v2 symbol extractor", () => {
         }),
       ]).toStrictEqual([file, language, supported]);
     }
+  });
+
+  test("marks variables whose value is a function as callable", async () => {
+    const extractor = createBuiltinTsMorphSymbolExtractorV2();
+    const result = await extractor.analyze({
+      path: "src/tags.ts",
+      content: [
+        "export const arrow = () => 1;",
+        "export const fn = function () { return 1; };",
+        "export const wrapped = (async () => 1) as unknown as () => Promise<number>;",
+        "export const checked = (() => 1) satisfies () => number;",
+        "export const asserted = <() => number>(() => 1);",
+        "export const nonNull = (() => 1)!;",
+        "export const handler = defineHandler(async (c) => c);",
+        "export const handlerFn = defineHandler(function (c) { return c; });",
+        "export const route = defineRoute(options, (c) => c);",
+        "export const schema = z.string().refine((v) => v.length > 0);",
+        "export const factoryValue = defineHandler(options);",
+        "export const plain = 1;",
+        "export let declared;",
+      ].join("\n"),
+    });
+    expect(
+      result.symbols.map((symbol) => [
+        symbol.name,
+        (symbol as { callable?: boolean }).callable ?? false,
+      ]),
+    ).toStrictEqual([
+      ["arrow", true],
+      ["fn", true],
+      ["wrapped", true],
+      ["checked", true],
+      ["asserted", true],
+      ["nonNull", true],
+      ["handler", true],
+      ["handlerFn", true],
+      ["route", true],
+      ["schema", false],
+      ["factoryValue", false],
+      ["plain", false],
+      ["declared", false],
+    ]);
   });
 
   test("reports unsupported sources with the extension in the message", async () => {

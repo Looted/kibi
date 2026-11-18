@@ -566,3 +566,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c087536930b
+  - type: implements
+    from: SYM-kibi-bootstrap-skill-guidance
+    to: REQ-bootstrap-states-staged-symbol-rule
+    created_at: 2026-11-16T05:46:15.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6862e6068146
+  - type: covered_by
+    from: SYM-kibi-bootstrap-skill-guidance
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:46:16.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7379d819169f
+  - type: assumes
+    from: SCEN-NEG-upsert-names-quantity-twin-UNNAMED
+    to: FACT-NEG-upsert-names-quantity-twin-UNNAMED
+    created_at: 2026-11-16T16:10:38.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d293f88be234
+  - type: verified_by
+    from: SCEN-NEG-upsert-names-quantity-twin-UNNAMED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:38.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-029c297e5d99
+  - type: executable_for
+    from: SYM-proof-staged-passing-review-states
+    to: TEST-proof-staged-passing-review-states
+    created_at: 2026-11-16T11:04:45.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3d7d8e8c11d
+  - type: executable_for
+    from: SYM-test-core-snapshot-duplicate-triples
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:09:05.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-504cddba7b28

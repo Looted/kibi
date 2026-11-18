@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-bootstrap-apply-long-running",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/operations/apply-plan-interrupted-recovery.test.ts",
+      "./packages/mcp/tests/server/kb-apply-plan-progress.test.ts"
+    ]
+  ]
+}

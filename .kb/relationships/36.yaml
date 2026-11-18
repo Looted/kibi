@@ -454,3 +454,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f64f907b9e6
+  - type: assumes
+    from: SCEN-NEG-staged-gate-judges-changed-declarations-INHERITED-GAP-BLOCKS
+    to: FACT-NEG-staged-gate-judges-changed-declarations-INHERITED-GAP-BLOCKS
+    created_at: 2026-11-16T05:33:40.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a29a0157fa2
+  - type: executable_for
+    from: SYM-test-check-finding-blocks
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-16T19:24:33.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16eebd2d25ba
+  - type: implements
+    from: SYM-symbol-debt-symbol-debt-listing
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:52:23.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19a1f815a208
+  - type: covered_by
+    from: SYM-symbol-debt-symbol-debt-listing
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T15:56:13.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73e99a241cd8
+  - type: implements
+    from: SYM-owner-findings-format-owner-findings
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T16:49:26.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec5122cb3f2c
+  - type: covered_by
+    from: SYM-owner-findings-format-owner-findings
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T16:49:26.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87394966658f
+  - type: covered_by
+    from: SYM-mcp-DEFAULT_PROFILE_TOOLS
+    to: TEST-proof-mcp-default-profile-tools
+    created_at: 2026-11-16T22:38:07.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed7423590b0e
+  - type: implements
+    from: SYM-mcp-DEFAULT_PROFILE_TOOLS
+    to: REQ-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:57:36.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a2e3cda1e3e
+  - type: covered_by
+    from: SYM-mcp-DEFAULT_PROFILE_TOOLS
+    to: TEST-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:57:36.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23eab3983653
+  - type: implements
+    from: SYM-env-workspace-policy-is-key-allowed
+    to: REQ-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:34:34.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffeb7933fbca
+  - type: covered_by
+    from: SYM-env-workspace-policy-is-key-allowed
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:34:34.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0b51c19f9cc

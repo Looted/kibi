@@ -8,7 +8,14 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 
-import { parseHookInput, parseStdinJson, readStdin } from "../src/hook-input";
+import {
+  parseHookInput,
+  parseStdinJson,
+  readStdin,
+} from "kibi-agent-core/hook-input";
+import { extractKbMcpToolCall } from "kibi-agent-core/kb-mcp-tools";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
+import { KIBI_WORKSPACE_ENV_KEYS } from "kibi-agent-core/workspace-optin";
 import { isInvokedAsCli, main, runHook, runHookCli } from "../src/hook-runner";
 import {
   addDirtyPaths,
@@ -18,8 +25,8 @@ import {
   resolveWorkspaceStateDir,
   saveHookState,
 } from "../src/hook-state";
-import { extractKbMcpToolCall } from "../src/kb-mcp-tools";
 import {
+  CODEX_SESSION_NOTE,
   DIRECT_KB_EDIT_WARNING,
   freshnessReminder,
   impactCheckReminder,
@@ -30,10 +37,6 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "../src/path-policy";
-import {
-  KIBI_WORKSPACE_ENV_KEYS,
-  resolveKibiWorkspace,
-} from "../src/workspace-optin";
 
 function createTempRoot(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -845,108 +848,6 @@ describe("Codex path policy", () => {
   });
 });
 
-describe("Codex workspace opt-in", () => {
-  test("environment overrides win over the directory walk", () => {
-    const withManifest = createTempRoot("kibi-codex-optin-");
-    const withoutManifest = createTempRoot("kibi-codex-plain-");
-    tempRoots.push(withManifest, withoutManifest);
-    optInWorkspace(withManifest);
-
-    for (const key of KIBI_WORKSPACE_ENV_KEYS) {
-      const resolution = resolveKibiWorkspace(withoutManifest, {
-        [key]: withManifest,
-      } as NodeJS.ProcessEnv);
-      expect(resolution).toEqual({ root: withManifest, optedIn: true });
-    }
-    expect(
-      resolveKibiWorkspace(withManifest, {
-        KIBI_WORKSPACE: `  ${withoutManifest}  `,
-      } as NodeJS.ProcessEnv),
-    ).toEqual({ root: withoutManifest, optedIn: false });
-  });
-
-  test("the walk stops at the first manifest or git boundary", () => {
-    const opted = createTempRoot("kibi-codex-optin-");
-    optInWorkspace(opted);
-    const nested = path.join(opted, "src", "deep");
-    fs.mkdirSync(nested, { recursive: true });
-    expect(resolveKibiWorkspace(nested)).toEqual({
-      root: opted,
-      optedIn: true,
-    });
-
-    const plain = createTempRoot("kibi-codex-plain-");
-    fs.mkdirSync(path.join(plain, ".git"), { recursive: true });
-    const inner = path.join(plain, "src");
-    fs.mkdirSync(inner, { recursive: true });
-    expect(resolveKibiWorkspace(inner)).toEqual({
-      root: plain,
-      optedIn: false,
-    });
-  });
-
-  test("blank start dirs fall back to the process cwd", () => {
-    const opted = createTempRoot("kibi-codex-optin-");
-    optInWorkspace(opted);
-    const originalCwd = process.cwd();
-    process.chdir(opted);
-    try {
-      expect(resolveKibiWorkspace(undefined)).toEqual({
-        root: opted,
-        optedIn: true,
-      });
-      expect(resolveKibiWorkspace("   ")).toEqual({
-        root: opted,
-        optedIn: true,
-      });
-    } finally {
-      process.chdir(originalCwd);
-    }
-  });
-
-  test("whitespace start dirs resolve literally, not as the workspace", () => {
-    const opted = createTempRoot("kibi-codex-optin-");
-    tempRoots.push(opted);
-    optInWorkspace(opted);
-    const plain = createTempRoot("kibi-codex-plain-");
-    tempRoots.push(plain);
-    fs.mkdirSync(path.join(plain, ".git"), { recursive: true });
-    const literal = path.join(plain, "   ");
-    fs.mkdirSync(path.join(literal, ".kb"), { recursive: true });
-    fs.writeFileSync(path.join(literal, ".kb", "manifest.json"), "{}");
-
-    const originalCwd = process.cwd();
-    process.chdir(plain);
-    try {
-      expect(resolveKibiWorkspace("   ")).toEqual({
-        root: plain,
-        optedIn: false,
-      });
-    } finally {
-      process.chdir(originalCwd);
-    }
-    expect(resolveKibiWorkspace(literal)).toEqual({
-      root: literal,
-      optedIn: true,
-    });
-  });
-
-  test("blank start dirs fall back to the process cwd", () => {
-    const plain = createTempRoot("kibi-codex-plain-");
-    tempRoots.push(plain);
-    const originalCwd = process.cwd();
-    process.chdir(plain);
-    try {
-      expect(resolveKibiWorkspace("   ")).toEqual({
-        root: path.join(plain, "   "),
-        optedIn: false,
-      });
-    } finally {
-      process.chdir(originalCwd);
-    }
-  });
-});
-
 describe("Codex reminder messages", () => {
   test("freshness reminders list a preview and a remaining count", () => {
     const paths = Array.from({ length: 12 }, (_, i) => `src/f${i}.ts`);
@@ -972,7 +873,7 @@ describe("Codex reminder messages", () => {
     expect(impactCheckReminder(paths)).toBe(
       [
         "Kibi impact reminder: source paths changed during this Codex session.",
-        `Run kb_check({sourceFiles:${JSON.stringify(paths)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) before finishing.`,
+        `Run kb_check({changed:true, sourceFiles:${JSON.stringify(paths)}}) before finishing; findings with blocks:"commit" stop the commit.`,
         "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
         "- src/a.ts",
         "- src/b.ts",
@@ -985,6 +886,12 @@ describe("Codex reminder messages", () => {
   test("the direct edit warning keeps its exact copy", () => {
     expect(DIRECT_KB_EDIT_WARNING).toBe(
       "Avoid direct edits to .kb/. Use Kibi MCP tools for KB discovery and mutations so project memory stays valid.",
+    );
+  });
+
+  test("the session note names the kibi-usage skill through both routes", () => {
+    expect(CODEX_SESSION_NOTE).toBe(
+      "Workflow guidance: the kibi-usage skill (kb_skills with action load, or `npx --no-install kibi skills load kibi-usage`).",
     );
   });
 });
@@ -1046,7 +953,13 @@ describe("Codex hook runner decisions", () => {
         pluginData,
       },
     );
-    expect(sessionStart).toEqual({ continue: true });
+    expect(sessionStart).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+      },
+    });
   });
 
   test("an unknown tool name still warns on direct kb edits", async () => {
@@ -1241,7 +1154,10 @@ describe("Codex hook CLI surface", () => {
     } finally {
       process.stdout.write = originalWrite;
     }
-    expect(writes).toEqual(['{"continue":true}\n']);
+    expect(writes).toHaveLength(1);
+    expect(writes[0]?.endsWith("}\n")).toBe(true);
+    expect(writes[0]?.slice(0, -1)).not.toContain("\n");
+    expect(JSON.parse(writes[0] as string)).toMatchObject({ continue: true });
   });
 
   test("runHookCli reports errors with continue true", async () => {

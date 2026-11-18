@@ -10,7 +10,6 @@ import {
   getBehaviorSourcePaths,
   getFreshSymbolsManifestSourcePaths,
   getKbCoveredSourcePaths,
-  getKbEvidencePaths,
   getMissingBehaviorSourcePaths,
 } from "../../src/traceability/evidence-model.js";
 
@@ -99,22 +98,19 @@ describe("evidence model selectors", () => {
     }
   });
 
-  test("evidence paths list KB artifacts and a fresh manifest", () => {
+  test("covered paths, when given, are the sorted fresh paths whatever the state", () => {
     expect(
-      getKbEvidencePaths(evidence(kbChanges, { state: "fresh" })),
-    ).toStrictEqual([
-      ".kb/requirements/REQ-a.md",
-      ".kb/requirements/REQ-z.md",
-      ".kb/symbols.yaml",
-    ]);
-    expect(getKbEvidencePaths(evidence(kbChanges))).toStrictEqual([
-      ".kb/requirements/REQ-a.md",
-      ".kb/requirements/REQ-z.md",
-    ]);
-    expect(
-      getKbEvidencePaths(evidence({ kind: "missing" }, { state: "fresh" })),
-    ).toStrictEqual([".kb/symbols.yaml"]);
-    expect(getKbEvidencePaths(evidence({ kind: "missing" }))).toStrictEqual([]);
+      getFreshSymbolsManifestSourcePaths(
+        evidence(
+          { kind: "missing" },
+          {
+            state: "stale",
+            sourcePaths: ["src/m.ts", "src/b.ts", "src/c.ts"],
+            coveredSourcePaths: ["src/m.ts", "src/b.ts"],
+          },
+        ),
+      ),
+    ).toStrictEqual(["src/b.ts", "src/m.ts"]);
   });
 
   test("missing paths subtract KB and fresh manifest coverage", () => {

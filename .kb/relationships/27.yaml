@@ -279,3 +279,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3c7b3ececa12
+  - type: executable_for
+    from: SYM-test-kb-upsert-implemented-by
+    to: TEST-kb-upsert-implemented-by
+    created_at: 2026-11-16T07:13:22.863Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1027d3322435
+  - type: implements
+    from: SYM-owner-findings-owner-payloads-shown
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T18:14:13.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-741ab3d893bd
+  - type: covered_by
+    from: SYM-owner-findings-owner-payloads-shown
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T18:14:13.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34929cda715e
+  - type: implements
+    from: SYM-core-journal-expected-graph-uri
+    to: REQ-core-journal-file-name-fits
+    created_at: 2026-11-17T06:00:35.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c9912239c96
+  - type: covered_by
+    from: SYM-core-journal-expected-graph-uri
+    to: TEST-core-journal-file-name-fits
+    created_at: 2026-11-17T06:00:35.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb0d63c7db0

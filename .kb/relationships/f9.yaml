@@ -311,3 +311,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a17b8a287a1
+  - type: requires_property
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: FACT-kibi-pending-receipt-committed-elsewhere-retired
+    created_at: 2026-11-15T17:27:30.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-faec198c9c07
+  - type: requires_property
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: FACT-kibi-pending-receipt-uncommitted-missing-fails
+    created_at: 2026-11-15T17:27:30.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d516c6026a7
+  - type: constrains
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-15T17:27:30.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76bc7f70fd7f
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-kibi-pending-receipt-committed-elsewhere
+    created_at: 2026-11-15T17:27:30.204Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a3af90e66f6
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-NEG-kibi-pending-receipt-COMMITTED-ELSEWHERE-FAILS
+    created_at: 2026-11-15T17:27:30.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be6bb3218c22
+  - type: specified_by
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
+    created_at: 2026-11-15T17:27:30.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab5ace118f81
+  - type: verified_by
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: TEST-kibi-pending-receipt-committed-elsewhere
+    created_at: 2026-11-15T17:27:30.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41bb251afcc4
+  - type: relates_to
+    from: REQ-kibi-pending-receipt-committed-elsewhere
+    to: REQ-kibi-pending-receipt-branch-scope
+    created_at: 2026-11-15T17:27:30.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dfcdf2cb2dd
+  - type: implements
+    from: SYM-cli-search-answer-requirement-type
+    to: REQ-search-answer-gives-recorded-reason
+    created_at: 2026-11-16T10:30:33.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95b53a8f18e0
+  - type: covered_by
+    from: SYM-cli-search-answer-requirement-type
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T10:30:33.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58e6def9eb4f
+  - type: covered_by
+    from: SYM-cli-build-search-answer
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:57:49.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02dd112ac3e0
+  - type: requires_property
+    from: REQ-core-snapshot-duplicate-repair
+    to: FACT-core-snapshot-duplicate-repair
+    created_at: 2026-11-17T09:10:08.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41a1efbd306d
+  - type: constrains
+    from: REQ-core-snapshot-duplicate-repair
+    to: FACT-kibi-engine-journal-component
+    created_at: 2026-11-17T09:10:08.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26bb30fea1be
+  - type: specified_by
+    from: REQ-core-snapshot-duplicate-repair
+    to: SCEN-core-snapshot-duplicate-repair
+    created_at: 2026-11-17T09:10:08.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44f272a9fdc0
+  - type: specified_by
+    from: REQ-core-snapshot-duplicate-repair
+    to: SCEN-NEG-core-snapshot-duplicate-repair-UNREPORTED
+    created_at: 2026-11-17T09:10:08.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93cb4c061a79
+  - type: assumes
+    from: SCEN-NEG-symbol-id-minting-VIOLATED
+    to: FACT-NEG-symbol-id-minting-VIOLATED
+    created_at: 2026-11-17T19:07:17.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a1f802b947e

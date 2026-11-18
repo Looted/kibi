@@ -475,3 +475,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa5fde12a27d
+  - type: assumes
+    from: SCEN-ci-kb-merge-branch-push
+    to: FACT-ci-kb-merge-branch-push
+    created_at: 2026-11-16T18:11:46.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a34318e783a
+  - type: verified_by
+    from: SCEN-ci-kb-merge-branch-push
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:11:47.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c7332ec5d45
+  - type: assumes
+    from: SCEN-NEG-kb-merge-action-branch-moved-VIOLATED
+    to: FACT-NEG-kb-merge-action-branch-moved-VIOLATED
+    created_at: 2026-11-16T18:11:49.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dee231429d0f
+  - type: verified_by
+    from: SCEN-NEG-kb-merge-action-branch-moved-VIOLATED
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:11:49.923Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3abee81715e
+  - type: implements
+    from: SYM-implemented-by-written-requirement-of
+    to: REQ-kb-record-capture
+    created_at: 2026-11-18T07:47:40.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-783163ab7ed3
+  - type: covered_by
+    from: SYM-implemented-by-written-requirement-of
+    to: TEST-kb-record
+    created_at: 2026-11-18T07:47:40.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e3731523532

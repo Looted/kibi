@@ -146,13 +146,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7344d4f4ac6
-  - type: executable_for
-    from: SYM-proof-kb-merge-gate-order
-    to: TEST-proof-kb-merge-gate-order
-    created_at: 2026-10-28T09:39:54.129Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-aec577ed3ee4
   - type: validates
     from: TEST-proof-telemetry-event-limit
     to: SCEN-kibi-telemetry-acceptance-gate
@@ -391,3 +384,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a16b74b7811
+  - type: implements
+    from: SYM-core-status-entitySourceFileMissing
+    to: REQ-kibi-symbol-coverage-source-missing
+    created_at: 2026-11-15T10:58:42.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52f4f38ff63a
+  - type: covered_by
+    from: SYM-core-status-entitySourceFileMissing
+    to: TEST-kibi-symbol-coverage-source-missing
+    created_at: 2026-11-15T10:58:42.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0a88737f103
+  - type: assumes
+    from: SCEN-NEG-staged-gate-changed-declaration-definition-CHANGED-DECLARATION-IGNORED
+    to: FACT-NEG-staged-gate-changed-declaration-definition-CHANGED-DECLARATION-IGNORED
+    created_at: 2026-11-16T05:33:45.093Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23ddfbc35ae8
+  - type: implements
+    from: SYM-kibi-commit-review-skill-guidance
+    to: REQ-kibi-commit-review-kb-staging
+    created_at: 2026-11-16T15:38:44.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-089acfc40017
+  - type: implements
+    from: SYM-kibi-commit-review-skill-guidance
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:38:44.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47f2a700c073
+  - type: covered_by
+    from: SYM-kibi-commit-review-skill-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:38:45.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-633253af1034
+  - type: implements
+    from: SYM-kb-merge-action-classify
+    to: REQ-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:22:32.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e8bf7350543
+  - type: covered_by
+    from: SYM-kb-merge-action-classify
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:22:32.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0f3e46a4e59

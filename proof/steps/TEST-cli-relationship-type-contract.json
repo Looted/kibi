@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-cli-relationship-type-contract",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/operations/relationships.test.ts"
+    ]
+  ]
+}

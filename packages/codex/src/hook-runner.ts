@@ -2,11 +2,13 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { shellToolEditPaths } from "kibi-agent-core/bash-command";
 import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
@@ -18,10 +20,18 @@ import {
   removesOnlyDeadImplementsComments,
   requestWords,
   rulePromptNote,
+  sessionRulePhrase,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  startDecisionSession,
+  statedReason,
 } from "kibi-agent-core/decision-guard";
+import {
+  parseHookInput,
+  parseStdinJson,
+  readStdin,
+} from "kibi-agent-core/hook-input";
 import {
   type HookTrace,
   appendHookUsage,
@@ -32,7 +42,10 @@ import {
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import {
+  extractKbMcpToolCall,
+  stampKibiWorkspace,
+} from "kibi-agent-core/kb-mcp-tools";
 import {
   type IndexedSymbol,
   loadKnowledgeIndex,
@@ -43,6 +56,7 @@ import {
   extractEditedPaths,
 } from "kibi-agent-core/path-policy";
 import { requirementCandidatesForPath } from "kibi-agent-core/requirement-candidates";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
   type Summarize,
   claimSnippetSlot,
@@ -53,7 +67,7 @@ import {
   unownedSourceNote,
   unreadableManifestNote,
 } from "kibi-agent-core/snippets";
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   addDirtyPaths,
   clearDirtyPaths,
@@ -62,8 +76,8 @@ import {
   resolvePluginDataDir,
   resolveWorkspaceStateDir,
 } from "./hook-state.js";
-import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
+  CODEX_SESSION_NOTE,
   DIRECT_KB_EDIT_WARNING,
   freshnessReminder,
   impactCheckReminder,
@@ -74,7 +88,6 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
-import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type HookResult = {
   continue: true;
@@ -146,6 +159,30 @@ function isKnownEditTool(toolName: string | undefined): boolean {
   return toolName !== undefined && editableTools.has(toolName);
 }
 
+/**
+ * Workspace-relative files a shell call writes in place (`sed -i`, `perl -i`,
+ * `>` and `>>` targets, `tee`), so a shell edit counts as a source edit just
+ * as an Edit or apply_patch call does.
+ */
+function shellEditedPaths(
+  workspaceRoot: string,
+  input: ReturnType<typeof parseHookInput>,
+): string[] {
+  return shellToolEditPaths(
+    input.toolName,
+    input.toolInput,
+    input.cwd ?? workspaceRoot,
+  )
+    .map(
+      (absolute) =>
+        canonicalizeWorkspacePath(workspaceRoot, {
+          eventCwd: input.cwd,
+          rawPath: absolute,
+        })?.workspaceRelative,
+    )
+    .filter((relative) => relative !== undefined);
+}
+
 /** `base` is the directory the call's relative paths resolve against. */
 type EditTarget = { relative: string; absolute: string; base: string };
 
@@ -199,6 +236,7 @@ function preEditContext(
   const session: DecisionSession = { stateDir, sessionId: input.sessionId };
   const words = requestWords(session);
   const notice = firmNotice(
+    workspaceRoot,
     targets,
     index.files,
     summarize,
@@ -256,12 +294,50 @@ function preEditContext(
 }
 
 /**
+ * A shell call that writes files in place (`sed -i`, `perl -i`, `>`, `tee`)
+ * gets the same firm notice as an edit of those files, read as a whole-file
+ * write since the hook cannot tell which lines it changes.
+ */
+function shellFirmNotice(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  const base = input.cwd ?? workspaceRoot;
+  const targets = shellToolEditPaths(input.toolName, input.toolInput, base)
+    .map((rawPath) =>
+      canonicalizeWorkspacePath(workspaceRoot, {
+        eventCwd: input.cwd,
+        rawPath,
+      }),
+    )
+    .filter((target) => target !== undefined)
+    .map((target) => ({
+      relative: target.workspaceRelative,
+      absolute: target.absolute,
+      base,
+    }));
+  if (targets.length === 0) return undefined;
+  return firmNotice(
+    workspaceRoot,
+    targets,
+    loadKnowledgeIndex(workspaceRoot, stateDir).files,
+    createEntitySummarizer(workspaceRoot),
+    { stateDir, sessionId: input.sessionId },
+    input,
+    env,
+  );
+}
+
+/**
  * Codex's pre-tool hook cannot put a call to the person, so an edit of code
  * that implements a firm requirement gets a notice telling the agent to ask
  * first, once per requirement per session. An edit whose location the hook
  * cannot resolve counts as touching the whole file.
  */
 function firmNotice(
+  workspaceRoot: string,
   targets: readonly EditTarget[],
   files: Record<string, readonly IndexedSymbol[]>,
   summarize: Summarize,
@@ -277,6 +353,7 @@ function firmNotice(
       symbols: files[target.relative] ?? [],
       focus,
       wholeFile: focus === undefined,
+      absolutePath: target.absolute,
       summarize,
       confirmed: settled,
       commentOnly: removesOnlyDeadImplementsComments(
@@ -379,6 +456,7 @@ function postEditContext(
   stateDir: string | undefined,
   sessionId: string | undefined,
   sourcePaths: readonly string[],
+  captureTemplate?: string,
 ): HookResult | undefined {
   const fresh = sourcePaths.filter((sourcePath) =>
     claimSnippetSlot(
@@ -389,12 +467,16 @@ function postEditContext(
       `${sessionId ?? ""}\u0000post-edit\u0000${sourcePath}`,
     ),
   );
-  if (fresh.length === 0) return undefined;
+  const notes = [
+    ...(fresh.length > 0 ? [postEditImpactNote(fresh)] : []),
+    ...(captureTemplate === undefined ? [] : [captureTemplate]),
+  ];
+  if (notes.length === 0) return undefined;
   return {
     continue: true,
     hookSpecificOutput: {
       hookEventName: "PostToolUse",
-      additionalContext: postEditImpactNote(fresh),
+      additionalContext: notes.join("\n\n"),
     },
   };
 }
@@ -424,13 +506,18 @@ export async function runHook(
     switch (input.event) {
       case "SessionStart": {
         trace.action = "session_start";
-        const note = missingHooksNote(workspace.root);
-        if (note === null) return defaultResult();
+        startDecisionSession(
+          { stateDir, sessionId: input.sessionId },
+          "startup",
+        );
         return {
           continue: true,
           hookSpecificOutput: {
             hookEventName: "SessionStart",
-            additionalContext: note,
+            additionalContext: sessionBriefWith([
+              CODEX_SESSION_NOTE,
+              missingHooksNote(workspace.root) ?? "",
+            ]),
           },
         };
       }
@@ -449,7 +536,7 @@ export async function runHook(
           continue: true,
           hookSpecificOutput: {
             hookEventName: "UserPromptSubmit",
-            additionalContext: rulePromptNote(rule),
+            additionalContext: rulePromptNote(rule, statedReason(input.prompt)),
           },
         };
       }
@@ -488,7 +575,7 @@ export async function runHook(
         try {
           context = isKnownEditTool(input.toolName)
             ? preEditContext(workspace.root, stateDir, input, env, trace)
-            : undefined;
+            : shellFirmNotice(workspace.root, stateDir, input, env);
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
@@ -534,17 +621,22 @@ export async function runHook(
 
         // `apply_patch` names its files only in the patch text, so the explicit
         // path fields alone would leave those edits untracked and the Stop
-        // reminder silent.
-        const dirtyPaths = extractEditedPaths(input.toolInput).filter(
-          isMeaningfulTrackedPath,
-        );
+        // reminder silent. Paths are kept workspace-relative, the form the
+        // kb_check the hooks suggest names them in, whatever form the edit used.
+        const shellEdits = shellEditedPaths(workspace.root, input);
+        const dirtyPaths = [
+          ...editTargets(workspace.root, input).map(
+            (target) => target.relative,
+          ),
+          ...shellEdits,
+        ].filter(isMeaningfulTrackedPath);
 
         if (dirtyPaths.length > 0) {
           addDirtyPaths(stateDir, dirtyPaths);
         }
         const session = { stateDir, sessionId: input.sessionId };
         if (
-          isKnownEditTool(input.toolName) &&
+          (isKnownEditTool(input.toolName) || shellEdits.length > 0) &&
           dirtyPaths.some(isSourceImpactRelevantPath)
         ) {
           markDecisionFlag(session, "source-edited");
@@ -566,6 +658,9 @@ export async function runHook(
             stateDir,
             input.sessionId,
             dirtyPaths.filter(isSourceImpactRelevantPath),
+            dirtyPaths.some(isSourceImpactRelevantPath)
+              ? claimRuleCaptureTemplate(session)
+              : undefined,
           );
           if (note) return note;
         }
@@ -584,7 +679,7 @@ export async function runHook(
         const session = { stateDir, sessionId: input.sessionId };
         if (!input.stopHookActive && claimCaptureReminder(session)) {
           const reason = [
-            captureReminder(hasDecisionFlag(session, "rule-prompt")),
+            captureReminder(sessionRulePhrase(session)),
             ...(uncheckedSourcePaths.length > 0
               ? [impactCheckReminder(uncheckedSourcePaths)]
               : []),

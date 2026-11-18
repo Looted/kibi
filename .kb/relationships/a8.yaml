@@ -55,6 +55,13 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73648d2181a0
+  - type: constrains
+    from: REQ-opencode-guidance-injection
+    to: FACT-kibi-opencode-guidance-block-component
+    created_at: 2026-11-16T12:00:00.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f753fcfd19aa
   - type: requires_property
     from: REQ-opencode-guidance-injection
     to: FACT-PROP-REQ-OPENCODE-GUIDANCE-INJECTION-C01
@@ -398,3 +405,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-336a3b73110c
+  - type: implements
+    from: SYM-cli-create-firm-edit-gate-diagnostics
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:57.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d52c63deb2c
+  - type: covered_by
+    from: SYM-cli-create-firm-edit-gate-diagnostics
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T06:59:57.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44c108488b7e
+  - type: verified_by
+    from: SCEN-NEG-engine-client-core-modules-from-engine-OTHER-INSTALL-COPY
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T09:59:46.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38c4b384dfb1
+  - type: assumes
+    from: SCEN-NEG-engine-client-core-modules-from-engine-OTHER-INSTALL-COPY
+    to: FACT-NEG-engine-client-core-modules-from-engine-OTHER-INSTALL-COPY
+    created_at: 2026-11-16T09:59:46.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09ddf6d40115
+  - type: assumes
+    from: SCEN-NEG-check-quantity-duplicate-UNREPORTED
+    to: FACT-NEG-check-quantity-duplicate-UNREPORTED
+    created_at: 2026-11-16T16:10:29.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99695f83c003
+  - type: verified_by
+    from: SCEN-NEG-check-quantity-duplicate-UNREPORTED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:29.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4274b95f441a
+  - type: implements
+    from: SYM-cli-create-firm-edit-gate-diagnostics
+    to: REQ-kibi-firm-edit-finding-names-tool
+    created_at: 2026-11-17T15:35:48.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06633719b03c

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-symbol-coordinates-path",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/staged-impact-identifiers.proof.test.ts"
+    ]
+  ]
+}

@@ -42,7 +42,7 @@ describe("kb_job_status tool", () => {
     try {
       const { tools } = await client.listTools();
       expect(tools.map((tool) => tool.name)).not.toContain("kb_job_status");
-      expect(tools).toHaveLength(16);
+      expect(tools).toHaveLength(18);
     } finally {
       await Promise.all([client.close(), server.close()]);
     }

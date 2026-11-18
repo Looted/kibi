@@ -433,3 +433,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3e46bdc822c
+  - type: assumes
+    from: SCEN-kibi-coarse-anchor-review-v2
+    to: FACT-PROP-kibi-coarse-anchor-review-v2-c01
+    created_at: 2026-11-15T22:01:26.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa8ab7884f66
+  - type: assumes
+    from: SCEN-kibi-coarse-anchor-review-v2
+    to: FACT-PROP-kibi-coarse-anchor-review-v2-c02
+    created_at: 2026-11-15T22:01:26.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bacad83940ae
+  - type: verified_by
+    from: SCEN-kibi-coarse-anchor-review-v2
+    to: TEST-e2e-check-review-rules
+    created_at: 2026-11-15T22:01:26.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ac7534e5939
+  - type: constrains
+    from: REQ-check-quantity-duplicate
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:10.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbf36738a889
+  - type: requires_property
+    from: REQ-check-quantity-duplicate
+    to: FACT-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:10.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d26b7edda79c
+  - type: specified_by
+    from: REQ-check-quantity-duplicate
+    to: SCEN-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:10.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48dbc2330b77
+  - type: specified_by
+    from: REQ-check-quantity-duplicate
+    to: SCEN-NEG-check-quantity-duplicate-UNREPORTED
+    created_at: 2026-11-16T16:10:10.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1cc3d45e767
+  - type: implements
+    from: SYM-record-execute-authored-requirement-ids
+    to: REQ-kb-record-capture
+    created_at: 2026-11-18T08:08:36.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36e30ecc14c8
+  - type: covered_by
+    from: SYM-record-execute-authored-requirement-ids
+    to: TEST-kb-record
+    created_at: 2026-11-18T08:08:36.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cce81c741f9f

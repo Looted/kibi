@@ -314,3 +314,129 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-450fadc27eea
+  - type: assumes
+    from: SCEN-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
+    to: FACT-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
+    created_at: 2026-11-15T17:27:24.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-039227e017cd
+  - type: assumes
+    from: SCEN-staged-evidence-scoped-to-changed-declarations
+    to: FACT-staged-evidence-scoped-to-changed-declarations
+    created_at: 2026-11-16T05:33:48.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b21b45a5847
+  - type: assumes
+    from: SCEN-kb-upsert-missing-endpoint-created-first
+    to: FACT-kb-upsert-missing-endpoint-rejected
+    created_at: 2026-11-16T13:38:44.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-090e93b55721
+  - type: assumes
+    from: SCEN-kb-upsert-missing-endpoint-created-first
+    to: FACT-kb-upsert-missing-endpoint-fix-hint
+    created_at: 2026-11-16T13:38:44.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7a2c2a49a4f
+  - type: verified_by
+    from: SCEN-kb-upsert-missing-endpoint-created-first
+    to: TEST-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:38:44.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11c777db41d3
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-remote
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:29:54.115Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc77686d9942
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-remote
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:29:54.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-174d35cc7eb4
+  - type: executable_for
+    from: SYM-proof-behavioral-symbol-kinds
+    to: TEST-proof-behavioral-symbol-kinds
+    created_at: 2026-11-16T11:04:08.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-770db947c7b4
+  - type: assumes
+    from: SCEN-NEG-check-analysis-cache-shared-EVICTS
+    to: FACT-NEG-check-analysis-cache-shared-EVICTS
+    created_at: 2026-11-17T06:02:00.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81c6551b1ba5
+  - type: validates
+    from: TEST-check-analysis-cache-shared
+    to: SCEN-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:02.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77bc5a40a70b
+  - type: validates
+    from: TEST-check-analysis-cache-shared
+    to: SCEN-NEG-check-analysis-cache-shared-EVICTS
+    created_at: 2026-11-17T06:02:02.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c275b5ceb9b1
+  - type: specified_by
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: SCEN-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:25.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3eb779d7a2c3
+  - type: specified_by
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: SCEN-NEG-kibi-builtin-ts-syntactic-parse-RESOLVES
+    created_at: 2026-11-17T06:02:25.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ce723c67fa4
+  - type: verified_by
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: TEST-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:25.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-825b347d4338
+  - type: constrains
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: FACT-SUBJ-kibi-builtin-ts-symbols
+    created_at: 2026-11-17T06:02:25.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b24cbf1bd9f
+  - type: requires_property
+    from: REQ-kibi-builtin-ts-syntactic-parse
+    to: FACT-kibi-builtin-ts-syntactic-parse
+    created_at: 2026-11-17T06:02:25.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebc2abcc2350
+  - type: implements
+    from: SYM-record-record-id-base
+    to: REQ-kb-record-capture
+    created_at: 2026-11-17T06:44:33.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cceff56f715
+  - type: covered_by
+    from: SYM-record-record-id-base
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:44:33.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3b6d755a41b

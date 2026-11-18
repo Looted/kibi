@@ -304,3 +304,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8836bb6d10bf
+  - type: validates
+    from: TEST-engine-client-core-modules-from-engine
+    to: REQ-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T09:59:47.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05540386332e
+  - type: validates
+    from: TEST-engine-client-core-modules-from-engine
+    to: SCEN-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T09:59:47.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2be35d267019
+  - type: implements
+    from: SYM-cli-commandSummary
+    to: REQ-cli-help-command-summaries
+    created_at: 2026-11-16T17:23:35.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4065705b2ee2
+  - type: covered_by
+    from: SYM-cli-commandSummary
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T17:23:35.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-424fc813f7cb
+  - type: assumes
+    from: SCEN-NEG-upsert-dry-run-lists-siblings-DIFFERS
+    to: FACT-NEG-upsert-dry-run-lists-siblings-DIFFERS
+    created_at: 2026-11-16T19:17:17.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c83bf085a430
+  - type: verified_by
+    from: SCEN-NEG-upsert-dry-run-lists-siblings-DIFFERS
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:17.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d8e8c149f17
+  - type: implements
+    from: SYM-kb-mcp-tools-effective-kb-operation
+    to: REQ-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:45:30.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-172442826495
+  - type: covered_by
+    from: SYM-kb-mcp-tools-effective-kb-operation
+    to: TEST-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:45:30.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73db0a450398

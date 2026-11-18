@@ -54,12 +54,12 @@ describe("note texts", () => {
     const texts = [
       firmEditContext(["REQ-a"]),
       rulePromptNote("never"),
-      captureReminder(false),
+      captureReminder(undefined),
       signoffReminder(),
     ];
     for (const text of texts) expect(text.split("\n")).toHaveLength(2);
     expect(texts[0]?.split("\n")[1]).toStartWith(
-      "If the edit was declined or could not be confirmed, the requirement stands",
+      "If the person declined the edit, the requirement stands",
     );
     expect(texts[1]?.split("\n")[1]).toStartWith(
       "A rule the person states is project knowledge: kb_search shows",
@@ -179,6 +179,24 @@ describe("requirement upserts", () => {
     ).toBe(false);
     expect(isRequirementUpsert(null)).toBe(false);
     expect(isRequirementUpsert("req")).toBe(false);
+  });
+
+  test("a shell command writes one through kibi record, or kibi upsert of a req", () => {
+    const yes = [
+      "printf x | npx --no-install kibi record --input -",
+      `kibi upsert --input - <<'EOF'\n{"type": "req", "id": "REQ-a"}\nEOF`,
+    ];
+    const no = [
+      "kibi record --input - --dry-run",
+      `kibi upsert --input - <<'EOF'\n{"type":"fact","id":"FACT-a"}\nEOF`,
+      `kibi upsert --input - <<'EOF'\n{"type":"req","dryRun":true}\nEOF`,
+      `kibi query --input '{"type":"req"}'`,
+      "echo record",
+    ];
+    for (const command of yes)
+      expect(isRequirementUpsert({ command }), command).toBe(true);
+    for (const command of no)
+      expect(isRequirementUpsert({ command }), command).toBe(false);
   });
 });
 

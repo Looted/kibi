@@ -27,6 +27,7 @@ import {
   codedErrorOf,
   detachedReadOnlyDiagnostic,
   executeOperation,
+  isKbRejection,
   queryLimitExceededOf,
 } from "kibi-runtime";
 import {
@@ -111,9 +112,16 @@ const STRUCTURED_TEXT_ENV = "KIBI_MCP_STRUCTURED_TEXT";
 /**
  * Hosts known to show `structuredContent` to the agent. Embedding the data
  * JSON in the text part would hand them every discovery result twice.
+ * Claude Code shows `structuredContent`; Codex gives the model the
+ * serialized `structuredContent` in place of the text whenever it is
+ * present (its client sends the name `codex-mcp-client`, its launcher
+ * `KIBI_MCP_HOST=codex`). Gemini CLI and Cursor give the model the text
+ * content only, so they keep the copy, as does any host not named here.
  */
 const HOSTS_READING_STRUCTURED_CONTENT: ReadonlySet<string> = new Set([
   "claude-code",
+  "codex",
+  "codex-mcp-client",
 ]);
 
 /** `Claude Code`, `claude_code` and `claude-code` name the same host. */
@@ -438,6 +446,16 @@ export function addTool<TProlog>(
       if (routing.kind !== "local") return routing.result;
       args = routing.args;
       workspaceNotice = routing.notice;
+      // A write meant for another workspace is refused rather than applied
+      // to this one: a receipt or record in the wrong KB clears nothing.
+      if (
+        workspaceNotice !== undefined &&
+        (spec?.effects ?? []).some((effect) => !effect.endsWith("-read"))
+      ) {
+        throw new Error(
+          `${name} writes, so it was not run in ${workspaceNotice.detail.answeredFrom} for the requested workspace ${workspaceNotice.detail.requested} (${workspaceNotice.detail.reason}). Drop workspaceRoot to write to ${workspaceNotice.detail.answeredFrom}, or run the Kibi CLI from the requested workspace.`,
+        );
+      }
       ({ businessArgs, telemetry } = diagnosticModeEnabled
         ? runtime.extractToolCallPayload(args)
         : { businessArgs: args, telemetry: null });
@@ -697,12 +715,22 @@ export function addTool<TProlog>(
             isError: true,
           };
         }
-        const coded = codedErrorOf(error);
+        // A refusal of the input answers like the CLI JSON route does: an
+        // OPERATION_FAILED envelope that says a retry fails the same way.
+        const coded =
+          codedErrorOf(error) ??
+          (isKbRejection(error)
+            ? {
+                code: "OPERATION_FAILED",
+                message: (error as Error).message,
+                retryable: false,
+              }
+            : null);
         if (coded !== null) {
           // An error that carries a Kibi code (VALIDATION_FAILED and the
-          // like) answers with the same error envelope the CLI JSON route
-          // prints, so a client can branch on error.code instead of parsing
-          // the message.
+          // like), or a refusal, answers with the same error envelope the CLI
+          // JSON route prints, so a client can branch on error.code and
+          // retryable instead of parsing the message.
           const envelope = withWorkspaceNotice(
             withWorkspaceNotice(
               toKibiResult(operationSpec, null, {
@@ -843,8 +871,10 @@ export function registerAllTools<TProlog>(
   server: McpServer,
   // INTENTIONAL: same generic bridge cast as addTool — see comment there.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
+  // The tool profile's names (profileToolNames); every tool when absent.
+  listed?: ReadonlySet<string>,
 ): void {
-  registerConfiguredTools(server, runtime, addTool);
+  registerConfiguredTools(server, runtime, addTool, listed);
   if (enabledOptionalTools().has("kb_job_status")) {
     registerJobStatusTool(server);
   }

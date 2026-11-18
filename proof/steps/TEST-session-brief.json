@@ -1,0 +1,45 @@
+{
+  "test_id": "TEST-session-brief",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/agent-core/tests/session-brief.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/claude/tests/messages-telemetry.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/codex/tests/plugin-contracts.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cursor/tests/plugin-contracts.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/zcode/tests/messages.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/opencode/tests/plugin.mutation.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/mcp/tests/server/server-start-exact.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/public-mutation/operations/discovery-status.mutation.test.ts"
+    ]
+  ]
+}

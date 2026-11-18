@@ -156,6 +156,25 @@ describe("environment variable reads", () => {
       unresolved: ["1:process.env", "2:process", "4:globalThis", "7:globalThis", "8:globalThis", "9:window"],
     });
   });
+  test("a global object or env only tested hands nothing on", () => {
+    expect(
+      refs(
+        "const view = globalThis.window;\nif (view) {}\nwhile (window) {}\ndo {} while (self);\nfor (; globalThis; ) {}\nconst a = view ? 1 : 0;\nif (!view) {}\nview === undefined;\nview !== u;\nview == null;\nnull != view;\nview && view.addEventListener('x', f);\nif (process.env) {}\nif (!process) {}",
+        { extract: "env" },
+      ),
+    ).toEqual({ members: [], unresolved: [] });
+  });
+  test("a global object yielded or used other than as a test is handed on", () => {
+    expect(
+      refs(
+        "const view = globalThis.window;\nconst a = view || b;\nconst c = view ?? d;\nconst e = ok && view;\nconst g = ok ? view : 0;\nconst h = ok ? 0 : view;\nconst i = -window;\nconst j = view + 1;\nfor (window; ; ) {}\nfor (; ; self) {}",
+        { extract: "env" },
+      ),
+    ).toEqual({
+      members: [],
+      unresolved: ["2:view", "3:view", "4:view", "5:view", "6:view", "7:window", "8:view", "9:window", "10:self"],
+    });
+  });
   test("refuses import.meta handed on and follows it through a name", () => {
     expect(refs("f(import.meta);\nimport.meta.url;\nconst m = import.meta;\nm.env.X;", {"extract":"env"})).toEqual({
       members: ["X"],

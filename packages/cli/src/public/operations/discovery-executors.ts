@@ -1,10 +1,6 @@
 import { readFile } from "node:fs/promises";
-import {
-  definitionQuote,
-  readSubjectDomain,
-  type SubjectDomain,
-} from "./subject-domain.js";
 import path from "node:path";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import {
   compilerFingerprintReason,
   sourceExtractionFailureReasons,
@@ -41,6 +37,7 @@ import {
   inspectBranchStore,
   storeLockJournalReason,
   storeLockTakeoverReason,
+  storeRepairReason,
   uncompiledBranchStoreReason,
 } from "../../utils/branch-store.js";
 import { confirmSourceNewerReasons } from "../../utils/content-freshness.js";
@@ -69,6 +66,11 @@ import type {
   OperationContext,
   PrologPort,
 } from "./runtime-types.js";
+import {
+  type SubjectDomain,
+  definitionQuote,
+  readSubjectDomain,
+} from "./subject-domain.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 
@@ -293,6 +295,8 @@ export type StatusPayload = {
   };
   readonly schemaStatus?: MigrationConfigStatus;
   readonly migrationPlan?: MigrationPlan;
+  /** The Kibi session brief (kibi-agent-core), the same on every surface. */
+  readonly sessionBrief?: string;
   readonly bootstrap?: {
     readonly incompleteApplications?: readonly Readonly<
       Record<string, unknown>
@@ -976,7 +980,13 @@ const SUMMARY_ENTITY_FIELDS = [
   "updated_at",
 ] as const;
 
-function summarizeMatch<
+/**
+ * A match as discovery needs it: identifying metadata, and evidence without
+ * its traceability graph paths. The paths name every symbol and link that
+ * reached the entity; `reasons` already says a graph match counted, and
+ * `fields: "full"` or kb_graph returns them.
+ */
+export function summarizeMatch<
   TMatch extends { readonly entity: Record<string, unknown> },
 >(match: TMatch): TMatch {
   const row = match.entity;
@@ -984,7 +994,11 @@ function summarizeMatch<
   for (const field of SUMMARY_ENTITY_FIELDS) {
     if (row[field] !== undefined) summary[field] = row[field];
   }
-  return { ...match, entity: summary };
+  if (!("evidence" in match)) return { ...match, entity: summary };
+  const { graphPaths: _graphPaths, ...evidence } = (
+    match as unknown as IntentSearchMatch
+  ).evidence;
+  return { ...match, entity: summary, evidence };
 }
 
 // Candidates are projected rows, so `fields: "full"` reloads the final page's
@@ -1151,6 +1165,7 @@ export async function executeSearch(
           ? await buildSearchAnswer(prolog, intentResult.matches, {
               workspaceRoot: context.workspaceRoot,
               branch: context.branchAttachment?.kbBranch ?? null,
+              detail: fields === "full" ? "full" : "summary",
             })
           : undefined;
       // The structured payload carries every row; the text is a short
@@ -1368,6 +1383,12 @@ export async function executeStatus(
     const lockReason = storeLockJournalReason(store.path);
     // A stale-lock takeover heals itself; report it without making the KB stale.
     const takeoverNotice = storeLockTakeoverReason(store.path);
+    // A duplicate-triple repair on attach has already fixed the store.
+    const repairNotice = storeRepairReason(store.path);
+    const notices = [
+      ...(takeoverNotice ? [takeoverNotice] : []),
+      ...(repairNotice ? [repairNotice] : []),
+    ];
     const compilerReason = compilerFingerprintReason(store.path);
     // A source the last sync could not extract is missing from the store
     // even when every compiled file is current.
@@ -1421,7 +1442,10 @@ export async function executeStatus(
       ...(storeUncompiled ? { syncState: "stale", dirty: true } : {}),
       branchAttachment: attachment,
       branchStore: store,
-      ...(takeoverNotice ? { notices: [takeoverNotice] } : {}),
+      // The session brief every host opens with, for an agent whose host
+      // has no Kibi plugin and only calls kb_status.
+      sessionBrief: SESSION_BRIEF,
+      ...(notices.length > 0 ? { notices } : {}),
       ...(engineStatus ? { engineStatus } : {}),
       staleReasons,
       staleReasonCount: staleReasons.length,
@@ -1592,7 +1616,7 @@ export async function executeStatus(
       content: [
         {
           type: "text",
-          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String((storeReason as NonNullable<typeof storeReason>).detail)} Run kibi sync.` : ""}${takeoverNotice ? `. Note: ${String(takeoverNotice.detail)}` : ""}`,
+          text: `Branch ${payload.branch} is ${enrichedPayload.syncState} (snapshot ${payload.snapshotId}, dirty=${enrichedPayload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})${storeUncompiled ? `. Blocking: ${String((storeReason as NonNullable<typeof storeReason>).detail)} Run kibi sync.` : ""}${notices.map((notice) => `. Note: ${String(notice.detail)}`).join("")}`,
         },
       ],
       structuredContent: statusWithPlan,

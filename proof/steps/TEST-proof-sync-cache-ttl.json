@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-sync-cache-ttl",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/ingestion-inventory-settings.proof.test.ts"
+    ]
+  ]
+}

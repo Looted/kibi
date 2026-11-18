@@ -11,6 +11,7 @@ import * as graph from "../src/commands/graph.js";
 import * as report from "../src/commands/report.js";
 import * as signoff from "../src/commands/signoff.js";
 import * as kbDependency from "../src/dependencies/kb-dependency-cli.js";
+import * as changedIndex from "../src/traceability/changed-index.js";
 import {
   goldenSurface,
   plainCalls,
@@ -167,6 +168,55 @@ describe("kibi check", () => {
     expect(process.exitCode).toBe(2);
   });
 
+  test("--changed runs the generated-manifest check, as the hook does, and fails when it fails", async () => {
+    const checkSpy = stub(check, "checkCommand", { exitCode: 0 });
+    const generated = stub(checkGenerated, "checkGeneratedManifests", {
+      exitCode: 0,
+    });
+    const wrap = spyOn(changedIndex, "withChangedIndex").mockImplementation(
+      (async (_root: string, _paths: unknown, fn: () => Promise<unknown>) =>
+        fn()) as never,
+    );
+    restores.push(() => wrap.mockRestore());
+    await run("check", "--changed");
+    expect(process.exitCode).toBe(0);
+    (
+      generated as unknown as { mockImplementation: (fn: unknown) => void }
+    ).mockImplementation(async () => ({ exitCode: 1 }));
+    await run("check", "--changed", "--format", "json");
+    expect(process.exitCode).toBe(1);
+    expect(plainCalls(generated)).toStrictEqual([
+      [{ changedOnly: true, quiet: true }],
+      [{ changedOnly: true, quiet: true }],
+    ]);
+    // The staged check still runs, so its findings are listed too.
+    expect(checkSpy.mock.calls.length).toBe(2);
+  });
+
+  test("--changed runs the staged check over the changed index", async () => {
+    stub(checkGenerated, "checkGeneratedManifests", { exitCode: 0 });
+    const checkSpy = stub(check, "checkCommand", { exitCode: 1 });
+    const seen: unknown[] = [];
+    const wrap = spyOn(changedIndex, "withChangedIndex").mockImplementation(
+      (async (root: string, paths: unknown, fn: () => Promise<unknown>) => {
+        seen.push([root, paths]);
+        return fn();
+      }) as never,
+    );
+    restores.push(() => wrap.mockRestore());
+    await run("check", "--changed");
+    await run("check", "--changed", "a.ts", "b.ts", "--format", "json");
+    expect(seen).toStrictEqual([
+      [process.cwd(), undefined],
+      [process.cwd(), ["a.ts", "b.ts"]],
+    ]);
+    expect(plainCalls(checkSpy)).toStrictEqual([
+      [{ minLinks: "1", format: "text", staged: true }],
+      [{ minLinks: "1", format: "json", staged: true }],
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
   test("--write-certificates saves the bundle after the check", async () => {
     const checkSpy = stub(check, "checkCommand", { exitCode: 0 });
     const write = stub(checkCertificates, "writeCertificates", {
@@ -223,13 +273,17 @@ describe("kibi check", () => {
       await expect(
         run("check", "--certificates", "b.json", ...extra),
       ).rejects.toThrow(certificatesOnly);
+    for (const extra of [["--staged"], ["--changed"], ["--changed", "a.ts"]])
+      await expect(
+        run("check", "--write-certificates", "w.json", ...extra),
+      ).rejects.toThrow(
+        new Error(
+          "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged or --changed",
+        ),
+      );
     await expect(
-      run("check", "--write-certificates", "w.json", "--staged"),
-    ).rejects.toThrow(
-      new Error(
-        "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged",
-      ),
-    );
+      run("check", "--certificates", "b.json", "--changed"),
+    ).rejects.toThrow(certificatesOnly);
     expect(checkSpy.mock.calls.length).toBe(0);
     expect(recheck.mock.calls.length).toBe(0);
   });

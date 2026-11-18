@@ -363,3 +363,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76708b1436f8
+  - type: assumes
+    from: SCEN-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-lists-change-violations
+    created_at: 2026-11-15T18:42:12.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99a8698233d1
+  - type: assumes
+    from: SCEN-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-counts-omitted
+    created_at: 2026-11-15T18:42:12.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc91555c4b81
+  - type: assumes
+    from: SCEN-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-summarizes-migration-plan
+    created_at: 2026-11-15T18:42:12.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97a4a740a21f
+  - type: assumes
+    from: SCEN-kibi-scoped-check-output
+    to: FACT-kibi-scoped-check-fits-budget
+    created_at: 2026-11-15T18:42:13.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fec31f95cdb
+  - type: verified_by
+    from: SCEN-kibi-scoped-check-output
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:13.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31575a0f656f
+  - type: implements
+    from: SYM-cli-load-proof-steps
+    to: REQ-kibi-proof-step-settings
+    created_at: 2026-11-16T07:29:42.294Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a31ed20c6b2
+  - type: covered_by
+    from: SYM-cli-load-proof-steps
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T07:29:42.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00c163d23e9d
+  - type: verified_by
+    from: SCEN-NEG-prolog-permission-error-names-refusal-SHOWN-AS-LOCK
+    to: TEST-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T09:59:49.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45422a599016
+  - type: assumes
+    from: SCEN-NEG-prolog-permission-error-names-refusal-SHOWN-AS-LOCK
+    to: FACT-NEG-prolog-permission-error-names-refusal-SHOWN-AS-LOCK
+    created_at: 2026-11-16T09:59:49.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0df2269d52cd
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-statement-semantic-text-NO-SEMANTIC-TEXT
+    to: FACT-NEG-kb-upsert-statement-semantic-text-NO-SEMANTIC-TEXT
+    created_at: 2026-11-16T16:23:35.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6450f8174f93
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-statement-semantic-text-NO-SEMANTIC-TEXT
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:23:35.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ba8dd63bad8

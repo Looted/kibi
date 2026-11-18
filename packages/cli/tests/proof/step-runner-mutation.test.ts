@@ -30,9 +30,11 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
+  DEFAULT_PROOF_STEPS_DIR,
   DEFAULT_PROOF_STEPS_PATH,
   type ProofStepAttempt,
   buildStepReport,
+  loadProofSteps,
   runProofSteps,
   selectProofSteps,
   validateProofSteps,
@@ -222,6 +224,113 @@ describe("buildStepReport", () => {
         },
       ],
     });
+  });
+});
+
+function stepsDirectory(files: Record<string, string>): string {
+  const root = mkdtempSync(path.join(tmpdir(), "kibi-step-dir-"));
+  roots.push(root);
+  const directory = path.join(root, DEFAULT_PROOF_STEPS_DIR);
+  mkdirSync(directory, { recursive: true });
+  for (const [name, text] of Object.entries(files))
+    writeFileSync(path.join(directory, name), text);
+  return root;
+}
+
+describe("loadProofSteps", () => {
+  test("reads proof/steps, one regular non-dot *.json file per test in name order", () => {
+    expect(DEFAULT_PROOF_STEPS_DIR).toBe("proof/steps");
+    const root = stepsDirectory({
+      "T-b.json": JSON.stringify({ test_id: "T-b", steps: [["b"]] }),
+      "T-a.json": JSON.stringify({ test_id: "T-a", steps: [["a"]] }),
+      "README.md": "not steps",
+      // An AppleDouble file is not a step file.
+      "._T-b.json": "\u0000",
+    });
+    mkdirSync(path.join(root, DEFAULT_PROOF_STEPS_DIR, "nested.json"));
+    expect(loadProofSteps(root)).toStrictEqual([
+      { test_id: "T-a", steps: [["a"]] },
+      { test_id: "T-b", steps: [["b"]] },
+    ]);
+  });
+
+  test("refuses proof/steps beside proof/steps.json unless a source is named", () => {
+    const root = stepsDirectory({
+      "T-a.json": JSON.stringify({ test_id: "T-a", steps: [["a"]] }),
+    });
+    writeFileSync(
+      path.join(root, DEFAULT_PROOF_STEPS_PATH),
+      JSON.stringify([{ test_id: "T-old", steps: [["old"]] }]),
+    );
+    expect(rejection(() => loadProofSteps(root))).toBe(
+      "kibi proof run-steps: both proof/steps/ and proof/steps.json exist; move each entry of proof/steps.json to proof/steps/<test_id>.json and delete it, or remove the proof/steps directory",
+    );
+    expect(loadProofSteps(root, DEFAULT_PROOF_STEPS_DIR)).toStrictEqual([
+      { test_id: "T-a", steps: [["a"]] },
+    ]);
+    expect(loadProofSteps(root, DEFAULT_PROOF_STEPS_PATH)).toStrictEqual([
+      { test_id: "T-old", steps: [["old"]] },
+    ]);
+  });
+
+  test("falls back to proof/steps.json, and reads an explicit directory or file", () => {
+    const root = workspace(
+      [{ test_id: "T-file", steps: [["f"]] }],
+      DEFAULT_PROOF_STEPS_PATH,
+    );
+    expect(loadProofSteps(root)).toStrictEqual([
+      { test_id: "T-file", steps: [["f"]] },
+    ]);
+    const other = path.join(root, "other");
+    mkdirSync(other);
+    writeFileSync(
+      path.join(other, "T-x.json"),
+      JSON.stringify({ test_id: "T-x", steps: [["x"]] }),
+    );
+    expect(loadProofSteps(root, "other")).toStrictEqual([
+      { test_id: "T-x", steps: [["x"]] },
+    ]);
+    expect(loadProofSteps(root, DEFAULT_PROOF_STEPS_PATH)).toStrictEqual([
+      { test_id: "T-file", steps: [["f"]] },
+    ]);
+  });
+
+  test("a proof/steps file that is not a directory falls back to proof/steps.json", () => {
+    const root = workspace(
+      [{ test_id: "T-file", steps: [["f"]] }],
+      DEFAULT_PROOF_STEPS_PATH,
+    );
+    writeFileSync(path.join(root, DEFAULT_PROOF_STEPS_DIR), "");
+    expect(loadProofSteps(root)).toStrictEqual([
+      { test_id: "T-file", steps: [["f"]] },
+    ]);
+  });
+
+  test("refuses a steps file whose test_id is not its file name", () => {
+    const expected = (root: string, declared: string) =>
+      `kibi proof run-steps: ${path.join(root, DEFAULT_PROOF_STEPS_DIR, "T-a.json")} declares test_id ${declared}; a proof steps file must hold one {test_id, steps} object whose test_id is its file name`;
+    for (const [text, declared] of [
+      [JSON.stringify({ test_id: "T-b", steps: [["b"]] }), '"T-b"'],
+      [JSON.stringify({ steps: [["b"]] }), "undefined"],
+      [JSON.stringify([{ test_id: "T-a", steps: [["a"]] }]), "undefined"],
+      ["null", "undefined"],
+    ] as const) {
+      const root = stepsDirectory({ "T-a.json": text });
+      expect(rejection(() => loadProofSteps(root))).toBe(
+        expected(root, declared),
+      );
+    }
+  });
+
+  test("an empty steps directory says it has no step files, and a broken file names itself", () => {
+    const empty = stepsDirectory({ "README.md": "no steps" });
+    expect(rejection(() => loadProofSteps(empty))).toBe(
+      `kibi proof run-steps: no step files in ${path.join(empty, DEFAULT_PROOF_STEPS_DIR)}; add one <test_id>.json file per proof-bearing test`,
+    );
+    const broken = stepsDirectory({ "T-a.json": "{" });
+    expect(rejection(() => loadProofSteps(broken))).toStartWith(
+      `kibi proof run-steps: cannot read ${path.join(broken, DEFAULT_PROOF_STEPS_DIR, "T-a.json")}: `,
+    );
   });
 });
 

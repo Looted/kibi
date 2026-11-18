@@ -143,3 +143,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3b4e59e65fc
+  - type: assumes
+    from: SCEN-check-changed-commit-verdict
+    to: FACT-check-changed-commit-verdict
+    created_at: 2026-11-16T20:33:40.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a75b67884fa4
+  - type: assumes
+    from: SCEN-NEG-upsert-quantity-previous-value-MISSED
+    to: FACT-NEG-upsert-quantity-previous-value-MISSED
+    created_at: 2026-11-16T16:10:39.942Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55671a8c669e
+  - type: verified_by
+    from: SCEN-NEG-upsert-quantity-previous-value-MISSED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:39.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e24f895c52ed
+  - type: executable_for
+    from: SYM-test-kibi-env-workspace-file-key-policy
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:33:19.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0519ff9157d6
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-engine-refusal
+    to: FACT-kibi-legacy-attachment-engine-operations-refused
+    created_at: 2026-11-16T20:45:08.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-674326a02c86
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-engine-refusal
+    to: FACT-kibi-legacy-store-no-hashed-store-created
+    created_at: 2026-11-16T20:45:08.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce54d129b30a
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-engine-refusal
+    to: FACT-kibi-legacy-store-not-recovered
+    created_at: 2026-11-16T20:45:08.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3ecec095d29
+  - type: constrains
+    from: REQ-kibi-legacy-attachment-engine-refusal
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-16T20:45:08.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fbc6b28b507
+  - type: relates_to
+    from: REQ-kibi-legacy-attachment-engine-refusal
+    to: REQ-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-16T20:45:08.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-caf2b6dadcc3
+  - type: specified_by
+    from: REQ-kibi-legacy-attachment-engine-refusal
+    to: SCEN-kibi-legacy-attachment-engine-refusal
+    created_at: 2026-11-16T20:46:34.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8292a259c9e9
+  - type: specified_by
+    from: REQ-kibi-legacy-attachment-engine-refusal
+    to: SCEN-NEG-kibi-legacy-attachment-engine-refusal-EMPTY-HASHED-STORE
+    created_at: 2026-11-16T20:46:34.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b41e97bf1dcc
+  - type: covered_by
+    from: SYM-cli-staged-firm-edit-input
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:24:33.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58b3c93f66c7

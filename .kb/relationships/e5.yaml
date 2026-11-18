@@ -405,3 +405,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67fdcc8956bd
+  - type: assumes
+    from: SCEN-NEG-cli-help-command-summaries-FULL-TEXT
+    to: FACT-cli-help-full-description-listing
+    created_at: 2026-11-16T18:33:23.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4af4b03a04e
+  - type: assumes
+    from: SCEN-NEG-cli-help-command-summaries-FULL-TEXT
+    to: FACT-cli-command-help-shortened
+    created_at: 2026-11-16T18:35:25.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-729c5a3dd1e5
+  - type: assumes
+    from: SCEN-upsert-quantity-previous-value
+    to: FACT-upsert-quantity-previous-value
+    created_at: 2026-11-16T16:10:39.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d747e8d5d01
+  - type: verified_by
+    from: SCEN-upsert-quantity-previous-value
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:39.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a41db5d45fa2
+  - type: assumes
+    from: SCEN-NEG-upsert-lists-sibling-requirements-UNLISTED
+    to: FACT-NEG-upsert-lists-sibling-requirements-UNLISTED
+    created_at: 2026-11-16T19:17:14.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-351d5feaa5b6
+  - type: verified_by
+    from: SCEN-NEG-upsert-lists-sibling-requirements-UNLISTED
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:14.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-343020e04d54
+  - type: implements
+    from: SYM-result-envelope-envelope-diagnostic
+    to: REQ-check-finding-blocks
+    created_at: 2026-11-17T06:38:05.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3f471b3ae09
+  - type: covered_by
+    from: SYM-result-envelope-envelope-diagnostic
+    to: TEST-check-finding-blocks
+    created_at: 2026-11-17T06:38:05.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58482455bf6d
+  - type: assumes
+    from: SCEN-kb-upsert-related-requirements-cap
+    to: FACT-kb-upsert-related-requirements-cap
+    created_at: 2026-11-16T16:11:34.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00931abf1c97
+  - type: verified_by
+    from: SCEN-kb-upsert-related-requirements-cap
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:17:58.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99ef0a2c41ee

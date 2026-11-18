@@ -356,3 +356,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d8b5d98501db
+  - type: constrains
+    from: REQ-agent-hosts-rule-phrase-detection
+    to: FACT-SUBJECT-KIBI-CLAUDE-DECISION-CAPTURE
+    created_at: 2026-11-15T18:53:08.706Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-505f4f1f99a6
+  - type: requires_property
+    from: REQ-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-deontic
+    created_at: 2026-11-15T18:53:08.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e377ae87c2a
+  - type: requires_property
+    from: REQ-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-descriptive-ignored
+    created_at: 2026-11-15T18:53:08.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a2751cbbab4
+  - type: requires_property
+    from: REQ-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-questions-code-ignored
+    created_at: 2026-11-15T18:53:08.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-293dce06325d
+  - type: specified_by
+    from: REQ-agent-hosts-rule-phrase-detection
+    to: SCEN-agent-hosts-rule-phrase-detection
+    created_at: 2026-11-15T18:53:08.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f85e7a491ec
+  - type: specified_by
+    from: REQ-agent-hosts-rule-phrase-detection
+    to: SCEN-NEG-agent-hosts-rule-phrase-detection-DESCRIPTIVE-NEVER
+    created_at: 2026-11-15T18:53:08.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a9e4e8e5c52
+  - type: relates_to
+    from: REQ-agent-hosts-rule-phrase-detection
+    to: REQ-claude-decision-capture-nudges
+    created_at: 2026-11-15T18:53:08.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f58ce27afbf
+  - type: implements
+    from: SYM-record-free-record-id
+    to: REQ-kb-record-capture
+    created_at: 2026-11-17T06:44:38.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29ba22fd4acd
+  - type: covered_by
+    from: SYM-record-free-record-id
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:44:38.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-660031213a16
+  - type: implements
+    from: SYM-record-execute-record-deps
+    to: REQ-kb-record-upsert-equivalence
+    created_at: 2026-11-17T06:46:28.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b11f16d912d
+  - type: covered_by
+    from: SYM-record-execute-record-deps
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:46:28.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f1cb78e2d4c

@@ -4,11 +4,13 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { SourceAnalysisResult } from "kibi-plugin-sdk";
+import type { ManifestSymbolRecord } from "../../src/extractors/manifest.js";
 import type { StagedFile } from "../../src/traceability/git-staged.js";
 import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
   manifestRecordSourcePath,
+  unrecordedDeclarations,
 } from "../../src/traceability/staged-symbols-manifest.js";
 
 const SYMBOLS = "kb/symbols.yaml";
@@ -31,8 +33,9 @@ function manifest(...records: unknown[]): string {
   return JSON.stringify({ symbols: records });
 }
 
+// A title is unknown so a test can pass a malformed one.
 function rec(title: unknown, sourceFile: string, extra: object = {}) {
-  return { title, sourceFile, ...extra };
+  return { title, sourceFile, ...extra } as ManifestSymbolRecord;
 }
 
 function sym(name: string, startLine: number, extra: object = {}) {
@@ -762,5 +765,422 @@ describe("collectStagedAuthoredSymbolsManifestEvidence", () => {
       changedEntityIds: ["SYM-n"],
       migrationOnlyEntityIds: ["SYM-a"],
     });
+  });
+});
+
+describe("assessStagedSymbolsManifest with a base", () => {
+  const FILE = "src/tags.ts";
+  const BASE_CONTENT = [
+    "const tagIdSchema = 1;",
+    "function createTag() {",
+    "  return 1;",
+    "}",
+  ].join("\n");
+  const baseSymbols = [
+    {
+      name: "tagIdSchema",
+      kind: "variable",
+      startLine: 1,
+      startColumn: 0,
+      endLine: 1,
+      endColumn: 1,
+    },
+    {
+      name: "createTag",
+      kind: "function",
+      startLine: 2,
+      startColumn: 0,
+      endLine: 4,
+      endColumn: 1,
+    },
+  ];
+
+  function judge(options: {
+    content: string;
+    symbols: object[];
+    stagedManifest?: string;
+    baseManifest: string;
+    base?: { content: string; symbols: object[] } | null;
+    file?: StagedFile;
+  }) {
+    const file = options.file ?? staged(FILE, options.content);
+    const stagedFiles =
+      options.stagedManifest === undefined
+        ? [file]
+        : [file, staged(SYMBOLS, options.stagedManifest)];
+    const base =
+      options.base === undefined
+        ? { content: BASE_CONTENT, symbols: baseSymbols }
+        : options.base;
+    return assessStagedSymbolsManifest({
+      symbolsManifestPath: SYMBOLS,
+      sourceFiles: [file],
+      stagedFiles,
+      analyzeSource: analyzer({ [file.path]: options.symbols }).analyze,
+      readBaseFile: (filePath) =>
+        filePath === SYMBOLS ? options.baseManifest : null,
+      baseSource: () =>
+        base === null
+          ? null
+          : {
+              analysis: {
+                symbols: base.symbols,
+              } as unknown as SourceAnalysisResult,
+              content: base.content,
+            },
+    });
+  }
+
+  const recorded = manifest(rec("createTag", FILE));
+
+  test("an unchanged unrecorded declaration is inherited, not stale", () => {
+    const content = [
+      "const tagIdSchema = 1;",
+      "function createTag() {",
+      "  return 2;",
+      "}",
+    ].join("\n");
+    expect(
+      judge({ content, symbols: baseSymbols, baseManifest: recorded }),
+    ).toEqual({
+      state: "fresh",
+      sourcePaths: [FILE],
+      path: SYMBOLS,
+      coveredSourcePaths: [FILE],
+      fileDetails: [
+        {
+          path: FILE,
+          expectedCount: 2,
+          coveredCount: 1,
+          missing: [],
+          extra: [],
+          changedCount: 1,
+          inherited: {
+            missing: [{ title: "tagIdSchema", line: 1 }],
+            extra: [],
+          },
+        },
+      ],
+    });
+  });
+
+  test("an added unrecorded declaration is stale; the inherited one stays inherited", () => {
+    const content = `${BASE_CONTENT}\nfunction deleteTag() {}`;
+    const symbols = [
+      ...baseSymbols,
+      {
+        name: "deleteTag",
+        kind: "function",
+        startLine: 5,
+        startColumn: 0,
+        endLine: 5,
+        endColumn: 1,
+      },
+    ];
+    const result = judge({ content, symbols, baseManifest: recorded });
+    expect(result.state).toBe("stale");
+    expect(result.sourcePaths).toEqual([FILE]);
+    expect(result.coveredSourcePaths).toEqual([]);
+    expect(result.fileDetails?.[0]?.missing).toEqual([
+      { title: "deleteTag", line: 5 },
+    ]);
+    expect(result.fileDetails?.[0]?.inherited?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("a changed unrecorded declaration is stale", () => {
+    const content = [
+      "const tagIdSchema = 2;",
+      "function createTag() {",
+      "  return 1;",
+      "}",
+    ].join("\n");
+    const result = judge({
+      content,
+      symbols: baseSymbols,
+      baseManifest: recorded,
+    });
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+    expect(result.fileDetails?.[0]?.changedCount).toBe(1);
+  });
+
+  test("a record the commit removes leaves its unchanged declaration judged", () => {
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: manifest(rec("createTag", FILE), rec("tagIdSchema", FILE)),
+      stagedManifest: recorded,
+    });
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("a record whose declaration the commit removes is stale", () => {
+    const both = manifest(rec("createTag", FILE), rec("tagIdSchema", FILE));
+    const result = judge({
+      content: "function createTag() {\n  return 1;\n}",
+      symbols: [{ ...baseSymbols[1], startLine: 1, endLine: 3 }],
+      baseManifest: both,
+    });
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.extra).toEqual(["tagIdSchema"]);
+  });
+
+  test("an untouched orphan record is inherited; a new mistyped record is stale", () => {
+    const orphan = manifest(rec("createTag", FILE), rec("goneBefore", FILE));
+    const inherited = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: orphan,
+    });
+    expect(inherited.state).toBe("fresh");
+    expect(inherited.fileDetails?.[0]?.inherited?.extra).toEqual([
+      "goneBefore",
+    ]);
+    const mistyped = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: recorded,
+      stagedManifest: manifest(rec("createTag", FILE), rec("tagIdSchem", FILE)),
+    });
+    expect(mistyped.state).toBe("stale");
+    expect(mistyped.fileDetails?.[0]?.extra).toEqual(["tagIdSchem"]);
+  });
+
+  test("an added file is judged on every declaration", () => {
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: manifest(),
+      stagedManifest: recorded,
+      base: null,
+    });
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+    expect(result.fileDetails?.[0]?.inherited).toEqual({
+      missing: [],
+      extra: [],
+    });
+  });
+
+  test("a renamed file is compared with the records of its old path", () => {
+    const file: StagedFile = {
+      path: "src/labels.ts",
+      oldPath: FILE,
+      status: "R",
+      hunkRanges: [],
+      content: BASE_CONTENT,
+    };
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      file,
+      baseManifest: recorded,
+      stagedManifest: recorded,
+    });
+    // The record still points at the old path: the commit caused the gap.
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.missing).toEqual([
+      { title: "createTag", line: 2 },
+    ]);
+    expect(result.fileDetails?.[0]?.inherited?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("an unusable base analysis judges the file like an added one", () => {
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: recorded,
+      base: { content: BASE_CONTENT, symbols: [] },
+    });
+    // The base declared nothing, so every declaration is new.
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("a fully recorded file stays fresh with no detail", () => {
+    const both = manifest(rec("createTag", FILE), rec("tagIdSchema", FILE));
+    expect(
+      judge({
+        content: BASE_CONTENT,
+        symbols: baseSymbols,
+        baseManifest: both,
+      }),
+    ).toEqual({
+      state: "fresh",
+      sourcePaths: [FILE],
+      path: SYMBOLS,
+      coveredSourcePaths: [FILE],
+    });
+  });
+  test("inherited gaps are listed sorted, judged ones are not repeated", () => {
+    const content = [
+      "const zeta = 1;",
+      "const alpha = 1;",
+      "function createTag() {",
+      "  return 1;",
+      "}",
+    ].join("\n");
+    const symbols = [
+      { ...baseSymbols[0], name: "zeta" },
+      { ...baseSymbols[0], name: "alpha", startLine: 2, endLine: 2 },
+      { ...baseSymbols[1], startLine: 3, endLine: 5 },
+    ];
+    const withOrphans = manifest(
+      rec("createTag", FILE),
+      rec("zz", FILE),
+      rec("aa", FILE),
+    );
+    const result = judge({
+      content,
+      symbols,
+      baseManifest: withOrphans,
+      stagedManifest: manifest(
+        rec("createTag", FILE),
+        rec("zz", FILE),
+        rec("aa", FILE),
+        rec("typo", FILE),
+      ),
+      base: { content, symbols },
+    });
+    expect(result.fileDetails?.[0]?.extra).toEqual(["typo"]);
+    expect(result.fileDetails?.[0]?.inherited).toEqual({
+      missing: [
+        { title: "alpha", line: 2 },
+        { title: "zeta", line: 1 },
+      ],
+      extra: ["aa", "zz"],
+    });
+  });
+
+  test("a coarse base record is not a record the commit removes", () => {
+    const coarse = { granularity_reason: "module-level-behavior" };
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: manifest(
+        rec("createTag", FILE),
+        rec("tagIdSchema", FILE, coarse),
+      ),
+      stagedManifest: recorded,
+    });
+    expect(result.state).toBe("fresh");
+    expect(result.fileDetails?.[0]?.inherited?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("a base title with one plain record among coarse ones is a record", () => {
+    const coarse = { granularity_reason: "module-level-behavior" };
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: manifest(
+        rec("createTag", FILE),
+        rec("tagIdSchema", FILE, coarse),
+        rec("tagIdSchema", FILE),
+      ),
+      stagedManifest: recorded,
+    });
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("a staged file without content compares as empty text", () => {
+    const result = judge({
+      content: "",
+      file: staged(FILE),
+      symbols: [baseSymbols[0], baseSymbols[1]],
+      baseManifest: recorded,
+      base: { content: "", symbols: baseSymbols },
+    });
+    expect(result.state).toBe("fresh");
+    expect(result.fileDetails?.[0]?.inherited?.missing).toEqual([
+      { title: "tagIdSchema", line: 1 },
+    ]);
+  });
+
+  test("an untouched orphan record of a file without a base stays inherited", () => {
+    const result = judge({
+      content: BASE_CONTENT,
+      symbols: baseSymbols,
+      baseManifest: manifest(rec("createTag", FILE), rec("goneBefore", FILE)),
+      base: null,
+    });
+    expect(result.state).toBe("stale");
+    expect(result.fileDetails?.[0]?.extra).toEqual([]);
+    expect(result.fileDetails?.[0]?.inherited?.extra).toEqual(["goneBefore"]);
+  });
+});
+
+describe("unrecordedDeclarations", () => {
+  const FILE = "src/a.ts";
+  const analysis = (...symbols: object[]) =>
+    ({ symbols }) as unknown as SourceAnalysisResult;
+  const coarse = { granularity_reason: "module-level-behavior" };
+
+  test("declarations without a record of the file are listed by title", () => {
+    expect(
+      unrecordedDeclarations(
+        FILE,
+        analysis(
+          sym("zeta", 1),
+          sym("beta", 3),
+          sym("alpha", 5, { startLine: 5 }),
+        ),
+        [rec("beta", FILE), rec("zeta", "src/other.ts")],
+      ),
+    ).toEqual([
+      { title: "alpha", line: 5 },
+      { title: "zeta", line: 1 },
+    ]);
+  });
+
+  test("a file whose every record is coarse has none", () => {
+    expect(
+      unrecordedDeclarations(FILE, analysis(sym("a", 1), sym("b", 3)), [
+        rec("a", FILE, coarse),
+      ]),
+    ).toEqual([]);
+  });
+
+  test("a file without records lists every declaration", () => {
+    expect(unrecordedDeclarations(FILE, analysis(sym("a", 1)), [])).toEqual([
+      { title: "a", line: 1 },
+    ]);
+  });
+
+  test("a coarse title among plain records is not listed", () => {
+    expect(
+      unrecordedDeclarations(
+        FILE,
+        analysis(sym("a", 1), sym("b", 3), sym("c", 5)),
+        [rec("a", FILE, coarse), rec("b", FILE)],
+      ),
+    ).toEqual([{ title: "c", line: 5 }]);
+  });
+
+  test("a declaration without a line reads line 0", () => {
+    expect(
+      unrecordedDeclarations(
+        FILE,
+        analysis({ name: "a", kind: "function" }),
+        [],
+      ),
+    ).toEqual([{ title: "a", line: 0 }]);
   });
 });

@@ -307,3 +307,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c14af74f9e68
+  - type: assumes
+    from: SCEN-NEG-agent-core-edit-snippet-why-MISSING
+    to: FACT-NEG-edit-snippet-why-line-MISSING
+    created_at: 2026-11-16T15:42:06.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7c6579c17a8
+  - type: verified_by
+    from: SCEN-NEG-agent-core-edit-snippet-why-MISSING
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:42:06.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-546800a74b55
+  - type: implements
+    from: SYM-search-answer-search-answer-reason-source
+    to: REQ-search-answer-reason-origin
+    created_at: 2026-11-16T15:54:34.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dff769dcff66
+  - type: covered_by
+    from: SYM-search-answer-search-answer-reason-source
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T16:00:12.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f992366c2d2
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-tip
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:29:42.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13493a1b27fb
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-tip
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:29:43.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-741db8092550
+  - type: constrains
+    from: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    to: FACT-SUBJECT-kibi-ci-proof-reuse-wait
+    created_at: 2026-11-17T10:51:21.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa9f7b0fcbb
+  - type: requires_property
+    from: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    to: FACT-ci-proof-reuse-no-wait-on-changed-tree
+    created_at: 2026-11-17T10:51:21.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-038861fcc3b1
+  - type: specified_by
+    from: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    to: SCEN-ci-proof-reuse-no-wait-on-changed-tree
+    created_at: 2026-11-17T10:51:21.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dae402f3bd4
+  - type: specified_by
+    from: REQ-ci-proof-reuse-no-wait-on-changed-tree
+    to: SCEN-NEG-ci-proof-reuse-no-wait-on-changed-tree-VIOLATED
+    created_at: 2026-11-17T10:51:21.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e338f110559
+  - type: validates
+    from: TEST-symbol-id-minting
+    to: SCEN-symbol-id-minting
+    created_at: 2026-11-17T19:07:19.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05a8e968568f
+  - type: validates
+    from: TEST-symbol-id-minting
+    to: SCEN-NEG-symbol-id-minting-VIOLATED
+    created_at: 2026-11-17T19:07:19.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34e672c95c7b

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -8,9 +9,9 @@ import {
   commandFilePaths,
   filesChangedSince,
   isSearchCommand,
-} from "./bash-command.js";
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
-import type { HookInput } from "./hook-input.js";
+} from "kibi-agent-core/bash-command";
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
+import { type HookInput, parseHookInput } from "./hook-input.js";
 
 import {
   hasKibiPreCommitGate,
@@ -22,6 +23,7 @@ import {
   firmRequirementsTouched,
   removesOnlyDeadImplementsComments,
 } from "kibi-agent-core/decision-guard";
+import { firmEditReviewed } from "kibi-agent-core/firm-edit-review";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import {
   requestTopicWords,
@@ -34,6 +36,7 @@ import {
 
 export { CONFIRM_FIRM_EDITS_ENV };
 import { skillLoadTrace } from "kibi-agent-core/hook-usage-log";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   type KbUsage,
   extractCliKbUsage,
@@ -53,6 +56,7 @@ import {
   appendSessionEvents,
   loadSessionState,
   sessionDir,
+  sessionJournal,
   workspaceDataDir,
 } from "./session-state.js";
 import {
@@ -68,11 +72,14 @@ import {
   focusedSymbols,
   isRequirementUpsert,
   markDecisionFlag,
+  ruleCaptureTemplate,
   rulePromptNote,
   searchTip,
   sessionStartContext,
   editFocus as sharedEditFocus,
   signoffReminder,
+  startDecisionSession,
+  statedReason,
   statedRule,
   stopReminder,
   unownedSourceNote,
@@ -84,7 +91,6 @@ import {
   flushHookTelemetry,
   hookTelemetryEnabled,
 } from "./usage-log.js";
-import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ContextEvent =
   | "SessionStart"
@@ -212,7 +218,21 @@ type Workspace = {
   confirmFirm: boolean;
 };
 
-type FirmEdit = { path: string; where: string; ids: string[] };
+/** `edit` fingerprints the asked edit (see `editFingerprint`). */
+type FirmEdit = { path: string; where: string; ids: string[]; edit: string };
+
+/**
+ * A fingerprint of one proposed edit: the tool and its whole input. A retry
+ * of the same edit has the same fingerprint; any other edit has another.
+ */
+function editFingerprint(
+  toolName: string | undefined,
+  toolInput: unknown,
+): string {
+  return createHash("sha256")
+    .update(JSON.stringify([toolName ?? null, toolInput ?? null]))
+    .digest("hex");
+}
 
 /**
  * The current firm requirements an edit changes that the person has not yet
@@ -225,20 +245,43 @@ function firmEdit(
   wholeFile: boolean,
   state: SessionState,
   workspace: Workspace,
+  edit: string,
 ): FirmEdit | undefined {
   if (!workspace.confirmFirm) return undefined;
-  const { ids, symbol } = firmRequirementsTouched({
+  const touched = {
     symbols,
     focus,
     wholeFile,
+    absolutePath: path.join(workspace.root, relativePath),
     summarize: workspace.summarize,
     confirmed: state.firmConfirmed,
+  };
+  const { ids, symbol } = firmRequirementsTouched({
+    ...touched,
+    // A receipt counts only for the retry of the edit this session asked
+    // about: the receipt judged the code before that edit, so another edit
+    // of the same symbol, or a later session's edit, is asked again.
+    reviewed: firmEditReviewed(workspace.root, relativePath, (id) =>
+      state.firmAskedEdit.get(id) === edit
+        ? state.firmAskedAt.get(id)
+        : undefined,
+    ),
   });
+  // The requirements a receipt let through: landing this edit must not read
+  // as the person's approval of later edits.
+  const reviewedIds = firmRequirementsTouched(touched).ids.filter(
+    (id) => !ids.includes(id),
+  );
+  if (reviewedIds.length > 0)
+    appendSessionEvents(workspace.stateDir, [
+      { kind: "firm_reviewed", path: relativePath, ids: reviewedIds },
+    ]);
   if (ids.length === 0) return undefined;
   return {
     path: relativePath,
     where: symbol ? `${symbol.title} in ${relativePath}` : relativePath,
     ids,
+    edit,
   };
 }
 
@@ -255,7 +298,13 @@ function withFirmConfirmation(
   trace: HookTrace,
 ): HookOutput {
   appendSessionEvents(workspace.stateDir, [
-    { kind: "firm_asked", path: firm.path, ids: firm.ids },
+    {
+      kind: "firm_asked",
+      path: firm.path,
+      ids: firm.ids,
+      at: Date.now(),
+      edit: firm.edit,
+    },
   ]);
   trace.action = "edit_firm_ask";
   trace.requirementIds = firm.ids;
@@ -382,6 +431,7 @@ function preToolUse(
         toolName === "Write",
         state,
         workspace,
+        editFingerprint(toolName, input.toolInput),
       );
   const output = editPreToolUse(
     relativePath,
@@ -552,6 +602,7 @@ function bashPreToolUse(
         true,
         state,
         workspace,
+        editFingerprint("Bash", command),
       );
     })
     .find((candidate) => candidate !== undefined);
@@ -648,6 +699,7 @@ function bashChanges(
   workspace: Workspace,
   events: SessionEvent[],
   trace: HookTrace,
+  edit: string,
 ): string | undefined {
   const state = loadSessionState(workspace.stateDir);
   // rationale: without a recorded start the mtime check compares with NaN
@@ -661,7 +713,7 @@ function bashChanges(
   )) {
     const pathKind = classifyPath(relative);
     if (pathKind === "kb" || pathKind === "other") continue;
-    events.push({ kind: "edited", path: relative, pathKind });
+    events.push({ kind: "edited", path: relative, pathKind, edit });
     const symbols = symbolsFor(workspace, relative);
     const owners = requirementIds(symbols);
     if (trace.action === undefined && owners.length > 0) {
@@ -706,6 +758,33 @@ function bashChanges(
     }
   }
   return note;
+}
+
+/**
+ * The rule capture template, once per session, when these events change
+ * source in a session whose prompt read as a rule and nothing is recorded yet.
+ */
+function captureTemplateNote(
+  workspace: Workspace,
+  events: SessionEvent[],
+): string | undefined {
+  // Only edited events carry a pathKind and only kb events an operation.
+  const field = (event: SessionEvent, name: "pathKind" | "operation") =>
+    (event as Partial<Record<typeof name, string>>)[name];
+  if (
+    !events.some((event) => field(event, "pathKind") === "source") ||
+    events.some((event) => field(event, "operation") === "kb_upsert")
+  )
+    return undefined;
+  const state = loadSessionState(workspace.stateDir);
+  if (
+    state.rulePhrase === undefined ||
+    state.kbRecorded ||
+    state.notices.has("capture-template")
+  )
+    return undefined;
+  events.push({ kind: "notice", name: "capture-template" });
+  return ruleCaptureTemplate(state.rulePhrase, state.ruleReason);
 }
 
 function recordKbUsage(
@@ -757,7 +836,12 @@ function postToolUse(
       : undefined;
     if (target) {
       const pathKind = classifyPath(target.relative);
-      events.push({ kind: "edited", path: target.relative, pathKind });
+      events.push({
+        kind: "edited",
+        path: target.relative,
+        pathKind,
+        edit: editFingerprint(toolName, input.toolInput),
+      });
       if (pathKind !== "other") {
         trace.kbUsedBefore = kbUsedBefore();
         trace.action = "edited";
@@ -776,7 +860,22 @@ function postToolUse(
     const command = bashCommand(input.toolInput);
     const usage = extractCliKbUsage(command);
     if (usage) recordUsage(usage);
-    const note = bashChanges(workspace, events, trace);
+    // A requirement written through the CLI asks for a signoff view too.
+    if (isRequirementUpsert({ command })) {
+      markDecisionFlag(
+        { stateDir: workspace.stateDir, sessionId: input.sessionId },
+        "requirement-recorded",
+      );
+    }
+    const changed = bashChanges(
+      workspace,
+      events,
+      trace,
+      editFingerprint("Bash", command),
+    );
+    // A shell edit that already has a note keeps the context within budget:
+    // the template waits for the next source edit.
+    const note = changed ?? captureTemplateNote(workspace, events);
     if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
       events.push({ kind: "checked", paths: [], all: true });
     }
@@ -796,8 +895,9 @@ function postToolUse(
     }
   }
 
+  const template = captureTemplateNote(workspace, events);
   appendSessionEvents(workspace.stateDir, events);
-  return {};
+  return template ? context("PostToolUse", template) : {};
 }
 
 function stop(
@@ -830,7 +930,7 @@ function stop(
   const parts: string[] = [];
   if (capture) {
     events.push({ kind: "notice", name: "capture-stop" });
-    parts.push(captureReminder(state.rulePrompt));
+    parts.push(captureReminder(state.rulePhrase));
   }
   if (signoff) parts.push(signoffReminder());
   if (unreminded.length > 0) {
@@ -859,11 +959,20 @@ function userPromptSubmit(
 ): HookOutput {
   const prompt = input.prompt ?? "";
   const rule = statedRule(prompt);
+  const reason = statedReason(prompt);
+  // A session without an id idle for long has ended; this prompt starts anew.
+  startDecisionSession(
+    { stateDir: workspace.stateDir, sessionId: input.sessionId },
+    "prompt",
+    { hostFiles: sessionJournal(workspace.stateDir) },
+  );
   appendSessionEvents(workspace.stateDir, [
     {
       kind: "prompt",
       words: requestTopicWords(prompt),
       rule: rule !== undefined,
+      phrase: rule ?? "",
+      reason,
     },
   ]);
   if (rule === undefined) {
@@ -871,7 +980,7 @@ function userPromptSubmit(
     return {};
   }
   trace.action = "prompt_rule_note";
-  return context("UserPromptSubmit", rulePromptNote(rule));
+  return context("UserPromptSubmit", rulePromptNote(rule, reason));
 }
 
 export async function runHook(
@@ -938,8 +1047,17 @@ function dispatchHook(
   trace: HookTrace,
 ): HookOutput {
   switch (input.event) {
-    case "SessionStart":
+    case "SessionStart": {
       trace.action = "session_start";
+      // Sessions without an id share one directory: a new one (not a resume
+      // or compact of the last) starts without the earlier one's state.
+      startDecisionSession(
+        { stateDir: workspace.stateDir, sessionId: input.sessionId },
+        input.source === "resume" || input.source === "compact"
+          ? "resume"
+          : "startup",
+        { hostFiles: sessionJournal(workspace.stateDir) },
+      );
       // A compact or clear drops the conversation context, so the snippets
       // this session already showed are gone from the model's view and may be
       // shown again; a resume restores the transcript and keeps them.
@@ -955,6 +1073,7 @@ function dispatchHook(
           .filter((line): line is string => line !== null)
           .join("\n"),
       );
+    }
     case "UserPromptSubmit":
       return userPromptSubmit(input, workspace, trace);
     case "PreToolUse": {

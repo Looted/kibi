@@ -237,3 +237,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b33c0544d0b
+  - type: validates
+    from: TEST-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-kibi-pending-receipt-committed-elsewhere
+    created_at: 2026-11-15T17:27:25.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da0b38ff6dbc
+  - type: validates
+    from: TEST-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-NEG-kibi-pending-receipt-COMMITTED-ELSEWHERE-FAILS
+    created_at: 2026-11-15T17:27:25.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf853d884cea
+  - type: validates
+    from: TEST-kibi-pending-receipt-committed-elsewhere
+    to: SCEN-NEG-kibi-pending-receipt-LOST-FILE-RETIRED
+    created_at: 2026-11-15T17:27:25.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90cdf5180217
+  - type: assumes
+    from: SCEN-search-answer-reason-origin
+    to: FACT-search-answer-reason-origin
+    created_at: 2026-11-16T15:41:58.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33367efde700
+  - type: verified_by
+    from: SCEN-search-answer-reason-origin
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:41:58.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db2c79641167
+  - type: implements
+    from: SYM-cli-coded-error-of
+    to: REQ-cli-rejection-not-retryable
+    created_at: 2026-11-16T14:41:34.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b6377b931ca
+  - type: covered_by
+    from: SYM-cli-coded-error-of
+    to: TEST-cli-rejection-not-retryable
+    created_at: 2026-11-16T14:41:34.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-104b2afa87d7
+  - type: assumes
+    from: SCEN-check-symbol-debt-count
+    to: FACT-check-symbol-debt-count
+    created_at: 2026-11-16T16:00:49.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dba88fd05a3
+  - type: implements
+    from: SYM-record-record-spec
+    to: REQ-kb-record-capture
+    created_at: 2026-11-17T06:44:47.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5bf88906c56
+  - type: covered_by
+    from: SYM-record-record-spec
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:44:47.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbfea8d3d5aa

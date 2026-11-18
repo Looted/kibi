@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-prolog-bundled-ci",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./scripts/tests/ci-workflow-contract.test.ts",
+      "./scripts/tests/proof-workflow-contract.test.ts",
+      "./scripts/tests/replay-proof-ci.test.ts",
+      "./scripts/tests/populate-swipl-platform-packages.test.ts"
+    ]
+  ]
+}

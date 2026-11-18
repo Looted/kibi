@@ -349,3 +349,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77b40eed1a8d
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-implemented-by-FILE-LINK
+    to: FACT-NEG-kb-upsert-implemented-by-FILE-LINK
+    created_at: 2026-11-16T07:13:31.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34306c209aa6
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-implemented-by-FILE-LINK
+    to: TEST-kb-upsert-implemented-by
+    created_at: 2026-11-16T07:13:31.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af57bcef6a6f
+  - type: implements
+    from: SYM-discovery-summarize-match
+    to: REQ-search-compact-evidence
+    created_at: 2026-11-16T16:10:50.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b65a91953f1
+  - type: covered_by
+    from: SYM-discovery-summarize-match
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T16:10:50.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f45b0ae6c231
+  - type: assumes
+    from: SCEN-NEG-kb-record-refusal-names-upsert-NO-POINTER
+    to: FACT-NEG-kb-record-refusal-names-upsert-NO-POINTER
+    created_at: 2026-11-17T07:11:17.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-933faaaa5e49
+  - type: implements
+    from: SYM-cursor-cursorKibiWorkspace
+    to: REQ-kibi-manifest-initialized-signal
+    created_at: 2026-11-17T16:53:29.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa5e8eaa87ce
+  - type: covered_by
+    from: SYM-cursor-cursorKibiWorkspace
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-11-17T16:53:29.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdd770b8937f

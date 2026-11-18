@@ -272,3 +272,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f38fb17656
+  - type: implements
+    from: SYM-agent-core-requirementGroundingLines
+    to: REQ-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:32.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4db9f3108be
+  - type: covered_by
+    from: SYM-agent-core-requirementGroundingLines
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:57:37.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e18d01c8d23
+  - type: assumes
+    from: SCEN-kb-merge-action-branch-moved
+    to: FACT-kb-merge-action-branch-moved
+    created_at: 2026-11-16T18:11:44.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea961ace70f9
+  - type: verified_by
+    from: SCEN-kb-merge-action-branch-moved
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:11:44.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92129f164b94
+  - type: implements
+    from: SYM-cli-quantity-layer-value-fact-entry
+    to: REQ-check-quantity-duplicate-pairing
+    created_at: 2026-11-16T16:10:59.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-693abb9f3c11
+  - type: covered_by
+    from: SYM-cli-quantity-layer-value-fact-entry
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:59.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e98e408256a0
+  - type: constrains
+    from: REQ-apply-plan-checks-contradictions-once
+    to: FACT-upsert-sibling-requirements-subject
+    created_at: 2026-11-16T19:17:10.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8200e8b118db
+  - type: requires_property
+    from: REQ-apply-plan-checks-contradictions-once
+    to: FACT-apply-plan-checks-contradictions-once
+    created_at: 2026-11-16T19:17:10.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ddbef96078
+  - type: specified_by
+    from: REQ-apply-plan-checks-contradictions-once
+    to: SCEN-apply-plan-checks-contradictions-once
+    created_at: 2026-11-16T19:17:10.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34398b58a126
+  - type: specified_by
+    from: REQ-apply-plan-checks-contradictions-once
+    to: SCEN-NEG-apply-plan-checks-contradictions-once-INTERMEDIATE
+    created_at: 2026-11-16T19:17:10.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3e0c0f7e27d
+  - type: assumes
+    from: SCEN-NEG-closed-firm-requirement-guard-VIOLATED
+    to: FACT-NEG-closed-firm-requirement-guard-VIOLATED
+    created_at: 2026-11-17T19:23:35.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d519d955def5

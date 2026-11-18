@@ -13,6 +13,10 @@ const STALE = {
   message:
     "KB snapshot is stale; reattach or refresh the runtime before retrying (stale_snapshot)",
 };
+const refused = (action: string) => ({
+  code: "permission_denied",
+  message: `Prolog refused to ${action}; this is a permission_error, not a branch-store lock`,
+});
 const DENIED = {
   code: "permission_denied",
   message: "Access denied or KB locked",
@@ -63,15 +67,70 @@ describe("permission errors", () => {
       message:
         "Audit journal is locked by another Kibi runtime; restart the stale MCP/CLI session before retrying",
     });
+    for (const [term, action] of [
+      ["permission_error(lock,other)", "lock other"],
+      ["permission_error(other,audit_log)", "other audit_log"],
+      ["permission_error(attach,other)", "attach other"],
+      ["permission_error(other,kb_store)", "other kb_store"],
+    ])
+      expect(parse(`error(${term},c)`)).toStrictEqual(refused(action));
+    for (const term of ["permission_error()", "permission_error(  )"])
+      expect(parse(`error(${term},c)`)).toStrictEqual(DENIED);
+  });
+
+  test("adds the context message on one line, cut to 240 characters", () => {
+    const term = (context: string) =>
+      parse(`error(permission_error(load,source,f),${context})`);
+    expect(term("context(a/1, 'two\\n  lines ')")).toStrictEqual(
+      refused("load source f (two lines)"),
+    );
+    expect(term(`context(a/1,'${"x".repeat(240)}')`)).toStrictEqual(
+      refused(`load source f (${"x".repeat(240)})`),
+    );
+    expect(term(`context(a/1,'${"x".repeat(241)}')`)).toStrictEqual(
+      refused(`load source f (${"x".repeat(239)}…)`),
+    );
+    for (const context of [
+      "context(a/1,_)",
+      "context(a/1,'')",
+      "context(a/1,' ')",
+      "context(a/1)",
+      "a/1",
+      "_",
+    ])
+      expect(term(context)).toStrictEqual(refused("load source f"));
+  });
+
+  test("names the refused operation, never a culprit that is not a plain atom", () => {
+    expect(
+      parse(
+        "error(permission_error(redefine,module,discovery),context(module/2,'Already loaded from /x/discovery.pl'))",
+      ),
+    ).toStrictEqual(
+      refused(
+        "redefine module discovery (Already loaded from /x/discovery.pl)",
+      ),
+    );
+    expect(
+      parse("error(permission_error(open,source_sink,'/etc/x'),_)"),
+    ).toStrictEqual(refused("open source_sink"));
+    expect(
+      parse("error(permission_error(open, source_sink , Culprit9),_)"),
+    ).toStrictEqual(refused("open source_sink"));
     for (const term of [
-      "permission_error(lock,other)",
-      "permission_error(other,audit_log)",
-      "permission_error(attach,other)",
-      "permission_error(other,kb_store)",
-      "permission_error()",
-      "permission_error(  )",
+      "permission_error('Open x',source_sink,f)",
+      "permission_error(open,'Source sink',f)",
+      "permission_error(Open,source_sink,f)",
+      `permission_error(${"o".repeat(65)},source_sink,f)`,
+      "permission_error(open)",
     ])
       expect(parse(`error(${term},c)`)).toStrictEqual(DENIED);
+    expect(
+      parse(`error(permission_error(open,source_sink,${"f".repeat(64)}),c)`),
+    ).toStrictEqual(refused(`open source_sink ${"f".repeat(64)}`));
+    expect(
+      parse(`error(permission_error(open,source_sink,${"f".repeat(65)}),c)`),
+    ).toStrictEqual(refused("open source_sink"));
   });
 });
 
@@ -294,6 +353,37 @@ describe("contradiction errors", () => {
           conflicts: [],
           message: CONTRADICTION_DEFAULT,
         });
+  });
+});
+
+describe("fact contradiction errors", () => {
+  test("lists each complete conflict with the requirement on both sides", () => {
+    expect(
+      parse(
+        "error(kb_fact_contradiction('FACT-1', [conflict('REQ-A', 'REQ-B', \"lte 2 vs gte 3\"), conflict(x, y), other(a, b, c), conflict('', b, c)]), 'Contradiction detected for fact FACT-1: listed')",
+      ),
+    ).toStrictEqual({
+      code: "contradiction",
+      entityId: "FACT-1",
+      conflicts: [
+        { reason: "lte 2 vs gte 3", otherId: "REQ-B", requirementId: "REQ-A" },
+      ],
+      message: "Contradiction detected for fact FACT-1: listed",
+    });
+  });
+
+  test("a missing list has no conflicts and names the fact", () => {
+    for (const term of [
+      "kb_fact_contradiction('FACT-1')",
+      "kb_fact_contradiction('FACT-1', x)",
+    ])
+      expect(parse(`error(${term})`)).toStrictEqual({
+        code: "contradiction",
+        entityId: "FACT-1",
+        conflicts: [],
+        message:
+          "Contradiction detected for fact FACT-1: the write makes current requirements conflict",
+      });
   });
 });
 

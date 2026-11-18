@@ -377,27 +377,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9fabbbc26b83
-  - type: assumes
-    from: SCEN-kibi-coarse-anchor-review
-    to: FACT-PROP-kibi-coarse-anchor-review-c01
-    created_at: 2026-11-10T13:00:00.000Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-494722627052
-  - type: assumes
-    from: SCEN-kibi-coarse-anchor-review
-    to: FACT-PROP-kibi-coarse-anchor-review-c02
-    created_at: 2026-11-10T13:00:00.000Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d3071078702f
-  - type: verified_by
-    from: SCEN-kibi-coarse-anchor-review
-    to: TEST-e2e-check-review-rules
-    created_at: 2026-11-10T13:00:00.000Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-68a50ab91449
   - type: implements
     from: SYM-subject-layer-subject-layer-applies
     to: REQ-kb-domain-subject-layer
@@ -412,3 +391,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6c3727f6b26
+  - type: assumes
+    from: SCEN-NEG-upsert-notes-missing-reason-UNNOTED
+    to: FACT-NEG-upsert-notes-missing-reason-UNNOTED
+    created_at: 2026-11-16T14:58:21.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f33036c346d4
+  - type: verified_by
+    from: SCEN-NEG-upsert-notes-missing-reason-UNNOTED
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:21.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a81b06901977
+  - type: implements
+    from: SYM-claude-stopReminder
+    to: REQ-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:32:49.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-678b681300b9
+  - type: covered_by
+    from: SYM-claude-stopReminder
+    to: TEST-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:34:08.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92504b3cd759
+  - type: implements
+    from: SYM-cli-quantity-duplicate-quantity-duplicate-actions
+    to: REQ-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T16:11:58.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e15ce5b1f043
+  - type: covered_by
+    from: SYM-cli-quantity-duplicate-quantity-duplicate-actions
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:58.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9adc2a8c459e

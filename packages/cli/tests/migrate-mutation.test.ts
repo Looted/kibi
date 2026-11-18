@@ -38,6 +38,7 @@ import * as pairReview from "../src/operations/migration/pair-review.js";
 import * as polarity from "../src/operations/migration/polarity-values.js";
 import * as positiveScenario from "../src/operations/migration/positive-scenario.js";
 import * as claims from "../src/operations/migration/proof-contract-claims.js";
+import * as quantityDuplicate from "../src/operations/migration/quantity-duplicate.js";
 import * as reqStatus from "../src/operations/migration/requirement-status.js";
 import * as retiredStatus from "../src/operations/migration/retired-status.js";
 import * as schema6 from "../src/operations/migration/schema6.js";
@@ -1515,6 +1516,7 @@ describe("schema upgrade", () => {
         "domain-subjects-v16",
         "positive-scenarios-v17",
         "pair-reviews-v18",
+        "quantity-duplicates-v19",
       ],
     };
     expect(result).toStrictEqual({
@@ -1561,7 +1563,7 @@ describe("schema upgrade", () => {
   });
 
   test("note the requirements schema 18 can pair, in the dry run and the upgrade", async () => {
-    atVersion(LATEST - 1);
+    atVersion(LATEST - 2);
     const candidates = spyOn(
       pairReview,
       "planPairReviewCandidates",
@@ -1590,18 +1592,53 @@ describe("schema upgrade", () => {
     candidates.mockRestore();
   });
 
+  test("note the value fact pairs schema 19 blocks, in the dry run and the upgrade", async () => {
+    atVersion(LATEST - 1);
+    const pairs = spyOn(
+      quantityDuplicate,
+      "planQuantityDuplicateReviews",
+    ).mockReturnValue([{}, {}, {}] as never);
+    await dry();
+    expect(logs).toContain(quantityDuplicate.quantityDuplicateNote(3, true));
+    logs = [];
+    await yes();
+    expect(logs).toContain(quantityDuplicate.quantityDuplicateNote(3, false));
+    expect(pairs).toHaveBeenCalledWith(cwd);
+    pairs.mockReturnValue([]);
+    logs = [];
+    await dry();
+    await yes();
+    expect(logs.join("\n")).not.toContain("quantity-duplicate");
+    pairs.mockRestore();
+  });
+
+  test("list quantity pairs only from a schema before 19", async () => {
+    atVersion(LATEST);
+    s.plan.mockReturnValue(
+      storagePlan({ moves: [{ from: "a", to: "b" }] }) as never,
+    );
+    const pairs = spyOn(
+      quantityDuplicate,
+      "planQuantityDuplicateReviews",
+    ).mockReturnValue([{}] as never);
+    await dry();
+    await yes();
+    expect(pairs).not.toHaveBeenCalled();
+    pairs.mockRestore();
+  });
+
   test("acknowledge the current must requirements below schema 17", async () => {
     const musts = spyOn(
       positiveScenario,
       "planPositiveScenarioAcknowledgements",
     ).mockReturnValue(["R2", "R1"]);
-    atVersion(LATEST - 1);
+    atVersion(LATEST - 2);
     await dry();
     await yes();
     expect(musts).not.toHaveBeenCalled();
-    atVersion(LATEST - 2);
+    atVersion(LATEST - 3);
     s.read.mockReturnValue({
-      schemaVersion: LATEST - 2,
+      schemaVersion: LATEST - 3,
       positiveScenarioAcknowledged: ["R0", "R1"],
     } as never);
     logs = [];
@@ -1619,7 +1656,7 @@ describe("schema upgrade", () => {
     });
     expect(musts).toHaveBeenCalledWith(cwd);
     musts.mockReturnValue([]);
-    atVersion(LATEST - 2);
+    atVersion(LATEST - 3);
     logs = [];
     await dry();
     await yes();
@@ -1670,6 +1707,7 @@ describe("schema upgrade", () => {
       "domain-subjects-v16",
       "positive-scenarios-v17",
       "pair-reviews-v18",
+      "quantity-duplicates-v19",
     ]);
     expect(result.summary?.audit.semanticAdvisorBackfill).toBe(
       "not_applicable",

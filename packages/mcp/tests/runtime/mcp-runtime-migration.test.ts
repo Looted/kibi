@@ -79,6 +79,54 @@ describe("legacy branch attachments", () => {
     );
   });
 
+  test("the plan apply that migrates it opens without the engine", async () => {
+    const { runtime, prolog } = runtimeWith(legacy);
+    const context = await runtime.open({
+      name: "kb_apply_plan",
+      effects: ["kb-read", "kb-write"],
+      requiresProlog: true,
+    } as never);
+    expect(context.branchAttachment).toStrictEqual(legacy as never);
+    expect(context.prolog).toBeUndefined();
+    expect(runtime.sessionProlog(context)).toBeUndefined();
+    // While the store is still legacy, the engine would create an empty
+    // hashed store beside it, so the apply may not open it.
+    await expect(context.ensureProlog?.()).rejects.toThrow(
+      new Error(
+        "Legacy branch store for 'feature' is not migrated yet; approve its legacy_branch_storage action so it runs first.",
+      ),
+    );
+    expect(runtime.sessionProlog(context)).toBeUndefined();
+    // Once the store is migrated, the apply reads it back through the engine.
+    spies.push(
+      spyOn(kibiRuntime, "resolveBranchAttachment").mockReturnValue({
+        ...legacy,
+        kbBranch: "feature",
+        kind: "exact",
+        migrationRequired: false,
+      } as never),
+    );
+    expect(await context.ensureProlog?.()).toBe(port);
+    expect(runtime.sessionProlog(context)).toBe(prolog);
+  });
+
+  test("the migrating plan apply opens the engine when attachment resolution fails", async () => {
+    const { runtime, prolog } = runtimeWith(legacy);
+    const context = await runtime.open({
+      name: "kb_apply_plan",
+      effects: ["kb-read", "kb-write"],
+      requiresProlog: true,
+    } as never);
+    spies.push(
+      spyOn(kibiRuntime, "resolveBranchAttachment").mockReturnValue({
+        error: "no branch",
+        code: "NO_BRANCH",
+      } as never),
+    );
+    expect(await context.ensureProlog?.()).toBe(port);
+    expect(runtime.sessionProlog(context)).toBe(prolog);
+  });
+
   test("an attachment error is never treated as a legacy attachment", async () => {
     const failure = {
       error: "no branch",

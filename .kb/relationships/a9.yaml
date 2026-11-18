@@ -272,3 +272,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29c8844a93f9
+  - type: executable_for
+    from: SYM-test-kibi-scoped-check-output
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:07.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-162c06b6e7ce
+  - type: executable_for
+    from: SYM-e2e-test-staged-gate-inherited-symbol-gaps
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:34:17.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fe5d5948a9e
+  - type: implements
+    from: SYM-core-checks-symbolTraceabilityViolation
+    to: REQ-symbol-traceability-behavioral-only
+    created_at: 2026-11-16T05:46:05.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61135a3e4dde
+  - type: covered_by
+    from: SYM-core-checks-symbolTraceabilityViolation
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:46:05.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98d6cc59936f
+  - type: implements
+    from: SYM-cli-register-foundation-commands
+    to: REQ-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:06.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aebf9a756382
+  - type: covered_by
+    from: SYM-cli-register-foundation-commands
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T17:31:06.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4280c613822

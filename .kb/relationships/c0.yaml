@@ -188,3 +188,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad54ba8d5d13
+  - type: implements
+    from: SYM-kibi-legacy-branch-migration-approval-hash
+    to: REQ-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:34:48.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be8842866e44
+  - type: covered_by
+    from: SYM-kibi-legacy-branch-migration-approval-hash
+    to: TEST-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:34:48.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50c0c4d6012e
+  - type: assumes
+    from: SCEN-NEG-kibi-symbol-coverage-VANISHED-SOURCE-COVERED
+    to: FACT-NEG-kibi-symbol-coverage-VANISHED-SOURCE-COVERED
+    created_at: 2026-11-15T10:58:35.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f97ef8f598b3
+  - type: implements
+    from: SYM-staged-declaration-stripCommentsAndWhitespace
+    to: REQ-staged-gate-changed-declaration-definition
+    created_at: 2026-11-16T05:44:32.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0338a4dd4424
+  - type: covered_by
+    from: SYM-staged-declaration-stripCommentsAndWhitespace
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:44:32.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbbc5577216b
+  - type: assumes
+    from: SCEN-NEG-kb-record-one-upsert-payload-NO-PAYLOAD
+    to: FACT-NEG-kb-record-one-upsert-payload-NO-PAYLOAD
+    created_at: 2026-11-17T07:11:10.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b19d7884db2
+  - type: implements
+    from: SYM-branch-store-store-repair-reason
+    to: REQ-core-snapshot-duplicate-repair
+    created_at: 2026-11-17T09:10:10.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de03ff9df461
+  - type: covered_by
+    from: SYM-branch-store-store-repair-reason
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:10:10.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65f5c6e589a4

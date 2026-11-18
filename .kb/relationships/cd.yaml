@@ -468,3 +468,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-621fcb3a426a
+  - type: covered_by
+    from: SYM-const-default-proof-steps-path
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T08:23:45.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ff65dc3c1fd
+  - type: covered_by
+    from: SYM-cli-removed-firm-symbol
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:24:14.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12aec03b1d47
+  - type: implements
+    from: SYM-cursor-runHook
+    to: REQ-session-brief-on-every-surface
+    created_at: 2026-11-16T16:36:17.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24e507148ce0
+  - type: covered_by
+    from: SYM-cursor-runHook
+    to: TEST-session-brief
+    created_at: 2026-11-16T16:36:17.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2bf4c6df4c8

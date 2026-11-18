@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-proof-receipt-outcomes",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/claim-bound-proof-settings.proof.test.ts"
+    ]
+  ]
+}

@@ -342,3 +342,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3871ce9d32b
+  - type: assumes
+    from: SCEN-kb-merge-action-verify-before-push
+    to: FACT-kb-merge-action-verify-before-push
+    created_at: 2026-11-16T18:11:43.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d23e6702f1e
+  - type: verified_by
+    from: SCEN-kb-merge-action-verify-before-push
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:11:43.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e30f1a10c73
+  - type: covered_by
+    from: SYM-cli-review-firm-edit-input
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:24:39.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc581af5e1c5
+  - type: executable_for
+    from: SYM-test-cli-commandSurface
+    to: TEST-cli-help-command-summaries
+    created_at: 2026-11-16T19:05:34.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe53ad61ab08
+  - type: assumes
+    from: SCEN-check-quantity-duplicate
+    to: FACT-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:29.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f15b02b5c20
+  - type: verified_by
+    from: SCEN-check-quantity-duplicate
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:29.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe8dbea6cc14
+  - type: implements
+    from: SYM-core-source-proof-scope
+    to: REQ-kibi-source-proof-scopes-unimplemented-rule
+    created_at: 2026-11-18T10:54:41.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb51bbb91b44
+  - type: covered_by
+    from: SYM-core-source-proof-scope
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-18T10:54:41.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0af9c5f0447c

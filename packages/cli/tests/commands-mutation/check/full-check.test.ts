@@ -147,6 +147,7 @@ describe("branch attachment", () => {
     expect(config).toEqual({
       collectFullQualityDiagnosticsForExplicitRules: true,
       branchStoreAttached: true,
+      fullListing: true,
     });
     expect(ports.workspaceRoot).toBe(cwd);
     expect(ports.git).toBe(nodeGit);
@@ -255,6 +256,7 @@ describe("explicit store", () => {
     expect(config).toEqual({
       collectFullQualityDiagnosticsForExplicitRules: true,
       branchStoreAttached: false,
+      fullListing: true,
     });
     expect("queryEntities" in ports.prolog).toBe(false);
     events = [];
@@ -288,6 +290,15 @@ describe("explicit store", () => {
     await checkCommand({ kbPath: "/kb", freshEvidence: false });
     expect(checkCalls.map((call) => call[0])).toStrictEqual([
       { freshEvidence: true },
+      {},
+    ]);
+  });
+
+  test("the debt list is requested only with --symbol-debt", async () => {
+    await checkCommand({ kbPath: "/kb", symbolDebt: true });
+    await checkCommand({ kbPath: "/kb", symbolDebt: false });
+    expect(checkCalls.map((call) => call[0])).toStrictEqual([
+      { includeSymbolDebt: true },
       {},
     ]);
   });
@@ -378,16 +389,144 @@ describe("result rendering", () => {
   test("a clean result prints its quality diagnostics", async () => {
     checkResult = { structuredContent: { qualityDiagnostics: [quality] } };
     expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
-    expect(logs).toEqual([
-      "✓ No violations found. KB is valid.",
-      "",
-      QUALITY_TEXT,
-    ]);
+    expect(logs).toEqual(["✓ No violations. 0 rules.", "", QUALITY_TEXT]);
   });
 
   test("a clean result without diagnostics prints one line", async () => {
     expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
-    expect(logs).toEqual(["✓ No violations found. KB is valid."]);
+    expect(logs).toEqual(["✓ No violations. 0 rules."]);
+  });
+
+  test("a clean result counts its rules and symbol debt on the verdict line", async () => {
+    checkResult = {
+      structuredContent: {
+        violations: [],
+        evaluated: { ruleCount: 66 },
+        symbolDebt: { total: 2924, fileCount: 522 },
+      },
+    };
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
+    expect(logs).toEqual([
+      "✓ No violations. 66 rules. 2,924 unrecorded declarations in 522 files do not block (kibi check --symbol-debt lists them).",
+    ]);
+  });
+
+  test("one rule and one unrecorded declaration read in the singular", async () => {
+    checkResult = {
+      structuredContent: {
+        evaluated: { ruleCount: 1 },
+        symbolDebt: { total: 1, fileCount: 1 },
+      },
+    };
+    await checkCommand({ kbPath: "/kb" });
+    expect(logs).toEqual([
+      "✓ No violations. 1 rule. 1 unrecorded declaration in 1 file does not block (kibi check --symbol-debt lists them).",
+    ]);
+  });
+
+  test("no symbol debt adds nothing to the verdict line", async () => {
+    checkResult = {
+      structuredContent: {
+        evaluated: { ruleCount: 66 },
+        symbolDebt: { total: 0, fileCount: 0, files: [] },
+      },
+    };
+    await checkCommand({ kbPath: "/kb", symbolDebt: true });
+    expect(logs).toEqual(["✓ No violations. 66 rules."]);
+  });
+
+  test("--symbol-debt lists the declarations per file after the verdict", async () => {
+    checkResult = {
+      structuredContent: {
+        evaluated: { ruleCount: 66 },
+        symbolDebt: {
+          total: 3,
+          fileCount: 2,
+          files: [
+            { path: "src/a.ts", unrecorded: ["one", "two"] },
+            { path: "src/b.ts", unrecorded: ["three"] },
+          ],
+        },
+      },
+    };
+    await checkCommand({ kbPath: "/kb", symbolDebt: true });
+    expect(logs).toEqual([
+      "✓ No violations. 66 rules. 3 unrecorded declarations in 2 files do not block (kibi check --symbol-debt lists them).",
+      "",
+      "Symbol records (not blocking): 3 unrecorded declaration(s) in 2 file(s) that have symbol records. A commit is judged on them only when it adds or changes them.\n  src/a.ts (2): one, two\n  src/b.ts (1): three",
+    ]);
+  });
+
+  test("a failing check ends with the debt count, or the list when asked", async () => {
+    const files = [{ path: "src/a.ts", unrecorded: ["one"] }];
+    checkResult = {
+      structuredContent: {
+        violations: [violation()],
+        symbolDebt: { total: 1, fileCount: 1 },
+      },
+    };
+    await checkCommand({ kbPath: "/kb" });
+    expect(logs.slice(-2)).toEqual([
+      "1 unrecorded declaration in 1 file does not block (kibi check --symbol-debt lists them).",
+      "",
+    ]);
+    logs.length = 0;
+    checkResult = {
+      structuredContent: {
+        violations: [violation()],
+        symbolDebt: { total: 1, fileCount: 1, files },
+      },
+    };
+    await checkCommand({ kbPath: "/kb" });
+    expect(logs.slice(-2)).toEqual([
+      "Symbol records (not blocking): 1 unrecorded declaration(s) in 1 file(s) that have symbol records. A commit is judged on them only when it adds or changes them.\n  src/a.ts (1): one",
+      "",
+    ]);
+  });
+
+  const DEBT = {
+    total: 1,
+    fileCount: 1,
+    files: [{ path: "src/a.ts", unrecorded: ["one"] }],
+  };
+  const DEBT_TEXT =
+    "Symbol records (not blocking): 1 unrecorded declaration(s) in 1 file(s) that have symbol records. A commit is judged on them only when it adds or changes them.\n  src/a.ts (1): one";
+
+  test("a clean result prints its symbol debt last", async () => {
+    checkResult = { structuredContent: { symbolDebt: DEBT } };
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
+    expect(logs).toEqual([
+      "✓ No violations. 0 rules. 1 unrecorded declaration in 1 file does not block (kibi check --symbol-debt lists them).",
+      "",
+      DEBT_TEXT,
+    ]);
+  });
+
+  test("a failing result prints its symbol debt after the violations", async () => {
+    checkResult = {
+      structuredContent: {
+        violations: [violation({ suggestion: undefined })],
+        symbolDebt: DEBT,
+      },
+    };
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 1 });
+    expect(logs.slice(-2)).toEqual([DEBT_TEXT, ""]);
+  });
+
+  test("a zero debt, or a result without content, prints no debt", async () => {
+    checkResult = {
+      structuredContent: {
+        violations: [violation({ suggestion: undefined })],
+        symbolDebt: { total: 0, fileCount: 0, files: [] },
+      },
+    };
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 1 });
+    expect(logs.at(-1)).toBe("");
+    expect(logs.at(-2)).toBe("  Missing required field: title");
+    logs.length = 0;
+    checkResult = {};
+    expect(await checkCommand({ kbPath: "/kb" })).toEqual({ exitCode: 0 });
+    expect(logs).toEqual(["✓ No violations. 0 rules."]);
   });
 
   test("violations are listed by source, with fixes on request", async () => {
@@ -484,7 +623,7 @@ describe("result rendering", () => {
         /^Note: KB schemaVersion 14 is older than the latest version/,
       ),
       "",
-      "✓ No violations found. KB is valid.",
+      "✓ No violations. 0 rules.",
     ]);
   });
 

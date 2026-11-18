@@ -3,7 +3,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { runHook } from "../src/hook-runner.js";
-import { BOOTSTRAP_REMINDER } from "../src/messages.js";
 
 const tempRoots: string[] = [];
 
@@ -20,7 +19,7 @@ afterEach(() => {
 });
 
 describe("cursor hook runner edges", () => {
-  test("sessionStart without Kibi config sends only the bootstrap reminder once MCP was observed", async () => {
+  test("sessionStart without Kibi config stays quiet even once MCP was observed", async () => {
     const cwd = tempRoot("kibi-cursor-edges-");
     const pluginData = tempRoot("kibi-cursor-edges-data-");
     await runHook(
@@ -38,7 +37,7 @@ describe("cursor hook runner edges", () => {
         { hook_event_name: "sessionStart", cwd, conversation_id: "c1" },
         { pluginData },
       ),
-    ).toStrictEqual({ additional_context: BOOTSTRAP_REMINDER });
+    ).toStrictEqual({});
   });
 
   test("postToolUse whose telemetry throws still returns the impact note", async () => {
@@ -68,7 +67,7 @@ describe("cursor hook runner edges", () => {
     expect(reads).toBeGreaterThan(1);
     expect(result).toStrictEqual({
       additional_context:
-        'Kibi MCP has not been observed in this session. Use approved Kibi MCP tools when they are visible; otherwise the project-local CLI JSON routes are an equal peer (npx --no-install kibi <route> --input -), never a global or installing runner. If neither is available, stop and tell the operator.\nKibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.\nRecord traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.',
+        'Kibi MCP has not been observed in this session. Use approved Kibi MCP tools when they are visible; otherwise the project-local CLI JSON routes are an equal peer (npx --no-install kibi <route> --input -), never a global or installing runner. If neither is available, stop and tell the operator.\nKibi impact review: run kb_check({changed:true, sourceFiles:["src/a.ts"]}) while this edit is fresh; it gives the commit gate\'s verdict.\nCheck symbol granularity and whether linked requirements, scenarios, and tests still cover the changed behavior.\nRecord traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.',
     });
   });
 });

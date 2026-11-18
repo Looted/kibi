@@ -1,3 +1,4 @@
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 import { executePrepareImpactReview } from "../impact-review-preparation.js";
 import type { OperationSpec } from "../types.js";
 
@@ -14,6 +15,8 @@ export const prepareImpactReviewSpec = {
       scope: {
         description:
           'What to review: {"kind":"staged"} for the staged snapshot, or {"kind":"diff","baseCommit":"<sha>","headCommit":"<sha>"} with full commit hashes.',
+        [ADVERTISED_DESCRIPTION]:
+          '{"kind":"staged"} for the staged snapshot, or {"kind":"diff","baseCommit","headCommit"} with full hashes.',
         oneOf: [
           {
             type: "object",

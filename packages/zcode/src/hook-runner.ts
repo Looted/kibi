@@ -2,11 +2,13 @@
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { shellToolEditPaths } from "kibi-agent-core/bash-command";
 import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
@@ -17,9 +19,12 @@ import {
   recordRequest,
   removesOnlyDeadImplementsComments,
   rulePromptNote,
+  sessionRulePhrase,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  startDecisionSession,
+  statedReason,
 } from "kibi-agent-core/decision-guard";
 import {
   type HookTrace,
@@ -31,7 +36,10 @@ import {
   kbUsageTrace,
   readPackageVersion,
 } from "kibi-agent-core/hook-usage-log";
-import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
+import {
+  extractKbMcpToolCall,
+  stampKibiWorkspace,
+} from "kibi-agent-core/kb-mcp-tools";
 import {
   type IndexedSymbol,
   loadKnowledgeIndex,
@@ -46,7 +54,12 @@ import {
 } from "kibi-agent-core/snippets";
 
 type Summarize = ReturnType<typeof createEntitySummarizer>;
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import {
+  parseHookInput,
+  parseStdinJson,
+  readStdin,
+} from "kibi-agent-core/hook-input";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import {
   addDirtyPaths,
   clearDirtyPaths,
@@ -55,7 +68,6 @@ import {
   resolvePluginDataDir,
   resolveSessionStateDir,
 } from "./hook-state.js";
-import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   DIRECT_KB_EDIT_WARNING,
   SESSION_START_CONTEXT,
@@ -70,7 +82,6 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
-import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type ZcodeHookEvent =
   | "SessionStart"
@@ -185,6 +196,7 @@ function preEditContext(
   trace.requirementIds = implementedRequirementIds(files[first.relative] ?? []);
   const summarize = createEntitySummarizer(workspaceRoot);
   const notice = firmNotice(
+    workspaceRoot,
     targets,
     files,
     summarize,
@@ -212,12 +224,50 @@ function preEditContext(
 }
 
 /**
+ * A shell call that writes files in place (`sed -i`, `perl -i`, `>`, `tee`)
+ * gets the same firm notice as an edit of those files, read as a whole-file
+ * write since the hook cannot tell which lines it changes.
+ */
+function shellFirmNotice(
+  workspaceRoot: string,
+  stateDir: string | undefined,
+  input: ReturnType<typeof parseHookInput>,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  const base = input.cwd ?? workspaceRoot;
+  const targets = shellToolEditPaths(input.toolName, input.toolInput, base)
+    .map((rawPath) =>
+      canonicalizeWorkspacePath(workspaceRoot, {
+        eventCwd: input.cwd,
+        rawPath,
+      }),
+    )
+    .filter((target) => target !== undefined)
+    .map((target) => ({
+      relative: target.workspaceRelative,
+      absolute: target.absolute,
+      base,
+    }));
+  if (targets.length === 0) return undefined;
+  return firmNotice(
+    workspaceRoot,
+    targets,
+    loadKnowledgeIndex(workspaceRoot, stateDir).files,
+    createEntitySummarizer(workspaceRoot),
+    { stateDir, sessionId: input.sessionId },
+    input,
+    env,
+  );
+}
+
+/**
  * The ZCode plugin's hooks stay advisory, so an edit of code that implements
  * a firm requirement gets a notice telling the agent to ask the person
  * first, once per requirement per session. An edit whose location the hook
  * cannot resolve counts as touching the whole file.
  */
 function firmNotice(
+  workspaceRoot: string,
   targets: readonly EditTarget[],
   files: Record<string, readonly IndexedSymbol[]>,
   summarize: Summarize,
@@ -233,6 +283,7 @@ function firmNotice(
       symbols: files[target.relative] ?? [],
       focus,
       wholeFile: focus === undefined,
+      absolutePath: target.absolute,
       summarize,
       confirmed: settled,
       commentOnly: removesOnlyDeadImplementsComments(
@@ -333,13 +384,18 @@ function isEditLikeTool(toolName: string | undefined): boolean {
 function postEditContext(
   stateDir: string | undefined,
   sourcePaths: readonly string[],
+  captureTemplate?: string,
 ): HookResult | undefined {
   // The state directory is already per session, so the key names the file.
   const fresh = sourcePaths.filter((sourcePath) =>
     claimSnippetSlot(stateDir, `post-edit\u0000${sourcePath}`),
   );
-  return fresh.length > 0
-    ? contextResult("PostToolUse", postEditImpactNote(fresh))
+  const notes = [
+    ...(fresh.length > 0 ? [postEditImpactNote(fresh)] : []),
+    ...(captureTemplate === undefined ? [] : [captureTemplate]),
+  ];
+  return notes.length > 0
+    ? contextResult("PostToolUse", notes.join("\n\n"))
     : undefined;
 }
 
@@ -376,6 +432,7 @@ export async function runHook(
     switch (input.event) {
       case "SessionStart":
         trace.action = "session_start";
+        startDecisionSession(session, "startup");
         return contextResult(
           input.event,
           [SESSION_START_CONTEXT, missingHooksNote(workspace.root)]
@@ -391,7 +448,10 @@ export async function runHook(
           rule === undefined ? "prompt_silent" : "prompt_rule_note";
         return rule === undefined
           ? defaultResult()
-          : contextResult(input.event, rulePromptNote(rule));
+          : contextResult(
+              input.event,
+              rulePromptNote(rule, statedReason(input.prompt)),
+            );
       }
 
       case "PreToolUse": {
@@ -435,7 +495,7 @@ export async function runHook(
         try {
           knowledge = isMutatingTool(input.toolName)
             ? preEditContext(workspace.root, stateDir, input, env, trace)
-            : undefined;
+            : shellFirmNotice(workspace.root, stateDir, input, env);
         } catch {
           // Requirement context is advisory; an unreadable manifest or file
           // leaves the edit without it rather than reporting a hook error.
@@ -483,12 +543,33 @@ export async function runHook(
         // Only file-mutating tool events create dirty paths; a path argument
         // inside a read-only tool call is not evidence of a change.
         let editedSource: string[] = [];
-        if (isMutatingTool(input.toolName)) {
-          const dirtyPaths = extractMutatedWorkspacePaths(
-            workspace.root,
-            input.cwd,
-            input.toolInput,
-          );
+        // A shell `sed -i` or `>` writes files too; its targets count as
+        // edits just as an Edit call's paths do.
+        const shellEdits = shellToolEditPaths(
+          input.toolName,
+          input.toolInput,
+          input.cwd ?? workspace.root,
+        );
+        if (isMutatingTool(input.toolName) || shellEdits.length > 0) {
+          const dirtyPaths = [
+            ...(isMutatingTool(input.toolName)
+              ? extractMutatedWorkspacePaths(
+                  workspace.root,
+                  input.cwd,
+                  input.toolInput,
+                )
+              : []),
+            ...shellEdits
+              .map(
+                (absolute) =>
+                  canonicalizeWorkspacePath(workspace.root, {
+                    eventCwd: input.cwd,
+                    rawPath: absolute,
+                  })?.workspaceRelative,
+              )
+              .filter((relative) => relative !== undefined)
+              .filter(isMeaningfulTrackedPath),
+          ];
 
           if (dirtyPaths.length > 0) {
             addDirtyPaths(stateDir, dirtyPaths);
@@ -510,7 +591,15 @@ export async function runHook(
           }
         }
 
-        return postEditContext(stateDir, editedSource) ?? defaultResult();
+        return (
+          postEditContext(
+            stateDir,
+            editedSource,
+            editedSource.length > 0
+              ? claimRuleCaptureTemplate(session)
+              : undefined,
+          ) ?? defaultResult()
+        );
       }
 
       case "Stop": {
@@ -525,7 +614,7 @@ export async function runHook(
         // Source changed and nothing was recorded: ask once per session for
         // the decision behind the change, with any impact-check reminder.
         const capture = claimCaptureReminder(session)
-          ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
+          ? captureReminder(sessionRulePhrase(session))
           : undefined;
         // Requirements were written without a signoff view since: ask once.
         // A recorded requirement also marks the KB as recorded, so this never

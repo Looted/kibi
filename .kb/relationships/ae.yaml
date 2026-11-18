@@ -370,3 +370,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4a59c9425bf9
+  - type: covered_by
+    from: SYM-symbol-debt-collectSymbolDebt
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:32.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-023ec81fb6ca
+  - type: implements
+    from: SYM-cli-removed-symbol-records
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:24:06.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cee1329fcd33
+  - type: covered_by
+    from: SYM-cli-removed-symbol-records
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:24:06.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b291b9da8361
+  - type: implements
+    from: SYM-symbol-debt-collectSymbolDebt
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:55:05.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8e876b8964e
+  - type: assumes
+    from: SCEN-symbol-id-minting
+    to: FACT-minted-symbol-ids-held-elsewhere
+    created_at: 2026-11-17T19:07:16.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a5798410757

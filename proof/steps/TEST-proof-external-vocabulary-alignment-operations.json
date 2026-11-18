@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-external-vocabulary-alignment-operations",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/vocabulary-alignment-settings.proof.test.ts"
+    ]
+  ]
+}

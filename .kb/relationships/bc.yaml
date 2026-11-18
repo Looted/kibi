@@ -216,3 +216,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f8eb336e8e9
+  - type: implements
+    from: SYM-changed-index-with-changed-index
+    to: REQ-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:36.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc2d8278a168
+  - type: covered_by
+    from: SYM-changed-index-with-changed-index
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T19:34:56.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a2c5e56f6f4
+  - type: implements
+    from: SYM-knowledge-index-prose-excerpt
+    to: REQ-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:07.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46c6768ec213
+  - type: covered_by
+    from: SYM-knowledge-index-prose-excerpt
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:59:12.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5092a9efa768
+  - type: implements
+    from: SYM-record-assert-record-fields
+    to: REQ-kb-record-modeling-stays-upsert
+    created_at: 2026-11-17T06:46:38.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb0d06482763
+  - type: covered_by
+    from: SYM-record-assert-record-fields
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:46:38.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9e3a803e25b
+  - type: executable_for
+    from: SYM-proof-quantity-word-share
+    to: TEST-proof-quantity-word-share
+    created_at: 2026-11-17T06:00:15.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73f6feed7289
+  - type: implements
+    from: SYM-symbol-id-symbol-id-slug
+    to: REQ-symbol-id-kb-upsert-implementedby-kibi
+    created_at: 2026-11-17T18:54:27.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b5967e83920
+  - type: covered_by
+    from: SYM-symbol-id-symbol-id-slug
+    to: TEST-symbol-id-minting
+    created_at: 2026-11-17T18:54:27.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-614cccece033

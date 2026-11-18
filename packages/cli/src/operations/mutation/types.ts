@@ -1,5 +1,9 @@
-import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
+import type {
+  SemanticAdvisorReceipt,
+  SemanticAdvisorReceiptSummary,
+} from "../semantic-advisor/types.js";
 import type { SagaRollbackFailure } from "./saga.js";
+import type { SiblingRequirement } from "./sibling-requirements.js";
 
 export type RelationshipInput = Readonly<Record<string, unknown>>;
 
@@ -23,8 +27,37 @@ export type UpsertInput = {
    * preview sees the KB as it would be after the whole batch.
    */
   readonly plannedFacts?: readonly PlannedFactInput[];
+  /**
+   * Requirement upserts only: the code that implements the requirement, as
+   * source file and declaration name. Each entry is resolved to one granular
+   * declaration and recorded as an `implements` link from its symbol entity
+   * (created when the KB has none for that declaration).
+   */
+  readonly implementedBy?: readonly ImplementedByInput[];
+  /**
+   * Requirement upserts only: why the requirement exists, in the words of
+   * the person who asked. Recorded as `rationale` and as the body's reason
+   * section, with origin.ref as its Source.
+   */
+  readonly why?: string;
   readonly _skipContradictionCheck?: boolean;
   readonly _requestId?: string;
+};
+
+/** One implementedBy entry: a declaration in a workspace source file. */
+export type ImplementedByInput = {
+  readonly sourceFile: string;
+  readonly symbol: string;
+  /** Tests that cover the declaration: each becomes a covered_by link. */
+  readonly coveredBy?: readonly string[];
+};
+
+/** How kb_upsert recorded one implementedBy entry. */
+export type ImplementedByLink = {
+  readonly sourceFile: string;
+  readonly symbol: string;
+  readonly symbolId: string;
+  readonly created: boolean;
 };
 
 /** One planned fact write staged ahead of a dry run. */
@@ -58,14 +91,31 @@ export type UpsertPayload = {
   readonly updated: number;
   readonly relationships_created: number;
   readonly warnings: readonly string[];
-  /** The requirement semantic advisor receipt; absent for other entity types. */
-  readonly semanticAdvisor?: SemanticAdvisorReceipt;
+  /**
+   * The requirement semantic advisor's verdict (readiness, lane, coverage,
+   * next tools); absent for other entity types.
+   */
+  readonly semanticAdvisor?: SemanticAdvisorReceiptSummary;
   /**
    * For a fact that carries claim_text: the stored claim_key, derived from
    * claim_text when the payload did not supply it, so the writer learns the
    * grounding key without a kb_query.
    */
   readonly claimKey?: string;
+  /**
+   * For a requirement sent without its inventory contract: the claims the
+   * server recorded, each with its role and status, so the writer sees what
+   * was filled in for it.
+   */
+  readonly inventoryApplied?: readonly {
+    readonly claim_key: string;
+    readonly role: string;
+    readonly status: string;
+    readonly claim_text: string;
+    readonly advisor_status?: string;
+  }[];
+  /** For a requirement sent with implementedBy: the symbol each entry linked. */
+  readonly implementedBy?: readonly ImplementedByLink[];
   readonly status?: "committed_with_repairs";
   readonly effectFailures?: readonly {
     readonly kind: string;
@@ -74,9 +124,19 @@ export type UpsertPayload = {
   }[];
   readonly nextActions?: readonly {
     readonly operation: string;
+    /** The check rule the step clears, when it clears one. */
+    readonly code?: string;
     readonly input?: unknown;
     readonly reason: string;
     readonly required: boolean;
+  }[];
+  /**
+   * For a written requirement: other current requirements on the same terms,
+   * so one this write replaces can be superseded.
+   */
+  readonly relatedRequirements?: readonly {
+    readonly id: string;
+    readonly statement: string;
   }[];
   readonly sourceWrites?: readonly {
     readonly path: string;
@@ -85,6 +145,12 @@ export type UpsertPayload = {
     readonly afterHash: string | null;
     readonly created: boolean;
   }[];
+  /**
+   * For a value fact write that changes its value or creates it: the other
+   * current requirements on the same quantity, each also in warnings and
+   * nextActions.
+   */
+  readonly siblings?: readonly SiblingRequirement[];
   readonly contradictionCheck?: {
     readonly outcome: "no-conflict" | "skipped";
     readonly checked_req_id: string;
@@ -113,6 +179,31 @@ export type ValidateUpsertPayload = {
   readonly warnings: readonly string[];
   readonly semanticAdvisor: SemanticAdvisorReceipt | null;
   readonly normalizedPreview: Readonly<Record<string, unknown>> | null;
+  /**
+   * For a value fact dry run that would change its value or create it: the other
+   * current requirements on the same quantity, each also in warnings and
+   * nextActions.
+   */
+  readonly siblings?: readonly SiblingRequirement[];
+  /** One required kb_upsert per sibling requirement. */
+  readonly nextActions?: readonly {
+    readonly operation: string;
+    readonly input?: unknown;
+    readonly reason: string;
+    readonly required: boolean;
+  }[];
+  /**
+   * For a requirement sent without its inventory contract: the claims the
+   * server recorded, each with its role and status, so the writer sees what
+   * was filled in for it.
+   */
+  readonly inventoryApplied?: readonly {
+    readonly claim_key: string;
+    readonly role: string;
+    readonly status: string;
+    readonly claim_text: string;
+    readonly advisor_status?: string;
+  }[];
   /**
    * When the payload is invalid and the write would refuse it with a coded
    * error (for example DOCUMENT_PATH_REQUIRED): that code.

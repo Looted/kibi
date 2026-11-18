@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-telemetry-default-host",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/telemetry-automation-keys.proof.test.ts"
+    ]
+  ]
+}

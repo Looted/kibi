@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-kibi-claim-bound-proofs-exhaustive",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claim-binding-verdicts.proof.test.ts"
+    ]
+  ]
+}

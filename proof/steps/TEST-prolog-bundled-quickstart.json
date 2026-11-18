@@ -1,0 +1,16 @@
+{
+  "test_id": "TEST-prolog-bundled-quickstart",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./scripts/tests/bundled-swipl-docs.test.ts",
+      "./scripts/tests/simulate-readme-quickstart.test.ts",
+      "./scripts/tests/release-pack-workflow-contract.test.ts"
+    ]
+  ]
+}

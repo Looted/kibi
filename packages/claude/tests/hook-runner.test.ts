@@ -3,13 +3,25 @@ import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 
 import {
   CONFIRM_FIRM_EDITS_ENV,
   type HookOutput,
   runHook,
 } from "../src/hook-runner";
-import { MAX_SNIPPET_CHARS } from "../src/snippets";
+import { sessionDir, workspaceDataDir } from "../src/session-state";
+import {
+  MAX_SNIPPET_CHARS,
+  captureReminder,
+  ruleCaptureTemplate,
+} from "../src/snippets";
 import {
   CHECKOUT_SOURCE,
   COORDINATES_YAML,
@@ -23,6 +35,29 @@ import {
 
 afterEach(cleanupTempDirs);
 
+/** Turns the fixture into a real git work tree with everything committed. */
+function commitAll(fixture: Fixture): void {
+  fs.rmSync(path.join(fixture.root, ".git"), { recursive: true });
+  const git = (...args: string[]) => {
+    const result = spawnSync("git", args, {
+      cwd: fixture.root,
+      encoding: "utf8",
+    });
+    expect(result.status, result.stderr).toBe(0);
+  };
+  write(fixture.root, ".gitignore", ".kb/usage.log\n");
+  git("init", "-q");
+  git("add", "-A");
+  git(
+    "-c",
+    "user.email=dev@example.test",
+    "-c",
+    "user.name=Dev",
+    "commit",
+    "-qm",
+    "fixture",
+  );
+}
 /** Relationship shard holding a `from` id's records, as the Kibi writer names it. */
 function shardOf(entityId: string): string {
   return createHash("sha256").update(entityId).digest("hex").slice(0, 2);
@@ -136,7 +171,8 @@ describe("session start", () => {
       }),
       "SessionStart",
     );
-    expect(text).toContain("1 source files have requirement-linked symbols");
+    expect(text).toContain("the 1 linked source files");
+    expect(text).toContain("is a question, not a task");
     expect(text).toContain("kb_search");
     expect(text).toContain("kibi-usage");
   });
@@ -229,7 +265,7 @@ describe("pre-edit snippets", () => {
     );
     expect(text).toContain('symbol:"computeTotal"');
     expect(text).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
   });
 
@@ -315,8 +351,9 @@ describe("pre-edit snippets", () => {
     expect(first?.split("\n")).toEqual([
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-checkout-rounding.",
       "REQ-checkout-rounding must keep true: Totals round half up to two decimals.",
+      "Why: Finance reconciles every order to the cent (REQ-checkout-rounding context section).",
       "Decision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.",
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
     // Same symbol again: nothing new to say.
     expect(
@@ -347,7 +384,9 @@ describe("pre-edit snippets", () => {
       "Kibi: this edit to src/checkout.ts changes code that implements REQ-checkout-rounding, REQ-currency-display.",
     );
     expect(text).toContain("REQ-checkout-rounding must keep true:");
-    expect(text).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(text).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     expect(text).not.toContain("Kibi knowledge for");
   });
 
@@ -529,7 +568,7 @@ describe("evaluation trace replays", () => {
     );
     expect(edit).toContain("REQ-checkout-rounding must keep true: ");
     expect(edit).toContain(
-      'kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]})',
     );
     // What the Read already showed is not repeated.
     expect(edit).not.toContain("Kibi knowledge for");
@@ -560,7 +599,7 @@ describe("evaluation trace replays", () => {
       await call({ hook_event_name: "SessionStart", source: "compact" }),
       "SessionStart",
     );
-    expect(compact).toContain("1 source files have requirement-linked symbols");
+    expect(compact).toContain("the 1 linked source files");
     const again = await pre("Read", { file_path: linked(fixture) });
     expect(again).toContain("Kibi knowledge for src/checkout.ts");
     expect(again).toContain("Covered by: TEST-checkout-rounding.");
@@ -723,30 +762,6 @@ describe("stop reminders", () => {
 });
 
 describe("shell commands", () => {
-  /** Turns the fixture into a real git work tree with everything committed. */
-  function commitAll(fixture: Fixture): void {
-    fs.rmSync(path.join(fixture.root, ".git"), { recursive: true });
-    const git = (...args: string[]) => {
-      const result = spawnSync("git", args, {
-        cwd: fixture.root,
-        encoding: "utf8",
-      });
-      expect(result.status, result.stderr).toBe(0);
-    };
-    write(fixture.root, ".gitignore", ".kb/usage.log\n");
-    git("init", "-q");
-    git("add", "-A");
-    git(
-      "-c",
-      "user.email=dev@example.test",
-      "-c",
-      "user.name=Dev",
-      "commit",
-      "-qm",
-      "fixture",
-    );
-  }
-
   /** Sets a file's modification time `seconds` in the past. */
   function age(fixture: Fixture, relativePath: string, seconds: number): void {
     const past = new Date(Date.now() - seconds * 1000);
@@ -796,7 +811,9 @@ describe("shell commands", () => {
     );
     expect(text).toContain("REQ-checkout-rounding");
     expect(text).toContain("must keep true");
-    expect(text).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(text).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     expect(await stop()).toContain("src/checkout.ts");
   });
 
@@ -827,7 +844,9 @@ describe("shell commands", () => {
     const before = await pre("Bash", { command });
     expect(before).toContain("REQ-checkout-rounding");
     expect(before).toContain("must keep true");
-    expect(before).toContain('kb_check({sourceFiles:["src/checkout.ts"]');
+    expect(before).toContain(
+      'kb_check({changed:true, sourceFiles:["src/checkout.ts"]',
+    );
     write(fixture.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// sed\n`);
     // Already said before the edit: not repeated after it.
     expect(await post("Bash", { command })).toEqual({});
@@ -981,6 +1000,7 @@ describe("firm requirement confirmation", () => {
     file_path: "src/checkout.ts",
     old_string: "let total = 0;",
   };
+  const SHELL_EDIT = "sed -i s/total/sum/ src/checkout.ts";
 
   test("an edit inside a firm requirement's symbol is put to the person, with the requirement named to both", async () => {
     const fixture = createKibiWorkspace();
@@ -1029,6 +1049,81 @@ describe("firm requirement confirmation", () => {
     ).toBe("ask");
   });
 
+  test("a keeps receipt lets only the retry of the edit this session asked about through", async () => {
+    const fixture = createKibiWorkspace();
+    const { raw, post } = firmSession(fixture);
+    const content = fs.readFileSync(
+      path.join(fixture.root, "src/checkout.ts"),
+      "utf8",
+    );
+    const lines = content.split("\n").length;
+    const receiptPath = path.join(
+      fixture.root,
+      firmEditReceiptPath(
+        "REQ-checkout-rounding",
+        "src/checkout.ts",
+        "computeTotal",
+      ) as string,
+    );
+    const record = (recordedAt: string) => {
+      fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+      fs.writeFileSync(
+        receiptPath,
+        serializeFirmEditReceipt({
+          version: FIRM_EDIT_RECEIPT_VERSION,
+          requirementId: "REQ-checkout-rounding",
+          sourceFile: "src/checkout.ts",
+          symbol: "computeTotal",
+          verdict: "keeps",
+          note: "Still rounds to cents.",
+          statementHash: firmEditStatementHash(
+            "Totals round half up to two decimals.",
+          ),
+          codeHash: firmEditCodeHash(content, 1, lines) as string,
+          startLine: 1,
+          endLine: lines,
+          recordedAt,
+        }),
+      );
+    };
+    // A receipt committed before this session asked about the edit (an
+    // earlier session's judgment) does not skip the question.
+    record("2026-11-16T00:00:00.000Z");
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    // Recorded after the question, it lets the retried edit through.
+    record(new Date(Date.now() + 1000).toISOString());
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
+    // The retried edit lands, but the receipt passed it, not the person, so
+    // it judged only the code before that edit: another edit of the same
+    // symbol, a whole-file write and a shell edit are asked about.
+    await post("Edit", editTotal);
+    expect(
+      (await raw("Edit", { ...editTotal, new_string: "  let total = 2;" }))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    expect(
+      (
+        await raw("Write", {
+          file_path: "src/checkout.ts",
+          content: "export {};\n",
+        })
+      ).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    expect(
+      (await raw("Bash", { command: SHELL_EDIT })).hookSpecificOutput
+        ?.permissionDecision,
+    ).toBe("ask");
+    // A new session editing the symbol is asked again.
+    expect(
+      (await firmSession(fixture, "later").raw("Edit", editTotal))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+  });
+
   test("once an edit was allowed the requirement is not asked about again; a declined edit is asked again", async () => {
     const fixture = createKibiWorkspace();
     const { raw, post } = firmSession(fixture);
@@ -1042,6 +1137,39 @@ describe("firm requirement confirmation", () => {
     await post("Edit", editTotal);
     expect(
       (await raw("Edit", { ...editTotal, old_string: "return Math.round" }))
+        .hookSpecificOutput?.permissionDecision,
+    ).toBeUndefined();
+  });
+
+  test("a declined edit is not approved by another edit of the same file landing", async () => {
+    const fixture = createKibiWorkspace();
+    // A real work tree, so the shell edit's changed file is seen.
+    commitAll(fixture);
+    const { raw, post } = firmSession(fixture);
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    // Declined; then an edit that changes no firm code lands in the file.
+    await post("Edit", {
+      file_path: "src/checkout.ts",
+      old_string: "return `$${total.toFixed(2)}`;",
+    });
+    expect(
+      (await raw("Edit", editTotal)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    // An allowed shell edit confirms the requirements its question named.
+    const shell = { command: SHELL_EDIT };
+    expect(
+      (await raw("Bash", shell)).hookSpecificOutput?.permissionDecision,
+    ).toBe("ask");
+    const file = path.join(fixture.root, "src/checkout.ts");
+    fs.writeFileSync(
+      file,
+      fs.readFileSync(file, "utf8").replaceAll("total", "sum"),
+    );
+    await post("Bash", shell);
+    expect(
+      (await raw("Edit", { ...editTotal, old_string: "let sum = 0;" }))
         .hookSpecificOutput?.permissionDecision,
     ).toBeUndefined();
   });
@@ -1111,6 +1239,43 @@ describe("decision capture", () => {
       { pluginData: fixture.pluginData, env: NO_FIRM_CONFIRM },
     );
 
+  test("a new session without an id is not silenced by an earlier one's state", async () => {
+    const fixture = createKibiWorkspace();
+    const anonymous = session(fixture, "");
+    await prompt(fixture, "Totals must never be negative.", "");
+    await anonymous.post("Edit", { file_path: "src/checkout.ts" });
+    expect(await anonymous.stop()).toContain(captureReminder("must"));
+    // A resume or compact is the same session: it was asked already.
+    for (const source of ["resume", "compact"]) {
+      await anonymous.call({ hook_event_name: "SessionStart", source });
+      await anonymous.post("Edit", { file_path: "src/checkout.ts" });
+      expect((await anonymous.stop()) ?? "").not.toContain("recorded nothing");
+    }
+    // A new session starts clean: no stale rule phrase, and it is asked.
+    await anonymous.call({
+      hook_event_name: "SessionStart",
+      source: "startup",
+    });
+    await anonymous.post("Edit", { file_path: "src/checkout.ts" });
+    expect(await anonymous.stop()).toContain(captureReminder(undefined));
+
+    // A prompt after an idle spell starts the session afresh too.
+    const journal = path.join(
+      sessionDir(
+        workspaceDataDir(fixture.pluginData, fixture.root),
+        "",
+      ) as string,
+      "session.jsonl",
+    );
+    await prompt(fixture, "Rename the helper.", "");
+    expect(await anonymous.stop()).toBeUndefined();
+    const idle = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    fs.utimesSync(journal, idle, idle);
+    await prompt(fixture, "Rename the helper.", "");
+    await anonymous.post("Edit", { file_path: "src/checkout.ts" });
+    expect(await anonymous.stop()).toContain(captureReminder(undefined));
+  });
+
   test("a request that reads as a rule is told, before the work, that recording it is part of the change", async () => {
     const fixture = createKibiWorkspace();
     const text = contextOf(
@@ -1120,7 +1285,7 @@ describe("decision capture", () => {
     expect(text).toContain(
       'Kibi: this request reads as a rule or decision (it says "from now on").',
     );
-    expect(text).toContain("recorded with kb_upsert");
+    expect(text).toContain("recorded with kb_record");
     expect(text).toContain("as part of this change, not after it");
     expect(await prompt(fixture, "Rename the helper to sum.")).toEqual({});
   });
@@ -1145,18 +1310,29 @@ describe("decision capture", () => {
     expect(other).toContain("nothing recorded is known to cover it");
   });
 
-  test("a session that changed source and recorded nothing is asked once at stop to record the decision or say there was none", async () => {
+  test("a rule session that changed source and recorded nothing is asked once at stop for the rule, quoting its phrase, with no way out", async () => {
     const fixture = createKibiWorkspace();
     await prompt(fixture, "Totals must never be negative.");
     const { post, stop } = session(fixture);
     await post("Edit", { file_path: "src/checkout.ts" });
     const text = await stop();
     expect(text).toStartWith(
-      "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base.",
+      [
+        'Kibi: the person\'s request said "must", this session changed source files, and nothing was recorded in the knowledge base.',
+        'Record the rule behind "must" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "must" is not a rule.',
+      ].join("\n"),
     );
-    expect(text).toContain("the final report says so in one line");
+    expect(text).not.toContain("when there was none");
     expect(text).toContain(IMPACT_REMINDER);
     expect(await stop()).toBeUndefined();
+
+    const plain = createKibiWorkspace();
+    await prompt(plain, "Rename the helper to sum.");
+    const noRule = session(plain);
+    await noRule.post("Edit", { file_path: "src/checkout.ts" });
+    expect(await noRule.stop()).toStartWith(
+      "Kibi: this session changed source files and recorded nothing in the knowledge base.\nA decision the person stated or this change made",
+    );
 
     const recorded = createKibiWorkspace();
     const withRecord = session(recorded);
@@ -1170,6 +1346,130 @@ describe("decision capture", () => {
       includeWorkingTreeDiff: true,
     });
     expect(await withRecord.stop()).toBeUndefined();
+  });
+
+  test("the first source edit of a rule session gets the kb_record capture template once", async () => {
+    const fixture = createKibiWorkspace();
+    await prompt(fixture, "Totals must never be negative.");
+    const { post } = session(fixture);
+    expect(await post("Edit", { file_path: "README.md" })).toEqual({});
+    const first = contextOf(
+      await post("Edit", { file_path: "src/checkout.ts" }),
+      "PostToolUse",
+    );
+    expect(first).toBe(ruleCaptureTemplate("must"));
+    expect(await post("Edit", { file_path: "src/checkout.ts" })).toEqual({});
+
+    // A reason the prompt gave is asked for in the template's why.
+    const reasoned = createKibiWorkspace();
+    await prompt(
+      reasoned,
+      "Totals must never be negative, because refunds break.",
+      "s-why",
+    );
+    expect(
+      contextOf(
+        await session(reasoned, "s-why").post("Edit", {
+          file_path: "src/checkout.ts",
+        }),
+        "PostToolUse",
+      ),
+    ).toBe(ruleCaptureTemplate("must", "because refunds break"));
+
+    // A shell write is a source edit too.
+    const shell = createKibiWorkspace();
+    commitAll(shell);
+    await prompt(shell, "Totals must never be negative.", "s-sh");
+    const viaShell = session(shell, "s-sh");
+    await viaShell.pre("Bash", { command: "sed -i s/a/b/ src/refunds.ts" });
+    write(shell.root, "src/refunds.ts", "export const refund = 1;\n");
+    // The unlinked file's note comes first; the template waits for the next
+    // source edit, so one context stays within the budget.
+    const unlinked = contextOf(
+      await viaShell.post("Bash", {
+        command: "sed -i s/a/b/ src/refunds.ts",
+      }),
+      "PostToolUse",
+    );
+    expect(unlinked).toContain("src/refunds.ts");
+    expect(unlinked).not.toContain("fill in this template");
+    await viaShell.pre("Bash", { command: "sed -i s/b/c/ src/refunds.ts" });
+    write(shell.root, "src/refunds.ts", "export const refund = 2;\n");
+    expect(
+      contextOf(
+        await viaShell.post("Bash", {
+          command: "sed -i s/b/c/ src/refunds.ts",
+        }),
+        "PostToolUse",
+      ),
+    ).toBe(ruleCaptureTemplate("must"));
+
+    // A shell command that changes a test file and a source file, or runs
+    // a Kibi lookup that is not a write, still gets the template.
+    for (const command of [
+      "sed -i s/a/b/ tests/checkout.test.ts src/checkout.ts",
+      "npx --no-install kibi search --input q.json && sed -i s/a/b/ src/checkout.ts",
+    ]) {
+      const mixed = createKibiWorkspace();
+      commitAll(mixed);
+      await prompt(mixed, "Totals must never be negative.", "s-mix");
+      const run = session(mixed, "s-mix");
+      // The files' knowledge was shown before the edit, so the shell edit
+      // has no note of its own.
+      await run.pre("Edit", { file_path: "src/checkout.ts" });
+      await run.pre("Edit", { file_path: "tests/checkout.test.ts" });
+      await run.pre("Bash", { command });
+      write(mixed.root, "tests/checkout.test.ts", "// changed\n");
+      write(mixed.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// mixed\n`);
+      expect(
+        contextOf(await run.post("Bash", { command }), "PostToolUse"),
+      ).toContain(ruleCaptureTemplate("must"));
+    }
+
+    // No template without a rule, or once something is recorded.
+    const plain = createKibiWorkspace();
+    await prompt(plain, "Rename the helper to sum.");
+    expect(
+      await session(plain).post("Edit", { file_path: "src/checkout.ts" }),
+    ).toEqual({});
+    // A dry-run upsert records nothing: the template and the stop
+    // reminder still come.
+    const dry = createKibiWorkspace();
+    await prompt(dry, "Totals must never be negative.");
+    const withDryRun = session(dry);
+    await withDryRun.post("mcp__kibi__kb_upsert", {
+      type: "req",
+      id: "REQ-x",
+      dryRun: true,
+    });
+    expect(
+      contextOf(
+        await withDryRun.post("Edit", { file_path: "src/checkout.ts" }),
+        "PostToolUse",
+      ),
+    ).toBe(ruleCaptureTemplate("must"));
+    expect(await withDryRun.stop()).toContain(
+      'the person\'s request said "must"',
+    );
+    const recorded = createKibiWorkspace();
+    await prompt(recorded, "Totals must never be negative.");
+    const withRecord = session(recorded);
+    await withRecord.post("mcp__kibi__kb_upsert", { type: "req", id: "REQ-x" });
+    expect(
+      await withRecord.post("Edit", { file_path: "src/checkout.ts" }),
+    ).toEqual({});
+    // A shell command that records and edits at once is not sent the template.
+    const both = createKibiWorkspace();
+    commitAll(both);
+    await prompt(both, "Totals must never be negative.", "s-both");
+    const together = session(both, "s-both");
+    const command =
+      "sed -i s/a/b/ src/checkout.ts && npx --no-install kibi upsert --input req.json";
+    await together.pre("Bash", { command });
+    write(both.root, "src/checkout.ts", `${CHECKOUT_SOURCE}// both\n`);
+    expect(
+      contextOf(await together.post("Bash", { command }), "PostToolUse") ?? "",
+    ).not.toContain("fill in this template");
   });
 
   test("a session that wrote a requirement is asked once at stop for a signoff view, unless kibi signoff ran since", async () => {
@@ -1191,6 +1491,22 @@ describe("decision capture", () => {
       dryRun: true,
     });
     expect(await preview.stop()).toBeUndefined();
+
+    // kb_record writes a requirement through kb_upsert; its dry run does not.
+    const recorded = createKibiWorkspace();
+    const viaRecord = session(recorded);
+    await viaRecord.post("mcp__kibi__kb_record", {
+      statement: "Totals stay positive.",
+      saidBy: "user",
+    });
+    expect(await viaRecord.stop()).toContain("run `kibi signoff`");
+    const recordPreview = session(createKibiWorkspace());
+    await recordPreview.post("mcp__kibi__kb_record", {
+      statement: "Totals stay positive.",
+      saidBy: "user",
+      dryRun: true,
+    });
+    expect(await recordPreview.stop()).toBeUndefined();
 
     const shown = createKibiWorkspace();
     const withView = session(shown);

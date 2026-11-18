@@ -1,7 +1,10 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
 import type { JsonInvocation } from "./cli-json-command.js";
-import { getCliOperationMetadata } from "./cli-operation-metadata.js";
+import {
+  commandSummary,
+  getCliOperationMetadata,
+} from "./cli-operation-metadata.js";
 import type { checkCommand } from "./commands/check.js";
 import {
   KB_OPTION_DESCRIPTION,
@@ -11,6 +14,34 @@ import {
 async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
   const executor = await import("./cli-json-command.js");
   await executor.runJsonInvocation(invocation);
+}
+
+/**
+ * kibi check --changed: the staged gate over a scratch index holding the
+ * working tree plus the index (only the named paths and .kb when paths are
+ * given), so the real index is never written. Like the pre-commit hook, it
+ * runs the generated-manifest check before the staged check, and fails when
+ * either does; the generated check's problems go to stderr.
+ */
+export async function runChangedCheck(
+  changed: boolean | string[],
+  checkOptions: Parameters<typeof checkCommand>[0],
+): Promise<Awaited<ReturnType<typeof checkCommand>>> {
+  const { withChangedIndex } = await import("./traceability/changed-index.js");
+  return withChangedIndex(
+    process.cwd(),
+    Array.isArray(changed) ? changed : undefined,
+    async () => {
+      const generated = await (
+        await import("./commands/check-generated.js")
+      ).checkGeneratedManifests({ changedOnly: true, quiet: true });
+      const result = await (await import("./commands/check.js")).checkCommand({
+        ...checkOptions,
+        staged: true,
+      });
+      return generated.exitCode === 0 ? result : { exitCode: 1 };
+    },
+  );
 }
 
 export function registerReportingCommands(program: Command): void {
@@ -36,6 +67,9 @@ export function registerReportingCommands(program: Command): void {
     .command("find-gaps [type]")
     .alias("gaps")
     .description(getCliOperationMetadata("kb_find_gaps").description)
+    .summary(
+      commandSummary(getCliOperationMetadata("kb_find_gaps").description),
+    )
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option(
       "--missing-rel <rels>",
@@ -121,6 +155,7 @@ export function registerReportingCommands(program: Command): void {
   program
     .command("coverage")
     .description(getCliOperationMetadata("kb_coverage").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_coverage").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--by <group>", "Coverage mode: req|symbol|type", "req")
     .option("--tag <tags>", "Comma-separated tag filter")
@@ -180,6 +215,7 @@ export function registerReportingCommands(program: Command): void {
   program
     .command("graph")
     .description(getCliOperationMetadata("kb_graph").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_graph").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option("--from <ids>", "Comma-separated seed IDs")
     .option("--relationships <rels>", "Comma-separated relationship filter")
@@ -210,6 +246,7 @@ export function registerReportingCommands(program: Command): void {
   program
     .command("check")
     .description(getCliOperationMetadata("kb_check").description)
+    .summary(commandSummary(getCliOperationMetadata("kb_check").description))
     .option("--input <path>", "JSON input file (use - for stdin)")
     .option(
       "--fix",
@@ -222,6 +259,10 @@ export function registerReportingCommands(program: Command): void {
     .option("--rules <csv>", "Comma-separated allowlist of rule names to run")
     .option("--staged", "Run check only against staged changes (experimental)")
     .option(
+      "--changed [paths...]",
+      "Judge the working tree plus the index as the commit gate would (--staged over a scratch index; the real index is untouched). Paths limit it to those files and .kb",
+    )
+    .option(
       "--min-links <n>",
       "Minimum number of links required for symbol coverage",
       "1",
@@ -231,6 +272,10 @@ export function registerReportingCommands(program: Command): void {
     .option(
       "--fresh-evidence",
       "evidence-floor judges receipts as they are (stale receipts fail) and needs a clean proof snapshot; run it after kibi prove",
+    )
+    .option(
+      "--symbol-debt",
+      "List the unrecorded declarations per file (a full check reports only their count)",
     )
     .option(
       "--write-certificates <file>",
@@ -245,6 +290,7 @@ export function registerReportingCommands(program: Command): void {
         async (
           options: Parameters<typeof checkCommand>[0] & {
             input?: string;
+            changed?: boolean | string[];
             writeCertificates?: string;
             certificates?: string;
           },
@@ -262,6 +308,7 @@ export function registerReportingCommands(program: Command): void {
             if (
               options.writeCertificates !== undefined ||
               options.staged ||
+              options.changed !== undefined ||
               options.rules !== undefined
             )
               throw new Error(
@@ -274,11 +321,16 @@ export function registerReportingCommands(program: Command): void {
               json: options.format === "json",
             });
           }
-          if (options.writeCertificates !== undefined && options.staged)
+          if (
+            options.writeCertificates !== undefined &&
+            (options.staged || options.changed !== undefined)
+          )
             throw new Error(
-              "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged",
+              "check: --write-certificates saves the full KB's bundle; it cannot be combined with --staged or --changed",
             );
-          const { writeCertificates, ...checkOptions } = options;
+          const { writeCertificates, changed, ...checkOptions } = options;
+          if (changed !== undefined)
+            return runChangedCheck(changed, checkOptions);
           const result = await (
             await import("./commands/check.js")
           ).checkCommand(checkOptions);

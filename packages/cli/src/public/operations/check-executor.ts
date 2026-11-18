@@ -29,21 +29,29 @@ import {
   collectFullKbQualityDiagnostics,
 } from "../impact-diagnostics.js";
 import {
+  type ChangedGateRunner,
+  executeChangedCheck,
+} from "./changed-check.js";
+import {
   type CheckDiagnostic,
   type CheckEvaluated,
   type CheckStructuredContent,
   buildStructuredContent,
   buildSummary,
+  describeEvaluatedRules,
+  fitScopedCheckToBudget,
 } from "./check-format-shared.js";
 import {
   SCOPED_CHECK_OMITTED_ID,
   analyzeKbCheckImpact,
+  changedKbEntityIds,
   collectQueryPlanSafetyViolations,
   getEffectiveRules,
   partitionCheckFindings,
   qualityDiagnosticsFromImpact,
   resolveCheckRules,
   scopeQualityDiagnosticsToImpact,
+  scopeViolationsToImpact,
   stagedEntityIdStyleDiagnostics,
 } from "./check-helpers.js";
 import { collectCheckPolicyViolations } from "./check-policy-rules.js";
@@ -51,6 +59,7 @@ import { collectDecisionFirmnessViolations } from "./decision-firmness.js";
 import { executeStatus } from "./discovery-executors.js";
 import { collectEntityContextViolations } from "./entity-context.js";
 import { collectEvidenceFloorViolations } from "./evidence-floor.js";
+import { tagBlocks } from "./finding-blocks.js";
 import {
   buildActionsFromCheck,
   buildMigrationPlan,
@@ -60,7 +69,9 @@ import { collectOriginReviewViolations } from "./origin-review.js";
 import { collectPositiveScenarioViolations } from "./positive-scenario.js";
 import { collectPredicateSchemaConformanceViolations } from "./predicate-schema-conformance.js";
 import { collectProofContractClaimViolations } from "./proof-contract-claims.js";
+import { collectQuantityDuplicateViolations } from "./quantity-layer.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
+import { openSourceAnalysisCache } from "./source-analysis-cache.js";
 import {
   SOURCE_PATH_DANGLING_RULE,
   collectSourcePathDanglingViolations,
@@ -68,6 +79,11 @@ import {
 import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
 import { collectSubjectLayerViolations } from "./subject-layer.js";
 import { collectSymbolCoordinatesMissingViolations } from "./symbol-coordinates-check.js";
+import {
+  type SymbolDebt,
+  collectSymbolDebt,
+  symbolDebtListing,
+} from "./symbol-debt.js";
 import { collectSymbolGranularityViolations } from "./symbol-granularity-check.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -77,11 +93,21 @@ export type CheckInput = {
   readonly workspaceRoot?: string;
   readonly sourceFiles?: readonly string[];
   readonly staged?: boolean;
+  /**
+   * Run the commit gate (kibi check --staged) over the working tree plus
+   * the index instead of the KB rules; with sourceFiles, only those files
+   * and .kb are added to the index it judges.
+   */
+  readonly changed?: boolean;
   readonly includeWorkingTreeDiff?: boolean;
   readonly includeImpactDiagnostics?: boolean;
   readonly maxDiagnostics?: number;
   /** evidence-floor judges receipts as they are and needs a clean snapshot. */
   readonly freshEvidence?: boolean;
+  /** A scoped check returns the full migration plan instead of its summary. */
+  readonly includeMigrationPlan?: boolean;
+  /** An unscoped check lists its symbol debt per file, not only as counts. */
+  readonly includeSymbolDebt?: boolean;
 };
 
 export type CheckPayload = CheckStructuredContent;
@@ -103,25 +129,31 @@ export type CheckExecutionOptions = {
    * test store) and the branch-store compilation check is skipped.
    */
   readonly branchStoreAttached?: boolean;
+  /** Runs the commit gate for `changed: true` (tests inject one). */
+  readonly changedGateRunner?: ChangedGateRunner;
+  /**
+   * Every finding in full, past the size budget a check without a rule
+   * selection keeps (the `kibi check` command prints them all).
+   */
+  readonly fullListing?: boolean;
 };
 
 /**
- * What this run evaluated: the rules that ran, in registry order, and for
- * `domain-contradictions` the number of requirement fact pairs the rule
- * compared, read from the engine after the rules ran on the same store. A
- * count the engine cannot give (an older engine) is left out rather than
- * reported as zero.
+ * What this run evaluated: how many rules ran (named, in registry order,
+ * only when a default rule did not), and for `domain-contradictions` the
+ * number of requirement fact pairs the rule compared, read from the engine
+ * after the rules ran on the same store. A count the engine cannot give (an
+ * older engine) is left out rather than reported as zero.
  */
 async function describeEvaluation(
   prolog: PrologPort,
   rules: ReadonlySet<string>,
 ): Promise<CheckEvaluated> {
   const evaluated: {
-    rules: string[];
+    ruleCount: number;
+    rules?: readonly string[];
     domainContradictions?: { factPairsExamined: number };
-  } = {
-    rules: [...rules],
-  };
+  } = describeEvaluatedRules(rules);
   if (!rules.has("domain-contradictions")) return evaluated;
   try {
     const result = await prolog.query(
@@ -238,6 +270,15 @@ export function uncompiledBranchStoreViolation(
  * the place to keep parsed source analyses. A read-only detached snapshot
  * and an unknown store (an explicit --kb-path) get no cache.
  */
+/** The summary with one non-blocking sentence about unrecorded declarations. */
+export function withSymbolDebtSummary(
+  debt: SymbolDebt | undefined,
+  summary: string,
+): string {
+  if (debt === undefined || debt.total === 0) return summary;
+  return `${summary}\nSymbol records (not blocking): ${debt.total} declaration(s) in ${debt.fileCount} file(s) with symbol records have none; a commit is judged on them only when it adds or changes them.${debt.files === undefined ? " includeSymbolDebt: true lists them." : ""}`;
+}
+
 export function analysisCacheDir(
   context: OperationContext,
   workspaceRoot: string,
@@ -268,6 +309,12 @@ export async function executeCheck(
 ): Promise<OperationResult<CheckPayload>> {
   try {
     const workspaceRoot = args.workspaceRoot ?? context.workspaceRoot;
+    if (args.changed === true)
+      return (await executeChangedCheck(
+        workspaceRoot,
+        args.sourceFiles,
+        options.changedGateRunner,
+      )) as unknown as OperationResult<CheckPayload>;
     const prolog = requireProlog(context);
     const snapshotEvidence = await readWorkspaceSnapshot(context);
     const proofSnapshot = snapshotEvidence.available
@@ -307,7 +354,9 @@ export async function executeCheck(
         statusPlan,
       );
       // Every store-backed rule was skipped: only this one was evaluated.
-      const evaluated = { rules: [BRANCH_STORE_NOT_COMPILED_RULE] };
+      const evaluated = describeEvaluatedRules([
+        BRANCH_STORE_NOT_COMPILED_RULE,
+      ]);
       return {
         content: [
           {
@@ -368,7 +417,7 @@ export async function executeCheck(
         statusPlan,
         impactResult,
       );
-      const evaluated = { rules: [] };
+      const evaluated = describeEvaluatedRules([]);
       return {
         content: [
           {
@@ -416,11 +465,17 @@ export async function executeCheck(
     const sourcePathFindings = rulesAllowlist.has(SOURCE_PATH_DANGLING_RULE)
       ? collectSourcePathDanglingViolations(workspaceRoot)
       : [];
+    // One analysis cache serves every step that parses sources and is saved
+    // once, after the last of them.
+    const analysisCache = openSourceAnalysisCache(
+      analysisCacheDir(context, workspaceRoot, options),
+      workspaceRoot,
+    );
     const symbolGranularityFindings = await collectSymbolGranularityViolations(
       prolog,
       workspaceRoot,
       rulesAllowlist,
-      analysisCacheDir(context, workspaceRoot, options),
+      analysisCache,
     );
     const symbolCoordinateFindings =
       await collectSymbolCoordinatesMissingViolations(
@@ -438,6 +493,10 @@ export async function executeCheck(
       workspaceRoot,
     );
     const subjectLayerFindings = collectSubjectLayerViolations(
+      rulesAllowlist,
+      workspaceRoot,
+    );
+    const quantityFindings = collectQuantityDuplicateViolations(
       rulesAllowlist,
       workspaceRoot,
     );
@@ -476,14 +535,30 @@ export async function executeCheck(
       ...originReviewFindings,
       ...entityContextFindings,
       ...subjectLayerFindings,
+      ...quantityFindings,
       ...decisionFirmnessFindings,
       ...checkPolicyFindings,
       ...evidenceFloorFindings,
       ...proofContractClaimFindings,
       ...positiveScenarioFindings,
     ]);
-    const violations: Violation[] = partitioned.violations;
+    const allViolations: Violation[] = partitioned.violations;
     const evaluated = await describeEvaluation(prolog, rulesAllowlist);
+    // A check scoped to sourceFiles answers about those files: blocking
+    // findings elsewhere are counted, not listed (kb_check without
+    // sourceFiles lists them all).
+    const scoped =
+      impactResult !== undefined &&
+      args.sourceFiles !== undefined &&
+      !hasExplicitRules;
+    const violationScope = scoped
+      ? scopeViolationsToImpact(
+          allViolations,
+          impactResult,
+          changedKbEntityIds(workspaceRoot),
+        )
+      : undefined;
+    const violations: Violation[] = violationScope?.kept ?? allViolations;
 
     const diagnostics: CheckDiagnostic[] = violations.map((v) => ({
       category: "SYNC_ERROR",
@@ -502,7 +577,9 @@ export async function executeCheck(
         ? impactQualityDiagnostics
         : await collectFullKbQualityDiagnostics({
             prolog,
-            hardViolationEntityIds: new Set(violations.map((v) => v.entityId)),
+            hardViolationEntityIds: new Set(
+              allViolations.map((v) => v.entityId),
+            ),
             workspaceRoot,
             ...(proofSnapshot !== undefined ? { proofSnapshot } : {}),
             checkedAt,
@@ -512,22 +589,23 @@ export async function executeCheck(
           });
     // A check scoped to sourceFiles answers about those files; the KB-wide
     // advisory scan only lists what concerns them.
-    const advisoryQualityDiagnostics =
-      impactResult && args.sourceFiles !== undefined && !hasExplicitRules
-        ? scopeQualityDiagnosticsToImpact(
-            partitioned.qualityDiagnostics,
-            impactResult,
-          )
-        : partitioned.qualityDiagnostics;
+    const advisoryQualityDiagnostics = scoped
+      ? scopeQualityDiagnosticsToImpact(
+          partitioned.qualityDiagnostics,
+          impactResult,
+        )
+      : partitioned.qualityDiagnostics;
     const qualityDiagnostics = [
       ...advisoryQualityDiagnostics,
       ...extraQualityDiagnostics,
     ];
 
     const statusPlan = await readStatusMigrationPlan(context);
+    // The plan repairs every finding, so a scoped check plans from all of
+    // them too; it shows the plan's summary unless asked for the plan.
     const migrationPlan = await migrationPlanForCheck(
       context,
-      violations,
+      allViolations,
       // The omitted-findings count is a pointer, not a repair to plan.
       qualityDiagnostics.filter(
         (diagnostic) => diagnostic.id !== SCOPED_CHECK_OMITTED_ID,
@@ -535,29 +613,101 @@ export async function executeCheck(
       statusPlan,
       impactResult,
     );
+    const structured = buildStructuredContent({
+      violations,
+      evaluated,
+      diagnostics,
+      qualityDiagnostics,
+      impactResult,
+      migrationPlan,
+      ...(violationScope?.omitted !== undefined
+        ? { omittedViolations: violationScope.omitted }
+        : {}),
+      ...(scoped && args.includeMigrationPlan !== true
+        ? { summarizePlan: true }
+        : {}),
+    });
+    // Only a check with no rule or file scope reports the repository's
+    // unrecorded declarations: it is the one that answers for the whole KB.
+    // The debt never blocks, so an engine that cannot project it leaves the
+    // field out instead of failing the check.
+    const symbolDebt =
+      !hasExplicitRules && args.sourceFiles === undefined
+        ? await collectSymbolDebt(prolog, workspaceRoot, analysisCache)
+            .then((debt) =>
+              symbolDebtListing(debt, args.includeSymbolDebt === true),
+            )
+            .catch(() => undefined)
+        : undefined;
+    analysisCache?.save();
+    // A rule selection lists its findings in full; any other check keeps to
+    // the size budget, and the debt list, when asked for, comes on top.
+    const fitted =
+      hasExplicitRules || options.fullListing === true
+        ? structured
+        : fitScopedCheckToBudget(
+            // Tagged before the cut, so the budget counts the tags.
+            withMergeBlocks(structured),
+            undefined,
+            scoped,
+            args.includeMigrationPlan === true,
+          );
+    const structuredContent = withMergeBlocks(
+      symbolDebt !== undefined ? { ...fitted, symbolDebt } : fitted,
+    );
     return {
       content: [
         {
           type: "text",
-          text: buildSummary({
-            violations,
-            evaluated,
-            impactResult,
-            qualityDiagnostics,
-          }),
+          text: withSymbolDebtSummary(
+            symbolDebt,
+            buildSummary({
+              violations: structuredContent.violations,
+              evaluated,
+              impactResult,
+              qualityDiagnostics: structuredContent.qualityDiagnostics ?? [],
+              ...(structuredContent.violationGroups !== undefined
+                ? { violationGroups: structuredContent.violationGroups }
+                : {}),
+              ...(structuredContent.omittedViolations !== undefined
+                ? { omittedViolations: structuredContent.omittedViolations }
+                : {}),
+              ...(structuredContent.truncation !== undefined
+                ? { truncation: structuredContent.truncation }
+                : {}),
+            }),
+          ),
         },
       ],
-      structuredContent: buildStructuredContent({
-        violations,
-        evaluated,
-        diagnostics,
-        qualityDiagnostics,
-        impactResult,
-        migrationPlan,
-      }),
+      structuredContent,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Check execution failed: ${message}`);
   }
+}
+
+/**
+ * Tags each finding of the full check with what it stops: a violation or
+ * blocking quality diagnostic fails the merge check, a blocking impact
+ * diagnostic is one the commit gate refuses, and the rest are advice.
+ * `diagnostics` restates the violations for the result envelope, whose
+ * schema is fixed, so it is left as it is.
+ */
+export function withMergeBlocks(
+  content: CheckStructuredContent,
+): CheckStructuredContent {
+  return {
+    ...content,
+    violations: tagBlocks(content.violations, "merge", true),
+    ...(content.qualityDiagnostics !== undefined
+      ? { qualityDiagnostics: tagBlocks(content.qualityDiagnostics, "merge") }
+      : {}),
+    ...(content.impactDiagnostics !== undefined
+      ? { impactDiagnostics: tagBlocks(content.impactDiagnostics, "commit") }
+      : {}),
+    ...(content.violationGroups !== undefined
+      ? { violationGroups: tagBlocks(content.violationGroups, "merge", true) }
+      : {}),
+  };
 }

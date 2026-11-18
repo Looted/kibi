@@ -124,6 +124,25 @@ describe("editFocus", () => {
     expect(editFocus(target, { edits: "first" })).toBeUndefined();
   });
 
+  test("an edit with replace_all is located at every match, others at the first", () => {
+    const dir = tempDir();
+    const target = path.join(dir, "b.ts");
+    fs.writeFileSync(target, "total\nx\ntotal\ntotal\n");
+    expect(
+      editFocus(target, { old_string: "total", replace_all: true }),
+    ).toStrictEqual([
+      { start: 1, end: 1 },
+      { start: 3, end: 3 },
+      { start: 4, end: 4 },
+    ]);
+    expect(
+      editFocus(target, { edits: [{ oldString: "total", replaceAll: true }] }),
+    ).toHaveLength(3);
+    expect(
+      editFocus(target, { old_string: "total", replace_all: "yes" }),
+    ).toStrictEqual([{ start: 1, end: 1 }]);
+  });
+
   test("empty, missing or unfound needles and unreadable files give nothing", () => {
     const target = file();
     for (const input of [
@@ -159,6 +178,15 @@ describe("editFocus", () => {
 describe("describeEntity", () => {
   test("retired and firmness labels, titles cut at 80", () => {
     expect(isRetiredStatus(undefined)).toBe(false);
+    // The commit gate shares this predicate. A closed requirement is done
+    // and still governs, so it guards its code in hooks and the gate alike.
+    for (const status of ["archived", "removed", "superseded", "retired"])
+      expect(isRetiredStatus(status)).toBe(true);
+    for (const status of ["open", "closed", "approved", "in_progress"])
+      expect(isRetiredStatus(status)).toBe(false);
+    expect(
+      describeEntity({ id: "R", status: "closed", firmness: "firm" }),
+    ).toBe("R [firm: ask before changing]");
     expect(describeEntity({ id: "R", status: "Deprecated" })).toBe(
       "R (Deprecated)",
     );
@@ -220,7 +248,7 @@ describe("unowned and unreadable notes", () => {
     ).toEqual([
       "Kibi: no symbol in src/a.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
       'Requirements whose titles share words with this path or the request: REQ-a: A; REQ-b: B. kb_query({id:"REQ-a"}) shows whether one describes the behavior being changed; one that does is traced by an implements link from the symbol that implements it (for markup, the component that renders it).',
-      'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/a.ts"}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + scenario + symbol implements link) as part of the change.',
+      'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/a.ts"}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_record (statement, why, who said it, code) as part of the change.',
     ]);
   });
 
@@ -242,7 +270,7 @@ describe("unowned and unreadable notes", () => {
     expect(unownedSourceNote("a.ts").split("\n")).toEqual([
       "Kibi: no symbol in a.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
       "No requirement title matches this file, so nothing recorded is known to cover it.",
-      'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"a.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.',
+      'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"a.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_record (statement, why, who said it, code) before the work is reported done.',
     ]);
   });
 
@@ -494,7 +522,7 @@ describe("fileKnowledgeSnippet", () => {
       "Test code for: R1.",
       "The edit is inside helper.",
       'Next layer: kb_search({query:"<topic>", sourceLocations:[{path:"a.ts", symbol:"helper"}]}) answers with governing requirements, facts, decisions, and tests.',
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["a.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
     expect(
       fileKnowledgeSnippet({

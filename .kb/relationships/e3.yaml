@@ -391,3 +391,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a2f56e2d6eb1
+  - type: covered_by
+    from: SYM-const-proof-test-report-env
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T08:23:49.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80dc42c0ee10
+  - type: assumes
+    from: SCEN-mcp-short-field-descriptions
+    to: FACT-mcp-field-descriptions-over-limit
+    created_at: 2026-11-16T06:40:13.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-613f26238674
+  - type: assumes
+    from: SCEN-mcp-short-field-descriptions
+    to: FACT-mcp-field-descriptions-missing-from-skills
+    created_at: 2026-11-16T06:40:13.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a84d07fe1ff1
+  - type: verified_by
+    from: SCEN-mcp-short-field-descriptions
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:13.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fb304f8b994
+  - type: covered_by
+    from: SYM-mcp-BOOTSTRAP_TOOLS
+    to: TEST-proof-mcp-bootstrap-tools
+    created_at: 2026-11-16T22:38:10.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe6697d236b4
+  - type: implements
+    from: SYM-agent-instructions-report-agent-instructions
+    to: REQ-init-gemini-instructions
+    created_at: 2026-11-16T16:37:34.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91d032a7fa23
+  - type: covered_by
+    from: SYM-agent-instructions-report-agent-instructions
+    to: TEST-init-gemini-instructions
+    created_at: 2026-11-16T16:37:34.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3c4d1694ebb
+  - type: executable_for
+    from: SYM-test-ci-proof-reuse-decide-before-wait
+    to: TEST-ci-proof-reuse-decide-before-wait
+    created_at: 2026-11-17T10:51:36.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6056c9b40dd

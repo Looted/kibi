@@ -181,3 +181,143 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92ee7b06eea5
+  - type: constrains
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-15T20:20:32.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aad7237626fc
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-derives-ledger-when-contract-omitted
+    created_at: 2026-11-15T20:20:32.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a335d2d32bf6
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-derived-modeled-needs-grounding
+    created_at: 2026-11-15T20:20:32.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3b381145f7d
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-derived-keeps-writer-judgment
+    created_at: 2026-11-15T20:20:32.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6b9fc860d95
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-unclassified-claim-missing
+    created_at: 2026-11-15T20:20:32.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04c5e38b83f2
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-unstated-entry-refused
+    created_at: 2026-11-15T20:20:32.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3f425cb1158
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-sent-contract-checked-as-sent
+    created_at: 2026-11-15T20:20:32.546Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd02e70935c7
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-accepted-write-unchanged
+    created_at: 2026-11-15T20:20:32.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32464be27f59
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-recorded-claims-listed
+    created_at: 2026-11-15T20:20:32.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17c4fbbd2f8e
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-committed-advisor-verdict
+    created_at: 2026-11-15T20:20:32.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea157c66bedd
+  - type: specified_by
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: SCEN-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:32.600Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-057ad393da3a
+  - type: specified_by
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNSTATED-ENTRY
+    created_at: 2026-11-15T20:20:32.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a748e34b837
+  - type: specified_by
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNLISTED-CLAIM
+    created_at: 2026-11-15T20:20:32.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c70151b3cccc
+  - type: specified_by
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNGROUNDED-MODELED
+    created_at: 2026-11-15T20:20:32.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcb3987e895a
+  - type: relates_to
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: REQ-kibi-complete-proposition-ledgers
+    created_at: 2026-11-15T20:20:32.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fb39e5a68d0
+  - type: relates_to
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: REQ-kb-upsert-ledger-contract-in-error
+    created_at: 2026-11-15T20:20:32.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a6538e5404d
+  - type: specified_by
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: SCEN-NEG-kb-upsert-derives-proposition-ledger-SENT-FIELD-CHANGED
+    created_at: 2026-11-15T20:24:05.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf3d20df613e
+  - type: requires_property
+    from: REQ-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-checked-as-sent-fields
+    created_at: 2026-11-16T11:03:09.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0703f2343a19
+  - type: assumes
+    from: SCEN-kb-record-upsert-equivalence
+    to: FACT-kb-record-one-upsert-payload
+    created_at: 2026-11-17T06:42:46.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fce70541a75
+  - type: assumes
+    from: SCEN-kb-record-upsert-equivalence
+    to: FACT-kb-record-upsert-equivalence
+    created_at: 2026-11-17T06:42:46.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36f22562cc35

@@ -447,3 +447,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8ccc03d0da3
+  - type: assumes
+    from: SCEN-search-answer-gives-recorded-reason
+    to: FACT-search-answer-gives-recorded-reason
+    created_at: 2026-11-16T10:21:10.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c7f912220b0
+  - type: verified_by
+    from: SCEN-search-answer-gives-recorded-reason
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T10:21:10.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f301efaf5031
+  - type: specified_by
+    from: REQ-check-changed-commit-verdict
+    to: SCEN-check-changed-commit-verdict
+    created_at: 2026-11-16T19:28:59.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-802d903dafe8
+  - type: specified_by
+    from: REQ-check-changed-commit-verdict
+    to: SCEN-NEG-check-changed-commit-verdict-DIFFERS
+    created_at: 2026-11-16T19:28:59.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27ae3e54f5cf
+  - type: verified_by
+    from: REQ-check-changed-commit-verdict
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T19:28:59.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3fce047f355
+  - type: constrains
+    from: REQ-check-changed-commit-verdict
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-16T19:28:59.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a981c323026
+  - type: requires_property
+    from: REQ-check-changed-commit-verdict
+    to: FACT-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:00.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efe3d02b92d5
+  - type: implements
+    from: SYM-cli-quantity-duplicate-quantity-duplicate-action-prefix
+    to: REQ-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T16:11:54.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11c6570aaa2a
+  - type: covered_by
+    from: SYM-cli-quantity-duplicate-quantity-duplicate-action-prefix
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:54.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8173b62b788

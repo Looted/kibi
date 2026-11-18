@@ -293,3 +293,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e9dbdeee401
+  - type: assumes
+    from: SCEN-search-answer-marks-missing-reason
+    to: FACT-search-answer-marks-missing-reason
+    created_at: 2026-11-16T10:21:11.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03000209fdee
+  - type: verified_by
+    from: SCEN-search-answer-marks-missing-reason
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T10:21:11.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-870c837e3333
+  - type: assumes
+    from: SCEN-search-compact-evidence
+    to: FACT-search-compact-evidence
+    created_at: 2026-11-16T15:42:08.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c34acfb30160
+  - type: verified_by
+    from: SCEN-search-compact-evidence
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:42:08.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac8e28c39bf5
+  - type: executable_for
+    from: SYM-test-cli-prove-empty-selection
+    to: TEST-cli-prove-empty-selection
+    created_at: 2026-11-16T13:35:48.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f548f5cf70d
+  - type: constrains
+    from: REQ-check-quantity-duplicate-distinct-from
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:17.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-815c4b0fae4e
+  - type: requires_property
+    from: REQ-check-quantity-duplicate-distinct-from
+    to: FACT-check-quantity-duplicate-distinct-from
+    created_at: 2026-11-16T16:10:17.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e2af1374724
+  - type: specified_by
+    from: REQ-check-quantity-duplicate-distinct-from
+    to: SCEN-check-quantity-duplicate-distinct-from
+    created_at: 2026-11-16T16:10:17.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fe4f8cbbb34
+  - type: specified_by
+    from: REQ-check-quantity-duplicate-distinct-from
+    to: SCEN-NEG-check-quantity-duplicate-distinct-from-REPORTED
+    created_at: 2026-11-16T16:10:17.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9612ce56b0b8

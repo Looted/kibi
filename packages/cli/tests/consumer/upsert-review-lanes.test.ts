@@ -202,7 +202,7 @@ describe("kb_upsert judges a requirement update as its file will read", () => {
   const ID = "REQ-export-retention";
   const PROSE = "Each export must stay downloadable for thirty days.";
 
-  test("refuses making an inventory-less requirement current and accepts it with the inventory", () => {
+  test("derives the ledger of an inventory-less requirement made current, and refuses a stale sent contract", () => {
     const workspace = createConsumerWorkspace("kibi-upsert-stored-boundary-");
     ws = workspace;
     workspace.write(
@@ -211,58 +211,39 @@ describe("kb_upsert judges a requirement update as its file will read", () => {
     );
     workspace.sync();
 
-    // The payload alone carries no prose, but the file it leaves is a closed
-    // (current) requirement whose prose has no inventory.
-    const closed = workspace.json(["upsert"], {
-      type: "req",
-      id: ID,
-      properties: { title: "Export retention", status: "closed" },
-    });
-    expect(closed.status).toBe("error");
-    const message = JSON.stringify(closed.error);
-    expect(message).toContain("Proposition-complete ingestion failed");
-    expect(message).toContain(
-      `${ID} would be written as a current requirement`,
-    );
-    expect(message).toContain("semantic_inventory must contain exactly 1");
-    expect(message).toContain(`with id '${ID}'`);
-    expect(workspace.read(`.kb/requirements/${ID}.md`)).toContain(
-      "status: draft",
-    );
-
-    const analysis = workspace.json(["model"], {
-      mode: "analyze",
-      type: "req",
-      id: ID,
-      text: PROSE,
-    });
-    const receipt = (analysis.data as Json).receipt as Json;
-    const contract = receipt.inventory_contract as Json;
-    const propositions = receipt.propositions as Json[];
-    expect(propositions).toHaveLength(1);
-    const accepted = workspace.json(["upsert"], {
+    // A contract field sent with the write is judged as sent: a hash for
+    // other prose leaves the closed (current) file without a valid
+    // inventory, so the write is refused and the file is unchanged.
+    const stale = workspace.json(["upsert"], {
       type: "req",
       id: ID,
       properties: {
         title: "Export retention",
         status: "closed",
-        semantic_text: PROSE,
-        semantic_inventory_version: contract.version,
-        semantic_source_field: contract.source_field,
-        semantic_source_hash: contract.source_hash,
-        semantic_inventory: propositions.map(
-          ({ claim_key, claim_text, role, status, span }) => ({
-            claim_key,
-            claim_text,
-            role,
-            status,
-            span,
-          }),
-        ),
-        logic_claims: propositions.map(({ claim_key }) => claim_key),
+        semantic_source_hash: "0".repeat(64),
       },
     });
-    expect(accepted).toMatchObject({ status: "success" });
+    expect(stale.status).toBe("error");
+    const message = JSON.stringify(stale.error);
+    expect(message).toContain("Proposition-complete ingestion failed");
+    expect(message).toContain(
+      `${ID} would be written as a current requirement`,
+    );
+    expect(workspace.read(`.kb/requirements/${ID}.md`)).toContain(
+      "status: draft",
+    );
+
+    // Without contract fields Kibi derives the ledger from the prose; the
+    // claim nobody classified is recorded missing.
+    const closed = workspace.json(["upsert"], {
+      type: "req",
+      id: ID,
+      properties: { title: "Export retention", status: "closed" },
+    });
+    expect(closed).toMatchObject({ status: "success" });
+    const applied = (closed.data as Json).inventoryApplied as Json[];
+    expect(applied).toHaveLength(1);
+    expect(applied[0]?.status).toBe("missing");
     workspace.sync();
     const [stored] = (workspace.json(["query"], { id: ID }).data as Json)
       .entities as Json[];
@@ -277,5 +258,55 @@ describe("kb_upsert judges a requirement update as its file will read", () => {
         properties: { title: "Export retention", status: "open" },
       }),
     ).toMatchObject({ status: "success" });
+  }, 120_000);
+  test("completes partial semantic_inventory entries the writer sends for the claims it classifies", () => {
+    const workspace = createConsumerWorkspace("kibi-upsert-partial-inventory-");
+    ws = workspace;
+    const write = (id: string, extra: Json = {}, entries?: Json[]) =>
+      workspace.json(["upsert"], {
+        type: "req",
+        id,
+        properties: {
+          title: "Export retention",
+          status: "open",
+          semantic_text: PROSE,
+          ...(entries === undefined ? {} : { semantic_inventory: entries }),
+        },
+        ...extra,
+      });
+    // The claim key Kibi derives for this prose, from a preview.
+    const preview = write("REQ-export-retention-preview", { dryRun: true });
+    const [claim] = (preview.data as Json).inventoryApplied as Json[];
+    const claimKey = String(claim?.claim_key);
+    expect(claimKey).toMatch(/^CLAIM-[A-F0-9]{16}$/);
+    const partial = [
+      { claim_key: claimKey, status: "ontology_gap", subjects: ["export"] },
+    ];
+
+    const dryRun = write(ID, { dryRun: true }, partial);
+    expect(dryRun, JSON.stringify(dryRun)).toMatchObject({
+      status: "success",
+      data: { valid: true },
+    });
+    const written = write(ID, {}, partial);
+    expect(written, JSON.stringify(written)).toMatchObject({
+      status: "success",
+    });
+    expect((written.data as Json).inventoryApplied).toEqual([
+      expect.objectContaining({ claim_key: claimKey, status: "ontology_gap" }),
+    ]);
+    const file = workspace.read(`.kb/requirements/${ID}.md`);
+    expect(file).toContain("semantic_inventory_version:");
+    expect(file).toContain("status: ontology_gap");
+    expect(file).toMatch(/subjects:\n\s+- export/);
+
+    // An entry for a claim the prose does not state is still refused.
+    const stale = write(`${ID}-stale`, {}, [
+      { claim_key: "CLAIM-0000000000000000", status: "ontology_gap" },
+    ]);
+    expect(stale.status).toBe("error");
+    expect(JSON.stringify(stale.error)).toContain(
+      "names claim key(s) CLAIM-0000000000000000 that the prose",
+    );
   }, 120_000);
 });

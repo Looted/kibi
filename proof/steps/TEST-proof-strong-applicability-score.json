@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-strong-applicability-score",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/predicate-applicability-threshold.proof.test.ts"
+    ]
+  ]
+}

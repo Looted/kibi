@@ -16,8 +16,10 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import path from "node:path";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { getSpec } from "kibi-runtime";
+import { advertisedInputSchema, getSpec } from "kibi-runtime";
 import type { OperationName } from "kibi-runtime";
 
 import {
@@ -51,14 +53,146 @@ const MCP_TOOL_ORDER = [
   "kb_graph",
   "kb_model",
   "kb_upsert",
+  "kb_record",
   "kb_delete",
   "kb_check",
+  "kb_review_firm_edit",
   "kb_prepare_impact_review",
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
   "kb_ingest_proof",
 ] as const satisfies readonly OperationName[];
+
+/**
+ * The tools the opt-in `core` profile lists: the ones an agent uses on every
+ * change, plus the firm-edit receipt that a blocking kb_check finding asks
+ * for, so the agent can answer it without a shell. Under `core` every other
+ * operation runs through the CLI peer route (`kibi <route> --input -`).
+ */
+export const DEFAULT_PROFILE_TOOLS = [
+  "kb_search",
+  "kb_query",
+  "kb_record",
+  "kb_upsert",
+  "kb_check",
+  "kb_status",
+  "kb_skills",
+  "kb_review_firm_edit",
+] as const satisfies readonly OperationName[];
+
+/** Listed in the core profile too while the knowledge base is empty. */
+export const BOOTSTRAP_TOOLS = [
+  "kb_plan_bootstrap",
+  "kb_apply_plan",
+] as const satisfies readonly OperationName[];
+
+export const TOOL_PROFILES = ["full", "core"] as const;
+export type ToolProfile = (typeof TOOL_PROFILES)[number];
+
+const TOOL_PROFILE_ENV = "KIBI_MCP_TOOLS";
+
+function isToolProfile(value: unknown): value is ToolProfile {
+  return (TOOL_PROFILES as readonly unknown[]).includes(value);
+}
+
+/**
+ * The JSON value in a file as an object to read fields from: a missing or
+ * malformed file, or a value that is not an object, has no fields.
+ */
+function readJsonFields(file: string): Record<string, unknown> {
+  try {
+    return Object(JSON.parse(readFileSync(file).toString()));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * The profile a project records next to its other Kibi setup choices:
+ * `kibi.mcpTools` in the root package.json, else `mcpTools` in
+ * `.kb/setup.json`.
+ */
+function recordedToolProfile(
+  workspaceRoot: string,
+  warn: (message: string) => void,
+): ToolProfile | undefined {
+  const fromPackage = Object(
+    readJsonFields(path.join(workspaceRoot, "package.json")).kibi,
+  ).mcpTools;
+  if (isToolProfile(fromPackage)) return fromPackage;
+  if (fromPackage !== undefined)
+    warn(unknownProfile("kibi.mcpTools in package.json", fromPackage));
+  const fromSetup = readJsonFields(
+    path.join(workspaceRoot, ".kb", "setup.json"),
+  ).mcpTools;
+  if (isToolProfile(fromSetup)) return fromSetup;
+  if (fromSetup !== undefined)
+    warn(unknownProfile("mcpTools in .kb/setup.json", fromSetup));
+  return undefined;
+}
+
+function unknownProfile(where: string, value: unknown): string {
+  return `[KIBI-MCP] ${where} is ${JSON.stringify(value)}, which names no tool profile (${TOOL_PROFILES.join(" or ")}); it is ignored.\n`;
+}
+
+/**
+ * The tool profile for this server: `KIBI_MCP_TOOLS` (which `kibi-mcp
+ * --tools <profile>` sets) when it names one, else the project's recorded
+ * choice, else `full`. Every tool is listed by default so an agent never
+ * depends on a CLI it may not be able to run; `core` is for a project that
+ * wants a shorter list on a host that loads every tool schema up front.
+ */
+export function resolveToolProfile(
+  workspaceRoot: string,
+  env: NodeJS.ProcessEnv = process.env,
+  // An unknown value is named on stderr; stdout carries the protocol.
+  warn: (message: string) => void = (message) => {
+    process.stderr.write(message);
+  },
+): ToolProfile {
+  const requested = env[TOOL_PROFILE_ENV]?.trim().toLowerCase();
+  if (isToolProfile(requested)) return requested;
+  if (requested !== undefined && requested !== "")
+    warn(unknownProfile(TOOL_PROFILE_ENV, env[TOOL_PROFILE_ENV]));
+  return recordedToolProfile(workspaceRoot, warn) ?? "full";
+}
+
+/** Whether the workspace's `.kb/` holds no entity yet (or does not exist). */
+export function knowledgeBaseIsEmpty(workspaceRoot: string): boolean {
+  const lanes = [
+    "requirements",
+    "scenarios",
+    "tests",
+    "facts",
+    "adr",
+    "flags",
+    "events",
+  ];
+  return !lanes.some((lane) => {
+    const dir = path.join(workspaceRoot, ".kb", lane);
+    return (
+      statSync(dir, { throwIfNoEntry: false })?.isDirectory() === true &&
+      readdirSync(dir).some((file) => file.endsWith(".md"))
+    );
+  });
+}
+
+/**
+ * The catalog tools a session lists: every one in the `full` profile; the
+ * core eight in the `core` profile, plus the bootstrap tools while the
+ * knowledge base is empty.
+ */
+export function profileToolNames(
+  profile: ToolProfile,
+  kbEmpty: boolean,
+): ReadonlySet<string> | undefined {
+  if (profile === "full") return undefined;
+  return new Set<string>([
+    ...DEFAULT_PROFILE_TOOLS,
+    ...(kbEmpty ? BOOTSTRAP_TOOLS : []),
+  ]);
+}
 
 /** Tools registered only when named in KIBI_MCP_OPTIONAL_TOOLS. */
 export const OPTIONAL_TOOL_NAMES = [
@@ -100,8 +234,10 @@ const TOOL_TITLES: Readonly<
   kb_graph: "Traverse Kibi graph",
   kb_sparql_remote: "Run a remote SPARQL query",
   kb_upsert: "Create or update Kibi entities",
+  kb_record: "Record a stated rule",
   kb_delete: "Delete a Kibi entity",
   kb_check: "Validate Kibi knowledge base",
+  kb_review_firm_edit: "Record a firm-edit review",
   kb_prepare_impact_review: "Prepare an impact review",
   kb_compile_intent: "Compile Kibi change intent",
   kb_plan_bootstrap: "Plan Kibi bootstrap",
@@ -132,7 +268,9 @@ function toolConfig(name: keyof typeof TOOL_TITLES): ToolConfig {
   return {
     name: spec.name,
     description: spec.description,
-    inputSchema: spec.businessInputSchema,
+    // The full contract validates every call; hosts are shown the compact
+    // form, whose stubbed fields a rejection spells out in full.
+    inputSchema: advertisedInputSchema(spec.businessInputSchema),
     ...(spec.outputSchema ? { outputSchema: spec.outputSchema } : {}),
     annotations: {
       // Mutability and world-model hints are generated from the authoritative

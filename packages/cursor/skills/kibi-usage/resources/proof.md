@@ -99,9 +99,12 @@ replacing one named integration.
   detected runner again), or make the run attributable per test: have the
   command write a `kibi.proof-test-report.v1` to the path in
   `KIBI_PROOF_TEST_REPORT` so each test is judged by its own steps. The
-  shipped `kibi proof run-steps` does that from `proof/steps.json`
-  (`[{test_id, steps: [[argv...]]}]`); use it as the integration command
-  instead of writing a producer script.
+  shipped `kibi proof run-steps` does that from `proof/steps/`, one
+  `<test_id>.json` file per test holding `{test_id, steps: [[argv...]]}`
+  (or `proof/steps.json`, one array of them, when that directory does not
+  exist); use it as the integration command instead of writing a producer
+  script. Add a new test's steps as a new file, so parallel branches do not
+  conflict.
 - `producer: playwright` (or custom) — the child emits `kibi.proof-run.v1`
   itself (bundled reporter: `kibi-cli/playwright-reporter`).
 - `producer: junit` / `tap` — Kibi converts the native report at `artifact`
@@ -286,7 +289,7 @@ left:
   A and B are both in the list and every A comes before every B. Name
   middleware with `names_from`: a
   zero-argument factory export such as `requireAuth()` names the
-  middleware it returns `requireAuth`. Write the fact with `kb_model`
+  middleware it returns `requireAuth`. Write the fact with `kb_model` (core MCP profile: CLI `kibi model --input -`)
   (requirement mode, `operator` plus a list `value`) or `kb_upsert`. The
   receipt stales when a file the read touched changes, and the claim binds
   with scope `source`. `value_source` accepts `{source, measure: count}`.
@@ -334,6 +337,11 @@ left:
   from `files`: the read decides a claim only for the files it covers,
   and a proof is rejected when a symbol the test covers or that
   implements the claim's requirement lies outside them.
+- A rule about what a set of files never does ("files under `src/ui/`
+  never import `x`") needs no `implements` link: when a passing source
+  proof proves every applicable claim, the production-symbol stage passes
+  with `scope: source_proof`, because the files the proof reads are what
+  the rule constrains. Do not link one of those files to the requirement.
 - Reference members match by name segments (`.`, `/`, `::`). `excludes`
   fails on anything that is or may be an excluded item: `java.sql`
   excludes `java.sql.Connection`, `github.com/labstack/echo/v4` excludes
@@ -347,6 +355,14 @@ left:
   `extract: env`: `string_args` on a getter (`os.Getenv`, `env::var`,
   `System.getenv`, `getenv/2`, ...) sees only that getter, so Kibi refuses
   it for `eq`, `subset_of` and `excludes`.
+- `extract: env` sees only the language's known getters. A helper of the
+  project or a library that reads the environment under another name
+  (`config.Get("SECRET")`, `envutil.Getenv("SECRET")`) is not followed and
+  reads as no environment read, so a "never read" claim can prove while
+  the helper reads it. List the files that define such helpers in `files`,
+  or model the claim over the helper. A package imported under a getter's
+  package name that is not that package (`os "github.com/acme/env"`) is
+  refused.
 
 `arithmetic` and `smt` from `constraint_source` alone prove that the
 knowledge base's facts entail the claim, not that code follows the facts:

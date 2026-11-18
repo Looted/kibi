@@ -209,3 +209,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f7beb007b11
+  - type: validates
+    from: TEST-kibi-firm-edit-receipts
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T06:59:30.011Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74fa73e83686
+  - type: validates
+    from: TEST-kibi-firm-edit-receipts
+    to: SCEN-kibi-firm-edit-receipts
+    created_at: 2026-11-16T06:59:30.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-016e66b4d951
+  - type: implements
+    from: SYM-capture-capture-next-action
+    to: REQ-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:40:36.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e5be83a11ae
+  - type: covered_by
+    from: SYM-capture-capture-next-action
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:16.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac9a909b94f7
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-log
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:30:09.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baadb473d543
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-log
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:30:09.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f98d5bc21907
+  - type: validates
+    from: TEST-agent-hosts-first-write-record
+    to: SCEN-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:43:19.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ea274939002
+  - type: validates
+    from: TEST-agent-hosts-first-write-record
+    to: SCEN-NEG-agent-hosts-first-write-record-NAMES-UPSERT
+    created_at: 2026-11-17T06:43:19.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfc0d3e451d3
+  - type: validates
+    from: TEST-agent-hosts-first-write-record
+    to: SCEN-NEG-mcp-default-profile-lists-kb-record-NOT-LISTED
+    created_at: 2026-11-17T07:11:44.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a12a0b8ab051

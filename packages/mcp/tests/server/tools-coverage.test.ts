@@ -5,6 +5,7 @@ import type {
   OperationContext,
   PrologPort,
 } from "kibi-cli/operations/runtime-types";
+import { KbRejection, getSpec } from "kibi-runtime";
 
 import type { DiagnosticErrorFields } from "../../src/diagnostics.js";
 import { createMcpRuntime } from "../../src/runtime/mcp-runtime.js";
@@ -79,8 +80,10 @@ const TOOL_NAMES = [
   "kb_graph",
   "kb_model",
   "kb_upsert",
+  "kb_record",
   "kb_delete",
   "kb_check",
+  "kb_review_firm_edit",
   "kb_prepare_impact_review",
   "kb_plan_bootstrap",
   "kb_compile_intent",
@@ -95,7 +98,7 @@ function objectRecord(value: unknown): Record<string, unknown> {
   return {};
 }
 
-test("kb_upsert schema advertises typed fact fields", () => {
+test("kb_upsert advertises the capture fields and leaves the specialist ones to the full contract", () => {
   const upsert = TOOLS.find((tool) => tool.name === "kb_upsert");
   expect(upsert).toBeDefined();
   const inputSchema = objectRecord(upsert?.inputSchema);
@@ -103,42 +106,49 @@ test("kb_upsert schema advertises typed fact fields", () => {
   const propertiesSchema = objectRecord(rootProperties.properties);
   const entityProperties = objectRecord(propertiesSchema.properties);
 
-  expect(entityProperties.fact_kind).toBeDefined();
-  expect(entityProperties.subject_key).toBeDefined();
-  expect(entityProperties.property_key).toBeDefined();
-  expect(entityProperties.operator).toBeDefined();
-  expect(entityProperties.value_type).toBeDefined();
-  expect(entityProperties.value_string).toBeDefined();
-  expect(entityProperties.value_int).toBeDefined();
-  expect(entityProperties.value_number).toBeDefined();
-  expect(entityProperties.value_bool).toBeDefined();
-});
-
-test("kb_upsert schema advertises typed test verification fields", () => {
-  const upsert = TOOLS.find((tool) => tool.name === "kb_upsert");
-  expect(upsert).toBeDefined();
-  const inputSchema = objectRecord(upsert?.inputSchema);
-  const rootProperties = objectRecord(inputSchema.properties);
-  const propertiesSchema = objectRecord(rootProperties.properties);
-  const entityProperties = objectRecord(propertiesSchema.properties);
-
-  expect(entityProperties.verification_scope).toBeDefined();
-  expect(entityProperties.verification_perspective).toBeDefined();
-});
-
-test("kb_upsert schema advertises requirement semantic source separation", () => {
-  const upsert = TOOLS.find((tool) => tool.name === "kb_upsert");
-  expect(upsert).toBeDefined();
-  const inputSchema = objectRecord(upsert?.inputSchema);
-  const rootProperties = objectRecord(inputSchema.properties);
-  const propertiesSchema = objectRecord(rootProperties.properties);
-  const entityProperties = objectRecord(propertiesSchema.properties);
-
+  expect(Object.keys(entityProperties).sort()).toEqual([
+    "approval_ref",
+    "approved_by",
+    "firmness",
+    "links",
+    "origin",
+    "priority",
+    "rationale",
+    "required_evidence",
+    "semantic_text",
+    "sourceFile",
+    "status",
+    "symbol_role",
+    "tags",
+    "text_ref",
+    "title",
+  ]);
   expect(entityProperties.semantic_text).toMatchObject({ type: "string" });
-  expect(entityProperties.semantic_source_field).toMatchObject({
-    type: "string",
-    enum: ["semantic_text", "text_ref", "title"],
-  });
+  expect(String(propertiesSchema.description)).toContain(
+    "kibi-usage resource operation-fields",
+  );
+  expect(propertiesSchema.required).toEqual(["title", "status"]);
+
+  // Fact, test and semantic-source fields are still valid input.
+  const full = objectRecord(
+    objectRecord(
+      objectRecord(
+        objectRecord(getSpec("kb_upsert").businessInputSchema).properties,
+      ).properties,
+    ).properties,
+  );
+  for (const field of [
+    "fact_kind",
+    "subject_key",
+    "property_key",
+    "operator",
+    "value_type",
+    "value_bool",
+    "verification_scope",
+    "verification_perspective",
+  ])
+    expect(full[field]).toBeDefined();
+  expect(full.semantic_source_field).toMatchObject({ type: "string" });
 });
 
 test("kb_model schema accepts prose without mutation fields", () => {
@@ -839,6 +849,50 @@ describe.serial("server tools coverage", () => {
     });
   });
 
+  test("addTool answers a refusal with the CLI's OPERATION_FAILED envelope", async () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const refusal = new KbRejection(
+      "SEMANTIC_CONTRADICTION",
+      "Upsert execution failed: REQ-a and REQ-b contradict.",
+    );
+    const wrapped = new Error("wrapper", { cause: refusal });
+    for (const [index, failure] of [refusal, wrapped].entries()) {
+      addTool(
+        server,
+        `refused_tool_${index}`,
+        "refused tool",
+        {},
+        mock(async (): Promise<unknown> => {
+          throw failure;
+        }),
+        runtime,
+      );
+    }
+    const [direct, cause] = (await Promise.all(
+      [0, 1].map((index) =>
+        invokeTool(getRegisteredTool(registered, `refused_tool_${index}`), {}),
+      ),
+    )) as unknown as {
+      structuredContent: {
+        status: string;
+        error: { code: string; message: string; retryable: boolean };
+      };
+      isError?: boolean;
+    }[];
+    expect(direct?.isError).toBe(true);
+    expect(direct?.structuredContent.error).toEqual({
+      code: "OPERATION_FAILED",
+      message: "Upsert execution failed: REQ-a and REQ-b contradict.",
+      retryable: false,
+    });
+    expect(cause?.structuredContent.error).toEqual({
+      code: "OPERATION_FAILED",
+      message: "wrapper",
+      retryable: false,
+    });
+  });
+
   test("addTool still fails a tool whose error carries no Kibi code", async () => {
     const { runtime } = createRuntime();
     const { server, registered } = createCapturingServer();
@@ -1419,8 +1473,12 @@ describe.serial("server tools coverage", () => {
       expect(await textOf()).toBe("Found 1 entities: REQ-1");
       process.env.KIBI_MCP_STRUCTURED_TEXT = "embed";
       expect(await textOf()).toContain('"count":1');
-      // A host that may hide structuredContent keeps the JSON copy.
+      // Codex gives the model structuredContent in place of the text.
       process.env.KIBI_MCP_HOST = "codex";
+      Reflect.deleteProperty(process.env, "KIBI_MCP_STRUCTURED_TEXT");
+      expect(await textOf()).toBe("Found 1 entities: REQ-1");
+      // A host that may hide structuredContent keeps the JSON copy.
+      process.env.KIBI_MCP_HOST = "zcode";
       Reflect.deleteProperty(process.env, "KIBI_MCP_STRUCTURED_TEXT");
       expect(await textOf()).toContain('"count":1');
       process.env.KIBI_MCP_STRUCTURED_TEXT = "omit";
@@ -1445,7 +1503,11 @@ describe.serial("server tools coverage", () => {
       }) as unknown as McpServer;
     expect(embedsStructuredText(client("Claude-Code"), {})).toBe(false);
     expect(embedsStructuredText(client("Claude Code"), {})).toBe(false);
+    expect(embedsStructuredText(client("codex-mcp-client"), {})).toBe(false);
     expect(embedsStructuredText(client("cursor"), {})).toBe(true);
+    expect(embedsStructuredText(client("gemini-cli-mcp-client"), {})).toBe(
+      true,
+    );
     expect(embedsStructuredText(client(undefined), {})).toBe(true);
     expect(embedsStructuredText(undefined, {})).toBe(true);
     expect(

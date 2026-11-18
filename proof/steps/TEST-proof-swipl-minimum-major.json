@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-swipl-minimum-major",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/swipl-minimum-version.proof.test.ts"
+    ]
+  ]
+}

@@ -23,6 +23,7 @@ import os from "node:os";
 import path from "node:path";
 import matter from "gray-matter";
 import {
+  compareCodeUnits,
   loadMarkdownBody,
   loadMarkdownBodySync,
   rankEntities,
@@ -1345,5 +1346,22 @@ describe("snippetFromMatchedLine", () => {
       `${"x".repeat(157)}...`,
     );
     expect(snippetFromMatchedLine("")).toBeUndefined();
+  });
+});
+
+describe("compareCodeUnits", () => {
+  test("orders by code units, whatever the process locale", () => {
+    // A Czech collation puts "ch" after "cz", a Swedish one "ä" last; code
+    // units do neither.
+    expect(compareCodeUnits("REQ-ch", "REQ-cz")).toBe(-1);
+    expect(compareCodeUnits("REQ-cz", "REQ-ch")).toBe(1);
+    expect(compareCodeUnits("REQ-ä", "REQ-z")).toBe(1);
+    expect(compareCodeUnits("REQ-B", "REQ-a")).toBe(-1);
+    expect(compareCodeUnits("REQ-a", "REQ-a")).toBe(0);
+    expect(["REQ-b", "REQ-a", "ADR-c"].sort(compareCodeUnits)).toEqual([
+      "ADR-c",
+      "REQ-a",
+      "REQ-b",
+    ]);
   });
 });

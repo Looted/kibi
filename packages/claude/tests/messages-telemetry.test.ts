@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
 
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import claudePlugin, { adapterKind, packageName } from "../src/index";
 import { searchTip, sessionStartContext, stopReminder } from "../src/snippets";
 import { appendHookUsage, flushHookTelemetry } from "../src/usage-log";
@@ -32,34 +33,29 @@ describe("Claude Code messages", () => {
     );
   });
 
-  test("the session start context", () => {
+  test("the session start context is the shared brief plus the Claude Code line", () => {
     expect(sessionStartContext(2)).toBe(
       [
-        "Kibi knowledge base is active in this workspace (2 source files have requirement-linked symbols).",
-        "Kibi hooks add short requirement/test snippets (from the symbol manifest) before reads and edits of linked files; kb_query returns the authoritative detail.",
-        "A request that conflicts with a recorded requirement or ADR is a question, not a task: name the rule and ask before changing the code or the rule, and change it only when the person says so.",
-        "A file with no linked symbols gets a short note; no link is not no rule, so kb_search what it does (permissions, roles, limits, data).",
-        "Recording new behavior (requirement, scenario, implements link) is part of the change and needs no permission.",
-        "Operations: kb_search (ask it a question; the answer layer names governing requirements, must-stay-true facts, ADRs and tests), kb_query (exact id or sourceFile), kb_check (validation and edit impact), kb_upsert (writes). MCP tool names are host-prefixed (e.g. mcp__plugin_kibi-claude_kibi__kb_query); the project-local CLI (`npx --no-install kibi <route> --input -`) is the peer route.",
-        "Workflow guidance lives in the kibi-claude:kibi-usage skill (also served by kb_skills with action load).",
+        SESSION_BRIEF,
+        "Kibi hooks show requirement snippets before reads and edits of the 2 linked source files. MCP tools: mcp__plugin_kibi-claude_kibi__kb_*; CLI peer: `npx --no-install kibi <route> --input -`. Guidance: the kibi-claude:kibi-usage skill.",
       ].join("\n"),
     );
   });
 
   test("the stop reminder for one file", () => {
     expect(stopReminder(["src/a.ts"])).toBe(
-      'Kibi: 1 source file changed this session without a Kibi impact check: src/a.ts.\nkb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports requirement ownership, stale traceability, and symbol-manifest drift for it. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.',
+      'Kibi: 1 source file changed this session without a Kibi impact check: src/a.ts.\nkb_check({changed:true, sourceFiles:["src/a.ts"]}) gives the commit gate\'s verdict on it: each finding says whether it blocks the commit. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.',
     );
   });
 
   test("the stop reminder names at most eight files and counts the rest", () => {
     const eight = Array.from({ length: 8 }, (_, i) => `f${i}`);
     expect(stopReminder(eight)).toBe(
-      `Kibi: 8 source files changed this session without a Kibi impact check: ${eight.join(", ")}.\nkb_check({sourceFiles:${JSON.stringify(eight)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports requirement ownership, stale traceability, and symbol-manifest drift for them. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
+      `Kibi: 8 source files changed this session without a Kibi impact check: ${eight.join(", ")}.\nkb_check({changed:true, sourceFiles:${JSON.stringify(eight)}}) gives the commit gate's verdict on them: each finding says whether it blocks the commit. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
     );
     const ten = [...eight, "f8", "f9"];
     expect(stopReminder(ten)).toBe(
-      `Kibi: 10 source files changed this session without a Kibi impact check: ${eight.join(", ")} +2.\nkb_check({sourceFiles:${JSON.stringify(eight)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports requirement ownership, stale traceability, and symbol-manifest drift for them. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
+      `Kibi: 10 source files changed this session without a Kibi impact check: ${eight.join(", ")} +2.\nkb_check({changed:true, sourceFiles:${JSON.stringify(eight)}}) gives the commit gate's verdict on them: each finding says whether it blocks the commit. If the change has no KB impact, a one-line no-impact rationale in the final report closes this out.`,
     );
   });
 });

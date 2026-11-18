@@ -5,18 +5,19 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  KIBI_WORKSPACE_ENV_KEYS,
+  resolveKibiWorkspace,
+} from "kibi-agent-core/workspace-optin";
+import {
   type SessionEvent,
   appendSessionEvents,
   applyEvent,
   emptySessionState,
   loadSessionState,
   sessionDir,
+  sessionJournal,
   workspaceDataDir,
 } from "../src/session-state";
-import {
-  KIBI_WORKSPACE_ENV_KEYS,
-  resolveKibiWorkspace,
-} from "../src/workspace-optin";
 import { cleanupTempDirs, tempDir, write } from "./fixture";
 
 afterEach(cleanupTempDirs);
@@ -181,6 +182,15 @@ function replay(...events: SessionEvent[]) {
   return state;
 }
 
+describe("session journal path", () => {
+  test("is the journal file of the session directory, or none", () => {
+    expect(sessionJournal("/state/s")).toStrictEqual([
+      path.join("/state/s", "session.jsonl"),
+    ]);
+    expect(sessionJournal(undefined)).toStrictEqual([]);
+  });
+});
+
 describe("session journal replay", () => {
   test("the empty state", () => {
     expect(emptySessionState()).toStrictEqual({
@@ -194,8 +204,11 @@ describe("session journal replay", () => {
       reminded: new Set(),
       commandStartedAt: undefined,
       requestWords: [],
-      rulePrompt: false,
+      rulePhrase: undefined,
+      ruleReason: undefined,
       firmAsked: new Map(),
+      firmAskedAt: new Map(),
+      firmAskedEdit: new Map(),
       firmConfirmed: new Set(),
       sourceEdited: false,
       kbRecorded: false,
@@ -234,8 +247,27 @@ describe("session journal replay", () => {
     const state = replay(
       { kind: "firm_asked", path: "src/a.ts", ids: ["R1", "R2"] },
       { kind: "firm_asked", path: "src/a.ts", ids: ["R2", "R3"] },
-      { kind: "firm_asked", path: "src/b.ts", ids: ["R9"] },
+      { kind: "firm_asked", path: "src/b.ts", ids: ["R9"], at: 5, edit: "e9" },
+      { kind: "firm_asked", path: "src/c.ts", ids: ["R2"], at: 7, edit: "e2" },
+      { kind: "firm_asked", path: "src/a.ts", ids: ["R1"], edit: "e1" },
+      { kind: "firm_asked", path: "src/a.ts", ids: ["R1"] },
     );
+    // Each requirement remembers the edit last asked about; an ask without
+    // one (an older journal) forgets it.
+    expect(state.firmAskedEdit).toStrictEqual(
+      new Map([
+        ["R9", "e9"],
+        ["R2", "e2"],
+      ]),
+    );
+    // Older journals carry no time: only timed asks are remembered.
+    expect(state.firmAskedAt).toStrictEqual(
+      new Map([
+        ["R9", 5],
+        ["R2", 7],
+      ]),
+    );
+    state.firmAsked.delete("src/c.ts");
     expect(state.firmAsked).toStrictEqual(
       new Map([
         ["src/a.ts", ["R1", "R2", "R3"]],
@@ -245,10 +277,41 @@ describe("session journal replay", () => {
     applyEvent(state, { kind: "edited", path: "docs/x.md", pathKind: "other" });
     expect(state.sourceEdited).toBe(false);
     expect(state.pendingSource).toStrictEqual([]);
+    // An edit without a fingerprint (an older journal) confirms nothing, but
+    // the asks for its path are spent.
     applyEvent(state, { kind: "edited", path: "src/a.ts", pathKind: "test" });
-    expect(state.firmConfirmed).toStrictEqual(new Set(["R1", "R2", "R3"]));
+    expect(state.firmConfirmed).toStrictEqual(new Set());
     expect(state.firmAsked).toStrictEqual(new Map([["src/b.ts", ["R9"]]]));
     expect(state.sourceEdited).toBe(false);
+    // Another edit of the file confirms nothing; the asked edit confirms the
+    // requirements asked about with it.
+    applyEvent(state, {
+      kind: "firm_asked",
+      path: "src/b.ts",
+      ids: ["R2"],
+      edit: "e2",
+    });
+    applyEvent(state, {
+      kind: "edited",
+      path: "src/b.ts",
+      pathKind: "test",
+      edit: "other",
+    });
+    expect(state.firmConfirmed).toStrictEqual(new Set());
+    applyEvent(state, {
+      kind: "firm_asked",
+      path: "src/b.ts",
+      ids: ["R2", "R9"],
+      edit: "e2",
+    });
+    applyEvent(state, {
+      kind: "edited",
+      path: "src/b.ts",
+      pathKind: "test",
+      edit: "e2",
+    });
+    expect(state.firmConfirmed).toStrictEqual(new Set(["R2", "R9"]));
+    expect(state.firmAsked).toStrictEqual(new Map());
 
     applyEvent(state, { kind: "edited", path: "s1", pathKind: "source" });
     applyEvent(state, { kind: "edited", path: "s2", pathKind: "source" });
@@ -257,6 +320,25 @@ describe("session journal replay", () => {
     expect(state.sourceEdited).toBe(true);
     expect(state.pendingSource).toStrictEqual(["s2", "s1"]);
     expect(state.reminded).toStrictEqual(new Set(["s2"]));
+  });
+
+  test("requirements a receipt let through are no longer pending the person's answer", () => {
+    const state = replay(
+      { kind: "firm_asked", path: "src/a.ts", ids: ["R1", "R2"], edit: "e" },
+      { kind: "firm_asked", path: "src/b.ts", ids: ["R3"], edit: "f" },
+      { kind: "firm_reviewed", path: "src/a.ts", ids: ["R1"] },
+      { kind: "firm_reviewed", path: "src/b.ts", ids: ["R3"] },
+      { kind: "firm_reviewed", path: "src/c.ts", ids: ["R4"] },
+    );
+    expect(state.firmAsked).toStrictEqual(new Map([["src/a.ts", ["R2"]]]));
+    applyEvent(state, {
+      kind: "edited",
+      path: "src/a.ts",
+      pathKind: "source",
+      edit: "e",
+    });
+    // Only the requirement the person was still asked about is confirmed.
+    expect(state.firmConfirmed).toStrictEqual(new Set(["R2"]));
   });
 
   test("checks clear the named pending files, or all of them", () => {
@@ -283,15 +365,46 @@ describe("session journal replay", () => {
     );
   });
 
-  test("prompts keep the latest words and remember any rule", () => {
+  test("prompts keep the latest words and the latest rule phrase", () => {
     const state = replay(
-      { kind: "prompt", words: ["a"], rule: true },
-      { kind: "prompt", words: ["b"], rule: false },
+      { kind: "prompt", words: ["a"], rule: true, phrase: "must" },
+      { kind: "prompt", words: ["b"], rule: true, phrase: "never" },
+      { kind: "prompt", words: ["c"], rule: false },
     );
-    expect(state.requestWords).toStrictEqual(["b"]);
-    expect(state.rulePrompt).toBe(true);
-    expect(replay({ kind: "prompt", words: [], rule: false }).rulePrompt).toBe(
-      false,
+    expect(state.requestWords).toStrictEqual(["c"]);
+    expect(state.rulePhrase).toBe("never");
+    expect(state.ruleReason).toBe(undefined);
+    expect(
+      replay(
+        {
+          kind: "prompt",
+          words: [],
+          rule: true,
+          phrase: "must",
+          reason: "because x",
+        },
+        { kind: "prompt", words: [], rule: false },
+      ).ruleReason,
+    ).toBe("because x");
+    // A later rule prompt without a reason clears the earlier one.
+    expect(
+      replay(
+        {
+          kind: "prompt",
+          words: [],
+          rule: true,
+          phrase: "must",
+          reason: "because x",
+        },
+        { kind: "prompt", words: [], rule: true, phrase: "never" },
+      ).ruleReason,
+    ).toBe(undefined);
+    expect(replay({ kind: "prompt", words: [], rule: false }).rulePhrase).toBe(
+      undefined,
+    );
+    // A journal line written before phrases were kept names no phrase.
+    expect(replay({ kind: "prompt", words: [], rule: true }).rulePhrase).toBe(
+      undefined,
     );
   });
 

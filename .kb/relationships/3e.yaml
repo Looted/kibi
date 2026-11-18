@@ -391,3 +391,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee4e31030b7f
+  - type: implements
+    from: SYM-subject-warnings-claim-subject-missing-prefix
+    to: REQ-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:40:42.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ead089b3d6b7
+  - type: covered_by
+    from: SYM-subject-warnings-claim-subject-missing-prefix
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:31.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20a225cc1749
+  - type: covered_by
+    from: SYM-discovery-execute-status
+    to: TEST-session-brief
+    created_at: 2026-11-16T16:36:48.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2084a91fc200
+  - type: implements
+    from: SYM-check-store-snapshot-count-store
+    to: REQ-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:11:45.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b986c1762adc
+  - type: covered_by
+    from: SYM-check-store-snapshot-count-store
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:11:45.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcf97a496296
+  - type: executable_for
+    from: SYM-test-closed-firm-requirement-guards
+    to: TEST-closed-firm-requirement-guards
+    created_at: 2026-11-17T19:22:28.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e2e207734fb

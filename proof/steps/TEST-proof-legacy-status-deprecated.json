@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-legacy-status-deprecated",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/migration-suggested-status.proof.test.ts"
+    ]
+  ]
+}

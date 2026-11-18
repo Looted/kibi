@@ -13,7 +13,6 @@ import type { LoadEnvResult } from "../src/env.js";
 import {
   getBranchOverride,
   getCoreModulePathOverride,
-  getEnvFileName,
   getKbPlPathOverride,
   isMcpDebugEnabled,
 } from "../src/env.js";
@@ -24,9 +23,6 @@ const originalEnv = { ...process.env };
 afterEach(() => {
   restoreProcessEnv(originalEnv);
 });
-
-// Import the functions we need to test - parseEnvContent is private,
-// so we test via loadEnvFile behavior
 
 describe("env module type definitions", () => {
   test("LoadEnvResult interface has correct structure", () => {
@@ -173,18 +169,6 @@ describe("env file parsing logic", () => {
 });
 
 describe("env file loading behavior", () => {
-  test("getEnvFileName respects KIBI_ENV_FILE environment variable", () => {
-    process.env.KIBI_ENV_FILE = ".env.custom";
-
-    expect(getEnvFileName()).toBe(".env.custom");
-  });
-
-  test("getEnvFileName falls back to .env.kibi", () => {
-    process.env.KIBI_ENV_FILE = "";
-
-    expect(getEnvFileName()).toBe(".env.kibi");
-  });
-
   test("isMcpDebugEnabled reflects KIBI_MCP_DEBUG", () => {
     process.env.KIBI_MCP_DEBUG = "";
     expect(isMcpDebugEnabled()).toBe(false);
@@ -205,6 +189,12 @@ describe("env file loading behavior", () => {
     process.env.KIBI_DISCOVERY_PL_PATH = "/tmp/discovery.pl";
 
     expect(getCoreModulePathOverride("discovery.pl")).toBe("/tmp/discovery.pl");
+  });
+
+  test("getCoreModulePathOverride treats an empty override as unset", () => {
+    process.env.KIBI_DISCOVERY_PL_PATH = "";
+
+    expect(getCoreModulePathOverride("discovery.pl")).toBeUndefined();
   });
 
   test("getKbPlPathOverride returns generic kb.pl override", () => {

@@ -29,14 +29,17 @@ import type {
 } from "kibi-plugin-sdk";
 import { toSourceAnalysisProvider } from "kibi-plugin-sdk";
 import type {
+  CallExpression,
   ClassDeclaration,
   ClassExpression,
   Node,
+  ParenthesizedExpression,
   Project,
   ScriptKind,
   SourceFile,
+  VariableDeclaration,
 } from "ts-morph";
-import { tsMorph } from "./ts-morph-runtime.js";
+import { createSyntacticProject, tsMorph } from "./ts-morph-runtime.js";
 import {
   SUPPORTED_SOURCE_EXTENSIONS,
   chooseScriptKind,
@@ -95,7 +98,7 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
   let project: Project | undefined;
   const getProject = (): Project => {
     // Without a tsconfig path the project reads no tsconfig files.
-    project ??= new (tsMorph().Project)();
+    project ??= createSyntacticProject();
     return project;
   };
 
@@ -145,9 +148,7 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
   // analysis rebuild a program over the whole lib closure.
   let project: Project | undefined;
   const getProject = (): Project => {
-    project ??= new (tsMorph().Project)({
-      compilerOptions: { noLib: true, noResolve: true, types: [] },
-    });
+    project ??= createSyntacticProject();
     return project;
   };
 
@@ -365,16 +366,19 @@ function collectSourceSymbols(
     if (!statement.isExported()) continue;
 
     for (const declaration of statement.getDeclarations()) {
-      pushSymbol(symbols, includeV2Fields, () =>
-        toSourceSymbolAnalysis(
+      pushSymbol(symbols, includeV2Fields, () => {
+        const analysis = toSourceSymbolAnalysis(
           sourceFile,
           declaration.getName(),
           "variable",
           declaration.getNameNode(),
           declaration,
           includeV2Fields,
-        ),
-      );
+        );
+        return includeV2Fields && hasCallableInitializer(declaration)
+          ? { ...analysis, callable: true }
+          : analysis;
+      });
       attempt(includeV2Fields, () => {
         // Characterization doubles may omit AST accessors; treat a missing
         // one as "nothing there".
@@ -395,6 +399,53 @@ function collectSourceSymbols(
   }
 
   return symbols;
+}
+
+/**
+ * Whether a variable declaration holds behavior: `const f = () => {}`,
+ * `const f = function () {}` (also through parentheses, `as`, `satisfies`
+ * or `!`), or a call to a plain function name with an inline function
+ * argument, such as `defineHandler(async (c) => {})`. Method chains such as
+ * `z.string().refine((v) => v)` stay data.
+ */
+function hasCallableInitializer(declaration: VariableDeclaration): boolean {
+  const initializer = declaration.getInitializer?.();
+  if (!initializer) return false;
+  const value = unwrapExpression(initializer);
+  if (isInlineFunction(value)) return true;
+  const { SyntaxKind } = tsMorph();
+  if (value.getKind() !== SyntaxKind.CallExpression) return false;
+  const call = value as CallExpression;
+  return (
+    call.getExpression().getKind() === SyntaxKind.Identifier &&
+    call
+      .getArguments()
+      .some((argument) => isInlineFunction(unwrapExpression(argument)))
+  );
+}
+
+function isInlineFunction(node: Node): boolean {
+  const { SyntaxKind } = tsMorph();
+  const kind = node.getKind();
+  return (
+    kind === SyntaxKind.ArrowFunction || kind === SyntaxKind.FunctionExpression
+  );
+}
+
+function unwrapExpression(node: Node): Node {
+  const { SyntaxKind } = tsMorph();
+  const wrappers = new Set([
+    SyntaxKind.ParenthesizedExpression,
+    SyntaxKind.AsExpression,
+    SyntaxKind.SatisfiesExpression,
+    SyntaxKind.TypeAssertionExpression,
+    SyntaxKind.NonNullExpression,
+  ]);
+  let current = node;
+  while (wrappers.has(current.getKind())) {
+    current = (current as ParenthesizedExpression).getExpression();
+  }
+  return current;
 }
 
 function appendClassMembers(

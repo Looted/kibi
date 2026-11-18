@@ -4,7 +4,7 @@ description: "Use when the person states a rule or decision (must, never, always
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-decisions
-  version: 1.10.0
+  version: 1.15.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -41,6 +41,8 @@ name the missing capability. Never read or edit `.kb/` files directly.
 - The Stop hook says the session changed source files and recorded nothing.
 - `kb_check` reports `requirement_statement_unverified`, quoting a requirement
   the changed code implements, and the code no longer does what it says.
+- `kibi check --staged` reports `firm_edit_unreviewed` or
+  `firm_edit_breaks_rule`: the commit changes code of a firm requirement.
 - A request contradicts a requirement or ADR you found.
 
 ## Read the rule first
@@ -76,22 +78,46 @@ name the missing capability. Never read or edit `.kb/` files directly.
 
 ## Decide
 
-- **Request conflicts with a recorded rule (any firmness):** name the rule (id
-  and what it requires) and ask whether to change it. Do not implement the
+- **Request conflicts with a recorded rule (any firmness):** the request would
+  make the rule's statement false, including narrowing it or adding an
+  exception (touching the same code is not a conflict; when you cannot tell,
+  ask). Name the rule (id and what it requires) and ask whether to change it. Do not implement the
   request and do not supersede the rule until the person says to change that
   rule.
-- **Edit confirmation declined, or nobody could answer:** the requirement
-  stands. Say which rule blocked it and ask how to proceed; never reach the
-  same change another way (another tool, a shell write, another file).
+- **Edit confirmation declined by the person:** the requirement stands. Say
+  which rule blocked it and ask how to proceed; never reach the same change
+  another way (another tool, a shell write, another file).
+- **Nobody could answer the confirmation, or the commit gate reports
+  `firm_edit_unreviewed`:** read the changed code against the rule. If it
+  still does what the rule says, send the input the finding prints, with a
+  one-line note on why, to `kb_review_firm_edit` (without MCP, pipe it to
+  `kibi review-firm-edit --input -`), then stage the receipt under
+  `.kb/firm-edit-reviews/`. A `keeps` receipt recorded after
+  the Claude Code question lets the retry of that edit through in the same
+  session; a later session is asked again. Record it again after a later
+  edit, because a receipt stops matching once the code changes. When the
+  file also has unstaged edits, add `"staged": true` to review the staged
+  code. If the change breaks
+  the rule, record `changes` and ask the person: the commit stays blocked
+  (`firm_edit_breaks_rule`) until they agree and the rule is superseded with
+  their words. A receipt is your judgment, not their approval, and `kibi
+  signoff` shows it that way.
 - **Edit confirmation allowed:** if the change still keeps the rule, carry on.
   If it changes what the rule says, update the rule in this same change, citing
   the person's words. Clicking allow is not a stated rule: when their request
   did not state the new behavior, ask them to say it before rewriting the rule.
-- **The person states a new rule:** record it with `kb_upsert` as part of the
-  change, not after: a requirement with `firmness: firm`, `origin.ref`
-  quoting their words and where they said them, a sectioned `document.body`,
-  a scenario, and an `implements` link from the code that enforces it. Use
-  `kb_compile_intent` first when the rule may touch several requirements.
+- **The person states a new rule:** record it with `kb_record` (CLI:
+  `kibi record --input -`) as part of the change, not after: `statement`,
+  `why`, `saidBy: "user"` (or `"maintainer"`), `quote` with their words, and
+  the `code` that enforces it. That one call writes a firm requirement with
+  their words as `origin.ref`, their reason as its `why`, and the
+  `implements` links; then follow its `nextActions` for the scenario and
+  test. Use `kb_compile_intent` (core MCP profile: CLI `kibi compile-intent --input -`) first when the rule may touch several
+  requirements, and `kb_upsert` for anything `kb_record` does not take.
+  When the person said why, put their reason in `why`, in their words. When
+  they gave none, write "Reason not stated" and never a reason of your own;
+  a note asking for the reason is answered by asking the person, not by
+  inventing one.
   A firm rule needs `tested` evidence by default, so `kb_check`'s
   `evidence-floor` rule fails on it until an end-to-end test proves its
   scenario. When the change includes that test, give it a proof contract and
@@ -107,7 +133,21 @@ name the missing capability. Never read or edit `.kb/` files directly.
   `## Why this changed` section of at least 12 words naming their instruction
   and answering the old reasoning, old one `status: closed` in the same
   change). For a wording correction they asked for in place, update it with a
-  new `origin.ref` to those words instead.
+  new `origin.ref` to those words instead. When the change moves a value the
+  rule is grounded on and the rule already records a reason, the note on the
+  write quotes it: ask whether it still holds, and record the person's new
+  reason in their words.
+- **A value change lists other requirements (`siblings`):** a `kb_upsert` of a
+  value fact returns every other current requirement on that quantity, each
+  as a warning and a required `nextActions` entry; `statesOldValue` marks a
+  claim that still says the old value. Update a `default` or `exploratory`
+  sibling in the same change, with the person's words as `origin.ref` and
+  their reason, and update the tests that pin the old value. Ask the person
+  before touching a `firm` sibling. When their change does not cover a
+  sibling, supersede or scope the requirements so they no longer constrain
+  one quantity. A fact write refused with `SEMANTIC_CONTRADICTION` names the
+  requirements it would make conflict: send the fact and the change to those
+  requirements together in one `kb_apply_plan`, or ask which one holds.
 - **You only prefer another approach:** a preference is not evidence. Propose
   it; do not supersede.
 - **A cleanup needs many decisions** (statements reworded by a split,
@@ -158,7 +198,7 @@ cite new words. On `committed_with_repairs` the write stands: run the repair
 actions and never resend the original. Kibi authors tracked files but never
 Git-stages or commits them.
 
-Validation is not completion. When a request conflicts with a recorded rule and you stop to ask, first kb_query that rule by id. Then make the conflict itself the verdict of your final answer: name the rule's id and what it requires, keep the answer format the request asked for (including any verdict field), and add your question after that. Asking the person, or showing a questions view, never takes the place of that verdict. When you record a stated rule or apply a kb_compile_intent plan, keep the actual target ids and the intended edges. Discover and kb_query each target, check each payload with kb_upsert and dryRun: true, then send that same payload as the real kb_upsert. Read the result back by exact id before kb_check. A dry run or kb_model output only validates; it records nothing. A stated rule is recorded only once the requirement, its scenario and the enforcing symbol's implements link have actually been written, followed by kb_check. Separate payloads may need several writes in sequence. Never resend a write that already committed, and handle refusals or repairs as the typed-result rules above say. After you apply a plan, make sure the new requirement is firm, with origin.ref quoting the person's words. A must-priority requirement also needs a scenario through specified_by. Leave compatible recorded rules unchanged. Rerun kb_check after each fix until it reports nothing about the new requirement, and only then report the work as done.
+Validation is not completion. When a request conflicts with a recorded rule and you stop to ask, first kb_query that rule by id. Then make the conflict itself the verdict of your final answer: name the rule's id and what it requires, keep the answer format the request asked for (including any verdict field), and add your question after that. Asking the person, or showing a questions view, never takes the place of that verdict. When you record a stated rule or apply a kb_compile_intent plan, keep the actual target ids and the intended edges. Discover and kb_query each target, then record a stated rule with kb_record and send each other payload with kb_upsert; each result reports what was written and its typed nextActions, so no read-back is needed. A dry run (dryRun: true) is an optional preview: it, like kb_model output, records nothing. A stated rule is recorded only once the requirement, its scenario and the enforcing symbol's implements link have actually been written, followed by kb_check. Separate payloads may need several writes in sequence. Never resend a write that already committed, and handle refusals or repairs as the typed-result rules above say. After you apply a plan, make sure the new requirement is firm, with origin.ref quoting the person's words. A must-priority requirement also needs a scenario through specified_by. Leave compatible recorded rules unchanged. Rerun kb_check after each fix until it reports nothing about the new requirement, and only then report the work as done.
 
 ## Report
 

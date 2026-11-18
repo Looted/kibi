@@ -61,9 +61,12 @@ All hooks are advisory; the hard enforcement gate remains the
 - **Workspace opt-in**: identical to `kibi-codex` — a workspace is opted in
   only when its Kibi project root owns `.kb/manifest.json`. Non-Kibi
   workspaces get no hooks output, no tracking, and an empty MCP tool catalog.
-- **SessionStart** (opted in): injects a short context pointing at
-  `kb_search`/`kb_query` discovery, the `kibi-usage` skill, and `kb_status`
-  freshness checks.
+- **SessionStart** (opted in): injects the shared Kibi session brief (search
+  for recorded intent before changing behaviour, record decisions with their
+  reason, run `kibi check --staged` before finishing, ask before making a
+  recorded rule false), then a line on keeping `.kb/` out of direct edits,
+  `kb_status` freshness checks and the `kibi-usage` skill, plus a note when
+  the git hooks are missing.
 - **UserPromptSubmit**: a prompt that states a rule ("must not", "from now
   on") gets a note to check recorded requirements with `kb_search` and record
   the rule with `kb_upsert` as part of the change.

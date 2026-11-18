@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-kibi-engine-single-writer-protocol",
+  "sourceFile": "packages/cli/src/engine.ts",
+  "symbol": "EngineClient.start",
+  "verdict": "keeps",
+  "note": "Comment change only; start still connects to the one framed engine per workspace and branch.",
+  "statementHash": "sha256:48d405325ca5f561ae5a94b499059dbf6ec52185b7aac5f46476523a3875aab0",
+  "codeHash": "sha256:54e06ec5625f31546d6b3965d08853f062cc5800b3169707e0c19ab2615f6f47",
+  "startLine": 1074,
+  "endLine": 1106,
+  "recordedAt": "2026-11-18T08:08:37.686Z"
+}

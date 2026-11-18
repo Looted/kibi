@@ -19,6 +19,17 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import {
+  isKibiOrProcessEnvKey,
+  isWorkspaceEnvKeyAllowed,
+} from "./workspace-env-policy.js";
+
+export {
+  isWorkspaceEnvKeyAllowed,
+  WORKSPACE_ALLOWED_KIBI_PREFIXES,
+  WORKSPACE_DENIED_PROCESS_KEYS,
+  WORKSPACE_DENIED_PROCESS_PREFIXES,
+} from "./workspace-env-policy.js";
 
 const WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
@@ -49,6 +60,12 @@ export type BootstrapKibiEnvironmentResult = Readonly<{
   keysLoadedFromUser: readonly string[];
   keysLoadedFromProject: readonly string[];
   keysLoadedFromLegacy: readonly string[];
+  /**
+   * Keys a workspace file set that the workspace policy ignores
+   * (names only, never values).
+   */
+  keysIgnoredFromProject: readonly string[];
+  keysIgnoredFromLegacy: readonly string[];
 }>;
 
 export type BootstrapKibiEnvironmentOptions = Readonly<{
@@ -62,6 +79,12 @@ export type BootstrapKibiEnvironmentOptions = Readonly<{
    * Callers normally omit this; the first default-env bootstrap remembers it.
    */
   initialNonEmptyProcessKeys?: ReadonlySet<string>;
+  /**
+   * Receives the notice naming ignored workspace keys. Defaults to stderr
+   * (once per file and key set) for the real `process.env`, and to no
+   * notice for an injected env.
+   */
+  warn?: (message: string) => void;
 }>;
 
 type EnvEntry = Readonly<{ key: string; value: string }>;
@@ -70,6 +93,8 @@ type EnvEntry = Readonly<{ key: string; value: string }>;
 let rememberedInitialNonEmptyKeys: Set<string> | null = null;
 /** Last bootstrap result for default `process.env` (doctor attribution). */
 let lastDefaultBootstrap: BootstrapKibiEnvironmentResult | null = null;
+/** Ignored-key notices already printed for default `process.env`. */
+const reportedIgnoredNotices = new Set<string>();
 
 /**
  * Test-only: clear remembered process-key snapshot and last bootstrap result.
@@ -77,6 +102,7 @@ let lastDefaultBootstrap: BootstrapKibiEnvironmentResult | null = null;
 export function resetKibiEnvironmentBootstrapStateForTests(): void {
   rememberedInitialNonEmptyKeys = null;
   lastDefaultBootstrap = null;
+  reportedIgnoredNotices.clear();
 }
 
 /**
@@ -168,18 +194,27 @@ export function resolveKibiProjectEnvPath(
 
 export function parseEnvContent(content: string): EnvEntry[] {
   const entries: EnvEntry[] = [];
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
+  const lines = content.split(/\r?\n/);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = (lines[index] as string).trim();
     if (!line || line.startsWith("#")) continue;
     const eqIndex = line.indexOf("=");
     if (eqIndex <= 0) continue;
     const key = line.slice(0, eqIndex).trim();
     let value = line.slice(eqIndex + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
+    const quote = value[0];
+    if (quote === '"' || quote === "'") {
+      // A quoted value runs to its closing quote, across lines (a PEM key,
+      // a JSON blob), so its continuation lines are never read as keys.
+      while (value.length < 2 || !value.endsWith(quote)) {
+        index += 1;
+        if (index >= lines.length) break;
+        value = `${value}\n${(lines[index] as string).trimEnd()}`;
+      }
+      value =
+        value.length >= 2 && value.endsWith(quote)
+          ? value.slice(1, -1)
+          : value.slice(1);
     }
     // The line is trimmed and does not start with "=", so the key is never
     // empty.
@@ -236,10 +271,74 @@ function resolveInitialNonEmptyKeys(
 }
 
 /**
+ * Split a workspace file's entries into the keys the workspace policy lets it
+ * set and the names of the keys it ignores. Blank values are unset and are
+ * neither applied nor reported.
+ */
+function filterWorkspaceEntries(
+  entries: Map<string, string>,
+): Readonly<{ allowed: Map<string, string>; ignored: string[] }> {
+  const allowed = new Map<string, string>();
+  const ignored: string[] = [];
+  for (const [key, value] of entries) {
+    if (!nonEmpty(value)) continue;
+    if (isWorkspaceEnvKeyAllowed(key)) {
+      allowed.set(key, value);
+    } else {
+      ignored.push(key);
+    }
+  }
+  return { allowed, ignored };
+}
+
+function writeStderrNotice(message: string): void {
+  process.stderr.write(`${message}\n`);
+}
+
+/**
+ * A conventional variable name. Anything else (a lower-case word, a base64
+ * run, a fragment of JSON) may be part of a secret value, so it is counted,
+ * never printed.
+ */
+const ENV_KEY_NAME = /^[A-Z_][A-Z0-9_]*$/;
+
+function reportIgnoredKeys(
+  filePath: string,
+  keys: readonly string[],
+  warn: ((message: string) => void) | undefined,
+  isDefaultEnv: boolean,
+  legacy: boolean,
+): void {
+  // Any other line is counted, never printed. A shared legacy `.env` holds the application's own
+  // settings, so only the Kibi and process keys it tries to set are named.
+  const names = keys.filter(
+    (key) => ENV_KEY_NAME.test(key) && (!legacy || isKibiOrProcessEnvKey(key)),
+  );
+  const malformed = keys.filter((key) => !ENV_KEY_NAME.test(key)).length;
+  if (names.length === 0 && (legacy || malformed === 0)) return;
+  const sink = warn ?? (isDefaultEnv ? writeStderrNotice : undefined);
+  if (!sink) return;
+  const notice = `${filePath}\0${names.join(",")}\0${malformed}`;
+  if (warn === undefined) {
+    if (reportedIgnoredNotices.has(notice)) return;
+    reportedIgnoredNotices.add(notice);
+  }
+  const lines =
+    malformed === 0
+      ? ""
+      : `${names.length > 0 ? " and " : ""}${malformed} other line${malformed === 1 ? "" : "s"}`;
+  sink(
+    `[kibi] Ignored ${names.join(", ")}${lines} from ${filePath}: a workspace env file may set only provider secrets and provider settings. Set these in the process environment or the user env file instead.`,
+  );
+}
+
+/**
  * Load Kibi-owned env files into `process.env` (or an injectable env object).
  * Blank values are treated as unset (never applied, never overwrite).
  * Existing non-empty process keys are never overwritten. Project overrides user.
  * Legacy `.env` only gap-fills and is attributed as `legacy_env`.
+ * Workspace files (project and legacy) set only the keys
+ * `isWorkspaceEnvKeyAllowed` accepts; the rest are ignored and reported.
  * Call only from CLI/MCP entrypoints — not on library import.
  */
 export function bootstrapKibiEnvironment(
@@ -284,12 +383,18 @@ export function bootstrapKibiEnvironment(
   // checkout: that repository's env files must not configure this process.
   const foreignWorkspace = nonEmpty(env.KIBI_KB_DEPENDENCY);
   const userEntries = readEnvFileEntries(userEnvPath);
-  const projectEntries = foreignWorkspace
-    ? new Map<string, string>()
-    : readEnvFileEntries(projectEnvPath);
-  const legacyEntries = foreignWorkspace
-    ? new Map<string, string>()
-    : readEnvFileEntries(legacyEnvPath);
+  const project = filterWorkspaceEntries(
+    foreignWorkspace
+      ? new Map<string, string>()
+      : readEnvFileEntries(projectEnvPath),
+  );
+  const legacy = filterWorkspaceEntries(
+    foreignWorkspace
+      ? new Map<string, string>()
+      : readEnvFileEntries(legacyEnvPath),
+  );
+  const projectEntries = project.allowed;
+  const legacyEntries = legacy.allowed;
 
   // User first, then project (project may overwrite user-sourced keys).
   // Blank file values are unset — never applied, never overwrite.
@@ -303,8 +408,8 @@ export function bootstrapKibiEnvironment(
     sources[key] = "user_env";
   }
 
+  // Workspace entries are already filtered: no blank value, no denied key.
   for (const [key, value] of projectEntries) {
-    if (!nonEmpty(value)) continue;
     if (initialNonEmpty.has(key)) continue;
     // Each key appears once in a file's entries.
     env[key] = value;
@@ -314,7 +419,6 @@ export function bootstrapKibiEnvironment(
 
   // Legacy .env fills only keys still unset (compatibility; not preferred).
   for (const [key, value] of legacyEntries) {
-    if (!nonEmpty(value)) continue;
     if (initialNonEmpty.has(key)) continue;
     if (sources[key] === "user_env" || sources[key] === "project_env") {
       continue;
@@ -335,7 +439,24 @@ export function bootstrapKibiEnvironment(
     keysLoadedFromUser,
     keysLoadedFromProject,
     keysLoadedFromLegacy,
+    keysIgnoredFromProject: project.ignored,
+    keysIgnoredFromLegacy: legacy.ignored,
   };
+
+  reportIgnoredKeys(
+    projectEnvPath,
+    project.ignored,
+    options.warn,
+    isDefaultEnv,
+    false,
+  );
+  reportIgnoredKeys(
+    legacyEnvPath,
+    legacy.ignored,
+    options.warn,
+    isDefaultEnv,
+    true,
+  );
 
   if (isDefaultEnv) {
     lastDefaultBootstrap = result;

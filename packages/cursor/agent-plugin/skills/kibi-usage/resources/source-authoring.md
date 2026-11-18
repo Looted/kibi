@@ -26,7 +26,7 @@ Relationship upserts and relationship deletes patch only the canonical shard,
 preserving unrelated records. Authored entity deletion writes nothing and
 returns a hash-bound plan (`outcome: plan_returned`); approve it by running the
 returned `nextActions[0]` (`kb_apply_plan` with `{plan, approvedPlanHash}`)
-unchanged, or by repeating `kb_delete` with `approvedPlanHash`. Evolve requirements with a new
+unchanged, or by repeating `kb_delete` (core MCP profile: CLI `kibi delete --input -`) with `approvedPlanHash`. Evolve requirements with a new
 requirement and `supersedes`, rather than deleting the old semantic claim.
 
 On `committed_with_repairs`, inspect `effects` and execute the typed required

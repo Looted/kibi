@@ -5,6 +5,7 @@
 :- use_module('../src/discovery.pl').
 :- use_module('../src/requirement_proof.pl', [requirement_proof_context/6, requirement_proof/4]).
 :- use_module('../src/status.pl', [status_meta_dict/1, status_scope_dict/1]).
+:- use_module(library(filesex)).
 :- use_module(kb_fixture).
 :- use_module(proof_fixture).
 :- use_module(test_helpers).
@@ -1182,10 +1183,71 @@ dsc_symbol_fixture :-
     pf_raw_rel(executable_for, 'SYM-MIX', 'TEST-E2E'),
     pf_raw_rel(implements, 'SYM-MIX', 'REQ-A').
 
+%% dsc_branch_kb(:Goal)
+% Goal's first answer on a fresh store at <Root>/.kb/branches/main, so the
+% workspace root is known, with src/kept.ts present under it.
+:- meta_predicate dsc_branch_kb(0).
+dsc_branch_kb(Goal) :-
+    setup_call_cleanup(
+        dsc_branch_open(Root),
+        once(Goal),
+        (kb_detach, delete_directory_and_contents(Root))).
+
+dsc_branch_open(Root) :-
+    detach_leftover_kb,
+    retractall(status:workspace_root_memo(_, _)),
+    tmp_file(kibi_discovery_ws, Root),
+    atom_concat(Root, '/.kb/branches/main', Kb),
+    make_directory_path(Kb),
+    atom_concat(Root, '/src', Src),
+    make_directory_path(Src),
+    atom_concat(Src, '/kept.ts', Kept),
+    setup_call_cleanup(open(Kept, write, Out), write(Out, x), close(Out)),
+    kb_attach(Kb).
+
 dsc_symbol_row(Id-Role-Status-Gaps-Reqs-Tests-Exec,
                _{coverageStatus: Status, directRequirementCount: Reqs, executableTestCount: Exec, gaps: Gaps,
                  id: Id, status: active, testCount: Tests, title: 'Fixture entity', traceabilityRole: Role,
                  type: symbol}).
+
+test(symbol_whose_source_file_is_gone_is_uncovered) :-
+    dsc_branch_kb((
+        pf_entity(req, 'REQ-A', [priority=must, status=open]),
+        pf_entity(test, 'TEST-E2E', [status=passing, verification_scope=end_to_end]),
+        pf_entity(scenario, 'SCN-A', []),
+        pf_raw_rel(specified_by, 'REQ-A', 'SCN-A'),
+        pf_raw_rel(validates, 'TEST-E2E', 'SCN-A'),
+        pf_entity(symbol, 'SYM-KEPT', [sourceFile="src/kept.ts"]),
+        pf_raw_rel(implements, 'SYM-KEPT', 'REQ-A'),
+        pf_raw_rel(covered_by, 'SYM-KEPT', 'TEST-E2E'),
+        pf_entity(symbol, 'SYM-GONE', [sourceFile="src/gone.ts"]),
+        pf_raw_rel(implements, 'SYM-GONE', 'REQ-A'),
+        pf_raw_rel(covered_by, 'SYM-GONE', 'TEST-E2E'),
+        pf_entity(symbol, 'SYM-GONE-BARE', [sourceFile="src/gone-bare.ts"]),
+        dsc_json(coverage_report_json(symbol, [], true, false, 10, 0), Dict),
+        findall(Id-Status-Gaps,
+                (member(Row, Dict.rows), Id = Row.id, Status = Row.coverageStatus, Gaps = Row.gaps),
+                Rows),
+        Rows == ['SYM-GONE'-uncovered-[source_missing],
+                 'SYM-GONE-BARE'-uncovered-[missing_requirement, source_missing],
+                 'SYM-KEPT'-fully_covered-[]],
+        Dict.summary.fullyCovered == 1,
+        Dict.summary.uncovered == 2
+    )).
+
+test(linkless_non_behavioral_symbol_row_is_not_applicable) :-
+    dsc_branch_kb((
+        pf_entity(symbol, 'SYM-CONF-KEPT', [sourceFile="src/kept.ts", symbol_role=config]),
+        pf_entity(symbol, 'SYM-CONF-GONE', [sourceFile="src/gone.ts", symbol_role=config]),
+        dsc_json(coverage_report_json(symbol, [], true, false, 10, 0), Dict),
+        findall(Id-Role-Status-Gaps,
+                (   member(Row, Dict.rows), Id = Row.id, Role = Row.traceabilityRole,
+                    Status = Row.coverageStatus, Gaps = Row.gaps
+                ),
+                Rows),
+        Rows == ['SYM-CONF-GONE'-production-uncovered-[source_missing],
+                 'SYM-CONF-KEPT'-production-not_applicable-[]]
+    )).
 
 test(symbol_report_classifies_every_role) :-
     dsc_kb((
@@ -1343,6 +1405,33 @@ test(evidence_floor_rows_list_unmet_floors) :-
             _{id: 'REQ-5', evidenceLevel: asserted, requiredEvidence: tested, requiredEvidenceSource: firmness,
               status: below, proofStatus: missing, proofGaps: [], gapDetails: _{}}
         ], unapprovedImplemented: []})
+    )).
+
+% The staged check asks only about the requirements a commit stages: the
+% scoped form evaluates those of the named ids the KB holds as requirements
+% (once each), and the unscoped form all of them.
+test(evidence_floor_json_scope_evaluates_only_named_requirements) :-
+    dsc_kb((
+        pf_entity(req, 'REQ-1', [status=open]),
+        pf_entity(req, 'REQ-2', [status=open]),
+        pf_entity(scenario, 'SCEN-1', [status=active]),
+        Params = snap-'2026-05-02T00:00:00Z'-100-per_contract-_{'T': h},
+        dsc_stub(Params, 'REQ-1', _{evidenceLevel: asserted, proofStatus: missing, proofGaps: [],
+            evidenceFloor: _{required: tested, source: firmness, status: below}}),
+        dsc_stub(Params, 'REQ-2', _{evidenceLevel: asserted, proofStatus: missing, proofGaps: [],
+            evidenceFloor: _{required: tested, source: firmness, status: below}}),
+        dsc_json(evidence_floor_json(ids(['REQ-2', 'REQ-2', 'SCEN-1', 'REQ-MISSING']),
+            per_contract, _{'T': h}, snap, '2026-05-02T00:00:00Z', 100), Scoped),
+        same(Scoped.evaluated, 1),
+        findall(Id, (member(Row, Scoped.rows), Id = Row.id), ScopedIds),
+        same(ScopedIds, ['REQ-2']),
+        dsc_json(evidence_floor_json(all, per_contract, _{'T': h}, snap,
+            '2026-05-02T00:00:00Z', 100), All),
+        same(All.evaluated, 2),
+        dsc_json(evidence_floor_json(ids([]), per_contract, _{'T': h}, snap,
+            '2026-05-02T00:00:00Z', 100), None),
+        same(None.evaluated, 0),
+        same(None.rows, [])
     )).
 
 test(evidence_floor_json_lists_requirement_review_rows) :-

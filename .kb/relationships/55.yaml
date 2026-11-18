@@ -293,3 +293,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-514532110b79
+  - type: assumes
+    from: SCEN-ci-proof-reuse-no-wait-on-changed-tree
+    to: FACT-ci-proof-reuse-no-wait-on-changed-tree
+    created_at: 2026-11-17T10:51:14.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b68a9d58d2a6
+  - type: verified_by
+    from: SCEN-ci-proof-reuse-no-wait-on-changed-tree
+    to: TEST-ci-proof-reuse-decide-before-wait
+    created_at: 2026-11-17T10:51:14.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0b26f9b4dd2
+  - type: verified_by
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: TEST-symbol-id-minting
+    created_at: 2026-11-17T18:54:23.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b43a5feb1ba2
+  - type: requires_property
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: FACT-minted-symbol-ids-held-elsewhere
+    created_at: 2026-11-17T18:55:19.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8af624742039
+  - type: constrains
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-17T18:55:19.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cba18cb8b8ff
+  - type: specified_by
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: SCEN-symbol-id-minting
+    created_at: 2026-11-17T19:07:20.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-734ec8da1f12
+  - type: specified_by
+    from: REQ-symbol-id-kb-upsert-implementedby-kibi
+    to: SCEN-NEG-symbol-id-minting-VIOLATED
+    created_at: 2026-11-17T19:07:20.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99b9953e964b
+  - type: verified_by
+    from: REQ-pre-edit-hooks-kibi-check-staged
+    to: TEST-closed-firm-requirement-guards
+    created_at: 2026-11-17T19:22:32.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f6257d1fb94
+  - type: requires_property
+    from: REQ-pre-edit-hooks-kibi-check-staged
+    to: FACT-current-firm-requirements-unguarded
+    created_at: 2026-11-17T19:23:28.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce962da1853f
+  - type: constrains
+    from: REQ-pre-edit-hooks-kibi-check-staged
+    to: FACT-SUBJ-kibi-firm-edit-review
+    created_at: 2026-11-17T19:23:28.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1f6e18ef28b
+  - type: specified_by
+    from: REQ-pre-edit-hooks-kibi-check-staged
+    to: SCEN-closed-firm-requirement-guard
+    created_at: 2026-11-17T19:23:38.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb4fc4eb741a
+  - type: specified_by
+    from: REQ-pre-edit-hooks-kibi-check-staged
+    to: SCEN-NEG-closed-firm-requirement-guard-VIOLATED
+    created_at: 2026-11-17T19:23:38.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4333eab3afd3

@@ -1,0 +1,18 @@
+{
+  "test_id": "TEST-agent-core-edit-snippet-why",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./packages/agent-core/tests/snippets.test.ts",
+      "./packages/agent-core/tests/knowledge-index-contract.test.ts",
+      "./packages/claude/tests/hook-runner.test.ts",
+      "./packages/codex/tests/hook-runner.test.ts",
+      "./packages/cursor/tests/hook-runner.test.ts",
+      "./packages/zcode/tests/hook-runner.test.ts",
+      "./packages/opencode/tests/edit-knowledge.test.ts"
+    ]
+  ]
+}

@@ -111,7 +111,7 @@
           "description": "Optional declared bootstrap context supplied by the agent to ground the read-only synthesis output.",
           "properties": {
             "conflicts": {
-              "description": "Contradictions the agent found between declared intentClaims and leaves for the human to resolve. Each becomes a cited fact candidate with fact_kind observation tagged review:conflict. Every claimReference must match a declared claim's sourceId and reference. Bound into the plan hash.",
+              "description": "Contradictions between declared intentClaims left for the human; each becomes a fact tagged review:conflict.",
               "items": {
                 "additionalProperties": false,
                 "properties": {
@@ -148,7 +148,7 @@
               "type": "array"
             },
             "intentClaims": {
-              "description": "Statements the agent harvested from knowledgeSources, each citing its source. Intent claims (the default kind) that the strict modeler can ground become cited req candidates; the rest become explicit authoring follow-ups. Observation and open_question claims never become requirements: they become cited fact candidates with fact_kind observation, open questions tagged review:open-question. Every intent and observation claim needs an excerpt: the created entity's body keeps the statement, then a '## Source' section with the blockquoted excerpt, the source title and the reference. Bound into the plan hash.",
+              "description": "Statements harvested from knowledgeSources, each citing its source and excerpt; intent claims may become requirements.",
               "items": {
                 "additionalProperties": false,
                 "else": {
@@ -164,23 +164,23 @@
                 },
                 "properties": {
                   "component": {
-                    "description": "Optional component the claim is about (for example recorder). Generated subject keys take the shape component.aspect with the aspect from the claim's subject. Without a component on the claim or its knowledge source, a claim whose subject is not a single word or already dotted becomes an authoring follow-up with a diagnostic instead of a malformed subject key.",
+                    "description": "Optional component the claim is about; generated subject keys take the shape component.aspect.",
                     "minLength": 1,
                     "type": "string"
                   },
                   "excerpt": {
-                    "description": "Verbatim passage from the source the claim came from. Required for intent and observation claims (optional for open_question): Kibi persists it with the knowledge source title and reference in the created entity's '## Source' section, because the ticket or page may be gone by the next migration.",
+                    "description": "Verbatim passage the claim came from; required for intent and observation claims, kept in the entity's Source section.",
                     "minLength": 1,
                     "type": "string"
                   },
                   "kind": {
                     "default": "intent",
-                    "description": "intent: intended behavior (may become a req). observation: how things are today, without stating intent. open_question: something the sources leave undecided. Default: intent.",
+                    "description": "intent (may become a req), observation (how things are today) or open_question. Default: intent.",
                     "enum": ["intent", "observation", "open_question"],
                     "type": "string"
                   },
                   "rationale": {
-                    "description": "Optional reason the requirement exists, as the source states it or the human answered when asked. It becomes the requirement's rationale and its body's '## Context' section. Never invent one.",
+                    "description": "Optional reason the requirement exists, as the source or the human states it. Never invent one.",
                     "minLength": 1,
                     "type": "string"
                   },
@@ -206,17 +206,17 @@
               "type": "array"
             },
             "knowledgeSources": {
-              "description": "Knowledge sources outside the code that the human confirmed during the bootstrap interview (issue trackers, wikis, specs, decision logs). Kibi never contacts them; the agent reads them through its own connectors and cites them from intentClaims. Bound into the plan hash.",
+              "description": "Knowledge sources outside the code the human confirmed (trackers, wikis, specs); the agent cites them from intentClaims.",
               "items": {
                 "additionalProperties": false,
                 "properties": {
                   "authority": {
-                    "description": "The human's call: authoritative claims become higher-confidence candidates, supporting claims lower ones, and stale sources are cited but never produce candidates.",
+                    "description": "The human's call: authoritative, supporting, or stale (cited, never a candidate).",
                     "enum": ["authoritative", "supporting", "stale"],
                     "type": "string"
                   },
                   "component": {
-                    "description": "Optional component this source's claims are about (for example recorder). It becomes the first segment of each generated subject_key (component.aspect); a claim's own component overrides it.",
+                    "description": "Optional component the source's claims are about; the first segment of each generated subject_key.",
                     "minLength": 1,
                     "type": "string"
                   },
@@ -306,12 +306,12 @@
           "type": "array"
         },
         "includeGenericMarkdown": {
-          "description": "Whether to include generic markdown file content as candidate facts. Default: true, or false when bootstrapContext declares intentClaims (the declared sources already carry the intent); set it explicitly to override.",
+          "description": "Whether to include generic markdown content as candidate facts. Default: true, or false with declared intentClaims.",
           "type": "boolean"
         },
         "maxCandidates": {
           "default": 50,
-          "description": "Budget for candidates Kibi discovers itself (symbols, tests, repository documents). Declared intentClaims sit outside it: they are never capped and never use its slots. Clamped to [1, 200]. Default: 50.",
+          "description": "Budget for candidates Kibi discovers itself; declared intentClaims are never capped. Clamped to [1, 200]. Default: 50.",
           "maximum": 200,
           "minimum": 1,
           "type": "integer"
@@ -324,7 +324,7 @@
           "type": "number"
         },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

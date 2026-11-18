@@ -13,14 +13,14 @@ import { OPTIONAL_TOOL_NAMES, TOOLS } from "../../src/tools-config.js";
  * each certificate is checked against the registry, not the numbers here.
  */
 
-/** The default Kibi MCP tool catalog shall hold 16 tools. */
+/** The default Kibi MCP tool catalog shall hold 18 tools. */
 export function mcpDefaultToolCountCertificate(): CodeCertificate {
   return arithmeticCertificate({
     testId: "TEST-proof-mcp-default-tool-count",
     variable: "default_tool_count",
     valueType: "int",
     assumptions: [{ operator: "eq", value: TOOLS.length }],
-    claim: { operator: "eq", value: 16 },
+    claim: { operator: "eq", value: 18 },
   });
 }
 
@@ -39,9 +39,9 @@ export async function mcpOptionalToolsCertificate(): Promise<CodeCertificate> {
 }
 
 describe("the MCP tool registry", () => {
-  test("the default catalog holds 16 tools", () => {
+  test("the default catalog holds 18 tools", () => {
     writeCodeCertificate(mcpDefaultToolCountCertificate());
-    expect(TOOLS).toHaveLength(16);
+    expect(TOOLS).toHaveLength(18);
   });
 
   test("the optional tools are kb_sparql_remote and kb_job_status", async () => {

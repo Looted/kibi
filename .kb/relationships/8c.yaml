@@ -216,3 +216,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1de8b225aa6b
+  - type: executable_for
+    from: SYM-e2e-test-kibi-cli-legacy-apply-safe
+    to: TEST-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-15T17:19:09.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbab8af84810
+  - type: executable_for
+    from: SYM-test-kb-upsert-derives-proposition-ledger
+    to: TEST-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:24.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-564731fc42ae
+  - type: implements
+    from: SYM-staged-declaration-judgedByCommit
+    to: REQ-staged-gate-judges-changed-declarations
+    created_at: 2026-11-16T05:44:13.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c08fd05d96a3
+  - type: covered_by
+    from: SYM-staged-declaration-judgedByCommit
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:44:13.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51470a01aae1
+  - type: assumes
+    from: SCEN-upsert-notes-missing-reason
+    to: FACT-upsert-notes-missing-reason
+    created_at: 2026-11-16T14:58:20.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-678aa582f032
+  - type: verified_by
+    from: SCEN-upsert-notes-missing-reason
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:20.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0af2366cd818
+  - type: assumes
+    from: SCEN-ci-kb-merge-uses-action
+    to: FACT-ci-kb-merge-uses-action
+    created_at: 2026-11-16T18:11:47.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca673cc96a25
+  - type: verified_by
+    from: SCEN-ci-kb-merge-uses-action
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:11:47.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1050733d692
+  - type: executable_for
+    from: SYM-test-kb-record-equivalence
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:43:41.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9ede528195c
+  - type: executable_for
+    from: SYM-test-mcp-env-workspace-file-key-policy
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:33:24.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49a65a436c45
+  - type: implements
+    from: SYM-core-collect-store-garbage
+    to: REQ-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:11:43.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a55748c008f
+  - type: covered_by
+    from: SYM-core-collect-store-garbage
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:11:43.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9b9758a82f0

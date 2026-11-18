@@ -71,12 +71,14 @@ describe("kibi prove", () => {
     await run("prove", "--requirement", "REQ-1", "--stale", "--resume");
     await run("prove", "--integration", "unit");
     await run("prove", "--all", "--integration-except", "e2e");
+    await run("prove", "--all", "--shard", "2/3", "--list");
     expect(plainCalls(spy)).toStrictEqual([
       [{ all: true }],
       [{ testId: "TEST-1", all: false }],
       [{ requirement: "REQ-1", all: false, stale: true, resume: true }],
       [{ integration: "unit", all: false }],
       [{ integrationExcept: "e2e", all: false }],
+      [{ all: false, shard: { index: 2, count: 3 }, list: true }],
     ]);
     expect(process.exitCode).toBe(3);
   });
@@ -111,7 +113,7 @@ describe("kibi proof subcommands", () => {
     Reflect.deleteProperty(process.env, "KIBI_PROOF_WORKSPACE");
     await run("proof", "run-steps", "s.json", "--test", "A", "B");
     expect(plainCalls(spy)).toStrictEqual([
-      [{ workspaceRoot: "/ws", stepsPath: "proof/steps.json" }],
+      [{ workspaceRoot: "/ws" }],
       [
         {
           workspaceRoot: process.cwd(),

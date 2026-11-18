@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-kb-upsert-capture-with-why",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "600000",
+      "./packages/cli/tests/operations-mutation/mutation/capture.test.ts",
+      "./packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts",
+      "./packages/cli/tests/entity-body-context.test.ts",
+      "./packages/cli/tests/consumer/upsert-capture-with-why.test.ts"
+    ]
+  ]
+}

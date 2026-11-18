@@ -56,12 +56,12 @@
     "warnings": []
   },
   "tool": {
-    "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer a dryRun:true call first because it validates without writing and returns semantic advisor receipts for prose-heavy requirements. Use kb_model (mode requirement) before hand-writing strict property facts from prose, and kb_model (mode predicates) before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). An update keeps the properties and relationships it leaves out: send the fields that change (with title and status) and only the links to add. Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request, then upsert the old requirement with status closed (kb_check blocks a superseded requirement that is not closed). Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Pass a sectioned `document.body` when creating a requirement (the statement, then `## Context` stating why it exists, who asked and the source, then `## Source` with the verbatim excerpt) and a prose body for scenarios, tests, ADRs and observation facts; a result warning reports an entity whose body lacks context, and kb_check blocks it under entity-context-missing. Never invent a reason the requester did not give: write 'Reason not stated'. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates; dryRun:true writes nothing.",
+    "description": "Create or update one entity and its relationships. Use it for modeling, updates and every write kb_record does not take (a newly stated rule is one kb_record call). dryRun:true validates without writing. Model prose with kb_model before hand-writing strict property or predicate facts. An update keeps what it leaves out: send the changed fields (with title and status) and only the links to add. Relationship endpoints must already exist. A requirement that contradicts a current one on the same subject is rejected; to replace it, add a `supersedes` link from the new requirement and upsert the old one with status closed. For a requirement send the statement as `document.body` and the reason as `why` (never invent one: write 'Reason not stated'); give other entities a prose body. A requirement write returns its open kb_check steps as nextActions. Side effects: writes KB; dryRun:true writes nothing.",
     "inputSchema": {
       "properties": {
         "document": {
           "additionalProperties": false,
-          "description": "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes (a requirement whose semantic_text changes gets the new statement in place of the old one, with its context sections kept). For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.",
+          "description": "Optional source document write; omit body on update to keep it. New requirements take statement, Context, Source.",
           "properties": {
             "body": {
               "type": "string"
@@ -75,15 +75,42 @@
         },
         "dryRun": {
           "default": false,
-          "description": "Validate the payload and return schema/modeling errors, a normalized preview and the semantic advisor receipt without writing the KB or workspace. Use it as the preflight before the real write.",
+          "description": "Validate and preview without writing the KB or workspace; use it as the preflight before the real write.",
           "type": "boolean"
         },
         "id": {
-          "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
+          "description": "Unique entity ID named by the behavior it governs (<TYPE>-<area>-<behavior>); an existing ID updates the entity.",
           "type": "string"
         },
+        "implementedBy": {
+          "description": "req only: declarations that implement it, each {sourceFile, symbol, coveredBy?}; linked by implements (and covered_by).",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "coveredBy": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "sourceFile": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "symbol": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["sourceFile", "symbol"],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
         "plannedFacts": {
-          "description": "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
+          "description": "dryRun only: fact payloads (e.g. kb_model applyPlan entries) staged before this one, so their links resolve.",
           "items": {
             "properties": {
               "id": {
@@ -94,7 +121,7 @@
                 "type": "object"
               },
               "relationships": {
-                "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+                "description": "Optional relationship rows to create in the same call; asserts edges in the KB.",
                 "items": {
                   "properties": {
                     "from": {
@@ -106,7 +133,7 @@
                       "type": "string"
                     },
                     "type": {
-                      "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
+                      "description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test).",
                       "enum": [
                         "depends_on",
                         "specified_by",
@@ -166,194 +193,22 @@
               }
             }
           ],
-          "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
+          "description": "Entity fields; must include title and status. Fact, symbol, test and proof fields: kibi-usage resource operation-fields.",
           "properties": {
-            "aliases": {
-              "description": "Optional vocabulary aliases for predicate discovery.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
             "approval_ref": {
               "description": "Requirement-only. Optional reference to the exception's approval decision record.",
               "minLength": 1,
               "type": "string"
             },
             "approved_by": {
-              "description": "Requirement-only. The human who approved this exception requirement. An exception that exempts a requirement and is specified_by a success scenario makes that scenario feasible only when approved_by is set.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "argument_aliases": {
-              "additionalProperties": {
-                "additionalProperties": {
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "type": "object"
-              },
-              "description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {\"severity\": {\"warn\": \"warning\"}}. kibi migrate rewrites facts that still use an alias.",
-              "type": "object"
-            },
-            "argument_constants": {
-              "additionalProperties": {
-                "items": {
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "minItems": 1,
-                "type": "array"
-              },
-              "description": "predicate_schema only: allowed constants keyed by argument name, e.g. {\"severity\": [\"warning\", \"info\"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open.",
-              "type": "object"
-            },
-            "argument_descriptions": {
-              "description": "Optional ordered argument explanations.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "argument_names": {
-              "description": "Ordered argument role names for predicate_schema facts.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "argument_types": {
-              "description": "Ordered argument types for predicate_schema facts.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "canonical_key": {
-              "description": "Optional canonical identity key for predicate or strict fact claims.",
-              "type": "string"
-            },
-            "case_waiver": {
-              "description": "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "case_waiver_approved_by": {
-              "description": "Fact-only. The person who accepted case_waiver.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "claim_key": {
-              "description": "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key.",
-              "pattern": "^CLAIM-[A-F0-9]{16}$",
-              "type": "string"
-            },
-            "claim_span_end": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "claim_span_start": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "claim_text": {
-              "description": "Exact atomic requirement clause represented by this fact, retained for human audit. On a grounding fact Kibi derives claim_key from it; an observation or meta fact quotes the clause it is about without a key.",
-              "type": "string"
-            },
-            "closed_world": {
-              "description": "Optional closed-world marker for strict fact interpretation.",
-              "type": "boolean"
-            },
-            "dimension_waiver": {
-              "description": "Fact-only. Why the quantifier word in claim_text ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented once dimension_waiver_approved_by is set.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "dimension_waiver_approved_by": {
-              "description": "Fact-only. The person who accepted dimension_waiver.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "distinct_from": {
-              "description": "subject only: similar defined subject keys this subject was checked to differ from; the body says how. Silences subject-duplicate for those pairs.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "examples": {
-              "description": "Optional ground-term examples for a predicate schema.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "exempts_claims": {
-              "description": "Requirement-only. Claim keys of the exempted requirement whose constraints this exception waives; omit to waive the whole requirement.",
-              "items": {
-                "pattern": "^CLAIM-[A-F0-9]{16}$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "fact_kind": {
-              "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose.",
-              "enum": [
-                "subject",
-                "property_value",
-                "observation",
-                "meta",
-                "predicate_schema",
-                "predicate",
-                "rule_schema",
-                "rule"
-              ],
-              "type": "string"
-            },
-            "failure_side_waiver": {
-              "description": "Requirement-only. Why the requirement has no failure side to test (its claims state a capability or output shape). Waives happy_path_only once failure_side_waiver_approved_by is set.",
-              "minLength": 1,
-              "type": "string"
-            },
-            "failure_side_waiver_approved_by": {
-              "description": "Requirement-only. The person who accepted failure_side_waiver.",
+              "description": "Requirement-only: the human who approved this exception requirement.",
               "minLength": 1,
               "type": "string"
             },
             "firmness": {
-              "description": "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); its title, meaning or firmness changes only with new human words (a new origin.ref) or by supersede. default = delegated or agent choice; exploratory = flagged guess. Absent = default if an agent wrote it, else firm.",
+              "description": "req/adr only: firm (a human's rule, needs origin.ref), default or exploratory. Absent = default if an agent wrote it.",
               "enum": ["firm", "default", "exploratory"],
               "type": "string"
-            },
-            "granularity_reason": {
-              "description": "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
-              "enum": [
-                "config-artifact",
-                "module-level-behavior",
-                "extractor-miss",
-                "legacy-link",
-                "test-suite"
-              ],
-              "type": "string"
-            },
-            "key_arguments": {
-              "description": "predicate_schema only: argument names that determine the remaining arguments (a functional dependency), e.g. [\"sensor\"] for reading(sensor, value). Rule contradiction analysis treats two atoms with identical keys as the same fact; without it the predicate is multivalued and opposing rules stay unresolved instead of disjoint.",
-              "items": {
-                "minLength": 1,
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "kind_of": {
-              "description": "subject only: defined subject keys this subject is a kind of (a read-only review is a kind of review view).",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
             },
             "links": {
               "description": "Optional references. Example: ['REQ-cli-gc','https://example.com/spec'].",
@@ -362,38 +217,12 @@
               },
               "type": "array"
             },
-            "logic_claims": {
-              "description": "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: kibi model). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
-              "items": {
-                "pattern": "^CLAIM-[A-F0-9]{16}$",
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "operator": {
-              "description": "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole. Set facts only: 'includes' means every member of value_set has the property and other members may have it too; 'subset_of' means every member that has the property is in value_set ('every env var the server reads is one of ...'); 'excludes' means no member of value_set has it ('never imports md5'); 'eq' on a set means exactly those members.",
-              "enum": [
-                "eq",
-                "neq",
-                "lt",
-                "lte",
-                "gt",
-                "gte",
-                "matches",
-                "includes",
-                "subset_of",
-                "excludes"
-              ],
-              "type": "string"
-            },
             "origin": {
               "additionalProperties": false,
-              "description": "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time.",
+              "description": "Optional provenance: kind (human, agent, migration, import) and authority (ref, approved_by, recorded_at).",
               "properties": {
                 "approved_by": {
-                  "description": "The person who reviewed and approved this entity's content. Distinct from the requirement-level approved_by of an exception.",
+                  "description": "The person who reviewed and approved this entity's content, not the approved_by of an exception requirement.",
                   "minLength": 1,
                   "pattern": "\\S",
                   "type": "string"
@@ -418,855 +247,22 @@
               "required": ["kind"],
               "type": "object"
             },
-            "owner": {
-              "description": "Optional owner name/team. Example: 'platform-team'.",
-              "type": "string"
-            },
-            "pair_reviews": {
-              "description": "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming what resolves it: a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim_key of either, never the two requirements themselves; conflict, which stays blocking until a person decides), claims (the claim_key of each unmodeled claim; a payload_hash is accepted and ignored) and origin (kind human or agent; on a must or firm pair, a verdict whose origin is missing or agent, or that sits on a requirement an agent wrote, counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
-              "items": {
-                "type": "object"
-              },
-              "type": "array"
-            },
-            "part_of": {
-              "description": "subject only: defined subject keys this subject is a part of. A dotted key prefix that is itself a defined subject is broader already.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "polarity": {
-              "description": "Optional polarity for property_value or predicate facts.",
-              "enum": ["require", "forbid", "assert", "deny"],
-              "type": "string"
-            },
-            "predicate_args": {
-              "description": "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_args.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "predicate_arity": {
-              "description": "Required arity for predicate_schema facts.",
-              "minimum": 1,
-              "type": "integer"
-            },
-            "predicate_name": {
-              "description": "Optional predicate name for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_name.",
-              "type": "string"
-            },
-            "predicate_namespace": {
-              "description": "Optional namespace for a project-local predicate schema.",
-              "type": "string"
-            },
             "priority": {
               "description": "Optional priority label. Example: 'high'.",
               "type": "string"
             },
-            "proof_bindings": {
-              "description": "Optional native-runner bindings (native ids, aliases, source coordinates) for proof obligations. Bindings are provenance metadata and never replace the semantic contract.",
-              "items": {
-                "additionalProperties": false,
-                "properties": {
-                  "aliases": {
-                    "items": {
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  "line": {
-                    "minimum": 1,
-                    "type": "integer"
-                  },
-                  "native_id": {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "source_file": {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "symbol_id": {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "target": {
-                    "minLength": 1,
-                    "type": "string"
-                  }
-                },
-                "required": ["symbol_id", "target"],
-                "type": "object"
-              },
-              "type": "array"
-            },
-            "proof_contract": {
-              "additionalProperties": false,
-              "description": "Semantic proof contract binding this test to explicit proof obligations executed by one configured integration.",
-              "properties": {
-                "constraint_source": {
-                  "additionalProperties": false,
-                  "description": "arithmetic and smt: the typed numeric property_value facts the certificate's assumptions come from. Kibi checks the assumptions (or the query's assertions) are exactly these facts' constraints, so the proof is about the knowledge base, not numbers the test chose.",
-                  "properties": {
-                    "fact_ids": {
-                      "items": {
-                        "minLength": 1,
-                        "type": "string"
-                      },
-                      "minItems": 1,
-                      "type": "array"
-                    }
-                  },
-                  "required": ["fact_ids"],
-                  "type": "object"
-                },
-                "domain_source": {
-                  "additionalProperties": false,
-                  "description": "exhaustive and typecheck: the symbol that defines the finite domain (typecheck: also the type whose fields a required_fields fact names). state_machine: the transition table or next-state function. The proof must import it from its source file; a hand-listed domain downgrades the receipt to example. Kibi reads the export named `export`, or the symbol's title when `export` is absent.",
-                  "properties": {
-                    "arg": {
-                      "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
-                      "minimum": 1,
-                      "type": "integer"
-                    },
-                    "export": {
-                      "description": "The name the domain is exported under in the symbol's source file, when the symbol's title is not that name.",
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "field": {
-                      "description": "exhaustive: when the export is a list of records, the field of each record that names a domain member (a catalog's name).",
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "symbol_id": {
-                      "minLength": 1,
-                      "type": "string"
-                    }
-                  },
-                  "required": ["symbol_id"],
-                  "type": "object"
-                },
-                "domains": {
-                  "additionalProperties": {
-                    "anyOf": [
-                      {
-                        "additionalProperties": false,
-                        "properties": {
-                          "arg": {
-                            "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
-                            "minimum": 1,
-                            "type": "integer"
-                          },
-                          "export": {
-                            "minLength": 1,
-                            "type": "string"
-                          },
-                          "symbol_id": {
-                            "minLength": 1,
-                            "type": "string"
-                          }
-                        },
-                        "required": ["symbol_id"],
-                        "type": "object"
-                      },
-                      {
-                        "additionalProperties": false,
-                        "properties": {
-                          "source": {
-                            "additionalProperties": true,
-                            "description": "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
-                            "properties": {
-                              "reader": {
-                                "enum": [
-                                  "json",
-                                  "yaml",
-                                  "glob",
-                                  "openapi",
-                                  "references",
-                                  "schema",
-                                  "routes",
-                                  "validator",
-                                  "prolog"
-                                ],
-                                "type": "string"
-                              }
-                            },
-                            "required": ["reader"],
-                            "type": "object"
-                          }
-                        },
-                        "required": ["source"],
-                        "type": "object"
-                      }
-                    ]
-                  },
-                  "description": "rule: the finite domain of each argument type, keyed by type name (an array, Set, Map or object export, or a Python list, set, dict or Enum), or {source} for the members Kibi reads from a project source (every route, every table, every environment variable). state_machine with a next-state function: the `state` and `event` domains it is called on.",
-                  "minProperties": 1,
-                  "type": "object"
-                },
-                "initial_source": {
-                  "additionalProperties": false,
-                  "description": "state_machine: the export holding the initial state (or states), needed for initial_states and reachable_states facts.",
-                  "properties": {
-                    "arg": {
-                      "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
-                      "minimum": 1,
-                      "type": "integer"
-                    },
-                    "export": {
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "symbol_id": {
-                      "minLength": 1,
-                      "type": "string"
-                    }
-                  },
-                  "required": ["symbol_id"],
-                  "type": "object"
-                },
-                "integration": {
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "kind": {
-                  "description": "What the checker establishes; absent means e2e. exhaustive, typecheck, arithmetic, smt, rule, state_machine and regex must leave a kibi.code-certificate.v1 that Kibi re-checks before the receipt counts as proved. source reads the contract's source itself: the run may leave {version, kind: source, test_id, source} or nothing, and Kibi stores its own read as the certificate.",
-                  "enum": [
-                    "e2e",
-                    "example",
-                    "property",
-                    "exhaustive",
-                    "typecheck",
-                    "arithmetic",
-                    "smt",
-                    "rule",
-                    "state_machine",
-                    "regex",
-                    "source"
-                  ],
-                  "type": "string"
-                },
-                "pattern_source": {
-                  "additionalProperties": false,
-                  "description": "regex: the export holding the code's pattern (a RegExp, or a Python re.Pattern) or string constant that a string fact is about.",
-                  "properties": {
-                    "arg": {
-                      "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
-                      "minimum": 1,
-                      "type": "integer"
-                    },
-                    "export": {
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "symbol_id": {
-                      "minLength": 1,
-                      "type": "string"
-                    }
-                  },
-                  "required": ["symbol_id"],
-                  "type": "object"
-                },
-                "predicate_source": {
-                  "additionalProperties": {
-                    "additionalProperties": false,
-                    "properties": {
-                      "export": {
-                        "description": "The exported function's name in the symbol's source file. Without it Kibi reads the export named by the symbol's title.",
-                        "minLength": 1,
-                        "type": "string"
-                      },
-                      "harness_for": {
-                        "description": "The predicate is a test harness that decides the predicate by driving these code symbols (for example by calling the handler with each role). The symbols must be covered_by the test; a claim the harness proves is bound with scope harness.",
-                        "items": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "minItems": 1,
-                        "type": "array"
-                      },
-                      "symbol_id": {
-                        "minLength": 1,
-                        "type": "string"
-                      }
-                    },
-                    "required": ["symbol_id"],
-                    "type": "object"
-                  },
-                  "description": "rule: the code function behind each predicate a claim's rule, predicate or set fact names, keyed by predicate name. Each export takes the predicate's arguments in order and returns a boolean; Kibi calls it on every combination of its argument domains.",
-                  "minProperties": 1,
-                  "type": "object"
-                },
-                "proves": {
-                  "description": "Certificate kinds: the requirement claim keys (CLAIM-...) this certificate proves. Each must be a modeled claim of a current requirement the test reaches through its scenarios. Kibi derives what the certificate must establish from the claim's grounding fact (a set fact for exhaustive or typecheck, a numeric fact for arithmetic or smt, a rule, predicate or set fact for rule and state_machine, a string fact for regex); a claim with no such derivation is only attested and never counts as proved.",
-                  "items": {
-                    "pattern": "^CLAIM-",
-                    "type": "string"
-                  },
-                  "minItems": 1,
-                  "type": "array",
-                  "uniqueItems": true
-                },
-                "required_proofs": {
-                  "items": {
-                    "additionalProperties": false,
-                    "properties": {
-                      "symbol_id": {
-                        "minLength": 1,
-                        "type": "string"
-                      },
-                      "target": {
-                        "minLength": 1,
-                        "type": "string"
-                      }
-                    },
-                    "required": ["symbol_id", "target"],
-                    "type": "object"
-                  },
-                  "maxItems": 1000,
-                  "minItems": 1,
-                  "type": "array"
-                },
-                "source": {
-                  "additionalProperties": true,
-                  "description": "source: the project source a source proof reads. A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
-                  "properties": {
-                    "reader": {
-                      "enum": [
-                        "json",
-                        "yaml",
-                        "glob",
-                        "openapi",
-                        "references",
-                        "schema",
-                        "routes",
-                        "validator",
-                        "prolog"
-                      ],
-                      "type": "string"
-                    }
-                  },
-                  "required": ["reader"],
-                  "type": "object"
-                },
-                "success_policy": {
-                  "enum": [
-                    "all_required_first_attempt",
-                    "own_results_first_attempt"
-                  ],
-                  "type": "string"
-                },
-                "value_source": {
-                  "description": "arithmetic and smt: code constants the assumptions read. Kibi evaluates each export at ingest and requires the certificate to assume the variable equals that value, so the proof is about the code and not only the knowledge base. With measure count the value is the size of a list, set, map or object export, so a count claim reads the collection itself. A dotted export (POLICY.eventLimit) reads one field of an object export. An entry {source, measure: count} counts the members Kibi reads from a project source (routes, tables, environment variables).",
-                  "items": {
-                    "additionalProperties": false,
-                    "properties": {
-                      "arg": {
-                        "description": "A SWI-Prolog predicate's argument (1-based) whose solutions Kibi reads, when the predicate takes more than one argument (operator/2 with arg 1 lists each operator's name).",
-                        "minimum": 1,
-                        "type": "integer"
-                      },
-                      "export": {
-                        "minLength": 1,
-                        "type": "string"
-                      },
-                      "measure": {
-                        "description": "value (default for an export): the export is a number. count (the only measure of a source): the number of members of a list, set, map or object export, or of a source.",
-                        "enum": ["value", "count"],
-                        "type": "string"
-                      },
-                      "source": {
-                        "additionalProperties": true,
-                        "description": "A project source Kibi reads by itself. reader json or yaml: {file, path?, select?: keys|values|items}. glob: {pattern, capture?, ignore?} (capture true reads what each * matched). openapi: {file, select?: operations|unsecured_operations|security_schemes|responses}. references: {files, extract: env|imports|calls|string_args|thrown|property, callee?, key?, ignore?} over TypeScript, JavaScript, Python and SWI-Prolog files. schema: {format: drizzle|prisma|sql, file (drizzle, prisma) or files (sql migrations), exports?, table?, select?: tables|columns|required_columns|nullable_columns|foreign_keys}. routes: {file, export, framework?: hono|express, path_prefix?, names_from?, select?: routes|middleware}. validator: {file, export, select?: fields|required_fields|optional_fields}. prolog: {file, functor: Name/Arity, arg?} reads one argument of every fact with that functor in a SWI-Prolog file (requires/1 in pack.pl), without running it. Paths are repository-relative. A member Kibi cannot read statically fails the read with its location.",
-                        "properties": {
-                          "reader": {
-                            "enum": [
-                              "json",
-                              "yaml",
-                              "glob",
-                              "openapi",
-                              "references",
-                              "schema",
-                              "routes",
-                              "validator",
-                              "prolog"
-                            ],
-                            "type": "string"
-                          }
-                        },
-                        "required": ["reader"],
-                        "type": "object"
-                      },
-                      "symbol_id": {
-                        "minLength": 1,
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  },
-                  "minItems": 1,
-                  "type": "array"
-                },
-                "version": {
-                  "const": "kibi.proof-contract.v1",
-                  "type": "string"
-                },
-                "witness": {
-                  "additionalProperties": false,
-                  "description": "typecheck: the repository-relative witness file Kibi compiles (an exhaustive switch ending in never, or a mapped type over the domain).",
-                  "properties": {
-                    "path": {
-                      "minLength": 1,
-                      "type": "string"
-                    }
-                  },
-                  "required": ["path"],
-                  "type": "object"
-                }
-              },
-              "required": [
-                "version",
-                "integration",
-                "required_proofs",
-                "success_policy"
-              ],
-              "type": "object"
-            },
-            "proof_receipts": {
-              "description": "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
-              "items": {
-                "additionalProperties": false,
-                "description": "Kibi-derived kibi.proof-receipt.v2 (kibi.proof-receipt.v1 entries are still read). Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
-                "properties": {
-                  "artifact_digest": {
-                    "pattern": "^[a-f0-9]{64}$",
-                    "type": "string"
-                  },
-                  "binding_hash": {
-                    "pattern": "^[a-f0-9]{64}$",
-                    "type": "string"
-                  },
-                  "certificate": {
-                    "type": "object"
-                  },
-                  "certificate_digest": {
-                    "pattern": "^[a-f0-9]{64}$",
-                    "type": "string"
-                  },
-                  "certificate_rejection": {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "claim_bindings": {
-                    "description": "Certificate kinds: how the certificate binds to each claim its contract names in proves, judged at ingest. derived means Kibi derived the certificate's obligation from the claim's grounding fact and the certificate satisfies it; attested means no derivation exists and the author vouches for it (never proved); rejected names why.",
-                    "items": {
-                      "additionalProperties": false,
-                      "properties": {
-                        "binding": {
-                          "enum": ["derived", "attested", "rejected"],
-                          "type": "string"
-                        },
-                        "claim_key": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "fact_id": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "obligation": {
-                          "type": "object"
-                        },
-                        "reason": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "requirement_id": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "scope": {
-                          "enum": ["code", "source", "harness", "intent"],
-                          "type": "string"
-                        }
-                      },
-                      "required": ["claim_key", "binding"],
-                      "type": "object"
-                    },
-                    "type": "array"
-                  },
-                  "code_snapshot": {
-                    "pattern": "^[a-f0-9]{64}$",
-                    "type": "string"
-                  },
-                  "command_argv": {
-                    "items": {
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "minItems": 1,
-                    "type": "array"
-                  },
-                  "contract_hash": {
-                    "pattern": "^[a-f0-9]{64}$",
-                    "type": "string"
-                  },
-                  "environment_hash": {
-                    "pattern": "^[a-f0-9]{64}$",
-                    "type": "string"
-                  },
-                  "evidence_level": {
-                    "enum": ["proved", "tested"],
-                    "type": "string"
-                  },
-                  "fingerprint": {
-                    "pattern": "^[a-f0-9]{64}$",
-                    "type": "string"
-                  },
-                  "fingerprint_components": {
-                    "additionalProperties": false,
-                    "properties": {
-                      "bindings": {
-                        "pattern": "^[a-f0-9]{64}$",
-                        "type": "string"
-                      },
-                      "command": {
-                        "pattern": "^[a-f0-9]{64}$",
-                        "type": "string"
-                      },
-                      "contract": {
-                        "pattern": "^[a-f0-9]{64}$",
-                        "type": "string"
-                      },
-                      "integration": {
-                        "pattern": "^[a-f0-9]{64}$",
-                        "type": "string"
-                      },
-                      "producer": {
-                        "pattern": "^[a-f0-9]{64}$",
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "contract",
-                      "integration",
-                      "command",
-                      "bindings",
-                      "producer"
-                    ],
-                    "type": "object"
-                  },
-                  "finished_at": {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "gaps": {
-                    "items": {
-                      "additionalProperties": false,
-                      "properties": {
-                        "reason": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "symbol_id": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "target": {
-                          "minLength": 1,
-                          "type": "string"
-                        }
-                      },
-                      "required": ["symbol_id", "target", "reason"],
-                      "type": "object"
-                    },
-                    "type": "array"
-                  },
-                  "integration_id": {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "kind": {
-                    "enum": [
-                      "e2e",
-                      "example",
-                      "property",
-                      "exhaustive",
-                      "typecheck",
-                      "arithmetic",
-                      "smt",
-                      "rule",
-                      "state_machine",
-                      "regex",
-                      "source"
-                    ],
-                    "type": "string"
-                  },
-                  "outcome": {
-                    "enum": [
-                      "passed",
-                      "failed",
-                      "errored",
-                      "cancelled",
-                      "skipped",
-                      "timed_out",
-                      "interrupted"
-                    ],
-                    "type": "string"
-                  },
-                  "producer": {
-                    "additionalProperties": false,
-                    "properties": {
-                      "name": {
-                        "minLength": 1,
-                        "type": "string"
-                      },
-                      "version": {
-                        "minLength": 1,
-                        "type": "string"
-                      }
-                    },
-                    "required": ["name"],
-                    "type": "object"
-                  },
-                  "proof_results": {
-                    "items": {
-                      "additionalProperties": false,
-                      "properties": {
-                        "attempts": {
-                          "oneOf": [
-                            {
-                              "additionalProperties": false,
-                              "properties": {
-                                "entries": {
-                                  "items": {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                      "duration_ms": {
-                                        "minimum": 0,
-                                        "type": "number"
-                                      },
-                                      "outcome": {
-                                        "enum": [
-                                          "passed",
-                                          "failed",
-                                          "timed_out",
-                                          "skipped",
-                                          "interrupted",
-                                          "errored"
-                                        ],
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": ["outcome"],
-                                    "type": "object"
-                                  },
-                                  "minItems": 1,
-                                  "type": "array"
-                                },
-                                "status": {
-                                  "const": "complete",
-                                  "type": "string"
-                                }
-                              },
-                              "required": ["status", "entries"],
-                              "type": "object"
-                            },
-                            {
-                              "additionalProperties": false,
-                              "properties": {
-                                "status": {
-                                  "const": "unavailable",
-                                  "type": "string"
-                                }
-                              },
-                              "required": ["status"],
-                              "type": "object"
-                            }
-                          ]
-                        },
-                        "binding": {
-                          "enum": ["native_case", "aggregate_run"],
-                          "type": "string"
-                        },
-                        "native_id": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "outcome": {
-                          "enum": [
-                            "passed",
-                            "failed",
-                            "timed_out",
-                            "skipped",
-                            "interrupted",
-                            "errored"
-                          ],
-                          "type": "string"
-                        },
-                        "symbol_id": {
-                          "minLength": 1,
-                          "type": "string"
-                        },
-                        "target": {
-                          "minLength": 1,
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "symbol_id",
-                        "target",
-                        "outcome",
-                        "binding",
-                        "attempts"
-                      ],
-                      "type": "object"
-                    },
-                    "maxItems": 1000,
-                    "minItems": 0,
-                    "type": "array"
-                  },
-                  "receipt_id": {
-                    "pattern": "^PR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$",
-                    "type": "string"
-                  },
-                  "run_outcome": {
-                    "enum": [
-                      "passed",
-                      "failed",
-                      "errored",
-                      "cancelled",
-                      "timed_out",
-                      "interrupted",
-                      "no_results"
-                    ],
-                    "type": "string"
-                  },
-                  "scope": {
-                    "enum": ["unit", "integration", "end_to_end"],
-                    "type": "string"
-                  },
-                  "started_at": {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "test_id": {
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "version": {
-                    "enum": ["kibi.proof-receipt.v1", "kibi.proof-receipt.v2"],
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "version",
-                  "receipt_id",
-                  "test_id",
-                  "scope",
-                  "outcome",
-                  "code_snapshot",
-                  "environment_hash",
-                  "started_at",
-                  "finished_at",
-                  "artifact_digest",
-                  "contract_hash",
-                  "fingerprint",
-                  "fingerprint_components",
-                  "integration_id",
-                  "producer",
-                  "command_argv",
-                  "run_outcome",
-                  "proof_results"
-                ],
-                "type": "object"
-              },
-              "maxItems": 50,
-              "type": "array"
-            },
-            "property_key": {
-              "description": "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
-              "type": "string"
-            },
             "rationale": {
-              "description": "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent; not part of the checked meaning.",
+              "description": "Requirement-only: why it exists, in the stater's words; send it in the same write when they gave one, never invent one.",
               "minLength": 1,
               "type": "string"
             },
             "required_evidence": {
-              "description": "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified.",
+              "description": "Requirement-only: weakest evidence level it accepts. Absent = tested if firm, else unverified.",
               "enum": ["proved", "tested", "asserted", "unverified"],
               "type": "string"
             },
-            "rule_hash": {
-              "description": "Deterministic hash of canonical rule_ir.",
-              "type": "string"
-            },
-            "rule_ir": {
-              "description": "Schema-validated kibi.logic.v1 rule IR. It is persisted as data and never executed as caller-supplied Prolog.",
-              "type": "object"
-            },
-            "rule_name": {
-              "description": "Stable rule schema name.",
-              "type": "string"
-            },
-            "rule_schema_id": {
-              "description": "Rule schema fact ID used to validate this rule.",
-              "type": "string"
-            },
-            "scope": {
-              "description": "Optional scope qualifier for fact entities.",
-              "type": "string"
-            },
-            "semantic_clauses": {
-              "description": "Optional complete atomic decomposition used by kb_model mode analyze and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
-              "items": {
-                "minLength": 1,
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array"
-            },
-            "semantic_inventory": {
-              "description": "Requirement proposition ledger returned by kb_model mode analyze (CLI: kibi model); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
-              "items": {
-                "type": "object"
-              },
-              "type": "array"
-            },
-            "semantic_inventory_version": {
-              "const": "kibi.semantic-inventory.v1",
-              "description": "Requirement-only proposition ledger contract version returned by kb_model mode analyze (CLI: kibi model).",
-              "type": "string"
-            },
-            "semantic_key": {
-              "description": "Canonical semantic identity of the normalized logical model.",
-              "type": "string"
-            },
-            "semantic_source_field": {
-              "description": "Requirement field whose exact UTF-8 bytes anchor semantic_inventory spans.",
-              "enum": ["semantic_text", "text_ref", "title"],
-              "type": "string"
-            },
-            "semantic_source_hash": {
-              "description": "SHA-256 of the exact semantic source text returned in the advisor inventory contract.",
-              "pattern": "^[a-f0-9]{64}$",
-              "type": "string"
-            },
             "semantic_text": {
-              "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans. Keep text_ref available for independent document or code evidence.",
-              "type": "string"
-            },
-            "severity": {
-              "description": "Optional severity label. Example: 'critical'.",
-              "type": "string"
-            },
-            "source": {
-              "description": "Optional provenance string. Example: '.kb/requirements/REQ-cli-gc.md'. Defaults to 'mcp://kibi/upsert'.",
+              "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans.",
               "type": "string"
             },
             "sourceFile": {
@@ -1274,11 +270,7 @@
               "type": "string"
             },
             "status": {
-              "description": "Required lifecycle state. Allowed values depend on entity type; backward-compatible legacy statuses are also accepted. Examples: 'open', 'passing', 'accepted', 'active'.",
-              "type": "string"
-            },
-            "subject_key": {
-              "description": "Snake_case only. Optional canonical subject key for strict fact entities. Example: 'user.session'. Do not use subjectKey in kb_upsert.properties.",
+              "description": "Required lifecycle state; allowed values depend on the entity type. Examples: 'open', 'passing', 'accepted'.",
               "type": "string"
             },
             "symbol_role": {
@@ -1307,58 +299,13 @@
             "title": {
               "description": "Required short title. Example: 'Protect account settings endpoint'.",
               "type": "string"
-            },
-            "unit": {
-              "description": "Optional unit for numeric property_value facts.",
-              "type": "string"
-            },
-            "value_bool": {
-              "description": "Optional boolean value for property_value facts.",
-              "type": "boolean"
-            },
-            "value_int": {
-              "description": "Optional integer value for property_value facts.",
-              "type": "integer"
-            },
-            "value_number": {
-              "description": "Optional number value for property_value facts.",
-              "type": "number"
-            },
-            "value_set": {
-              "description": "Optional exact set of values for property_value facts with value_type set, such as the members a domain must have.",
-              "items": {
-                "minLength": 1,
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            },
-            "value_string": {
-              "description": "Optional string value for property_value facts.",
-              "type": "string"
-            },
-            "value_type": {
-              "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value.",
-              "enum": ["string", "int", "number", "bool", "set"],
-              "type": "string"
-            },
-            "verification_perspective": {
-              "description": "Optional typed verification perspective for test entities. Example: 'consumer'.",
-              "enum": ["internal", "consumer"],
-              "type": "string"
-            },
-            "verification_scope": {
-              "description": "Optional typed verification scope for test entities. Example: 'end_to_end'.",
-              "enum": ["unit", "integration", "end_to_end"],
-              "type": "string"
             }
           },
           "required": ["title", "status"],
           "type": "object"
         },
         "relationships": {
-          "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+          "description": "Optional relationship rows to create in the same call; asserts edges in the KB.",
           "items": {
             "properties": {
               "from": {
@@ -1370,7 +317,7 @@
                 "type": "string"
               },
               "type": {
-                "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
+                "description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test).",
                 "enum": [
                   "depends_on",
                   "specified_by",
@@ -1415,8 +362,13 @@
           ],
           "type": "string"
         },
+        "why": {
+          "description": "req only: why it exists, in the asker's words.",
+          "minLength": 1,
+          "type": "string"
+        },
         "workspaceRoot": {
-          "description": "Optional absolute path of the workspace this call is about when it differs from the one the server started in, for example the git worktree you are working in. The server answers from that workspace's knowledge base when it is a worktree of the same repository or lies under the client's MCP roots; otherwise it answers from its own workspace and adds a workspace_mismatch diagnostic. Host hooks fill this in automatically where available.",
+          "description": "Optional absolute path of the workspace this call is about, such as your git worktree, when it is not the server's.",
           "type": "string"
         }
       },

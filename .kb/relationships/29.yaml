@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d069b076cd7a
+  - type: implements
+    from: SYM-subject-warnings-claim-subject-gap
+    to: REQ-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:40:50.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-906e994ad617
+  - type: covered_by
+    from: SYM-subject-warnings-claim-subject-gap
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:24.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d15241ad3af

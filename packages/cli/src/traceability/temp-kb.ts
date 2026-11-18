@@ -47,8 +47,11 @@ export function resetModuleState(): void {
 // Factory function for creating PrologProcess instances.
 // Default uses the imported PrologProcess. Tests can override via _setPrologFactory
 // to bypass mock.module() pollution from other test files.
-const defaultPrologFactory = (opts: { timeout: number; oneShot: false }) =>
-  new PrologProcess(opts);
+const defaultPrologFactory = (opts: {
+  timeout: number;
+  oneShot: false;
+  saveAfterWrites: false;
+}) => new PrologProcess(opts);
 let _createProlog = defaultPrologFactory;
 
 /**
@@ -60,6 +63,7 @@ export function _setPrologFactory(
   factory: (opts: {
     timeout: number;
     oneShot: false;
+    saveAfterWrites: false;
   }) => PrologProcess = defaultPrologFactory,
 ): void {
   _createProlog = factory;
@@ -384,15 +388,16 @@ function registerCleanupHandlers(tempDir: string): void {
   });
 }
 
-async function consultOverlay(ctx: TempKbContext): Promise<void> {
+export async function consultOverlay(ctx: TempKbContext): Promise<void> {
   const prolog = prologByTempDir.get(ctx.tempDir);
   if (!prolog) {
     throw new Error(`No Prolog session found for temp dir: ${ctx.tempDir}`);
   }
 
+  // The scratch store is only queried in memory; saving it to disk after the
+  // overlay wrote the whole projected store again for nothing.
   const consultResult = await prolog.query([
     `consult(${escapePrologAtom(ctx.overlayPath)})`,
-    "kb_save",
   ]);
 
   if (!consultResult.success) {
@@ -401,8 +406,6 @@ async function consultOverlay(ctx: TempKbContext): Promise<void> {
     );
   }
 }
-
-export { consultOverlay };
 
 const PROJECTION_BATCH_SIZE = 128;
 
@@ -504,7 +507,12 @@ export async function createTempKb(
 
   await writeFile(overlayPath, "");
 
-  const prolog = _createProlog({ timeout: 120000, oneShot: false });
+  // A scratch store queried only here: nothing reads it back from disk.
+  const prolog = _createProlog({
+    timeout: 120000,
+    oneShot: false,
+    saveAfterWrites: false,
+  });
   await prolog.start();
   prologByTempDir.set(tempDir, prolog);
 
@@ -537,6 +545,14 @@ export function createOverlayFacts(symbols: ExtractedSymbol[]): string {
     lines.push(
       `kb:changed_symbol_loc(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.location.file)}, ${symbol.location.startLine}, 0, ${escapePrologAtom(symbol.name)}).`,
     );
+    // The extracted kind lets the link rule refuse a non-behavioral role on
+    // a function, class, method, property or accessor.
+    lines.push(
+      `kb:changed_symbol_kind(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.kind)}).`,
+    );
+    if (symbol.callable) {
+      lines.push(`kb:changed_symbol_callable(${escapePrologAtom(symbol.id)}).`);
+    }
 
     // Emit overlay facts for the requirement links the symbol manifest gives
     // the changed symbol; source comments are never a link.

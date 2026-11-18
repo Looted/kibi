@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -9,6 +10,7 @@ import {
   captureReminder,
   claimCaptureReminder,
   claimDecisionFlag,
+  claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
   firmEditConfirmation,
@@ -24,12 +26,18 @@ import {
   removesOnlyDeadImplementsComments,
   removesTrailingDeadImplementsComment,
   requestWords,
+  ruleCaptureTemplate,
   rulePromptNote,
+  sessionRulePhrase,
+  sessionRuleReason,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  startDecisionSession,
+  statedReason,
   statedRule,
   takeRuleNote,
+  unlocatedSymbols,
 } from "../src/decision-guard";
 import type { EntitySummary, IndexedSymbol } from "../src/knowledge-index";
 
@@ -590,7 +598,86 @@ describe("dead implements comments", () => {
   });
 });
 
+describe("unlocatedSymbols", () => {
+  const named = (title: string, line?: number, endLine?: number) => ({
+    ...symbol(`SYM-${title}`, 1, 1, ["REQ-firm"]),
+    title,
+    line,
+    endLine,
+  });
+  const content = [
+    "// header",
+    "export const MAX = 3;",
+    "export function retry(n: number) {",
+    "  return n < MAX;",
+    "}",
+    "class Box {",
+    "  @dec()",
+    "  open() {}",
+    "}",
+  ].join("\n");
+
+  test("a symbol without coordinates is unlocated", () => {
+    const loose = named("limits.json");
+    expect(unlocatedSymbols([loose], undefined)).toEqual([loose]);
+    expect(unlocatedSymbols([named("retry", 3, 5)], undefined)).toEqual([]);
+  });
+
+  test("coordinates that no longer name the symbol in the file are unlocated", () => {
+    const fresh = [
+      named("retry", 3, 5),
+      named("MAX", 2, 2),
+      named("Box.open", 7, 8),
+      // A description, or a record spanning the whole file, is judged by
+      // its range only.
+      named("retry helpers suite", 4, 4),
+      named("whole", 1, 9),
+    ];
+    expect(unlocatedSymbols(fresh, content)).toEqual([]);
+    const shifted = named("retry", 1, 2);
+    const past = named("MAX", 2, 12);
+    const elsewhere = named("Box.open", 2, 3);
+    expect(unlocatedSymbols([shifted, past, elsewhere], content)).toEqual([
+      shifted,
+      past,
+      elsewhere,
+    ]);
+    // The name is looked for in the first few lines only.
+    const long = `${"x\n".repeat(7)}`;
+    expect(
+      unlocatedSymbols([named("late", 2, 9)], `${long}late\nmore\n`),
+    ).toEqual([named("late", 2, 9)]);
+  });
+});
+
 describe("firmRequirementsTouched", () => {
+  test("an edit of a file whose firm symbol is unlocated asks about it", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-"));
+    const file = path.join(dir, "calc.ts");
+    fs.writeFileSync(file, "// a\n// b\nexport function retry() {}\n");
+    const stale = {
+      ...symbol("SYM-retry", 1, 1, ["REQ-firm"]),
+      title: "retry",
+    };
+    const located = { ...stale, line: 3, endLine: 3 };
+    const touched = (target: IndexedSymbol, absolutePath?: string) =>
+      firmRequirementsTouched({
+        symbols: [target],
+        focus: [{ start: 2, end: 2 }],
+        wholeFile: false,
+        summarize,
+        absolutePath,
+      }).ids;
+    // Line 2 is outside retry, but the coordinates are stale.
+    expect(touched(stale, file)).toEqual(["REQ-firm"]);
+    expect(touched(located, file)).toEqual([]);
+    // Unread, only a missing line counts as unlocated.
+    expect(touched(stale)).toEqual([]);
+    expect(touched({ ...stale, line: undefined })).toEqual(["REQ-firm"]);
+    expect(touched(stale, path.join(dir, "gone.ts"))).toEqual([]);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
   const symbols = [
     symbol("SYM-outer", 1, 40, ["REQ-default", "REQ-other-firm"]),
     symbol("SYM-inner", 10, 12, ["REQ-firm", "REQ-retired"]),
@@ -606,6 +693,25 @@ describe("firmRequirementsTouched", () => {
     // The innermost symbol is reported as the edit location.
     expect(result.symbol?.id).toBe("SYM-inner");
     expect(result.ids.sort()).toEqual(["REQ-firm", "REQ-other-firm"]);
+  });
+
+  test("a closed requirement a current one supersedes is not asked about", () => {
+    const summaries: Record<string, EntitySummary> = {
+      "REQ-old": {
+        id: "REQ-old",
+        firmness: "firm",
+        status: "closed",
+        supersededBy: "REQ-new",
+      },
+      "REQ-done": { id: "REQ-done", firmness: "firm", status: "closed" },
+    };
+    const result = firmRequirementsTouched({
+      symbols: [symbol("SYM-a", 1, 9, ["REQ-old", "REQ-done"])],
+      focus: undefined,
+      wholeFile: true,
+      summarize: (id) => summaries[id] ?? { id },
+    });
+    expect(result.ids).toEqual(["REQ-done"]);
   });
 
   test("an edit outside every symbol or with no known location touches nothing", () => {
@@ -657,13 +763,16 @@ describe("firm edit texts", () => {
     expect(firmEditContext(["REQ-a", "REQ-b", "REQ-c"])).toStartWith(
       "Kibi asked the person to confirm this edit because it changes code that implements firm requirements REQ-a, REQ-b.",
     );
+    expect(firmEditContext(["REQ-a"])).toEndWith(
+      'If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kb_review_firm_edit (CLI: kibi review-firm-edit) and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person\'s approval, and kibi signoff lists it as such.',
+    );
   });
 
   test("notice for hosts that cannot ask tells the agent to ask first", () => {
     expect(firmEditNotice("src/a.ts", [firm])).toBe(
       [
         "Kibi: this edit changes src/a.ts, which implements a firm requirement, a rule the person set: REQ-a: Only admins delete.",
-        "Unless the edit keeps that rule, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so.",
+        'Unless the edit keeps that rule, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kb_review_firm_edit ("keeps" or "changes"; CLI: kibi review-firm-edit). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person\'s approval.',
       ].join("\n"),
     );
     const many = firmEditNotice("src/a.ts", [firm, untitled, third]);
@@ -675,6 +784,42 @@ describe("firm edit texts", () => {
 });
 
 describe("statedRule and notes", () => {
+  test("rules about errors, quoted policies and rules after a bug report are found", () => {
+    for (const rule of [
+      "Error messages must never include the stack trace.",
+      "Error responses must use RFC 7807 from now on.",
+      "ValidationError must always carry the field name.",
+      "Exception: admins must still be able to export.",
+      "At login (and signup) users must accept the terms.",
+      "Deploys are frozen and I must approve each release.",
+      "Our policy is 'API keys must never be logged', apply it here.",
+    ])
+      expect(statedRule(rule)).toBe("must");
+    expect(
+      statedRule(
+        "Fix the bug where guests can post; from now on only admins are allowed.",
+      ),
+    ).toBe("from now on");
+    expect(
+      statedRule(
+        "The error that users see is ugly, and going forward all errors must be localized.",
+      ),
+    ).toBe("going forward");
+    // Pasted output, a named phrase, the speaker's own situation and a bug
+    // report's own clause stay silent.
+    for (const silent of [
+      "TypeError: x must be a string",
+      "Error: value must be positive",
+      "java.lang.IllegalStateException: id must not be null",
+      "WARNING [db] pool size must be raised",
+      "    at run (src/a.ts:3:7) must",
+      "I have to leave soon, fix the build.",
+      "Fix the bug where users have to click twice.",
+      "The flag 'is required' is shown twice.",
+    ])
+      expect(statedRule(silent)).toBeUndefined();
+  });
+
   test("finds the phrase that makes a request read as a rule", () => {
     expect(statedRule("From now on, only admins may delete")).toBe(
       "from now on",
@@ -684,16 +829,304 @@ describe("statedRule and notes", () => {
     expect(statedRule("Please rename the helper")).toBeUndefined();
   });
 
+  test("leaves bug reports, pasted errors, hindsight and named phrases alone", () => {
+    for (const prompt of [
+      "Fix the bug where users have to click twice to submit the form",
+      "There is an issue when a title is required twice",
+      "I have to leave soon, just rename foo to bar",
+      "Here is the error:\n    Error: value is required\nplease fix",
+      "TypeError: x is required\n    at run (src/a.ts:1:1)",
+      "warning: field is required\nplease look",
+      "We should never have shipped this. Revert commit abc.",
+      "Refactor utils.ts. It should always have been a class.",
+      "Run the tests and tell me which ones are required to pass CI",
+      "Check whether tokens are required here",
+      "What does 'is not allowed' mean in this error message: `operation is not allowed`",
+    ]) {
+      expect([prompt, statedRule(prompt)]).toEqual([prompt, undefined]);
+    }
+  });
+
+  test("still finds a rule after such a frame or in other clauses", () => {
+    for (const [prompt, phrase] of [
+      ["Users have to verify their email before login.", "have to"],
+      ["Add a check which must run before deploy.", "must"],
+      ["Here's how it should work: tokens must expire after an hour.", "must"],
+      ['The PM said "tokens must expire after an hour".', "must"],
+      ["We should never log keys.", "should never"],
+      ["Fix the crash; from now on uploads must be under 10MB.", "from now on"],
+      ["Fix the bug where it crashes. Uploads must be under 10MB.", "must"],
+    ] as const) {
+      expect([prompt, statedRule(prompt)]).toEqual([prompt, phrase]);
+    }
+  });
+
+  test("reads never and always as a rule only when they instruct", () => {
+    expect(statedRule("Never log keys.")).toBe("never");
+    expect(statedRule("Always require 2FA")).toBe("always");
+    expect(statedRule("Add an expiry, and never log keys")).toBe("never");
+    expect(statedRule("Make sure we never log keys")).toBe("never");
+    expect(statedRule("Ensure the job always retries")).toBe("always");
+    expect(statedRule("Please always ask first")).toBe("always");
+    expect(statedRule("Can you make sure we never log tokens?")).toBe("never");
+    // A description of today's behavior states a fact, not a rule.
+    expect(
+      statedRule("API keys currently never expire. Add a 90-day expiry."),
+    ).toBeUndefined();
+    expect(statedRule("The job always retries twice.")).toBeUndefined();
+    expect(statedRule("Users never see drafts")).toBeUndefined();
+  });
+
+  test("reads rules written as lists, with emphasis or after asking phrases", () => {
+    expect(statedRule("- Never log API keys")).toBe("never");
+    expect(statedRule("* Always require 2FA for admins")).toBe("always");
+    expect(statedRule("+ never log keys")).toBe("never");
+    expect(statedRule("1. Never log keys")).toBe("never");
+    expect(statedRule("2) always hash")).toBe("always");
+    expect(statedRule("## Never log keys")).toBe("never");
+    expect(statedRule("**Never** log API keys.")).toBe("never");
+    expect(statedRule("_Always_ hash passwords")).toBe("always");
+    expect(
+      statedRule(
+        "Rules:\n- never store passwords in plain text\n- always hash with argon2",
+      ),
+    ).toBe("never");
+    expect(statedRule("Also never log keys")).toBe("never");
+    expect(statedRule("Let's always require a review")).toBe("always");
+    expect(statedRule("Let us never skip review")).toBe("never");
+    expect(statedRule("We never want to log API keys.")).toBe("never");
+    expect(statedRule("You always need to sign commits")).toBe("always");
+    expect(statedRule("Remember to always validate the input")).toBe("always");
+    expect(statedRule("You need to always check the tenant id")).toBe("always");
+    expect(statedRule("Be sure to never skip it")).toBe("never");
+    expect(statedRule("Users may never see other tenants' data.")).toBe(
+      "never",
+    );
+    expect(statedRule("Guests can never delete")).toBe("never");
+    expect(statedRule("Always have a backup")).toBe("always");
+    expect(statedRule("Never pass secrets in URLs")).toBe("never");
+    // A describing clause does not hide a later instructing one.
+    expect(statedRule("It always crashes, so never deploy on Friday")).toBe(
+      "never",
+    );
+  });
+
+  test("does not read descriptions or idioms as rules", () => {
+    expect(
+      statedRule(
+        "Tokens currently never expire, and always have been stored in redis.",
+      ),
+    ).toBeUndefined();
+    expect(
+      statedRule("The cache is, as far as I can tell, never invalidated."),
+    ).toBeUndefined();
+    expect(statedRule("It never works (always crashes)")).toBeUndefined();
+    expect(statedRule("e.g. never-ending loops happen here")).toBeUndefined();
+    expect(statedRule("Never-ending loops")).toBeUndefined();
+    expect(statedRule("Users may never-ever")).toBeUndefined();
+    expect(
+      statedRule("Never mind, ignore my last message and just fix the typo."),
+    ).toBeUndefined();
+    expect(statedRule("Thanks. Always a pleasure!")).toBeUndefined();
+    expect(statedRule("Fine, always the same")).toBeUndefined();
+    expect(statedRule("and never an error")).toBeUndefined();
+    expect(statedRule("but always was slow")).toBeUndefined();
+    expect(statedRule("so never were they")).toBeUndefined();
+    expect(statedRule("then always is fine")).toBeUndefined();
+    expect(statedRule("but never are they")).toBeUndefined();
+    expect(statedRule("(always am late)")).toBeUndefined();
+    expect(statedRule("; never did it")).toBeUndefined();
+    expect(statedRule(": always does it")).toBeUndefined();
+    expect(statedRule(", never has it")).toBeUndefined();
+    expect(statedRule(", never had it")).toBeUndefined();
+    expect(statedRule(", always been so")).toBeUndefined();
+    expect(statedRule("We never wanted to")).toBeUndefined();
+  });
+
+  test("ignores fenced, indented and quoted text and questions asking to be told", () => {
+    expect(statedRule("~~~\nmust never\n~~~\nfix the typo")).toBeUndefined();
+    expect(statedRule("~~~\nmust never")).toBeUndefined();
+    expect(
+      statedRule("    assert x, 'must be set'\nfix the typo"),
+    ).toBeUndefined();
+    expect(statedRule("Fix it:\n\n\tmust()\n")).toBeUndefined();
+    expect(
+      statedRule("Fix it:\n\n    a()\n    must()\nthen go"),
+    ).toBeUndefined();
+    // An indented line that continues a paragraph is not code.
+    expect(statedRule("Fix it\n    and never log keys")).toBe("never");
+    expect(
+      statedRule("> you must never log keys\nwhat did the reviewer mean"),
+    ).toBeUndefined();
+    expect(statedRule("  > never log keys")).toBeUndefined();
+    expect(
+      statedRule("Could you tell me why this must be so?"),
+    ).toBeUndefined();
+    expect(statedRule("Can you explain why it must retry?")).toBeUndefined();
+    expect(statedRule("Please would you show why it must?")).toBeUndefined();
+    expect(statedRule("Can you make sure it must retry?")).toBe("must");
+  });
+
+  test("ignores questions and code", () => {
+    expect(statedRule("Should we always lint?")).toBeUndefined();
+    expect(statedRule("Does it always fail?")).toBeUndefined();
+    expect(statedRule("Why must it retry?")).toBeUndefined();
+    expect(statedRule("Run `must-gather` and fix it")).toBeUndefined();
+    expect(statedRule("Fix this:\n```\nnever();\n```")).toBeUndefined();
+    // The rule in a later sentence still counts.
+    expect(statedRule("Does it retry? It must not retry.")).toBe("must not");
+    // Clause starts and request phrasing, spacing included.
+    expect(statedRule("Add expiry;never log keys")).toBe("never");
+    expect(statedRule("Add an expiry, never log keys")).toBe("never");
+    expect(statedRule("Ensure  that the old keys never leak")).toBe("never");
+    expect(statedRule("Ensure  the keys never leak")).toBe("never");
+    expect(statedRule("Ensure the keys  never leak")).toBe("never");
+    expect(statedRule("Add expiry and  never log keys")).toBe("never");
+    expect(
+      statedRule("Ensure that the old stale keys never leak"),
+    ).toBeUndefined();
+    expect(
+      statedRule("Honestly, could we make sure keys never leak?"),
+    ).toBeUndefined();
+    expect(statedRule("Please  can you make sure we never log tokens?")).toBe(
+      "never",
+    );
+    expect(statedRule("Can  you make sure we never log tokens?")).toBe("never");
+    // Sentences split at a stop with a space after it and at a line break.
+    expect(statedRule("Do it. Never log keys.")).toBe("never");
+    expect(statedRule("Do it.Never log keys")).toBeUndefined();
+    expect(statedRule("Rename it\n never log keys")).toBe("never");
+    // Code is replaced by a space and an unclosed fence runs to the end.
+    expect(statedRule("Do it.`x`Never log keys")).toBe("never");
+    expect(statedRule("Fix this:\n```\nnever();")).toBeUndefined();
+  });
+
   test("prompt note quotes the phrase and capture reminder mentions the rule", () => {
-    expect(rulePromptNote("never")).toStartWith(
-      'Kibi: this request reads as a rule or decision (it says "never").',
+    expect(rulePromptNote("never")).toBe(
+      [
+        'Kibi: this request reads as a rule or decision (it says "never").',
+        "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new rule is recorded with kb_record (the statement, the person's reason, saidBy user and the code that enforces it; a changed one with kb_upsert) as part of this change, not after it.",
+      ].join("\n"),
     );
-    expect(captureReminder(true)).toStartWith(
-      "Kibi: a request this session read as a rule or decision",
+    expect(captureReminder("never")).toBe(
+      [
+        'Kibi: the person\'s request said "never", this session changed source files, and nothing was recorded in the knowledge base.',
+        'Record the rule behind "never" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "never" is not a rule.',
+      ].join("\n"),
     );
-    expect(captureReminder(false)).toStartWith(
-      "Kibi: this session changed source files and recorded nothing",
+    expect(captureReminder("never")).not.toContain("when there was none");
+    expect(captureReminder(undefined)).toBe(
+      [
+        "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line.",
+      ].join("\n"),
     );
+  });
+
+  test("the capture template quotes the phrase and is one kb_record input", () => {
+    const [intro, payload, ...rest] = ruleCaptureTemplate("must").split("\n");
+    expect(rest).toEqual([
+      "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+    ]);
+    expect(intro).toBe(
+      'Kibi: the request said "must" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:',
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      statement: "<the rule as one shall or must sentence>",
+      why: "<why the person wants it, in their words; 'Reason not stated' if they gave none>",
+      saidBy: "user",
+      quote: "<the person's words, quoted>",
+      code: [
+        { file: "<file you changed>", symbol: "<function that enforces it>" },
+      ],
+    });
+  });
+
+  test("a stated reason is asked for in why by the note and the template", () => {
+    const ask =
+      'The request gives its reason ("because longer ones get skipped"): put that reason in the why field, in the person\'s words.';
+    expect(rulePromptNote("must", "because longer ones get skipped")).toBe(
+      `${rulePromptNote("must")}\n${ask}`,
+    );
+    const [, payload, line, last] = ruleCaptureTemplate(
+      "must",
+      "because longer ones get skipped",
+    ).split("\n");
+    expect(JSON.parse(payload as string).why).toBe(
+      "<the person's reason, in their words>",
+    );
+    expect(line).toBe(ask);
+    expect(last).toBe(
+      "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
+    );
+  });
+});
+
+describe("statedReason", () => {
+  test("reads a because or so that clause in or right after the rule sentence", () => {
+    expect(
+      statedReason(
+        "Snippets must never show more than seven lines, because longer ones get skipped.",
+      ),
+    ).toBe("because longer ones get skipped");
+    expect(
+      statedReason("Uploads must stay under 10 MB so that the proxy keeps up!"),
+    ).toBe("so that the proxy keeps up");
+    expect(
+      statedReason("From now on, sign every release. Because audits need it."),
+    ).toBe("Because audits need it");
+    // A question keeps its mark; only a closing . or ! is dropped.
+    expect(
+      statedReason(
+        "Can you make sure we never log tokens, because why risk it?",
+      ),
+    ).toBe("because why risk it?");
+    // The reason must be near the rule: two sentences on is another topic.
+    expect(
+      statedReason(
+        "Uploads must stay small. Thanks. It broke because of load.",
+      ),
+    ).toBeUndefined();
+    // Before the rule sentence, a reason is about something else.
+    expect(
+      statedReason("It broke because of load. Uploads must stay small."),
+    ).toBeUndefined();
+    expect(statedReason("Please fix this because it broke")).toBeUndefined();
+    expect(statedReason("Uploads must stay small")).toBeUndefined();
+    expect(statedReason("Ensure the job always retries because")).toBe(
+      "because",
+    );
+    // "becausewe" is no marker word.
+    expect(statedReason("Keys must rotate becausewe say so")).toBeUndefined();
+  });
+
+  test("cuts a long reason to 200 characters", () => {
+    const reason = statedReason(
+      `Keys must rotate because ${"x".repeat(300)} end.`,
+    ) as string;
+    expect(reason).toHaveLength(200);
+    expect(reason.startsWith("because xxx")).toBe(true);
+    expect(reason.endsWith("x…")).toBe(true);
+    expect(statedReason(`Keys must rotate because ${"y".repeat(191)}`)).toBe(
+      `because ${"y".repeat(191)}`,
+    );
+    // Exactly 200 characters is kept whole.
+    expect(statedReason(`Keys must rotate because ${"y".repeat(192)}`)).toBe(
+      `because ${"y".repeat(192)}`,
+    );
+    // A cut that lands after a space drops the space before the ellipsis.
+    expect(
+      statedReason(
+        `Keys must rotate because ${"x".repeat(190)} ${"z".repeat(50)}`,
+      ),
+    ).toBe(`because ${"x".repeat(190)}…`);
+  });
+
+  test("drops only the closing marks of the reason", () => {
+    expect(statedReason("Keys must rotate because v1.2 leaks them!!")).toBe(
+      "because v1.2 leaks them",
+    );
+    expect(statedReason(undefined)).toBeUndefined();
   });
 });
 
@@ -746,6 +1179,14 @@ describe("session markers", () => {
     expect(isRequirementUpsert({ type: "req", dryRun: true })).toBe(false);
     expect(isRequirementUpsert({ type: "symbol" })).toBe(false);
     expect(isRequirementUpsert(undefined)).toBe(false);
+    // A kb_record input always writes a requirement, unless a dry run.
+    const recorded = { statement: "Keys rotate.", saidBy: "user" };
+    expect(isRequirementUpsert(recorded)).toBe(true);
+    expect(isRequirementUpsert({ arguments: recorded })).toBe(true);
+    expect(isRequirementUpsert({ ...recorded, dryRun: true })).toBe(false);
+    expect(isRequirementUpsert({ statement: "Keys rotate." })).toBe(false);
+    expect(isRequirementUpsert({ saidBy: "user" })).toBe(false);
+    expect(isRequirementUpsert({ statement: 1, saidBy: "user" })).toBe(false);
   });
 
   test("signoff reminder needs a requirement write newer than the last view, once", () => {
@@ -783,7 +1224,199 @@ describe("session markers", () => {
     expect(() => settleFirmRequirements(broken, ["REQ-a"])).not.toThrow();
     expect(() => holdRuleNote(broken, "never")).not.toThrow();
     expect(recordRequest(broken, "never log tokens")).toBe("never");
+    expect(sessionRulePhrase(broken)).toBe(undefined);
+    expect(claimRuleCaptureTemplate(broken)).toBe(undefined);
+    expect(sessionRulePhrase(noState)).toBe(undefined);
     expect(requestWords(broken)).toEqual([]);
+  });
+});
+
+describe("rule capture template", () => {
+  test("is given once, only after a source edit of a rule session with nothing recorded", () => {
+    const plain = session("plain");
+    recordRequest(plain, "Please add retry logic");
+    markDecisionFlag(plain, "source-edited");
+    expect(claimRuleCaptureTemplate(plain)).toBe(undefined);
+
+    const rule = session("rule");
+    recordRequest(rule, "Uploads must stay under 10 MB");
+    expect(claimRuleCaptureTemplate(rule)).toBe(undefined);
+    markDecisionFlag(rule, "source-edited");
+    expect(claimRuleCaptureTemplate(rule)).toBe(ruleCaptureTemplate("must"));
+    expect(claimRuleCaptureTemplate(rule)).toBe(undefined);
+
+    const reasoned = session("reasoned");
+    recordRequest(
+      reasoned,
+      "Uploads must stay small because the proxy is slow",
+    );
+    markDecisionFlag(reasoned, "source-edited");
+    expect(claimRuleCaptureTemplate(reasoned)).toBe(
+      ruleCaptureTemplate("must", "because the proxy is slow"),
+    );
+
+    const recorded = session("recorded");
+    recordRequest(recorded, "Uploads must stay under 10 MB");
+    markDecisionFlag(recorded, "source-edited");
+    markDecisionFlag(recorded, "kb-recorded");
+    expect(claimRuleCaptureTemplate(recorded)).toBe(undefined);
+    // Recording first does not use up the template's one claim.
+    expect(hasDecisionFlag(recorded, "capture-template")).toBe(false);
+  });
+
+  test("a host that delivers it before the edit passes an edit of a source file", () => {
+    const rule = session("pre-edit");
+    recordRequest(rule, "Uploads must stay under 10 MB");
+    expect(claimRuleCaptureTemplate(rule, false)).toBe(undefined);
+    expect(claimRuleCaptureTemplate(rule, true)).toBe(
+      ruleCaptureTemplate("must"),
+    );
+    expect(claimRuleCaptureTemplate(rule, true)).toBe(undefined);
+  });
+});
+
+describe("sessions without an id", () => {
+  const HOUR = 60 * 60 * 1000;
+
+  /** Set every marker of the session to `time` (ms). */
+  function age(s: DecisionSession, time: number) {
+    const key = createHash("sha256")
+      .update(s.sessionId?.trim() || "unattributed")
+      .digest("hex")
+      .slice(0, 32);
+    const dir = path.join(s.stateDir as string, "decision-guard", key);
+    for (const name of fs.readdirSync(dir)) {
+      const when = new Date(time);
+      fs.utimesSync(path.join(dir, name), when, when);
+    }
+  }
+
+  test("a new session without an id starts without the last one's markers", () => {
+    const first = session("");
+    recordRequest(first, "Never log keys");
+    markDecisionFlag(first, "source-edited");
+    claimDecisionFlag(first, "capture-asked");
+    const journal = path.join(first.stateDir as string, "host.jsonl");
+    fs.writeFileSync(journal, "{}");
+    // A resume keeps them.
+    expect(
+      startDecisionSession(first, "resume", { hostFiles: [journal] }),
+    ).toBe(false);
+    expect(hasDecisionFlag(first, "capture-asked")).toBe(true);
+    expect(
+      startDecisionSession(first, "startup", { hostFiles: [journal] }),
+    ).toBe(true);
+    expect(hasDecisionFlag(first, "capture-asked")).toBe(false);
+    expect(fs.existsSync(journal)).toBe(false);
+    expect(sessionRulePhrase(first)).toBe(undefined);
+    expect(claimCaptureReminder(first)).toBe(false);
+  });
+
+  test("a new session with an id keeps the markers of the unattributed one", () => {
+    const anonymous = session("");
+    markDecisionFlag(anonymous, "source-edited");
+    expect(
+      startDecisionSession(
+        { stateDir: anonymous.stateDir, sessionId: "named" },
+        "startup",
+      ),
+    ).toBe(false);
+    expect(hasDecisionFlag(anonymous, "source-edited")).toBe(true);
+  });
+
+  test("a prompt after two idle hours starts the unattributed session afresh", () => {
+    const now = Date.now();
+    const idle = session("");
+    markDecisionFlag(idle, "source-edited");
+    claimDecisionFlag(idle, "capture-asked");
+    age(idle, now - 2 * HOUR + 60_000);
+    recordRequest(idle, "Rename the helper", now);
+    expect(hasDecisionFlag(idle, "capture-asked")).toBe(true);
+    age(idle, now - 2 * HOUR - 60_000);
+    recordRequest(idle, "Rename the helper", now);
+    expect(hasDecisionFlag(idle, "capture-asked")).toBe(false);
+    // The new prompt's words are kept.
+    expect(requestWords(idle)).toContain("helper");
+
+    // A recent host file counts as activity; once dropped, it goes too.
+    markDecisionFlag(idle, "source-edited");
+    age(idle, now - 3 * HOUR);
+    const journal = path.join(idle.stateDir as string, "host.jsonl");
+    fs.writeFileSync(journal, "{}");
+    const options = { now, hostFiles: [journal] };
+    expect(startDecisionSession(idle, "prompt", options)).toBe(false);
+    expect(hasDecisionFlag(idle, "source-edited")).toBe(true);
+    const old = new Date(now - 3 * HOUR);
+    fs.utimesSync(journal, old, old);
+    expect(startDecisionSession(idle, "prompt", options)).toBe(true);
+    expect(hasDecisionFlag(idle, "source-edited")).toBe(false);
+    expect(fs.existsSync(journal)).toBe(false);
+
+    // An attributed session is never expired by idleness.
+    const named = session("named");
+    markDecisionFlag(named, "source-edited");
+    age(named, now - 3 * HOUR);
+    expect(startDecisionSession(named, "prompt", { now })).toBe(false);
+    expect(hasDecisionFlag(named, "source-edited")).toBe(true);
+    // No state directory, or no markers yet: nothing to expire.
+    expect(
+      startDecisionSession({ stateDir: undefined, sessionId: "" }, "prompt"),
+    ).toBe(false);
+    expect(startDecisionSession(session(""), "prompt")).toBe(false);
+    const missing = session("");
+    expect(
+      startDecisionSession(missing, "prompt", {
+        hostFiles: [path.join(missing.stateDir as string, "none.jsonl")],
+      }),
+    ).toBe(false);
+  });
+
+  test("session start removes markers of sessions untouched for a week", () => {
+    const now = Date.now();
+    const WEEK = 7 * 24 * HOUR;
+    const stale = session("stale");
+    markDecisionFlag(stale, "source-edited");
+    const fresh: DecisionSession = {
+      stateDir: stale.stateDir,
+      sessionId: "fresh",
+    };
+    age(stale, now - WEEK - 60_000);
+    markDecisionFlag(fresh, "source-edited");
+    const empty = path.join(stale.stateDir as string, "decision-guard", "x");
+    fs.mkdirSync(empty);
+    const current: DecisionSession = {
+      stateDir: stale.stateDir,
+      sessionId: "current",
+    };
+    markDecisionFlag(current, "kb-recorded");
+    age(current, now - WEEK - 60_000);
+    startDecisionSession(current, "startup", { now });
+    expect(hasDecisionFlag(stale, "source-edited")).toBe(false);
+    expect(hasDecisionFlag(fresh, "source-edited")).toBe(true);
+    expect(fs.existsSync(empty)).toBe(false);
+    // The starting session's own markers stay.
+    expect(hasDecisionFlag(current, "kb-recorded")).toBe(true);
+    // A resume prunes too.
+    age(fresh, now - WEEK - 60_000);
+    startDecisionSession(current, "resume", { now });
+    expect(hasDecisionFlag(fresh, "source-edited")).toBe(false);
+    // Nothing to do without a state directory or before any marker.
+    expect(startDecisionSession(noState, "startup")).toBe(false);
+    expect(startDecisionSession(session("first"), "startup")).toBe(false);
+  });
+
+  test("files that cannot be removed are left in place", () => {
+    const parent = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-guard-file-"));
+    dirs.push(parent);
+    const blocker = path.join(parent, "not-a-dir");
+    fs.writeFileSync(blocker, "");
+    const broken: DecisionSession = { stateDir: blocker, sessionId: "" };
+    // A host file under a file cannot be removed: no error.
+    expect(
+      startDecisionSession(broken, "startup", {
+        hostFiles: [path.join(blocker, "journal")],
+      }),
+    ).toBe(true);
   });
 });
 
@@ -799,9 +1432,21 @@ describe("request memory", () => {
     expect(words).toContain("upload");
     expect(words).not.toContain("please");
 
+    expect(sessionRulePhrase(s)).toBe(undefined);
     expect(recordRequest(s, "Uploads must never exceed 10 MB")).toBe("must");
     expect(hasDecisionFlag(s, "rule-prompt")).toBe(true);
+    expect(sessionRulePhrase(s)).toBe("must");
     expect(requestWords(s)).toEqual(["upload", "exceed"]);
+    // A later prompt without a rule keeps the session's rule phrase.
+    recordRequest(s, "Please add retry logic");
+    expect(sessionRulePhrase(s)).toBe("must");
+    expect(sessionRuleReason(s)).toBe(undefined);
+    recordRequest(s, "Keys must rotate because audits ask");
+    expect(sessionRuleReason(s)).toBe("because audits ask");
+    // The latest rule prompt's reason stands, even when it gives none.
+    recordRequest(s, "Keys must rotate");
+    expect(sessionRuleReason(s)).toBe(undefined);
+    expect(sessionRuleReason(noState)).toBe(undefined);
   });
 
   test("request words ignore missing, corrupt or non-array state", () => {
@@ -847,6 +1492,10 @@ describe("held rule notes", () => {
     expect(takeRuleNote(s)).toBeUndefined();
     holdRuleNote(s, "from now on");
     expect(takeRuleNote(s)).toBe(rulePromptNote("from now on"));
+    holdRuleNote(s, "must", "so that we can audit");
+    expect(takeRuleNote(s)).toBe(
+      rulePromptNote("must", "so that we can audit"),
+    );
     expect(takeRuleNote(s)).toBeUndefined();
     holdRuleNote(noState, "never");
     expect(takeRuleNote(noState)).toBeUndefined();

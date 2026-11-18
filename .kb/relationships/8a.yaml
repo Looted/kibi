@@ -251,3 +251,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e8f32ea82ea
+  - type: assumes
+    from: SCEN-kibi-proof-test-report-outcomes
+    to: FACT-proof-test-report-outcomes
+    created_at: 2026-11-16T08:23:34.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-550e9c00cc5a
+  - type: assumes
+    from: SCEN-kibi-proof-test-report-outcomes
+    to: FACT-proof-test-report-env
+    created_at: 2026-11-16T08:23:34.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-484c75df1f60
+  - type: assumes
+    from: SCEN-kibi-proof-test-report-outcomes
+    to: FACT-proof-test-report-version
+    created_at: 2026-11-16T08:23:34.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f64cb5a2f64
+  - type: verified_by
+    from: SCEN-kibi-proof-test-report-outcomes
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T08:23:34.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b41f013d6956
+  - type: implements
+    from: SYM-types-upsert-payload
+    to: REQ-kb-upsert-requirement-why
+    created_at: 2026-11-16T16:40:09.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1444a183ef95
+  - type: covered_by
+    from: SYM-types-upsert-payload
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:06.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82cd3c10afa5
+  - type: specified_by
+    from: REQ-check-unscoped-budget
+    to: SCEN-check-unscoped-budget
+    created_at: 2026-11-16T15:53:04.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1a05bc8a993
+  - type: specified_by
+    from: REQ-check-unscoped-budget
+    to: SCEN-NEG-check-unscoped-budget-OVER-BUDGET
+    created_at: 2026-11-16T15:53:04.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e5e73d3b467
+  - type: verified_by
+    from: REQ-check-unscoped-budget
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-16T15:53:04.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4705ca75b212
+  - type: constrains
+    from: REQ-check-unscoped-budget
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-16T15:53:04.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06c3bc3238b5
+  - type: requires_property
+    from: REQ-check-unscoped-budget
+    to: FACT-check-unscoped-budget
+    created_at: 2026-11-16T15:53:04.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-612820d6b4a6

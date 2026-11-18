@@ -328,3 +328,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cdbfb995a2c8
+  - type: implements
+    from: SYM-staged-declaration-baseAnalysisUsable
+    to: REQ-staged-gate-changed-declaration-definition
+    created_at: 2026-11-16T05:44:36.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10e336b7f9c7
+  - type: covered_by
+    from: SYM-staged-declaration-baseAnalysisUsable
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:44:36.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cdd2a1375f60
+  - type: covered_by
+    from: SYM-symbol-granularity-analyzeWorkspaceSources
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:42.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-794a5d85c566
+  - type: executable_for
+    from: SYM-proof-advertised-description-limit
+    to: TEST-proof-advertised-description-limit
+    created_at: 2026-11-16T11:02:35.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5514596b1665
+  - type: implements
+    from: SYM-cli-firm-symbol-edited
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:23:59.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f03a56dca053
+  - type: covered_by
+    from: SYM-cli-firm-symbol-edited
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:23:59.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ba0842a0c43
+  - type: implements
+    from: SYM-cli-review-firm-edit-default-deps
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:24:51.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5c2bc3e92c9
+  - type: covered_by
+    from: SYM-cli-review-firm-edit-default-deps
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:24:51.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43907bfc1bed
+  - type: specified_by
+    from: REQ-check-pass-one-line
+    to: SCEN-check-pass-one-line
+    created_at: 2026-11-16T15:52:44.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afe57d797815
+  - type: specified_by
+    from: REQ-check-pass-one-line
+    to: SCEN-NEG-check-pass-one-line-RULES-LISTED
+    created_at: 2026-11-16T15:52:44.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-143dbef3f55c
+  - type: verified_by
+    from: REQ-check-pass-one-line
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T15:52:44.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d65a190aac0
+  - type: constrains
+    from: REQ-check-pass-one-line
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-16T15:52:44.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0587ab9f13ea
+  - type: requires_property
+    from: REQ-check-pass-one-line
+    to: FACT-check-pass-one-line
+    created_at: 2026-11-16T15:52:44.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c774009f400
+  - type: implements
+    from: SYM-symbol-granularity-analyzeWorkspaceSources
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:55:20.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c847ef44b90
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-attachment-engine-refusal-EMPTY-HASHED-STORE
+    to: FACT-NEG-kibi-legacy-attachment-engine-refusal-EMPTY-HASHED-STORE
+    created_at: 2026-11-16T20:45:41.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c88ab026dc53
+  - type: implements
+    from: SYM-core-kb-flush-journals
+    to: REQ-core-snapshot-triples-held-once
+    created_at: 2026-11-17T09:11:41.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8b8508e5b97
+  - type: covered_by
+    from: SYM-core-kb-flush-journals
+    to: TEST-core-snapshot-duplicate-triples
+    created_at: 2026-11-17T09:11:41.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5900dc7102d1

@@ -52,16 +52,22 @@ import {
   hasBlockingImpactDiagnostics,
 } from "../public/impact-diagnostics.js";
 import type { QualityDiagnostic } from "../public/impact-diagnostics.js";
+import { createFirmEditGateDiagnostics } from "../public/impact/firm-edit-gate.js";
+import { stagedFirmEditGateOptions } from "../public/impact/firm-edit-staged.js";
+import { readImpactManifestResults } from "../public/impact/manifest.js";
 import { executeCheck } from "../public/operations/check-executor.js";
 import { EVIDENCE_FLOOR_RULE } from "../public/operations/evidence-floor.js";
+import { tagBlocks } from "../public/operations/finding-blocks.js";
 import type { MigrationPlan } from "../public/operations/migration-plan.js";
 import { nodeFilesystem, nodeGit } from "../public/operations/node-ports.js";
+import type { SymbolDebt } from "../public/operations/symbol-debt.js";
 import { refreshDetachedSnapshot } from "../runtime/detached-snapshot.js";
 import { amendsRootCommit } from "../traceability/commit-amend.js";
 import {
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
+  type KibiImpactSymbolsManifestFileDetail,
 } from "../traceability/evidence-model.js";
 import { captureStagedSnapshot } from "../traceability/git-change-snapshot.js";
 import {
@@ -75,12 +81,25 @@ import {
 } from "../traceability/impact-evaluator.js";
 import { IMPACT_REVIEW_PATH } from "../traceability/impact-review.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
+import {
+  type OwnerFinding,
+  collectOwnerFindings,
+  coveringTests,
+  formatOwnerFindings,
+  withoutOwnedCauses,
+} from "../traceability/owner-findings.js";
 import { readSnapshotKnowledge } from "../traceability/snapshot-knowledge.js";
 import {
   collectIntroducedConsistencyViolations,
   formatConsistencyViolations,
   stagesKnowledge,
 } from "../traceability/staged-consistency.js";
+import {
+  type DeclarationSource,
+  declarationSpanKey,
+  declarationsInChange,
+  judgedByCommit,
+} from "../traceability/staged-declaration-change.js";
 import {
   type KibiImpactDiagnostic,
   collectStagedKibiDiagnostics,
@@ -109,6 +128,7 @@ import {
   stagedRequirementRules,
 } from "../traceability/staged-requirement-rules.js";
 import {
+  type StagedSymbolsBaseSource,
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
 } from "../traceability/staged-symbols-manifest.js";
@@ -150,6 +170,8 @@ export interface CheckOptions {
   dryRun?: boolean;
   format?: "text" | "json";
   freshEvidence?: boolean;
+  /** List the unrecorded declarations per file, not only their count. */
+  symbolDebt?: boolean;
 }
 
 function getMatchGroup(
@@ -350,6 +372,7 @@ export function printStructuredCheckResult(input: {
   violations: readonly Violation[];
   qualityDiagnostics: readonly QualityDiagnostic[];
   migrationPlan?: MigrationPlan | undefined;
+  symbolDebt?: SymbolDebt | undefined;
 }): void {
   console.log(
     JSON.stringify({
@@ -361,9 +384,50 @@ export function printStructuredCheckResult(input: {
         // The same migration plan kb_check returns, so the CLI and MCP agree
         // (JSON leaves the key out when there is none).
         migrationPlan: input.migrationPlan,
+        symbolDebt: input.symbolDebt,
       },
     }),
   );
+}
+
+const countFormat = new Intl.NumberFormat("en-US");
+
+/**
+ * The text check's one sentence on declarations without a symbol record,
+ * or nothing when there are none. It names the flag that lists them.
+ */
+export function formatSymbolDebtCount(debt: SymbolDebt | undefined): string {
+  if (debt === undefined || debt.total === 0) return "";
+  const declarations = `${countFormat.format(debt.total)} unrecorded declaration${debt.total === 1 ? "" : "s"}`;
+  const files = `${countFormat.format(debt.fileCount)} file${debt.fileCount === 1 ? "" : "s"}`;
+  return `${declarations} in ${files} ${debt.total === 1 ? "does" : "do"} not block (kibi check --symbol-debt lists them).`;
+}
+
+/**
+ * The per-file list of declarations without a symbol record, printed only
+ * when kibi check --symbol-debt asked for it; nothing otherwise.
+ */
+export function formatSymbolDebt(debt: SymbolDebt | undefined): string {
+  if (debt?.files === undefined || debt.total === 0) return "";
+  return [
+    `Symbol records (not blocking): ${debt.total} unrecorded declaration(s) in ${debt.fileCount} file(s) that have symbol records. A commit is judged on them only when it adds or changes them.`,
+    ...debt.files.map(
+      (file) =>
+        `  ${file.path} (${file.unrecorded.length}): ${file.unrecorded.join(", ")}`,
+    ),
+  ].join("\n");
+}
+
+/**
+ * The verdict of a passing full check on one line: the rules evaluated and
+ * the non-blocking symbol debt as a count.
+ */
+export function formatCheckPassLine(
+  ruleCount: number,
+  debt: SymbolDebt | undefined,
+): string {
+  const debtCount = formatSymbolDebtCount(debt);
+  return `✓ No violations. ${countFormat.format(ruleCount)} rule${ruleCount === 1 ? "" : "s"}.${debtCount.length > 0 ? ` ${debtCount}` : ""}`;
 }
 
 export function formatStagedCoverage(result: StagedFileCoverageResult): string {
@@ -403,6 +467,35 @@ export function formatStagedCoverage(result: StagedFileCoverageResult): string {
   return lines.join("\n");
 }
 
+/** A staged file's symbol gaps that the commit did not cause. */
+export interface InheritedSymbolGaps {
+  path: string;
+  unrecorded: ReadonlyArray<{ title: string; line: number }>;
+  orphaned: readonly string[];
+}
+
+/**
+ * The staged gate's findings, each saying what it stops: a violation, or a
+ * blocking diagnostic, refuses the commit; any other diagnostic is advice.
+ */
+export function tagStagedFindings(
+  violations: readonly unknown[],
+  diagnostics: readonly unknown[],
+  qualityDiagnostics: readonly unknown[],
+): {
+  violations: object[];
+  count: number;
+  diagnostics: object[];
+  qualityDiagnostics: object[];
+} {
+  return {
+    violations: tagBlocks(violations as object[], "commit", true),
+    count: violations.length,
+    diagnostics: tagBlocks(diagnostics as object[], "commit"),
+    qualityDiagnostics: tagBlocks(qualityDiagnostics as object[], "commit"),
+  };
+}
+
 export function printStagedResult(input: {
   format: "text" | "json" | undefined;
   coverage: StagedFileCoverageResult | null;
@@ -410,6 +503,8 @@ export function printStagedResult(input: {
   qualityDiagnostics?: readonly unknown[];
   messages?: readonly string[];
   operationalError?: string;
+  inheritedSymbolGaps?: readonly InheritedSymbolGaps[];
+  ownerFindings?: readonly OwnerFinding[];
 }): void {
   const violations = input.violations ?? [];
   const qualityDiagnostics = input.qualityDiagnostics ?? [];
@@ -417,12 +512,20 @@ export function printStagedResult(input: {
     console.log(
       JSON.stringify({
         structuredContent: {
-          violations,
-          count: violations.length,
-          diagnostics: input.coverage?.diagnostics ?? [],
-          qualityDiagnostics,
+          ...tagStagedFindings(
+            violations,
+            input.coverage?.diagnostics ?? [],
+            qualityDiagnostics,
+          ),
           staged: input.coverage,
           messages: input.messages ?? [],
+          ...(input.ownerFindings !== undefined &&
+          input.ownerFindings.length > 0
+            ? { ownerFindings: input.ownerFindings }
+            : {}),
+          ...(input.inheritedSymbolGaps
+            ? { inheritedSymbolGaps: input.inheritedSymbolGaps }
+            : {}),
           ...(input.operationalError
             ? { operationalError: input.operationalError }
             : {}),
@@ -493,6 +596,42 @@ export function migrationOnlyNote(entityIds: readonly string[]): string {
   return `Migration commit: ${entityIds.length} symbol record(s) changed only by kibi migrate (legacy-link marks, review:context-missing tags) are not judged as changed by this commit: ${shown}${more}. Run kibi check for the full report.`;
 }
 
+/**
+ * A staged file's gaps that the commit did not cause: unchanged
+ * declarations without a record, and untouched records whose declaration is
+ * gone. Nothing when the file has none.
+ */
+export function inheritedSymbolGapsOf(
+  detail: KibiImpactSymbolsManifestFileDetail,
+): InheritedSymbolGaps | undefined {
+  const inherited = detail.inherited;
+  if (inherited === undefined) return undefined;
+  if (inherited.missing.length === 0 && inherited.extra.length === 0)
+    return undefined;
+  return {
+    path: detail.path,
+    unrecorded: inherited.missing,
+    orphaned: inherited.extra,
+  };
+}
+
+/** The Baseline-style line for a staged file's inherited gaps. */
+export function inheritedSymbolGapsNote(gaps: InheritedSymbolGaps): string {
+  const parts = [
+    ...(gaps.unrecorded.length > 0
+      ? [
+          `${gaps.unrecorded.length} declaration(s) without a .kb/symbols.yaml record that this commit did not add or change`,
+        ]
+      : []),
+    ...(gaps.orphaned.length > 0
+      ? [
+          `${gaps.orphaned.length} record(s) whose declaration was already gone before this commit`,
+        ]
+      : []),
+  ];
+  return `Symbol records: ${gaps.path} has ${parts.join(" and ")}. They are not judged by this commit and no action is required. Run kibi check for the list.`;
+}
+
 export function hasYamlFrontmatter(content: string): boolean {
   const trimmed = content.trimStart();
   return trimmed.startsWith("---") && trimmed.includes("\n---");
@@ -512,6 +651,7 @@ export function buildStagedKibiImpactEvidence(options: {
   analyzeSource?: (filePath: string, content: string) => SourceAnalysisResult;
   ignoreMigrationOwnedEdits?: boolean;
   onMigrationOnlySymbols?: (entityIds: readonly string[]) => void;
+  baseSource?: StagedSymbolsBaseSource;
 }): KibiImpactEvidence {
   const {
     stagedFiles,
@@ -549,6 +689,7 @@ export function buildStagedKibiImpactEvidence(options: {
   const stagedSymbolsManifest = assessStagedSymbolsManifest({
     ...(options.analyzeSource ? { analyzeSource: options.analyzeSource } : {}),
     ...(options.readBaseFile ? { readBaseFile: options.readBaseFile } : {}),
+    ...(options.baseSource ? { baseSource: options.baseSource } : {}),
     symbolsManifestPath,
     stagedFiles,
     sourceFiles: behaviorSourceFiles,
@@ -613,6 +754,9 @@ export function buildStagedKibiImpactEvidence(options: {
       sourcePaths: stagedSymbolsManifest.sourcePaths,
       ...(stagedSymbolsManifest.fileDetails
         ? { fileDetails: stagedSymbolsManifest.fileDetails }
+        : {}),
+      ...(stagedSymbolsManifest.coveredSourcePaths
+        ? { coveredSourcePaths: stagedSymbolsManifest.coveredSourcePaths }
         : {}),
     },
     mode:
@@ -764,10 +908,13 @@ export async function checkCommand(
         type NotedResult = Parameters<typeof printStagedResult>[0] & {
           messages: readonly string[];
         };
+        // Set once the staged evidence is built; empty when nothing is inherited.
+        const inheritedSymbolGaps: InheritedSymbolGaps[] = [];
         const printNotedResult = (input: NotedResult): void => {
           printStagedResult({
             ...input,
             messages: [...baselineNotes, ...input.messages],
+            ...(inheritedSymbolGaps.length > 0 ? { inheritedSymbolGaps } : {}),
           });
         };
         const printSnapshotResult = (input: NotedResult): void => {
@@ -784,6 +931,7 @@ export async function checkCommand(
           stagedInventory,
           snapshot.readGit,
           (file) => generatedStaged.has(file),
+          snapshot.readBlobs,
         );
         stagedCoverage.snapshot = {
           baseTree: snapshot.baseTree,
@@ -1028,6 +1176,20 @@ export async function checkCommand(
           ),
         );
         const generatedSkipped: string[] = [];
+        // The base version of a staged source file: the analysis of its
+        // content in the base tree (at its old path for a rename). A copy is
+        // new code at its path, so like an added file it has no base.
+        const baseSource = (file: StagedFile): DeclarationSource | null => {
+          const before = sourceAnalysis.get(file.path)?.before;
+          const entry = stagedInventory.find(
+            (candidate) => candidate.path === file.path,
+          );
+          return before &&
+            entry?.previousContent !== undefined &&
+            entry.copyFromPath === undefined
+            ? { analysis: before, content: entry.previousContent }
+            : null;
+        };
         for (const f of sourceFiles) {
           try {
             if (f.content !== undefined) {
@@ -1052,9 +1214,30 @@ export async function checkCommand(
             }
             const exempt =
               generatedStaged.has(f.path) && !manifestSourceFiles.has(f.path);
+            // A declaration without a record is judged only when this commit
+            // adds or changes it; recorded ones keep the hunk rule.
+            const after = sourceAnalysis.get(f.path)?.after;
+            const changedSpanKeys = after
+              ? new Set(
+                  [
+                    ...declarationsInChange(baseSource(f), {
+                      analysis: after,
+                      content: f.content ?? "",
+                    }),
+                  ].map(declarationSpanKey),
+                )
+              : null;
+            const judged = symbols.filter((symbol) =>
+              judgedByCommit(
+                symbol,
+                symbol.relationships !== undefined ||
+                  symbol.reqLinks.length > 0,
+                changedSpanKeys,
+              ),
+            );
             const checked = exempt
-              ? symbols.filter((symbol) => symbol.reqLinks.length > 0)
-              : symbols;
+              ? judged.filter((symbol) => symbol.reqLinks.length > 0)
+              : judged;
             if (exempt && checked.length < symbols.length)
               generatedSkipped.push(f.path);
             symbolsByFile.set(f.path, checked);
@@ -1134,7 +1317,18 @@ export async function checkCommand(
           markdownResultsByPath,
           symbolsByFile,
           symbolsManifestPath,
+          baseSource,
         });
+        const fileDetails = stagedKibiEvidence.symbolsManifest.fileDetails;
+        // rationale: a placeholder detail has no inherited gaps, so it is
+        // skipped like an empty list.
+        // Stryker disable next-line ArrayDeclaration
+        for (const detail of fileDetails ?? []) {
+          const gaps = inheritedSymbolGapsOf(detail);
+          if (gaps === undefined) continue;
+          baselineNotes.push(inheritedSymbolGapsNote(gaps));
+          inheritedSymbolGaps.push(gaps);
+        }
         const stagedKibiDiagnostics = collectStagedKibiDiagnostics(
           stagedKibiEvidence,
           symbolsManifestPath,
@@ -1226,6 +1420,100 @@ export async function checkCommand(
           }),
           ...createSemanticReviewDiagnostics({ symbolsByFile }),
           ...createStagedEntityIdStyleDiagnostics(markdownFiles),
+          ...createFirmEditGateDiagnostics(
+            await stagedFirmEditGateOptions({
+              sourceFiles,
+              // A deleted file, one renamed to a path that is not source, and
+              // one Kibi skips (binary, unreadable encoding) hold no
+              // declaration the gate can read, so every one a record pointed
+              // at before is judged as removed.
+              unreadFiles: stagedInventory.map((file) => ({
+                path: file.path,
+                ...(file.oldPath === undefined
+                  ? {}
+                  : { oldPath: file.oldPath }),
+                status: file.status,
+                hunkRanges: [],
+              })),
+              // Every declaration, each with the hunks it owns, so a symbol
+              // the change only removes lines from is still seen.
+              extractAll: (file) =>
+                extractSymbolsFromStagedFileAsync(
+                  { ...file, status: "A" },
+                  manifestLookup,
+                  {
+                    analyzeText: async () =>
+                      sourceAnalysis.get(file.path)?.after ?? null,
+                  },
+                ),
+              extractBase: async (file) => {
+                const basePath = file.oldPath ?? file.path;
+                const content = readTreeFile(snapshot.baseTree)(basePath);
+                if (content === null) return [];
+                return extractSymbolsFromStagedFileAsync(
+                  { ...file, path: basePath, content, status: "A" },
+                  manifestLookup,
+                  {
+                    // A file the change skips (binary, unreadable encoding)
+                    // or renames to a path that is not source was not
+                    // analyzed, so its base text is analyzed here.
+                    analyzeText: async (name, text) =>
+                      sourceAnalysis.has(file.path)
+                        ? (
+                            sourceAnalysis.get(
+                              file.path,
+                            ) as SourceChangeAnalysis
+                          ).before
+                        : sourceService.analyzeTextV2(name, text),
+                  },
+                );
+              },
+              changedPaths: new Set(
+                snapshot.inventory.flatMap((file) =>
+                  file.oldPath === undefined
+                    ? [file.path]
+                    : [file.path, file.oldPath],
+                ),
+              ),
+              knowledge: snapshotEntities,
+              readBaseKnowledge: () => {
+                try {
+                  return readSnapshotKnowledge(
+                    snapshot.readGit,
+                    snapshot.baseTree,
+                    snapshot.readBlobs,
+                  );
+                } catch {
+                  // Knowledge the base cannot compile names no removal.
+                  return [];
+                }
+              },
+              readChanged: (file) =>
+                readTreeFile(snapshot.headTree)(file) ?? undefined,
+              readBase: (file) =>
+                readTreeFile(snapshot.baseTree)(file) ?? undefined,
+              readContent: (file) => sourceContentByFile.get(file),
+              readReceipt: (receiptPath) =>
+                readTreeFile(snapshot.headTree)(receiptPath) ?? undefined,
+              hasUnstagedChanges: (file) => {
+                try {
+                  return (
+                    snapshot
+                      .readGit([
+                        "diff",
+                        "--name-only",
+                        "--",
+                        `:(literal)${file}`,
+                      ])
+                      .toString("utf8")
+                      .trim() !== ""
+                  );
+                } catch {
+                  return false;
+                }
+              },
+            }),
+          ),
         );
 
         // Run the Prolog rules over the staged knowledge: the minLinks
@@ -1270,6 +1558,38 @@ export async function checkCommand(
             ? "✓ No violations found in staged files."
             : "✓ No violations found in staged symbols.";
 
+        // One block per declaration nothing owns stands for every finding
+        // it caused; the JSON keeps those findings with their ids.
+        const workingTree = workingTreeSymbolRecords(process.cwd());
+        const ownerFindings = collectOwnerFindings({
+          traceability: violationsRaw,
+          diagnostics: stagedKibiDiagnostics,
+          symbols: allSymbols,
+          candidatesByFile: new Map(
+            stagedCoverage.files.map((file) => [
+              file.path,
+              file.requirementIds,
+            ]),
+          ),
+          readRequirement: (id) =>
+            snapshotEntities.find((result) => result.entity.id === id)?.entity,
+          testsFor: (file, requirementId) =>
+            coveringTests(snapshotEntities, file, requirementId),
+          // kb_upsert writes the working tree, so a record not staged yet
+          // holds its id too.
+          takenIds: [
+            ...snapshotEntities.map((result) => result.entity.id),
+            ...workingTree.map((record) => record.id),
+          ],
+          writtenRecords: workingTree,
+        });
+        const shown = withoutOwnedCauses(
+          ownerFindings,
+          stagedKibiDiagnostics,
+          violationsRaw,
+        );
+        const ownerText = formatOwnerFindings(ownerFindings);
+
         if (
           violationsRaw.length > 0 ||
           coverageViolations.length > 0 ||
@@ -1284,9 +1604,11 @@ export async function checkCommand(
               ...contextViolations,
             ],
             qualityDiagnostics: stagedKibiDiagnostics,
+            ownerFindings,
             messages: [
-              ...(stagedKibiDiagnostics.length > 0
-                ? [formatStagedKibiDiagnostics(stagedKibiDiagnostics)]
+              ...(ownerText.length > 0 ? [ownerText] : []),
+              ...(shown.diagnostics.length > 0
+                ? [formatStagedKibiDiagnostics(shown.diagnostics)]
                 : []),
               ...(contextViolations.length > 0
                 ? formatConsistencyViolations(
@@ -1297,8 +1619,8 @@ export async function checkCommand(
               ...(coverageViolations.length > 0
                 ? [formatCoverageViolations(coverageViolations)]
                 : []),
-              ...(violationsRaw.length > 0
-                ? [formatStagedViolations(violationsRaw)]
+              ...(shown.traceability.length > 0
+                ? [formatStagedViolations(shown.traceability)]
                 : []),
             ],
           });
@@ -1311,8 +1633,12 @@ export async function checkCommand(
             format: options.format,
             coverage: stagedCoverage,
             qualityDiagnostics: stagedKibiDiagnostics,
+            ownerFindings,
             messages: [
-              formatStagedKibiDiagnostics(stagedKibiDiagnostics),
+              ...(ownerText.length > 0 ? [ownerText] : []),
+              ...(shown.diagnostics.length > 0
+                ? [formatStagedKibiDiagnostics(shown.diagnostics)]
+                : []),
               // Advisory-only findings still pass; say so explicitly.
               ...(!blocking ? [passMessage] : []),
             ],
@@ -1388,6 +1714,7 @@ export async function checkCommand(
       {
         ...(rules === undefined ? {} : { rules }),
         ...(options.freshEvidence === true ? { freshEvidence: true } : {}),
+        ...(options.symbolDebt === true ? { includeSymbolDebt: true } : {}),
       },
       {
         workspaceRoot: process.cwd(),
@@ -1412,6 +1739,8 @@ export async function checkCommand(
         collectFullQualityDiagnosticsForExplicitRules: true,
         // The engine reads the branch store; an explicit --kb-path does not.
         branchStoreAttached: "branch" in store,
+        // The command prints every finding; kb_check keeps to its budget.
+        fullListing: true,
       },
     );
     const violations = result.structuredContent?.violations ?? [];
@@ -1422,9 +1751,12 @@ export async function checkCommand(
         violations,
         qualityDiagnostics,
         migrationPlan: result.structuredContent?.migrationPlan,
+        symbolDebt: result.structuredContent?.symbolDebt,
       });
       return { exitCode: violations.length === 0 ? 0 : 1 };
     }
+    const symbolDebt = result.structuredContent?.symbolDebt;
+    const debtList = formatSymbolDebt(symbolDebt);
     const schemaNote = schemaUpgradeNote(process.cwd());
     if (schemaNote !== null) {
       console.log(schemaNote);
@@ -1432,10 +1764,19 @@ export async function checkCommand(
     }
     const qualityOutput = formatQualityDiagnostics(qualityDiagnostics);
     if (violations.length === 0) {
-      console.log("✓ No violations found. KB is valid.");
+      console.log(
+        formatCheckPassLine(
+          result.structuredContent?.evaluated?.ruleCount ?? 0,
+          symbolDebt,
+        ),
+      );
       if (qualityOutput.length > 0) {
         console.log();
         console.log(qualityOutput);
+      }
+      if (debtList.length > 0) {
+        console.log();
+        console.log(debtList);
       }
       return { exitCode: 0 };
     }
@@ -1467,6 +1808,12 @@ export async function checkCommand(
 
     if (qualityOutput.length > 0) {
       console.log(qualityOutput);
+      console.log();
+    }
+    const debtOutput =
+      debtList.length > 0 ? debtList : formatSymbolDebtCount(symbolDebt);
+    if (debtOutput.length > 0) {
+      console.log(debtOutput);
       console.log();
     }
 
@@ -1839,4 +2186,19 @@ export async function checkStrictReadiness(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   return strictViolations(prolog, "strict_readiness_violation");
+}
+
+/** The working tree's symbol records; none when unreadable. */
+function workingTreeSymbolRecords(
+  workspaceRoot: string,
+): { id: string; file: string; name: string }[] {
+  try {
+    return readImpactManifestResults(workspaceRoot).map((result) => ({
+      id: result.entity.id,
+      file: result.sourceFile ?? "",
+      name: result.entity.title,
+    }));
+  } catch {
+    return [];
+  }
 }

@@ -28,6 +28,7 @@ import {
   createCoarseAnchorQualityDiagnostics,
   createCoverageDepthQualityDiagnostics,
 } from "./coverage-depth-quality.js";
+import { createBehavioralUnitProbe } from "./diagnostics.js";
 import { createRequirementQualityDiagnostics } from "./requirement-quality.js";
 import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
 import type { QualityDiagnostic } from "./types.js";
@@ -679,7 +680,12 @@ export async function collectFullKbQualityDiagnostics(
     // hardViolationEntityIds from these options.
     ...createRequirementQualityDiagnostics({ ...options, manifestResults }),
     ...coverageDepthDiagnostics,
-    ...createCoarseAnchorQualityDiagnostics(manifestResults),
+    ...createCoarseAnchorQualityDiagnostics(
+      manifestResults,
+      options.workspaceRoot === undefined
+        ? undefined
+        : createBehavioralUnitProbe(options.workspaceRoot),
+    ),
     ...createSymbolQualityDiagnostics({
       manifestResults,
       symbolsByFile: new Map(),

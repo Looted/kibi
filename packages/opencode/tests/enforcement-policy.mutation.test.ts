@@ -62,8 +62,8 @@ describe("advisory relevance", () => {
   test("an edited source file asks for an impact check", () => {
     expect(policy([["src/a.ts", "edited"]], { pathKinds: ["code"] }).text).toBe(
       [
-        '- Edited source file detected. Run `kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` while the edit context is fresh.',
-        "  Use the impact diagnostics to review symbol granularity, requirement ownership, and semantic review of linked requirements/tests before completing this task.",
+        '- Edited source file detected. Run `kb_check({changed:true, sourceFiles:["src/a.ts"]})` while the edit context is fresh.',
+        '  It gives the commit gate\'s verdict: findings with blocks:"commit" stop the commit. Review requirement ownership and semantic review of linked requirements/tests before completing this task.',
       ].join("\n"),
     );
   });

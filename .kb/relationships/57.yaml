@@ -258,3 +258,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a543a120c79d
+  - type: constrains
+    from: REQ-mcp-short-field-descriptions
+    to: FACT-SUBJ-mcp-tool-input-schemas
+    created_at: 2026-11-16T06:40:17.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-879a9c721ea8
+  - type: requires_property
+    from: REQ-mcp-short-field-descriptions
+    to: FACT-mcp-field-descriptions-over-limit
+    created_at: 2026-11-16T06:40:17.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cfe932ad8e1
+  - type: requires_property
+    from: REQ-mcp-short-field-descriptions
+    to: FACT-mcp-field-descriptions-missing-from-skills
+    created_at: 2026-11-16T06:40:17.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd864589ea89
+  - type: specified_by
+    from: REQ-mcp-short-field-descriptions
+    to: SCEN-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:17.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e469ac3ce399
+  - type: specified_by
+    from: REQ-mcp-short-field-descriptions
+    to: SCEN-NEG-mcp-short-field-descriptions-LONG-DESCRIPTION
+    created_at: 2026-11-16T06:40:17.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0e824a15cec
+  - type: specified_by
+    from: REQ-mcp-short-field-descriptions
+    to: SCEN-NEG-mcp-short-field-descriptions-STALE-REFERENCE
+    created_at: 2026-11-16T06:40:17.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75bdabb22920
+  - type: verified_by
+    from: REQ-mcp-short-field-descriptions
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:17.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4586dcf37020
+  - type: requires_property
+    from: REQ-mcp-short-field-descriptions
+    to: FACT-mcp-advertised-description-limit
+    created_at: 2026-11-16T11:02:31.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab2eb58ef9df
+  - type: restates
+    from: REQ-kibi-proof-vocabulary
+    to: REQ-kibi-source-proof-reader-vocabulary
+    created_at: 2026-11-16T10:45:25.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40d5de50da1e
+  - type: restates
+    from: REQ-kibi-proof-vocabulary
+    to: REQ-kibi-claim-binding-verdicts
+    created_at: 2026-11-16T10:45:25.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e34dfb2423f0
+  - type: restates
+    from: REQ-kibi-proof-vocabulary
+    to: REQ-kibi-proof-kind-vocabulary
+    created_at: 2026-11-16T10:45:25.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-faa4995ab876
+  - type: assumes
+    from: SCEN-NEG-check-restated-twin-facts-REPORTED
+    to: FACT-NEG-check-restated-twin-facts-REPORTED
+    created_at: 2026-11-16T10:52:49.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aad7846f3d44
+  - type: verified_by
+    from: SCEN-NEG-check-restated-twin-facts-REPORTED
+    to: TEST-check-restated-twin-facts
+    created_at: 2026-11-16T10:52:49.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e215ece043c1

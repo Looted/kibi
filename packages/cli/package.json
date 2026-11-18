@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "2.44.0",
+  "version": "2.45.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -210,6 +210,10 @@
       "types": "./dist/operations/mutation/delete.d.ts",
       "default": "./dist/operations/mutation/delete.js"
     },
+    "./operations/mutation/implemented-by": {
+      "types": "./dist/operations/mutation/implemented-by.d.ts",
+      "default": "./dist/operations/mutation/implemented-by.js"
+    },
     "./operations/mutation/upsert": {
       "types": "./dist/operations/mutation/upsert.d.ts",
       "default": "./dist/operations/mutation/upsert.js"
@@ -248,14 +252,14 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.33.0",
-    "kibi-plugin-builtin": "^0.6.0",
-    "kibi-plugin-sdk": "^0.7.2",
+    "kibi-core": "^0.34.0",
+    "kibi-plugin-builtin": "^0.7.0",
+    "kibi-plugin-sdk": "^0.8.0",
     "kibi-swipl": "^1.0.2",
     "saxes": "^6.0.0",
     "ignore": "^5.3.0",
     "yaml": "^2.9.1",
-    "kibi-agent-core": "^0.14.0"
+    "kibi-agent-core": "^0.15.0"
   },
   "devDependencies": {
     "@types/node": "latest",
@@ -266,7 +270,7 @@
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
   "kibi": {
-    "kbSchema": 18
+    "kbSchema": 19
   },
   "homepage": "https://looted.github.io/kibi/",
   "repository": {

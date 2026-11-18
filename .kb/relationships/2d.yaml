@@ -231,13 +231,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e5451c89f64a
   - type: validates
-    from: TEST-proof-kb-merge-gate-order
-    to: SCEN-ci-kb-merge-resolution
-    created_at: 2026-10-28T09:39:51.169Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2652ff519910
-  - type: validates
     from: TEST-proof-why-this-changed-heading
     to: SCEN-kb-decision-firmness
     created_at: 2026-10-28T10:33:43.883Z
@@ -454,3 +447,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de1d4aeb495c
+  - type: implements
+    from: SYM-cli-scope-violations-to-impact
+    to: REQ-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:20.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a17457713cc
+  - type: covered_by
+    from: SYM-cli-scope-violations-to-impact
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:20.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb68caf4f060
+  - type: verified_by
+    from: SCEN-engine-client-core-modules-from-engine
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T09:59:45.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-616f138acfad
+  - type: assumes
+    from: SCEN-engine-client-core-modules-from-engine
+    to: FACT-engine-client-loads-engine-core-modules
+    created_at: 2026-11-16T10:03:26.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8b8e15053b4
+  - type: assumes
+    from: SCEN-kb-upsert-capture-next-actions
+    to: FACT-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:11:30.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bef7576e539
+  - type: verified_by
+    from: SCEN-kb-upsert-capture-next-actions
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:17:54.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a38c0563ef0
+  - type: constrains
+    from: REQ-kibi-search-hints-shown
+    to: FACT-search-hint-limits-component
+    created_at: 2026-11-16T10:44:27.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93419831f7d5
+  - type: restates
+    from: REQ-kibi-search-hints-shown
+    to: REQ-kibi-search-hints-limits
+    created_at: 2026-11-16T10:44:27.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2339edc0d05
+  - type: assumes
+    from: SCEN-search-answer-governing-statement
+    to: FACT-search-answer-governing-statement
+    created_at: 2026-11-16T15:41:52.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf18fa1636e7
+  - type: verified_by
+    from: SCEN-search-answer-governing-statement
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:41:53.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-353875a98c59
+  - type: implements
+    from: SYM-x-oc-handleKbToolEvent
+    to: REQ-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:57:39.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79c84d79ebdd
+  - type: covered_by
+    from: SYM-x-oc-handleKbToolEvent
+    to: TEST-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:57:39.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e4d62255935

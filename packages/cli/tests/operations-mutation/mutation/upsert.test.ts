@@ -722,14 +722,14 @@ describe("source-first writes", () => {
         fact(),
         context({ fs: nodeFilesystem }),
       );
-      expect(calls).toStrictEqual([["fact", root, "docs/a.md"]]);
+      expect(calls).toStrictEqual([["fact", root, "docs/a.md", []]]);
       expect(result.structuredContent?.warnings.slice(-2)).toStrictEqual([
         "context",
         "inventory",
       ]);
       sourceWrite = null;
       await executeUpsert(fact(), context({ fs: nodeFilesystem }));
-      expect(calls.at(-1)).toStrictEqual(["fact", root, undefined]);
+      expect(calls.at(-1)).toStrictEqual(["fact", root, undefined, []]);
     } finally {
       spy.mockRestore();
     }
@@ -1196,7 +1196,10 @@ describe("upsert failures", () => {
         entity: { id: "FACT-a", type: "fact" },
         relationships: [{ type: "relates_to", from: "FACT-a", to: "FACT-b" }],
       },
-      semantic: { receipt: { lane: "x" }, warnings: [] },
+      semantic: {
+        receipt: { candidate_lane: "x", propositions: [] },
+        warnings: [],
+      },
     };
     recoveries = [{ action: "completed", detail: "Completed plan." }];
     for (const [thrown, detail, kind] of [
@@ -1228,7 +1231,7 @@ describe("upsert failures", () => {
           updated: kind === "updated" ? 1 : 0,
           relationships_created: 1,
           warnings: ["Completed plan.", detail],
-          semanticAdvisor: { lane: "x" },
+          semanticAdvisor: { candidate_lane: "x" },
           status: "committed_with_repairs",
           effectFailures: [
             {
@@ -1432,7 +1435,10 @@ describe("deferred commits", () => {
         entity: { id: "FACT-a", type: "fact", claim_key: "k" },
         relationships: [{ type: "relates_to", from: "FACT-a", to: "FACT-b" }],
       },
-      semantic: { receipt: { lane: "x" }, warnings: ["semantic"] },
+      semantic: {
+        receipt: { candidate_lane: "x", propositions: [] },
+        warnings: ["semantic"],
+      },
     };
     recoveries = [{ action: "completed", detail: "Completed plan." }];
     const result = await executeUpsert(
@@ -1457,7 +1463,7 @@ describe("deferred commits", () => {
         updated: 0,
         relationships_created: 1,
         warnings: ["Completed plan.", "semantic"],
-        semanticAdvisor: { lane: "x" },
+        semanticAdvisor: { candidate_lane: "x" },
         claimKey: "k",
         deferredCommit: deferred,
         sourceWrites: [{ path: "docs/a.md" }],

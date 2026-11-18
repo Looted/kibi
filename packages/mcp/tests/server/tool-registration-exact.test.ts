@@ -3,7 +3,10 @@ import * as runtimeModule from "kibi-runtime";
 import { getSpec, statusSpec } from "kibi-runtime";
 
 import { getJob, resetJobsForTests } from "../../src/server/jobs.js";
-import { registerConfiguredTools } from "../../src/server/tool-registration.js";
+import {
+  registerConfiguredTools,
+  withUnlistedRoutes,
+} from "../../src/server/tool-registration.js";
 import { TOOLS, buildBaseTools } from "../../src/tools-config.js";
 
 const SESSION = { session: "prolog" };
@@ -51,7 +54,12 @@ type Registered = {
 };
 
 function setup(
-  options: { tools?: unknown[]; hooks?: boolean; optional?: string } = {},
+  options: {
+    tools?: unknown[];
+    hooks?: boolean;
+    optional?: string;
+    listed?: ReadonlySet<string>;
+  } = {},
 ) {
   if (options.optional === undefined)
     Reflect.deleteProperty(process.env, "KIBI_MCP_OPTIONAL_TOOLS");
@@ -124,6 +132,7 @@ function setup(
         outputSchema,
       });
     }) as never,
+    options.listed,
   );
   return { runtime, registered, calls, afterSuccess };
 }
@@ -147,6 +156,28 @@ function run(
 }
 
 describe("registerConfiguredTools, exact", () => {
+  test("a tool profile registers only the tools it names, in catalog order", () => {
+    const { registered } = setup({
+      listed: new Set(["kb_check", "kb_query", "kb_apply_plan"]),
+    });
+    expect([...registered.keys()]).toStrictEqual([
+      "kb_query",
+      "kb_check",
+      "kb_apply_plan",
+    ]);
+    expect([...setup({ listed: new Set() }).registered.keys()]).toEqual([]);
+  });
+
+  test("an optional tool enabled by name is listed in every profile", () => {
+    const tools = buildBaseTools(new Set(["kb_sparql_remote"]));
+    expect([
+      ...setup({ tools, listed: new Set(["kb_query"]) }).registered.keys(),
+    ]).toStrictEqual(["kb_query", "kb_sparql_remote"]);
+    expect([
+      ...setup({ listed: new Set(["kb_query"]) }).registered.keys(),
+    ]).toStrictEqual(["kb_query"]);
+  });
+
   test("each tool is registered with its definition and catalog spec", async () => {
     const { registered, runtime } = setup();
     expect([...registered.keys()]).toStrictEqual(
@@ -299,7 +330,7 @@ describe("registerConfiguredTools, exact", () => {
   });
 
   test("upsert and delete run the shared executors with the session engine", async () => {
-    const upsert = stub(runtimeModule, "executeUpsert");
+    const upsert = stub(runtimeModule, "executeUpsertRequest");
     const del = stub(runtimeModule, "executeDelete");
     const { registered } = setup();
     const args = { id: "X" };
@@ -450,5 +481,41 @@ describe("registerConfiguredTools, exact", () => {
       run(registered, "kb_apply_plan", { async: true, plan: 1 }),
     ).rejects.toThrow("stale plan");
     expect(calls.handleKbApplyPlan).toBeUndefined();
+  });
+});
+
+describe("withUnlistedRoutes", () => {
+  const result = (structuredContent: Record<string, unknown>) => ({
+    content: [{ type: "text", text: "done" }],
+    structuredContent,
+  });
+
+  test("names the CLI route of a step whose tool this session does not list", () => {
+    const listed = new Set(["kb_status", "kb_check"]);
+    const routed = withUnlistedRoutes(
+      result({
+        bootstrap: { nextAction: { operation: "kb_plan_bootstrap" } },
+        nextActions: [
+          { operation: "kb_check" },
+          { operation: "kb_delete" },
+          { operation: "kibi doctor" },
+          null,
+        ],
+      }),
+      listed,
+    ) as { content: { text: string }[] };
+    expect(routed.content.map((block) => block.text)).toStrictEqual([
+      "done",
+      `Not listed in this session, so run with the same input through the project CLI: kb_delete as npx --no-install kibi ${getSpec("kb_delete").cliName} --input -; kb_plan_bootstrap as npx --no-install kibi plan-bootstrap --input -.`,
+    ]);
+  });
+
+  test("leaves a result alone when every tool is listed or nothing is unlisted", () => {
+    const plain = result({ nextActions: [{ operation: "kb_delete" }] });
+    expect(withUnlistedRoutes(plain, undefined)).toBe(plain);
+    expect(withUnlistedRoutes(plain, new Set(["kb_delete"]))).toBe(plain);
+    expect(withUnlistedRoutes(null, new Set())).toBeNull();
+    const noContent = { structuredContent: {} };
+    expect(withUnlistedRoutes(noContent, new Set())).toBe(noContent);
   });
 });

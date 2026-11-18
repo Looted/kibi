@@ -237,3 +237,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc7f3ce655a1
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-derives-ledger-when-contract-omitted
+    created_at: 2026-11-15T20:20:28.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9411d1d28e2e
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-derived-modeled-needs-grounding
+    created_at: 2026-11-15T20:20:28.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08f811b04cf6
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-derived-keeps-writer-judgment
+    created_at: 2026-11-15T20:20:28.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f01454a68e2e
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-unclassified-claim-missing
+    created_at: 2026-11-15T20:20:28.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-278fa6d0f089
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-unstated-entry-refused
+    created_at: 2026-11-15T20:20:28.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6b109ae10f5
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-sent-contract-checked-as-sent
+    created_at: 2026-11-15T20:20:28.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-137352a799b3
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-accepted-write-unchanged
+    created_at: 2026-11-15T20:20:28.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc918840421a
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-recorded-claims-listed
+    created_at: 2026-11-15T20:20:28.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a718ea934a6
+  - type: assumes
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: FACT-kb-upsert-committed-advisor-verdict
+    created_at: 2026-11-15T20:20:28.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93e64253e366
+  - type: verified_by
+    from: SCEN-kb-upsert-derives-proposition-ledger
+    to: TEST-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:28.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc3c97384993
+  - type: constrains
+    from: REQ-cli-rejection-not-retryable
+    to: FACT-SUBJ-kibi-cli-error-envelope
+    created_at: 2026-11-16T14:40:15.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54b85ae82ecc
+  - type: requires_property
+    from: REQ-cli-rejection-not-retryable
+    to: FACT-cli-refusal-not-retryable
+    created_at: 2026-11-16T14:40:15.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc49e7ea65c1
+  - type: relates_to
+    from: REQ-cli-rejection-not-retryable
+    to: REQ-kibi-telemetry-expected-outcomes
+    created_at: 2026-11-16T14:40:15.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88cda84041b5
+  - type: specified_by
+    from: REQ-cli-rejection-not-retryable
+    to: SCEN-cli-rejection-not-retryable
+    created_at: 2026-11-16T14:41:18.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29e2bf5deef1
+  - type: specified_by
+    from: REQ-cli-rejection-not-retryable
+    to: SCEN-cli-transient-failure-retryable
+    created_at: 2026-11-16T14:41:18.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6d45f606d3a
+  - type: specified_by
+    from: REQ-cli-rejection-not-retryable
+    to: SCEN-NEG-cli-rejection-not-retryable-RETRYABLE
+    created_at: 2026-11-16T14:41:18.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54c8f6052fe6

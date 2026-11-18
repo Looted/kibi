@@ -8,10 +8,14 @@ import * as generated from "../../../src/plugins/generated-sources.js";
 import * as maintenance from "../../../src/plugins/maintenance-source-analysis.js";
 import * as sourceChanges from "../../../src/plugins/source-change-analysis.js";
 import * as impactDiagnostics from "../../../src/public/impact-diagnostics.js";
+import * as firmEditGate from "../../../src/public/impact/firm-edit-gate.js";
+import * as firmEditStaged from "../../../src/public/impact/firm-edit-staged.js";
+import * as impactManifest from "../../../src/public/impact/manifest.js";
 import * as commitAmend from "../../../src/traceability/commit-amend.js";
 import * as snapshotModule from "../../../src/traceability/git-change-snapshot.js";
 import * as impactEvaluator from "../../../src/traceability/impact-evaluator.js";
 import * as markdownValidate from "../../../src/traceability/markdown-validate.js";
+import * as ownerFindings from "../../../src/traceability/owner-findings.js";
 import * as snapshotKnowledge from "../../../src/traceability/snapshot-knowledge.js";
 import * as consistency from "../../../src/traceability/staged-consistency.js";
 import * as stagedDiagnostics from "../../../src/traceability/staged-diagnostics.js";
@@ -159,6 +163,8 @@ export function stagedHarness() {
     createSymbolQualityDiagnostics: () => [],
     createSemanticReviewDiagnostics: () => [],
     createStagedEntityIdStyleDiagnostics: () => [],
+    createFirmEditGateDiagnostics: () => [],
+    stagedFirmEditGateOptions: async (input: Record<string, unknown>) => input,
     hasBlockingImpactDiagnostics: (
       diagnostics: Array<{ blocking?: boolean }>,
     ) => diagnostics.some((diagnostic) => diagnostic.blocking === true),
@@ -182,6 +188,16 @@ export function stagedHarness() {
       `coverage ${violations.length}`,
     formatViolations: (violations: unknown[]) =>
       `violations ${violations.length}`,
+    collectOwnerFindings: () => [],
+    coveringTests: () => [],
+    readImpactManifestResults: () => [],
+    withoutOwnedCauses: (
+      _findings: unknown[],
+      diagnostics: unknown[],
+      traceability: unknown[],
+    ) => ({ diagnostics, traceability }),
+    formatOwnerFindings: (findings: unknown[]) =>
+      findings.length > 0 ? `owners ${findings.length}` : "",
   };
 
   const targets: Array<[object, string]> = [
@@ -223,6 +239,8 @@ export function stagedHarness() {
     [impactDiagnostics, "createSemanticReviewDiagnostics"],
     [impactDiagnostics, "hasBlockingImpactDiagnostics"],
     [entityIdStyle, "createStagedEntityIdStyleDiagnostics"],
+    [firmEditGate, "createFirmEditGateDiagnostics"],
+    [firmEditStaged, "stagedFirmEditGateOptions"],
     [tempKb, "createTempKb"],
     [tempKb, "projectStagedEntities"],
     [tempKb, "createOverlayFacts"],
@@ -232,6 +250,11 @@ export function stagedHarness() {
     [validate, "validateStagedSymbolCoverage"],
     [validate, "formatCoverageViolations"],
     [validate, "formatViolations"],
+    [impactManifest, "readImpactManifestResults"],
+    [ownerFindings, "collectOwnerFindings"],
+    [ownerFindings, "coveringTests"],
+    [ownerFindings, "withoutOwnedCauses"],
+    [ownerFindings, "formatOwnerFindings"],
   ];
   for (const [module, name] of targets) {
     const spy = spyOn(module as Record<string, Impl>, name).mockImplementation(

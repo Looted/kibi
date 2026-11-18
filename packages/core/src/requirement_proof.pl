@@ -165,7 +165,7 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
     negative_path_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, NegativePathStage),
     dimension_stage(ReqId, ScenarioTestStage, Context, DimensionStage),
     cases_stage(ReqId, ScenarioStage, ScenarioTestStage, Context, CasesStage),
-    Stages = _{
+    Stages0 = _{
         semanticInventory: SemanticStage,
         logicGrounding: LogicStage,
         contradictions: ContradictionStage,
@@ -179,6 +179,7 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
         productionSymbols: ProductionStage,
         sourceCoordinates: CoordinateStage
     },
+    source_proof_scope(ReqId, ReqProps, Inventory, ScenarioTestStage, Context, Stages0, Stages),
     proof_issues(Stages, Gaps, Advisories),
     proof_repairs(Gaps, Repairs),
     proof_status(Stages, Status),
@@ -212,6 +213,50 @@ compute_requirement_proof(ReqId, ReqProps, Context, Proof) :-
     ->  Proof = Proof1
     ;   Proof = Proof1.put(claimBindingRejections, BindingRejections)
     ).
+
+%% source_proof_scope(+ReqId, +Props, +Inventory, +ScenarioTestStage, +Context, +Stages0, -Stages)
+% A requirement that no symbol implements still meets its production-symbol
+% stage when a source proof certifies every applicable claim: a rule such as
+% "files under src/ui never import x" states that something is absent from a
+% set of files, so no function decides it and an implements link to one of
+% the files would be false.  The proof reads the whole file set, and that
+% set is the scope the rule constrains.  Each applicable claim must have a
+% derived binding of scope source from a passing receipt whose certificate
+% re-checks; a claim bound only by another kind, or not bound, keeps the
+% stage missing.  The other stages are judged on their own: a requirement
+% that still lacks, say, a failure-side scenario reports that gap, not a
+% missing symbol.  A requirement that some symbol implements is judged as
+% before.
+source_proof_scope(ReqId, Props, Inventory, ScenarioTestStage, Context, Stages0, Stages) :-
+    Production = Stages0.productionSymbols,
+    (   Production.symbols == [],
+        Production.structuralSymbols == [],
+        % tested asks each claim what its own bindings show, apart from
+        % the stages that keep the requirement from being tested.
+        claim_evidence(ReqId, Props, Inventory, tested, ScenarioTestStage, Context,
+                       Claims, _, _),
+        include(applicable_claim, Claims, Applicable),
+        Applicable \== [],
+        maplist(claim_source_proof_tests, Applicable, TestLists)
+    ->  append(TestLists, Tests0),
+        sort(Tests0, Tests),
+        (   del_dict(reason, Production, _, Production1) -> true ; Production1 = Production ),
+        Stage = Production1.put(_{status: passed, scope: source_proof, sourceProofTests: Tests}),
+        Stages = Stages0.put(productionSymbols, Stage)
+    ;   Stages = Stages0
+    ).
+
+% The tests whose source proof proves this claim; fails when none does.
+claim_source_proof_tests(Entry, Tests) :-
+    claim_level_is(proved, Entry),
+    get_dict(bindings, Entry, Bindings),
+    findall(Test,
+        (member(B, Bindings),
+         get_dict(binding, B, derived),
+         get_dict(scope, B, source),
+         get_dict(test, B, Test)),
+        Tests),
+    Tests \== [].
 
 exempt_requirement_proof(Reason, ReqProps, Proof) :-
     % Only a tested requirement reads its passing and proved tests.
@@ -1660,6 +1705,15 @@ proof_contract_binding(Props, Binding) :-
     ).
 
 proof_contract_hash(RawContract, Hash) :-
+    % Every receipt of every test that covers a requirement is checked
+    % against its test's contract, so one stored contract text is parsed and
+    % hashed thousands of times per evaluation.
+    (   (atom(RawContract) ; string(RawContract))
+    ->  pure_memo(proof_contract_hash, RawContract, compute_proof_contract_hash, Hash)
+    ;   compute_proof_contract_hash(RawContract, Hash)
+    ).
+
+compute_proof_contract_hash(RawContract, Hash) :-
     proof_contract_dict(RawContract, Contract),
     canonical_json_value(Contract, Canonical),
     crypto_data_hash(Canonical, Hash, [algorithm(sha256), encoding(utf8)]).
@@ -2926,7 +2980,10 @@ proof_gap_present(proof_snapshot_unavailable, Stages) :- Stages.passingE2e.snaps
 proof_gap_present(missing_executable_test_symbol, Stages) :- Stages.executableSymbols.status == missing.
 proof_gap_present(missing_production_symbol, Stages) :-
     Stages.productionSymbols.symbols == [],
-    Stages.productionSymbols.structuralSymbols == [].
+    Stages.productionSymbols.structuralSymbols == [],
+    % A source proof of every claim scopes the requirement to the files it
+    % reads (source_proof_scope/7), so no symbol is missing.
+    \+ get_dict(scope, Stages.productionSymbols, source_proof).
 proof_gap_present(missing_production_symbol_coverage, Stages) :- Stages.productionSymbols.uncoveredSymbols \= [].
 proof_gap_present(missing_symbol_coordinates, Stages) :- Stages.sourceCoordinates.missingSymbols \= [].
 proof_gap_present(missing_requirement_source, Stages) :- Stages.sourceCoordinates.requirementSource == missing.

@@ -70,26 +70,12 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-a2f5ec0d7220
   - type: covered_by
-    from: SYM-cursor-BOOTSTRAP_REMINDER
-    to: TEST-agent-kibi-interface-selection
-    created_at: 2026-09-05T15:02:08.563Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-307c21111864
-  - type: covered_by
     from: SYM-cli-status-command
     to: TEST-cli-status-pre-first-sync
     created_at: 2026-09-05T15:19:02.577Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07562945ae11
-  - type: covered_by
-    from: SYM-cursor-BOOTSTRAP_REMINDER
-    to: TEST-cursor-kibi-plugin-v1
-    created_at: 2026-09-05T15:37:24.921Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-65654f67b2a4
   - type: implements
     from: SYM-canonical-KibiTreeDataProvider-getChildren
     to: REQ-vscode-sidebar-kb-tree
@@ -314,3 +300,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fd9d01bf0a68
+  - type: implements
+    from: SYM-owner-findings-cli-upsert-command
+    to: REQ-check-staged-owner-block
+    created_at: 2026-11-16T18:14:23.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c237e322adbd
+  - type: covered_by
+    from: SYM-owner-findings-cli-upsert-command
+    to: TEST-check-staged-owner-block
+    created_at: 2026-11-16T18:14:23.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad79fd14edaf
+  - type: implements
+    from: SYM-cli-reason-note-reason-notes
+    to: REQ-upsert-notes-missing-reason
+    created_at: 2026-11-16T14:58:26.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97f8badc7e5b
+  - type: implements
+    from: SYM-cli-reason-note-reason-notes
+    to: REQ-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:26.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf7f8bee15f1
+  - type: covered_by
+    from: SYM-cli-reason-note-reason-notes
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:26.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f23432dbb9bf

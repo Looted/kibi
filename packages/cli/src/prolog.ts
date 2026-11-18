@@ -136,6 +136,14 @@ export interface PrologOptions {
    * a small cap to exercise the overflow path deterministically.
    */
   maxOutputBytes?: number;
+  /**
+   * Save the attached KB after each write on the interactive process
+   * (default true). A scratch KB that is only queried in this process, such
+   * as the staged check's temporary stores, passes false: saving the whole
+   * store after every batch made projecting a large KB quadratic. An
+   * explicit kb_save goal still saves.
+   */
+  saveAfterWrites?: boolean;
 }
 
 /**
@@ -196,6 +204,7 @@ export class PrologProcess {
   private explicitSwiplPath: string | undefined;
   private readonly swiplResolver: () => ResolvedSwipl;
   private timeout: number;
+  private readonly saveAfterWrites: boolean;
   // start() resets these before any output can arrive.
   private outputBuffer!: string;
   private outputBufferBytes!: number;
@@ -226,6 +235,7 @@ export class PrologProcess {
     this.explicitSwiplPath = options.swiplPath || undefined;
     this.swiplResolver = options.swiplResolver ?? (() => resolveSwipl());
     this.timeout = options.timeout || 30000;
+    this.saveAfterWrites = options.saveAfterWrites !== false;
     const maxOutputBytes = Number(options.maxOutputBytes);
     this.maxOutputBytes =
       Number.isInteger(maxOutputBytes) && maxOutputBytes > 0
@@ -456,6 +466,7 @@ export class PrologProcess {
       const normalizedGoal = this.normalizeGoal(goal as string);
       const goalLabel = this.goalLabel(normalizedGoal);
       const shouldPersist =
+        this.saveAfterWrites &&
         this.isMutatingGoal(normalizedGoal) &&
         !normalizedGoal.includes("kb_save") &&
         !normalizedGoal.includes("kb_commit_upsert");

@@ -300,3 +300,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9705b68aaf91
+  - type: constrains
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: FACT-SUBJ-kibi-firm-edit-review
+    created_at: 2026-11-16T07:00:13.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce1df83d0e2a
+  - type: requires_property
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: FACT-signoff-firm-edit-receipts-unlisted
+    created_at: 2026-11-16T07:00:14.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0871e65404c5
+  - type: specified_by
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: SCEN-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:14.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0778fe2d13c
+  - type: specified_by
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: SCEN-NEG-signoff-firm-edit-receipts-UNLISTED
+    created_at: 2026-11-16T07:00:14.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86a7487b5035
+  - type: verified_by
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: TEST-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:14.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c72d393721b
+  - type: relates_to
+    from: REQ-kibi-signoff-firm-edit-receipts
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T07:00:14.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52188e7ff7da
+  - type: assumes
+    from: SCEN-migrate-quantity-duplicate-review
+    to: FACT-migrate-quantity-duplicate-review
+    created_at: 2026-11-16T16:10:40.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fbd185407f4
+  - type: verified_by
+    from: SCEN-migrate-quantity-duplicate-review
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:40.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28707b56f338
+  - type: constrains
+    from: REQ-kb-record-modeling-stays-upsert
+    to: FACT-SUBJECT-KIBI-KB-RECORD
+    created_at: 2026-11-17T06:46:36.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a98c0c800fab
+  - type: requires_property
+    from: REQ-kb-record-modeling-stays-upsert
+    to: FACT-kb-record-foreign-fields-refused
+    created_at: 2026-11-17T06:46:36.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-106bcde97435
+  - type: requires_property
+    from: REQ-kb-record-modeling-stays-upsert
+    to: FACT-kb-record-refusal-names-upsert
+    created_at: 2026-11-17T06:46:36.124Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f2dfc5a145d
+  - type: specified_by
+    from: REQ-kb-record-modeling-stays-upsert
+    to: SCEN-kb-record-modeling-stays-upsert
+    created_at: 2026-11-17T06:46:36.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60d71d799f13
+  - type: specified_by
+    from: REQ-kb-record-modeling-stays-upsert
+    to: SCEN-NEG-kb-record-foreign-fields-refused-FIELD-ACCEPTED
+    created_at: 2026-11-17T06:46:36.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eef7491eea81
+  - type: verified_by
+    from: REQ-kb-record-modeling-stays-upsert
+    to: TEST-kb-record
+    created_at: 2026-11-17T06:46:36.173Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a901f3fefadd
+  - type: specified_by
+    from: REQ-kb-record-modeling-stays-upsert
+    to: SCEN-NEG-kb-record-refusal-names-upsert-NO-POINTER
+    created_at: 2026-11-17T07:11:38.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2bcd8f7968e

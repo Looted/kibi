@@ -363,3 +363,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-555e031e8f78
+  - type: relates_to
+    from: REQ-claude-firm-edit-confirmation
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T07:01:13.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82e33aee404b
+  - type: specified_by
+    from: REQ-claude-firm-edit-confirmation
+    to: SCEN-claude-firm-edit-receipt
+    created_at: 2026-11-16T07:02:49.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4799cd2565a3
+  - type: validates
+    from: TEST-search-answer-first-layer
+    to: REQ-search-answer-governing-statement
+    created_at: 2026-11-16T15:56:56.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55fde83d0d49
+  - type: validates
+    from: TEST-search-answer-first-layer
+    to: SCEN-search-answer-governing-statement
+    created_at: 2026-11-16T15:56:56.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13d20cd571f8
+  - type: validates
+    from: TEST-search-answer-first-layer
+    to: REQ-search-answer-reason-origin
+    created_at: 2026-11-16T15:56:56.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-254b103087de
+  - type: validates
+    from: TEST-search-answer-first-layer
+    to: SCEN-search-answer-reason-origin
+    created_at: 2026-11-16T15:56:56.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d584aa7d3612
+  - type: validates
+    from: TEST-search-answer-first-layer
+    to: REQ-search-compact-evidence
+    created_at: 2026-11-16T15:56:57.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1640a5d3f23
+  - type: validates
+    from: TEST-search-answer-first-layer
+    to: SCEN-search-compact-evidence
+    created_at: 2026-11-16T15:56:57.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65f0453d9e4e
+  - type: validates
+    from: TEST-closed-firm-requirement-guards
+    to: SCEN-closed-firm-requirement-guard
+    created_at: 2026-11-17T19:23:36.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-257aa6709463
+  - type: validates
+    from: TEST-closed-firm-requirement-guards
+    to: SCEN-NEG-closed-firm-requirement-guard-VIOLATED
+    created_at: 2026-11-17T19:23:36.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec1eacd9903f

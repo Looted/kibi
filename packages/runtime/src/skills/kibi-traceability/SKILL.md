@@ -2,7 +2,7 @@
 id: kibi-traceability
 name: kibi-traceability
 description: "Maintain source-first requirement, scenario, test, symbol, and proof traceability through Kibi's peer interfaces. Use when linking a code symbol to a requirement (implements, covered_by, executable_for), choosing which function owns a behavior, moving or removing links, or when kb_check reports broad_requirement_review, multi_requirement_symbol_review, coarse_anchor_only_review, symbol-coverage or missing_production_symbol_coverage."
-version: 2.4.0
+version: 2.8.0
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -29,7 +29,7 @@ interfaces. Select the surface by capability; neither is semantically preferred.
 For CLI JSON, use a dedicated route such as
 `printf '%s\n' '{}' | kibi status --input -`.
 
-For every traceability answer, begin with `kb_search` even when an identifier is already named, then exact-filter with `kb_query`, inspect relationships with `kb_graph`, and make `kb_status` the final Kibi call, including after `kb_graph` or `kb_coverage`; report no conclusions until that closing `kb_status` returns. When judging scenario feasibility, ground each step in the queried requirements, scenarios, tests, and symbols, and state missing links, ambiguity, or stale evidence explicitly rather than inferring them. For authorized coverage or link work, keep the exact supplied target and intended edges, discover and query those targets, then validate the payload with `kb_upsert` and `dryRun: true`. A passing dry run is only validation, not completion: next perform the real `kb_upsert` with the same payload, exact-read the result back with `kb_query`, run `kb_check` and `kb_coverage`, report the resulting proof state, and finish with `kb_status`. Distinct authorized payloads may each need their own sequential dry run and write, so there is no single-write limit, but never retry a mutation that already committed; on `committed_with_repairs`, execute the typed repair action instead.
+For every traceability answer, begin with `kb_search` even when an identifier is already named, then exact-filter with `kb_query`, inspect relationships with `kb_graph`, and make `kb_status` the final Kibi call, including after `kb_graph` or `kb_coverage`; report no conclusions until that closing `kb_status` returns. When judging scenario feasibility, ground each step in the queried requirements, scenarios, tests, and symbols, and state missing links, ambiguity, or stale evidence explicitly rather than inferring them. For authorized coverage or link work, keep the exact supplied target and intended edges, discover and query those targets, then send the payload with `kb_upsert` (its result reports what was written, so no read-back is needed; `dryRun: true` is an optional preview that records nothing), run `kb_check` and `kb_coverage`, report the resulting proof state, and finish with `kb_status`. Distinct authorized payloads may each need their own sequential write, so there is no single-write limit, but never retry a mutation that already committed; on `committed_with_repairs`, execute the typed repair action instead.
 
 ## Workflow
 
@@ -45,14 +45,14 @@ sequential `kb_upsert`, then run final check and coverage. Kibi authors tracked
 files transactionally but never Git-stages or commits them. Do not read or edit
 `.kb` directly.
 
-Use `kb_delete` only for intentional cleanup; `dryRun: true` previews any
+Use `kb_delete` (core MCP profile: CLI `kibi delete --input -`) only for intentional cleanup; `dryRun: true` previews any
 delete without writing. Authored entity deletion returns `outcome:
 plan_returned` with a hash-bound plan whose `nextActions[0].input` is the exact
 `kb_apply_plan` input; requirements return `supersession_required` and evolve
 through a new requirement linked with `supersedes`. Relationship deletes patch
 shards while preserving unrelated records.
 
-For executable coverage work, keep the production symbol's implements link to its requirement and link that same production symbol to its qualifying test with covered_by; reserve executable_for for a symbol that stands for the executable test itself, and never put executable_for on a symbol that also carries production ownership or coverage. Preserve the exact supplied target and intended edges, discover and query those targets, validate the payload with `kb_upsert` and `dryRun: true`, then perform the authorized real `kb_upsert` with the same payload and exact-read the result with `kb_query` before final checks, because validation alone is not completion. A passing dry run does not guarantee the commit: if the real `kb_upsert` returns an error, read its message and correct only the conflicting relationship on the same target rather than working around it with a new entity, then validate again with `dryRun: true`, write again, and exact-read it back. Distinct authorized payloads may each need their own sequential validation and write, so there is no single write limit, but never retry a mutation that already committed; on `committed_with_repairs`, execute the typed repair action instead. Then run `kb_check` and `kb_coverage`, report the proof and verification state they return, treating a dirty verification snapshot after a write as expected rather than as a failure, and finish with `kb_status`.
+For executable coverage work, keep the production symbol's implements link to its requirement and link that same production symbol to its qualifying test with covered_by; reserve executable_for for a symbol that stands for the executable test itself, and never put executable_for on a symbol that also carries production ownership or coverage. Preserve the exact supplied target and intended edges, discover and query those targets, then send the authorized payload with `kb_upsert`; its result reports what was written. If the `kb_upsert` returns an error, read its message and correct only the conflicting relationship on the same target rather than working around it with a new entity, then write again. Distinct authorized payloads may each need their own sequential write, so there is no single write limit, but never retry a mutation that already committed; on `committed_with_repairs`, execute the typed repair action instead. Then run `kb_check` and `kb_coverage`, report the proof and verification state they return, treating a dirty verification snapshot after a write as expected rather than as a failure, and finish with `kb_status`.
 
 ## Ownership precision
 
@@ -75,6 +75,12 @@ so a loose link is wrong context, not harmless extra coverage.
   the function with `implements` and `covered_by`. Leaving the symbol
   unowned, or linking it to a requirement that does not state its behavior,
   does not finish the task.
+- When you write a requirement for code that already exists, link that code
+  in the same call: `kb_upsert` of the requirement with
+  `implementedBy: [{sourceFile, symbol}]` creates or reuses each symbol and
+  its `implements` link, and refuses a name the file does not declare or a
+  class whose behavior lives in its methods, listing the candidates. Pick
+  the deciding function from the candidates rather than linking the class.
 - A behavioral symbol implements at most 2 requirements (4 for a class,
   component or module). A third link means the symbol or one of the
   requirements is too broad; `granularity_reason` does not exempt it.
@@ -84,13 +90,14 @@ so a loose link is wrong context, not harmless extra coverage.
   `kb_check`. If your link would cross a threshold, do not pick another
   requirement that has room and do not tag the requirement `umbrella`: record
   the narrower behavior the code decides, or report the requirement as broad
-  (`kibi-usage`, Requirement size and ownership).
+  (`kibi-usage` resource `resources/requirement-size.md`).
 - When you move a link, the symbol must also be `covered_by` a test that
   verifies the new owner, or coverage reports
   `missing_production_symbol_coverage`.
 - After link work, run the unfiltered `kb_check` and read `qualityDiagnostics`
   as well as `violations`; a check scoped by `rules` leaves out the full-KB
-  review findings.
+  review findings. A result over its size budget comes back `truncated` with
+  them as counts by id; `kibi check --format json` lists every one.
 
 ## Typed recovery and proof
 

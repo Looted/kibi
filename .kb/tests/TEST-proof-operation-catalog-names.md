@@ -1,5 +1,5 @@
 ---
-title: A Kibi catalog operation shall be one of the 24 operations the catalog names, by an exhaustive proof
+title: A Kibi catalog operation shall be one of the 25 operations the catalog names, by an exhaustive proof
 status: passing
 tags:
   - proof
@@ -19,7 +19,7 @@ proof_contract:
     symbol_id: SYM-operation-catalog
     field: name
   proves:
-    - CLAIM-9647A6984DF59611
+    - CLAIM-E336EB29BBCA15CD
 origin:
   kind: agent
   recorded_at: '2026-10-28T22:38:38.832Z'
@@ -27,20 +27,20 @@ id: TEST-proof-operation-catalog-names
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v2
-    receipt_id: PR-435b7cfc316c9317d064eca5
+    receipt_id: PR-7ef64e3fbfde0434b7f72a5b
     test_id: TEST-proof-operation-catalog-names
     scope: unit
     outcome: passed
-    code_snapshot: 1619578ae16102858195e7fd455f112bc688d764b648588834ddbf2c07ed739b
-    environment_hash: 70794eb189f6bb0bd59b638fedca584356a0b61f01329f6f9f4e9f53a3b5be53
-    started_at: '2026-10-28T22:40:04.961Z'
-    finished_at: '2026-10-28T22:40:05.161Z'
-    artifact_digest: bee14a746b7e34619bf20ca63971c6b711a630f0469d93b04e0f31c87a845cd6
-    contract_hash: c43501cb74f9542c0320377feaa084ca2471103c2b4be471acab600f429f9ef4
-    binding_hash: 6a0c376fd386e65b539f459002c99535e69863e177485540f2bb863e2aed224c
-    fingerprint: 4a1792ce021456924fdfa85477f0d1e502d4cfd372890fd5357b6aebb2afdf9b
+    code_snapshot: df84fc91d0f807889519f20a576fcd787807fc96a14d6cb59f83a53eb62a9ce7
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-17T07:48:28.802Z'
+    finished_at: '2026-11-17T07:48:29.021Z'
+    artifact_digest: 8afef1494d1fb97d7c07e2e5e1c176d8518bb55ef127adaf5e0de489b8cc535d
+    contract_hash: 9c8b13fc42fd0f82cf59713a376c612ea969bd3721a88c628ba4c40a1ca2f92f
+    binding_hash: a19d1b05c01f4ff57817e082b3542e89a931aa25c3ffd384f60f69d3e01c715c
+    fingerprint: 30775271e4d703616fc247a89429b5dab1bc5ed552919c8ff45bfa24c2aacbc0
     fingerprint_components:
-      contract: c43501cb74f9542c0320377feaa084ca2471103c2b4be471acab600f429f9ef4
+      contract: 9c8b13fc42fd0f82cf59713a376c612ea969bd3721a88c628ba4c40a1ca2f92f
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -85,9 +85,11 @@ proof_receipts:
           - kb_plan_bootstrap
           - kb_validate_upsert
           - kb_upsert
+          - kb_record
           - kb_delete
           - kb_check
           - kb_prepare_impact_review
+          - kb_review_firm_edit
           - kb_sparql_remote
           - kb_compile_intent
           - kb_apply_plan
@@ -127,11 +129,15 @@ proof_receipts:
           outcome: passed
         - member: kb_upsert
           outcome: passed
+        - member: kb_record
+          outcome: passed
         - member: kb_delete
           outcome: passed
         - member: kb_check
           outcome: passed
         - member: kb_prepare_impact_review
+          outcome: passed
+        - member: kb_review_firm_edit
           outcome: passed
         - member: kb_sparql_remote
           outcome: passed
@@ -141,9 +147,9 @@ proof_receipts:
           outcome: passed
         - member: kb_ingest_proof
           outcome: passed
-    certificate_digest: c9572fbea94ea7dd85a22f1ad71d24b15330dab81b26f7ac7359e149d6989e6f
+    certificate_digest: 9fa73b4f57239ad72dc2577420c2b4c270ace4c4799d94c6c94fbb6405a20245
     claim_bindings:
-      - claim_key: CLAIM-9647A6984DF59611
+      - claim_key: CLAIM-E336EB29BBCA15CD
         requirement_id: REQ-kibi-operation-catalog-names
         fact_id: FACT-operation-catalog-names
         binding: derived
@@ -164,6 +170,8 @@ proof_receipts:
             - kb_plan_bootstrap
             - kb_prepare_impact_review
             - kb_query
+            - kb_record
+            - kb_review_firm_edit
             - kb_search
             - kb_semantic_advisor
             - kb_skills

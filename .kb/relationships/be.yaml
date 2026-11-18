@@ -342,3 +342,136 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51061725c12c
+  - type: constrains
+    from: REQ-kb-merge-action-manifest-only
+    to: FACT-SUBJECT-kibi-ci-kb-merge-action
+    created_at: 2026-11-16T18:12:53.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be453d464099
+  - type: requires_property
+    from: REQ-kb-merge-action-manifest-only
+    to: FACT-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:12:53.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00b95f17e90d
+  - type: specified_by
+    from: REQ-kb-merge-action-manifest-only
+    to: SCEN-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:12:53.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba0a8cd5a3cf
+  - type: specified_by
+    from: REQ-kb-merge-action-manifest-only
+    to: SCEN-NEG-kb-merge-action-manifest-only-VIOLATED
+    created_at: 2026-11-16T18:12:53.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9053e1558b68
+  - type: requires_property
+    from: REQ-kb-merge-action-manifest-only
+    to: FACT-kb-merge-action-blocked-left-unchanged
+    created_at: 2026-11-16T18:12:53.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fca346b438c
+  - type: validates
+    from: TEST-ci-merge-train
+    to: REQ-ci-merge-train-admission
+    created_at: 2026-11-17T11:40:48.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3300f565ceca
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-ci-merge-train-admission
+    created_at: 2026-11-17T11:40:48.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-026d1f74c87f
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-NEG-ci-merge-train-admission-VIOLATED
+    created_at: 2026-11-17T11:40:48.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5541d39f95c3
+  - type: validates
+    from: TEST-ci-merge-train
+    to: REQ-ci-merge-train-lands-assembled-head
+    created_at: 2026-11-17T11:40:48.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bb35551175a
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-ci-merge-train-lands-assembled-head
+    created_at: 2026-11-17T11:40:48.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be40bc32b5c4
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-NEG-ci-merge-train-lands-assembled-head-VIOLATED
+    created_at: 2026-11-17T11:40:48.372Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7417c2934f0f
+  - type: validates
+    from: TEST-ci-merge-train
+    to: REQ-ci-merge-train-failure-bisect
+    created_at: 2026-11-17T11:40:48.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7aa49a003cc
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-ci-merge-train-failure-bisect
+    created_at: 2026-11-17T11:40:48.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6caddf33836c
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-NEG-ci-merge-train-failure-bisect-VIOLATED
+    created_at: 2026-11-17T11:40:48.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15baf43a73da
+  - type: validates
+    from: TEST-ci-merge-train
+    to: REQ-ci-merge-train-train-checks
+    created_at: 2026-11-17T14:38:43.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc79eabd35e3
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-ci-merge-train-train-checks
+    created_at: 2026-11-17T14:38:43.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bd4c9e2fd64
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-NEG-ci-merge-train-train-checks-VIOLATED
+    created_at: 2026-11-17T14:38:43.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5577fd28d61
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-ci-merge-actions-tree-commands-tokens
+    created_at: 2026-11-18T08:28:06.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9860e0d553f7
+  - type: validates
+    from: TEST-ci-merge-train
+    to: SCEN-NEG-ci-merge-actions-tree-commands-tokens-VIOLATED
+    created_at: 2026-11-18T08:28:06.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba4f4c7b9b72

@@ -52,6 +52,7 @@ kibi prove --requirement REQ-cli-check
 kibi prove --integration self-proof
 kibi prove --stale          # only tests without a current passing receipt
 kibi prove --all --resume   # continue an interrupted run
+kibi prove --all --shard 2/3  # the 2nd of 3 disjoint parts, for parallel CI
 ```
 
 `--stale` narrows any selector (all tests by default) to the tests whose
@@ -65,6 +66,13 @@ rerun the same selector with `--resume`: integrations already ingested at the
 same workspace snapshot, for every test the run selects, are skipped (the
 record lives in `.kb/proof/runs/prove-progress.json`). After the workspace
 changes, `--resume` runs everything again.
+
+To spread a long run over several CI runners, give each runner the same
+selector and `--shard K/N` (`1/N` to `N/N`). The parts are disjoint and
+together hold every selected test, so the receipts from all runners are
+exactly one full run. `kibi prove --all --list` (with or without `--shard`)
+prints the selected ids, which a join job can compare against the union of the
+shards before it gates on fresh evidence.
 
 When `--test`, `--requirement` or `--stale` selects a subset and the
 integration's producer is `playwright`, a direct `playwright test` command is
@@ -1557,7 +1565,17 @@ which every test passed is also `per_test`. Kibi's own
 ### `kibi proof run-steps`
 
 Projects do not need their own producer script. Declare each proof-bearing
-test's steps (argv arrays, no shell) in `proof/steps.json`:
+test's steps (argv arrays, no shell) in its own file under `proof/steps/`,
+named after the test id. `proof/steps/TEST-checkout.json`:
+
+```json
+{ "test_id": "TEST-checkout", "steps": [["bun", "test", "./tests/checkout.test.ts"]] }
+```
+
+One file per test means two branches that each add a test never edit the same
+file, so their merges do not conflict. A file whose `test_id` differs from its
+name is refused. When `proof/steps/` does not exist, Kibi reads
+`proof/steps.json` instead, one JSON array of the same entries:
 
 ```json
 [
@@ -1565,6 +1583,9 @@ test's steps (argv arrays, no shell) in `proof/steps.json`:
   { "test_id": "TEST-cart", "steps": [["node", "--test", "tests/cart.test.js"]] }
 ]
 ```
+
+To move an existing project, write each entry of `proof/steps.json` to
+`proof/steps/<test_id>.json` and delete `proof/steps.json`.
 
 and make `kibi proof run-steps` the integration's command:
 

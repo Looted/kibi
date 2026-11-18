@@ -43,7 +43,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_search",
     cliName: "search",
     description:
-      "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+      "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   },
   {
     name: "kb_status",
@@ -109,7 +109,13 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_upsert",
     cliName: "upsert",
     description:
-      "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer a dryRun:true call first because it validates without writing and returns semantic advisor receipts for prose-heavy requirements. Use kb_model (mode requirement) before hand-writing strict property facts from prose, and kb_model (mode predicates) before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). An update keeps the properties and relationships it leaves out: send the fields that change (with title and status) and only the links to add. Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request, then upsert the old requirement with status closed (kb_check blocks a superseded requirement that is not closed). Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Pass a sectioned `document.body` when creating a requirement (the statement, then `## Context` stating why it exists, who asked and the source, then `## Source` with the verbatim excerpt) and a prose body for scenarios, tests, ADRs and observation facts; a result warning reports an entity whose body lacks context, and kb_check blocks it under entity-context-missing. Never invent a reason the requester did not give: write 'Reason not stated'. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates; dryRun:true writes nothing.",
+      "Create or update one entity and its relationships. Use it for modeling, updates and every write kb_record does not take (a newly stated rule is one kb_record call). dryRun:true validates without writing. Model prose with kb_model before hand-writing strict property or predicate facts. An update keeps what it leaves out: send the changed fields (with title and status) and only the links to add. Relationship endpoints must already exist. A requirement that contradicts a current one on the same subject is rejected; to replace it, add a `supersedes` link from the new requirement and upsert the old one with status closed. For a requirement send the statement as `document.body` and the reason as `why` (never invent one: write 'Reason not stated'); give other entities a prose body. A requirement write returns its open kb_check steps as nextActions. Side effects: writes KB; dryRun:true writes nothing.",
+  },
+  {
+    name: "kb_record",
+    cliName: "record",
+    description:
+      "Record a rule as it is stated: statement, why, saidBy, quote, code and an optional test. Kibi writes it as one kb_upsert payload and returns the commit gate's verdict (commitAllowed, findings with blocks) and the steps left as nextActions. dryRun:true returns the payload and writes nothing. Facts, links, updates and other modeling: kb_upsert.",
   },
   {
     name: "kb_delete",
@@ -128,6 +134,12 @@ export const CLI_OPERATION_METADATA = [
     cliName: "prepare-impact-review",
     description:
       "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Use it when kb_check reports that changed files need an impact review; it does not plan KB changes. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+  },
+  {
+    name: "kb_review_firm_edit",
+    cliName: "review-firm-edit",
+    description:
+      "Record your verdict on a change to code that implements a current firm requirement: keeps (the code still does what it says) or changes. kibi check --staged blocks such a change until each edited symbol has a current keeps receipt. A receipt is your judgment, not the person's approval. staged:true reviews the code and requirement in the Git index, as the commit gate reads them. Side effects: writes .kb/firm-edit-reviews/ files; dryRun:true writes nothing.",
   },
   {
     name: "kb_sparql_remote",
@@ -177,4 +189,15 @@ export function getCliOperationMetadata(
 
 export function isOperationName(name: string): name is OperationName {
   return METADATA_BY_NAME.has(name as OperationName);
+}
+
+/**
+ * The line `kibi --help` lists for an operation command: the first sentence
+ * of its description. `kibi <command> --help` still prints the whole text.
+ */
+export function commandSummary(description: string): string {
+  const text = description.trim();
+  // A sentence ends at the first `.`, `!` or `?` followed by white space; a
+  // description with none is one sentence.
+  return /.*?[.!?](?=\s)/s.exec(text)?.[0] ?? text;
 }

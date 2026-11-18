@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-migration-plan-refused",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/migration-plan-versions.proof.test.ts"
+    ]
+  ]
+}

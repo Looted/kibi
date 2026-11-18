@@ -20,8 +20,12 @@ export type SessionEvent =
   | { kind: "notice"; name: string }
   /** The agent used Kibi; paths/ids it explored. */
   | { kind: "kb"; operation: string; paths: string[]; ids: string[] }
-  /** A file was changed by an edit tool or a shell command. */
-  | { kind: "edited"; path: string; pathKind: string }
+  /**
+   * A file was changed by an edit tool or a shell command. `edit`
+   * fingerprints the edit that landed (absent in older journals): only the
+   * edit the person was asked about confirms its firm requirements.
+   */
+  | { kind: "edited"; path: string; pathKind: string; edit?: string }
   /** A shell command started (epoch milliseconds), to attribute its writes. */
   | { kind: "command_started"; at: number }
   /** A check acknowledged pending edits (all of them when `all`). */
@@ -34,15 +38,36 @@ export type SessionEvent =
    */
   | { kind: "context_reset" }
   /**
-   * The person submitted a prompt: its topic words, and whether it reads as
-   * a rule or decision ("must", "never", "from now on").
+   * The person submitted a prompt: its topic words, whether it reads as a
+   * rule or decision ("must", "never", "from now on"), and the phrase that
+   * makes it read so (empty when it does not; absent in older journals).
    */
-  | { kind: "prompt"; words: string[]; rule: boolean }
+  | {
+      kind: "prompt";
+      words: string[];
+      rule: boolean;
+      phrase?: string;
+      reason?: string | undefined;
+    }
   /**
    * An edit of `path` was put to the person because it changes code that
-   * implements these firm requirements.
+   * implements these firm requirements, at `at` (epoch milliseconds; absent
+   * in older journals). `edit` fingerprints the asked edit (absent in older
+   * journals), so a receipt lets only that edit through.
    */
-  | { kind: "firm_asked"; path: string; ids: string[] };
+  | {
+      kind: "firm_asked";
+      path: string;
+      ids: string[];
+      at?: number;
+      edit?: string;
+    }
+  /**
+   * The retried edit of `path` passed because a keeps receipt covered these
+   * requirements, not because the person allowed it, so landing it confirms
+   * nothing.
+   */
+  | { kind: "firm_reviewed"; path: string; ids: string[] };
 
 export type SessionState = {
   shownRead: Set<string>;
@@ -58,10 +83,23 @@ export type SessionState = {
   commandStartedAt: number | undefined;
   /** Topic words of the latest prompt. */
   requestWords: string[];
-  /** True once any prompt this session read as a rule or decision. */
-  rulePrompt: boolean;
+  /** The phrase of the latest prompt this session that read as a rule. */
+  rulePhrase: string | undefined;
+  /** The reason that prompt gave ("because ...", "so that ..."), if any. */
+  ruleReason: string | undefined;
   /** Firm requirements whose edit was put to the person, by edited path. */
   firmAsked: Map<string, string[]>;
+  /**
+   * When this session last put an edit of each firm requirement's code to
+   * the person (epoch milliseconds): a keeps receipt recorded since lets the
+   * retried edit through.
+   */
+  firmAskedAt: Map<string, number>;
+  /**
+   * The fingerprint of the edit last put to the person for each firm
+   * requirement: a keeps receipt lets only a retry of that edit through.
+   */
+  firmAskedEdit: Map<string, string>;
   /** Firm requirements the person let an edit change this session. */
   firmConfirmed: Set<string>;
   /** True once any source file was changed this session. */
@@ -109,8 +147,11 @@ export function emptySessionState(): SessionState {
     reminded: new Set(),
     commandStartedAt: undefined,
     requestWords: [],
-    rulePrompt: false,
+    rulePhrase: undefined,
+    ruleReason: undefined,
     firmAsked: new Map(),
+    firmAskedAt: new Map(),
+    firmAskedEdit: new Map(),
     firmConfirmed: new Set(),
     sourceEdited: false,
     kbRecorded: false,
@@ -134,10 +175,16 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       for (const id of event.ids) state.exploredIds.add(id);
       return;
     case "edited": {
-      // An edit that reached PostToolUse was allowed, so the person accepted
-      // the firm requirements its confirmation named.
+      // The asked edit reached PostToolUse, so the person allowed it and
+      // accepted the firm requirements its confirmation named. Any other
+      // edit of the file (one that changes no firm code, after the person
+      // declined the asked one) confirms nothing.
       for (const id of state.firmAsked.get(event.path) ?? []) {
-        state.firmConfirmed.add(id);
+        if (
+          event.edit !== undefined &&
+          state.firmAskedEdit.get(id) === event.edit
+        )
+          state.firmConfirmed.add(id);
       }
       state.firmAsked.delete(event.path);
       if (event.pathKind !== "source") return;
@@ -165,13 +212,29 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       return;
     case "prompt":
       state.requestWords = event.words;
-      if (event.rule) state.rulePrompt = true;
+      if (event.phrase) {
+        state.rulePhrase = event.phrase;
+        state.ruleReason = event.reason || undefined;
+      }
       return;
     case "firm_asked":
       state.firmAsked.set(event.path, [
         ...new Set([...(state.firmAsked.get(event.path) ?? []), ...event.ids]),
       ]);
+      if (event.at !== undefined)
+        for (const id of event.ids) state.firmAskedAt.set(id, event.at);
+      for (const id of event.ids)
+        if (event.edit === undefined) state.firmAskedEdit.delete(id);
+        else state.firmAskedEdit.set(id, event.edit);
       return;
+    case "firm_reviewed": {
+      const left = (state.firmAsked.get(event.path) ?? []).filter(
+        (id) => !event.ids.includes(id),
+      );
+      if (left.length > 0) state.firmAsked.set(event.path, left);
+      else state.firmAsked.delete(event.path);
+      return;
+    }
     case "context_reset":
       // Snippets, notices and Kibi lookups shown before the reset are no
       // longer in context, so they may be shown again. Pending edits and
@@ -183,6 +246,14 @@ export function applyEvent(state: SessionState, event: SessionEvent): void {
       state.exploredIds.clear();
       return;
   }
+}
+
+/**
+ * The session journal of the session directory `dir`, as a list so a host
+ * without one passes none.
+ */
+export function sessionJournal(dir: string | undefined): string[] {
+  return dir ? [path.join(dir, JOURNAL)] : [];
 }
 
 export function loadSessionState(dir: string | undefined): SessionState {

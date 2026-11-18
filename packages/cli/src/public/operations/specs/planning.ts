@@ -9,6 +9,7 @@ import {
   executeCompileIntent,
 } from "../../../operations/planning/compile-intent.js";
 import type { OperationSpec } from "../types.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 export type {
   CompileIntentArgs,
@@ -51,24 +52,32 @@ export const compileIntentSpec = {
         enum: ["create", "update"],
         description:
           "Create a new requirement or update an existing one. Update auto-selection is allowed only with a high-confidence, well-separated candidate.",
+        [ADVERTISED_DESCRIPTION]:
+          "Create a new requirement or update an existing one.",
       },
       context: {
         type: "string",
         maxLength: 10000,
         description:
           "Why the requirement exists, who asked and anything that does not fit its checked meaning. Required when mode is create (validation error naming this field otherwise); rendered as a '## Context' section of the requirement document, never as part of the checked meaning. Never invent a reason: write 'Reason not stated' when the requester gave none. An update keeps the existing document body unless context is supplied.",
+        [ADVERTISED_DESCRIPTION]:
+          "Why the requirement exists and who asked; required for create. Write 'Reason not stated' rather than invent one.",
       },
       sourceExcerpt: {
         type: "string",
         maxLength: 10000,
         description:
           "Optional verbatim text the intent came from (a ticket, a message, a document passage). Rendered as a blockquote in the requirement's '## Source' section; requires context.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional verbatim text the intent came from, quoted in the Source section; requires context.",
       },
       sourceReference: {
         type: "string",
         maxLength: 2000,
         description:
           "Optional locator of the source text (ticket id, URL, path). Rendered in the requirement's '## Source' section; requires context.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional locator of the source text (ticket id, URL, path) for the Source section; requires context.",
       },
       requirementId: {
         type: "string",
@@ -86,6 +95,8 @@ export const compileIntentSpec = {
         maxItems: 64,
         description:
           "Optional complete atomic clause decomposition. Each clause must be a verbatim fragment of intent (whitespace may differ); a clause that does not occur in intent fails the call with VALIDATION_FAILED naming it. Each assertive clause receives independent proposition accounting.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional atomic clause decomposition; each clause must be a verbatim fragment of intent.",
       },
       semanticFacets: {
         type: "object",
@@ -212,6 +223,8 @@ export const compileIntentSpec = {
         },
         description:
           "Your verdict on each contradictionAnalysis.reviewCandidates entry of a previous compile: whether the intent contradicts that current requirement, which Kibi could not compare logically. A conflict verdict blocks the plan; a no_conflict verdict clears that candidate. A verdict may also name a current requirement discovery did not rank.",
+        [ADVERTISED_DESCRIPTION]:
+          "Your verdict on each reviewCandidates entry of a previous compile; a conflict verdict blocks the plan.",
       },
     },
   },
@@ -251,24 +264,32 @@ export const applyPlanSpec = {
         required: ["version", "planHash"],
         description:
           "The complete kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or hash-bound kibi.entity-deletion-plan.v1 object. Migration plans require approvedActionIds and reject blocked actions and review actions Kibi cannot execute.",
+        [ADVERTISED_DESCRIPTION]:
+          "The complete bootstrap, compile, migration or hash-bound entity-deletion plan object to apply.",
       },
       approvedActionIds: {
         type: "array",
         items: { type: "string", minLength: 1 },
         description:
           "Required for migration-plan.v2. Exact action IDs explicitly approved for this application: automatic actions, or review actions with a cli invocation that Kibi executes only when approved by id (for example semantic_inventory_rederive_drop_grounding).",
+        [ADVERTISED_DESCRIPTION]:
+          "Required for migration-plan.v2: the exact action IDs approved for this application.",
       },
       recoveryJournalId: {
         type: "string",
         pattern: "^[A-Za-z0-9._-]+$",
         description:
           "Typed recovery journal identifier returned by a committed_with_repairs result or a PLAN_APPLY_RECOVERY_REQUIRED error. Recovery replays only the immutable journal and never the original plan request; a compile-plan journal (plan-apply-*) is completed or rolled back deterministically and reports which. A bootstrap journal left `applying` by a process that died mid-action is resumed without edits: the interrupted action is re-applied and a source lock held by the dead process is reclaimed and recorded in the journal.",
+        [ADVERTISED_DESCRIPTION]:
+          "Recovery journal id from a committed_with_repairs result or PLAN_APPLY_RECOVERY_REQUIRED error, to resume.",
       },
       async: {
         type: "boolean",
         default: false,
         description:
           "MCP only. When true, start the apply as a background job and return a kibi.job.v1 receipt immediately instead of holding the request open; poll kb_job_status with the returned jobId for the final result. Use for large bootstrap plans (hundreds of actions) that can outlast a client's request timeout. The MCP server registers kb_job_status only when KIBI_MCP_OPTIONAL_TOOLS includes it; otherwise async applies synchronously. A synchronous apply sends notifications/progress after each bootstrap action when the request carries a progressToken. The CLI ignores this field.",
+        [ADVERTISED_DESCRIPTION]:
+          "MCP only: when true, run as a background job and return a kibi.job.v1 receipt to poll with kb_job_status.",
       },
     },
   },

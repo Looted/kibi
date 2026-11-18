@@ -488,13 +488,16 @@ describe("round-2 agent-test regressions: exact or refuse", () => {
       'import os "github.com/joho/godotenv"',
       'func f() { _ = os.Getenv("NOT_STD") }',
     ]);
+    // The call reads as os.Getenv but goes to a package that is not
+    // followed: refused, not listed as absent, as a read and as a call.
     assert.deepEqual(await inline("a.go", aliased, "env"), {
       members: [],
-      lines: [],
+      lines: [3],
     });
-    assert.deepEqual((await inline("a.go", aliased, "calls")).members, [
-      '"github.com/joho/godotenv".Getenv',
-    ]);
+    assert.deepEqual(await inline("a.go", aliased, "calls"), {
+      members: [],
+      lines: [3],
+    });
     const path = go([
       'import "example.com/fake/os"',
       'func f() { _ = os.Getenv("NOT_STD") }',
@@ -998,18 +1001,20 @@ describe("round-3 agent-test regressions: exact or refuse", () => {
       members: ["UNIX_ENV", "WIN_ENV"],
       lines: [7, 8],
     });
-    // Another package used under the name unix is not x/sys/unix.
+    // Another package used under the name unix is not x/sys/unix: what its
+    // Getenv reads is not known, so the read is refused.
     const other = go([
       'import "example.com/unix"',
       'func f() { _ = unix.Getenv("OTHER") }',
     ]);
     assert.deepEqual(await inline("a.go", other, "env"), {
       members: [],
-      lines: [],
+      lines: [3],
     });
-    assert.deepEqual((await inline("a.go", other, "calls")).members, [
-      '"example.com/unix".Getenv',
-    ]);
+    assert.deepEqual(await inline("a.go", other, "calls"), {
+      members: [],
+      lines: [3],
+    });
   });
 
   it("lists a Go logger held in a package var, returned by a helper or bound as a method value", async () => {
@@ -1847,29 +1852,135 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
 
   const go = (lines) => `package a\n${lines.join("\n")}\n`;
 
-  it("lists a Go package used under a name another package is known by under its import path", async () => {
-    const cases = [
+  it("refuses a call through a Go package used under a name another package is known by", async () => {
+    // The code reads as the known package's call (exec.Command, log.Fatal),
+    // but the package imported under that name is not followed, so what the
+    // call runs is not known: the row is refused, never listed as absent.
+    const refused = [
       [
         'import logrus "github.com/other/notlogrus"',
-        'func f() { logrus.Error("x"); l := logrus.New(); l.Warn("y") }',
-        [
-          '"github.com/other/notlogrus".Error',
-          '"github.com/other/notlogrus".Warn',
-        ],
-        ["logrus.Error", "logrus.Warn"],
+        'func f() { logrus.Error("x") }',
       ],
+      ['import exec "github.com/fake/exec"', 'func f() { exec.Command("rm") }'],
       [
-        'import exec "github.com/fake/exec"',
-        'func f() { exec.Command("rm").Run() }',
-        ['"github.com/fake/exec".Command', '"github.com/fake/exec".Run'],
-        ["exec.Command", "exec.Run"],
+        'import exec "golang.org/x/sys/execabs"',
+        'func f() { exec.Command("rm") }',
       ],
-      [
-        'import "github.com/charmbracelet/log"',
-        'func f() { log.Fatal("x") }',
-        ['"github.com/charmbracelet/log".Fatal'],
-        ["log.Fatal"],
-      ],
+      ['import exec "github.com/acme/run"', 'func f() { exec.Command("rm") }'],
+      ['import "github.com/charmbracelet/log"', 'func f() { log.Fatal("x") }'],
+    ];
+    for (const [imports, body] of refused) {
+      const source = go([imports, body]);
+      assert.deepEqual(
+        await inline("a.go", source, "calls"),
+        { members: [], lines: [3] },
+        imports,
+      );
+      assert.deepEqual(
+        await inline("a.go", source, "string_args", { callee: "exec.Command" }),
+        { members: [], lines: [3] },
+        imports,
+      );
+    }
+  });
+
+  it("refuses a function of a Go package used under a known name when it is used as a value", async () => {
+    // A function value may be called later under any name, so a function of
+    // an unfollowed package that reads as exec.Command is refused wherever
+    // it appears, as the real os/exec function is.
+    const values = [
+      'func f() { run := exec.Command; run("rm") }',
+      "var runner = exec.Command",
+      "func f() { apply(exec.Command) }\nfunc apply(g func(string, ...string) *Cmd) {}",
+      'var table = map[string]func(string, ...string) *Cmd{"rm": exec.Command}',
+    ];
+    for (const imports of [
+      'import exec "golang.org/x/sys/execabs"',
+      'import exec "github.com/acme/run"',
+    ])
+      for (const body of values) {
+        const source = go([imports, body]);
+        const calls = await inline("a.go", source, "calls");
+        assert.ok(
+          calls.lines.includes(3),
+          `${imports} ${body}: ${JSON.stringify(calls)}`,
+        );
+        assert.ok(
+          !calls.members.includes("exec.Command"),
+          `${body}: ${calls.members}`,
+        );
+        const args = await inline("a.go", source, "string_args", {
+          callee: "exec.Command",
+        });
+        assert.ok(
+          args.lines.includes(3),
+          `${imports} ${body}: ${JSON.stringify(args)}`,
+        );
+      }
+    // The real os/exec function used as a value is listed under its name.
+    const real = await inline(
+      "a.go",
+      go(['import "os/exec"', "var runner = exec.Command"]),
+      "calls",
+    );
+    assert.ok(real.members.includes("exec.Command"), `${real.members}`);
+    // The callee of a direct call is judged once, with its call.
+    assert.deepEqual(
+      await inline(
+        "a.go",
+        go([
+          'import exec "github.com/acme/run"',
+          'func f() { exec.Command("rm") }',
+        ]),
+        "calls",
+      ),
+      { members: [], lines: [3] },
+    );
+    // A known package under another known name is listed, used as a value too.
+    const logrus = await inline(
+      "a.go",
+      go(['import log "github.com/sirupsen/logrus"', "var fail = log.Error"]),
+      "calls",
+    );
+    assert.deepEqual(logrus.lines, []);
+    assert.ok(logrus.members.includes("logrus.Error"), `${logrus.members}`);
+  });
+
+  it("refuses an environment read through an unknown Go package used under a known name", async () => {
+    for (const body of [
+      'func f() string { return os.Getenv("SECRET") }',
+      'func f() (string, bool) { return os.LookupEnv("SECRET") }',
+      "func f() []string { return os.Environ() }",
+    ]) {
+      const env = await inline(
+        "a.go",
+        go(['import os "github.com/acme/env"', body]),
+        "env",
+      );
+      assert.deepEqual(env, { members: [], lines: [3] }, body);
+    }
+    // Its other functions read nothing the reader knows of, and the real
+    // os package is still read.
+    assert.deepEqual(
+      await inline(
+        "a.go",
+        go(['import os "github.com/acme/env"', "func f() { os.Exit(1) }"]),
+        "env",
+      ),
+      { members: [], lines: [] },
+    );
+    assert.deepEqual(
+      await inline(
+        "a.go",
+        go(['import "os"', 'func f() string { return os.Getenv("PORT") }']),
+        "env",
+      ),
+      { members: ["PORT"], lines: [] },
+    );
+  });
+
+  it("lists a Go package used under its own or a known name", async () => {
+    const cases = [
       [
         'import log "github.com/sirupsen/logrus"',
         "func f(err error) { log.Error(err) }",
@@ -1897,15 +2008,6 @@ describe("round-4 agent-test regressions: exact or refuse", () => {
         assert.ok(!calls.members.includes(name), `${name}: ${calls.members}`);
       assert.deepEqual(calls.lines, []);
     }
-    const args = go([
-      'import exec "github.com/fake/exec"',
-      'func f() { exec.Command("rm") }',
-    ]);
-    assert.deepEqual(
-      (await inline("a.go", args, "string_args", { callee: "exec.Command" }))
-        .members,
-      [],
-    );
   });
 
   it("marks a Go package-level name another file of the package may bind for env", async () => {

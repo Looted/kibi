@@ -21,6 +21,7 @@
 :- use_module(kb_isolation_child, [wait_for_isolation_files/2]).
 :- use_module(library(yall)).
 :- use_module(library(semweb/rdf11)).
+
 :- use_module(library(filesex)).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
@@ -384,6 +385,39 @@ test(entity_pages_follow_writes_between_pages, [setup(setup_kb), cleanup(cleanup
 
 :- end_tests(kb_relationships).
 
+make_journaled_store(Dir) :-
+    make_directory_path(Dir),
+    atom_concat(Dir, '/storage.json', Marker),
+    setup_call_cleanup(
+        open(Marker, write, Out),
+        format(Out, '{"format":"kibi.rdf-journal.v1","schemaVersion":1}~n', []),
+        close(Out)).
+
+store_snapshot_file(Dir, Snapshot) :-
+    atom_concat(Dir, '/rdf', Rdf),
+    directory_member(Rdf, Snapshot, [extensions([trp]), recursive(true)]),
+    !.
+
+% Holds SWI-Prolog's background rdf_db garbage collector while Goal runs,
+% so only the goal's own collection reclaims anything.  rdf_db starts that
+% thread when it first has garbage to collect.
+:- meta_predicate with_rdf_gc_paused(0).
+with_rdf_gc_paused(Goal) :-
+    rdf_assert('urn:kibi-test:gc', 'urn:kibi-test:started', 'urn:kibi-test:yes', kibi_test_gc),
+    rdf_retractall(_, _, _, kibi_test_gc),
+    wait_for_rdf_gc_thread(100),
+    kb:with_background_rdf_gc_held(Goal).
+
+wait_for_rdf_gc_thread(_) :-
+    catch(thread_property('__rdf_GC', status(running)), _, fail),
+    !.
+wait_for_rdf_gc_thread(Tries) :-
+    Tries > 0,
+    sleep(0.01),
+    Next is Tries - 1,
+    wait_for_rdf_gc_thread(Next).
+
+
 :- begin_tests(kb_persistence).
 
 test(journal_persistence, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
@@ -465,6 +499,106 @@ test(journaled_store_survives_long_workspace_path, [setup(cleanup_test_kb), clea
     kb_entity('long-path-req', Type, _),
     kb_detach,
     assertion(Type == req).
+
+% SWI-Prolog's rdf_db keeps retracted and reindexed triples until its garbage
+% collector reclaims them, and a snapshot written before then can hold a
+% reindexed triple twice.  With the background collector held, a compaction
+% must still leave nothing to reclaim when it writes the snapshot.
+test(snapshot_write_collects_garbage_first, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    make_journaled_store(Dir),
+    kb_attach(Dir),
+    with_rdf_gc_paused((
+        forall(between(1, 20, I),
+               ( format(atom(Id), 'gc-req-~d', [I]),
+                 kb_commit_upsert(req, [
+                     id=Id,
+                     title="Garbage before snapshot",
+                     status=active,
+                     created_at="2026-11-17T00:00:00Z",
+                     updated_at="2026-11-17T00:00:00Z",
+                     source="test://kb.plt"
+                 ], [], true, _) )),
+        forall(between(1, 20, I),
+               ( format(atom(Id), 'gc-req-~d', [I]),
+                 kb_retract_entity(Id) )),
+        kb_save,
+        rdf_db:rdf_gc_info_(Before),
+        arg(2, Before, GarbageBefore),
+        assertion(GarbageBefore > 0),
+        kb_storage_compact,
+        rdf_db:rdf_gc_info_(After),
+        arg(2, After, GarbageAfter),
+        arg(3, After, ReindexedAfter)
+    )),
+    kb_detach,
+    assertion(GarbageAfter == 0),
+    assertion(ReindexedAfter == 0).
+
+% A snapshot an earlier release saved with every triple twice is repaired on
+% attach: each triple is held once, the repaired snapshot loads clean, and
+% the repair is recorded for kb_status and kibi doctor.
+test(attach_repairs_snapshot_with_duplicate_triples, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    make_journaled_store(Dir),
+    kb_attach(Dir),
+    kb_commit_upsert(req, [
+        id='dup-req',
+        title="Duplicated on disk",
+        status=active,
+        created_at="2026-11-17T00:00:00Z",
+        updated_at="2026-11-17T00:00:00Z",
+        source="test://kb.plt"
+    ], [], true, _),
+    kb_storage_compact,
+    kb:kb_graph(Graph),
+    aggregate_all(count, rdf(_, _, _, Graph), Distinct),
+    kb_detach,
+    store_snapshot_file(Dir, Snapshot),
+    % Loading a snapshot twice holds every triple twice, as the damaged
+    % snapshots did.
+    rdf_load_db(Snapshot),
+    rdf_load_db(Snapshot),
+    aggregate_all(count, rdf(_, _, _, Graph), Doubled),
+    assertion(Doubled =:= 2 * Distinct),
+    rdf_save_db(Snapshot, Graph),
+    rdf_unload_graph(Graph),
+    kb_attach(Dir),
+    aggregate_all(count, rdf(_, _, _, Graph), Attached),
+    kb_entity('dup-req', _, Props),
+    kb_detach,
+    assertion(Attached =:= Distinct),
+    assertion(findall(T, member(title=T, Props), [_])),
+    rdf_load_db(Snapshot),
+    aggregate_all(count, rdf(_, _, _, Graph), Reloaded),
+    rdf_unload_graph(Graph),
+    assertion(Reloaded =:= Distinct),
+    atom_concat(Dir, '/.kibi-store-repair.json', RepairFile),
+    read_file_to_string(RepairFile, RepairText, []),
+    atom_json_dict(RepairText, Repair, []),
+    assertion(Repair.removedCopies =:= Distinct),
+    assertion(Repair.duplicatedTriples =:= Distinct),
+    assertion(Repair.loadedTriples =:= 2 * Distinct).
+
+% A store that holds every triple once is attached without a repair record.
+test(attach_leaves_clean_snapshot_unrecorded, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    make_journaled_store(Dir),
+    kb_attach(Dir),
+    kb_commit_upsert(req, [
+        id='clean-req',
+        title="Held once",
+        status=active,
+        created_at="2026-11-17T00:00:00Z",
+        updated_at="2026-11-17T00:00:00Z",
+        source="test://kb.plt"
+    ], [], true, _),
+    kb_storage_compact,
+    kb_detach,
+    kb_attach(Dir),
+    kb_detach,
+    atom_concat(Dir, '/.kibi-store-repair.json', RepairFile),
+    assertion(\+ exists_file(RepairFile)).
 
 :- end_tests(kb_persistence).
 
@@ -6704,11 +6838,92 @@ test(preview_upsert_contradiction_refuses_like_the_commit_and_writes_nothing, [s
     kb_preview_upsert_contradiction(req, Props,
         [rel(supersedes, 'REQ-PREVIEW-C', 'REQ-PREVIEW-A', [])|Rels]),
     assertion(\+ kb_entity('REQ-PREVIEW-C', _, _)),
-    % Non-requirement entities never run the check.
+    % A fact no requirement is grounded on passes the check.
     kb_preview_upsert_contradiction(fact, [id='FACT-PREVIEW-NOTE', title="Note", status=active,
         fact_kind=observation, created_at="2026-05-01T00:00:00Z",
         updated_at="2026-05-01T00:00:00Z", source="test://kb.plt"], []),
     assertion(\+ kb_entity('FACT-PREVIEW-NOTE', _, _)).
+
+conflict_fact_props(FactId, Claim, Value, [
+    id=FactId, title="Conflict fact", status=active, fact_kind=property_value,
+    subject_key="api.quota", property_key="rate_limit", operator=eq,
+    value_type=int, value_int=Value, claim_key=Claim,
+    claim_text="API quota must equal the value",
+    created_at="2026-05-01T00:00:00Z", updated_at="2026-05-01T00:00:00Z",
+    source="test://kb.plt"]).
+
+test(fact_write_that_makes_its_requirements_contradict_is_refused, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-FACT-A', 5, 'REQ-FACT-B', 5),
+    conflict_fact_props('FACT-CONFLICT-A', "CLAIM-AAAAAAAAAAAAAAAA", 6, Props),
+    catch(
+        (kb_preview_upsert_contradiction(fact, Props, []), Caught = false),
+        error(kb_fact_contradiction(FactId, Conflicts), Message),
+        Caught = true
+    ),
+    assertion(Caught == true),
+    assertion(FactId == 'FACT-CONFLICT-A'),
+    assertion(Conflicts = [conflict('REQ-FACT-A', 'REQ-FACT-B', _)]),
+    assertion(sub_atom(Message, 0, _, _, 'Contradiction detected for fact FACT-CONFLICT-A')),
+    assertion(sub_atom(Message, _, _, _, 'REQ-FACT-A conflicts with REQ-FACT-B')),
+    assertion(sub_atom(Message, _, _, _, 'kb_apply_plan')),
+    % The preview rolled back: the stored value is unchanged.
+    once(kb_entity('FACT-CONFLICT-A', fact, Stored)),
+    memberchk(value_int=StoredValue, Stored),
+    assertion(kb:unwrap_rdf_value(StoredValue, 5)),
+    % The commit refuses the same write.
+    catch(
+        (kb_commit_upsert(fact, Props, [], false, _), Committed = true),
+        error(kb_fact_contradiction(_, _), _),
+        Committed = false
+    ),
+    assertion(Committed == false),
+    % A skipped check writes it.
+    kb_preview_upsert_contradiction(fact, Props, [], true).
+
+test(fact_write_keeps_a_contradiction_the_kb_already_holds, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-HELD-A', 5, 'REQ-HELD-B', 6),
+    % Moving A from 5 to 7 still conflicts with B; the pair is not new, so
+    % the write is kb_check's finding, not a refusal.
+    conflict_fact_props('FACT-CONFLICT-A', "CLAIM-AAAAAAAAAAAAAAAA", 7, Props),
+    kb_preview_upsert_contradiction(fact, Props, []),
+    % Settling the pair is accepted too.
+    conflict_fact_props('FACT-CONFLICT-A', "CLAIM-AAAAAAAAAAAAAAAA", 6, Settled),
+    kb_preview_upsert_contradiction(fact, Settled, []).
+
+test(fact_write_linking_a_new_requirement_is_checked, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-LINK-A', 5, 'REQ-LINK-B', 5),
+    assert_fixture_entity(fact, 'FACT-LINK-NEW', "Linked fact", active, []),
+    assert_fixture_entity(req, 'REQ-LINK-C', "Linked req", open, []),
+    kb_assert_relationship(constrains, 'REQ-LINK-C', 'FACT-CONFLICT-SUBJECT', []),
+    conflict_fact_props('FACT-LINK-NEW', "CLAIM-CCCCCCCCCCCCCCCC", 9, Props),
+    catch(
+        (kb_preview_upsert_contradiction(fact, Props,
+            [rel(requires_property, 'REQ-LINK-C', 'FACT-LINK-NEW', [])]), Caught = false),
+        error(kb_fact_contradiction('FACT-LINK-NEW', Conflicts), _),
+        Caught = true
+    ),
+    assertion(Caught == true),
+    assertion(Conflicts = [conflict('REQ-LINK-A', 'REQ-LINK-C', _), conflict('REQ-LINK-B', 'REQ-LINK-C', _)]).
+
+test(batch_checks_contradictions_once_after_every_entry, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-PLAN-A', 5, 'REQ-PLAN-B', 5),
+    conflict_fact_props('FACT-CONFLICT-A', "CLAIM-AAAAAAAAAAAAAAAA", 6, PropsA),
+    conflict_fact_props('FACT-CONFLICT-B', "CLAIM-BBBBBBBBBBBBBBBB", 6, PropsB),
+    % Alone, moving A to 6 contradicts B at 5.
+    catch(
+        (kb_commit_upsert_batch([upsert(fact, PropsA, [], false)], _), Alone = true),
+        error(kb_fact_contradiction(_, _), _),
+        Alone = false
+    ),
+    assertion(Alone == false),
+    % Together with B's move, the plan lands: the check runs once, after
+    % both entries, instead of refusing the first step.
+    kb_commit_upsert_batch([upsert(fact, PropsA, [], false),
+                            upsert(fact, PropsB, [], false)], Kinds),
+    assertion(Kinds == [updated, updated]),
+    once(kb_entity('FACT-CONFLICT-B', fact, StoredB)),
+    memberchk(value_int=ValueB, StoredB),
+    assertion(kb:unwrap_rdf_value(ValueB, 6)).
 
 test(check_req_contradiction_allows_direct_supersession, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_contradicting_requirement_pair('REQ-SUPERSEDES-A', 5, 'REQ-SUPERSEDES-B', 6),
@@ -8138,7 +8353,139 @@ test(inventory_entries_reads_json_objects, []) :-
     assertion(is_dict(Entry)),
     assertion(get_dict(text, Entry, "a")).
 
+
+speedup_property_fixture :-
+    kb_assert_entity(fact, [
+        id='fact-speed-subject', title="Speed subject", status=active,
+        created_at="2026-02-20T00:00:00Z", updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="speed.subject"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-speed-limit', title="Speed limit", status=active,
+        created_at="2026-02-20T00:00:00Z", updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="speed.subject", property_key="limit",
+        operator=eq, value_type=int, value_int=2
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-SPEED-LIMIT', title="Speed limit is two", status=active,
+        created_at="2026-02-20T00:00:00Z", updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-SPEED-LIMIT', 'fact-speed-subject', []),
+    kb_assert_relationship(requires_property, 'REQ-SPEED-LIMIT', 'fact-speed-limit', []).
+
+live_property_facts(Facts) :-
+    findall(f(S, P, R, F, Fr, T),
+            checks:live_property_fact(S, P, R, F, Fr, T),
+            Facts0),
+    msort(Facts0, Facts).
+
+test(property_fact_index_memo_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    speedup_property_fixture,
+    live_property_facts(Live),
+    assertion(Live = [f(_, _, 'REQ-SPEED-LIMIT', 'fact-speed-limit', _, _)]),
+    findall(f(S, P, R, F, Fr, T),
+            checks:current_property_fact(S, P, R, F, Fr, T), Indexed0),
+    msort(Indexed0, Indexed),
+    assertion(Indexed == Live),
+    kb:index_verification_key(property_fact_index, Key),
+    % The listing keeps one generation's rows plus its marker row.
+    aggregate_all(count, kb:kb_property_fact_index(Key, _, _, _, _, _, _), Rows),
+    assertion(Rows == 2),
+    assertion(\+ ( kb:kb_property_fact_index(Other, _, _, _, _, _, _), Other \== Key )),
+    % A planted row under the current key answers from the listing.
+    assertz(kb:kb_property_fact_index(Key, planted, prop, 'REQ-PLANTED', 'FACT-PLANTED', none, none)),
+    assertion(checks:current_property_fact(planted, prop, 'REQ-PLANTED', 'FACT-PLANTED', none, none)),
+    % The marker row is never a fact.
+    assertion(\+ checks:current_property_fact(_, _, -, _, _, _)),
+    % Inside a transaction the facts are read afresh.
+    memo_rollback(assertion(\+ checks:current_property_fact(planted, _, _, _, _, _))),
+    % A stale listing is rebuilt for the current generation.
+    retractall(kb:kb_property_fact_index(_, _, _, _, _, _, _)),
+    assertz(kb:kb_property_fact_index(stale_key, planted, prop, 'REQ-PLANTED', 'FACT-PLANTED', none, none)),
+    assertz(kb:kb_property_fact_index(stale_key, -, -, -, -, -, -)),
+    assertion(\+ checks:current_property_fact(planted, _, _, _, _, _)),
+    findall(f(S, P, R, F, Fr, T),
+            checks:current_property_fact(S, P, R, F, Fr, T), Rebuilt0),
+    msort(Rebuilt0, Rebuilt),
+    assertion(Rebuilt == Live),
+    assertion(\+ kb:kb_property_fact_index(stale_key, _, _, _, _, _, _)).
+
+test(property_fact_index_empty_listing_is_kept, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assertion(\+ checks:current_property_fact(_, _, _, _, _, _)),
+    kb:index_verification_key(property_fact_index, Key),
+    findall(R, kb:kb_property_fact_index(Key, _, _, R, _, _, _), Rows),
+    assertion(Rows == [-]),
+    kb_detach,
+    assertion(\+ kb:kb_property_fact_index(_, _, _, _, _, _, _)).
+
+test(property_fact_index_feeds_scenario_constraints, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    speedup_property_fixture,
+    live_property_facts([f(S, P, _, _, _, _)]),
+    checks:property_constraints('SCEN-NONE', [S-P], none, Indexed),
+    retractall(kb:kb_property_fact_index(_, _, _, _, _, _, _)),
+    memo_rollback(( checks:property_constraints('SCEN-NONE', [S-P], none, Live),
+                    nb_setval(speed_live_constraints, Live) )),
+    nb_getval(speed_live_constraints, Live),
+    assertion(Indexed =@= Live),
+    assertion(Indexed = [_]).
+
 :- end_tests(kb_memo_contracts).
+
+:- begin_tests(kb_speedup_equivalence).
+
+test(entity_id_to_uri_matches_formatted_text) :-
+    forall(member(Id, ['REQ-1', "REQ-2", 3, 4.5, f(x), "quote'd"]),
+           (   kb:entity_id_to_uri(Id, URI),
+               format(atom(Expected), 'kb:entity/~w', [Id]),
+               assertion(URI == Expected)
+           )).
+
+test(entity_type_reads_the_type_triple, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-TYPED', "Typed", open, []),
+    assertion(kb:kb_entity_type('REQ-TYPED', req)),
+    once(kb_entity('REQ-TYPED', Type, _)),
+    assertion(Type == req),
+    assertion(\+ kb:kb_entity_type('REQ-ABSENT', _)),
+    assertz(kb:entity(scenario, 'SCEN-LEGACY', "Legacy", [])),
+    call_cleanup(assertion(kb:kb_entity_type('SCEN-LEGACY', scenario)),
+                 retractall(kb:entity(_, 'SCEN-LEGACY', _, _))).
+
+test(entity_type_without_a_graph_reads_legacy_facts) :-
+    assertz(kb:entity(test, 'TEST-LEGACY-ONLY', "Legacy", [])),
+    call_cleanup(( assertion(kb:kb_entity_type('TEST-LEGACY-ONLY', test)),
+                   assertion(\+ kb:kb_entity_type('TEST-NOWHERE', _)) ),
+                 retractall(kb:entity(_, 'TEST-LEGACY-ONLY', _, _))).
+
+test(relationship_write_still_refuses_missing_endpoints, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-END', "End", open, []),
+    catch(kb_assert_relationship_no_audit(relates_to, 'REQ-END', 'REQ-GONE', []), E1, true),
+    assertion(E1 = error(existence_error(entity, 'REQ-GONE'), _)),
+    catch(kb_assert_relationship_no_audit(relates_to, 'REQ-GONE', 'REQ-END', []), E2, true),
+    assertion(E2 = error(existence_error(entity, 'REQ-GONE'), _)).
+
+test(test_coverage_is_the_same_from_either_end, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-COV-A', "Covered A", open, []),
+    assert_fixture_entity(req, 'REQ-COV-B', "Covered B", open, []),
+    assert_fixture_entity(scenario, 'SCEN-COV-A', "Scenario A", active, []),
+    assert_fixture_entity(scenario, 'SCEN-COV-B', "Scenario B", active, []),
+    assert_fixture_entity(test, 'TEST-COV', "Covering test", active, []),
+    kb_assert_relationship(specified_by, 'REQ-COV-A', 'SCEN-COV-A', []),
+    kb_assert_relationship(specified_by, 'REQ-COV-B', 'SCEN-COV-B', []),
+    kb_assert_relationship(validates, 'TEST-COV', 'SCEN-COV-A', []),
+    kb_assert_relationship(verified_by, 'SCEN-COV-B', 'TEST-COV', []),
+    findall(R, kb:test_covers_requirement('TEST-COV', R), FromTest0),
+    msort(FromTest0, FromTest),
+    findall(R, ( member(R, ['REQ-COV-A', 'REQ-COV-B']),
+                 kb:test_covers_requirement('TEST-COV', R) ), Bound),
+    findall(T-R, kb:test_covers_requirement(T, R), Pairs0),
+    msort(Pairs0, Pairs),
+    assertion(FromTest == ['REQ-COV-A', 'REQ-COV-B']),
+    assertion(Bound == ['REQ-COV-A', 'REQ-COV-B']),
+    assertion(Pairs == ['TEST-COV'-'REQ-COV-A', 'TEST-COV'-'REQ-COV-B']).
+
+:- end_tests(kb_speedup_equivalence).
 
 :- begin_tests(kb_conflict_pairing).
 
@@ -9831,19 +10178,107 @@ test(locked_store_without_owner_reports_an_empty_owner, [setup(cleanup_test_kb),
                   kb_store_locked(OwnerJson, _, _)),
     assertion(OwnerJson == "").
 
-test(journal_graph_uri_is_the_file_uri_up_to_200_characters) :-
-    length(Codes, 193),
-    maplist(=(0'a), Codes),
-    atom_codes(Short, Codes),
-    kb:journal_expected_graph_uri(Short, ShortURI),
-    atom_concat('file://', Short, FileURI),
-    assertion(ShortURI == FileURI),
-    atom_concat(Short, b, Long),
-    kb:journal_expected_graph_uri(Long, LongURI),
-    sha_hash(Long, Hash, [algorithm(sha1)]),
+% 'file://' plus a leading '/' encode to 16 bytes ("file%3A%2F%2F%2F"), so a
+% directory of '/' and N letters encodes to 16 + N bytes; at most 247 fit.
+ks_graph_uri_is_file_uri(Directory) :-
+    kb:journal_expected_graph_uri(Directory, URI),
+    atom_concat('file://', Directory, URI).
+
+ks_graph_uri_is_digest(Directory) :-
+    kb:journal_expected_graph_uri(Directory, URI),
+    sha_hash(Directory, Hash, [algorithm(sha1)]),
     hash_atom(Hash, Digest),
-    atom_concat('urn:kibi:store:', Digest, DigestURI),
-    assertion(LongURI == DigestURI).
+    atom_concat('urn:kibi:store:', Digest, URI).
+
+ks_directory(Prefix, Count, Char, Suffix, Directory) :-
+    length(Chars, Count),
+    maplist(=(Char), Chars),
+    atomic_list_concat(Chars, Middle),
+    atomic_list_concat(['/', Prefix, Middle, Suffix], Directory).
+
+test(journal_graph_uri_is_the_file_uri_while_its_encoded_name_fits) :-
+    ks_directory('', 231, a, '', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)),
+    ks_directory('', 232, a, '', TooLong),
+    assertion(ks_graph_uri_is_digest(TooLong)).
+
+test(journal_graph_uri_counts_an_underscore_as_one_byte) :-
+    ks_directory('', 231, '_', '', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)).
+
+test(journal_graph_uri_counts_punctuation_as_three_bytes) :-
+    % 77 dashes encode to 231 bytes: the URI is short, the file name is not.
+    ks_directory('', 77, '-', '', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)),
+    ks_directory('', 78, '-', '', TooLong),
+    assertion(ks_graph_uri_is_digest(TooLong)).
+
+test(journal_graph_uri_counts_a_non_ascii_letter_as_three_bytes) :-
+    ks_directory('', 228, a, '\u00e9', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)),
+    ks_directory('', 229, a, '\u00e9', TooLong),
+    assertion(ks_graph_uri_is_digest(TooLong)).
+
+test(journal_graph_uri_counts_a_newline_as_six_bytes) :-
+    ks_directory('', 225, a, '\n', Fits),
+    assertion(ks_graph_uri_is_file_uri(Fits)),
+    ks_directory('', 226, a, '\n', TooLong),
+    assertion(ks_graph_uri_is_digest(TooLong)).
+
+% A store under a deep workspace whose path is full of '-' and '/': the
+% file:// URI is at most 200 characters, but its encoded journal name exceeds
+% the 255-byte file name limit.  Writing to it used to abort SWI-Prolog.
+test(a_journaled_store_under_a_punctuated_path_saves_and_reloads, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Base),
+    atom_concat('file://', Base, BaseURI),
+    atom_length(BaseURI, BaseLength),
+    Room is 200 - BaseLength - 1,
+    Pairs is Room // 2,
+    length(Parts, Pairs),
+    maplist(=('x-'), Parts),
+    atomic_list_concat(Parts, Tail),
+    atomic_list_concat([Base, '/', Tail], Dir),
+    atom_concat('file://', Dir, FileURI),
+    atom_length(FileURI, URILength),
+    assertion(URILength =< 200),
+    assertion(ks_graph_uri_is_digest(Dir)),
+    ks_journaled_store_at(Dir, ks_assert(req, 'REQ-DEEP-PATH')),
+    kb_attach(Dir),
+    kb_entity_ids(Ids),
+    kb_detach,
+    assertion(Ids == ['REQ-DEEP-PATH']).
+
+% A store written before the short graph URIs, at a path whose encoded name
+% fits a journal (`.jrn`) but not a snapshot (`.trp.new`), kept appending to
+% its journal and could never be compacted.
+ks_unwritable_graph(Graph) :-
+    length(Dashes, 78),
+    maplist(=('-'), Dashes),
+    atomic_list_concat(['file:///'|Dashes], Graph).
+
+test(a_store_restored_under_an_unwritable_graph_moves_to_its_short_graph, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    ks_unwritable_graph(Long),
+    assertion(\+ kb:journal_file_name_fits(Long)),
+    ks_journaled_store(Dir),
+    kb_attach(Dir),
+    kb:kb_graph(Short),
+    kb_detach,
+    kb_attach(Dir),
+    rdf_assert('urn:test:old', 'urn:test:title', literal(old), Long),
+    rdf_assert('urn:test:old', 'urn:test:status', literal(open), Long),
+    kb_detach,
+    kb_attach(Dir),
+    kb:kb_graph(Graph),
+    aggregate_all(count, rdf('urn:test:old', _, _, Short), Moved),
+    kb_storage_compact,
+    kb_detach,
+    assertion(Graph == Short),
+    assertion(Moved == 2),
+    assertion(\+ rdf_graph(Long)),
+    kb_attach(Dir),
+    aggregate_all(count, rdf('urn:test:old', _, _), Reloaded),
+    kb_detach,
+    assertion(Reloaded == 2).
 
 test(journaled_attach_loads_legacy_entity_files_and_builds_the_index, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     ks_journaled_store(Dir),
@@ -11900,7 +12335,9 @@ test(a_shared_property_fact_is_no_candidate_pair, [setup(setup_kb), cleanup(clea
 ks_clear_changed_symbols :-
     retractall(kb:changed_symbol(_)),
     retractall(kb:changed_symbol_req(_, _)),
-    retractall(kb:changed_symbol_loc(_, _, _, _, _)).
+    retractall(kb:changed_symbol_loc(_, _, _, _, _)),
+    retractall(kb:changed_symbol_kind(_, _)),
+    retractall(kb:changed_symbol_callable(_)).
 
 :- begin_tests(kb_changed_symbols, [cleanup(ks_clear_changed_symbols)]).
 
@@ -11922,6 +12359,23 @@ test(changed_symbols_count_unique_requirement_links, [setup(setup_kb), cleanup((
     assertion(Violations == ['SYM-CH-A'-2-'src/a.ts'-7-3-alpha, 'SYM-CH-K'-1-''-0-0-'',
                              'SYM-CH-N'-0-''-0-0-'']),
     assertion(UnderTwo == ['SYM-CH-N'-0]).
+
+
+test(changed_linkless_non_behavioral_record_needs_no_link_unless_behavioral_kind, [setup(setup_kb), cleanup((ks_clear_changed_symbols, cleanup_kb))]) :-
+    forall(member(Id-Role-Kind, ['SYM-RK-CONST'-config-variable, 'SYM-RK-TYPE'-'type-shape'-interface,
+                                 'SYM-RK-NOKIND'-structural-none, 'SYM-RK-FN'-config-function,
+                                 'SYM-RK-CLASS'-structural-class, 'SYM-RK-METHOD'-module-method,
+                                 'SYM-RK-PROP'-config-property, 'SYM-RK-ACC'-config-accessor,
+                                 'SYM-RK-ARROW'-config-variable, 'SYM-RK-BEH'-behavioral-variable]),
+           (   assert_fixture_entity(symbol, Id, "Changed", active, [symbol_role=Role]),
+               assertz(kb:changed_symbol(Id)),
+               (   Kind == none -> true ; assertz(kb:changed_symbol_kind(Id, Kind)) )
+           )),
+    assertz(kb:changed_symbol_callable('SYM-RK-ARROW')),
+    findall(Symbol, kb:changed_symbol_violation(Symbol, 1, 0, _, _, _, _), Violations0),
+    sort(Violations0, Violations),
+    assertion(Violations == ['SYM-RK-ACC', 'SYM-RK-ARROW', 'SYM-RK-BEH', 'SYM-RK-CLASS',
+                             'SYM-RK-FN', 'SYM-RK-METHOD', 'SYM-RK-PROP']).
 
 :- end_tests(kb_changed_symbols).
 
@@ -12200,7 +12654,10 @@ test(an_update_drops_the_index_rows_of_the_old_version, [setup(setup_kb), cleanu
     assertion(Sources == ['src/new.md']),
     assertion(\+ kb:kb_index_token(zebra, 'REQ-REINDEX')),
     assertion(\+ kb:kb_index_token(old, 'REQ-REINDEX')),
-    assertion(kb:kb_index_token(yak, 'REQ-REINDEX')).
+    assertion(kb:kb_index_token(yak, 'REQ-REINDEX')),
+    % A tag's words are search tokens too.
+    assertion(kb:kb_index_token(beta, 'REQ-REINDEX')),
+    assertion(\+ kb:kb_index_token(alpha, 'REQ-REINDEX')).
 
 test(a_write_leaves_an_unbuilt_index_to_the_next_rebuild, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     retractall(kb:kb_index_entity_count(_)),

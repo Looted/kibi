@@ -8,6 +8,7 @@ import {
   branchRecoverCommand,
   branchRestoreCommand,
   isSupportedLegacyBranchMigration,
+  legacyBranchMigrationApprovalHash,
 } from "../../src/commands/branch.js";
 import {
   branchStorePath,
@@ -53,6 +54,40 @@ describe("branch commands", () => {
       path.join(cwd, ".kb", "branches", "target"),
     );
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  test("previews the approval hash only for a migration that can run", () => {
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    const source = path.join(cwd, ".kb", "branches", "main");
+    expect(legacyBranchMigrationApprovalHash(cwd, "main", "main")).toBe(
+      undefined,
+    );
+    mkdirSync(source, { recursive: true });
+    writeFileSync(path.join(source, "kb.rdf"), "legacy\n");
+    expect(legacyBranchMigrationApprovalHash(cwd, "main", "main")).toBe(
+      branchMigrationApprovalHash(
+        "main",
+        "main",
+        source,
+        branchStorePath(cwd, "main"),
+      ),
+    );
+    expect(legacyBranchMigrationApprovalHash(cwd, "main", "other")).toBe(
+      undefined,
+    );
+    expect(legacyBranchMigrationApprovalHash(cwd, "..", "main")).toBe(
+      undefined,
+    );
+    expect(legacyBranchMigrationApprovalHash(cwd, "main", "..")).toBe(
+      undefined,
+    );
+    // `.kb/branches/..` is the .kb folder itself, which exists.
+    expect(legacyBranchMigrationApprovalHash(cwd, "..", "..")).toBe(undefined);
+    mkdirSync(branchStorePath(cwd, "main"), { recursive: true });
+    expect(legacyBranchMigrationApprovalHash(cwd, "main", "main")).toBe(
+      undefined,
+    );
   });
 
   test("ensure creates a hashed store and rejects --from", async () => {

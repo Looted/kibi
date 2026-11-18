@@ -391,3 +391,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-56e79c8e3ad9
+  - type: implements
+    from: SYM-changed-index-prepare-changed-index
+    to: REQ-check-changed-commit-verdict
+    created_at: 2026-11-16T19:29:33.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5aeac0124848
+  - type: covered_by
+    from: SYM-changed-index-prepare-changed-index
+    to: TEST-check-changed-commit-verdict
+    created_at: 2026-11-16T19:34:50.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41c72d04e907
+  - type: constrains
+    from: REQ-mcp-structured-text-codex
+    to: FACT-SUBJ-REQ-MCP-SEARCH-DISCOVERY
+    created_at: 2026-11-16T17:27:15.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9975b6e6630
+  - type: requires_property
+    from: REQ-mcp-structured-text-codex
+    to: FACT-codex-discovery-text-alone
+    created_at: 2026-11-16T17:27:15.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76e81a8bf0b9
+  - type: requires_property
+    from: REQ-mcp-structured-text-codex
+    to: FACT-cursor-gemini-discovery-data-copy
+    created_at: 2026-11-16T17:27:15.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11244e0788d8
+  - type: specified_by
+    from: REQ-mcp-structured-text-codex
+    to: SCEN-mcp-structured-text-codex
+    created_at: 2026-11-16T17:27:15.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61d526ed6299
+  - type: specified_by
+    from: REQ-mcp-structured-text-codex
+    to: SCEN-NEG-mcp-structured-text-codex-DOUBLE
+    created_at: 2026-11-16T17:27:15.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15e224efa966
+  - type: executable_for
+    from: SYM-mcp-tools-coverage-tests
+    to: TEST-mcp-structured-text-codex
+    created_at: 2026-11-16T17:28:15.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0604f73af67a
+  - type: assumes
+    from: SCEN-ci-merge-actions-tree-commands-tokens
+    to: FACT-ci-merge-actions-tree-commands-tokens
+    created_at: 2026-11-18T08:27:36.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3381d65175e
+  - type: verified_by
+    from: SCEN-ci-merge-actions-tree-commands-tokens
+    to: TEST-ci-merge-train
+    created_at: 2026-11-18T08:27:36.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-477276f04a81

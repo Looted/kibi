@@ -233,10 +233,10 @@ function advisoryText(event: NormalizedPolicyEvent): string {
 
   if (event.lifecycle === "edited") {
     if (SOURCE_IMPACT_KINDS.has(event.pathKind)) {
-      const impactCheckCall = `kb_check({sourceFiles:${JSON.stringify([event.normalizedPath])}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true})`;
+      const impactCheckCall = `kb_check({changed:true, sourceFiles:${JSON.stringify([event.normalizedPath])}})`;
       return [
         `- Edited source file detected. Run \`${impactCheckCall}\` while the edit context is fresh.`,
-        "  Use the impact diagnostics to review symbol granularity, requirement ownership, and semantic review of linked requirements/tests before completing this task.",
+        '  It gives the commit gate\'s verdict: findings with blocks:"commit" stop the commit. Review requirement ownership and semantic review of linked requirements/tests before completing this task.',
       ].join("\n");
     }
 

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "requirementId": "REQ-agent-kibi-interface-selection",
+  "sourceFile": "packages/cursor/src/messages.ts",
+  "symbol": "BOOTSTRAP_REMINDER",
+  "verdict": "keeps",
+  "note": "The removed non-Kibi workspace advisory named no surface as exclusive; the remaining Cursor guidance still treats MCP and the CLI as peers.",
+  "statementHash": "sha256:9d2ebc0267c4e29f1a9abe87102d1dace6aeb6b22fc78ec79b12522eab235a4d",
+  "codeHash": "removed",
+  "startLine": 0,
+  "endLine": 0,
+  "recordedAt": "2026-11-17T17:03:11.271Z"
+}

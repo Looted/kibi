@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-engine-exit-grace",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/engine-timing-settings.proof.test.ts"
+    ]
+  ]
+}

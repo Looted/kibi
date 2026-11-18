@@ -66,6 +66,12 @@ export interface SourceSymbolAnalysisV2 extends SourceSymbolAnalysis {
   readonly nativeKind?: string;
   readonly signature?: string;
   readonly nameRange?: SourceAnalysisRangeV2;
+  /**
+   * True when a `variable` declaration holds behavior: its value is a
+   * function, or a call to a named function that takes an inline function
+   * (a handler factory). Absent means not known to be callable.
+   */
+  readonly callable?: boolean;
 }
 
 export interface SourceAnalysisDiagnosticV2 {

@@ -8,7 +8,13 @@ import {
   spyOn,
   test,
 } from "bun:test";
-import { mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import * as sync from "../../src/commands/sync.js";
@@ -130,6 +136,13 @@ function fakePort(
   }
   return { port: port as unknown as PrologPort, calls };
 }
+
+const applySpec = () =>
+  ({
+    name: "kb_apply_plan",
+    effects: ["kb-read", "kb-write", "workspace-read", "workspace-write"],
+    requiresProlog: true,
+  }) as unknown as Parameters<ReturnType<typeof createCliRuntime>["open"]>[0];
 
 const readSpec = (effects: string[] = ["kb-read"], requiresProlog = true) =>
   ({ name: "probe", effects, requiresProlog }) as unknown as Parameters<
@@ -619,6 +632,67 @@ describe("operations that require Prolog", () => {
     expect(warnings()).toEqual([
       `[KIBI] ${context.branchAttachment?.readOnly?.notice}`,
     ]);
+  });
+
+  test("a plan apply on a legacy store starts no engine until the store is migrated", async () => {
+    const root = fresh();
+    onBranch();
+    mkdirSync(legacyBranchStorePath(root, "main"), { recursive: true });
+    const runtime = createCliRuntime({ workspaceRoot: root });
+    const context = await runtime.open(applySpec());
+    expect(context.prolog).toBeUndefined();
+    expect(context.branchAttachment?.migrationRequired).toBe(true);
+    await expect(context.ensureProlog?.()).rejects.toThrow(
+      "Legacy branch store for 'main' is not migrated yet; approve its legacy_branch_storage action so it runs first.",
+    );
+    expect(engineCalls).toEqual([]);
+    expect(existsSync(branchStorePath(root, "main"))).toBe(false);
+    expect(syncSpy).not.toHaveBeenCalled();
+
+    rmSync(legacyBranchStorePath(root, "main"), { recursive: true });
+    const prolog = await context.ensureProlog?.();
+    expect(await context.ensureProlog?.()).toBeDefined();
+    expect(prolog).toBeDefined();
+    expect(engineCalls.map(([name]) => name)).toEqual(["start"]);
+    await runtime.close(context, { status: "success", result: null });
+    expect(engineCalls.map(([name]) => name)).toEqual(["start", "terminate"]);
+  });
+
+  test("a plan apply on a legacy store reports a branch it can no longer resolve", async () => {
+    const root = fresh();
+    onBranch();
+    mkdirSync(legacyBranchStorePath(root, "main"), { recursive: true });
+    const context = await createCliRuntime({ workspaceRoot: root }).open(
+      applySpec(),
+    );
+    badBranch();
+    await expect(context.ensureProlog?.()).rejects.toThrow(
+      "Failed to resolve active branch",
+    );
+    expect(engineCalls).toEqual([]);
+  });
+
+  test("any other engine-backed operation on a legacy store is refused and creates no hashed store", async () => {
+    const root = fresh();
+    onBranch();
+    mkdirSync(legacyBranchStorePath(root, "main"), { recursive: true });
+    const runtime = createCliRuntime({ workspaceRoot: root });
+    await expect(runtime.open(readSpec())).rejects.toThrow(
+      /^Legacy branch store .* for 'main' must be migrated before '.*' runs\. Preview the migration with 'kibi migrate', then apply it with 'kibi migrate --apply-safe <planHash>'\.$/,
+    );
+    expect(existsSync(branchStorePath(root, "main"))).toBe(false);
+  });
+
+  test("an injected port serves a plan apply on a legacy store as before", async () => {
+    const root = fresh();
+    onBranch();
+    mkdirSync(legacyBranchStorePath(root, "main"), { recursive: true });
+    const { port } = fakePort();
+    const context = await createCliRuntime({ workspaceRoot: root }).open(
+      applySpec(),
+      { prolog: port },
+    );
+    expect(context.prolog).toBeDefined();
   });
 
   test("a legacy attachment warns how to migrate", async () => {

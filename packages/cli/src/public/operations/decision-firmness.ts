@@ -383,8 +383,9 @@ function committedDecisionChanges(
 }
 
 /**
- * Current firm requirements and ADRs whose claim changed since HEAD without
- * citing new human words: an in-place edit that bypassed kb_upsert's guard.
+ * Firm requirements and ADRs current at HEAD or now whose claim changed since
+ * HEAD without citing new human words: an in-place edit that bypassed
+ * kb_upsert's guard.
  * A decision new since HEAD, or one that was not firm there, is not judged.
  */
 export function evaluateFirmDecisionEdits(
@@ -399,11 +400,17 @@ export function evaluateFirmDecisionEdits(
     left.id.localeCompare(right.id),
   )) {
     if (!changed.has(entity.path)) continue;
-    if (!isCurrentAuthoredEntity(entity, superseded)) continue;
     const committed = readCommitted(entity.path);
     if (committed === null) continue;
     const before = readAuthoredEntity(committed, entity.path);
     if (before === null || before.type !== entity.type) continue;
+    // Retired at HEAD and still retired: not guarded. Retiring a firm
+    // decision, or reopening one, is judged as a change of its claim.
+    if (
+      !isCurrentAuthoredEntity(entity, superseded) &&
+      !isCurrentAuthoredEntity(before, superseded)
+    )
+      continue;
     const fields = unapprovedFirmEdit(before, entity);
     if (fields.length === 0) continue;
     findings.push({

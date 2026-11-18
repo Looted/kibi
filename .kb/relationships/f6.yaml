@@ -335,3 +335,129 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-54329818e060
+  - type: assumes
+    from: SCEN-kibi-pending-receipt-branch-scope
+    to: FACT-kibi-pending-receipt-scoped-to-branch
+    created_at: 2026-11-15T11:02:52.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-712ae6254221
+  - type: assumes
+    from: SCEN-kibi-pending-receipt-branch-scope
+    to: FACT-kibi-present-or-unscoped-receipt-checked-everywhere
+    created_at: 2026-11-15T11:02:52.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32932298c3eb
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: REQ-kb-upsert-requirement-why
+    created_at: 2026-11-16T16:17:30.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60d5dc180115
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-requirement-why
+    created_at: 2026-11-16T16:17:30.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b674317e1404
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-statement-semantic-text
+    created_at: 2026-11-16T16:17:30.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bd3b5e03f09
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: REQ-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:17:31.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-474b171edf7b
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:17:31.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b47cb1832591
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-NEG-kb-upsert-capture-next-actions-WARNING-ONLY
+    created_at: 2026-11-16T16:17:31.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ad771556269
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:17:31.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c319d647b728
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-related-requirements-cap
+    created_at: 2026-11-16T16:17:31.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8ab50f6641f
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-NEG-kb-upsert-related-requirements-cap-TOO-MANY
+    created_at: 2026-11-16T16:17:31.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2281223e0b07
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-NEG-kb-upsert-why-recorded-DROPPED
+    created_at: 2026-11-16T16:23:50.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9662089afc63
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-NEG-kb-upsert-statement-semantic-text-NO-SEMANTIC-TEXT
+    created_at: 2026-11-16T16:23:50.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34b0c75075f5
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-related-requirements-AT-CAP
+    created_at: 2026-11-16T16:26:01.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68377b5779f7
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-related-requirements-NONE
+    created_at: 2026-11-16T16:26:01.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecd38a01a69d
+  - type: validates
+    from: TEST-kb-upsert-capture-with-why
+    to: SCEN-kb-upsert-related-requirements-ONE
+    created_at: 2026-11-16T16:26:01.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61470ac231ba
+  - type: implements
+    from: SYM-010
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:30:11.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-891e0022df14
+  - type: covered_by
+    from: SYM-010
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:30:12.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b48507d5f998

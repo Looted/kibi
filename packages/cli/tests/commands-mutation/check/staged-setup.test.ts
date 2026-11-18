@@ -287,7 +287,11 @@ describe("impact policy", () => {
         .baseTree,
     ).toBe("BASE");
     expect(h.output().diagnostics).toEqual([
-      { id: "staged_file_impact_review_needed", path: IMPACT_REVIEW_PATH },
+      {
+        id: "staged_file_impact_review_needed",
+        path: IMPACT_REVIEW_PATH,
+        blocks: "none",
+      },
     ]);
   });
 
@@ -303,7 +307,7 @@ describe("impact policy", () => {
       diagnostics: [advisory],
     }));
     await h.run();
-    expect(h.output().diagnostics).toEqual([advisory]);
+    expect(h.output().diagnostics).toEqual([{ ...advisory, blocks: "none" }]);
     expect(h.calls.evaluateImpactReview).toBeUndefined();
   });
 

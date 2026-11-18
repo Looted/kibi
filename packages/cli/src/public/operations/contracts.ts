@@ -495,6 +495,7 @@ const BASE_DATA_SCHEMAS: Readonly<
     schemaStatus: recordValue,
     migrationPlan: recordValue,
     bootstrap: recordValue,
+    sessionBrief: stringValue,
   }),
   kb_find_gaps: objectData({
     rows: recordArray,
@@ -656,6 +657,9 @@ const BASE_DATA_SCHEMAS: Readonly<
     rejection: recordValue,
     stagedFacts: stringArray,
     whatIf: recordValue,
+    inventoryApplied: recordArray,
+    siblings: recordArray,
+    nextActions: recordArray,
   }),
   kb_upsert: {
     description:
@@ -677,6 +681,21 @@ const BASE_DATA_SCHEMAS: Readonly<
         nextActions: recordArray,
         sourceWrites: recordArray,
         contradictionCheck: recordValue,
+        siblings: recordArray,
+        inventoryApplied: {
+          ...recordArray,
+          description:
+            "Each claim recorded for a requirement sent without its inventory contract.",
+        },
+        implementedBy: {
+          ...recordArray,
+          description:
+            "Each implementedBy entry's symbolId and whether it was created.",
+        },
+        relatedRequirements: {
+          ...recordArray,
+          description: "Current requirements on the same terms.",
+        },
       }),
       objectData(
         {
@@ -689,6 +708,10 @@ const BASE_DATA_SCHEMAS: Readonly<
           rejection: recordValue,
           stagedFacts: stringArray,
           whatIf: recordValue,
+          inventoryApplied: recordArray,
+          implementedBy: recordArray,
+          siblings: recordArray,
+          nextActions: recordArray,
           dryRun: { const: true },
           skippedEffects: stringArray,
         },
@@ -696,6 +719,24 @@ const BASE_DATA_SCHEMAS: Readonly<
       ),
     ],
   },
+  kb_record: objectData(
+    {
+      id: stringValue,
+      upsert: recordValue,
+      written: recordValue,
+      verdict: recordValue,
+      verdictError: stringValue,
+      commitAllowed: booleanValue,
+      status: stringValue,
+      nextActions: recordArray,
+      dryRun: { const: true },
+      preview: recordValue,
+      valid: booleanValue,
+      errors: valueArray,
+      skippedEffects: stringArray,
+    },
+    ["id", "upsert"],
+  ),
   kb_delete: objectData({
     deleted: integerValue,
     relationships_deleted: integerValue,
@@ -744,6 +785,43 @@ const BASE_DATA_SCHEMAS: Readonly<
         linkedEntities: recordArray,
         nextActions: valueArray,
         migrationPlan: recordValue,
+        migrationPlanSummary: recordValue,
+        omittedViolations: recordValue,
+        violationGroups: recordArray,
+        truncated: { const: true },
+        truncation: recordValue,
+        changed: {
+          const: true,
+          description:
+            "Set by changed:true: the commit gate judged the working tree plus the index.",
+        },
+        commitAllowed: {
+          ...booleanValue,
+          description:
+            "changed:true only. True when a commit of these changes passes the commit gate.",
+        },
+        messages: stringArray,
+        staged: recordValue,
+        ownerFindings: valueArray,
+        operationalError: stringValue,
+        symbolDebt: {
+          ...objectData(
+            {
+              total: integerValue,
+              fileCount: integerValue,
+              files: {
+                type: "array",
+                items: objectData(
+                  { path: stringValue, unrecorded: stringArray },
+                  ["path", "unrecorded"],
+                ),
+              },
+            },
+            ["total", "fileCount"],
+          ),
+          description:
+            "Unscoped checks only. Declarations without a symbol record in source files that have at least one record, as counts; files lists them only with includeSymbolDebt. Non-blocking: the staged gate judges them only when a commit adds or changes them.",
+        },
       }),
       jobReceiptData,
     ],
@@ -815,6 +893,10 @@ const BASE_DATA_SCHEMAS: Readonly<
       jobReceiptData,
     ],
   },
+  kb_review_firm_edit: objectData({
+    dryRun: booleanValue,
+    receipts: recordArray,
+  }),
   kb_ingest_proof: objectData({
     artifactDigest: stringValue,
     environmentHash: stringValue,
@@ -896,12 +978,17 @@ const EFFECT_OVERRIDES: Readonly<
     "kb-write": { destructive: true, retrySafety: "unsafe" },
     "workspace-write": { destructive: true, retrySafety: "unsafe" },
   },
+  kb_record: {
+    "kb-write": { destructive: true, retrySafety: "unsafe" },
+    "workspace-write": { destructive: true, retrySafety: "unsafe" },
+  },
   kb_delete: {
     "kb-write": { destructive: true, retrySafety: "unsafe" },
     "workspace-write": { destructive: true, retrySafety: "unsafe" },
   },
   kb_check: {},
   kb_prepare_impact_review: {},
+  kb_review_firm_edit: {},
   kb_compile_intent: {},
   kb_apply_plan: {
     "kb-write": { destructive: true, retrySafety: "unsafe" },

@@ -50,6 +50,12 @@ export type PrologErrorRelationship = Readonly<{
 export type PrologErrorConflict = Readonly<{
   reason: string;
   otherId: string;
+  /**
+   * For a fact write: the requirement on the other side of the pair the
+   * write made contradict. Absent for a requirement write, whose pairs all
+   * include the written requirement.
+   */
+  requirementId?: string;
 }>;
 
 export type PrologStoreLockOwner = Readonly<{
@@ -154,11 +160,19 @@ export function parsePrologErrorTerm(
         message: `Branch store is locked by ${holderSummary}; close that session or, if it is dead, retry so Kibi can break the stale lock (store_locked)`,
       };
     }
-    case "permission_denied":
+    case "permission_denied": {
+      if (parsed.action === undefined) {
+        return {
+          code: "permission_denied",
+          message: "Access denied or KB locked",
+        };
+      }
+      const detail = permissionContext(contextRaw);
       return {
         code: "permission_denied",
-        message: "Access denied or KB locked",
+        message: `Prolog refused to ${parsed.action}${detail === undefined ? "" : ` (${detail})`}; this is a permission_error, not a branch-store lock`,
       };
+    }
     case "entity_not_found": {
       const entityId = unquoteAtom(parsed.entityId);
       const role = parseEntityRole(contextMessage);
@@ -188,6 +202,19 @@ export function parsePrologErrorTerm(
           "Contradiction detected: conflicting requirements without a supersedes relationship",
       };
     }
+    case "fact_contradiction":
+      return {
+        code: "contradiction",
+        entityId: parsed.factId,
+        conflicts: parsed.conflicts.map(([requirementId, otherId, reason]) => ({
+          reason,
+          otherId,
+          requirementId,
+        })),
+        message:
+          contextMessage ??
+          `Contradiction detected for fact ${parsed.factId}: the write makes current requirements conflict`,
+      };
     case "validation_error":
       return {
         code: "validation_error",
@@ -273,12 +300,67 @@ function parseStoreLockedContext(
 type FormalTerm =
   | { kind: "stale_snapshot" }
   | { kind: "audit_locked" }
-  | { kind: "permission_denied" }
+  | { kind: "permission_denied"; action?: string }
   | { kind: "store_locked" }
   | { kind: "entity_not_found"; entityId: string }
   | { kind: "invalid_relationship" }
   | { kind: "contradiction"; pairs: Array<[string, string]> }
+  | {
+      kind: "fact_contradiction";
+      factId: string;
+      conflicts: Array<[string, string, string]>;
+    }
   | { kind: "validation_error"; message: string };
+
+const PERMISSION_IDENTIFIER = /^[a-z][A-Za-z0-9_]{0,63}$/;
+
+/**
+ * "redefine module discovery" for permission_error(redefine, module,
+ * discovery): the operation, the kind of resource and the resource. The
+ * resource is shown only when it is a plain Prolog atom, so a culprit that
+ * carries a path or authored data is never echoed. Undefined when the
+ * operation or the kind is not a plain atom.
+ */
+function permissionAction(
+  operation: string | undefined,
+  resource: string | undefined,
+  culprit: string | undefined,
+): string | undefined {
+  if (
+    operation === undefined ||
+    resource === undefined ||
+    !PERMISSION_IDENTIFIER.test(operation) ||
+    !PERMISSION_IDENTIFIER.test(resource)
+  ) {
+    return undefined;
+  }
+  const shown = culprit?.trim();
+  return shown !== undefined && PERMISSION_IDENTIFIER.test(shown)
+    ? `${operation} ${resource} ${shown}`
+    : `${operation} ${resource}`;
+}
+
+const PERMISSION_CONTEXT_MAX = 240;
+
+/**
+ * The message SWI-Prolog put in a permission error's context, such as
+ * "Already loaded from /core/src/discovery.pl" in
+ * context(module/2, 'Already loaded from ...'): one line, at most 240
+ * characters. Undefined when the context holds no quoted message.
+ */
+function permissionContext(contextRaw: string | undefined): string | undefined {
+  const inner = contextRaw?.trim().match(/^context\((.*)\)$/s)?.[1];
+  const quoted =
+    inner === undefined
+      ? undefined
+      : splitTopLevelGeneral(inner, ",")[1]?.trim();
+  if (quoted === undefined || !quoted.startsWith("'")) return undefined;
+  const message = unquoteAtom(quoted).replace(/\s+/g, " ").trim();
+  if (message === "") return undefined;
+  return message.length > PERMISSION_CONTEXT_MAX
+    ? `${message.slice(0, PERMISSION_CONTEXT_MAX - 1)}…`
+    : message;
+}
 
 function parseFormalTerm(formalRaw: string): FormalTerm | null {
   const formal = formalRaw.trim();
@@ -303,7 +385,11 @@ function parseFormalTerm(formalRaw: string): FormalTerm | null {
     if (operation === "attach" && resource === "kb_store") {
       return { kind: "store_locked" };
     }
-    return { kind: "permission_denied" };
+    const action = permissionAction(operation, resource, args[2]);
+    return {
+      kind: "permission_denied",
+      ...(action !== undefined ? { action } : {}),
+    };
   }
 
   if (functor === "existence_error" && args[0]?.trim() === "entity") {
@@ -318,6 +404,14 @@ function parseFormalTerm(formalRaw: string): FormalTerm | null {
 
   if (functor === "kb_contradiction") {
     return { kind: "contradiction", pairs: parseContradictionPairs(args[0]) };
+  }
+
+  if (functor === "kb_fact_contradiction") {
+    return {
+      kind: "fact_contradiction",
+      factId: unquoteAtom(args[0] ?? ""),
+      conflicts: parseFactConflicts(args[1]),
+    };
   }
 
   if (functor === "validation_error") {
@@ -376,6 +470,24 @@ function substituteRelationshipArgs(
     string,
   ];
   return { relType, fromType, toType };
+}
+
+/** conflict(ReqA, ReqB, Reason) items of kb_fact_contradiction/2. */
+function parseFactConflicts(
+  listText: string | undefined,
+): Array<[string, string, string]> {
+  const trimmed = listText?.trim() ?? "";
+  if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) return [];
+  const conflicts: Array<[string, string, string]> = [];
+  for (const item of splitTopLevelGeneral(trimmed.slice(1, -1), ",")) {
+    const inner = item.trim().match(/^conflict\((.*)\)$/s)?.[1];
+    if (inner === undefined) continue;
+    const [first, second, reason] = splitTopLevelGeneral(inner, ",").map(
+      unquoteAtom,
+    );
+    if (first && second && reason) conflicts.push([first, second, reason]);
+  }
+  return conflicts;
 }
 
 function parseContradictionPairs(

@@ -18,14 +18,14 @@ export const GENERATED_RULES = [
   {
     name: "symbol-coverage",
     description:
-      "Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path",
+      "Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path; a linkless record whose symbol_role is structural, type-shape, config or module owes none",
     enforcementClass: "canonical",
     category: "coverage",
   },
   {
     name: "symbol-traceability",
     description:
-      "Production symbols must directly implement requirements for ownership; covered_by is coverage only and executable_for is test identity only",
+      "Production symbols must directly implement requirements for ownership, except a linkless record whose symbol_role is structural, type-shape, config or module; covered_by is coverage only and executable_for is test identity only",
     enforcementClass: "canonical",
     category: "traceability",
   },
@@ -378,6 +378,13 @@ export const GENERATED_RULES = [
     name: "subject-duplicate",
     description:
       "Two active subject facts define one thing twice when they carry the same subject_key, or when their keys have the same words up to simple plurals, or when their subject_key and title words mostly coincide (token Jaccard at least 0.7, plurals and function words removed); a pair is exempt when one key's words begin the other's (an ancestor and its descendant), when the keys sit under different parents, or when either lists the other under distinct_from, part_of or kind_of",
+    enforcementClass: "canonical",
+    category: "integrity",
+  },
+  {
+    name: "quantity-duplicate",
+    description:
+      "Two active property_value facts, each grounded by a current requirement through requires_property, state one quantity under different subject_key.property_key when their values are equal and comparable (numbers other than 0 and 1 after unit canonicalization, or sets of at least two members), the requirements are implemented by symbols in one source file, and one signal holds: a shared implementing symbol, a proof value_source that implements the other requirement, or property keys or claim texts sharing at least half the words of the shorter; a pair is exempt when one requirement grounds both or either fact lists the other's key under distinct_from. A distinct_from entry on a value fact that names no active value fact is also reported",
     enforcementClass: "canonical",
     category: "integrity",
   },

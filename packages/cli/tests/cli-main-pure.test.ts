@@ -165,15 +165,15 @@ describe("main", () => {
 
   test("loads the project environment file before parsing", async () => {
     const envFile = path.join(root, "custom.env");
-    fs.writeFileSync(envFile, "KIBI_CLI_PURE_PROBE=loaded\n");
+    fs.writeFileSync(envFile, "CLI_PURE_PROBE_TOKEN=loaded\n");
     process.env.KIBI_ENV_FILE = envFile;
-    Reflect.deleteProperty(process.env, "KIBI_CLI_PURE_PROBE");
+    Reflect.deleteProperty(process.env, "CLI_PURE_PROBE_TOKEN");
     process.chdir(root);
     process.argv = ["node", "kibi", "status"];
     let during: string | undefined;
     const parse = spyOn(Command.prototype, "parseAsync").mockImplementation(
       async function (this: Command) {
-        during = process.env.KIBI_CLI_PURE_PROBE;
+        during = process.env.CLI_PURE_PROBE_TOKEN;
         return this;
       } as never,
     );

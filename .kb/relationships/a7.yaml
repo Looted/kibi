@@ -227,3 +227,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0fdeb9d5ce7
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-identity
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:29:37.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a37572a3abee
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-identity
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:29:37.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f1b23f1f88d
+  - type: implements
+    from: SYM-kibi-migration-plan-status-actions
+    to: REQ-kibi-legacy-attachment-engine-refusal
+    created_at: 2026-11-16T20:45:34.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c98add5c0747
+  - type: covered_by
+    from: SYM-kibi-migration-plan-status-actions
+    to: TEST-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-16T20:51:10.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5908dff12a6a
+  - type: implements
+    from: SYM-proof-shard-join-step
+    to: REQ-ci-proof-shards-cover-full-run
+    created_at: 2026-11-17T11:22:14.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-670a383bdf43
+  - type: covered_by
+    from: SYM-proof-shard-join-step
+    to: TEST-ci-proof-shards-join
+    created_at: 2026-11-17T11:22:14.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af548d79d027

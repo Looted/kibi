@@ -405,3 +405,115 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5bf0aaa651d3
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNLISTED-CLAIM
+    to: FACT-NEG-kb-upsert-derives-proposition-ledger-UNLISTED-CLAIM
+    created_at: 2026-11-15T20:20:30.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-861510be0013
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-derives-proposition-ledger-UNLISTED-CLAIM
+    to: TEST-kb-upsert-derives-proposition-ledger
+    created_at: 2026-11-15T20:20:30.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa93bab95702
+  - type: assumes
+    from: SCEN-NEG-symbol-traceability-behavioral-only-BEHAVIORAL-EXEMPTED
+    to: FACT-NEG-symbol-traceability-behavioral-only-BEHAVIORAL-EXEMPTED
+    created_at: 2026-11-16T05:34:04.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e140521cc05
+  - type: implements
+    from: SYM-traceability-validate-staged-symbol-coverage
+    to: REQ-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:10:31.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-101017aa0797
+  - type: covered_by
+    from: SYM-traceability-validate-staged-symbol-coverage
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:10:31.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef510233cdd5
+  - type: constrains
+    from: REQ-upsert-names-quantity-twin
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:21.800Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34f8d0a9c507
+  - type: requires_property
+    from: REQ-upsert-names-quantity-twin
+    to: FACT-upsert-names-quantity-twin
+    created_at: 2026-11-16T16:10:21.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4ae2982709d
+  - type: specified_by
+    from: REQ-upsert-names-quantity-twin
+    to: SCEN-upsert-names-quantity-twin
+    created_at: 2026-11-16T16:10:21.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd2e6f833297
+  - type: specified_by
+    from: REQ-upsert-names-quantity-twin
+    to: SCEN-NEG-upsert-names-quantity-twin-UNNAMED
+    created_at: 2026-11-16T16:10:21.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37fd2870a410
+  - type: implements
+    from: SYM-cli-quantity-layer-read-quantity-inputs
+    to: REQ-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:35.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64a81bde4e82
+  - type: covered_by
+    from: SYM-cli-quantity-layer-read-quantity-inputs
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:35.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d79949efa1c7
+  - type: constrains
+    from: REQ-upsert-refuses-fact-contradiction
+    to: FACT-upsert-sibling-requirements-subject
+    created_at: 2026-11-16T19:17:02.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b21fd1409105
+  - type: requires_property
+    from: REQ-upsert-refuses-fact-contradiction
+    to: FACT-upsert-refuses-fact-contradiction
+    created_at: 2026-11-16T19:17:02.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f61880a8233
+  - type: specified_by
+    from: REQ-upsert-refuses-fact-contradiction
+    to: SCEN-upsert-refuses-fact-contradiction
+    created_at: 2026-11-16T19:17:02.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-964465684719
+  - type: specified_by
+    from: REQ-upsert-refuses-fact-contradiction
+    to: SCEN-NEG-upsert-refuses-fact-contradiction-ACCEPTED
+    created_at: 2026-11-16T19:17:02.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44a9a123ea95
+  - type: executable_for
+    from: SYM-test-ci-required-checks-workflow-contract
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:40.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16c4e328bda9

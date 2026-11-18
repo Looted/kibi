@@ -477,35 +477,7 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  test("validate-upsert rejects normative prose when its proposition ledger is omitted", async () => {
-    const { context, save } = createContext(() => ({
-      success: false,
-      bindings: {},
-    }));
-
-    const result = await validateUpsertSpec.execute(
-      {
-        type: "req",
-        id: "REQ-OMITTED-LEDGER",
-        properties: {
-          title: "OAuth support",
-          status: "open",
-          text_ref: "System must support OAuth2 authentication.",
-        },
-      },
-      context,
-    );
-
-    expect(result.structuredContent).toMatchObject({
-      valid: false,
-      errors: [
-        expect.stringContaining("Proposition-complete ingestion failed"),
-      ],
-    });
-    expect(save).not.toHaveBeenCalled();
-  });
-
-  test("the omitted-ledger error carries the contract one resend needs", async () => {
+  test("validate-upsert fills in the inventory contract a requirement omits", async () => {
     const { context, save } = createContext((goal) =>
       goal.startsWith("kb_preview_upsert_contradiction(")
         ? { success: true, bindings: {} }
@@ -517,20 +489,141 @@ describe("shared mutation operation specs", () => {
       semantic_text:
         "System must support OAuth2 authentication. Sessions must expire after 30 minutes.",
     };
+    const result = await validateUpsertSpec.execute(
+      { type: "req", id: "REQ-OMITTED-LEDGER", properties },
+      context,
+    );
+
+    expect(result.structuredContent?.errors ?? []).toEqual([]);
+    expect(result.structuredContent).toMatchObject({ valid: true });
+    const applied = result.structuredContent?.inventoryApplied ?? [];
+    expect(applied).toHaveLength(2);
+    // No grounding link names either claim, so neither is recorded modeled.
+    for (const entry of applied) {
+      expect(entry.status).not.toBe("modeled");
+      expect(entry.claim_key).not.toBe("");
+      expect(entry.claim_text).not.toBe("");
+    }
+    // The preview is the requirement as the write records it: with the
+    // contract the advisor derives for its prose.
+    const preview = result.structuredContent?.normalizedPreview ?? {};
+    const semantic = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-OMITTED-LEDGER",
+        properties,
+        relationships: [],
+      },
+    });
+    expect(preview).toMatchObject({
+      semantic_inventory_version: "kibi.semantic-inventory.v1",
+      semantic_source_field: "semantic_text",
+      semantic_source_hash: semantic.receipt.inventory_contract.source_hash,
+    });
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  test("partial semantic_inventory entries are completed from the prose", async () => {
+    const { context, save } = createContext((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction(")
+        ? { success: true, bindings: {} }
+        : { success: false, bindings: {} },
+    );
+    const text = "System must support OAuth2 authentication.";
+    const properties = {
+      title: "OAuth support",
+      status: "open",
+      semantic_text: text,
+    };
+    const [claim] = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-PARTIAL",
+        properties,
+        relationships: [],
+      },
+    }).receipt.propositions;
+    const sent = (status: string, id = "REQ-PARTIAL", extra = {}) =>
+      validateUpsertSpec.execute(
+        {
+          type: "req",
+          id,
+          properties: {
+            ...properties,
+            ...extra,
+            semantic_inventory: [
+              { claim_key: claim?.claim_key, status, subjects: ["oauth"] },
+            ],
+          },
+        },
+        context,
+      );
+    const result = await sent("ontology_gap");
+    expect(result.structuredContent?.errors ?? []).toEqual([]);
+    expect(result.structuredContent?.inventoryApplied).toEqual([
+      expect.objectContaining({
+        claim_key: claim?.claim_key,
+        status: "ontology_gap",
+      }),
+    ]);
+    expect(result.structuredContent?.normalizedPreview).toMatchObject({
+      semantic_inventory: [
+        expect.objectContaining({
+          claim_key: claim?.claim_key,
+          claim_text: claim?.claim_text,
+          status: "ontology_gap",
+          subjects: ["oauth"],
+        }),
+      ],
+    });
+    // An entry outside the partial shape is validated as a full entry.
+    const invalid = await sent("bogus");
+    expect(invalid.structuredContent).toMatchObject({ valid: false });
+    expect(invalid.structuredContent?.errors.join(" ")).toContain(
+      "must have required property 'claim_text'",
+    );
+    // Entries Kibi does not complete (the write sends a contract field) are
+    // validated as the entity they would be.
+    for (const extra of [
+      { semantic_source_field: "semantic_text" },
+      // A retired requirement is not current: Kibi derives no inventory.
+      { status: "retired", retired_reason: "Replaced." },
+    ]) {
+      const unfilled = await sent("ontology_gap", "REQ-PARTIAL-AS-SENT", extra);
+      expect(unfilled.structuredContent).toMatchObject({ valid: false });
+      expect(unfilled.structuredContent?.errors.join(" ")).toContain(
+        "must have required property 'claim_text'",
+      );
+    }
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  test("a requirement that sends part of its inventory is judged as sent", async () => {
+    const { context, save } = createContext((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction(")
+        ? { success: true, bindings: {} }
+        : { success: false, bindings: {} },
+    );
+    const properties = {
+      title: "OAuth support",
+      status: "open",
+      semantic_text:
+        "System must support OAuth2 authentication. Sessions must expire after 30 minutes.",
+      semantic_inventory_version: "kibi.semantic-inventory.v1",
+    };
     const first = await validateUpsertSpec.execute(
       { type: "req", id: "REQ-LEDGER-RESEND", properties },
       context,
     );
+    expect(first.structuredContent).toMatchObject({ valid: false });
+    expect(first.structuredContent?.inventoryApplied).toBeUndefined();
     const error = first.structuredContent?.errors.join(" ") ?? "";
+    expect(error).toContain("Proposition-complete ingestion failed");
     expect(error).toContain("to merge into properties and resend");
     const contract = JSON.parse(error.slice(error.indexOf("{"))) as Record<
       string,
       unknown
     >;
-    expect(contract).toMatchObject({
-      semantic_inventory_version: "kibi.semantic-inventory.v1",
-      semantic_source_field: "semantic_text",
-    });
     expect(contract.semantic_inventory).toHaveLength(2);
 
     const second = await validateUpsertSpec.execute(
@@ -543,7 +636,94 @@ describe("shared mutation operation specs", () => {
     );
     expect(second.structuredContent?.errors ?? []).toEqual([]);
     expect(second.structuredContent).toMatchObject({ valid: true });
+    expect(
+      Object.hasOwn(second.structuredContent ?? {}, "inventoryApplied"),
+    ).toBe(false);
     expect(save).not.toHaveBeenCalled();
+  });
+
+  test("a filled-in inventory still refuses a grounding link that names no claim", async () => {
+    const { context } = createContext((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction(")
+        ? { success: true, bindings: {} as Record<string, string> }
+        : goal.includes("FACT-UNRELATED") && goal.includes("claim_key")
+          ? { success: true, bindings: { ClaimKey: "CLAIM-0000000000000000" } }
+          : { success: false, bindings: {} as Record<string, string> },
+    );
+    const result = await validateUpsertSpec.execute(
+      {
+        type: "req",
+        id: "REQ-UNGROUNDED-LINK",
+        properties: {
+          title: "OAuth support",
+          status: "open",
+          semantic_text: "System must support OAuth2 authentication.",
+        },
+        relationships: [
+          {
+            type: "requires_property",
+            from: "REQ-UNGROUNDED-LINK",
+            to: "FACT-UNRELATED",
+          },
+        ],
+      },
+      context,
+    );
+    expect(result.structuredContent).toMatchObject({ valid: false });
+    expect(result.structuredContent?.errors.join(" ")).toContain(
+      "must equal logical grounding relationships (1)",
+    );
+  });
+
+  test("a filled-in inventory records a claim modeled when a grounding link names it", async () => {
+    const text = "System must support OAuth2 authentication.";
+    const [claim] = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-GROUNDED-LINK",
+        properties: {
+          title: "OAuth support",
+          status: "open",
+          semantic_text: text,
+        },
+        relationships: [],
+      },
+    }).receipt.propositions;
+    const { context } = createContext((goal) =>
+      goal.startsWith("kb_preview_upsert_contradiction(")
+        ? { success: true, bindings: {} as Record<string, string> }
+        : goal.includes("FACT-OAUTH") && goal.includes("claim_key")
+          ? { success: true, bindings: { ClaimKey: claim?.claim_key ?? "" } }
+          : goal.includes("FACT-OAUTH") && !goal.includes("fact_kind")
+            ? { success: true, bindings: {} }
+            : { success: false, bindings: {} as Record<string, string> },
+    );
+    const result = await validateUpsertSpec.execute(
+      {
+        type: "req",
+        id: "REQ-GROUNDED-LINK",
+        properties: {
+          title: "OAuth support",
+          status: "open",
+          semantic_text: text,
+        },
+        relationships: [
+          {
+            type: "requires_property",
+            from: "REQ-GROUNDED-LINK",
+            to: "FACT-OAUTH",
+          },
+        ],
+      },
+      context,
+    );
+    expect(result.structuredContent?.errors ?? []).toEqual([]);
+    expect(result.structuredContent?.inventoryApplied).toEqual([
+      expect.objectContaining({
+        claim_key: claim?.claim_key,
+        status: "modeled",
+      }),
+    ]);
   });
 
   test("validate-upsert accepts explicit ontology gaps without claiming consistency", async () => {
@@ -752,6 +932,41 @@ describe("shared mutation operation specs", () => {
       expect.stringMatching(/^kb_commit_upsert\(/),
     );
     expect(save).not.toHaveBeenCalled();
+  });
+
+  test("upsert reports the inventory it filled in, and only then", async () => {
+    const { context } = createContext((goal): PrologQueryResult => {
+      if (goal.startsWith("kb_commit_upsert(")) {
+        return { success: true, bindings: { ChangeKind: "created" } };
+      }
+      return { success: false, bindings: {} };
+    });
+    const workspaceRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-filled-"));
+    try {
+      const filled = await upsertSpec.execute(
+        {
+          type: "req",
+          id: "REQ-FILLED-LEDGER",
+          properties: {
+            title: "OAuth support",
+            status: "open",
+            semantic_text:
+              "System must support OAuth2 authentication. Sessions must expire after 30 minutes.",
+          },
+        },
+        { ...context, workspaceRoot },
+      );
+      expect(filled.structuredContent?.inventoryApplied).toHaveLength(2);
+      const plain = await upsertSpec.execute(payload, {
+        ...context,
+        workspaceRoot,
+      });
+      expect(
+        Object.hasOwn(plain.structuredContent ?? {}, "inventoryApplied"),
+      ).toBe(false);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
   });
 
   test("upsert does not save when its atomic write fails", async () => {

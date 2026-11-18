@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-e2e-check-gate-enforcement",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/cli-check-gate-enforcement.test.ts"
+    ]
+  ]
+}

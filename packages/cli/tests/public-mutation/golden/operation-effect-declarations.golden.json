@@ -703,6 +703,50 @@
       "openWorld": false
     }
   ],
+  "kb_record": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": true,
+      "retrySafety": "unsafe",
+      "openWorld": false
+    }
+  ],
   "kb_delete": [
     {
       "kind": "local-read",
@@ -920,6 +964,50 @@
       "mutability": "write",
       "destructive": true,
       "retrySafety": "unsafe",
+      "openWorld": false
+    }
+  ],
+  "kb_review_firm_edit": [
+    {
+      "kind": "local-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "network-read",
+      "mutability": "read",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "kb-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
+      "openWorld": false
+    },
+    {
+      "kind": "workspace-write",
+      "mutability": "write",
+      "destructive": false,
+      "retrySafety": "safe",
       "openWorld": false
     }
   ],

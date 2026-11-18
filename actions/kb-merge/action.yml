@@ -1,0 +1,109 @@
+name: Kibi KB merge
+description: >-
+  Merge the base branch into open pull requests whose only conflicts are Kibi
+  manifests (.kb/symbols.yaml, .kb/relationships/*.yaml), using kibi
+  merge-driver, and push the merge after kibi sync and a check pass.
+author: Kibi
+
+branding:
+  icon: git-merge
+  color: green
+
+inputs:
+  base:
+    description: >-
+      Base branch whose pull requests are kept mergeable. Defaults to the
+      repository's default branch.
+    required: false
+    default: ""
+  branches:
+    description: >-
+      Pull request head branches to consider (newline or space separated, or a
+      JSON array). Empty considers every open same-repository pull request into
+      the base branch.
+    required: false
+    default: ""
+  list-only:
+    description: >-
+      "true" only lists the branches whose sole conflicts are Kibi manifests
+      (output `branches`) and changes nothing, so a workflow can skip
+      installing Kibi when there is nothing to merge.
+    required: false
+    default: "false"
+  kibi:
+    description: >-
+      Command that runs the base branch's Kibi, for example
+      "node_modules/.bin/kibi". A relative path is resolved from the workspace.
+      Empty uses node_modules/.bin/kibi from the workspace.
+    required: false
+    default: ""
+  check:
+    description: >-
+      Shell command run in the merged tree after kibi sync and before the push;
+      the merge is pushed only when it exits 0. $KIBI and $KIBI_BRANCH are
+      set; the GitHub tokens are removed from its environment, since the tree
+      holds pull request content. Run a script from the base checkout by
+      absolute path, not the tree's copy. Use "" to run no check.
+    required: false
+    default: "$KIBI check"
+  attempts:
+    description: Tries per branch when the branch moves while it is being merged.
+    required: false
+    default: "3"
+  skip-label:
+    description: >-
+      Pull requests with this label are left alone, for example the label a
+      merge train boards with: the train merges the manifests itself, and a
+      push to a boarded pull request would restart its checks. Empty skips
+      none.
+    required: false
+    default: ""
+  github-token:
+    description: >-
+      Token gh uses to list pull requests (needs pull-requests read). Pushes
+      use the credentials of the workspace checkout, not this token.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  branches:
+    description: JSON array of branches whose only conflicts are Kibi manifests (list-only mode).
+    value: ${{ steps.run.outputs.branches }}
+  merged:
+    description: JSON array of branches that received a merge commit.
+    value: ${{ steps.run.outputs.merged }}
+  blocked:
+    description: JSON array of branches left for a person (other conflicts, or a real conflict inside a manifest).
+    value: ${{ steps.run.outputs.blocked }}
+  failed:
+    description: JSON array of branches whose merge could not be compiled, checked, or pushed.
+    value: ${{ steps.run.outputs.failed }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        GH_REPO: ${{ github.repository }}
+        KB_MERGE_BASE: ${{ inputs.base || github.event.repository.default_branch }}
+        KB_MERGE_BRANCHES: ${{ inputs.branches }}
+        KB_MERGE_LIST_ONLY: ${{ inputs.list-only }}
+        KB_MERGE_KIBI_INPUT: ${{ inputs.kibi }}
+        KB_MERGE_CHECK: ${{ inputs.check }}
+        KB_MERGE_ATTEMPTS: ${{ inputs.attempts }}
+        KB_MERGE_SKIP_LABEL: ${{ inputs.skip-label }}
+      run: |
+        set -euo pipefail
+        kibi="${KB_MERGE_KIBI_INPUT:-node_modules/.bin/kibi}"
+        first="${kibi%% *}"
+        if [ "$KB_MERGE_LIST_ONLY" != "true" ] && [ "${first#/}" = "$first" ] && [ -e "$first" ]; then
+          kibi="$PWD/$kibi"
+        fi
+        if [ "$KB_MERGE_LIST_ONLY" != "true" ] && [ -z "$KB_MERGE_KIBI_INPUT" ] && [ ! -x "$kibi" ]; then
+          echo "::error::No Kibi at node_modules/.bin/kibi. Install kibi-cli from the base branch (npm ci) before this step, or set the kibi input."
+          exit 1
+        fi
+        KB_MERGE_KIBI="$kibi" bash "$GITHUB_ACTION_PATH/kb-merge.sh"

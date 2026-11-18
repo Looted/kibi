@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-opencode-bootstrap-paths",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts"
+    ]
+  ]
+}

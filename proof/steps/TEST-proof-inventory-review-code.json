@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-inventory-review-code",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/schema-migration-codes.proof.test.ts"
+    ]
+  ]
+}

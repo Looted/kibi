@@ -249,6 +249,9 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/traceability/staged-diagnostics.ts": [
     "packages/cli/tests/traceability/staged-diagnostics-contract.test.ts",
   ],
+  "packages/cli/src/traceability/owner-findings.ts": [
+    "packages/cli/tests/traceability/owner-findings.test.ts",
+  ],
   "packages/cli/src/traceability/staged-entity-context.ts": [
     "packages/cli/tests/traceability/staged-entity-context.test.ts",
   ],
@@ -282,6 +285,10 @@ export const CLI_MUTATION_MODULES = {
   ],
   "packages/cli/src/env/bootstrap.ts": [
     "packages/cli/tests/env/bootstrap-mutation.test.ts",
+    "packages/cli/tests/env/workspace-env-policy.test.ts",
+  ],
+  "packages/cli/src/env/workspace-env-policy.ts": [
+    "packages/cli/tests/env/workspace-env-policy.test.ts",
   ],
   "packages/cli/src/report/html-report.ts": [
     "packages/cli/tests/report/html-report-mutation.test.ts",
@@ -522,6 +529,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/commands/sync/staging-remaining.coverage.test.ts",
   ],
   "packages/cli/src/commands/sync/discovery.ts": [
+    "packages/cli/tests/commands-coverage/pending-receipt-branch.test.ts",
     "packages/cli/tests/commands/sync/discovery-mutation.test.ts",
     "packages/cli/tests/commands/sync/discovery-coverage.test.ts",
     "packages/cli/tests/commands/sync/discovery-remaining.coverage.test.ts",
@@ -656,6 +664,12 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/plugins/source-classification.test.ts",
     "packages/cli/tests/plugins/source-classification-cases.test.ts",
   ],
+  "packages/cli/src/traceability/staged-declaration-change.ts": [
+    "packages/cli/tests/traceability/staged-declaration-change.test.ts",
+  ],
+  "packages/cli/src/public/operations/symbol-debt.ts": [
+    "packages/cli/tests/public-mutation/operations/symbol-debt.mutation.test.ts",
+  ],
   "packages/cli/src/traceability/staged-symbols-manifest.ts": [
     "packages/cli/tests/traceability/staged-symbols-manifest-mutation.test.ts",
   ],
@@ -665,6 +679,15 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/plugins/source-analysis-service.ts": [
     "packages/cli/tests/plugins/source-analysis-service-units.test.ts",
     "packages/cli/tests/plugins/source-analysis-service-mutation.test.ts",
+  ],
+  "packages/cli/src/traceability/changed-index.ts": [
+    "packages/cli/tests/traceability/changed-index.test.ts",
+  ],
+  "packages/cli/src/public/operations/changed-check.ts": [
+    "packages/cli/tests/public-mutation/operations/changed-check.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/finding-blocks.ts": [
+    "packages/cli/tests/public-mutation/operations/finding-blocks.mutation.test.ts",
   ],
   "packages/cli/src/traceability/temp-kb.ts": [
     "packages/cli/tests/traceability/temp-kb-mutation.test.ts",
@@ -796,8 +819,17 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/operations/mutation/omitted-properties.ts": [
     "packages/cli/tests/operations-mutation/mutation/omitted-properties.test.ts",
   ],
+  "packages/cli/src/operations/mutation/record.ts": [
+    "packages/cli/tests/operations-mutation/mutation/record.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/record-execute.ts": [
+    "packages/cli/tests/operations-mutation/mutation/record-execute.test.ts",
+  ],
   "packages/cli/src/operations/mutation/origin.ts": [
     "packages/cli/tests/operations-mutation/mutation/origin.test.ts",
+  ],
+  "packages/cli/src/operations/mutation/implemented-by.ts": [
+    "packages/cli/tests/operations-mutation/mutation/implemented-by.test.ts",
   ],
   "packages/cli/src/operations/mutation/predicate-vocabulary-guard.ts": [
     "packages/cli/tests/operations-mutation/mutation/predicate-vocabulary-guard.test.ts",
@@ -1110,6 +1142,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public-mutation/impact/symbol-quality.mutation.test.ts",
   ],
   "packages/cli/src/public/impact/diagnostics.ts": [
+    "packages/cli/tests/public/impact/coverage-depth-quality.test.ts",
     "packages/cli/tests/public-mutation/impact/diagnostics.mutation.test.ts",
   ],
   "packages/cli/src/public/impact/source-changes.ts": [
@@ -1125,6 +1158,8 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public-mutation/symbol-granularity.mutation.test.ts",
   ],
   "packages/cli/src/public/operations/check-format-shared.ts": [
+    "packages/cli/tests/public-mutation/operations/check-format-budget.mutation.test.ts",
+    "packages/cli/tests/public/operations/check-scope.test.ts",
     "packages/cli/tests/public-mutation/operations/check-format-shared.mutation.test.ts",
   ],
   "packages/cli/src/public/ignore-policy.ts": [
@@ -1134,6 +1169,7 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public-mutation/operations/node-ports.mutation.test.ts",
   ],
   "packages/cli/src/public/operations/check-helpers.ts": [
+    "packages/cli/tests/public/operations/check-scope.test.ts",
     "packages/cli/tests/public-mutation/operations/check-helpers.mutation.test.ts",
   ],
   "packages/cli/src/public/operations/catalog.ts": [
@@ -1324,6 +1360,18 @@ export const CLI_MUTATION_MODULES = {
   "packages/cli/src/public/impact/analyzer.ts": [
     "packages/cli/tests/public-mutation/impact/analyzer.mutation.test.ts",
   ],
+  "packages/cli/src/public/impact/firm-edit-gate.ts": [
+    "packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/firm-edit-review.ts": [
+    "packages/cli/tests/public-mutation/operations/firm-edit-review.mutation.test.ts",
+  ],
+  "packages/cli/src/public/operations/advertised-schema.ts": [
+    "packages/cli/tests/operations/advertised-schema.test.ts",
+  ],
+  "packages/cli/src/public/operations/field-reference.ts": [
+    "packages/cli/tests/operations/field-reference.test.ts",
+  ],
   "packages/cli/src/public/impact/requirement-quality.ts": [
     "packages/cli/tests/public-mutation/impact/requirement-quality.mutation.test.ts",
   ],
@@ -1360,6 +1408,8 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/public/operations/source-analysis-cache.test.ts",
   ],
   "packages/cli/src/public/operations/check-policy-rules.ts": [
+    "packages/cli/tests/public/check-policy-rules.test.ts",
+    "packages/cli/tests/public-coverage/operations/check-policy-rules.coverage.test.ts",
     "packages/cli/tests/public-mutation/operations/check-policy-rules.mutation.test.ts",
   ],
   "packages/cli/src/public/operations/decision-firmness.ts": [
@@ -1403,8 +1453,10 @@ export const CLI_MUTATION_MODULES = {
     "packages/cli/tests/commands-mutation/check/staged-setup.test.ts",
     "packages/cli/tests/commands-mutation/check/staged-rules.test.ts",
     "packages/cli/tests/commands-mutation/check/staged-results.test.ts",
+    "packages/cli/tests/commands-mutation/check/symbol-records.test.ts",
   ],
   "packages/cli/src/commands/sync.ts": [
+    "packages/cli/tests/commands-coverage/pending-receipt-branch.test.ts",
     "packages/cli/tests/commands-mutation/sync/helpers.test.ts",
     "packages/cli/tests/commands-mutation/sync/sync-setup.test.ts",
     "packages/cli/tests/commands-mutation/sync/sync-plan.test.ts",
@@ -1749,9 +1801,7 @@ export const MUTATION_SHARDS = [
     "packages/cli/src/public/operations/discovery-entities.ts",
     "packages/cli/src/public/operations/legacy-migration-plan.ts",
   ],
-  [
-    "packages/cli/src/engine.ts",
-  ],
+  ["packages/cli/src/engine.ts"],
   [
     "packages/cli/src/operations/planning/apply-plan.ts",
     "packages/cli/src/prolog.ts",
@@ -1821,6 +1871,7 @@ export const MUTATION_SHARDS = [
     "packages/cli/src/traceability/impact-record-validation.ts",
     "packages/cli/src/traceability/impact-knowledge.ts",
     "packages/cli/src/env/bootstrap.ts",
+    "packages/cli/src/env/workspace-env-policy.ts",
     "packages/cli/src/proof/command-test-report.ts",
     "packages/cli/src/cli-register-reporting.ts",
     "packages/cli/src/commands/graph.ts",

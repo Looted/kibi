@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-kibi-env-workspace-file-key-policy",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "240000",
+      "./packages/cli/tests/env/workspace-env-policy.test.ts",
+      "./packages/cli/tests/env/bootstrap-mutation.test.ts",
+      "./packages/mcp/tests/env-workspace-policy.test.ts"
+    ]
+  ]
+}

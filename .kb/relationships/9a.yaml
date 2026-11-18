@@ -370,3 +370,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b69582c859d4
+  - type: validates
+    from: TEST-upsert-reason-notes
+    to: REQ-upsert-notes-missing-reason
+    created_at: 2026-11-16T14:58:24.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-580c57549b64
+  - type: validates
+    from: TEST-upsert-reason-notes
+    to: REQ-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:24.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3b597bec6fb
+  - type: validates
+    from: TEST-upsert-reason-notes
+    to: SCEN-upsert-notes-missing-reason
+    created_at: 2026-11-16T14:58:24.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-470b79a863ea
+  - type: validates
+    from: TEST-upsert-reason-notes
+    to: SCEN-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:24.272Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-954c3f2d6929
+  - type: implements
+    from: SYM-cli-ADVERTISED_FIELDS
+    to: REQ-mcp-upsert-capture-fields
+    created_at: 2026-11-16T17:23:26.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b793f7876742
+  - type: covered_by
+    from: SYM-cli-ADVERTISED_FIELDS
+    to: TEST-mcp-upsert-capture-fields
+    created_at: 2026-11-16T17:23:26.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce348c6defd0
+  - type: assumes
+    from: SCEN-NEG-kb-merge-action-no-hooks-VIOLATED
+    to: FACT-NEG-kb-merge-action-no-hooks-VIOLATED
+    created_at: 2026-11-16T18:11:51.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d418b84be5c
+  - type: verified_by
+    from: SCEN-NEG-kb-merge-action-no-hooks-VIOLATED
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:11:51.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0de18b74b20

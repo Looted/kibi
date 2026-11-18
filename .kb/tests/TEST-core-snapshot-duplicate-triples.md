@@ -1,0 +1,63 @@
+---
+title: Branch store snapshot duplicate-triple tests
+status: active
+priority: must
+verification_scope: end_to_end
+verification_perspective: internal
+tags:
+  - core
+  - persistence
+  - doctor
+  - status
+origin:
+  kind: agent
+  recorded_at: '2026-11-17T09:09:03.553Z'
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-test-core-snapshot-duplicate-triples
+      target: default
+  success_policy: all_required_first_attempt
+id: TEST-core-snapshot-duplicate-triples
+type: test
+proof_receipts:
+  - version: kibi.proof-receipt.v2
+    receipt_id: PR-5a296b630ff0de06e8a6e8cc
+    test_id: TEST-core-snapshot-duplicate-triples
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 26c843d40778749b31ec6e60e787cee134491f5a52cd619d832d99c9d9ab563c
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-11-17T18:59:10.536Z'
+    finished_at: '2026-11-17T18:59:13.303Z'
+    artifact_digest: 549ccc4bd42819eb87e5f3f874a6a232c93cced2dc27644870bb07eaca63445a
+    contract_hash: 29e2c2df91ef38b0cb1b73a62c52d5627640adebab5cb10caade149073b688bf
+    binding_hash: ac26a86208a21278994a6bd37c2594cff356d630c0d9162dda4eab3527679d88
+    fingerprint: ecb3dc20fb50c3bae7201cf85dfcb70f02ed57d11acdc9706902a01ea6c45f65
+    fingerprint_components:
+      contract: 29e2c2df91ef38b0cb1b73a62c52d5627640adebab5cb10caade149073b688bf
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-core-snapshot-duplicate-triples
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    kind: e2e
+    evidence_level: tested
+---
+The `kb_persistence` PLUnit suite in `packages/core/tests/kb.plt` holds SWI-Prolog's background rdf_db garbage collector, retracts and re-asserts entities, and checks that a compaction leaves nothing to reclaim when it writes the snapshot (without the pre-snapshot collection 141 garbage triples remain). It then saves a store's snapshot with every triple twice and checks that attaching it keeps each triple once, that the rewritten snapshot reloads clean and that `.kibi-store-repair.json` records the counts, and that a clean store is attached without a record. `scripts/tests/check-store-snapshot.test.ts` runs the proof job's store check on a clean store, a doubled snapshot, a repaired store and an empty directory. The Bun suites check the `branch_store_repaired` notice window and fields, its kb_status notice and text, and the kibi doctor warning.
+
+A false pass would be a store whose snapshot was never doubled; the PLUnit test therefore first asserts that the doubled load holds twice as many triples.

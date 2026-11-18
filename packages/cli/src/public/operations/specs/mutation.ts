@@ -10,6 +10,7 @@ import type { OperationSpec } from "../types.js";
 import { ENTITY_TYPES } from "./mutation-schemas.js";
 
 import { PLANNED_FACTS_SCHEMA, UPSERT_DOCUMENT_SCHEMA } from "./upsert.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 export { upsertSpec } from "./upsert.js";
 
@@ -79,11 +80,15 @@ export const deleteSpec = {
         pattern: "^[a-fA-F0-9]{64}$",
         description:
           "With ids only: the deletionPlan.planHash a prior call for the same ids returned. The plan is recomputed and applied through kb_apply_plan when its hash still matches; a mismatch fails with DELETE_PLAN_HASH_MISMATCH and writes nothing. Not allowed with relationships or dryRun.",
+        [ADVERTISED_DESCRIPTION]:
+          "With ids only: the deletionPlan.planHash a prior call returned; applied only while the hash still matches.",
       },
       dryRun: {
         type: "boolean",
         description:
           "Preview without writing. Relationship and direct entity deletes run their preflight and return outcome dry_run with wouldDelete counts, the sourceWrites (paths and hashes) a commit would make, and skippedEffects. Authored ids return the same deletion plan as without dryRun.",
+        [ADVERTISED_DESCRIPTION]:
+          "Preview without writing: returns what a commit would delete and write.",
       },
     },
   },

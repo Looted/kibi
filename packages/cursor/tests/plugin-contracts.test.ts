@@ -8,14 +8,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import { readGuidance, writeGuidance } from "../src/guidance";
-import {
-  type HookStopStatus,
-  parseHookInput,
-  parseStdinJson,
-  readStdin,
-} from "../src/hook-input";
+import { type HookStopStatus, parseHookInput } from "../src/hook-input";
 import { isInvokedAsCli, main, runHook, runHookCli } from "../src/hook-runner";
 import {
   addDirtyPaths,
@@ -42,7 +39,6 @@ import {
   resolveKibiInterface,
 } from "../src/kb-mcp-tools";
 import {
-  BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
   interfaceAdvisory,
   stopFollowupMessage,
@@ -881,13 +877,13 @@ describe("Cursor guidance and advisories", () => {
     });
     expect(codeGuidance).toBeDefined();
     expect(codeGuidance).toContain(
-      'kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/a.ts"]})',
     );
     expect(codeGuidance).toContain(
       "Record traceability in the symbol manifest (implements for production code, executable_for for test code); code comments are not read.",
     );
     expect(codeGuidance?.split("\n")[0]).toBe(
-      'Kibi impact review: run kb_check({sourceFiles:["src/a.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.',
+      'Kibi impact review: run kb_check({changed:true, sourceFiles:["src/a.ts"]}) while this edit is fresh; it gives the commit gate\'s verdict.',
     );
     // Retrieval is asked for before the edit, so the post-edit message must
     // not repeat it here.
@@ -951,7 +947,7 @@ describe("Cursor stop followup messages", () => {
     expect(message).toBe(
       [
         "Kibi: run impact-enabled kb_check after 2 edited source files.",
-        'Use kb_check({sourceFiles:["src/a.ts","src/b.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}).',
+        'Use kb_check({changed:true, sourceFiles:["src/a.ts","src/b.ts"]}); findings with blocks:"commit" stop the commit.',
         "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
       ].join("\n"),
     );
@@ -1017,47 +1013,22 @@ describe("Cursor hook runner decisions", () => {
     fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
   }
 
-  test("sessionStart bootstraps unconfigured workspaces with the right advisory", async () => {
+  test("sessionStart stays quiet in a workspace that never adopted Kibi", async () => {
     const cwd = tempDir("kibi-cursor-cwd-");
     const pluginData = tempDir("kibi-cursor-data-");
-
-    const untrusted = await runHook(
-      { event: "sessionStart", cwd },
-      { pluginData },
-    );
-    expect(untrusted.additional_context).toBe(
-      `${BOOTSTRAP_REMINDER}\n${interfaceAdvisory("unknown", false)}`,
-    );
-
-    const trusted = await runHook(
-      { event: "sessionStart", cwd },
-      {
-        pluginData,
-        workspaceTrusted: true,
-      },
-    );
-    expect(trusted.additional_context).toBe(
-      `${BOOTSTRAP_REMINDER}\n${interfaceAdvisory("unknown", true)}`,
-    );
-  });
-
-  test("sessionStart still bootstraps when .kb exists without a manifest", async () => {
-    const cwd = tempDir("kibi-cursor-cwd-");
-    const pluginData = tempDir("kibi-cursor-data-");
+    for (const workspaceTrusted of [false, true]) {
+      expect(
+        await runHook({ event: "sessionStart", cwd }, { pluginData, workspaceTrusted }),
+      ).toStrictEqual({});
+    }
+    // A .kb folder without a manifest is not an adopted workspace either.
     fs.mkdirSync(path.join(cwd, ".kb"), { recursive: true });
-
-    const result = await runHook(
-      { event: "sessionStart", cwd },
-      {
-        pluginData,
-      },
-    );
     expect(
-      result.additional_context?.startsWith("Kibi config was not found"),
-    ).toBe(true);
+      await runHook({ event: "sessionStart", cwd }, { pluginData }),
+    ).toStrictEqual({});
   });
 
-  test("sessionStart stays quiet in configured workspaces once mcp is observed", async () => {
+  test("sessionStart opens configured workspaces with only the session brief once mcp is observed", async () => {
     const cwd = tempDir("kibi-cursor-cwd-");
     const pluginData = tempDir("kibi-cursor-data-");
     optIn(cwd);
@@ -1070,7 +1041,7 @@ describe("Cursor hook runner decisions", () => {
         workspaceTrusted: false,
       },
     );
-    expect(result).toStrictEqual({});
+    expect(result).toStrictEqual({ additional_context: SESSION_BRIEF });
   });
 
   test("preToolUse warns only for editable tools touching the kb", async () => {
@@ -1425,6 +1396,8 @@ describe("Cursor hook CLI surface", () => {
 
   test("main parses stdin, applies the trusted flag, and prints one line", async () => {
     const cwd = tempDir("kibi-cursor-main-cwd-");
+    fs.mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    fs.writeFileSync(path.join(cwd, ".kb", "manifest.json"), "{}");
     const originalCwd = process.cwd();
     process.chdir(cwd);
     const originalArgv = process.argv;

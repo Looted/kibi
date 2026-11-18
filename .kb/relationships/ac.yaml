@@ -258,24 +258,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-17f7d7dd9be3
-  - type: assumes
-    from: SCEN-NEG-kibi-coarse-anchor-review
-    to: FACT-NEG-kibi-coarse-anchor-review-UNREPORTED
-    created_at: 2026-11-10T13:00:00.000Z
+  - type: specified_by
+    from: REQ-check-analysis-cache-shared
+    to: SCEN-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:07.930Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-e5ff81f7ac21
-  - type: assumes
-    from: SCEN-NEG-kibi-coarse-anchor-review
-    to: FACT-NEG-kibi-coarse-anchor-review-CONFIG-COUNTED
-    created_at: 2026-11-10T13:00:00.000Z
+    id: rel-6de3a74e82a9
+  - type: specified_by
+    from: REQ-check-analysis-cache-shared
+    to: SCEN-NEG-check-analysis-cache-shared-EVICTS
+    created_at: 2026-11-17T06:02:07.953Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-43dcff5ffce3
+    id: rel-d8d9a2565bfd
   - type: verified_by
-    from: SCEN-NEG-kibi-coarse-anchor-review
-    to: TEST-e2e-check-review-rules
-    created_at: 2026-11-10T13:00:00.000Z
+    from: REQ-check-analysis-cache-shared
+    to: TEST-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:07.969Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-7610c93001d5
+    id: rel-c8ec0487b412
+  - type: constrains
+    from: REQ-check-analysis-cache-shared
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-17T06:02:07.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63b26d3ca1bd
+  - type: requires_property
+    from: REQ-check-analysis-cache-shared
+    to: FACT-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:08.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85143fed6fcc
+  - type: implements
+    from: SYM-subject-warnings-claim-subject-gaps
+    to: REQ-kb-upsert-capture-next-actions
+    created_at: 2026-11-16T16:12:48.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d396a34b84c2
+  - type: covered_by
+    from: SYM-subject-warnings-claim-subject-gaps
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:21:01.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2230daac97f5
+  - type: assumes
+    from: SCEN-kb-record-capture
+    to: FACT-kb-record-capture-inputs
+    created_at: 2026-11-17T06:42:44.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7d7e04d41e8
+  - type: assumes
+    from: SCEN-kb-record-capture
+    to: FACT-kb-record-human-rule-firm
+    created_at: 2026-11-17T06:42:44.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cc47730f0a6
+  - type: assumes
+    from: SCEN-kb-record-capture
+    to: FACT-kb-record-agent-rule-default
+    created_at: 2026-11-17T06:42:44.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f17ad5ca0187
+  - type: assumes
+    from: SCEN-kb-record-capture
+    to: FACT-kb-record-returns-verdict
+    created_at: 2026-11-17T06:42:44.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d732742bb30

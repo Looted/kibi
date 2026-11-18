@@ -1,5 +1,6 @@
 import {
   canonicalKbToolName,
+  effectiveKbOperation,
   kibiCliOperation,
 } from "kibi-agent-core/kb-mcp-tools";
 
@@ -78,9 +79,12 @@ function usageFromPayload(
     paths,
     ids,
     check,
-    // A working-tree-diff check without a source filter covers every edit.
+    // A working-tree-diff or changed check without a source filter covers
+    // every edit.
     checkAll:
-      check && paths.length === 0 && payload.includeWorkingTreeDiff === true,
+      check &&
+      paths.length === 0 &&
+      (payload.includeWorkingTreeDiff === true || payload.changed === true),
   };
 }
 
@@ -89,9 +93,11 @@ export function extractMcpKbUsage(
   toolInput: unknown,
 ): KbUsage | undefined {
   const operation = canonicalKbOperation(toolName);
-  return operation
-    ? usageFromPayload(operation, payloadOf(toolInput))
-    : undefined;
+  if (!operation) return undefined;
+  const payload = payloadOf(toolInput);
+  // Like the shared extractKbMcpToolCall: kb_record is a kb_upsert write,
+  // and a dry run of either only validates, so it records nothing.
+  return usageFromPayload(effectiveKbOperation(operation, payload), payload);
 }
 
 /**

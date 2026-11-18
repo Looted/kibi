@@ -15,6 +15,7 @@ import type { EntitySummary, IndexedSymbol } from "../src/knowledge-index";
 import { extractEditedPaths, extractPatchFilePaths } from "../src/path-policy";
 import {
   MAX_SNIPPET_CHARS,
+  MAX_WHY_CHARS,
   claimSnippetSlot,
   createEntitySummarizer,
   describeEntity,
@@ -23,6 +24,7 @@ import {
   editKnowledgeUpdate,
   factClaimSentence,
   fileKnowledgeSnippet,
+  reasonLine,
   requirementGroundingLines,
   unownedSourceNote,
 } from "../src/snippets";
@@ -182,6 +184,7 @@ describe("requirement grounding", () => {
     );
     expect(lines).toEqual([
       "REQ-GREET must keep true: The greet function must not call console.log or eval.",
+      "Why: no reason is recorded for REQ-GREET.",
     ]);
     expect(lines.join("\n")).not.toContain("FACT-");
   });
@@ -252,6 +255,7 @@ describe("requirement grounding", () => {
       requirementGroundingLines("REQ-cut", createEntitySummarizer(root)),
     ).toEqual([
       "REQ-cut must keep true: The matcher in src/match.c must never call malloc. It runs in a signal handler.",
+      "Why: no reason is recorded for REQ-cut.",
     ]);
   });
 });
@@ -274,7 +278,7 @@ describe("shared file knowledge snippet", () => {
       "Covered by: TEST-rounding.",
       "The edit is inside computeTotal, which implements REQ-rounding.",
       'Next layer: kb_query({id:"REQ-rounding", includeBody:true}) returns the full requirement text and why it exists; kb_search({query:"<topic>", sourceLocations:[{path:"src/checkout.ts", symbol:"computeTotal"}]}) answers with governing requirements, facts, decisions, and tests.',
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
 
     const read = fileKnowledgeSnippet({
@@ -286,6 +290,97 @@ describe("shared file knowledge snippet", () => {
     expect(read).toContain("- REQ-rounding: Checkout totals round to cents");
     expect(read).not.toContain("must keep true");
     expect(read).not.toContain("Decision:");
+  });
+
+  test("a closed requirement a listed one supersedes is marked and listed last", () => {
+    const summaries: Record<string, EntitySummary> = {
+      "REQ-csv-old": {
+        id: "REQ-csv-old",
+        title: "Reports export as CSV with comma separators",
+        status: "closed",
+        firmness: "firm",
+        why: {
+          recorded: true,
+          text: "Finance imports these files.",
+          from: "rationale",
+        },
+      },
+      "REQ-csv-new": {
+        id: "REQ-csv-new",
+        title: "Reports export as CSV with semicolon separators",
+        status: "open",
+        links: [{ type: "supersedes", target: "REQ-csv-old" }],
+        why: { recorded: false },
+      },
+    };
+    const snippet = fileKnowledgeSnippet({
+      relativePath: "src/x.ts",
+      symbols: [
+        {
+          id: "SYM-export",
+          title: "exportCsv",
+          line: 1,
+          endLine: 5,
+          implements: ["REQ-csv-old", "REQ-csv-new"],
+          coveredBy: [],
+          executableFor: [],
+        },
+      ],
+      surface: "edit",
+      summarize: (id) => summaries[id] ?? { id },
+    })?.split("\n");
+    expect(snippet?.slice(1, 4)).toEqual([
+      "- REQ-csv-new: Reports export as CSV with semicolon separators — exportCsv",
+      "- REQ-csv-old (closed, superseded by REQ-csv-new): Reports export as CSV with comma separators — exportCsv",
+      // The reason line names the requirement it belongs to.
+      "Why: no reason is recorded for REQ-csv-new.",
+    ]);
+    expect(snippet?.join("\n")).not.toContain("Finance imports");
+  });
+
+  test("a closed requirement superseded by an unlisted one is marked, listed last and not grounded", () => {
+    const summaries: Record<string, EntitySummary> = {
+      "REQ-csv-old": {
+        id: "REQ-csv-old",
+        title: "Reports export as CSV with comma separators",
+        status: "closed",
+        firmness: "firm",
+        supersededBy: "REQ-csv-new",
+        statement: "Reports export as CSV with comma separators.",
+        why: { recorded: true, text: "Finance imports.", from: "rationale" },
+      },
+      "REQ-audit": {
+        id: "REQ-audit",
+        title: "Exports are audited",
+        status: "open",
+        firmness: "default",
+        why: { recorded: false },
+      },
+    };
+    const snippet = fileKnowledgeSnippet({
+      relativePath: "src/x.ts",
+      symbols: [
+        {
+          id: "SYM-export",
+          title: "exportCsv",
+          line: 1,
+          endLine: 5,
+          implements: ["REQ-csv-old", "REQ-audit"],
+          coveredBy: [],
+          executableFor: [],
+        },
+      ],
+      surface: "edit",
+      summarize: (id) => summaries[id] ?? { id },
+    })?.split("\n");
+    expect(snippet?.slice(1, 3)).toEqual([
+      "- REQ-audit: Exports are audited — exportCsv",
+      "- REQ-csv-old (closed, superseded by REQ-csv-new): Reports export as CSV with comma separators — exportCsv",
+    ]);
+    expect(snippet?.join("\n")).not.toContain("Finance imports");
+    expect(
+      requirementGroundingLines("REQ-csv-old", (id) => summaries[id] ?? { id }),
+    ).toEqual([]);
   });
 
   test("a superseded lead requirement gets no grounding lines", () => {
@@ -376,7 +471,7 @@ describe("edit update after a shown snippet", () => {
       "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-rounding.",
       "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
       "Decision: ADR-decimal: Money is decimal cents.",
-      'Behavior changes here are traced to these requirements; kb_check({sourceFiles:["src/checkout.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.',
+      'Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate\'s verdict on the edit.',
     ]);
   });
 
@@ -615,5 +710,247 @@ describe("shared hook telemetry rows", () => {
     expect(agentCore.requirementGroundingLines).toBe(requirementGroundingLines);
     expect(agentCore.appendHookUsage).toBe(appendHookUsage);
     expect(agentCore.hostKbOperation).toBe(hostKbOperation);
+  });
+});
+
+describe("the recorded reason on the Why line", () => {
+  const reason = (why: EntitySummary["why"]): EntitySummary => ({
+    id: "REQ-x",
+    why,
+  });
+
+  test("names where the reason was recorded and who it came from and when", () => {
+    expect(
+      reasonLine(
+        reason({
+          recorded: true,
+          text: "Inline comments drifted from the manifest.",
+          from: "section",
+          by: "maintainer",
+          on: "2026-11-11",
+        }),
+      ),
+    ).toBe(
+      "Why: Inline comments drifted from the manifest (context section; maintainer, 2026-11-11).",
+    );
+    expect(
+      reasonLine(
+        reason({
+          recorded: true,
+          text: "Audit.",
+          from: "rationale",
+          by: "human",
+        }),
+      ),
+    ).toBe("Why: Audit (rationale; human).");
+    expect(
+      reasonLine(
+        reason({
+          recorded: true,
+          text: "Moved to 9",
+          from: "why_this_changed",
+        }),
+      ),
+    ).toBe("Why: Moved to 9 (Why this changed).");
+  });
+
+  test("says when no reason is recorded, and nothing when it is unknown", () => {
+    expect(reasonLine(reason({ recorded: false }))).toBe(
+      "Why: no reason is recorded.",
+    );
+    expect(reasonLine({ id: "REQ-x" })).toBeUndefined();
+  });
+
+  test("the reason is cut to the line's characters at a sentence", () => {
+    const text = `${"a".repeat(100)}. ${"b".repeat(100)}. ${"c".repeat(100)}.`;
+    const why = reason({ recorded: true, text, from: "rationale" });
+    expect(MAX_WHY_CHARS).toBe(240);
+    expect(reasonLine(why)).toBe(
+      `Why: ${"a".repeat(100)}. ${"b".repeat(100)} (rationale).`,
+    );
+    expect(reasonLine(why, 50)).toBe(`Why: ${"a".repeat(49)}… (rationale).`);
+  });
+
+  const withWhy: Record<string, EntitySummary> = {
+    ...SUMMARIES,
+    "REQ-rounding": {
+      ...(SUMMARIES["REQ-rounding"] as EntitySummary),
+      why: {
+        recorded: true,
+        text: "Finance reconciles to the cent.",
+        from: "rationale",
+        by: "maintainer",
+        on: "2026-10-01",
+      },
+    },
+  };
+  const summarizeWhy = (id: string): EntitySummary => withWhy[id] ?? { id };
+  const whyLine =
+    "Why: Finance reconciles to the cent (REQ-rounding rationale; maintainer, 2026-10-01).";
+
+  test("grounding gives it after what must stay true, unless asked not to", () => {
+    expect(requirementGroundingLines("REQ-rounding", summarizeWhy)).toEqual([
+      "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
+      whyLine,
+      "Decision: ADR-decimal: Money is decimal cents.",
+    ]);
+    expect(
+      requirementGroundingLines("REQ-rounding", summarizeWhy, {
+        whyChars: 0,
+      }).some((line) => line.startsWith("Why:")),
+    ).toBe(false);
+    expect(
+      requirementGroundingLines("REQ-old", (id) =>
+        id === "REQ-old"
+          ? {
+              ...(SUMMARIES["REQ-old"] as EntitySummary),
+              why: { recorded: false },
+            }
+          : summarize(id),
+      ),
+    ).toEqual([]);
+  });
+
+  test("the edit snippet and the edit update give it; a read does not", () => {
+    const input = {
+      relativePath: "src/checkout.ts",
+      symbols: SYMBOLS,
+      focus: [{ start: 4, end: 4 }],
+      summarize: summarizeWhy,
+    };
+    const edit = fileKnowledgeSnippet({ ...input, surface: "edit" });
+    expect(edit?.split("\n")).toContain(whyLine);
+    expect(edit).toContain(
+      'kb_query({id:"REQ-rounding", includeBody:true}) returns the full requirement text; kb_search',
+    );
+    const update = editKnowledgeUpdate({ ...input, surface: "edit" });
+    expect(update?.split("\n")).toEqual([
+      "Kibi: this edit to src/checkout.ts is inside computeTotal, which implements REQ-rounding.",
+      "REQ-rounding must keep true: Checkout totals: rounding mode must be half_up; A total is rounded once, after tax.",
+      whyLine,
+      "Decision: ADR-decimal: Money is decimal cents.",
+      `Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:["src/checkout.ts"]}) gives the commit gate's verdict on the edit.`,
+    ]);
+    const read = fileKnowledgeSnippet({ ...input, surface: "read" });
+    expect(read).not.toContain("Why:");
+    expect(read).toContain(
+      "returns the full requirement text and why it exists;",
+    );
+  });
+
+  // Six requirements on one file, each with two claims, a long reason and
+  // its own test: every layout shows a different text.
+  const crowded = () => {
+    const long = (n: number) => `${"Requirement ".repeat(6)}${n}`;
+    const summaries: Record<string, EntitySummary> = { ...withWhy };
+    const symbols: IndexedSymbol[] = [];
+    for (let n = 0; n < 6; n += 1) {
+      summaries[`REQ-long-${n}`] = {
+        id: `REQ-long-${n}`,
+        title: long(n),
+        status: "open",
+        links: [
+          { type: "requires_property", target: "FACT-cents" },
+          { type: "requires_rule", target: "FACT-rule" },
+        ],
+        why: {
+          recorded: true,
+          text: `${"Because ".repeat(20)}it matters. ${"Again ".repeat(30)}.`,
+          from: "section",
+        },
+      };
+      symbols.push({
+        id: `SYM-${n}`,
+        title: `symbolWithALongName${n}`,
+        line: n * 10 + 1,
+        endLine: n * 10 + 5,
+        implements: [`REQ-long-${n}`],
+        coveredBy: [`TEST-long-coverage-${n}`],
+        executableFor: [],
+      });
+    }
+    const input = {
+      relativePath: "src/a/fairly/long/path/to/the/module.ts",
+      symbols,
+      surface: "edit" as const,
+      summarize: (id: string) => summaries[id] ?? { id },
+    };
+    return { input, lead: summaries["REQ-long-0"] as EntitySummary };
+  };
+
+  test("a snippet over budget lists less before the Why line or the next calls are cut", () => {
+    const { input } = crowded();
+    const layout = (maxChars?: number) =>
+      fileKnowledgeSnippet({ ...input, maxChars }) as string;
+    const unbounded = layout(10_000);
+    expect(unbounded.length).toBeGreaterThan(MAX_SNIPPET_CHARS);
+    expect(unbounded.match(/^- REQ-/gm)?.length).toBe(4);
+    const fitted = layout();
+    expect(fitted.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+    expect(fitted.endsWith("…")).toBe(false);
+    expect(fitted).toContain("\nWhy: Because");
+    expect(fitted).toContain("Next layer:");
+    expect(fitted).toContain("gives the commit gate's verdict on the edit.");
+    expect(fitted.match(/^- REQ-/gm)?.length).toBeLessThan(4);
+    // Each layout shows less than the one before it.
+    const sizes = [1400, 1250, 1150, 1050, 950, 850].map(
+      (budget) => layout(budget).length,
+    );
+    for (const [index, size] of sizes.entries())
+      expect(size).toBeLessThanOrEqual(
+        [1400, 1250, 1150, 1050, 950, 850][index] as number,
+      );
+    // Past the last layout the text is cut to the budget.
+    expect(layout(300)).toHaveLength(300);
+    expect(layout(300).endsWith("…")).toBe(true);
+  });
+
+  test("each layout is used exactly while it fits, in order", () => {
+    const { input, lead } = crowded();
+    const layout = (maxChars: number) =>
+      fileKnowledgeSnippet({ ...input, maxChars }) as string;
+    const shapes: string[] = [];
+    for (let budget = layout(10_000).length; budget > 0; budget -= 1) {
+      const text = layout(budget);
+      if (text.endsWith("…")) break;
+      if (shapes.at(-1) !== text) shapes.push(text);
+    }
+    // A layout is used at exactly its own length.
+    for (const text of shapes) expect(layout(text.length)).toBe(text);
+    // Below the last layout, the last layout is what is cut.
+    const last = shapes.at(-1) as string;
+    expect(layout(last.length - 1)).toStartWith(last.slice(0, 300));
+    const shape = (text: string) => ({
+      requirements: text.match(/^- REQ-/gm)?.length,
+      moreClaims: text.includes(" +1 more."),
+      why: text.split("\n").find((line) => line.startsWith("Why: ")),
+      tests: text.includes("\nCovered by: "),
+    });
+    const why = (chars: number) => reasonLine(lead, chars, "REQ-long-0");
+    expect(shapes.map(shape)).toEqual([
+      { requirements: 4, moreClaims: false, why: why(240), tests: true },
+      { requirements: 3, moreClaims: false, why: why(240), tests: true },
+      { requirements: 2, moreClaims: true, why: why(240), tests: true },
+      { requirements: 2, moreClaims: true, why: why(160), tests: true },
+      { requirements: 1, moreClaims: true, why: why(160), tests: true },
+      { requirements: 1, moreClaims: true, why: why(160), tests: false },
+      { requirements: 1, moreClaims: true, why: why(100), tests: false },
+    ]);
+  });
+
+  test("an edit update over budget shows fewer claims and a shorter reason", () => {
+    const { input, lead } = crowded();
+    const update = (maxChars: number) =>
+      editKnowledgeUpdate({ ...input, maxChars }) as string;
+    const full = update(10_000);
+    expect(full).not.toContain(" +1 more.");
+    const fewer = update(full.length - 1);
+    expect(fewer).toContain(" +1 more.");
+    expect(fewer.endsWith("…")).toBe(false);
+    const tight = update(fewer.length - 1);
+    expect(tight.split("\n")).toContain(
+      reasonLine(lead, 160, "REQ-long-0") as string,
+    );
+    expect(tight.endsWith("…")).toBe(false);
   });
 });

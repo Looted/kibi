@@ -510,3 +510,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d3ccf3dcacb
+  - type: implements
+    from: SYM-kibi-decisions-skill-guidance
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:38:48.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cbbb6ca3618
+  - type: covered_by
+    from: SYM-kibi-decisions-skill-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:38:48.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc6c39957779
+  - type: implements
+    from: SYM-advertised-schema-advertised-open
+    to: REQ-mcp-short-field-descriptions
+    created_at: 2026-11-17T07:22:57.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8c417ae2684
+  - type: covered_by
+    from: SYM-advertised-schema-advertised-open
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-17T07:22:57.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecae0306504d
+  - type: implements
+    from: SYM-agent-core-KIBI_WORKSPACE_ENV_KEYS
+    to: REQ-agent-workspace-opt-in-keys
+    created_at: 2026-11-17T08:31:10.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9eafffe4f7c
+  - type: covered_by
+    from: SYM-agent-core-KIBI_WORKSPACE_ENV_KEYS
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-11-17T08:31:10.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c6c03cd6322
+  - type: covered_by
+    from: SYM-agent-core-KIBI_WORKSPACE_ENV_KEYS
+    to: TEST-proof-claude-workspace-env-keys
+    created_at: 2026-11-17T08:31:10.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1e2d3e034a5
+  - type: covered_by
+    from: SYM-cli-firm-edit-gate-options
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T21:24:21.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72b006750a69
+  - type: implements
+    from: SYM-symbol-id-mint-symbol-id
+    to: REQ-symbol-id-kb-upsert-implementedby-kibi
+    created_at: 2026-11-17T18:54:25.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1396648645bb
+  - type: covered_by
+    from: SYM-symbol-id-mint-symbol-id
+    to: TEST-symbol-id-minting
+    created_at: 2026-11-17T18:54:25.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4653bfb1b77f

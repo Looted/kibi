@@ -260,6 +260,31 @@ describe("renderHtmlReport", () => {
     expect(provenCard).not.toContain("proof gap");
   });
 
+  test("passes ownership for a requirement a source proof scopes", () => {
+    const fixture = coverageFixture();
+    const scoped = {
+      ...fixture.requirements.rows[0],
+      id: "REQ-SCOPED",
+      proofStages: provenStages({
+        productionSymbols: stage("passed", {
+          symbols: [],
+          scope: "source_proof",
+          sourceProofTests: ["TEST-204"],
+        }),
+      }),
+    };
+    const html = renderHtmlReport({
+      ...fixture,
+      requirements: { ...fixture.requirements, rows: [scoped] },
+      branch: "main",
+      generatedAt: new Date("2026-08-15T12:00:00.000Z"),
+    });
+    expect(html).toContain(
+      "No owning symbol needed: a source proof covers every claim",
+    );
+    expect(html).not.toContain("owned and E2E-covered");
+  });
+
   test("renders inspectable repository and source links from structured metadata", () => {
     const html = render({
       repository: {

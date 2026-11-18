@@ -1,0 +1,16 @@
+{
+  "test_id": "TEST-check-changed-commit-verdict",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "200000",
+      "./packages/cli/tests/traceability/changed-index.test.ts",
+      "./packages/cli/tests/public-mutation/operations/changed-check.mutation.test.ts",
+      "./packages/cli/tests/cli-register-reporting.test.ts",
+      "./packages/cli/tests/commands/check-changed.test.ts",
+      "./packages/cli/tests/consumer/changed-check-generated.test.ts"
+    ]
+  ]
+}

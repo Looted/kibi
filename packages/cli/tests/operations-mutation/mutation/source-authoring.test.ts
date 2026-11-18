@@ -4,14 +4,13 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { parseDocument } from "yaml";
+import { OperationError } from "../../../src/cli-errors.js";
 import { reviseRequirementBody } from "../../../src/entity-body-context.js";
 import * as authoring from "../../../src/operations/mutation/source-authoring.js";
 import {
   authoredFrontmatter,
   canonicalSourcePath,
   isUntrackedByGit,
-  manifestRelationships,
   newEntitySourceTarget,
   normalizeAuthoredSourcePath,
   readFileTimes,
@@ -347,6 +346,31 @@ describe("source paths", () => {
     );
     expect(self.code).toBe("SOURCE_PATH_INVALID");
     expect(self.message).toContain("without traversal");
+    for (const target of [
+      ".git/hooks/x.md",
+      "node_modules/x.md",
+      "a\\.git\\x.md",
+    ]) {
+      const refused = failure(() =>
+        canonicalSourcePath(
+          ctx,
+          input("req", "R-1", { document: { path: target } }),
+          { id: "R-1" },
+        ),
+      );
+      expect(refused.code).toBe("SOURCE_PATH_INVALID");
+      expect(refused.message).toContain("cannot target .git or node_modules");
+    }
+    // A backslash separates, as the receipt reports it.
+    expect(
+      canonicalSourcePath(
+        ctx,
+        input("adr", "ADR-1", {
+          document: { path: ".kb\\adr\\use-postgres.md" },
+        }),
+        { id: "ADR-1" },
+      ),
+    ).toBe(".kb/adr/use-postgres.md");
   });
 
   test("name the document a new entity would be written to", () => {
@@ -933,16 +957,33 @@ describe("symbol manifests", () => {
       );
     }
   });
+});
 
-  test("read typed relationships from a manifest entry", () => {
-    const entry = parseDocument(
-      "id: SYM-1\nrelationships:\n  - {type: a, target: X}\n  - {type: b, to: Y}\n  - {type: 5, target: Z}\n  - {type: c, target: 6}\n  - null\n  - plain\n",
-    ).contents;
-    expect(manifestRelationships(entry)).toEqual([
-      { type: "a", target: "X" },
-      { type: "b", target: "Y" },
-    ]);
-    expect(manifestRelationships(parseDocument("- a").contents)).toEqual([]);
+describe("writes into another entity's document", () => {
+  test("refuse a document that holds a different entity", () => {
+    const error = failure(() =>
+      markdown(
+        "req",
+        { id: "REQ-alpha", type: "req" },
+        "---\nid: REQ-beta\ntype: req\n---\nBeta must hold.\n",
+      ),
+    );
+    expect(error.code).toBe("SOURCE_ENTITY_MISMATCH");
+    expect(error.message).toBe(
+      "Authored document holds REQ-beta, not REQ-alpha; write REQ-alpha to its own file or omit document.path",
+    );
+  });
+
+  test("write into a document that holds the same entity or no id", () => {
+    for (const existing of [
+      "---\nid: REQ-alpha\ntype: req\n---\nAlpha must hold.\n",
+      "---\ntitle: draft\n---\nAlpha must hold.\n",
+      "plain body\n",
+    ]) {
+      expect(
+        markdown("req", { id: "REQ-alpha", type: "req" }, existing),
+      ).toContain("id: REQ-alpha");
+    }
   });
 });
 
@@ -1222,6 +1263,52 @@ describe("rendering a source write", () => {
     expect(result.relative).toBe("docs/x.md");
     expect(result.before).toBeUndefined();
     expect(result.after).toBe(rendered);
+  });
+
+  test("refuse a document without an id unless the store reads this entity from it", async () => {
+    const root = workspace();
+    const ctx = context(root) as OperationContext & { fs: FilesystemPort };
+    fs.mkdirSync(path.join(root, "docs"));
+    fs.writeFileSync(
+      path.join(root, "docs/a.md"),
+      "---\ntitle: Use Postgres\nstatus: accepted\n---\nPostgres.\n",
+    );
+    const refused = (await renderSourceWrite(
+      scenarioInput(),
+      scenarioEntity,
+      undefined,
+      ctx,
+    ).catch((error: unknown) => error)) as OperationError;
+    expect(refused).toBeInstanceOf(OperationError);
+    expect(refused.code).toBe("SOURCE_ENTITY_MISMATCH");
+    expect(refused.message).toBe(
+      "Authored document docs/a.md holds another entity (it has no id, so sync derives one from its path and title), not S-1; write S-1 to its own file or omit document.path",
+    );
+    for (const source of ["docs/b.md", "mcp://kibi/upsert"]) {
+      const other = (await renderSourceWrite(
+        scenarioInput(),
+        scenarioEntity,
+        { source },
+        ctx,
+      ).catch((error: unknown) => error)) as OperationError;
+      expect(other.code).toBe("SOURCE_ENTITY_MISMATCH");
+    }
+    // The entity the store already reads from that file is written there.
+    for (const source of ["docs/a.md", path.join(root, "docs/a.md")]) {
+      const held = await renderSourceWrite(
+        scenarioInput(),
+        scenarioEntity,
+        { source },
+        ctx,
+      );
+      expect(held.after).toContain("id: S-1");
+    }
+    // A file without front matter, or a YAML manifest, is not such a document.
+    fs.writeFileSync(path.join(root, "docs/a.md"), "plain body\n");
+    expect(
+      (await renderSourceWrite(scenarioInput(), scenarioEntity, undefined, ctx))
+        .after,
+    ).toContain("id: S-1");
   });
 
   test("publish override bytes only over an existing document", async () => {

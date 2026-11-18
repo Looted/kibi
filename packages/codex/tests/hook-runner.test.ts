@@ -3,9 +3,21 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
-import { captureReminder } from "kibi-agent-core/decision-guard";
+import {
+  captureReminder,
+  ruleCaptureTemplate,
+  rulePromptNote,
+} from "kibi-agent-core/decision-guard";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
   hashTelemetryId,
@@ -17,7 +29,7 @@ import {
   resolvePluginDataDir,
   resolveWorkspaceStateDir,
 } from "../src/hook-state";
-import { impactCheckReminder } from "../src/messages";
+import { CODEX_SESSION_NOTE, impactCheckReminder } from "../src/messages";
 
 function createTempRoot(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -110,7 +122,7 @@ describe("Codex hook runner workspace opt-in", () => {
     expect(result.systemMessage).toBeUndefined();
   });
 
-  test("SessionStart stays quiet in an opted-in workspace", async () => {
+  test("SessionStart opens an opted-in workspace with the shared session brief", async () => {
     const cwd = createTempRoot("kibi-codex-cwd-");
     optInWorkspace(cwd);
     const pluginData = createTempRoot("kibi-codex-data-");
@@ -118,7 +130,13 @@ describe("Codex hook runner workspace opt-in", () => {
 
     expect(
       await runHook({ event: "SessionStart", cwd }, { pluginData }),
-    ).toEqual({ continue: true });
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+      },
+    });
   });
 
   test("SessionStart tells the agent when the checkout has no Kibi hooks", async () => {
@@ -134,7 +152,10 @@ describe("Codex hook runner workspace opt-in", () => {
       continue: true,
       hookSpecificOutput: {
         hookEventName: "SessionStart",
-        additionalContext: MISSING_HOOKS_NOTE,
+        additionalContext: sessionBriefWith([
+          CODEX_SESSION_NOTE,
+          MISSING_HOOKS_NOTE,
+        ]),
       },
     });
   });
@@ -335,7 +356,7 @@ describe("Codex hook runner workspace opt-in", () => {
     // systemMessage reaches only the person; the agent gets `reason`.
     expect(result).toMatchObject({ continue: true, decision: "block" });
     expect(result.systemMessage).toBeUndefined();
-    expect(result.reason).toContain("includeImpactDiagnostics");
+    expect(result.reason).toContain("kb_check({changed:true");
     expect(result.reason).toContain("src/hook-runner.ts");
   });
 
@@ -496,7 +517,7 @@ function linkedWorkspace(requirementStatus = "open"): string {
   writeFile(
     root,
     ".kb/requirements/REQ-checkout-rounding.md",
-    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n`,
+    `---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: ${requirementStatus}\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\nrationale: Finance reconciles every order to the cent.\norigin:\n  kind: human\n  recorded_at: '2026-10-01T00:00:00Z'\n---\n`,
   );
   writeFile(
     root,
@@ -615,7 +636,7 @@ describe("Codex pre-edit knowledge", () => {
       additionalContext: [
         "Kibi: no symbol in src/other.ts is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.",
         "No requirement title matches this file, so nothing recorded is known to cover it.",
-        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.',
+        'kb_search({query:"<behavior being changed>", sourceLocations:[{path:"src/other.ts"}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_record (statement, why, who said it, code) before the work is reported done.',
       ].join("\n"),
     });
     expect(await write("s1")).toEqual({ continue: true });
@@ -673,7 +694,13 @@ describe("Codex evaluation trace replay", () => {
 
     expect(
       await event({ hook_event_name: "SessionStart", source: "startup" }),
-    ).toEqual({ continue: true });
+    ).toEqual({
+      continue: true,
+      hookSpecificOutput: {
+        hookEventName: "SessionStart",
+        additionalContext: sessionBriefWith([CODEX_SESSION_NOTE]),
+      },
+    });
     const linkedEdit = await event({
       hook_event_name: "PreToolUse",
       tool_name: "apply_patch",
@@ -703,7 +730,7 @@ describe("Codex evaluation trace replay", () => {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext: expect.stringContaining(
-          'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true',
+          'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
         ),
       },
     });
@@ -716,7 +743,7 @@ describe("Codex evaluation trace replay", () => {
     expect(stop.decision).toBe("block");
     expect(stop.reason).toContain("recorded nothing in the knowledge base");
     expect(stop.reason).toContain(
-      'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+      'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
     );
     expect(
       await event({ hook_event_name: "Stop", stop_hook_active: false }),
@@ -786,6 +813,62 @@ describe("Codex decision guard", () => {
     expect(first).toContain("Kibi knowledge for src/checkout.ts");
     expect(contextOf(await event(patch))).not.toContain(FIRM_NOTICE);
     expect(contextOf(await event(patch, "guard-2"))).toContain(FIRM_NOTICE);
+  });
+
+  test("a shell call that writes firm code in place gets the firm-edit notice", async () => {
+    const event = session();
+    const shell = (command: string) => ({
+      hook_event_name: "PreToolUse",
+      tool_name: "Bash",
+      tool_input: { command },
+    });
+    expect(contextOf(await event(shell("cat src/checkout.ts")))).toBe("");
+    expect(
+      contextOf(await event(shell("sed -i s/100/1000/ src/checkout.ts"))),
+    ).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement, a rule the person set: REQ-checkout-rounding",
+    );
+  });
+
+  test("a keeps receipt from an earlier session does not stop the firm-edit notice in a new session", async () => {
+    const cwd = linkedWorkspace();
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const content = fs.readFileSync(path.join(cwd, "src/checkout.ts"), "utf8");
+    const lines = content.split("\n").length;
+    writeFile(
+      cwd,
+      firmEditReceiptPath(
+        "REQ-checkout-rounding",
+        "src/checkout.ts",
+        "computeTotal",
+      ) as string,
+      serializeFirmEditReceipt({
+        version: FIRM_EDIT_RECEIPT_VERSION,
+        requirementId: "REQ-checkout-rounding",
+        sourceFile: "src/checkout.ts",
+        symbol: "computeTotal",
+        verdict: "keeps",
+        note: "Still rounds to cents.",
+        statementHash: firmEditStatementHash("Checkout totals round to cents"),
+        codeHash: firmEditCodeHash(content, 1, lines) as string,
+        startLine: 1,
+        endLine: lines,
+        recordedAt: "2026-11-16T00:00:00.000Z",
+      }),
+    );
+    const result = await runHook(
+      {
+        session_id: "receipt",
+        cwd,
+        hook_event_name: "PreToolUse",
+        tool_name: "apply_patch",
+        tool_input: { command: CHECKOUT_PATCH },
+      },
+      { pluginData },
+    );
+    expect(contextOf(result)).toContain("Kibi knowledge for src/checkout.ts");
+    expect(contextOf(result)).toContain(FIRM_NOTICE);
   });
 
   test("a patch that only deletes implements comments gets no firm-edit notice; the same patch with a code change does", async () => {
@@ -889,6 +972,13 @@ describe("Codex decision guard", () => {
         prompt: "Rename the export button.",
       }),
     ).toEqual({ continue: true });
+    const reasoned = await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guests must not export, so that drafts stay private.",
+    });
+    expect(contextOf(reasoned)).toBe(
+      rulePromptNote("must not", "so that drafts stay private"),
+    );
   });
 
   test("the request's words pick requirement candidates for an unlinked file", async () => {
@@ -908,6 +998,74 @@ describe("Codex decision guard", () => {
       "Requirements whose titles share words with this path or the request:",
     );
     expect(context).toContain("REQ-checkout-rounding");
+  });
+
+  test("a shell in-place edit of source counts as a source edit at Stop", async () => {
+    for (const command of [
+      "sed -i 's/true/false/' src/guard.ts",
+      ["bash", "-lc", "echo x > src/guard.ts"],
+    ]) {
+      const event = session();
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "Bash",
+        tool_input: { command },
+      });
+      const stop = await event({
+        hook_event_name: "Stop",
+        stop_hook_active: false,
+      });
+      expect(stop.reason).toContain("recorded nothing in the knowledge base");
+    }
+    const quiet = session();
+    await quiet({
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_input: { command: "sed -n 1p src/guard.ts" },
+    });
+    expect(
+      (await quiet({ hook_event_name: "Stop", stop_hook_active: false }))
+        .reason ?? "",
+    ).not.toContain("recorded nothing");
+  });
+
+  test("an edit by absolute path is cleared by the workspace-relative kb_check", async () => {
+    const cwd = linkedWorkspace();
+    writeFile(cwd, "src/guard.ts", "export const guard = () => true;\n");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    const event = (payload: Record<string, unknown>) =>
+      runHook({ session_id: "abs-1", cwd, ...payload }, { pluginData });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: {
+        command: GUARD_PATCH.replace(
+          "src/guard.ts",
+          path.join(cwd, "src/guard.ts"),
+        ),
+      },
+    });
+    const unchecked = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: true,
+    });
+    expect(JSON.stringify(unchecked)).not.toContain(path.join(cwd, "src"));
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_check",
+      tool_input: { changed: true, sourceFiles: ["src/guard.ts"] },
+    });
+    await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_upsert",
+      tool_input: { type: "symbol", id: "SYM-guard", properties: {} },
+    });
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(stop.decision).toBeUndefined();
   });
 
   test("Stop continues the turn once with the capture request when source changed and nothing was recorded", async () => {
@@ -939,7 +1097,7 @@ describe("Codex decision guard", () => {
       stop_hook_active: false,
     });
     expect(stop).toMatchObject({ continue: true, decision: "block" });
-    expect(stop.reason).toContain("kb_upsert");
+    expect(stop.reason).toContain("kb_record");
     await event({
       hook_event_name: "PostToolUse",
       tool_name: "apply_patch",
@@ -951,6 +1109,78 @@ describe("Codex decision guard", () => {
     });
     expect(again.reason).not.toContain("recorded nothing");
     expect(again.reason).toContain("kb_check(");
+  });
+
+  test("a rule session gets the capture template after its first source edit, and Stop quotes the rule phrase", async () => {
+    const event = session();
+    await event({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guards should never pass by default.",
+    });
+    // A patch that also edits docs still counts as the first source edit;
+    // the template follows the impact note.
+    const first = await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: {
+        command: GUARD_PATCH.replace(
+          "*** Begin Patch",
+          "*** Begin Patch\n*** Update File: README.md\n@@\n-a\n+b",
+        ),
+      },
+    });
+    expect(contextOf(first)).toContain(
+      `\n\n${ruleCaptureTemplate("should never")}`,
+    );
+    const second = await event({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    expect(JSON.stringify(second)).not.toContain("fill in this template");
+    const stop = await event({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(stop.reason).toStartWith(captureReminder("should never"));
+
+    // Without a rule, the first source edit gets no template.
+    const plain = session();
+    await plain({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Rename the guard.",
+    });
+    const edit = await plain({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    expect(JSON.stringify(edit)).not.toContain("fill in this template");
+  });
+
+  test("a new session without an id is not silenced by an earlier one's markers", async () => {
+    const event = session();
+    const anonymous = (payload: Record<string, unknown>) => event(payload, "");
+    const edit = {
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    };
+    const stop = { hook_event_name: "Stop", stop_hook_active: false };
+    await anonymous({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Guards should never pass by default.",
+    });
+    await anonymous(edit);
+    expect((await anonymous(stop)).reason).toStartWith(
+      captureReminder("should never"),
+    );
+    // A new session starts clean: no stale rule phrase, and it is asked.
+    await anonymous({ hook_event_name: "SessionStart" });
+    await anonymous(edit);
+    expect((await anonymous(stop)).reason).toStartWith(
+      captureReminder(undefined),
+    );
   });
 
   test("a kb_upsert in the session keeps Stop from asking for capture", async () => {
@@ -1008,6 +1238,55 @@ describe("Codex decision guard", () => {
       stop_hook_active: false,
     });
     expect(quiet.reason).not.toContain("recorded nothing");
+  });
+
+  test("a kb_record call or kibi record is a record, and asks for a signoff; its dry run is no record", async () => {
+    for (const [toolName, toolInput] of [
+      [
+        "mcp__kibi__kb_record",
+        { statement: "Guards never throw.", saidBy: "user" },
+      ],
+      ["Bash", { command: "kibi record --input rule.json" }],
+    ] as const) {
+      const event = session();
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: "apply_patch",
+        tool_input: { command: GUARD_PATCH },
+      });
+      await event({
+        hook_event_name: "PostToolUse",
+        tool_name: toolName,
+        tool_input: toolInput,
+      });
+      const stop = await event({
+        hook_event_name: "Stop",
+        stop_hook_active: false,
+      });
+      expect(stop.reason).not.toContain("recorded nothing");
+      if (toolName !== "Bash")
+        expect(stop.reason).toContain("run `kibi signoff`");
+    }
+    const dryRun = session();
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "apply_patch",
+      tool_input: { command: GUARD_PATCH },
+    });
+    await dryRun({
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__kibi__kb_record",
+      tool_input: {
+        statement: "Guards never throw.",
+        saidBy: "user",
+        dryRun: true,
+      },
+    });
+    const asked = await dryRun({
+      hook_event_name: "Stop",
+      stop_hook_active: false,
+    });
+    expect(asked.reason).toContain("recorded nothing");
   });
 
   test("Stop continues once with a signoff request after a requirement is written", async () => {
@@ -1294,6 +1573,9 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(context).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
     );
+    expect(context).toContain(
+      "\nWhy: Finance reconciles every order to the cent (REQ-checkout-rounding rationale; human, 2026-10-01).\n",
+    );
     expect(context).toContain("\nCovered by: TEST-checkout-rounding.\n");
     expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
 
@@ -1305,7 +1587,7 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
     expect(additionalContextOf(await preEdit("codex-e2e-2"))).toBe(context);
   }, 30_000);
 
-  test("a file owning more requirements than fit is cut at the snippet budget after its grounding and decision", async () => {
+  test("a file owning more requirements than fit lists fewer of them and keeps its grounding, reason, decision and next calls", async () => {
     const cwd = linkedWorkspace();
     const pluginData = createTempRoot("kibi-codex-e2e-data-");
     tempRoots.push(pluginData);
@@ -1354,12 +1636,16 @@ describe("Codex hook command pre-edit knowledge (end to end)", () => {
       ),
     );
 
-    expect(context.length).toBe(MAX_SNIPPET_CHARS);
-    expect(context).toEndWith("…");
+    // Fewer requirements are listed, so nothing is cut off the end.
+    expect(context.length).toBeLessThanOrEqual(MAX_SNIPPET_CHARS);
+    expect(context).not.toEndWith("…");
     expect(context).toContain(
       "\n- REQ-checkout-rounding [firm: ask before changing]: Checkout totals round to cents — computeTotal\n",
     );
-    expect(context).toContain("\n- +2 more requirements: kb_query(");
+    expect(context).toMatch(/\n- \+[345] more requirements: kb_query\(/);
+    expect(context).toContain("\nWhy: ");
+    expect(context).toContain("\nNext layer: ");
+    expect(context).toEndWith("gives the commit gate's verdict on the edit.");
     expect(context).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
     );
@@ -1654,7 +1940,7 @@ describe("Codex hook runner result contracts", () => {
       continue: true,
       decision: "block",
       reason: [
-        captureReminder(false),
+        captureReminder(undefined),
         impactCheckReminder(["src/guard.ts"]),
       ].join("\n"),
     });
@@ -1710,7 +1996,7 @@ describe("Codex hook runner result contracts", () => {
     ).toEqual({
       continue: true,
       decision: "block",
-      reason: captureReminder(false),
+      reason: captureReminder(undefined),
     });
   });
 
@@ -1727,7 +2013,7 @@ describe("Codex hook runner result contracts", () => {
       (await event({ hook_event_name: "Stop", stop_hook_active: false }))
         .reason,
     ).toBe(
-      `${captureReminder(false)}\n${impactCheckReminder(["src/guard.ts"])}`,
+      `${captureReminder(undefined)}\n${impactCheckReminder(["src/guard.ts"])}`,
     );
   });
 });
@@ -1784,7 +2070,7 @@ describe("Codex reminders from real payload shapes", () => {
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
         additionalContext: expect.stringContaining(
-          'kb_check({sourceFiles:["src/guard.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})',
+          'kb_check({changed:true, sourceFiles:["src/guard.ts"]})',
         ),
       },
     });
@@ -1937,7 +2223,7 @@ describe("Codex reminders from real payload shapes", () => {
       continue: true,
       hookSpecificOutput: {
         hookEventName: "PostToolUse",
-        additionalContext: `Kibi impact review: run kb_check({sourceFiles:${JSON.stringify(sourceFiles)}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) while this edit is fresh.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.`,
+        additionalContext: `Kibi impact review: run kb_check({changed:true, sourceFiles:${JSON.stringify(sourceFiles)}}) while this edit is fresh; it gives the commit gate's verdict.\nCheck whether the linked requirements, scenarios and tests still cover the changed behavior.`,
       },
     });
 

@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-kb-dependency-untrusted-input",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "240000",
+      "./packages/cli/tests/dependencies/kb-dependencies.test.ts",
+      "./packages/cli/tests/plugins/project-config.test.ts",
+      "./packages/cli/tests/env/bootstrap.test.ts"
+    ]
+  ]
+}

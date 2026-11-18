@@ -65,6 +65,7 @@
     adr_chain/2,
     deprecated_no_successor/1,
     symbol_no_req_coverage/2,
+    linkless_non_behavioral_symbol/1,
     changed_symbol_no_req_coverage/2,
     predicate_schema/6,
     predicate_schema_keys/4,
@@ -97,6 +98,7 @@
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('units.pl', [canonical_quantity/6]).
+:- use_module('symbol_classification.pl', [non_behavioral_role/1, behavioral_kind/1]).
 :- use_module('intervals.pl', [numeric_constraints_satisfiable/2]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
@@ -152,6 +154,7 @@ kb_uri('urn-kibi:').
 :- dynamic kb_requirement_ladder_memo/3.
 :- dynamic kb_status_source_index_memo/2.
 :- dynamic kb_scenario_feasibility_memo/3.
+:- dynamic kb_property_fact_index/7.
 :- dynamic kb_search_ids_memo/4.
 :- dynamic kb_query_ids_memo/3.
 :- dynamic kb_index_verified_key/1.
@@ -206,6 +209,7 @@ kb_attach_journaled(Directory) :-
     % staged migration can have been atomically moved after the graph was
     % first persisted, so accept the single restored graph URI as well.
     journal_graph_uri(Directory, GraphURI),
+    kb_repair_duplicate_triples(Directory, GraphURI),
     read_journal_metadata(Directory, Generation, Sequence),
     assert(kb_attached(Directory)),
     assert(kb_graph(GraphURI)),
@@ -223,22 +227,132 @@ kb_attach_journaled(Directory) :-
     load_kb_pl_files(Directory),
     kb_rebuild_indexes.
 
-% SWI-Prolog's rdf_db fails to write journals ("invalid term_t ... out of
-% range") for graphs whose URI is roughly 230 characters or longer.  Store
-% paths inside deep workspaces reach that length, so those stores use a short
-% digest-based graph URI; shorter paths keep the file:// URI they always had.
+%% kb_repair_duplicate_triples(+Directory, +GraphURI)
+% A snapshot written while rdf_db still held reindexed triples that its
+% garbage collector had not reclaimed holds each of them twice (see
+% kb_flush_journals/1), so loading it gives rdf/4 two copies of every such
+% triple, while rdf/3 still answers each triple once.  Kibi before this repair
+% wrote such snapshots, so a store on disk can carry them.  The repair keeps
+% one copy of each duplicated triple, writes a clean snapshot, says so on
+% stderr and records it in .kibi-store-repair.json for kb_status and
+% kibi doctor.  A repair that fails leaves the store as it loaded.
+kb_repair_duplicate_triples(Directory, GraphURI) :-
+    catch(repair_duplicate_triples(Directory, GraphURI), Error,
+          print_message(warning, Error)).
+
+repair_duplicate_triples(Directory, GraphURI) :-
+    (   store_has_duplicate_triples
+    ->  findall(S-P-O, rdf(S, P, O, GraphURI), Triples),
+        msort(Triples, Sorted),
+        duplicated_triples(Sorted, Duplicated, 0, Extra),
+        (   Duplicated == []
+        ->  true
+        ;   length(Triples, Loaded),
+            length(Duplicated, Repaired),
+            rdf_transaction(
+                forall(member(S-P-O, Duplicated),
+                       ( rdf_retractall(S, P, O, GraphURI),
+                         rdf_assert(S, P, O, GraphURI) ))),
+            kb_flush_journals([]),
+            format(user_error,
+                   'kibi: repaired branch store ~w: removed ~D duplicate copies of ~D triples (~D loaded)~n',
+                   [Directory, Extra, Repaired, Loaded]),
+            write_store_repair(Directory, Loaded, Repaired, Extra)
+        )
+    ;   true
+    ).
+
+% Every graph counts each copy it holds while rdf/3 answers each triple once,
+% so the two differ only when some triple is held twice (or by two graphs,
+% which the repair then finds nothing to change in).
+store_has_duplicate_triples :-
+    rdf_statistics(triples(Held)),
+    aggregate_all(count, rdf(_, _, _), Distinct),
+    Held > Distinct.
+
+% duplicated_triples(+Sorted, -Duplicated, +Extra0, -Extra): the triples that
+% occur more than once in Sorted, each once, and the number of extra copies.
+duplicated_triples([], [], Extra, Extra).
+duplicated_triples([T, T|Rest], [T|Duplicated], Extra0, Extra) :-
+    !,
+    skip_copies(T, Rest, Remaining, Extra0, Extra1),
+    duplicated_triples(Remaining, Duplicated, Extra1, Extra).
+duplicated_triples([_|Rest], Duplicated, Extra0, Extra) :-
+    duplicated_triples(Rest, Duplicated, Extra0, Extra).
+
+% skip_copies(+T, +List, -Rest, +Extra0, -Extra): drops the further copies of
+% T that start List, and adds to Extra0 every copy of T after the first.
+skip_copies(T, [T|Rest], Remaining, Extra0, Extra) :-
+    !,
+    Extra1 is Extra0 + 1,
+    skip_copies(T, Rest, Remaining, Extra1, Extra).
+skip_copies(_, Rest, Rest, Extra0, Extra) :-
+    Extra is Extra0 + 1.
+
+kb_store_repair_path(Directory, Path) :-
+    atom_concat(Directory, '/.kibi-store-repair.json', Path).
+
+write_store_repair(Directory, Loaded, Repaired, Extra) :-
+    kb_store_repair_path(Directory, Path),
+    get_time(Now),
+    stamp_date_time(Now, NowUTC, 'UTC'),
+    format_time(atom(At), '%FT%TZ', NowUTC),
+    atom_concat(Path, '.tmp', TmpPath),
+    setup_call_cleanup(
+        open(TmpPath, write, Stream),
+        json_write_dict(Stream,
+                        _{at:At,
+                          loadedTriples:Loaded,
+                          duplicatedTriples:Repaired,
+                          removedCopies:Extra},
+                        []),
+        (close(Stream), rename_file(TmpPath, Path))).
+
+% rdf_persistency names a graph's journal and snapshot files after the graph
+% URI, percent-encoding every character except ASCII letters, digits and `_`,
+% so a `/`, `-` or `.` takes three bytes.  A file name over the file system's
+% 255-byte limit makes the journal write throw inside SWI's RDF monitor, and
+% SWI-Prolog 10.0.2 aborts the whole process on an exception there ("invalid
+% term_t ... out of range").  A store whose file:// URI would encode to a name
+% that, with the longest suffix rdf_persistency adds (`.trp.new`), exceeds the
+% limit uses a short digest-based graph URI instead; every other store keeps
+% the file:// URI it always had.
 journal_expected_graph_uri(Directory, Expected) :-
     atom_concat('file://', Directory, FileURI),
-    atom_length(FileURI, Length),
-    (   Length =< 200
+    (   journal_file_name_fits(FileURI)
     ->  Expected = FileURI
     ;   sha_hash(Directory, Hash, [algorithm(sha1)]),
         hash_atom(Hash, Digest),
         atom_concat('urn:kibi:store:', Digest, Expected)
     ).
 
+% The longest file rdf_persistency derives from a graph name is
+% `<encoded name>.trp.new` (8 bytes of suffix), so the encoded name may take
+% at most 255 - 8 bytes.
+journal_file_name_fits(GraphURI) :-
+    atom_codes(GraphURI, Codes),
+    foldl(journal_encoded_length, Codes, 0, Length),
+    Length =< 247.
+
+% Bounds rdf_persistency's url_to_filename/2 encoding from above: ASCII
+% letters, digits and `_` take one byte, a newline six (`%0D%0A`) and any
+% other character at most three (a space, written as `+`, takes one).
+journal_encoded_length(Code, Length0, Length) :-
+    (   (   Code =:= 0'_
+        ;   Code < 128, code_type(Code, alnum)
+        )
+    ->  Length is Length0 + 1
+    ;   Code =:= 0'\n
+    ->  Length is Length0 + 6
+    ;   Length is Length0 + 3
+    ).
+
 journal_graph_uri(Directory, GraphURI) :-
     journal_expected_graph_uri(Directory, Expected),
+    forall(( rdf_graph(Graph),
+             Graph \== Expected,
+             \+ journal_file_name_fits(Graph) ),
+           merge_graph(Graph, Expected)),
     (   rdf_graph(Expected)
     ->  GraphURI = Expected
     ;   rdf_graph_property(Graph, triples(Triples)),
@@ -246,6 +360,21 @@ journal_graph_uri(Directory, GraphURI) :-
     ->  GraphURI = Graph
     ;   GraphURI = Expected
     ).
+
+% A store restored under a graph URI whose snapshot file name does not fit
+% (written before the short URIs, at a path whose name encodes to 248-251
+% bytes) could append to its journal but never write a snapshot.  Its triples
+% move to the short graph in one transaction, each once, and the old graph is
+% unloaded, which deletes its files.  A move cut off before the unload is
+% finished by the next attach, which finds every triple already moved.
+merge_graph(From, To) :-
+    rdf_transaction(
+        forall(rdf(S, P, O, From),
+               (   rdf(S, P, O, To)
+               ->  true
+               ;   rdf_assert(S, P, O, To)
+               ))),
+    rdf_unload_graph(From).
 
 kb_attach_legacy(Directory) :-
     % Create RDF graph name from directory
@@ -340,7 +469,7 @@ kb_detach :-
     % Every step is a no-op when nothing is attached, so detaching an
     % unattached KB needs no separate guard.
     (   kb_storage_mode(journaled)
-    ->  catch(rdf_flush_journals([min_size(16384)]), _, true),
+    ->  catch(kb_flush_journals([min_size(16384)]), _, true),
         catch(rdf_detach_db, _, true),
         catch(kb_remove_lock_owner, _, true)
     ;   true
@@ -380,6 +509,7 @@ kb_detach :-
     retractall(kb_requirement_ladder_memo(_, _, _)),
     retractall(kb_status_source_index_memo(_, _)),
     retractall(kb_scenario_feasibility_memo(_, _, _)),
+    retractall(kb_property_fact_index(_, _, _, _, _, _, _)),
     retractall(kb_search_ids_memo(_, _, _, _)),
     retractall(kb_query_ids_memo(_, _, _)),
     retractall(kb_index_entity(_, _)),
@@ -452,12 +582,100 @@ kb_sync_checkpoint :-
     kb_mark_dirty,
     kb_save_journaled.
 
+%% kb_flush_journals(+Options)
+% rdf_flush_journals/1, written while no triple is reindexed.  A snapshot
+% written while SWI-Prolog's rdf_db holds reindexed triples that its garbage
+% collector has not reclaimed can contain each of those triples twice, and
+% every later load then returns both copies.  rdf_db's background collector
+% can also start reindexing (optimizing its hash tables) while the snapshot is
+% being written, so it is held for the write, and the store is collected and
+% optimized in this thread first.  When that cannot finish, the journal is
+% kept instead: loading a journal never doubles a triple, and a later save
+% writes the snapshot.  Only a write that makes a snapshot pays for this.
+kb_flush_journals(Options) :-
+    (   snapshot_due(Options)
+    ->  with_background_rdf_gc_held(
+            (   collect_store_garbage
+            ->  rdf_flush_journals(Options)
+            ;   true
+            ))
+    ;   rdf_flush_journals(Options)
+    ).
+
+% with_background_rdf_gc_held(:Goal): runs Goal while rdf_db's background
+% garbage-collection thread waits on kb_rdf_gc_hold.  The thread takes the
+% signal between two collections, so this waits for it to finish the one it
+% is running.  A thread that does not answer within ten seconds (or that does
+% not exist yet) is not waited for; when it answers later it passes the
+% released mutex at once.  Inside a hold this thread already has, Goal runs
+% as it is.
+:- meta_predicate with_background_rdf_gc_held(0).
+with_background_rdf_gc_held(Goal) :-
+    thread_self(Me),
+    (   catch(mutex_property(kb_rdf_gc_hold, status(locked(Me, _))), _, fail)
+    ->  call(Goal)
+    ;   catch(thread_property('__rdf_GC', status(running)), _, fail)
+    ->  Ref = gc_hold(Me),
+        setup_call_cleanup(
+            mutex_lock(kb_rdf_gc_hold),
+            ( catch(thread_signal('__rdf_GC',
+                                  ( thread_send_message(Me, rdf_gc_held(Ref)),
+                                    with_mutex(kb_rdf_gc_hold, true) )),
+                    _, true),
+              ignore(thread_get_message(Me, rdf_gc_held(Ref), [timeout(10)])),
+              call(Goal) ),
+            mutex_unlock(kb_rdf_gc_hold))
+    ;   call(Goal)
+    ).
+
+% rdf_gc/0 repeats until nothing is left to collect or optimize, which never
+% happens while another thread's open query holds the generation a triple was
+% reindexed in.  This gives such a reader about a second, and then fails,
+% saying on stderr that the snapshot waits for a later save.
+collect_store_garbage :-
+    collect_store_garbage(50).
+
+collect_store_garbage(Rounds) :-
+    rdf_db:rdf_gc_info_(Info),
+    arg(2, Info, Garbage),
+    arg(3, Info, Reindexed),
+    arg(4, Info, Optimizable),
+    (   Garbage + Reindexed + Optimizable =:= 0
+    ->  true
+    ;   Rounds =:= 0
+    ->  format(user_error,
+               'kibi: kept the store journal instead of writing a snapshot: ~D reindexed and ~D garbage triples are not yet reclaimed; a later save writes it~n',
+               [Reindexed, Garbage]),
+        fail
+    ;   rdf_db:rdf_gc(_),
+        rdf_db:rdf_gc_info_(After),
+        (   After == Info
+        ->  sleep(0.02)
+        ;   true
+        ),
+        Next is Rounds - 1,
+        collect_store_garbage(Next)
+    ).
+
+% True when rdf_flush_journals(Options) would write a snapshot for a graph:
+% without min_size(KB) for any graph with a journal, and with it only for a
+% journal of KB or more.
+snapshot_due(Options) :-
+    rdf_journal_file(_Graph, JournalFile),
+    exists_file(JournalFile),
+    (   memberchk(min_size(KB), Options)
+    ->  size_file(JournalFile, Size),
+        Size / 1024 >= KB
+    ;   true
+    ),
+    !.
+
 kb_save_journaled_locked(Directory) :-
     ensure_journal_sentinel_current(Directory),
     (   kb_dirty
     ->  kb_stage(journal_flush),
         % mutalog-disable-next-line goal_true,literal: this only folds a journal of 16 MiB or more into a snapshot; the store holds the same triples either way
-        rdf_flush_journals([min_size(16384)]),
+        kb_flush_journals([min_size(16384)]),
         next_journal_commit(Generation, Sequence),
         write_journal_head(Directory, Generation, Sequence),
         retractall(kb_attached_snapshot(_)),
@@ -591,7 +809,20 @@ kb_storage_compact :-
     % mutalog-disable-next-line goal_true: a legacy store records no journal sentinel stamp, so the save inside the compaction fails for it as well
     kb_storage_mode(journaled),
     kb_attached(Directory),
-    with_kb_mutex(kb_storage_compact_locked(Directory)).
+    with_kb_mutex((
+        kb_storage_compact_locked(Directory),
+        snapshot_written
+    )).
+
+% kb_flush_journals/1 keeps the journal when it cannot write a clean snapshot,
+% so an explicit compaction that left a journal says so instead of passing.
+snapshot_written :-
+    (   snapshot_due([])
+    ->  throw(error(resource_error(kb_store_snapshot),
+                    context(kb_storage_compact/0,
+                            'the store journal was kept and no snapshot was written; the data is safe, run the compaction again later')))
+    ;   true
+    ).
 
 %% kb_storage_compact_if_needed
 % Compact only when the live journal has crossed the 16 MiB idle-compaction
@@ -618,7 +849,7 @@ kb_storage_compact_locked(Directory) :-
     % first so CURRENT never points at an older commit sequence.
     kb_save_journaled_locked(Directory),
     % mutalog-disable-next-line literal: an unbound option names no option, so [_] flushes every journal too
-    rdf_flush_journals([]),
+    kb_flush_journals([]),
     (   kb_generation(Generation) -> true ; Generation = 'generation-1' ),
     (   kb_commit_sequence(Sequence) -> true ; Sequence = 0 ),
     write_journal_head(Directory, Generation, Sequence).
@@ -1026,6 +1257,60 @@ kb_commit_relationships_no_audit([
     kb_assert_relationship_no_audit(RelType, FromId, ToId, Metadata),
     kb_commit_relationships_no_audit(Rest).
 
+%% upsert_contradiction_baseline(+Type, +Id, +Relationships, +SkipContradiction, -Baseline)
+% Read before an upsert mutates anything. For a fact write that runs the
+% contradiction check, Baseline is fact_baseline(Reqs, Pairs): the
+% requirements linked to the fact now or by Relationships, and the
+% contradicting pairs they are already part of. A write is refused only for
+% a pair it introduces, so a contradiction the KB already holds (kb_check's
+% finding) never blocks an unrelated edit of the fact. Any other write has
+% Baseline none.
+upsert_contradiction_baseline(fact, Id, Relationships, false, fact_baseline(Reqs, Pairs)) :-
+    !,
+    fact_linked_reqs(Id, Relationships, Reqs),
+    linked_req_conflict_pairs(Reqs, Pairs).
+upsert_contradiction_baseline(_, _, _, _, none).
+
+fact_req_link_type(requires_property).
+fact_req_link_type(requires_predicate).
+fact_req_link_type(requires_rule).
+fact_req_link_type(constrains).
+
+%% fact_linked_reqs(+FactId, +Relationships, -Reqs)
+% The requirements grounded on FactId in the store, plus those a pending
+% relationship in Relationships links to it, sorted.
+fact_linked_reqs(FactId, Relationships, Reqs) :-
+    findall(ReqId,
+            ( fact_req_link_type(Link),
+              (   kb_relationship(Link, ReqId, FactId)
+              ;   memberchk(rel(Link, ReqId, FactId, _), Relationships)
+              ) ),
+            Reqs0),
+    sort(Reqs0, Reqs).
+
+%% linked_req_conflict_pairs(+Reqs, -Pairs)
+% Every contradiction between two current requirements, one of them in
+% Reqs, as sorted pair(ReqA, ReqB)-Reason terms with ReqA @< ReqB, one per
+% requirement pair.
+linked_req_conflict_pairs(Reqs, Pairs) :-
+    findall(pair(A, B)-Reason,
+            ( member(ReqId, Reqs),
+              (   contradicting_reqs(ReqId, Other, Reason)
+              ;   contradicting_reqs(Other, ReqId, Reason)
+              ),
+              ReqId \== Other,
+              msort([ReqId, Other], [A, B]) ),
+            Pairs0),
+    keysort(Pairs0, Sorted),
+    first_reason_per_pair(Sorted, Pairs).
+
+first_reason_per_pair([], []).
+first_reason_per_pair([Key-Reason|Rest], [Key-Reason|Pairs]) :-
+    exclude(same_pair_key(Key), Rest, Others),
+    first_reason_per_pair(Others, Pairs).
+
+same_pair_key(Key, Key-_).
+
 kb_maybe_check_req_contradiction(Type, Id, SkipContradiction) :-
     (   Type == req,
         SkipContradiction == false
@@ -1034,23 +1319,72 @@ kb_maybe_check_req_contradiction(Type, Id, SkipContradiction) :-
     ;   true
     ).
 
-%% kb_stage_upsert_mutation(+Type, +Id, +Properties, +Relationships, +SkipContradiction)
-% The RDF mutation and refusal rules of one upsert, shared by the commit, the
-% batch commit and the dry-run preview so all three refuse the same payloads:
-% a relationship whose source or target entity does not exist, an invalid
-% relationship direction, a symbol mixing executable_for with production
-% ownership/coverage edges, and (for a requirement) a contradiction.
-kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction) :-
-    kb_assert_entity_no_audit(Type, Props),
-    kb_commit_relationships_no_audit(Relationships),
-    kb_maybe_check_req_contradiction(Type, Id, SkipContradiction).
+%% kb_check_upsert_contradiction(+Type, +Id, +SkipContradiction, +Baseline)
+% Run after the upsert's mutation: a requirement must not contradict any
+% current requirement, and a fact write must not make two current
+% requirements grounded on the fact contradict (check_fact_contradiction/2).
+kb_check_upsert_contradiction(Type, Id, SkipContradiction, Baseline) :-
+    kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+    (   Baseline = fact_baseline(Reqs0, Pairs0)
+    ->  kb_stage(contradiction_check),
+        check_fact_contradiction(Id, Reqs0, Pairs0)
+    ;   true
+    ).
 
-% Stage one upsert inside an already-open transaction. The caller saves once.
+%% check_fact_contradiction(+FactId, +ReqsBefore, +PairsBefore)
+% Throws error(kb_fact_contradiction(FactId, Conflicts), Message) when the
+% requirements linked to FactId after the write are in a contradicting pair
+% that PairsBefore did not hold. Conflicts are conflict(ReqA, ReqB, Reason)
+% terms. Changing a value fact one requirement is grounded on can leave a
+% second requirement on the same subject and property with no common value;
+% that is the same contradiction a requirement write is refused for.
+check_fact_contradiction(FactId, ReqsBefore, PairsBefore) :-
+    fact_linked_reqs(FactId, [], ReqsAfter),
+    ord_union(ReqsBefore, ReqsAfter, Reqs),
+    linked_req_conflict_pairs(Reqs, PairsAfter),
+    findall(conflict(A, B, Reason),
+            ( member(pair(A, B)-Reason, PairsAfter),
+              \+ memberchk(pair(A, B)-_, PairsBefore) ),
+            Conflicts),
+    (   Conflicts == []
+    ->  true
+    ;   build_fact_contradiction_message(FactId, Conflicts, Message),
+        throw(error(kb_fact_contradiction(FactId, Conflicts), Message))
+    ).
+
+build_fact_contradiction_message(FactId, Conflicts, Message) :-
+    format(atom(Header), 'Contradiction detected for fact ~w: the write makes current requirements conflict:', [FactId]),
+    findall(Line,
+            ( member(conflict(A, B, Reason), Conflicts),
+              format(atom(Line), '\n  - ~w conflicts with ~w: ~w', [A, B, Reason]) ),
+            Lines),
+    atomic_list_concat(Lines, Details),
+    Remedy = '\n\nTo resolve:\n  1. Change the conflicting requirement in the same kb_apply_plan as this fact, OR\n  2. Supersede one requirement, or scope the two so they no longer constrain one quantity.',
+    atomic_list_concat([Header, Details, Remedy], Message).
+
+%% kb_stage_upsert_mutation(+Type, +Id, +Properties, +Relationships, +SkipContradiction)
+% The RDF mutation and refusal rules of one upsert, shared by the commit and
+% the dry-run preview so both refuse the same payloads: a relationship whose
+% source or target entity does not exist, an invalid relationship direction,
+% a symbol mixing executable_for with production ownership/coverage edges,
+% for a requirement a contradiction, and for a fact a contradiction the
+% write introduces between requirements grounded on it.
+kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction) :-
+    upsert_contradiction_baseline(Type, Id, Relationships, SkipContradiction, Baseline),
+    kb_stage_upsert_mutation_unchecked(Type, Props, Relationships),
+    kb_check_upsert_contradiction(Type, Id, SkipContradiction, Baseline).
+
+kb_stage_upsert_mutation_unchecked(Type, Props, Relationships) :-
+    kb_assert_entity_no_audit(Type, Props),
+    kb_commit_relationships_no_audit(Relationships).
+
+% Stage one upsert inside an already-open transaction, without its
+% contradiction check: a batch checks once after every entry is staged.
 kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
     memberchk(id=Id, Props),
     memberchk(SkipContradiction, [true, false]),
     upsert_change_kind(Id, ChangeKind),
-    kb_stage_upsert_mutation(Type, Id, Props, Relationships, SkipContradiction),
+    kb_stage_upsert_mutation_unchecked(Type, Props, Relationships),
     kb_log_entity_upsert(ChangeKind, Type, Props),
     kb_commit_relationship_audits(Relationships).
 
@@ -1089,12 +1423,32 @@ kb_preview_upsert_contradiction(Type, Props, Relationships, SkipContradiction) :
         )
     ).
 
-kb_stage_upserts([], []).
-kb_stage_upserts([
+%% kb_stage_upserts(+Entries, -ChangeKinds)
+% Stage every entry, then run the contradiction checks once against the
+% whole batch, so a kb_apply_plan that changes a fact and the requirement it
+% would conflict with commits together instead of refusing its first step.
+% Fact baselines are read before any entry is staged and include the
+% requirements any entry links to the fact.
+kb_stage_upserts(Entries, Kinds) :-
+    findall(Rel,
+            ( member(upsert(_, _, Rels, _), Entries),
+              member(Rel, Rels) ),
+            AllRelationships),
+    findall(check(Type, Id, Skip, Baseline),
+            ( member(upsert(Type, Props, _, Skip), Entries),
+              memberchk(id=Id, Props),
+              upsert_contradiction_baseline(Type, Id, AllRelationships, Skip, Baseline) ),
+            Checks),
+    kb_stage_upsert_entries(Entries, Kinds),
+    forall(member(check(Type, Id, Skip, Baseline), Checks),
+           kb_check_upsert_contradiction(Type, Id, Skip, Baseline)).
+
+kb_stage_upsert_entries([], []).
+kb_stage_upsert_entries([
     upsert(Type, Props, Relationships, SkipContradiction)|Rest
 ], [ChangeKind|Kinds]) :-
     kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind),
-    kb_stage_upserts(Rest, Kinds).
+    kb_stage_upsert_entries(Rest, Kinds).
 
 %% kb_commit_upsert_batch(+Entries, -ChangeKinds)
 % Commit many upserts in one RDF transaction and one journal flush.
@@ -1907,13 +2261,13 @@ assert_relationship_reporting(rel(RelType, FromId, ToId), Position-Failed0, Next
 kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
     kb_graph(Graph),
     % Validate source entity exists
-    (   once(kb_entity(FromId, FromType, _))
+    (   kb_entity_type(FromId, FromType)
     ->  true
     ;   throw(error(existence_error(entity, FromId),
                 context(kb_assert_relationship, 'Source entity does not exist')))
     ),
     % Validate target entity exists
-    (   once(kb_entity(ToId, ToType, _))
+    (   kb_entity_type(ToId, ToType)
     ->  true
     ;   throw(error(existence_error(entity, ToId),
                 context(kb_assert_relationship, 'Target entity does not exist')))
@@ -1939,6 +2293,20 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
         % Assert relationship triple
         rdf_assert(FromURI, RelURI, ToURI, Graph)
     )).
+
+%% kb_entity_type(+Id, -Type)
+% The type once(kb_entity(Id, Type, _)) gives, read from the entity's type
+% triple without decoding its properties. Every relationship write checks
+% both endpoints, and each write starts a new RDF generation, so the decoded
+% entity memo never helped there: projecting a store of 8.5k entities and
+% 21k relationships decoded entities 54k times.
+kb_entity_type(Id, Type) :-
+    (   kb_graph(Graph),
+        entity_id_to_uri(Id, EntityURI),
+        once(rdf(EntityURI, kb:type, TypeLiteral, Graph))
+    ->  literal_to_atom(TypeLiteral, Type)
+    ;   once(entity(Type, Id, _, _))
+    ).
 
 validate_symbol_role_compatibility(RelType, FromId, _ToId) :-
     (   memberchk(RelType, [implements, covered_by, executable_for]),
@@ -2163,7 +2531,12 @@ row_for_id(Id, [Id, _]).
 %% entity_id_to_uri(+Id, -URI)
 % Build the canonical entity URI used for RDF read/write.
 entity_id_to_uri(Id, URI) :-
-    format(atom(URI), 'kb:entity/~w', [Id]).
+    % Checks convert ids millions of times; atom_concat/3 gives the text
+    % format/3 writes for any atomic id at a fraction of its cost.
+    (   atomic(Id)
+    ->  atom_concat('kb:entity/', Id, URI)
+    ;   format(atom(URI), 'kb:entity/~w', [Id])
+    ).
 
 %% entity_uri_to_id(+URI, -Id)
 % Extract entity ID from canonical or legacy entity URIs.
@@ -3466,9 +3839,27 @@ normalize_uri_atom(Value, Atom) :-
 
 %% symbol_no_req_coverage(+Symbol, -Reason)
 % Find symbols that lack canonical production requirement coverage.
+% A linkless record of non-behavioral code (see
+% linkless_non_behavioral_symbol/1) owns no requirement, so it owes no
+% requirement coverage either.
 symbol_no_req_coverage(Symbol, no_qualifying_production_coverage) :-
     production_symbol(Symbol),
+    \+ linkless_non_behavioral_symbol(Symbol),
     \+ production_symbol_covered_for_requirement(Symbol, _).
+
+%% linkless_non_behavioral_symbol(+Symbol)
+% A symbol record whose symbol_role is structural, type-shape, config or
+% module and that has no implements link. It records a declaration without
+% claiming requirement ownership: symbol-traceability and symbol-coverage do
+% not flag it. A missing, unknown or behavioral role is never exempt, and a
+% non-behavioral symbol that does carry implements keeps every rule.
+linkless_non_behavioral_symbol(Symbol) :-
+    kb_entity(Symbol, symbol, Props),
+    memberchk(symbol_role=RawRole, Props),
+    normalize_term_atom(RawRole, Role),
+    non_behavioral_role(Role),
+    \+ kb_relationship(implements, Symbol, _).
+
 
 %% production_symbol_covered_for_requirement(+Symbol, +Req)
 % Production coverage requires a covered_by edge and a canonical requirement/test path.
@@ -3488,8 +3879,15 @@ test_covers_requirement(Test, Req) :-
     requirement_test_fallback_allowed(Req),
     test_satisfies_requirement_semantics(Test, Req).
 test_covers_requirement(Test, Req) :-
-    kb_relationship(specified_by, Req, Scenario),
-    scenario_verified_by_test(Scenario, Test),
+    % Coverage asks which requirement a known test covers; walking every
+    % specified_by edge for each test made that quadratic. Start from the
+    % bound end; the solutions are the same either way.
+    (   var(Req), nonvar(Test)
+    ->  scenario_verified_by_test(Scenario, Test),
+        kb_relationship(specified_by, Req, Scenario)
+    ;   kb_relationship(specified_by, Req, Scenario),
+        scenario_verified_by_test(Scenario, Test)
+    ),
     test_satisfies_requirement_semantics(Test, Req).
 
 %% production_symbol_untested(+Symbol)
@@ -3530,6 +3928,8 @@ coerce_timestamp_atom(Val, Atom) :-
 :- dynamic changed_symbol/1.
 :- dynamic changed_symbol_loc/5.
 :- dynamic changed_symbol_req/2.
+:- dynamic changed_symbol_kind/2.
+:- dynamic changed_symbol_callable/1.
 
 %% changed_symbol_missing_req(+Symbol, +MinLinks, -Count)
 % True if Symbol has fewer than MinLinks requirement connections.
@@ -3539,12 +3939,25 @@ coerce_timestamp_atom(Val, Atom) :-
 changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     changed_symbol(Symbol),
     \+ executable_test_symbol(Symbol),
+    \+ changed_symbol_link_exempt(Symbol),
     findall(Req, symbol_owns_requirement(Symbol, Req), KbReqs),
     findall(Req, changed_symbol_req(Symbol, Req), OverlayReqs),
     append(KbReqs, OverlayReqs, AllReqs),
     sort(AllReqs, UniqueReqs),
     length(UniqueReqs, Count),
     Count < MinLinks.
+
+%% changed_symbol_link_exempt(+Symbol)
+% A changed declaration recorded as linkless non-behavioral code needs no
+% requirement link, unless the extractor reports a behavioral kind for it
+% (function, class, method, property or accessor) or a variable whose value
+% is a function (changed_symbol_callable/1): those always need one.
+changed_symbol_link_exempt(Symbol) :-
+    linkless_non_behavioral_symbol(Symbol),
+    \+ (   changed_symbol_kind(Symbol, Kind),
+            behavioral_kind(Kind)
+        ),
+    \+ changed_symbol_callable(Symbol).
 
 %% changed_symbol_no_req_coverage(+ExtraSymbols, -Symbol)
 % The full-check symbol-coverage rule restricted to a staged change set: the

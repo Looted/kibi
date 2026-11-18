@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-kibi-builtin-ts-syntactic-parse",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "200000",
+      "./packages/plugin-builtin/tests/symbols-extractor.test.ts",
+      "./packages/plugin-builtin/tests/symbols-enrichment.test.ts",
+      "./packages/plugin-builtin/tests/builtin.test.ts"
+    ]
+  ]
+}

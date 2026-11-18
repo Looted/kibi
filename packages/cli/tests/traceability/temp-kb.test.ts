@@ -263,7 +263,9 @@ describe("temp-kb", () => {
     });
 
     it("keeps staged writes visible across queries with a persistent factory", async () => {
-      let factoryOptions: { timeout: number; oneShot: boolean } | undefined;
+      let factoryOptions:
+        | { timeout: number; oneShot: boolean; saveAfterWrites: boolean }
+        | undefined;
       _setPrologFactory((opts) => {
         factoryOptions = opts;
         return new PrologProcess(opts);
@@ -271,7 +273,11 @@ describe("temp-kb", () => {
 
       const ctx = await createTempKb(baseKbDir);
       try {
-        expect(factoryOptions).toEqual({ timeout: 120000, oneShot: false });
+        expect(factoryOptions).toEqual({
+          timeout: 120000,
+          oneShot: false,
+          saveAfterWrites: false,
+        });
 
         await projectStagedEntities(ctx.prolog, [
           makeExtractionResult({
@@ -1549,8 +1555,8 @@ describe("temp-kb", () => {
       const facts = createOverlayFacts(symbols);
 
       const lines = facts.split("\n");
-      // Should have 4 lines (2 facts per symbol)
-      expect(lines.length).toBe(4);
+      // Should have 6 lines (3 facts per symbol)
+      expect(lines.length).toBe(6);
       // Each non-empty line should end with a period
       for (const line of lines) {
         if (line.length > 0) {

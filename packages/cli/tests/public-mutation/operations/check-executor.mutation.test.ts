@@ -5,6 +5,8 @@ import {
   analysisCacheDir,
   executeCheck,
   uncompiledBranchStoreViolation,
+  withMergeBlocks,
+  withSymbolDebtSummary,
 } from "../../../src/public/operations/check-executor.js";
 import * as format from "../../../src/public/operations/check-format-shared.js";
 import * as helpers from "../../../src/public/operations/check-helpers.js";
@@ -21,10 +23,12 @@ import type {
   OperationContext,
   PrologPort,
 } from "../../../src/public/operations/runtime-types.js";
+import * as analysisCache from "../../../src/public/operations/source-analysis-cache.js";
 import * as dangling from "../../../src/public/operations/source-path-dangling.js";
 import * as parity from "../../../src/public/operations/source-relationship-parity.js";
 import * as reporting from "../../../src/public/operations/specs/reporting.js";
 import * as coordinates from "../../../src/public/operations/symbol-coordinates-check.js";
+import * as debt from "../../../src/public/operations/symbol-debt.js";
 import * as granularity from "../../../src/public/operations/symbol-granularity-check.js";
 import * as snapshots from "../../../src/public/operations/workspace-snapshot.js";
 import * as resolver from "../../../src/utils/branch-resolver.js";
@@ -90,6 +94,8 @@ const finding = (rule: string, extra: Record<string, unknown> = {}) => ({
   description: `${rule} found`,
   ...extra,
 });
+
+const realBuildStructuredContent = format.buildStructuredContent;
 
 type HarnessOptions = {
   rules?: readonly string[];
@@ -349,7 +355,7 @@ describe("executeCheck", () => {
     const ctx = context({ branchAttachment: ATTACHED as never });
     const result = await run({ workspaceRoot: "/ws/args" }, ctx);
     const violation = uncompiledBranchStoreViolation(ctx, "/ws/args");
-    const evaluated = { rules: ["branch-store-not-compiled"] };
+    const evaluated = { ruleCount: 1, rules: ["branch-store-not-compiled"] };
     const migrationPlan = {
       merged: [
         "STATUS",
@@ -422,7 +428,7 @@ describe("executeCheck", () => {
     const explicit = await run({ rules: [] }, ctx);
     expect(explicit.structuredContent).toStrictEqual({
       violations: [],
-      evaluated: { rules: [] },
+      evaluated: { ruleCount: 0, rules: [] },
       diagnostics: [],
       qualityDiagnostics: [],
       impactResult: undefined,
@@ -447,7 +453,7 @@ describe("executeCheck", () => {
         text: {
           summaryOf: {
             violations: [],
-            evaluated: { rules: [] },
+            evaluated: { ruleCount: 0, rules: [] },
             impactResult: undefined,
             qualityDiagnostics: [],
           },
@@ -497,7 +503,11 @@ describe("executeCheck", () => {
   });
 
   test("lists impact diagnostics for an empty rule set over changed files", async () => {
-    const impactResult = { sourceFiles: ["a.ts"] };
+    const impactResult = {
+      sourceFiles: ["a.ts"],
+      linkedEntities: [],
+      extractedSymbols: [],
+    };
     const calls = harness({ impact: impactResult });
     const result = await run({ sourceFiles: ["a.ts"] });
     expect(result.structuredContent.qualityDiagnostics).toStrictEqual([
@@ -594,7 +604,7 @@ describe("executeCheck", () => {
       prolog,
       "/ws/args",
       rules,
-      undefined,
+      null,
     );
     expect(calls.coordinates).toHaveBeenCalledWith(prolog, "/ws/args", rules);
     expect(calls.origin).toHaveBeenCalledWith(prolog, rules, "/ws/args");
@@ -630,6 +640,8 @@ describe("executeCheck", () => {
     expect(content.violations.map((row: { rule: string }) => row.rule)).toEqual(
       order,
     );
+    // Every violation says it fails the merge; diagnostics restate them
+    // for the envelope, whose schema is fixed.
     expect(content.diagnostics[0]).toStrictEqual({
       category: "SYNC_ERROR",
       severity: "error",
@@ -642,12 +654,17 @@ describe("executeCheck", () => {
       severity: "error",
       message: "plain found",
     });
-    expect(content.evaluated).toStrictEqual({ rules: ALL_RULES });
+    expect(
+      content.violations.every(
+        (v: { blocks?: string }) => v.blocks === "merge",
+      ),
+    ).toBe(true);
+    expect(content.evaluated).toStrictEqual({ ruleCount: 4, rules: ALL_RULES });
     expect(prolog.queries).toEqual([]);
     expect(content.qualityDiagnostics).toStrictEqual([
-      { id: "Q-advisory" },
-      { id: "scoped_check_omitted_quality" },
-      { id: "Q-full" },
+      { id: "Q-advisory", blocks: "none" },
+      { id: "scoped_check_omitted_quality", blocks: "none" },
+      { id: "Q-full", blocks: "none" },
     ]);
     const [fullInput] = calls.full.mock.calls[0];
     expect(fullInput.hardViolationEntityIds).toEqual(
@@ -659,8 +676,11 @@ describe("executeCheck", () => {
       checkedAt: "2026-01-02T00:00:00.000Z",
     });
     expect(await fullInput.proofTestBindings()).toBe("BINDINGS");
+    // The plan repairs the findings as the rules gave them, untagged.
     expect(calls.actions).toHaveBeenCalledWith({
-      violations: content.violations,
+      violations: content.violations.map(
+        ({ blocks: _blocks, ...violation }: { blocks: string }) => violation,
+      ),
       qualityDiagnostics: [{ id: "Q-advisory" }, { id: "Q-full" }],
     });
     expect(result.content[0].type).toBe("text");
@@ -693,7 +713,7 @@ describe("executeCheck", () => {
       calls.dangling,
     ])
       expect(skipped).not.toHaveBeenCalled();
-    expect(calls.granularity.mock.calls[0][3]).toBeUndefined();
+    expect(calls.granularity.mock.calls[0][3]).toBeNull();
     expect(calls.floor.mock.calls[0][2].freshEvidence).toBe(false);
     expect(calls.full.mock.calls[0][0].maxDiagnostics).toBe(3);
     expect(
@@ -711,10 +731,35 @@ describe("executeCheck", () => {
     ]);
   });
 
-  test("reads the analysis cache of the attached store", async () => {
+  test("shares one analysis cache of the attached store and saves it once", async () => {
     const calls = harness({ rules: ["aggregated"] });
+    const events: string[] = [];
+    const cache = {
+      get: () => undefined,
+      set: () => undefined,
+      save: () => {
+        events.push("save");
+      },
+    };
+    const open = spy(analysisCache, "openSourceAnalysisCache").mockReturnValue(
+      cache,
+    );
+    const collect = spy(debt, "collectSymbolDebt").mockImplementation(
+      async () => {
+        events.push("debt");
+        return { total: 0, fileCount: 0, files: [] };
+      },
+    );
+    calls.granularity.mockImplementation(async () => {
+      events.push("granularity");
+      return [];
+    });
     await run({}, context({ branchAttachment: ATTACHED as never }));
-    expect(calls.granularity.mock.calls[0][3]).toBe("/ws/store");
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(open.mock.calls[0]?.[0]).toBe("/ws/store");
+    expect(calls.granularity.mock.calls[0][3]).toBe(cache);
+    expect(collect.mock.calls[0]?.[2]).toBe(cache);
+    expect(events).toStrictEqual(["granularity", "debt", "save"]);
   });
 
   test("tells the plan which diagnostics the impact analysis listed", async () => {
@@ -735,7 +780,11 @@ describe("executeCheck", () => {
   });
 
   test("keeps impact diagnostics when the rules were chosen", async () => {
-    const impactResult = { sourceFiles: ["a.ts"] };
+    const impactResult = {
+      sourceFiles: ["a.ts"],
+      linkedEntities: [],
+      extractedSymbols: [],
+    };
     const calls = harness({
       rules: ["aggregated"],
       impact: impactResult,
@@ -744,9 +793,9 @@ describe("executeCheck", () => {
     });
     const explicit = await run({ rules: ["aggregated"], sourceFiles: ["a"] });
     expect(explicit.structuredContent.qualityDiagnostics).toStrictEqual([
-      { id: "Q-advisory" },
-      { id: "Q-impact" },
-      { id: "Q-staged" },
+      { id: "Q-advisory", blocks: "none" },
+      { id: "Q-impact", blocks: "none" },
+      { id: "Q-staged", blocks: "none" },
     ]);
     expect(calls.scope).not.toHaveBeenCalled();
     const scoped = await run({ sourceFiles: ["a"] });
@@ -755,23 +804,156 @@ describe("executeCheck", () => {
       impactResult,
     );
     expect(scoped.structuredContent.qualityDiagnostics).toStrictEqual([
-      { id: "Q-scoped" },
-      { id: "Q-impact" },
-      { id: "Q-staged" },
+      { id: "Q-scoped", blocks: "none" },
+      { id: "Q-impact", blocks: "none" },
+      { id: "Q-staged", blocks: "none" },
     ]);
     const unscoped = await run({});
     expect(unscoped.structuredContent.qualityDiagnostics[0]).toStrictEqual({
       id: "Q-advisory",
+      blocks: "none",
     });
     expect(calls.full).not.toHaveBeenCalled();
+  });
+
+  test("lists a scoped check's blocking findings about the change and counts the rest", async () => {
+    const impactResult = {
+      sourceFiles: ["a.ts"],
+      linkedEntities: [
+        {
+          id: "E-aggregated",
+          relationshipType: "implements",
+          sourceSymbolId: "SYM-a",
+          sourceSymbolName: "a",
+        },
+      ],
+      extractedSymbols: [],
+    };
+    const calls = harness({ rules: ALL_RULES, impact: impactResult });
+    const changed = spy(helpers, "changedKbEntityIds").mockReturnValue(
+      new Set(["E-origin"]),
+    );
+    const fit = spy(format, "fitScopedCheckToBudget");
+    const scoped = await run({ sourceFiles: ["a.ts"] });
+    expect(changed).toHaveBeenCalledWith(ROOT);
+    const structured = calls.structured.mock.calls.at(-1)[0];
+    // Linked, changed and store-level findings are listed.
+    expect(structured.violations.map((v: Loose) => v.rule)).toEqual([
+      "aggregated",
+      "source-relationship-parity",
+      "origin",
+    ]);
+    expect(structured.diagnostics).toHaveLength(3);
+    expect(structured.omittedViolations.total).toBe(10);
+    expect(structured.summarizePlan).toBe(true);
+    expect(fit).toHaveBeenCalledWith(
+      withMergeBlocks(structured),
+      undefined,
+      true,
+      false,
+    );
+    // The plan still repairs every finding.
+    expect(calls.actions.mock.calls.at(-1)[0].violations).toHaveLength(13);
+    expect(scoped.content[0].text.summaryOf.omittedViolations).toEqual(
+      structured.omittedViolations,
+    );
+
+    await run({ sourceFiles: ["a.ts"], includeMigrationPlan: true });
+    expect(
+      Object.hasOwn(calls.structured.mock.calls.at(-1)[0], "summarizePlan"),
+    ).toBe(false);
+    expect(fit).toHaveBeenLastCalledWith(
+      withMergeBlocks(calls.structured.mock.calls.at(-1)[0]),
+      undefined,
+      true,
+      true,
+    );
+
+    fit.mockClear();
+    const unscoped = await run({});
+    const full = calls.structured.mock.calls.at(-1)[0];
+    expect(full.violations).toHaveLength(13);
+    expect(Object.hasOwn(full, "omittedViolations")).toBe(false);
+    expect(Object.hasOwn(full, "summarizePlan")).toBe(false);
+    // An unscoped check keeps to the same budget, with its own hint.
+    expect(fit).toHaveBeenCalledWith(
+      withMergeBlocks(full),
+      undefined,
+      false,
+      false,
+    );
+    expect(unscoped.structuredContent).toStrictEqual(
+      withMergeBlocks({
+        ...full,
+        symbolDebt: { total: 0, fileCount: 0 },
+      }),
+    );
+
+    // A rule selection, or the command that prints every finding, is
+    // listed in full.
+    fit.mockClear();
+    await run({ rules: ALL_RULES });
+    await run({}, context(), { fullListing: true });
+    expect(fit).not.toHaveBeenCalled();
+  });
+
+  test("keeps an unscoped result within budget and adds the debt list on top", async () => {
+    const many = Array.from({ length: 400 }, (_, index) => ({
+      rule: "required-fields",
+      entityId: `REQ-${index}`,
+      description: "x".repeat(80),
+    }));
+    const calls = harness({ rules: ALL_RULES, aggregated: many });
+    calls.structured.mockImplementation(realBuildStructuredContent);
+    calls.merge.mockImplementation(() => ({
+      planHash: "hash",
+      status: "blocked",
+      summary: { actions: many.length },
+      actions: many.map((violation, index) => ({
+        id: `A-${index}`,
+        code: "fix",
+        state: "blocked",
+        detail: violation.description,
+      })),
+    }));
+    const files = Array.from({ length: 300 }, (_, index) => ({
+      path: `src/f${index}.ts`,
+      unrecorded: ["a", "b"],
+    }));
+    spy(debt, "collectSymbolDebt").mockResolvedValue({
+      total: 600,
+      fileCount: 300,
+      files,
+    });
+    const listed = await run({ includeSymbolDebt: true });
+    expect(listed.structuredContent.truncated).toBe(true);
+    // The other fake rules add one finding each.
+    expect(listed.structuredContent.count).toBe(412);
+    expect(listed.structuredContent.symbolDebt.files).toBe(files);
+    const { symbolDebt, ...rest } = listed.structuredContent;
+    expect(JSON.stringify(rest).length).toBeLessThanOrEqual(
+      format.SCOPED_CHECK_BUDGET_CHARS,
+    );
+    // The plan nobody asked for in full is summarized to fit.
+    expect(Object.hasOwn(listed.structuredContent, "migrationPlan")).toBe(
+      false,
+    );
+    expect(listed.structuredContent.migrationPlanSummary.planHash).toBe("hash");
+    const counted = await run({});
+    expect(counted.structuredContent.symbolDebt).toStrictEqual({
+      total: 600,
+      fileCount: 300,
+    });
+    const withPlan = await run({ includeMigrationPlan: true });
+    expect(withPlan.structuredContent.migrationPlan.actions).toHaveLength(400);
   });
 
   test("lists only impact diagnostics for explicit rules without impact", async () => {
     const calls = harness({ rules: ["aggregated"] });
     const result = await run({ rules: ["aggregated"] });
     expect(result.structuredContent.qualityDiagnostics).toStrictEqual([
-      { id: "Q-impact" },
-      { id: "Q-staged" },
+      { id: "Q-impact", blocks: "none" },
+      { id: "Q-staged", blocks: "none" },
     ]);
     expect(calls.full).not.toHaveBeenCalled();
     await run({ rules: ["aggregated"] }, context(), {
@@ -794,6 +976,88 @@ describe("executeCheck", () => {
     );
   });
 
+  test("reports symbol debt only for an unscoped check and drops it when the engine cannot project it", async () => {
+    const debtGoal = (goal: string) => goal.startsWith("findall([Id,symbol");
+    harness({ rules: ["required-fields"] });
+    const answering = prologPort(async () => ({
+      success: true,
+      bindings: { Rows: "[]" },
+    }));
+    const unscoped = await run({}, context({ prolog: answering }));
+    expect(unscoped.structuredContent.symbolDebt).toStrictEqual({
+      total: 0,
+      fileCount: 0,
+    });
+    expect(answering.queries.filter(debtGoal)).toHaveLength(1);
+
+    harness({ rules: ["required-fields"] });
+    const scoped = prologPort();
+    const scopedResult = await run(
+      { sourceFiles: ["a.ts"] },
+      context({ prolog: scoped }),
+    );
+    expect(Object.hasOwn(scopedResult.structuredContent, "symbolDebt")).toBe(
+      false,
+    );
+    expect(scoped.queries.filter(debtGoal)).toEqual([]);
+
+    harness({ rules: ["required-fields"] });
+    const failing = prologPort(async (goal) => ({
+      success: !debtGoal(goal),
+      bindings: {},
+    }));
+    const failed = await run({}, context({ prolog: failing }));
+    expect(Object.hasOwn(failed.structuredContent, "symbolDebt")).toBe(false);
+    expect(failing.queries.filter(debtGoal)).toHaveLength(1);
+  });
+
+  test("summarizes a fitted scoped result with its groups and truncation", async () => {
+    harness({
+      rules: ALL_RULES,
+      impact: {
+        sourceFiles: ["a.ts"],
+        linkedEntities: [],
+        extractedSymbols: [],
+      },
+    });
+    const violationGroups = [{ rule: "aggregated", count: 2 }];
+    const truncation = { budgetChars: 10, hint: "narrow it" };
+    spy(format, "fitScopedCheckToBudget").mockImplementation(() => ({
+      violations: [],
+      violationGroups,
+      truncation,
+    }));
+    const scoped = await run({ sourceFiles: ["a.ts"] });
+    const summaryOf = scoped.content[0].text.summaryOf;
+    expect(summaryOf.qualityDiagnostics).toStrictEqual([]);
+    expect(summaryOf.violationGroups).toStrictEqual([
+      { rule: "aggregated", count: 2, blocks: "merge" },
+    ]);
+    expect(summaryOf.truncation).toBe(truncation);
+  });
+
+  test("adds one debt sentence to the summary only for a debt", () => {
+    expect(withSymbolDebtSummary(undefined, "S")).toBe("S");
+    expect(
+      withSymbolDebtSummary({ total: 0, fileCount: 0, files: [] }, "S"),
+    ).toBe("S");
+    expect(
+      withSymbolDebtSummary(
+        {
+          total: 3,
+          fileCount: 2,
+          files: [
+            { path: "a.ts", unrecorded: ["x", "y"] },
+            { path: "b.ts", unrecorded: ["z"] },
+          ],
+        },
+        "S",
+      ),
+    ).toBe(
+      "S\nSymbol records (not blocking): 3 declaration(s) in 2 file(s) with symbol records have none; a commit is judged on them only when it adds or changes them.",
+    );
+  });
+
   test("counts the compared fact pairs of domain contradictions", async () => {
     const counted = async (count: unknown, success = true) => {
       harness({ rules: ["domain-contradictions"] });
@@ -802,24 +1066,28 @@ describe("executeCheck", () => {
         bindings: { Count: count },
       }));
       const result = await run({}, context({ prolog }));
-      expect(prolog.queries).toEqual([
+      expect(prolog.queries[0]).toBe(
         "kb_domain_contradiction_pairs_examined(Count)",
-      ]);
+      );
       return result.structuredContent.evaluated;
     };
     expect(await counted("0")).toStrictEqual({
+      ruleCount: 1,
       rules: ["domain-contradictions"],
       domainContradictions: { factPairsExamined: 0 },
     });
     expect(await counted(12)).toStrictEqual({
+      ruleCount: 1,
       rules: ["domain-contradictions"],
       domainContradictions: { factPairsExamined: 12 },
     });
     for (const rejected of [-1, 1.5, "x"])
       expect(await counted(rejected)).toStrictEqual({
+        ruleCount: 1,
         rules: ["domain-contradictions"],
       });
     expect(await counted(4, false)).toStrictEqual({
+      ruleCount: 1,
       rules: ["domain-contradictions"],
     });
     harness({ rules: ["domain-contradictions"] });
@@ -828,6 +1096,98 @@ describe("executeCheck", () => {
     });
     expect(
       (await run({}, context({ prolog: failing }))).structuredContent.evaluated,
-    ).toStrictEqual({ rules: ["domain-contradictions"] });
+    ).toStrictEqual({ ruleCount: 1, rules: ["domain-contradictions"] });
+  });
+});
+
+describe("withMergeBlocks", () => {
+  test("tags what each finding of the full check stops", () => {
+    const base = {
+      violations: [{ rule: "r" }],
+      count: 1,
+      evaluated: { rules: [] },
+      diagnostics: [{ category: "SYNC_ERROR", severity: "error" }],
+    };
+    expect(
+      withMergeBlocks({
+        ...base,
+        qualityDiagnostics: [
+          { id: "q-block", blocking: true },
+          { id: "q-advice", severity: "warning" },
+        ],
+        impactDiagnostics: [
+          { id: "i-block", severity: "error" },
+          { id: "i-advice", blocking: false },
+        ],
+        violationGroups: [{ rule: "r", count: 2, entityIds: [] }],
+      } as never),
+    ).toStrictEqual({
+      violations: [{ rule: "r", blocks: "merge" }],
+      count: 1,
+      evaluated: { rules: [] },
+      diagnostics: [{ category: "SYNC_ERROR", severity: "error" }],
+      qualityDiagnostics: [
+        { id: "q-block", blocking: true, blocks: "merge" },
+        { id: "q-advice", severity: "warning", blocks: "none" },
+      ],
+      impactDiagnostics: [
+        { id: "i-block", severity: "error", blocks: "commit" },
+        { id: "i-advice", blocking: false, blocks: "none" },
+      ],
+      violationGroups: [
+        { rule: "r", count: 2, entityIds: [], blocks: "merge" },
+      ],
+    } as never);
+    const bare = withMergeBlocks(base as never);
+    for (const key of [
+      "qualityDiagnostics",
+      "impactDiagnostics",
+      "violationGroups",
+    ])
+      expect(Object.hasOwn(bare, key)).toBe(false);
+  });
+});
+
+describe("executeCheck changed", () => {
+  test("runs the commit gate instead of the KB rules", async () => {
+    const calls: unknown[] = [];
+    const prolog = prologPort();
+    const result = await executeCheck(
+      { changed: true, sourceFiles: ["a.ts"], workspaceRoot: "/ws/args" },
+      context({ prolog }),
+      {
+        changedGateRunner: async (...args) => {
+          calls.push(args);
+          return {
+            exitCode: 0,
+            stdout: JSON.stringify({ structuredContent: { violations: [] } }),
+          };
+        },
+      },
+    );
+    expect(calls).toStrictEqual([["/ws/args", ["a.ts"]]]);
+    expect(prolog.queries).toEqual([]);
+    expect(result.structuredContent).toMatchObject({
+      changed: true,
+      commitAllowed: true,
+    });
+    const defaulted: unknown[] = [];
+    await executeCheck({ changed: true }, context({ prolog }), {
+      changedGateRunner: async (...args) => {
+        defaulted.push(args);
+        return { exitCode: 1, stdout: "{}" };
+      },
+    });
+    expect(defaulted).toStrictEqual([[ROOT, undefined]]);
+  });
+
+  test("names a failed gate run", async () => {
+    await expect(
+      executeCheck({ changed: true }, context({ prolog: prologPort() }), {
+        changedGateRunner: async () => {
+          throw new Error("no git");
+        },
+      }),
+    ).rejects.toThrow(/^Check execution failed: no git$/);
   });
 });

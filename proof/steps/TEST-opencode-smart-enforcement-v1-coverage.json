@@ -1,0 +1,13 @@
+{
+  "test_id": "TEST-opencode-smart-enforcement-v1-coverage",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/opencode/tests/smart-enforcement.test.ts",
+      "./packages/opencode/tests/logging-policy.test.ts"
+    ]
+  ]
+}

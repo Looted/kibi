@@ -63,6 +63,24 @@ export type PolicyPredicateFact = Readonly<{
   polarity: string;
 }>;
 
+/**
+ * The head of a rule fact: an asserted `name(args)` when `asserted` (assert
+ * modality, positive head). `args` holds each constant argument by its
+ * position; a variable argument has no entry.
+ */
+export type PolicyRuleHead = Readonly<{
+  id: string;
+  name: string;
+  args: Readonly<Record<number, string | undefined>>;
+  asserted: boolean;
+}>;
+
+/** A predicate name and its constant arguments a requirement is grounded in. */
+type Grounding = Readonly<{
+  name: string;
+  args: Readonly<Record<number, string | undefined>>;
+}>;
+
 export type CheckPolicyEvaluationInput = Readonly<{
   policies: readonly ActiveCheckPolicy[];
   loadErrors: readonly CheckPolicyLoadError[];
@@ -74,6 +92,9 @@ export type CheckPolicyEvaluationInput = Readonly<{
   /** `[requirement, fact]` requires_predicate edges. */
   requiresPredicateEdges: readonly (readonly [string, string])[];
   predicateFacts: readonly PolicyPredicateFact[];
+  /** `[requirement, fact]` requires_rule edges. */
+  requiresRuleEdges: readonly (readonly [string, string])[];
+  ruleHeads: readonly PolicyRuleHead[];
   /** Workspace-relative file contents, or undefined when unreadable. */
   readFile: (path: string) => string | undefined;
 }>;
@@ -128,27 +149,45 @@ function groupBy<T>(
   return grouped;
 }
 
-/** Asserted predicate names each current requirement is grounded in. */
+/**
+ * Asserted predicates each current requirement is grounded in: asserted
+ * predicate facts linked with requires_predicate, and the heads of asserted
+ * rules linked with requires_rule (a quantified claim such as
+ * `ui_pattern(V1, modal_alert_dialog) :- confirmation_dialog(V1)` grounds
+ * `ui_pattern` with only its constant arguments known).
+ */
 function requirementPredicates(
   input: CheckPolicyEvaluationInput,
-): Map<string, PolicyPredicateFact[]> {
-  const facts = new Map(input.predicateFacts.map((fact) => [fact.id, fact]));
-  return groupBy(
-    input.requiresPredicateEdges
-      .map(([req, factId]) => [req, facts.get(factId)] as const)
+): Map<string, Grounding[]> {
+  const facts = new Map<string, Grounding>();
+  for (const fact of input.predicateFacts) {
+    if (fact.polarity === "assert") facts.set(fact.id, fact);
+  }
+  const heads = new Map<string, Grounding>();
+  for (const head of input.ruleHeads) {
+    if (head.asserted) heads.set(head.id, head);
+  }
+  const grounded = (
+    edges: readonly (readonly [string, string])[],
+    targets: ReadonlyMap<string, Grounding>,
+  ) =>
+    edges
+      .map(([req, factId]) => [req, targets.get(factId)] as const)
       .filter(
-        (pair): pair is readonly [string, PolicyPredicateFact] =>
-          input.currentRequirements.has(pair[0]) &&
-          pair[1]?.polarity === "assert",
-      ),
-  );
+        (pair): pair is readonly [string, Grounding] =>
+          input.currentRequirements.has(pair[0]) && pair[1] !== undefined,
+      );
+  return groupBy([
+    ...grounded(input.requiresPredicateEdges, facts),
+    ...grounded(input.requiresRuleEdges, heads),
+  ]);
 }
 
 function ownershipViolations(
   policy: ActiveCheckPolicy,
   rule: CheckPolicyOwnershipRule,
   input: CheckPolicyEvaluationInput,
-  grounded: Map<string, PolicyPredicateFact[]>,
+  grounded: Map<string, Grounding[]>,
   owners: Map<string, string[]>,
 ): Violation[] {
   const included = matcher(rule.include);
@@ -211,7 +250,7 @@ function markerViolations(
   policy: ActiveCheckPolicy,
   rule: CheckPolicyMarkerRule,
   input: CheckPolicyEvaluationInput,
-  grounded: Map<string, PolicyPredicateFact[]>,
+  grounded: Map<string, Grounding[]>,
   owners: Map<string, string[]>,
 ): Violation[] {
   const markersByPattern = new Map<string, string[]>();
@@ -238,7 +277,8 @@ function markerViolations(
       if (facts === undefined) continue;
       for (const fact of facts) {
         if (fact.name !== rule.patternPredicate) continue;
-        // A pattern fact without the argument names no pattern with markers.
+        // A pattern fact without the argument, or a rule head with a
+        // variable there, names no pattern with markers.
         const pattern = fact.args[rule.patternArgument] as string;
         const files = searchedFiles(symbol.sourceFile, rule);
         const contents = files
@@ -445,6 +485,32 @@ export async function collectCheckPolicyViolations(
     polarity: atom(polarity),
   }));
 
+  const requiresRuleEdges = (
+    await rows(
+      prolog,
+      "findall([R,F], kb_relationship(requires_rule, R, F), Rows)",
+      "requires_rule relationships",
+    )
+  ).map(([from, to]) => [atom(from), atom(to)] as const);
+  // Every rule fact's head name and constant arguments by position;
+  // asserted is true for an assert rule with a positive head.
+  const ruleHeads = (
+    await rows(
+      prolog,
+      "findall([F,Name,Constants,Asserted], (checks:stored_rule_fact(F, _, rule(_, Modality, atom(_, Name, Args, Polarity, _), _, _, _, _, _, _, _)), findall([I,V], nth0(I, Args, const(V, _)), Constants), ((Modality == assert, Polarity == positive) -> Asserted = true ; Asserted = false)), Rows)",
+      "rule heads",
+    )
+  ).map(([id, name, constants, asserted]) => ({
+    id: atom(id),
+    name: atom(name),
+    args: Object.fromEntries(
+      (parsePrologValue(constants ?? "[]") as [unknown, unknown][]).map(
+        ([index, value]) => [Number(index), String(value)],
+      ),
+    ),
+    asserted: atom(asserted) === "true",
+  }));
+
   const symbols: PolicySymbol[] = symbolEntities.flatMap((entity) => {
     const id = String(entity.id ?? "");
     const sourceFile =
@@ -471,6 +537,8 @@ export async function collectCheckPolicyViolations(
       currentRequirements,
       requiresPredicateEdges,
       predicateFacts,
+      requiresRuleEdges,
+      ruleHeads,
       readFile: fileReader(workspaceRoot),
     },
     rules,

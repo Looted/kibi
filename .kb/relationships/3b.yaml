@@ -363,3 +363,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccdda120d529
+  - type: implements
+    from: SYM-cli-fit-scoped-check-to-budget
+    to: REQ-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:35.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d812c3407809
+  - type: covered_by
+    from: SYM-cli-fit-scoped-check-to-budget
+    to: TEST-kibi-scoped-check-output
+    created_at: 2026-11-15T18:42:35.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-028fc4695c9b
+  - type: implements
+    from: SYM-cli-fit-scoped-check-to-budget
+    to: REQ-check-unscoped-budget
+    created_at: 2026-11-16T15:57:20.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e39b9e534887
+  - type: implements
+    from: SYM-agent-core-SESSION_BRIEF_LINES
+    to: REQ-agent-core-session-brief
+    created_at: 2026-11-16T16:35:35.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09504e32aa4d
+  - type: covered_by
+    from: SYM-agent-core-SESSION_BRIEF_LINES
+    to: TEST-session-brief
+    created_at: 2026-11-16T16:35:35.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9565d18d5e85

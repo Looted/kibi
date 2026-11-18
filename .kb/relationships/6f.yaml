@@ -209,3 +209,171 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43ea5aca26fc
+  - type: covered_by
+    from: SYM-check-executor-withSymbolDebtSummary
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:45:26.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-addd1c29ba03
+  - type: assumes
+    from: SCEN-kb-upsert-requirement-why
+    to: FACT-kb-upsert-why-recorded
+    created_at: 2026-11-16T16:11:26.584Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd3bfc89b9b5
+  - type: verified_by
+    from: SCEN-kb-upsert-requirement-why
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:17:49.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d97f50ed8a78
+  - type: implements
+    from: SYM-capture-max-related-requirements
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:14.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1418da0081c5
+  - type: covered_by
+    from: SYM-capture-max-related-requirements
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:44.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c72c2a65d163
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:13:08.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb51ff7e0251
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-manifest-only
+    created_at: 2026-11-16T18:13:08.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1be50edb4012
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-verify-before-push
+    created_at: 2026-11-16T18:13:08.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96e978273592
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-verify-before-push
+    created_at: 2026-11-16T18:13:08.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b5f0220357
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-branch-moved
+    created_at: 2026-11-16T18:13:08.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdb10f40e4b3
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-branch-moved
+    created_at: 2026-11-16T18:13:08.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfd25f37aeff
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-skip-forks
+    created_at: 2026-11-16T18:13:08.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43053e539777
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-skip-forks
+    created_at: 2026-11-16T18:13:08.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2a587b0f53e
+  - type: validates
+    from: TEST-kb-merge-action
+    to: REQ-kb-merge-action-no-hooks
+    created_at: 2026-11-16T18:13:08.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaf53ca73c87
+  - type: validates
+    from: TEST-kb-merge-action
+    to: SCEN-kb-merge-action-no-hooks
+    created_at: 2026-11-16T18:13:08.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5eea312016f
+  - type: constrains
+    from: REQ-check-quantity-duplicate-trivial-values
+    to: FACT-check-quantity-duplicate-subject
+    created_at: 2026-11-16T16:10:14.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f13bc51c3fe
+  - type: requires_property
+    from: REQ-check-quantity-duplicate-trivial-values
+    to: FACT-check-quantity-duplicate-trivial-values
+    created_at: 2026-11-16T16:10:14.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a7e700db867
+  - type: specified_by
+    from: REQ-check-quantity-duplicate-trivial-values
+    to: SCEN-check-quantity-duplicate-trivial-values
+    created_at: 2026-11-16T16:10:14.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac90be98af30
+  - type: specified_by
+    from: REQ-check-quantity-duplicate-trivial-values
+    to: SCEN-NEG-check-quantity-duplicate-trivial-values-TRIVIAL
+    created_at: 2026-11-16T16:10:14.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8be92fe10d6e
+  - type: implements
+    from: SYM-check-executor-withSymbolDebtSummary
+    to: REQ-check-symbol-debt-count
+    created_at: 2026-11-16T15:54:47.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f50f89f3e57
+  - type: assumes
+    from: SCEN-ci-merge-train-admission
+    to: FACT-ci-merge-train-admission
+    created_at: 2026-11-17T11:40:06.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2dfe651a1de
+  - type: verified_by
+    from: SCEN-ci-merge-train-admission
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:06.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5888c0b360d
+  - type: requires_property
+    from: REQ-check-quantity-duplicate-trivial-values
+    to: FACT-check-quantity-duplicate-trivial-numbers
+    created_at: 2026-11-17T05:59:31.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-184f8a0a0f36
+  - type: covered_by
+    from: SYM-capture-max-related-requirements
+    to: TEST-proof-kb-upsert-related-requirements-cap
+    created_at: 2026-11-17T08:28:35.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46b1b1e96319

@@ -202,3 +202,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-50f85355bd31
+  - type: assumes
+    from: SCEN-NEG-mcp-short-field-descriptions-STALE-REFERENCE
+    to: FACT-NEG-mcp-short-field-descriptions-STALE-REFERENCE
+    created_at: 2026-11-16T06:40:15.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03788609dd4c
+  - type: verified_by
+    from: SCEN-NEG-mcp-short-field-descriptions-STALE-REFERENCE
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:15.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d4639ab050e
+  - type: implements
+    from: SYM-cli-use-core-module-goal
+    to: REQ-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:00:20.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-801a00a85cce
+  - type: covered_by
+    from: SYM-cli-use-core-module-goal
+    to: TEST-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T10:00:20.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c74073620fd
+  - type: implements
+    from: SYM-agent-core-sessionBriefWith
+    to: REQ-agent-core-session-brief
+    created_at: 2026-11-16T16:35:46.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32d6859983be
+  - type: covered_by
+    from: SYM-agent-core-sessionBriefWith
+    to: TEST-session-brief
+    created_at: 2026-11-16T16:35:46.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-651d1400d176
+  - type: constrains
+    from: REQ-cli-prove-empty-selection
+    to: FACT-SUBJ-kibi-prove-command
+    created_at: 2026-11-16T13:35:29.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ff89d8687de
+  - type: requires_property
+    from: REQ-cli-prove-empty-selection
+    to: FACT-cli-prove-empty-selection-reported
+    created_at: 2026-11-16T13:35:29.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea60bad0a18f
+  - type: specified_by
+    from: REQ-cli-prove-empty-selection
+    to: SCEN-cli-prove-empty-selection
+    created_at: 2026-11-16T13:35:29.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9d11e4f98d4
+  - type: specified_by
+    from: REQ-cli-prove-empty-selection
+    to: SCEN-NEG-cli-prove-empty-selection-CONFIG-FIRST
+    created_at: 2026-11-16T13:40:41.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-510ed78b674e
+  - type: assumes
+    from: SCEN-check-quantity-duplicate-pairing
+    to: FACT-check-quantity-duplicate-pairing
+    created_at: 2026-11-16T16:10:30.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a27c52f7a853
+  - type: verified_by
+    from: SCEN-check-quantity-duplicate-pairing
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:30.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18df3db6996b
+  - type: assumes
+    from: SCEN-NEG-kibi-source-proof-scopes-unimplemented-rule-VIOLATED
+    to: FACT-NEG-kibi-source-proved-rule-missing-symbol-VIOLATED
+    created_at: 2026-11-18T10:54:35.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06fd00a8efcb
+  - type: verified_by
+    from: SCEN-NEG-kibi-source-proof-scopes-unimplemented-rule-VIOLATED
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-18T10:54:36.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43fc53ffa5d8

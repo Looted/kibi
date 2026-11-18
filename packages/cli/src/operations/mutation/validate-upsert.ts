@@ -10,14 +10,19 @@ import {
   entityContextWarnings,
   upsertDocumentBody,
 } from "./context-warning.js";
-import { subjectLayerWarnings } from "./subject-warnings.js";
 import {
   buildUpsertContradictionPreviewGoal,
   buildWhatIfAnalysisGoal,
   upsertFailure,
 } from "./contradictions.js";
+import { quantityWarnings } from "./quantity-warnings.js";
 import { validateRelationshipSources } from "./relationships.js";
+import {
+  siblingRequirements,
+  siblingStepsText,
+} from "./sibling-requirements.js";
 import { canonicalSourcePath, renderSourceWrite } from "./source-authoring.js";
+import { subjectLayerWarnings } from "./subject-warnings.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import type {
   PlannedFactInput,
@@ -254,6 +259,8 @@ type DryRunValidation = Readonly<{
   semantic: UpsertSemanticAnalysis;
   targetPath: string | undefined;
   storeWarnings: readonly string[];
+  /** The inventory contract the server filled in, as the write reports it. */
+  inventoryApplied?: ValidateUpsertPayload["inventoryApplied"] | undefined;
   /** The planned facts staged ahead of the payload, and the batch's what-if. */
   staged:
     | Readonly<{
@@ -359,6 +366,8 @@ async function validateWithStore(
     semantic: result.semantic,
     targetPath,
     storeWarnings: [...coverageWarnings, ...idStyleWarnings],
+    // The payload leaves an undefined list out.
+    inventoryApplied: result.inventoryApplied,
     staged,
   };
 }
@@ -380,7 +389,14 @@ export async function executeValidateUpsert(
   context: OperationContext,
 ): Promise<OperationResult<ValidateUpsertPayload>> {
   try {
-    const { entity, semantic, targetPath, storeWarnings, staged } =
+    const {
+      entity,
+      semantic,
+      targetPath,
+      storeWarnings,
+      staged,
+      inventoryApplied,
+    } =
       context.prolog !== undefined
         ? await validateWithStore(input, context, context.prolog)
         : await validateWithoutStore(input, context);
@@ -391,20 +407,38 @@ export async function executeValidateUpsert(
       context.prolog,
       context.workspaceRoot,
     );
+    const siblings = siblingRequirements({
+      type: input.type,
+      id: input.id,
+      entity,
+      workspaceRoot: context.workspaceRoot,
+    });
     const payload: ValidateUpsertPayload = {
       valid: true,
       errors: [],
       warnings: [
+        ...siblings.warnings,
         ...semantic.warnings,
         ...storeWarnings,
         ...entityContextWarnings(input, entity, context.workspaceRoot, {
           targetPath,
         }),
         ...subjectWarnings,
+        ...quantityWarnings({
+          type: input.type,
+          id: input.id,
+          entity,
+          relationships: input.relationships ?? [],
+          workspaceRoot: context.workspaceRoot,
+        }),
       ],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: entity,
+      ...(inventoryApplied !== undefined ? { inventoryApplied } : {}),
       ...staged,
+      ...(siblings.siblings.length > 0
+        ? { siblings: siblings.siblings, nextActions: siblings.nextActions }
+        : {}),
     };
     const stagedNote =
       staged === undefined
@@ -416,6 +450,7 @@ export async function executeValidateUpsert(
           type: "text",
           text: `kb_validate_upsert: payload is valid for kb_upsert preflight checks. No mutation was performed.${stagedNote}`,
         },
+        ...siblingStepsText(siblings),
       ],
       structuredContent: payload,
     };

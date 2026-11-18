@@ -726,9 +726,47 @@ export type EntitySummary = {
   links?: EntityLink[];
   /** Requirement prose: `semantic_text`, else the body's first paragraph. */
   statement?: string;
+  /**
+   * A requirement's recorded reason (see EntityReason). Absent for other
+   * entities and when the document could not be read whole.
+   */
+  why?: EntityReason;
   /** The claim a fact models, from its typed front matter fields. */
   claim?: FactClaim;
+  /**
+   * The current requirement that supersedes this closed requirement, so it
+   * no longer guards its code.
+   */
+  supersededBy?: string;
 };
+
+/**
+ * Why a requirement is what it is, as its document records it: the
+ * `rationale` field, else a Why, Rationale or Context section (one that says
+ * "Reason not stated" holds none), else the "Why this changed" section, with
+ * lines that only note a split or supersede skipped, as at most MAX_REASON_CHARS characters of plain prose. `by` and `on`
+ * say who it came from and when, read from the origin: the approver
+ * (`approved_by`), else the origin's kind (`human`, `agent` or `import`),
+ * and the date the origin was recorded; a migration origin names neither.
+ * `recorded: false` means none of them holds a reason.
+ */
+export type EntityReason =
+  | {
+      recorded: true;
+      text: string;
+      from: "rationale" | "why_this_changed" | "section";
+      by?: string;
+      on?: string;
+    }
+  | { recorded: false };
+
+/** Characters of a recorded reason a summary keeps. */
+export const MAX_REASON_CHARS = 280;
+
+/** Bytes of a requirement document read for its summary and reason. */
+const REQUIREMENT_READ_BYTES = 65536;
+/** Bytes of any other entity's document read for its summary. */
+const ENTITY_READ_BYTES = 8192;
 
 /** A fact's typed fields, as authored; absent fields are left out. */
 export type FactClaim = {
@@ -744,9 +782,10 @@ export type FactClaim = {
 
 /** Front matter scalars a summary keeps, by field name. */
 const SUMMARY_SCALARS: Readonly<
-  Record<string, Exclude<keyof FactClaim, "values"> | "statement">
+  Record<string, Exclude<keyof FactClaim, "values"> | "statement" | "rationale">
 > = {
   semantic_text: "statement",
+  rationale: "rationale",
   fact_kind: "factKind",
   subject_key: "subjectKey",
   property_key: "propertyKey",
@@ -785,6 +824,117 @@ function readScalar(
   const joined = parts.join(" ");
   return { value: block ? joined : unquote(joined), last };
 }
+
+/**
+ * Markdown prose as plain text: the opening whole sentences that fit in
+ * `maxChars` characters, or the first sentence clipped with an ellipsis.
+ * Undefined when the text holds no prose.
+ */
+export function proseExcerpt(
+  lines: readonly string[],
+  maxChars: number,
+): string | undefined {
+  const prose = lines
+    .map((line) =>
+      line
+        .replace(/^\s*(?:[-*+]|\d+[.)])\s/, "")
+        .replace(/^\s*>\s?/, "")
+        .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+        .replace(/\*\*|__|`/g, "")
+        .trim(),
+    )
+    .filter((line) => !line.startsWith("|"))
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!prose) return undefined;
+  let excerpt = "";
+  for (const sentence of prose.split(/(?<=[.!?]) /)) {
+    const next = `${excerpt} ${sentence}`.trim();
+    if (excerpt !== "" && Array.from(next).length > maxChars) break;
+    excerpt = next;
+  }
+  const chars = Array.from(excerpt);
+  return chars.length <= maxChars
+    ? excerpt
+    : `${chars.slice(0, maxChars - 1).join("")}…`;
+}
+
+/** A section saying the person gave no reason records none. */
+const NO_REASON_STATED = /^reason not stated\b/i;
+
+/** Body sections that record a reason, in the order they are tried. */
+const REASON_SECTIONS: readonly [RegExp, "why_this_changed" | "section"][] = [
+  [/^(?:rationale|why(?! this changed)|context)\b/, "section"],
+  [/^why this changed\b/, "why_this_changed"],
+];
+
+/**
+ * A line that only records how a requirement was split or superseded
+ * ("Split from REQ-…", "Superseded by …"): it says where the text came
+ * from, not why the rule exists.
+ */
+const CHANGE_NOTE =
+  /^(?:[-*+>]\s*)?(?:split from|superseded by|supersedes|replaces|replaced by)\s/i;
+
+/** Markdown lines without the lines that are only split or supersede notes. */
+export function withoutChangeNotes(lines: readonly string[]): string[] {
+  return lines.filter((line) => !CHANGE_NOTE.test(line.trim()));
+}
+
+/**
+ * A requirement's recorded reason from its `rationale` field, else the first
+ * reason section of its body (fenced code skipped) that holds prose besides
+ * split or supersede notes.
+ */
+function recordedReason(
+  rationale: string | undefined,
+  body: readonly string[],
+):
+  | { text: string; from: "rationale" | "why_this_changed" | "section" }
+  | undefined {
+  const field = proseExcerpt(
+    withoutChangeNotes([rationale ?? ""]),
+    MAX_REASON_CHARS,
+  );
+  // "Reason not stated" in the field is the placeholder `why` writes when the
+  // person gave none, not a reason.
+  if (field && !NO_REASON_STATED.test(field))
+    return { text: field, from: "rationale" };
+  // rationale: a placeholder entry in place of the empty list is a string,
+  // whose one-character name matches no reason heading.
+  // Stryker disable next-line ArrayDeclaration
+  const sections: [string, string[]][] = [];
+  let current: string[] | undefined;
+  let fenced = false;
+  for (const line of body) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    const heading = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
+    if (heading) {
+      current = [];
+      sections.push([(heading[1] as string).toLowerCase(), current]);
+      continue;
+    }
+    current?.push(line);
+  }
+  for (const [pattern, from] of REASON_SECTIONS) {
+    const text = sections
+      .filter(([name]) => pattern.test(name))
+      .map(([, content]) =>
+        proseExcerpt(withoutChangeNotes(content), MAX_REASON_CHARS),
+      )
+      .find((prose) => prose !== undefined && !NO_REASON_STATED.test(prose));
+    if (text) return { text, from };
+  }
+  return undefined;
+}
+
+/** Origin kinds that name who a reason came from. */
+const SPEAKING_ORIGINS = new Set(["human", "agent", "import"]);
 
 /** The first prose paragraph of a Markdown body, headings skipped; "" if none. */
 function firstParagraph(lines: readonly string[]): string {
@@ -852,6 +1002,124 @@ function shardLinksFrom(workspaceRoot: string, entityId: string): EntityLink[] {
   return cached.byFrom.get(entityId) ?? [];
 }
 
+const RETIRED_STATUS =
+  /supersed|deprecat|reject|obsolete|retired|archived|removed/i;
+
+/**
+ * True for a status that marks an entity as no longer current policy. The
+ * hooks and the commit gate share it, so they agree on which firm
+ * requirements still guard their code. `closed` is not retired: a closed
+ * requirement is done and still governs, unless a current requirement
+ * supersedes it (see `supersedingRequirement`).
+ */
+export function isRetiredStatus(status: string | undefined): boolean {
+  // `String(undefined)` is "undefined", which names no retired status.
+  return RETIRED_STATUS.test(String(status));
+}
+
+/**
+ * Whether a requirement summary is a current firm rule: firm, not retired,
+ * and not replaced by a current requirement. The hooks ask before an edit of
+ * its code; the commit gate applies the same rule.
+ */
+export function isCurrentFirmSummary(summary: EntitySummary): boolean {
+  return (
+    summary.firmness === "firm" &&
+    !isRetiredStatus(summary.status) &&
+    summary.supersededBy === undefined
+  );
+}
+
+/**
+ * The `supersedes` records of a relationship shard. A shard can be large, so
+ * only the block records that mention `supersedes` are parsed; a flow-style
+ * shard, or a block record the cut cannot read whole, is parsed in full.
+ */
+function shardSupersedes(text: string): { from: string; to: string }[] {
+  const pick = (records: RawRecord[]) =>
+    records.flatMap(({ type, from, to }) =>
+      type === "supersedes" &&
+      typeof from === "string" &&
+      typeof to === "string"
+        ? [{ from, to }]
+        : [],
+    );
+  if (!/^relationships:\s*\[/m.test(text)) {
+    const blocks = text
+      .split(/\n(?=\s*- )/)
+      .filter((block) => block.includes("supersedes"));
+    const records = scanRecordSequence(
+      `relationships:\n${blocks.map((block) => block.replace(/^relationships:\s*\n/, "")).join("\n")}\n`,
+      "relationships",
+    );
+    const found = pick(records);
+    if (
+      found.length ===
+      records.filter((record) => record.type === "supersedes").length
+    )
+      return found;
+  }
+  return pick(scanRecordSequence(text, "relationships"));
+}
+
+/**
+ * Requirement id -> the current requirement that supersedes it, read from
+ * the front matter links of every requirement and the relationship-shard
+ * records. A retired successor replaces nothing, so it is not listed. Only
+ * documents and shards that mention `supersedes` are parsed.
+ */
+function currentSuccessors(workspaceRoot: string): Map<string, string> {
+  const edges: { from: string; to: string }[] = [];
+  const list = (dir: string, suffix: string) => {
+    try {
+      return fs
+        .readdirSync(path.join(workspaceRoot, dir))
+        .filter((name) => name.endsWith(suffix))
+        .sort();
+    } catch {
+      // A missing directory holds nothing.
+    }
+    return [];
+  };
+  for (const name of list(".kb/requirements", ".md")) {
+    const id = name.slice(0, -3);
+    const text = readText(path.join(workspaceRoot, ".kb/requirements", name));
+    if (text === undefined || !text.includes("supersedes")) continue;
+    // Shard records are read once below, not per document.
+    for (const link of readSummaryHead(workspaceRoot, id, false).links ?? [])
+      if (link.type === "supersedes") edges.push({ from: id, to: link.target });
+  }
+  for (const name of list(RELATIONSHIPS_DIR, ".yaml")) {
+    const text = readText(path.join(workspaceRoot, RELATIONSHIPS_DIR, name));
+    if (text === undefined || !text.includes("supersedes")) continue;
+    for (const { from, to } of shardSupersedes(text)) edges.push({ from, to });
+  }
+  const successors = new Map<string, string>();
+  const retired = new Map<string, boolean>();
+  for (const { from, to } of edges) {
+    if (from === to || successors.has(to) || !from.startsWith("REQ-")) continue;
+    if (!retired.has(from))
+      retired.set(
+        from,
+        isRetiredStatus(readSummaryHead(workspaceRoot, from, false).status),
+      );
+    if (retired.get(from) === false) successors.set(to, from);
+  }
+  return successors;
+}
+
+/**
+ * The current requirement that supersedes `requirementId`, or undefined. A
+ * replaced requirement must be `closed`, which alone reads as current, so
+ * the hooks, the commit gate and the review command all ask this.
+ */
+export function supersedingRequirement(
+  workspaceRoot: string,
+  requirementId: string,
+): string | undefined {
+  return currentSuccessors(workspaceRoot).get(requirementId);
+}
+
 /** One frontmatter `links:` entry, collected fully before it is typed. */
 type PendingLink = { type?: string; target?: string; bare?: string };
 
@@ -873,18 +1141,39 @@ export function readEntitySummary(
   workspaceRoot: string,
   entityId: string,
 ): EntitySummary {
+  const summary = readSummaryHead(workspaceRoot, entityId);
+  // Only a closed requirement can be a replaced one (an open one is flagged
+  // by superseded-requirement-open), so only it pays for the scan.
+  if (summary.status === "closed" && entityId.startsWith("REQ-")) {
+    const successor = supersedingRequirement(workspaceRoot, entityId);
+    if (successor !== undefined) summary.supersededBy = successor;
+  }
+  return summary;
+}
+
+function readSummaryHead(
+  workspaceRoot: string,
+  entityId: string,
+  withShardLinks = true,
+): EntitySummary {
   const lane = ENTITY_LANES.find(([prefix]) => entityId.startsWith(prefix));
   if (!lane || !SAFE_ENTITY_ID.test(entityId)) return { id: entityId };
 
+  const requirement = lane[1] === "requirements";
   let head: string;
+  // A requirement is read further, so its reason sections are seen.
+  let whole: boolean;
   try {
     const descriptor = fs.openSync(
       path.join(workspaceRoot, ".kb", lane[1], `${entityId}.md`),
       "r",
     );
     try {
-      const buffer = Buffer.alloc(8192);
+      const buffer = Buffer.alloc(
+        requirement ? REQUIREMENT_READ_BYTES : ENTITY_READ_BYTES,
+      );
       const bytes = fs.readSync(descriptor, buffer, 0, buffer.length, 0);
+      whole = bytes < buffer.length;
       head = buffer.subarray(0, bytes).toString("utf8");
     } finally {
       fs.closeSync(descriptor);
@@ -903,6 +1192,8 @@ export function readEntitySummary(
   let inValueSet = false;
   let inOrigin = false;
   let originKind: string | undefined;
+  const origin: { approved_by?: string; recorded_at?: string } = {};
+  let rationale: string | undefined;
   let closed = false;
   let bodyStart = lines.length;
   let pending: PendingLink | undefined;
@@ -922,6 +1213,7 @@ export function readEntitySummary(
       const { value, last } = readScalar(lines, index, scalar[2]);
       if (value !== "") {
         if (scalarField === "statement") summary.statement = value;
+        else if (scalarField === "rationale") rationale = value;
         else claim[scalarField] = value;
       }
       index = last;
@@ -949,6 +1241,13 @@ export function readEntitySummary(
     if (flowOrigin) originKind = flowOrigin[1];
     const nestedKind = inOrigin ? /^\s+kind:\s*["']?([a-z]+)/.exec(line) : null;
     if (nestedKind) originKind = nestedKind[1];
+    const originField = inOrigin
+      ? /^\s+(approved_by|recorded_at):(.+)/.exec(line)
+      : null;
+    if (originField)
+      origin[originField[1] as "approved_by" | "recorded_at"] = unquote(
+        originField[2] as string,
+      );
     if (/^\S/.test(line)) inOrigin = /^origin:\s*$/.test(line);
     const match = /^(title|status|firmness):\s*(.*)/.exec(line);
     if (match?.[1] === "title" && match[2]) summary.title = unquote(match[2]);
@@ -993,7 +1292,7 @@ export function readEntitySummary(
   const seen = new Set<string>();
   for (const link of [
     ...authored,
-    ...shardLinksFrom(workspaceRoot, entityId),
+    ...(withShardLinks ? shardLinksFrom(workspaceRoot, entityId) : []),
   ]) {
     const key = `${link.type}\u0000${link.target}`;
     if (link.target.length === 0 || seen.has(key)) continue;
@@ -1004,9 +1303,25 @@ export function readEntitySummary(
   if (links.length > 0) summary.links = links;
   if (values.length > 0) claim.values = values;
   if (Object.keys(claim).length > 0) summary.claim = claim;
-  if (summary.statement === undefined && lane[1] === "requirements" && closed) {
+  if (summary.statement === undefined && requirement && closed) {
     const paragraph = firstParagraph(lines.slice(bodyStart));
     if (paragraph) summary.statement = paragraph;
+  }
+  if (requirement && closed) {
+    const reason = recordedReason(rationale, lines.slice(bodyStart));
+    if (reason) {
+      const speaking = SPEAKING_ORIGINS.has(String(originKind));
+      const by = origin.approved_by || (speaking ? originKind : undefined);
+      const on = /^\d{4}-\d{2}-\d{2}/.exec(String(origin.recorded_at))?.[0];
+      summary.why = {
+        recorded: true,
+        ...reason,
+        ...(speaking && by ? { by } : {}),
+        ...(speaking && by && on ? { on } : {}),
+      };
+    } else if (whole) {
+      summary.why = { recorded: false };
+    }
   }
   return summary;
 }

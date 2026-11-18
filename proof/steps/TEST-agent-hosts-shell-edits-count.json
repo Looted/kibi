@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-agent-hosts-shell-edits-count",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "30000",
+      "./packages/agent-core/tests/bash-command.test.ts"
+    ]
+  ]
+}

@@ -1,6 +1,10 @@
 import { execSync } from "node:child_process";
 import { isCliTraceOrDebugEnabled } from "../env.js";
-import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
+import {
+  isEntityLanePath,
+  isFirmEditReceiptPath,
+  isSymbolsManifestPath,
+} from "../utils/kb-paths.js";
 import { captureStagedSnapshot } from "./git-change-snapshot.js";
 
 export type Status = "A" | "M" | "R" | "C" | "T" | "D";
@@ -154,6 +158,7 @@ function isKibiMetadataPath(p: string): boolean {
     isEntityMarkdown(posix) ||
     isManifestFile(posix) ||
     isRelationshipShard(posix) ||
+    isFirmEditReceiptPath(posix) ||
     posix === ".kb/manifest.json"
   );
 }
@@ -310,6 +315,21 @@ export function supportedStagedFiles(
     } = entry;
     return [file];
   });
+}
+
+/**
+ * Where a diff removes lines without adding any: for each such hunk, the
+ * new-file line after which the lines were removed (0 when they were at the
+ * top of the file). A `-U0` hunk that only removes lines has no new-file
+ * range, so `parseHunksFromDiff` does not see it.
+ */
+export function parseDeletionPoints(diffText: string): number[] {
+  const points: number[] = [];
+  for (const match of diffText.matchAll(
+    /^@@\s+-\d+(?:,\d+)?\s+\+(\d+),0\s+@@/gm,
+  ))
+    points.push(Number(match[1]));
+  return points;
 }
 
 /**

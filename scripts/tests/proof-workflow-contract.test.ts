@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { loadProofSteps } from "../run-proof-producer.mjs";
 
 const ROOT = join(import.meta.dir, "..", "..");
 const integrations = JSON.parse(
@@ -16,9 +17,10 @@ const integrations = JSON.parse(
     targets?: string[];
   }>;
 };
-const steps = JSON.parse(
-  readFileSync(join(ROOT, "proof", "steps.json"), "utf8"),
-) as Array<{ test_id: string; steps: string[][] }>;
+const steps = loadProofSteps(ROOT) as Array<{
+  test_id: string;
+  steps: string[][];
+}>;
 const proofWorkflow = readFileSync(
   join(ROOT, ".github", "workflows", "proof.yml"),
   "utf8",
@@ -204,13 +206,19 @@ describe("strict proof workflow contract", () => {
   });
 
   test("master PR proof gate reuses only an attested develop push", () => {
+    type Job = {
+      needs?: string[];
+      env?: Record<string, string>;
+      outputs?: Record<string, string>;
+      steps: Array<Record<string, unknown>>;
+    };
     const workflow = Bun.YAML.parse(proofWorkflow) as {
       on: {
         push: { branches: string[] };
         pull_request: { branches: string[] };
       };
       permissions: Record<string, string>;
-      jobs: { proof: { steps: Array<Record<string, unknown>> } };
+      jobs: { reuse: Job; prove: Job; proof: Job };
     };
     expect(workflow.on.push.branches).toEqual(["develop"]);
     expect(workflow.on.pull_request.branches).toEqual(["develop", "master"]);
@@ -218,44 +226,146 @@ describe("strict proof workflow contract", () => {
       contents: "read",
       actions: "read",
     });
-    const proofSteps = workflow.jobs.proof.steps;
-    const names = proofSteps.map((step) => step.name);
+    // One job decides reuse; the shards and the join only read its output.
+    const reuse = workflow.jobs.reuse;
+    expect(reuse.steps.map((step) => step.name)).toContain(
+      "Check whether the PR can reuse develop proof",
+    );
+    expect(reuse.steps.map((step) => step.name)).toContain(
+      "Upload proof reuse decision",
+    );
+    // A PR may reuse an attested develop push; a develop push that merged a
+    // merge train may reuse the train's proof. Either one skips the run.
+    expect(reuse.outputs?.execute).toBe(
+      "${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') && (steps.train.outcome != 'success' || steps.train.outputs.reuse != 'true') }}",
+    );
+    const train = reuse.steps.find((step) => step.id === "train");
+    expect(train?.name).toBe(
+      "Check whether the develop push can reuse the train's proof",
+    );
+    expect(String(train?.if)).toContain("github.event_name == 'push'");
+    expect(String(train?.if)).toContain("refs/heads/develop");
+    expect(String(train?.run)).toContain("ci-proof-reuse.ts decide-train");
+    expect(train?.["continue-on-error"]).toBe(true);
+    // decide-train reads the merge commit's parents from git; a depth-1
+    // checkout has none, so a landed train could never be recognised.
     expect(
-      proofSteps.find((step) => step.name === "Checkout")?.with,
-    ).toMatchObject({
-      ref: "${{ github.sha }}",
-      "fetch-depth": 1,
-    });
-    expect(
-      names.indexOf("Check whether the PR can reuse develop proof"),
-    ).toBeLessThan(names.indexOf("Bootstrap Ubuntu packages"));
+      reuse.steps.find((step) => step.name === "Checkout")?.with,
+    ).toMatchObject({ ref: "${{ github.sha }}", "fetch-depth": 2 });
+    for (const job of [workflow.jobs.prove, workflow.jobs.proof]) {
+      expect(job.needs).toContain("reuse");
+      expect(job.env?.KIBI_PROOF_EXECUTE).toBe(
+        "${{ needs.reuse.outputs.execute }}",
+      );
+      expect(
+        job.steps.find((step) => step.name === "Checkout")?.with,
+      ).toMatchObject({ ref: "${{ github.sha }}", "fetch-depth": 1 });
+      for (const step of job.steps.slice(4)) {
+        if (String(step.name).startsWith("Upload Kibi Pages")) continue;
+        if (String(step.name).includes("documentation site")) continue;
+        if (String(step.name).startsWith("Namespace the proof report"))
+          continue;
+        if (String(step.name).includes("develop proof")) continue;
+        if (String(step.name).includes("branch store")) continue;
+        if (String(step.name).includes("reused train's proof report")) {
+          expect(String(step.if), String(step.name)).toContain(
+            "env.KIBI_PROOF_EXECUTE != 'true' && needs.reuse.outputs.train-run-id != ''",
+          );
+          continue;
+        }
+        expect(String(step.if), String(step.name)).toContain(
+          "env.KIBI_PROOF_EXECUTE == 'true'",
+        );
+      }
+    }
+    // A failed shard proof fails its own job, not just the join.
+    const shardRun = String(
+      workflow.jobs.prove.steps.find((step) => step.id === "prove")?.run,
+    );
+    expect(shardRun.indexOf("set -o pipefail")).toBeGreaterThan(-1);
+    expect(shardRun.indexOf("set -o pipefail")).toBeLessThan(
+      shardRun.indexOf('| tee "$out/prove.log"'),
+    );
+    const names = workflow.jobs.proof.steps.map((step) => step.name);
     expect(names.indexOf("Attest successful develop proof")).toBeGreaterThan(
       names.indexOf("Generate requirement health report"),
     );
-    for (const name of [
-      "Bootstrap Ubuntu packages",
-      "Install SWI-Prolog",
-      "Build packages used by packed proof contracts",
-      "Sync and validate integrity of the proof snapshot",
-      "Prove every contracted test through Kibi",
-      "Enforce evidence floors on a clean snapshot",
-    ]) {
-      expect(proofSteps.find((step) => step.name === name)?.if).toContain(
-        "steps.reuse.outputs.reuse != 'true'",
-      );
-      expect(proofSteps.find((step) => step.name === name)?.if).toContain(
-        "steps.reuse.outcome != 'success'",
-      );
-    }
     expect(proofWorkflow).toContain(
       "KIBI_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && 'master'",
     );
     expect(names).toContain("Upload develop proof attestation");
-    expect(names).toContain("Upload proof reuse decision");
     expect(
-      proofSteps.find((step) => step.name === "Attest successful develop proof")
-        ?.if,
+      workflow.jobs.proof.steps.find(
+        (step) => step.name === "Attest successful develop proof",
+      )?.if,
     ).toContain("github.event_name == 'push'");
+    // A merge train PR attests its own proof, from the same repository only.
+    for (const name of [
+      "Attest successful develop proof",
+      "Upload develop proof attestation",
+    ]) {
+      expect(
+        String(
+          workflow.jobs.proof.steps.find((step) => step.name === name)?.if,
+        ),
+      ).toContain(
+        "startsWith(github.head_ref, 'merge-train/') && github.event.pull_request.head.repo.full_name == github.repository",
+      );
+    }
+    const download = workflow.jobs.proof.steps.find(
+      (step) => step.name === "Download the reused train's proof report",
+    );
+    expect(download?.with).toMatchObject({
+      name: "kibi-requirement-proof",
+      "run-id": "${{ needs.reuse.outputs.train-run-id }}",
+    });
+  });
+
+  test("a failed sync, validation or proof uploads the branch store", () => {
+    const workflow = Bun.YAML.parse(proofWorkflow) as {
+      jobs: { proof: { steps: Array<Record<string, unknown>> } };
+    };
+    const proofSteps = workflow.jobs.proof.steps;
+    const names = proofSteps.map((step) => step.name);
+    const collect =
+      "Collect the branch store after a failed sync, validation or proof";
+    const upload =
+      "Upload the branch store after a failed sync, validation or proof";
+    expect(
+      proofSteps.find(
+        (step) =>
+          step.name === "Sync and validate integrity of the proof snapshot",
+      )?.id,
+    ).toBe("integrity");
+    expect(
+      proofSteps.find(
+        (step) => step.name === "Prove every contracted test through Kibi",
+      )?.id,
+    ).toBe("prove");
+    for (const name of [collect, upload]) {
+      const step = proofSteps.find((candidate) => candidate.name === name);
+      expect(step?.if).toBe(
+        "${{ failure() && (steps.integrity.outcome == 'failure' || steps.prove.outcome == 'failure') }}",
+      );
+      // After the last step a local replay runs, so a replay never copies
+      // the store.
+      expect(names.indexOf(name)).toBeGreaterThan(
+        names.indexOf("Enforce evidence floors on a clean snapshot"),
+      );
+    }
+    expect(names.indexOf(upload)).toBe(names.indexOf(collect) + 1);
+    const collectRun = String(
+      proofSteps.find((step) => step.name === collect)?.run,
+    );
+    expect(collectRun).toContain('cp -a .kb/branches "$out/branches"');
+    expect(collectRun).toContain("/tmp/kibi-runtime");
+    expect(proofSteps.find((step) => step.name === upload)?.with).toMatchObject(
+      {
+        name: "kibi-branch-store",
+        path: "${{ runner.temp }}/kibi-branch-store",
+        "include-hidden-files": true,
+      },
+    );
   });
 
   test("packed proof steps isolate compilation and cleanup", () => {

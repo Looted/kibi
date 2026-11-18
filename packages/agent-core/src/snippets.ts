@@ -3,19 +3,26 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  type EntityReason,
   type EntitySummary,
   type FactClaim,
   type IndexedSymbol,
+  isCurrentFirmSummary,
+  isRetiredStatus,
+  proseExcerpt,
   readEntitySummary,
 } from "./knowledge-index.js";
+
+export { isCurrentFirmSummary, isRetiredStatus };
 import type { RequirementHead } from "./requirement-candidates.js";
 
 /**
  * Progressive-disclosure snippets shared by every host adapter.
  *
  * Each snippet is the first layer only: requirement IDs with titles, the
- * symbols that link them, what the lead requirement must keep true and the
- * decision behind it (edits only), and the exact follow-up call that opens the
+ * symbols that link them, what the lead requirement must keep true, why it
+ * exists and the decision behind it (edits only), and the exact follow-up
+ * call that opens the
  * next layer. Text is phrased as project facts rather than instructions (hosts
  * may treat imperative out-of-band text as a possible prompt injection) and
  * stays within a small budget so repeated reads never flood the context.
@@ -27,6 +34,12 @@ const MAX_TESTS = 3;
 const MAX_TITLE = 80;
 const MAX_GROUNDING = 2;
 const MAX_CLAIM = 160;
+/** Characters of the lead requirement's reason on the Why line. */
+export const MAX_WHY_CHARS = 240;
+/** The Why line's reason when the snippet must shrink to fit. */
+const SHORT_WHY_CHARS = 160;
+/** The Why line's reason in the last layout, for long paths. */
+const TIGHT_WHY_CHARS = 100;
 /** Files larger than this are not scanned to locate an edit. */
 const MAX_FOCUS_SCAN_BYTES = 2 * 1024 * 1024;
 export const MAX_SNIPPET_CHARS = 1200;
@@ -88,11 +101,17 @@ export function editFocus(
   // fields read as undefined, so the empty list cannot be told apart.
   // Stryker disable next-line ArrayDeclaration
   const edits: unknown[] = Array.isArray(input.edits) ? input.edits : [];
+  // An edit with replace_all (replaceAll) changes every occurrence.
   const usable = [input, ...edits.map((edit) => (edit ?? {}) as Fields)]
-    .flatMap((record) => [record.old_string, record.oldString])
+    .flatMap((record) =>
+      [record.old_string, record.oldString].map((needle) => ({
+        needle,
+        all: record.replace_all === true || record.replaceAll === true,
+      })),
+    )
     .filter(
-      (needle): needle is string =>
-        typeof needle === "string" && needle.length > 0,
+      (entry): entry is { needle: string; all: boolean } =>
+        typeof entry.needle === "string" && entry.needle.length > 0,
     );
   // rationale: without needles the scan below finds nothing either; the
   // early return only saves reading the file.
@@ -108,11 +127,14 @@ export function editFocus(
   }
 
   const ranges: LineRange[] = [];
-  for (const needle of usable) {
-    const offset = content.indexOf(needle);
-    if (offset < 0) continue;
-    const start = content.slice(0, offset).split("\n").length;
-    ranges.push({ start, end: start + needle.split("\n").length - 1 });
+  for (const { needle, all } of usable) {
+    let offset = content.indexOf(needle);
+    while (offset >= 0) {
+      const start = content.slice(0, offset).split("\n").length;
+      ranges.push({ start, end: start + needle.split("\n").length - 1 });
+      if (!all) break;
+      offset = content.indexOf(needle, offset + needle.length);
+    }
   }
   return ranges.length > 0 ? ranges : undefined;
 }
@@ -122,23 +144,24 @@ function formatList(items: readonly string[], limit: number): string {
   return items.length > limit ? `${shown} +${items.length - limit}` : shown;
 }
 
-const RETIRED_STATUS = /supersed|deprecat|reject|obsolete|retired/i;
-
-/** True for a status that marks an entity as no longer current policy. */
-export function isRetiredStatus(status: string | undefined): boolean {
-  // `String(undefined)` is "undefined", which names no retired status.
-  return RETIRED_STATUS.test(String(status));
-}
-
 /**
  * `ID (status) [firmness]: title`, with the status shown only when it is
  * retired and the firmness only on a current decision: `[firm: ask before
  * changing]` says what a firm rule asks of the agent where it reads it, and
  * `[exploratory]` marks a guess. An unlabeled current decision is `default`,
- * an agent's choice.
+ * an agent's choice. With `supersededBy`, the status names the successor
+ * (`(closed, superseded by REQ-b)`) and no firmness is shown.
  */
-export function describeEntity(summary: EntitySummary): string {
-  const retired = isRetiredStatus(summary.status) ? ` (${summary.status})` : "";
+export function describeEntity(
+  summary: EntitySummary,
+  supersededBy?: string,
+): string {
+  const successor = supersededBy ?? summary.supersededBy;
+  const retired = successor
+    ? ` (${summary.status ?? "closed"}, superseded by ${successor})`
+    : isRetiredStatus(summary.status)
+      ? ` (${summary.status})`
+      : "";
   // A retired decision binds nothing, however firmly it was once made.
   const firmness =
     !retired &&
@@ -182,7 +205,7 @@ export function unownedSourceNote(
   candidates: readonly RequirementHead[] = [],
 ): string {
   const head = `Kibi: no symbol in ${relativePath} is linked to a requirement yet; that does not mean no recorded rule covers the behavior it implements.`;
-  const search = `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_upsert (requirement + scenario + symbol implements link) as part of the change.`;
+  const search = `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) surfaces requirements that may already describe it; new behavior is recorded with kb_record (statement, why, who said it, code) as part of the change.`;
   // Fewer candidates rather than a note over the snippet budget.
   for (let shown = candidates.length; shown > 0; shown--) {
     const named = candidates
@@ -204,7 +227,7 @@ export function unownedSourceNote(
   return [
     head,
     "No requirement title matches this file, so nothing recorded is known to cover it.",
-    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_upsert (requirement + scenario + symbol implements link) before the work is reported done.`,
+    `kb_search({query:"<behavior being changed>", sourceLocations:[{path:${jsonString(relativePath)}}]}) finds a rule recorded under other words. A decision this change makes for this code (a rule the person states, a limit, who may do what) is recorded with kb_record (statement, why, who said it, code) before the work is reported done.`,
   ].join("\n");
 }
 
@@ -218,7 +241,7 @@ export function unreadableManifestNote(relativePath: string): string {
 
 /** The impact-check line that closes every edit snippet. */
 function impactCheckLine(relativePath: string): string {
-  return `Behavior changes here are traced to these requirements; kb_check({sourceFiles:[${jsonString(relativePath)}], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) reports ownership drift after the edit.`;
+  return `Behavior changes here are traced to these requirements; kb_check({changed:true, sourceFiles:[${jsonString(relativePath)}]}) gives the commit gate's verdict on the edit.`;
 }
 
 /** Link types through which a requirement is grounded in semantic facts. */
@@ -314,10 +337,43 @@ function withoutClosingStop(text: string): string {
   return text.replace(/[.\s]+$/, "");
 }
 
+/** How the Why line names where a reason was recorded. */
+const REASON_LABELS: Readonly<
+  Record<Extract<EntityReason, { recorded: true }>["from"], string>
+> = {
+  rationale: "rationale",
+  why_this_changed: "Why this changed",
+  section: "context section",
+};
+
 /**
- * What a requirement says must stay true and the decision behind it (a
- * linked ADR), read from its frontmatter links and relationship-shard
- * records. Each linked fact is shown as the claim it models, with its
+ * The `Why:` line for a requirement: its recorded reason, at most
+ * `maxChars` characters, labelled with where it was recorded and who it came
+ * from and when; or that no reason is recorded. With `requirementId` the line
+ * names the requirement, since a snippet lists several and an unnamed reason
+ * reads as the last one's. Undefined when the requirement's document could
+ * not be read whole.
+ */
+export function reasonLine(
+  summary: EntitySummary,
+  maxChars: number = MAX_WHY_CHARS,
+  requirementId?: string,
+): string | undefined {
+  const why = summary.why;
+  if (!why) return undefined;
+  const of = requirementId ? ` for ${requirementId}` : "";
+  if (!why.recorded) return `Why: no reason is recorded${of}.`;
+  // A recorded reason always holds prose, so the excerpt is never empty.
+  const text = proseExcerpt([why.text], maxChars) as string;
+  const said = why.by ? `; ${why.by}${why.on ? `, ${why.on}` : ""}` : "";
+  const owner = requirementId ? `${requirementId} ` : "";
+  return `Why: ${withoutClosingStop(text)} (${owner}${REASON_LABELS[why.from]}${said}).`;
+}
+
+/**
+ * What a requirement says must stay true, why it exists (its recorded
+ * reason, unless `whyChars` is 0) and the decision behind it (a linked ADR),
+ * read from its frontmatter links and relationship-shard records. Each linked fact is shown as the claim it models, with its
  * operator and members (a fact without typed fields by its title); without
  * one the requirement's own statement is shown. Fact IDs are internal and
  * never shown. A retired requirement is not current policy, so its grounding
@@ -326,11 +382,16 @@ function withoutClosingStop(text: string): string {
 export function requirementGroundingLines(
   requirementId: string,
   summarize: Summarize,
-  options: { maxFacts?: number } = {},
+  options: { maxFacts?: number; whyChars?: number } = {},
 ): string[] {
   const maxFacts = options.maxFacts ?? MAX_GROUNDING;
+  const whyChars = options.whyChars ?? MAX_WHY_CHARS;
   const requirement = summarize(requirementId);
-  if (isRetiredStatus(requirement.status)) return [];
+  if (
+    isRetiredStatus(requirement.status) ||
+    requirement.supersededBy !== undefined
+  )
+    return [];
   const links = requirement.links ?? [];
   const facts = [
     ...new Set(
@@ -373,6 +434,9 @@ export function requirementGroundingLines(
       );
     }
   }
+  const why =
+    whyChars > 0 ? reasonLine(requirement, whyChars, requirementId) : undefined;
+  if (why) lines.push(why);
   const adr = adrs[0];
   if (adr) lines.push(`Decision: ${describeEntity(summarize(adr))}.`);
   return lines;
@@ -405,6 +469,62 @@ export function createEntitySummarizer(workspaceRoot: string): Summarize {
  * Requirement -> symbol titles, with the requirement IDs ranked so the focus
  * symbols' owners lead, then the requirements with the most symbols.
  */
+/**
+ * The listed requirements that a current requirement supersedes (listed
+ * here or recorded on the summary), each with its successor. A replaced requirement is `closed`,
+ * which alone reads as current, so the snippet names its successor.
+ */
+function replacedAmong(
+  requirementIds: readonly string[],
+  summarize: Summarize,
+): Map<string, string> {
+  const listed = new Set(requirementIds);
+  const replaced = new Map<string, string>();
+  for (const id of requirementIds) {
+    const summary = summarize(id);
+    // A replaced requirement whose successor is not listed here.
+    if (summary.supersededBy !== undefined && !replaced.has(id))
+      replaced.set(id, summary.supersededBy);
+    if (summary.status === "closed" || isRetiredStatus(summary.status))
+      continue;
+    for (const link of summary.links ?? [])
+      if (
+        link.type === "supersedes" &&
+        link.target !== id &&
+        listed.has(link.target) &&
+        !replaced.has(link.target)
+      )
+        replaced.set(link.target, id);
+  }
+  return replaced;
+}
+
+/**
+ * `requirementOwners` with each replaced requirement moved after the current
+ * ones, so the lead requirement, whose grounding and reason the snippet
+ * shows, is the one in force.
+ */
+function currentFirstOwners(
+  symbols: readonly IndexedSymbol[],
+  focus: readonly IndexedSymbol[],
+  summarize: Summarize,
+): {
+  owners: Map<string, string[]>;
+  requirementIds: string[];
+  replaced: Map<string, string>;
+} {
+  const { owners, requirementIds } = requirementOwners(symbols, focus);
+  const replaced = replacedAmong(requirementIds, summarize);
+  return {
+    owners,
+    requirementIds: [
+      ...requirementIds.filter((id) => !replaced.has(id)),
+      ...requirementIds.filter((id) => replaced.has(id)),
+    ],
+    replaced,
+  };
+}
+
 function requirementOwners(
   symbols: readonly IndexedSymbol[],
   focus: readonly IndexedSymbol[],
@@ -430,14 +550,63 @@ function requirementOwners(
   return { owners, requirementIds };
 }
 
+/** How much a snippet shows; later layouts show less to fit the budget. */
+type SnippetLayout = {
+  requirements: number;
+  facts: number;
+  whyChars: number;
+  tests: boolean;
+};
+
+/**
+ * Layouts tried in turn until a snippet fits its budget: fewer requirements
+ * and grounding claims go first, then a shorter reason, then the test lines,
+ * so the Why line and the next-layer calls are not cut off the end.
+ */
+const SNIPPET_LAYOUTS: readonly SnippetLayout[] = [
+  {
+    requirements: MAX_REQUIREMENTS,
+    facts: MAX_GROUNDING,
+    whyChars: MAX_WHY_CHARS,
+    tests: true,
+  },
+  {
+    requirements: 3,
+    facts: MAX_GROUNDING,
+    whyChars: MAX_WHY_CHARS,
+    tests: true,
+  },
+  { requirements: 2, facts: 1, whyChars: MAX_WHY_CHARS, tests: true },
+  { requirements: 2, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
+  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: true },
+  { requirements: 1, facts: 1, whyChars: SHORT_WHY_CHARS, tests: false },
+  { requirements: 1, facts: 1, whyChars: TIGHT_WHY_CHARS, tests: false },
+];
+
+/** The first layout whose text fits `maxChars`, else the last one cut to fit. */
+function fitLayouts(
+  compose: (layout: SnippetLayout) => string,
+  maxChars: number,
+): string {
+  const texts = SNIPPET_LAYOUTS.map(compose);
+  const fits = texts.find((text) => text.length <= maxChars);
+  return fits ?? truncate(texts.at(-1) as string, maxChars);
+}
+
 /**
  * Knowledge snippet for a file with requirement-linked symbols, or undefined
- * when the manifest links nothing to it.
+ * when the manifest links nothing to it. An edit snippet gives the lead
+ * requirement's recorded reason on a `Why:` line; a snippet over its budget
+ * lists fewer requirements and claims before anything is cut.
  */
 export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
   const { relativePath, symbols, surface, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
-  const { owners, requirementIds } = requirementOwners(symbols, focus);
+  const { owners, requirementIds, replaced } = currentFirstOwners(
+    symbols,
+    focus,
+    summarize,
+  );
   const tests = [
     ...new Set(symbols.flatMap((symbol) => symbol.coveredBy)),
   ].sort();
@@ -448,71 +617,80 @@ export function fileKnowledgeSnippet(input: SnippetInput): string | undefined {
     return undefined;
   }
 
-  const lines: string[] = [
-    `Kibi knowledge for ${relativePath} (symbol manifest):`,
-  ];
-  for (const requirementId of requirementIds.slice(0, MAX_REQUIREMENTS)) {
-    const symbolTitles = owners.get(requirementId) as string[];
-    lines.push(
-      `- ${describeEntity(summarize(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`,
-    );
-  }
-  if (requirementIds.length > MAX_REQUIREMENTS) {
-    lines.push(
-      `- +${requirementIds.length - MAX_REQUIREMENTS} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`,
-    );
-  }
   const leadId = requirementIds[0];
-  if (surface === "edit" && leadId) {
-    lines.push(...requirementGroundingLines(leadId, summarize));
-  }
-  if (tests.length > 0) {
-    lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
-  }
-  if (executes.length > 0) {
-    lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
-  }
-
   const primaryFocus = focus[0];
-  if (primaryFocus) {
-    const owner = primaryFocus.implements[0];
-    const verb =
-      surface === "edit" ? "The edit is inside" : "These lines are inside";
-    lines.push(
-      owner
-        ? `${verb} ${primaryFocus.title}, which implements ${owner}.`
-        : `${verb} ${primaryFocus.title}.`,
-    );
-  }
+  const compose = (layout: SnippetLayout): string => {
+    const lines: string[] = [
+      `Kibi knowledge for ${relativePath} (symbol manifest):`,
+    ];
+    for (const requirementId of requirementIds.slice(0, layout.requirements)) {
+      const symbolTitles = owners.get(requirementId) as string[];
+      lines.push(
+        `- ${describeEntity(summarize(requirementId), replaced.get(requirementId))} — ${formatList(symbolTitles, MAX_SYMBOLS_PER_REQUIREMENT)}`,
+      );
+    }
+    if (requirementIds.length > layout.requirements) {
+      lines.push(
+        `- +${requirementIds.length - layout.requirements} more requirements: kb_query({sourceFile:${jsonString(relativePath)}})`,
+      );
+    }
+    const grounding =
+      surface === "edit" && leadId
+        ? requirementGroundingLines(leadId, summarize, {
+            maxFacts: layout.facts,
+            whyChars: layout.whyChars,
+          })
+        : [];
+    lines.push(...grounding);
+    if (layout.tests && tests.length > 0) {
+      lines.push(`Covered by: ${formatList(tests, MAX_TESTS)}.`);
+    }
+    if (layout.tests && executes.length > 0) {
+      lines.push(`Test code for: ${formatList(executes, MAX_TESTS)}.`);
+    }
 
-  const location = primaryFocus
-    ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}`
-    : `{path:${jsonString(relativePath)}}`;
-  const next = [
-    leadId
-      ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text and why it exists`
-      : undefined,
-    `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`,
-  ].filter((part): part is string => part !== undefined);
-  lines.push(`Next layer: ${next.join("; ")}.`);
+    if (primaryFocus) {
+      const owner = primaryFocus.implements[0];
+      const verb =
+        surface === "edit" ? "The edit is inside" : "These lines are inside";
+      lines.push(
+        owner
+          ? `${verb} ${primaryFocus.title}, which implements ${owner}.`
+          : `${verb} ${primaryFocus.title}.`,
+      );
+    }
 
-  if (surface === "edit") lines.push(impactCheckLine(relativePath));
+    const location = primaryFocus
+      ? `{path:${jsonString(relativePath)}, symbol:${jsonString(primaryFocus.title)}}`
+      : `{path:${jsonString(relativePath)}}`;
+    // With the reason on the Why line, the full text is what the call adds.
+    const reasonShown = grounding.some((line) => line.startsWith("Why: "));
+    const next = [
+      leadId
+        ? `kb_query({id:${jsonString(leadId)}, includeBody:true}) returns the full requirement text${reasonShown ? "" : " and why it exists"}`
+        : undefined,
+      `kb_search({query:"<topic>", sourceLocations:[${location}]}) answers with governing requirements, facts, decisions, and tests`,
+    ].filter((part): part is string => part !== undefined);
+    lines.push(`Next layer: ${next.join("; ")}.`);
 
-  return truncate(lines.join("\n"), input.maxChars ?? MAX_SNIPPET_CHARS);
+    if (surface === "edit") lines.push(impactCheckLine(relativePath));
+    return lines.join("\n");
+  };
+  return fitLayouts(compose, input.maxChars ?? MAX_SNIPPET_CHARS);
 }
 
 /**
  * Reduced edit snippet for a file whose descriptive snippet (requirements,
  * symbols, tests, next-layer calls) was already shown this session: which
- * symbol the edit lands in, what the lead requirement must keep true and the
- * decision behind it, and the impact check. The descriptive parts are not
+ * symbol the edit lands in, what the lead requirement must keep true, why it
+ * exists and the decision behind it, and the impact check. The descriptive parts are not
  * repeated. Undefined when no symbol of the file implements a requirement
  * and the edit lands in no symbol.
  */
 export function editKnowledgeUpdate(input: SnippetInput): string | undefined {
   const { relativePath, symbols, summarize } = input;
   const focus = focusedSymbols(symbols, input.focus);
-  const { requirementIds } = requirementOwners(symbols, focus);
+  const { requirementIds } = currentFirstOwners(symbols, focus, summarize);
   const leadId = requirementIds[0];
   const lines: string[] = [];
   const focused = focusUpdate(relativePath, symbols, input.focus);
@@ -524,9 +702,18 @@ export function editKnowledgeUpdate(input: SnippetInput): string | undefined {
     );
   }
   if (!leadId) return lines[0];
-  lines.push(...requirementGroundingLines(leadId, summarize));
-  lines.push(impactCheckLine(relativePath));
-  return truncate(lines.join("\n"), input.maxChars ?? MAX_SNIPPET_CHARS);
+  return fitLayouts(
+    (layout) =>
+      [
+        ...lines,
+        ...requirementGroundingLines(leadId, summarize, {
+          maxFacts: layout.facts,
+          whyChars: layout.whyChars,
+        }),
+        impactCheckLine(relativePath),
+      ].join("\n"),
+    input.maxChars ?? MAX_SNIPPET_CHARS,
+  );
 }
 
 /**

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-source-timing-max-events",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/source-analysis-timing-limits.proof.test.ts"
+    ]
+  ]
+}

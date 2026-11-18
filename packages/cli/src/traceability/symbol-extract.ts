@@ -45,6 +45,8 @@ export interface ExtractedSymbol {
   hunkRanges: HunkRange[]; // intersecting hunks from staged file
   reqLinks: string[]; // requirement IDs the symbol manifest links with implements
   relationships?: TraceabilityRelationship[];
+  /** A variable whose value is a function: it needs a link like one. */
+  callable?: true;
 }
 
 export interface ManifestLookupEntry {
@@ -180,6 +182,7 @@ function buildSymbolResult(
   span: { startLine: number; endLine: number },
   manifestLookup: ManifestLookup | undefined,
   nestedSpans: readonly HunkLineRange[],
+  callable: boolean,
 ): ExtractedSymbol {
   const { id, relationships } = resolveSymbolTraceability(
     stagedFile.path,
@@ -203,6 +206,7 @@ function buildSymbolResult(
     hunkRanges: ownedHunks(span, nestedSpans, stagedFile.hunkRanges),
     reqLinks,
     ...(relationships !== undefined ? { relationships } : {}),
+    ...(callable ? { callable: true as const } : {}),
   };
 }
 
@@ -392,6 +396,7 @@ function symbolsFromAnalysis(
         { startLine: symbol.startLine, endLine: symbol.endLine },
         manifestLookup,
         nestedSpans(symbol, analysis.symbols),
+        (symbol as { callable?: boolean }).callable === true,
       ),
     );
   }

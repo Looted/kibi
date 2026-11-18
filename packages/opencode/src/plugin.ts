@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import {
   type AutoUpdateInput,
   type AutoUpdateResult,
@@ -8,6 +9,7 @@ import {
   invalidateKibiOpencodePackage,
   runBunInstallForOpenCodePlugin,
 } from "./auto-update.js";
+import { createDecisionHooks } from "./decision-hooks.js";
 import { getE2eCoverageSignal } from "./e2e-coverage-signals.js";
 import {
   buildDirtyRelevantFingerprint,
@@ -46,6 +48,7 @@ import {
   runPluginStartup,
 } from "./plugin-startup.js";
 import { SENTINEL, buildPrompt } from "./prompt.js";
+import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import { type SyncScheduler, createSyncScheduler } from "./scheduler.js";
 import {
@@ -122,6 +125,11 @@ const checkoutHooksCache = new Map<
   string,
   { note: string | null; at: number }
 >();
+/** Whether the workspace uses Kibi, so its sessions open with the brief. */
+function sessionBriefApplies(posture: RepoPosture): boolean {
+  return posture === "root_active" || posture === "hybrid_root_plus_vendored";
+}
+
 function checkoutHooksNote(worktreeRoot: string): string | null {
   const cached = checkoutHooksCache.get(worktreeRoot);
   const now = Date.now();
@@ -161,6 +169,12 @@ export interface PluginInput {
       submitPrompt?: () => void | Promise<void>;
     };
     app: { log: (payload: Record<string, unknown>) => Promise<void> };
+    session?: {
+      prompt?: (payload: {
+        path: { id: string };
+        body: { parts: { type: "text"; text: string }[] };
+      }) => Promise<unknown>;
+    };
   };
 }
 
@@ -196,9 +210,17 @@ export interface Hooks {
     output: SystemTransformOutput,
   ) => void | Promise<void>;
   "chat.params"?: (input: unknown, output: unknown) => void | Promise<void>;
+  "chat.message"?: (
+    input: { sessionID?: string } | undefined,
+    output: { parts?: unknown } | undefined,
+  ) => void | Promise<void>;
+  "tool.execute.before"?: (
+    input: { tool?: string; sessionID?: string } | undefined,
+    output: { args?: unknown } | undefined,
+  ) => void | Promise<void>;
   "tool.execute.after"?: (
     input: { tool?: string; sessionID?: string; args?: unknown } | undefined,
-    output?: unknown,
+    output?: { output?: unknown } | undefined,
   ) => void | Promise<void>;
 }
 
@@ -571,8 +593,34 @@ const kibiOpencodePlugin: Plugin = async (
     lintRequirementDoc,
   };
 
+  // The decision hooks the other hosts run (rule capture, firm-edit ask,
+  // idle capture request), only in a workspace with a root Kibi manifest.
+  const decisions = [
+    "root_active",
+    "root_partial",
+    "hybrid_root_plus_vendored",
+  ].includes(rootWorkContext.posture)
+    ? createDecisionHooks({
+        workspaceRoot: rootWorkContext.worktreeRoot,
+        prompt: async (sessionId, text) => {
+          await input.client?.session?.prompt?.({
+            path: { id: sessionId },
+            body: { parts: [{ type: "text", text }] },
+          });
+        },
+      })
+    : undefined;
+  if (decisions) {
+    hooks["chat.message"] = async (message, output) => {
+      decisions.chatMessage(message?.sessionID, output?.parts);
+    };
+    hooks["tool.execute.before"] = async (toolCall, output) => {
+      decisions.beforeTool(toolCall?.tool, toolCall?.sessionID, output?.args);
+    };
+  }
+
   // Opt-in usage rows for the lookup-before-first-edit telemetry metric.
-  hooks["tool.execute.after"] = async (toolCall) => {
+  hooks["tool.execute.after"] = async (toolCall, output) => {
     recordOpencodeToolTelemetry({
       worktree: rootWorkContext.worktreeRoot,
       tool: toolCall?.tool,
@@ -580,9 +628,27 @@ const kibiOpencodePlugin: Plugin = async (
       sessionId: toolCall?.sessionID,
       startedAt: new Date(),
     });
+    const note = decisions?.afterTool(
+      toolCall?.tool,
+      toolCall?.sessionID,
+      toolCall?.args,
+    );
+    if (note !== undefined && output) {
+      output.output =
+        typeof output.output === "string" && output.output !== ""
+          ? `${output.output}\n\n${note}`
+          : note;
+    }
   };
 
   hooks.event = async ({ event }) => {
+    if (event.type === "session.idle" && decisions) {
+      const sessionId = event.properties?.sessionID;
+      await decisions.sessionIdle(
+        typeof sessionId === "string" ? sessionId : undefined,
+      );
+      return;
+    }
     if (isKbToolEventType(event.type)) {
       handleKbToolEvent(eventEnv, event, input.sessionId);
       return;
@@ -968,6 +1034,12 @@ const kibiOpencodePlugin: Plugin = async (
 
         // No entry carries the sentinel, so the guidance is never a repeat.
         output.system.push(guidance);
+        // The system prompt is rebuilt for every request, so a workspace that
+        // uses Kibi gets the shared session brief, the same text every other
+        // host starts with, on each one.
+        if (sessionBriefApplies(promptWorkContext.posture)) {
+          output.system.push(SESSION_BRIEF);
+        }
         const hooksNote = checkoutHooksNote(promptWorkContext.worktreeRoot);
         if (hooksNote !== null) output.system.push(hooksNote);
       };

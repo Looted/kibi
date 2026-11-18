@@ -118,13 +118,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48d49a1170c2
-  - type: constrains
-    from: REQ-kibi-source-proof-reader-vocabulary
-    to: FACT-SUBJECT-KIBI-SOURCE-PROOF
-    created_at: 2026-10-28T13:41:04.720Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3919a9a4bcd4
   - type: validates
     from: TEST-proof-polarity-backfill-code
     to: SCEN-cli-migrate
@@ -377,3 +370,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-309a7a04e297
+  - type: constrains
+    from: REQ-kibi-source-proof-reader-vocabulary
+    to: FACT-kibi-proofs-vocabulary-component
+    created_at: 2026-11-16T10:45:20.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75b8203a11ad
+  - type: constrains
+    from: REQ-engine-client-core-modules-from-engine
+    to: FACT-engine-core-modules-subject
+    created_at: 2026-11-16T09:59:42.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ee4da66eab4
+  - type: requires_property
+    from: REQ-engine-client-core-modules-from-engine
+    to: FACT-engine-client-loads-engine-core-modules
+    created_at: 2026-11-16T09:59:42.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7e447c949d2
+  - type: specified_by
+    from: REQ-engine-client-core-modules-from-engine
+    to: SCEN-engine-client-core-modules-from-engine
+    created_at: 2026-11-16T09:59:42.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12e105977e07
+  - type: specified_by
+    from: REQ-engine-client-core-modules-from-engine
+    to: SCEN-NEG-engine-client-core-modules-from-engine-OTHER-INSTALL-COPY
+    created_at: 2026-11-16T09:59:42.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a920661e5d0c
+  - type: assumes
+    from: SCEN-NEG-check-quantity-duplicate-pairing-COINCIDENCE
+    to: FACT-NEG-check-quantity-duplicate-pairing-COINCIDENCE
+    created_at: 2026-11-16T16:10:31.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6af454d4be4
+  - type: verified_by
+    from: SCEN-NEG-check-quantity-duplicate-pairing-COINCIDENCE
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:31.435Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a316452f6a9
+  - type: implements
+    from: SYM-cli-quantity-layer-quantity-words
+    to: REQ-check-quantity-duplicate-pairing
+    created_at: 2026-11-16T16:11:19.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d0be9b954c4
+  - type: covered_by
+    from: SYM-cli-quantity-layer-quantity-words
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:11:19.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c203524be21
+  - type: executable_for
+    from: SYM-test-agent-hosts-shell-edits-count
+    to: TEST-agent-hosts-shell-edits-count
+    created_at: 2026-11-17T17:02:51.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-193db34efc7f

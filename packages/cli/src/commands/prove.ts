@@ -60,6 +60,10 @@ export type ProveCommandOptions = Readonly<{
   stale?: boolean;
   /** Skip integrations an interrupted run already ingested at this snapshot. */
   resume?: boolean;
+  /** Keep only the index-th (1-based) of count disjoint parts of the selection. */
+  shard?: ProveShard;
+  /** Print the selected test ids and exit without running anything. */
+  list?: boolean;
   workspaceRoot?: string;
 }>;
 
@@ -69,6 +73,35 @@ export type ProveCommandDependencies = Readonly<{
 }>;
 
 type SelectedTest = Record<string, unknown>;
+
+export type ProveShard = Readonly<{ index: number; count: number }>;
+
+/** Parse a `--shard K/N` value: 1 <= K <= N. */
+export function parseProveShard(value: string): ProveShard {
+  const match = /^([1-9]\d*)\/([1-9]\d*)$/.exec(value.trim());
+  const index = Number(match?.[1]);
+  const count = Number(match?.[2]);
+  if (!match || index > count)
+    throw new Error(
+      `prove: --shard must be K/N with 1 <= K <= N (got '${value}')`,
+    );
+  return { index, count };
+}
+
+/**
+ * The shard's part of a selection. Tests are ordered by id and dealt out in
+ * turn, so the parts are disjoint, together hold every selected test, differ
+ * in size by at most one, and neighbouring ids (often one area's tests) land
+ * in different parts.
+ */
+export function shardSelection<T extends Record<string, unknown>>(
+  tests: readonly T[],
+  shard: ProveShard,
+): T[] {
+  return [...tests]
+    .sort((left, right) => (String(left.id) < String(right.id) ? -1 : 1))
+    .filter((_, position) => position % shard.count === shard.index - 1);
+}
 
 /**
  * Describe which paths moved when a proof snapshot refusal fires, so
@@ -409,7 +442,11 @@ async function selectTests(
   context: OperationContext,
   options: ProveCommandOptions,
 ): Promise<SelectedTest[]> {
-  const selected = await selectTestsBySelector(context, options);
+  const bySelector = await selectTestsBySelector(context, options);
+  const selected =
+    options.shard === undefined
+      ? bySelector
+      : shardSelection(bySelector, options.shard);
   if (!options.stale || selected.length === 0) return selected;
   const states = await readTestReceiptStates(context);
   return selected.filter(
@@ -448,8 +485,10 @@ async function selectTestsBySelector(
       : undefined;
     if (typeof scenarioRows === "string")
       for (const [, test] of parsePairList(scenarioRows)) ids.add(test);
+    // A test that validates the requirement, or one the requirement names
+    // as verified_by (as kb_record links it).
     const directResult = await context.prolog?.query(
-      `findall(T, kb_relationship(validates, T, ${requirement}), Rows)`,
+      `findall(T, (kb_relationship(validates, T, ${requirement}) ; kb_relationship(verified_by, ${requirement}, T)), Rows)`,
     );
     const directRows = directResult?.success
       ? directResult.bindings.Rows
@@ -569,14 +608,14 @@ export async function proveCommand(
   });
   let completed = false;
   try {
-    const integrations = loadProofIntegrations(context.workspaceRoot);
-    if (!integrations.available)
-      throw new OperationError(
-        "PROOF_INTEGRATIONS_UNAVAILABLE",
-        `prove: ${integrations.error}`,
-        false,
-      );
     const selected = await selectTests(context, options);
+    if (options.list) {
+      process.stdout.write(
+        `${JSON.stringify({ tests: selected.map((test) => String(test.id)).sort(), ...(options.shard === undefined ? {} : { shard: `${options.shard.index}/${options.shard.count}` }) })}\n`,
+      );
+      completed = true;
+      return { exitCode: 0 };
+    }
     if (selected.length === 0) {
       process.stdout.write(
         `${JSON.stringify({ passed: 0, certified: 0, failed: 0, message: options.stale ? "every selected test already has a current passing receipt" : "no proof-bearing tests selected" })}\n`,
@@ -584,11 +623,21 @@ export async function proveCommand(
       completed = true;
       return { exitCode: 0 };
     }
+    // Integrations are needed only to run something: a selection with no
+    // proof-bearing test reports that without them.
+    const integrations = loadProofIntegrations(context.workspaceRoot);
+    if (!integrations.available)
+      throw new OperationError(
+        "PROOF_INTEGRATIONS_UNAVAILABLE",
+        `prove: ${integrations.error}`,
+        false,
+      );
     const before = await readWorkspaceSnapshot(context);
     if (!before.available)
       throw new OperationError(
         "WORKSPACE_SNAPSHOT_UNAVAILABLE",
         `prove: ${before.error}`,
+        true,
       );
     const snapshot = before.snapshot.hash;
     // Packed contracts run in separate processes; one shared packed-tarball

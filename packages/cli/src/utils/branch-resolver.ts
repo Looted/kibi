@@ -417,6 +417,19 @@ export function detachedHeadWriteRefusal(
 }
 
 /**
+ * Refusal for an engine-backed operation while the branch is attached
+ * through a legacy literal-named store. The KB engine serves only the hashed
+ * store, so the operation would read and create an empty store beside the
+ * legacy one instead of the knowledge it holds.
+ */
+export function legacyAttachmentRefusal(
+  attachment: Pick<BranchAttachment, "gitBranch" | "storePath">,
+  operation: string,
+): string {
+  return `Legacy branch store ${attachment.storePath} for '${attachment.gitBranch}' must be migrated before '${operation}' runs. Preview the migration with 'kibi migrate', then apply it with 'kibi migrate --apply-safe <planHash>'.`;
+}
+
+/**
  * Resolve the storage namespace without treating any branch as canonical.
  * Literal branch-named stores are read-compatible legacy storage only. The
  * active Git identity always remains the exact branch name.
@@ -651,68 +664,4 @@ function copyDirectoryClean(sourceDir: string, targetDir: string): void {
       copyFileSync(sourcePath, targetPath);
     }
   }
-}
-
-/**
- * Get the list of files that would be excluded from a clean snapshot copy.
- * Useful for debugging and testing.
- *
- * @returns Array of volatile artifact patterns
- */
-export function getVolatileArtifactPatterns(): string[] {
-  return [
-    ...Array.from(VOLATILE_ARTIFACTS),
-    ...Array.from(VOLATILE_EXTENSIONS).map((ext) => `*${ext}`),
-    "journal-*.log",
-  ];
-}
-
-/**
- * @deprecated Branch lifecycle follows Git naturally. This helper remains for
- * callers that need informational remote-default discovery, but it never
- * invents a `main` branch.
- *
- * Resolve a remote default branch for informational display only. It must not
- * be used to attach a KB or initialize a branch. Legacy migration callers must
- * supply explicit old and new identities.
- *
- * Unlike resolveActiveBranch, this does NOT normalize branch names.
- * Configured names are returned verbatim.
- *
- * @param cwd - The working directory to resolve the default branch
- * @param _config - Retained for source compatibility; ignored.
- * @returns BranchResolutionResult with either the branch name or an error
- */
-export function resolveDefaultBranch(
-  cwd: string = process.cwd(),
-  _config?: { defaultBranch?: string },
-): { branch: string } | { error: string; code: string } {
-  // Try to get the remote default branch from origin/HEAD. This is only
-  // informational; attachment always follows the active Git branch.
-  let remoteHead: string | undefined;
-  try {
-    remoteHead = defaultDeps
-      .execSync("git symbolic-ref refs/remotes/origin/HEAD", {
-        cwd,
-        encoding: "utf8",
-        timeout: 5000,
-        stdio: ["pipe", "pipe", "pipe"],
-      })
-      .trim();
-  } catch {
-    // origin/HEAD doesn't exist or command failed, fall through to fallback
-  }
-
-  // Parse refs/remotes/origin/BRANCH_NAME -> BRANCH_NAME. String(undefined)
-  // names no remote ref.
-  const match = /^refs\/remotes\/origin\/(.+)$/.exec(String(remoteHead));
-  if (match !== null && isValidBranchName(match[1] as string)) {
-    return { branch: match[1] as string };
-  }
-
-  return {
-    error:
-      "No remote default branch is configured; provide explicit migration identities.",
-    code: "NO_DEFAULT_BRANCH",
-  };
 }

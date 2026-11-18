@@ -321,3 +321,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f2573320a07a
+  - type: requires_property
+    from: REQ-check-reports-symbol-debt
+    to: FACT-check-reports-symbol-debt
+    created_at: 2026-11-16T05:38:14.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-922828f5f766
+  - type: constrains
+    from: REQ-check-reports-symbol-debt
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-11-16T05:38:14.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13fb2ef14e9b
+  - type: verified_by
+    from: REQ-check-reports-symbol-debt
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:38:14.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-122de15aac7a
+  - type: assumes
+    from: SCEN-NEG-init-gemini-instructions-NOT-WRITTEN
+    to: FACT-init-gemini-md-not-written
+    created_at: 2026-11-16T16:34:55.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f052de41fe3
+  - type: constrains
+    from: REQ-ci-merge-train-admission
+    to: FACT-SUBJECT-kibi-ci-merge-train
+    created_at: 2026-11-17T11:40:39.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a96bb8615d74
+  - type: requires_property
+    from: REQ-ci-merge-train-admission
+    to: FACT-ci-merge-train-admission
+    created_at: 2026-11-17T11:40:39.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaa95bf58c24
+  - type: specified_by
+    from: REQ-ci-merge-train-admission
+    to: SCEN-ci-merge-train-admission
+    created_at: 2026-11-17T11:40:39.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d7e4846f8b2
+  - type: specified_by
+    from: REQ-ci-merge-train-admission
+    to: SCEN-NEG-ci-merge-train-admission-VIOLATED
+    created_at: 2026-11-17T11:40:39.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39971df553a5
+  - type: implements
+    from: SYM-merge-train-workflow
+    to: REQ-ci-merge-train-lands-assembled-head
+    created_at: 2026-11-17T11:40:57.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2996e247af46
+  - type: covered_by
+    from: SYM-merge-train-workflow
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:57.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cd6c47b3be5

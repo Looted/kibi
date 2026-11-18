@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-check-finding-blocks",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "200000",
+      "./packages/cli/tests/public-mutation/operations/finding-blocks.mutation.test.ts",
+      "./packages/cli/tests/public-mutation/operations/check-executor.mutation.test.ts",
+      "./packages/cli/tests/commands-mutation/check/staged-helpers.test.ts",
+      "./packages/cli/tests/public-mutation/operations/result-envelope.mutation.test.ts"
+    ]
+  ]
+}

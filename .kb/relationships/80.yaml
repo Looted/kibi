@@ -272,3 +272,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-197611fb3b85
+  - type: implements
+    from: SYM-kibi-apply-plan-legacy-attachment-gate
+    to: REQ-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:35:41.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa9f4d043ef5
+  - type: covered_by
+    from: SYM-kibi-apply-plan-legacy-attachment-gate
+    to: TEST-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:35:41.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1eb7377955c3
+  - type: implements
+    from: SYM-kibi-usage-skill-guidance
+    to: REQ-kibi-usage-core-arc
+    created_at: 2026-11-16T15:39:03.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05db07b12287
+  - type: implements
+    from: SYM-kibi-usage-skill-guidance
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:39:03.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e59ca913d432
+  - type: covered_by
+    from: SYM-kibi-usage-skill-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:39:03.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58873171948a
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-seed
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:29:57.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f01f1cf8162
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-seed
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:29:57.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfac4faa9339

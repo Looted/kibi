@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-managed-hook-names",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/git-hook-managed-names.proof.test.ts"
+    ]
+  ]
+}

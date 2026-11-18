@@ -7,6 +7,7 @@ import { planBootstrapSpec } from "./specs/bootstrap.js";
 import { checkSpec } from "./specs/check.js";
 import { modelSpec, skillsSpec } from "./specs/composite.js";
 import { querySpec, searchSpec, statusSpec } from "./specs/discovery.js";
+import { reviewFirmEditSpec } from "./specs/firm-edit-review.js";
 import { prepareImpactReviewSpec } from "./specs/impact-review-preparation.js";
 import {
   modelRequirementSpec,
@@ -19,6 +20,7 @@ import {
 } from "./specs/mutation.js";
 import { applyPlanSpec, compileIntentSpec } from "./specs/planning.js";
 import { ingestProofSpec } from "./specs/proof.js";
+import { recordSpec } from "./specs/record.js";
 import { coverageSpec, findGapsSpec, graphSpec } from "./specs/reporting.js";
 import { semanticAdvisorSpec } from "./specs/semantic.js";
 import {
@@ -51,9 +53,11 @@ export const OPERATION_CATALOG = [
   planBootstrapSpec,
   validateUpsertSpec,
   upsertSpec,
+  recordSpec,
   deleteSpec,
   checkSpec,
   prepareImpactReviewSpec,
+  reviewFirmEditSpec,
   sparqlRemoteSpec,
   compileIntentSpec,
   applyPlanSpec,

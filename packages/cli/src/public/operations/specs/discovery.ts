@@ -13,6 +13,7 @@ import type {
   StatusPayload,
 } from "../discovery-executors.js";
 import type { OperationSpec } from "../types.js";
+import { ADVERTISED_DESCRIPTION } from "../advertised-schema.js";
 
 const ENTITY_TYPES = [
   "req",
@@ -72,11 +73,15 @@ export const querySpec = {
         enum: FACT_KINDS,
         description:
           "Typed fact filter: list facts of one kind with their typed fields. 'predicate_schema' returns the catalog of askable predicates (argument names, constants, fact counts). Example: 'predicate_schema'.",
+        [ADVERTISED_DESCRIPTION]:
+          "Typed fact filter: list facts of one kind; 'predicate_schema' returns the catalog of askable predicates.",
       },
       predicate: {
         type: "string",
         description:
           "Typed fact filter: predicate name to ask about, e.g. 'has_role' or 'permission_rule'. Combine with where for named arguments. Returns every stored fact of that predicate with its arguments, polarity and allow/deny effect.",
+        [ADVERTISED_DESCRIPTION]:
+          "Typed fact filter: predicate name to ask about; returns its stored facts with arguments, polarity and effect.",
       },
       namespace: {
         type: "string",
@@ -88,12 +93,16 @@ export const querySpec = {
         additionalProperties: { type: "string" },
         description:
           "Named argument values for predicate, order-free, using the argument names from the predicate's schema. Example: {actor: 'admin', decision: 'allow'}. An unknown name returns a warning with the declared names; no match returns the values that do exist.",
+        [ADVERTISED_DESCRIPTION]:
+          "Named argument values for predicate, using the names from its schema.",
       },
       args: {
         type: "array",
         items: { type: ["string", "null"] },
         description:
           "Positional argument values for predicate when it has no schema; null matches any value. Example: ['admin', null, null, 'allow']. Prefer where.",
+        [ADVERTISED_DESCRIPTION]:
+          "Positional argument values for a predicate with no schema; null matches any. Prefer where.",
       },
       polarity: {
         type: "string",
@@ -111,11 +120,15 @@ export const querySpec = {
         type: "string",
         description:
           "Optional argument name to count distinct values of across the matching predicate facts, e.g. distinct: 'role' with predicate 'has_role' and where {user: 'alice'} answers how many roles alice has.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional argument name whose distinct values to count across the matching predicate facts.",
       },
       subjectKey: {
         type: "string",
         description:
           "Typed fact filter: dotted subject key whose property facts to list, e.g. 'user.role_assignment'. Combine with propertyKey for one property, or with factKind 'subject' for the subject's domain view.",
+        [ADVERTISED_DESCRIPTION]:
+          "Typed fact filter: dotted subject key whose property facts to list; combine with propertyKey or factKind 'subject'.",
       },
       propertyKey: {
         type: "string",
@@ -139,6 +152,8 @@ export const querySpec = {
         default: false,
         description:
           "With id only: also return the entity's authored Markdown body (the prose after its front matter) as body {id, path, text}, so a stale statement in it can be corrected; kb_upsert document.body replaces it. Default: false.",
+        [ADVERTISED_DESCRIPTION]:
+          "With id only: also return the entity's authored Markdown body. Default: false.",
       },
     },
   },
@@ -152,7 +167,7 @@ export const searchSpec = {
   name: "kb_search",
   cliName: "search",
   description:
-    "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic, what must stay true (linked facts), why (ADRs) and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
+    "Ask the KB a question or search it. Default intent-v1 ranking accepts questions, host-agent semantic facets and changed-code source locations, returns evidence, abstains below its confidence threshold and adds an answer layer: the current requirements that govern the topic with their statement and recorded reason (why), what must stay true (linked facts), the deciding ADRs and what verifies it (scenarios, tests). A weak answer may add queryAnalysis.hints from a search-hints plugin: requirements the question may mean, to re-ask with. Use before changing behavior, then kb_query for exact follow-up. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     required: ["query"],
@@ -177,6 +192,8 @@ export const searchSpec = {
         default: 10,
         description:
           "Optional max rows to return after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional max rows after ranking. Default: 10; raise it or page with offset when the answer layer is not enough.",
       },
       offset: {
         type: "integer",
@@ -190,18 +207,24 @@ export const searchSpec = {
         default: "intent-v1",
         description:
           "Optional deterministic ranking mode. Default intent-v1: question-aware ranking with semantic facets, source-aware evidence, graph boosts, superseded demotion and abstention. Use legacy for the older lexical ranking.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional ranking mode: intent-v1 (default, question-aware) or legacy (older lexical ranking).",
       },
       answer: {
         type: "boolean",
         default: true,
         description:
           "Intent-v1 only, first page only. When true (default) the result includes an answer layer: current governing requirements with their linked facts, scenarios, tests and ADRs, superseded requirements listed separately, and observation facts labelled as notes. Bounded in size; discovery, not proof.",
+        [ADVERTISED_DESCRIPTION]:
+          "Intent-v1, first page: when true (default), include the answer layer of governing requirements and their evidence.",
       },
       hints: {
         type: "boolean",
         default: true,
         description:
           "Intent-v1 only, first page only. When true (default) and the project activates a kibi.search-hints.v1 plugin, a weak or abstained answer adds queryAnalysis.hints: requirements the question may mean, to re-ask with. Hints never change results or the answer layer.",
+        [ADVERTISED_DESCRIPTION]:
+          "Intent-v1, first page: when true (default), a weak answer adds hints from a kibi.search-hints.v1 plugin.",
       },
       semanticFacets: {
         type: "object",
@@ -219,6 +242,8 @@ export const searchSpec = {
         },
         description:
           "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; ranking never calls a model.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional host-agent interpretations Kibi uses as deterministic aliases and facets; ranking never calls a model.",
       },
       sourceLocations: {
         type: "array",
@@ -254,7 +279,9 @@ export const searchSpec = {
         enum: ["summary", "full"],
         default: "summary",
         description:
-          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need.",
+          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, each result's evidence graph paths and each answer fact's kb_query call, or follow up with kb_query for the exact entities you need.",
+        [ADVERTISED_DESCRIPTION]:
+          "Optional result detail: 'summary' (metadata, snippet) or 'full' (also bodies, graph paths, fact kb_query calls).",
       },
     },
   },

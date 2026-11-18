@@ -1,6 +1,6 @@
 {
   "name": "kibi-agent-core",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Shared low-latency hook helpers for Kibi agent adapters",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./bash-command": {
+      "types": "./dist/bash-command.d.ts",
+      "default": "./dist/bash-command.js"
     },
     "./decision-guard": {
       "types": "./dist/decision-guard.d.ts",
@@ -45,6 +49,22 @@
     "./checkout-hooks": {
       "types": "./dist/checkout-hooks.d.ts",
       "default": "./dist/checkout-hooks.js"
+    },
+    "./firm-edit-review": {
+      "types": "./dist/firm-edit-review.d.ts",
+      "default": "./dist/firm-edit-review.js"
+    },
+    "./session-brief": {
+      "types": "./dist/session-brief.d.ts",
+      "default": "./dist/session-brief.js"
+    },
+    "./workspace-optin": {
+      "types": "./dist/workspace-optin.d.ts",
+      "default": "./dist/workspace-optin.js"
+    },
+    "./hook-input": {
+      "types": "./dist/hook-input.d.ts",
+      "default": "./dist/hook-input.js"
     }
   },
   "files": ["dist", "CHANGELOG.md"],

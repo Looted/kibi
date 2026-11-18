@@ -370,3 +370,136 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0bea821de48e
+  - type: implements
+    from: SYM-cli-advertised-input-schema
+    to: REQ-mcp-upsert-proof-fields-advertised-as-stubs
+    created_at: 2026-11-15T18:31:06.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6778a5853a2a
+  - type: covered_by
+    from: SYM-cli-advertised-input-schema
+    to: TEST-mcp-upsert-proof-field-stubs
+    created_at: 2026-11-15T18:31:06.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58a1b5ec3ee8
+  - type: implements
+    from: SYM-cli-advertised-input-schema
+    to: REQ-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:21.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81a8b81e6a59
+  - type: covered_by
+    from: SYM-cli-advertised-input-schema
+    to: TEST-mcp-short-field-descriptions
+    created_at: 2026-11-16T06:40:21.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85829e0786d6
+  - type: implements
+    from: SYM-cli-search-answer-markdown-sections
+    to: REQ-search-answer-reason-source-order
+    created_at: 2026-11-16T10:22:35.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7a61ac3f03f
+  - type: covered_by
+    from: SYM-cli-search-answer-markdown-sections
+    to: TEST-search-answer-requirement-reasons
+    created_at: 2026-11-16T10:22:35.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa718cc29826
+  - type: implements
+    from: SYM-capture-related-current-requirements
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:13:13.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-184d9638e923
+  - type: covered_by
+    from: SYM-capture-related-current-requirements
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:20:50.600Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b513bf98ce9
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-input
+    to: REQ-upsert-lists-sibling-requirements
+    created_at: 2026-11-16T19:17:32.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60bdd870e577
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-input
+    to: REQ-upsert-dry-run-lists-siblings
+    created_at: 2026-11-16T19:17:32.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dcc695171db
+  - type: covered_by
+    from: SYM-cli-sibling-requirements-sibling-input
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:32.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56faa23dc8ff
+  - type: constrains
+    from: REQ-requirement-reason-skips-change-notes
+    to: FACT-search-answer-reasons-subject
+    created_at: 2026-11-16T17:36:51.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42a34b5c9341
+  - type: requires_property
+    from: REQ-requirement-reason-skips-change-notes
+    to: FACT-requirement-reason-change-notes
+    created_at: 2026-11-16T17:36:51.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a5730a4dc11
+  - type: specified_by
+    from: REQ-requirement-reason-skips-change-notes
+    to: SCEN-requirement-reason-skips-change-notes
+    created_at: 2026-11-16T17:36:51.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8532aba3aac4
+  - type: specified_by
+    from: REQ-requirement-reason-skips-change-notes
+    to: SCEN-NEG-requirement-reason-change-notes-QUOTED
+    created_at: 2026-11-16T17:36:51.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a234ad18b1d4
+  - type: implements
+    from: SYM-mcp-serverInstructions
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:56.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-175788ef0a2e
+  - type: covered_by
+    from: SYM-mcp-serverInstructions
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:56.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5127d73260f7
+  - type: covered_by
+    from: SYM-mcp-serverInstructions
+    to: TEST-session-brief
+    created_at: 2026-11-16T23:06:45.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ed07d6234f2
+  - type: implements
+    from: SYM-mcp-serverInstructions
+    to: REQ-session-brief-on-every-surface
+    created_at: 2026-11-16T23:06:45.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2626fca4342

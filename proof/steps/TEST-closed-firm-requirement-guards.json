@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-closed-firm-requirement-guards",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/agent-core/tests/snippets-contract.test.ts",
+      "./packages/agent-core/tests/knowledge-index-contract.test.ts",
+      "./packages/agent-core/tests/decision-guard.test.ts",
+      "./packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts",
+      "./packages/cli/tests/public-mutation/impact/firm-edit-staged.mutation.test.ts",
+      "./packages/cli/tests/public-mutation/operations/firm-edit-review.mutation.test.ts"
+    ]
+  ]
+}

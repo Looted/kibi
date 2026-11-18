@@ -52,6 +52,7 @@ export {
   executeApplyPlan,
   preflightApplyPlan,
   executePlanBootstrap,
+  advertisedInputSchema,
   executeCompileIntent,
   executeCoverage,
   executeIngestProof,
@@ -151,6 +152,7 @@ export type {
   ValidatedUpsert,
 } from "kibi-cli/operations/mutation/types";
 export { executeDelete } from "kibi-cli/operations/mutation/delete";
+export { executeUpsertRequest } from "kibi-cli/operations/mutation/implemented-by";
 export { executeUpsert } from "kibi-cli/operations/mutation/upsert";
 export { validateUpsertInput } from "kibi-cli/operations/mutation/validation";
 export {
@@ -205,8 +207,10 @@ export {
 } from "kibi-cli/public/branch-resolver";
 export {
   KIBI_PROTOCOL_VERSION,
+  KbRejection,
   appendPayloadCountField,
   codedErrorOf,
+  isKbRejection,
   normalizeResultPayload,
   operationData,
   prepareOperationInput,
@@ -230,6 +234,7 @@ export { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
 export {
   escapeAtomContent,
   splitTopLevel,
+  useCoreModuleGoal,
 } from "kibi-cli/prolog/codec";
 // The socket request envelope is intentionally not part of the runtime public
 // surface; adapters use EnginePort and EngineCommandV1 instead.
@@ -295,6 +300,7 @@ export {
   getLastBootstrapResult,
   inspectSecretSource,
   isSecretAvailable,
+  isWorkspaceEnvKeyAllowed,
   parseEnvContent,
   resetKibiEnvironmentBootstrapStateForTests,
   resolveEnvFilePath,

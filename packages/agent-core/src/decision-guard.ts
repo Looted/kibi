@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
+import { kibiCliOperation } from "./kb-mcp-tools.js";
 import type { EntitySummary, IndexedSymbol } from "./knowledge-index.js";
 import { extractPatchTexts, normalizeWorkspacePath } from "./path-policy.js";
 import { requestTopicWords } from "./requirement-candidates.js";
@@ -10,7 +11,7 @@ import {
   type Summarize,
   focusedSymbols,
   implementedRequirementIds,
-  isRetiredStatus,
+  isCurrentFirmSummary,
 } from "./snippets.js";
 
 /**
@@ -29,29 +30,107 @@ export function confirmFirmEdits(env: NodeJS.ProcessEnv): boolean {
   return !(value === "0" || value === "false" || value === "off");
 }
 
+/** Files larger than this are not read to check symbol coordinates. */
+const MAX_LOCATE_BYTES = 2 * 1024 * 1024;
+
+/** A declaration name, optionally qualified (`Class.member`, `mod:pred`). */
+const CODE_NAME = /^[A-Za-z_$][\w$]*(?:[.#:][A-Za-z_$][\w$]*)*$/;
+
+/** Lines after a symbol's first line where its name may still appear. */
+const NAME_LOOKAHEAD_LINES = 5;
+
+function readSmallText(absolutePath: string): string | undefined {
+  try {
+    if (fs.statSync(absolutePath).size > MAX_LOCATE_BYTES) return undefined;
+    return fs.readFileSync(absolutePath, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The symbols whose recorded coordinates do not locate them in the file:
+ * no line at all (`.kb/symbol-coordinates.yaml` is a local cache, missing in
+ * a fresh clone, and a file-level record has none), or, with the file's
+ * `content`, a line range past its end or a first line whose next few lines
+ * do not name the symbol (the file changed since the coordinates were
+ * written).
+ */
+export function unlocatedSymbols(
+  symbols: readonly IndexedSymbol[],
+  content: string | undefined,
+): IndexedSymbol[] {
+  const lines = content?.split("\n");
+  return symbols.filter((symbol) => {
+    if (symbol.line === undefined) return true;
+    if (lines === undefined) return false;
+    const end = symbol.endLine ?? symbol.line;
+    if (end > lines.length) return true;
+    // A title that is no code name (a test suite's description, a module's
+    // summary), or a record spanning the whole file, is checked by its
+    // range only.
+    if (!CODE_NAME.test(symbol.title)) return false;
+    if (symbol.line === 1 && end >= lines.length - 1) return false;
+    const name = symbol.title.split(/[.#:]/).pop() as string;
+    const window = lines
+      .slice(symbol.line - 1, Math.min(end, symbol.line + NAME_LOOKAHEAD_LINES))
+      .join("\n");
+    return !window.includes(name);
+  });
+}
+
 /**
  * The current firm requirements an edit changes that are not in `confirmed`:
  * those implemented by the symbols the edit lands in, or by every symbol of
- * the file for a whole-file write. An edit whose location is unknown, or
- * outside every symbol, changes none.
+ * the file for a whole-file write. A symbol the coordinates do not locate in
+ * the file at `absolutePath` (see `unlocatedSymbols`) counts as touched by
+ * any edit of the file, since where the edit lands in it is unknown. An edit
+ * outside every located symbol changes none of them.
  */
 export function firmRequirementsTouched(input: {
   symbols: readonly IndexedSymbol[];
   focus: readonly LineRange[] | undefined;
   wholeFile: boolean;
+  /** The edited file, read to check the coordinates against it. */
+  absolutePath?: string | undefined;
   summarize: Summarize;
   confirmed?: ReadonlySet<string>;
   /** The edit only removes dead `implements` comments, so it changes none. */
   commentOnly?: boolean;
+  /**
+   * Whether a `keeps` receipt recorded for this edit covers this requirement
+   * for this symbol (see `firmEditReviewed`); a requirement every touched
+   * symbol has one for is not counted.
+   */
+  reviewed?: (requirementId: string, symbol: IndexedSymbol) => boolean;
 }): { ids: string[]; symbol: IndexedSymbol | undefined } {
   if (input.commentOnly === true) return { ids: [], symbol: undefined };
+  const unlocated = input.wholeFile
+    ? []
+    : unlocatedSymbols(
+        input.symbols,
+        input.absolutePath === undefined
+          ? undefined
+          : readSmallText(input.absolutePath),
+      );
   const touched = input.wholeFile
     ? input.symbols
-    : focusedSymbols(input.symbols, input.focus);
+    : [
+        ...focusedSymbols(
+          input.symbols.filter((symbol) => !unlocated.includes(symbol)),
+          input.focus,
+        ),
+        ...unlocated,
+      ];
   const ids = implementedRequirementIds(touched).filter((id) => {
     if (input.confirmed?.has(id)) return false;
     const summary = input.summarize(id);
-    return summary.firmness === "firm" && !isRetiredStatus(summary.status);
+    if (!isCurrentFirmSummary(summary)) return false;
+    const reviewed = input.reviewed;
+    if (reviewed === undefined) return true;
+    return !touched
+      .filter((symbol) => symbol.implements.includes(id))
+      .every((symbol) => reviewed(id, symbol));
   });
   return { ids, symbol: input.wholeFile ? undefined : touched[0] };
 }
@@ -341,42 +420,282 @@ export function firmEditContext(ids: readonly string[]): string {
   const named = ids.slice(0, 2).join(", ");
   return [
     `Kibi asked the person to confirm this edit because it changes code that implements firm ${ids.length === 1 ? "requirement" : "requirements"} ${named}.`,
-    "If the edit was declined or could not be confirmed, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change.",
+    "If the person declined the edit, the requirement stands: name it and ask the person how to proceed, rather than reaching the same change another way. If it was allowed and the change alters what the requirement says, the requirement is updated with kb_upsert in this change. " +
+      `If nobody could answer and the edit keeps the requirement, record verdict "keeps" for that symbol with kb_review_firm_edit (CLI: kibi review-firm-edit) and retry: a keeps receipt recorded after this question lets the retry of this edit through in this session; a later session is asked again. kibi check --staged blocks the commit until each edited symbol has a current keeps receipt, so record one after the edit too. A receipt is your judgment, not the person's approval, and kibi signoff lists it as such.`,
   ].join("\n");
 }
 
 /**
- * Phrases that make a request read as a rule or decision. Matching is
- * deliberately loose: the note it triggers only asks whether there is
- * something to record.
+ * Phrases that make a sentence read as a rule or decision wherever they
+ * stand: a deontic modal ("must", "is not allowed", "has to") or a marker
+ * that the request sets a rule ("from now on", "only admins").
  */
 const RULE_PHRASES =
-  /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)|never|always|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/i;
+  /\b(?:from now on|going forward|must(?:n['’]t| not)?|should (?:always|never)(?!\s+have\b)|is not allowed|are not allowed|not be allowed|only (?:allow|admins?|owners?)|is required|are required|has to|have to)\b/gi;
 
-/** The phrase that makes `prompt` read as a rule, or undefined. */
+/**
+ * Text before a rule phrase, in the same clause, that makes it describe
+ * rather than set a rule: a bug report's frame ("the bug where users have to
+ * click twice") or an indirect question ("tell me which ones are required").
+ */
+const DESCRIBING_FRAME =
+  /\b(?:bug|issue|problem|regression|error|crash)\s+(?:where|when|that|in which)\b|\b(?:which|whether|what)\s+(?:of\s+)?[\w'’-]+\s+$/i;
+
+/**
+ * "I have to" states the speaker's own situation ("I have to leave soon");
+ * "I must approve each release" still sets a rule.
+ */
+const SPEAKER_FRAME = /\bI\s+$/;
+const SPEAKER_PHRASE = /^ha(?:s|ve) to$/i;
+
+/**
+ * Where a clause starts: a semicolon or colon, or a comma or "and"/"but"
+ * that joins another clause. A frame before it belongs to another clause
+ * ("Fix the bug where guests can post; from now on only admins ...").
+ */
+const CLAUSE_BREAK = /[;:]|,\s*(?:(?:and|but|so)\s+)?|\b(?:and|but)\s+/gi;
+
+/** The text of the clause `prefix` ends in. */
+function currentClause(prefix: string): string {
+  let start = 0;
+  for (const match of prefix.matchAll(CLAUSE_BREAK))
+    start = (match.index as number) + match[0].length;
+  return prefix.slice(start);
+}
+
+/**
+ * "never" and "always" set a rule only as an instruction: at the start of a
+ * clause ("Never log keys", "and always require 2FA", "also never ..."), or
+ * after a phrase that asks for the behavior ("make sure we never", "ensure
+ * keys always", "remember to always", "users may never"). In a description
+ * of how the code behaves today ("keys currently never expire") they state a
+ * fact, not a rule.
+ */
+const IMPERATIVE_ADVERB =
+  /(?:^|[;:,(]\s*|\b(?:and|but|so|then|please|also|let['’]?s|let us)\s+)(never|always)\b(?!-)(?!\s+mind\b)/i;
+
+/** A phrase that asks for the behavior, so the adverb after it instructs. */
+const ASKING_ADVERB =
+  /(?:\b(?:make sure|ensure)(?:\s+that)?(?:\s+[\w'’-]+){0,3}?\s+|\b(?:remember|need|want|be sure|try) to\s+|\b(?:may|shall|can)\s+(?=never)|\b(?:we|you)\s+(?=(?:never|always)\s+(?:want|need) to\b))(never|always)\b(?!-)/i;
+
+/**
+ * At a clause start the adverb instructs only when a verb in its base form
+ * follows: "and always have been stored", "never invalidated", "always
+ * crashes" and "Always a pleasure" describe.
+ */
+const DESCRIBING_NEXT_WORD =
+  /^\s+(?:a|an|the|have been|has|had|been|was|were|is|are|am|did|does|\w+ed|\w*[^s\W]s)\b/i;
+
+/** A question that asks for a change ("Can you make sure ...?") is a request. */
+const REQUEST_QUESTION =
+  /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\b/i;
+
+/** A request question that asks to be told something ("Could you tell me why ...?"). */
+const ASKS_TO_BE_TOLD =
+  /^(?:please\s+)?(?:can|could|would|will)\s+(?:you|we)\s+(?:tell|explain|show)\b/i;
+
+/** Fenced and inline code, whose words are not the person's phrasing. */
+const CODE_SPANS = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g;
+
+/** List, heading and number markers before a line's words. */
+const LINE_MARKERS = /^(?:[-*+#]+\s+|\d+[.)]\s+)+/;
+
+/**
+ * A line of pasted tool output: an error or exception with its message
+ * (`TypeError: ...`, `Error: ...`, `java.lang.IllegalStateException: ...`),
+ * a log level (`error: ...`, `WARNING [x] ...`) or a stack frame
+ * (`at fn (file.ts:3:7)`). A sentence about errors ("Error messages must
+ * ...", "ValidationError must ...", "At login (and signup) ...") is the
+ * person's.
+ */
+const PASTED_OUTPUT_LINE =
+  /^\s*(?:[\w.$]*Error:|[\w.$]+Exception:|(?:[Ee]rror|ERROR|[Ww]arning|WARNING|[Ff]atal|FATAL|[Pp]anic|PANIC)\s*[:[]|at\s+\S+\s+\(\S*:\d+)/;
+
+/**
+ * Words in single quotation marks, which the person names rather than says
+ * ("what does 'is not allowed' mean"). A rule quoted in double quotes is
+ * often the person's or a stakeholder's own rule, so it is kept, and so is a
+ * single-quoted clause that states one ("Our policy is 'API keys must never
+ * be logged'"; see quotedRule).
+ */
+const QUOTED_WORDS = /(?<!\w)'[^'\n]+'(?!\w)|‘[^’\n]*’/g;
+
+/** Fewest words of a quoted span that states a rule rather than names a phrase. */
+const MIN_QUOTED_RULE_WORDS = 4;
+
+/** Whether a quoted span states a rule (kept) rather than names words (dropped). */
+function quotedRule(span: string): boolean {
+  const words = span.split(/\s+/).filter((word) => /\w/.test(word));
+  return (
+    words.length >= MIN_QUOTED_RULE_WORDS &&
+    new RegExp(RULE_PHRASES.source, "i").test(span)
+  );
+}
+
+/** Emphasis markers around words ("**Never**", "_always_"). */
+const EMPHASIS = /\*+|(?<!\w)_+|_+(?!\w)/g;
+
+/**
+ * Lines that are not the person's own request text: an indented code block
+ * (four spaces or a tab, after a blank line or at the start) and quoted
+ * text (`>`), such as a reviewer's words pasted in.
+ */
+function requestLines(text: string): string[] {
+  const lines: string[] = [];
+  let previous: "blank" | "code" | "text" = "blank";
+  for (const line of text.split("\n")) {
+    if (/^(?: {4}|\t)/.test(line) && previous !== "text") {
+      previous = "code";
+      continue;
+    }
+    previous = line.trim() === "" ? "blank" : "text";
+    if (/^\s*>/.test(line) || PASTED_OUTPUT_LINE.test(line)) continue;
+    lines.push(line.trim().replace(LINE_MARKERS, "").replace(EMPHASIS, ""));
+  }
+  return lines;
+}
+
+/** The request's sentences, with code removed; a question keeps its `?`. */
+function requestSentences(prompt: string): string[] {
+  // An empty piece matches no rule phrase, so pieces are not filtered.
+  return requestLines(prompt.replace(CODE_SPANS, " "))
+    .map((line) =>
+      line.replace(QUOTED_WORDS, (span) => (quotedRule(span) ? span : " ")),
+    )
+    .flatMap((line) => line.split(/(?<=[.!?])\s/))
+    .map((sentence) => sentence.trim());
+}
+
+/** The adverb ("never" or "always") that instructs in `sentence`, or undefined. */
+function instructingAdverb(sentence: string): string | undefined {
+  const asked = ASKING_ADVERB.exec(sentence);
+  if (asked) return (asked[1] as string).toLowerCase();
+  const pattern = new RegExp(IMPERATIVE_ADVERB.source, "gi");
+  for (const match of sentence.matchAll(pattern)) {
+    const rest = sentence.slice((match.index as number) + match[0].length);
+    if (!DESCRIBING_NEXT_WORD.test(rest))
+      return (match[1] as string).toLowerCase();
+  }
+  return undefined;
+}
+
+/** The rule phrase of `prompt`, the request's sentences, and which one holds it. */
+function ruleMatch(
+  prompt: string,
+): { phrase: string; sentences: string[]; index: number } | undefined {
+  const sentences = requestSentences(prompt);
+  for (const [index, sentence] of sentences.entries()) {
+    if (
+      sentence.endsWith("?") &&
+      (!REQUEST_QUESTION.test(sentence) || ASKS_TO_BE_TOLD.test(sentence))
+    )
+      continue;
+    for (const match of sentence.matchAll(RULE_PHRASES)) {
+      const clause = currentClause(sentence.slice(0, match.index));
+      if (DESCRIBING_FRAME.test(clause)) continue;
+      if (SPEAKER_PHRASE.test(match[0]) && SPEAKER_FRAME.test(clause)) continue;
+      return { phrase: match[0].toLowerCase(), sentences, index };
+    }
+    const adverb = instructingAdverb(sentence);
+    if (adverb) return { phrase: adverb, sentences, index };
+  }
+  return undefined;
+}
+
+/**
+ * The phrase that makes `prompt` read as a rule, or undefined. A sentence
+ * that asks a question (other than a request such as "Can you make sure
+ * ...?") states no rule.
+ */
 export function statedRule(prompt: string): string | undefined {
-  const match = RULE_PHRASES.exec(prompt);
-  return match ? match[0].toLowerCase() : undefined;
+  return ruleMatch(prompt)?.phrase;
+}
+
+/** Words that give the reason for a rule. */
+const REASON_MARKER = /\b(?:because|so that)\b/i;
+
+/** The longest reason a note quotes. */
+const MAX_REASON_CHARS = 200;
+
+/**
+ * The reason a rule prompt gives for its rule: the "because ..." or "so that
+ * ..." clause of the sentence that states the rule, or of the sentence after
+ * it. Undefined when the prompt states no rule or gives no such reason.
+ */
+export function statedReason(prompt: string | undefined): string | undefined {
+  const match = prompt === undefined ? undefined : ruleMatch(prompt);
+  if (match === undefined) return undefined;
+  for (const sentence of match.sentences.slice(match.index, match.index + 2)) {
+    const marker = REASON_MARKER.exec(sentence);
+    if (marker === null) continue;
+    const reason = sentence.slice(marker.index).replace(/[.!]+$/, "");
+    return reason.length > MAX_REASON_CHARS
+      ? `${reason.slice(0, MAX_REASON_CHARS - 1).trimEnd()}…`
+      : reason;
+  }
+  return undefined;
+}
+
+/** The line that asks for the person's stated reason in `why`. */
+function reasonLine(reason: string): string {
+  return `The request gives its reason ("${reason}"): put that reason in the why field, in the person's words.`;
 }
 
 /** Prompt-time note for a request that reads as a rule or decision. */
-export function rulePromptNote(phrase: string): string {
+export function rulePromptNote(phrase: string, reason?: string): string {
   return [
     `Kibi: this request reads as a rule or decision (it says "${phrase}").`,
-    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new or changed rule is recorded with kb_upsert (a requirement, firm because the person stated it, with the implements link from the code that enforces it) as part of this change, not after it.",
+    "A rule the person states is project knowledge: kb_search shows whether a recorded requirement already says something about it (changing a firm one is a question for the person first), and a new rule is recorded with kb_record (the statement, the person's reason, saidBy user and the code that enforces it; a changed one with kb_upsert) as part of this change, not after it.",
+    ...(reason === undefined ? [] : [reasonLine(reason)]),
   ].join("\n");
 }
 
 /**
  * Stop-time note for a session that changed source files and wrote nothing
- * to the knowledge base.
+ * to the knowledge base. When a prompt stated a rule, the note quotes its
+ * phrase and asks for the rule or a reason it is not one; only a session
+ * without one may report that no decision was made.
  */
-export function captureReminder(rulePrompt: boolean): string {
+export function captureReminder(rulePhrase: string | undefined): string {
+  return rulePhrase === undefined
+    ? [
+        "Kibi: this session changed source files and recorded nothing in the knowledge base.",
+        "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_record (statement, why, who said it and the code that implements it) before the work is reported done; when there was none, the final report says so in one line.",
+      ].join("\n")
+    : [
+        `Kibi: the person's request said "${rulePhrase}", this session changed source files, and nothing was recorded in the knowledge base.`,
+        `Record the rule behind "${rulePhrase}" with kb_record (statement, why, who said it and the code that implements it) before the work is reported done, or say in the final report why "${rulePhrase}" is not a rule.`,
+      ].join("\n");
+}
+
+/**
+ * Post-edit note for the first source edit of a session whose prompt stated
+ * a rule: a kb_record input to fill in, so recording the rule, its reason
+ * and its code is one call in the agent's words. kb_record writes it as one
+ * kb_upsert payload and returns the commit gate's verdict and what is left
+ * (subjects, a scenario, a test) as nextActions with ready payloads.
+ */
+export function ruleCaptureTemplate(
+  rulePhrase: string,
+  reason?: string,
+): string {
+  const template = {
+    statement: "<the rule as one shall or must sentence>",
+    why:
+      reason === undefined
+        ? "<why the person wants it, in their words; 'Reason not stated' if they gave none>"
+        : "<the person's reason, in their words>",
+    saidBy: "user",
+    quote: "<the person's words, quoted>",
+    code: [
+      { file: "<file you changed>", symbol: "<function that enforces it>" },
+    ],
+  };
   return [
-    rulePrompt
-      ? "Kibi: a request this session read as a rule or decision, the session changed source files, and nothing was recorded in the knowledge base."
-      : "Kibi: this session changed source files and recorded nothing in the knowledge base.",
-    "A decision the person stated or this change made (a rule, a limit, a default, who may do what) is recorded with kb_upsert as a requirement linked to the code that implements it before the work is reported done; when there was none, the final report says so in one line.",
+    `Kibi: the request said "${rulePhrase}" and this session now changes source files. Record that rule in this change with one kb_record call (without MCP: kibi record --input -); fill in this template:`,
+    JSON.stringify(template),
+    ...(reason === undefined ? [] : [reasonLine(reason)]),
+    "Then follow the nextActions the result returns. Facts, decisions and other modeling go through kb_upsert.",
   ].join("\n");
 }
 
@@ -401,7 +720,7 @@ export function firmEditNotice(
   const one = requirements.length === 1;
   return [
     `Kibi: this edit changes ${where}, which implements ${one ? "a firm requirement" : "firm requirements"}, a rule the person set: ${shown.join("; ")}${more}.`,
-    `Unless the edit keeps ${one ? "that rule" : "those rules"}, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so.`,
+    `Unless the edit keeps ${one ? "that rule" : "those rules"}, ask the person before making it and name the rule; change the requirement with kb_upsert in this change only when they say so. After the edit, record your verdict for each edited symbol with kb_review_firm_edit ("keeps" or "changes"; CLI: kibi review-firm-edit). kibi check --staged blocks the commit until each has a current keeps receipt. A receipt is your judgment, not the person's approval.`,
   ].join("\n");
 }
 
@@ -417,20 +736,123 @@ export type DecisionFlag =
   | "kb-recorded"
   | "rule-prompt"
   | "capture-asked"
+  | "capture-template"
   | "requirement-recorded"
   | "signoff-asked";
+
+/** The key of markers for events that carry no session id. */
+const UNATTRIBUTED = "unattributed";
+
+/**
+ * A session without an id idle this long has ended: the next prompt starts it
+ * afresh, so a later session does not inherit its markers.
+ */
+const UNATTRIBUTED_IDLE_MS = 2 * 60 * 60 * 1000;
+
+/** Markers of any session left untouched this long are removed. */
+const STALE_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
+
+function sessionKey(session: DecisionSession): string {
+  return createHash("sha256")
+    .update(session.sessionId?.trim() || UNATTRIBUTED)
+    .digest("hex")
+    .slice(0, 32);
+}
+
+/** Where the decision guard keeps every session's markers. */
+function guardRoot(session: DecisionSession): string {
+  if (!session.stateDir) throw new Error();
+  return path.join(session.stateDir, "decision-guard");
+}
 
 /**
  * The marker file `name` of the session. Throws without a state directory,
  * so every caller's best-effort `catch` also covers "nothing to remember".
  */
 function sessionPath(session: DecisionSession, name: string): string {
-  if (!session.stateDir) throw new Error();
-  const key = createHash("sha256")
-    .update(session.sessionId?.trim() || "unattributed")
-    .digest("hex")
-    .slice(0, 32);
-  return path.join(session.stateDir, "decision-guard", key, name);
+  return path.join(guardRoot(session), sessionKey(session), name);
+}
+
+/** Newest modification time of `files`; NaN when none can be read. */
+function newestOf(files: readonly string[]): number {
+  let newest = Number.NaN;
+  for (const file of files) {
+    try {
+      const time = fs.statSync(file).mtimeMs;
+      if (!(time <= newest)) newest = time;
+    } catch {
+      // Missing: it adds no activity.
+    }
+  }
+  return newest;
+}
+
+/** The marker files in `dir`, none when it cannot be read. */
+function markerFiles(dir: string): string[] {
+  try {
+    return fs.readdirSync(dir).map((name) => path.join(dir, name));
+  } catch {
+    return [];
+  }
+}
+
+/** Remove `target`, best effort: a file or directory that stays is harmless. */
+function removeQuietly(target: string): void {
+  try {
+    fs.rmSync(target, { recursive: true, force: true });
+  } catch {
+    // Left in place.
+  }
+}
+
+/**
+ * Start or continue a host session's markers, and say whether an earlier
+ * session's state was dropped. Events without a session id share one key, so
+ * a session start that does not resume drops what an earlier session without
+ * one left, and so does a prompt after UNATTRIBUTED_IDLE_MS without activity.
+ * `hostFiles` are the host's own state files of the session: they count as
+ * activity and are dropped with the markers. A session start also removes
+ * the markers of any session untouched for STALE_SESSION_MS.
+ */
+export function startDecisionSession(
+  session: DecisionSession,
+  cause: "startup" | "resume" | "prompt",
+  options: { now?: number; hostFiles?: readonly string[] } = {},
+): boolean {
+  const now = options.now ?? Date.now();
+  const hostFiles = options.hostFiles ?? [];
+  let root: string;
+  try {
+    root = guardRoot(session);
+  } catch {
+    return false;
+  }
+  const own = sessionKey(session);
+  let dropped = false;
+  if (!session.sessionId?.trim() && cause !== "resume") {
+    const files = [...markerFiles(path.join(root, own)), ...hostFiles];
+    dropped =
+      cause === "startup" || newestOf(files) < now - UNATTRIBUTED_IDLE_MS;
+    if (dropped) {
+      for (const file of files) removeQuietly(file);
+    }
+  }
+  if (cause === "prompt") return dropped;
+  let keys: string[] = [];
+  try {
+    keys = fs.readdirSync(root);
+  } catch {
+    // No markers yet.
+  }
+  for (const key of keys) {
+    if (key === own) continue;
+    const dir = path.join(root, key);
+    // A directory without markers is left over too.
+    if (!(newestOf(markerFiles(dir)) >= now - STALE_SESSION_MS)) {
+      removeQuietly(dir);
+    }
+  }
+  return dropped;
 }
 
 function writeMarker(file: string, content: string) {
@@ -500,7 +922,9 @@ export function claimDecisionFlag(
 export function recordRequest(
   session: DecisionSession,
   prompt: string,
+  now = Date.now(),
 ): string | undefined {
+  startDecisionSession(session, "prompt", { now });
   const rule = statedRule(prompt);
   try {
     writeMarker(
@@ -510,8 +934,67 @@ export function recordRequest(
   } catch {
     // Best effort.
   }
-  if (rule !== undefined) markDecisionFlag(session, "rule-prompt");
+  if (rule !== undefined) {
+    markDecisionFlag(session, "rule-prompt");
+    try {
+      writeMarker(sessionPath(session, "rule-phrase"), rule);
+      // The latest rule prompt's reason, or none: an empty marker.
+      writeMarker(
+        sessionPath(session, "rule-reason"),
+        statedReason(prompt) ?? "",
+      );
+    } catch {
+      // Best effort: without it the reminders read as for no rule.
+    }
+  }
   return rule;
+}
+
+/** The reason the session's latest rule prompt gave, or undefined. */
+export function sessionRuleReason(
+  session: DecisionSession,
+): string | undefined {
+  let reason = "";
+  try {
+    reason = String(fs.readFileSync(sessionPath(session, "rule-reason")));
+  } catch {
+    // No rule prompt this session, or no state directory.
+  }
+  return reason || undefined;
+}
+
+/** The phrase of the session's latest prompt that read as a rule, or undefined. */
+export function sessionRulePhrase(
+  session: DecisionSession,
+): string | undefined {
+  let phrase = "";
+  try {
+    phrase = String(fs.readFileSync(sessionPath(session, "rule-phrase")));
+  } catch {
+    // No rule prompt this session, or no state directory.
+  }
+  return phrase || undefined;
+}
+
+/**
+ * The rule capture template, the first time a session whose prompt read as a
+ * rule changes source files before anything is recorded; otherwise undefined.
+ * A host that delivers it before the edit passes `editingSource` for an edit
+ * of a source file, which counts as the change.
+ */
+export function claimRuleCaptureTemplate(
+  session: DecisionSession,
+  editingSource = false,
+): string | undefined {
+  const phrase = sessionRulePhrase(session);
+  if (
+    phrase === undefined ||
+    !(editingSource || hasDecisionFlag(session, "source-edited")) ||
+    hasDecisionFlag(session, "kb-recorded") ||
+    !claimDecisionFlag(session, "capture-template")
+  )
+    return undefined;
+  return ruleCaptureTemplate(phrase, sessionRuleReason(session));
 }
 
 /** Topic words of the session's latest prompt, or none. */
@@ -552,13 +1035,32 @@ function record(value: unknown): Record<string, unknown> | null | undefined {
 }
 
 /**
- * Whether a kb_upsert call's input writes a requirement (not a dry run).
- * Hosts pass the MCP arguments, sometimes wrapped in `arguments`.
+ * Whether a kb_upsert call's input writes a requirement (not a dry run). A
+ * kb_record input (a statement and who said it) always writes one. Hosts
+ * pass the MCP arguments, sometimes wrapped in `arguments`.
  */
 export function isRequirementUpsert(toolInput: unknown): boolean {
   const input = record(toolInput);
+  // A shell tool running the project-local CLI: `kibi record` always writes
+  // a requirement, `kibi upsert` when its inline JSON is one.
+  if (typeof input?.command === "string") {
+    const command = input.command;
+    const route = kibiCliOperation(command);
+    if (
+      route !== "kb_upsert" ||
+      /--dry-run\b|"dryRun"\s*:\s*true/.test(command)
+    )
+      return false;
+    return (
+      /(?:^|[\s;&|(/])kibi\s+record\b/.test(command) ||
+      /"type"\s*:\s*"req"/.test(command)
+    );
+  }
   const args = record(input?.arguments) ?? record(input?.args) ?? input;
-  return args?.type === "req" && args.dryRun !== true;
+  const recorded =
+    typeof args?.statement === "string" && typeof args.saidBy === "string";
+  if (!args || (args.type !== "req" && !recorded)) return false;
+  return args.dryRun !== true;
 }
 
 /** Modification time of `file`, or NaN when it cannot be read. */
@@ -628,9 +1130,16 @@ export function settleFirmRequirements(
  * Keep a prompt's rule note for a host whose prompt hook cannot add context,
  * so the next hook that can speak to the agent delivers it.
  */
-export function holdRuleNote(session: DecisionSession, phrase: string): void {
+export function holdRuleNote(
+  session: DecisionSession,
+  phrase: string,
+  reason?: string,
+): void {
   try {
-    writeMarker(sessionPath(session, "rule-note"), rulePromptNote(phrase));
+    writeMarker(
+      sessionPath(session, "rule-note"),
+      rulePromptNote(phrase, reason),
+    );
   } catch {
     // Best effort.
   }

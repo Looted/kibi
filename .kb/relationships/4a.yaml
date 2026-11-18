@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cccac0d69d5d
+  - type: implements
+    from: SYM-cli-firm-edit-review-state
+    to: REQ-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T07:00:01.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5234bf9ecd0c
+  - type: covered_by
+    from: SYM-cli-firm-edit-review-state
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-16T07:00:01.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f9ac89615a5

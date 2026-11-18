@@ -181,13 +181,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad17927fe30a
-  - type: constrains
-    from: REQ-kibi-search-hints-when-asked
-    to: FACT-search-hints-host-subject
-    created_at: 2026-11-04T14:55:17.338Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-eccf480476fb
   - type: requires_property
     from: REQ-kibi-search-hints-when-asked
     to: FACT-search-hints-host-weak-score
@@ -265,3 +258,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23fca5149fef
+  - type: assumes
+    from: SCEN-NEG-kibi-skills-write-without-ritual-THREE-CALLS
+    to: FACT-kibi-skills-write-ritual-taught
+    created_at: 2026-11-16T15:45:36.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da6faedbaf53
+  - type: assumes
+    from: SCEN-NEG-kibi-skills-write-without-ritual-THREE-CALLS
+    to: FACT-kibi-skills-write-preview-required-taught
+    created_at: 2026-11-16T15:45:36.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-725cc31b2272
+  - type: constrains
+    from: REQ-kibi-search-hints-when-asked
+    to: FACT-search-hint-limits-component
+    created_at: 2026-11-16T10:44:25.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-616eb52b6567
+  - type: restates
+    from: REQ-kibi-search-hints-when-asked
+    to: REQ-kibi-search-hints-limits
+    created_at: 2026-11-16T10:44:25.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-663f8d11950a
+  - type: implements
+    from: SYM-ci-required-job
+    to: REQ-ci-required-check-aggregate
+    created_at: 2026-11-17T10:51:45.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdb8c34b6ad2
+  - type: covered_by
+    from: SYM-ci-required-job
+    to: TEST-ci-required-checks-workflow-contract
+    created_at: 2026-11-17T10:51:45.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cde75c0e2839
+  - type: assumes
+    from: SCEN-firm-edit-finding-names-tool
+    to: FACT-firm-edit-finding-names-tool
+    created_at: 2026-11-17T15:35:29.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0604d49019e1
+  - type: verified_by
+    from: SCEN-firm-edit-finding-names-tool
+    to: TEST-kibi-staged-firm-edit-gate
+    created_at: 2026-11-17T15:35:29.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94e77cf5bfe4

@@ -15,7 +15,6 @@ import {
   isValidBranchName,
   resolveActiveBranch,
   resolveBranchAttachment,
-  resolveDefaultBranch,
 } from "../../src/utils/branch-resolver.js";
 
 const roots: string[] = [];
@@ -132,7 +131,7 @@ describe("branch-resolver leftover attachment and validation", () => {
     expect(isValidBranchName("a".repeat(255))).toBe(true);
   });
 
-  test("copyCleanSnapshot skips .lock names and resolveDefaultBranch invalid remotes", () => {
+  test("copyCleanSnapshot skips .lock names", () => {
     const root = tempRoot();
     const source = path.join(root, "src");
     const target = path.join(root, "dst");
@@ -142,25 +141,6 @@ describe("branch-resolver leftover attachment and validation", () => {
     copyCleanSnapshot(source, target);
     expect(existsSync(path.join(target, "keep.md"))).toBe(true);
     expect(existsSync(path.join(target, ".lock"))).toBe(false);
-
-    _setBranchResolverDepsForTests({
-      execSync: ((command: string) => {
-        if (command.includes("symbolic-ref")) return "refs/remotes/origin/\n";
-        throw new Error("unused");
-      }) as unknown as typeof execSync,
-    });
-    const empty = resolveDefaultBranch(root);
-    expect("error" in empty).toBe(true);
-
-    _setBranchResolverDepsForTests({
-      execSync: ((command: string) => {
-        if (command.includes("symbolic-ref"))
-          return "refs/remotes/origin/-bad\n";
-        throw new Error("unused");
-      }) as unknown as typeof execSync,
-    });
-    const invalid = resolveDefaultBranch(root);
-    expect("error" in invalid).toBe(true);
   });
 
   test("resolveActiveBranch uses process.cwd default", () => {

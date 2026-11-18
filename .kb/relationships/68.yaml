@@ -321,3 +321,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7650a95d004
+  - type: assumes
+    from: SCEN-NEG-firm-edit-receipts-STALE-RECEIPT
+    to: FACT-NEG-firm-edit-receipts-STALE-RECEIPT
+    created_at: 2026-11-16T06:59:07.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-553561fb678d
+  - type: verified_by
+    from: SCEN-NEG-firm-edit-receipts-STALE-RECEIPT
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T06:59:07.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11c56c963eb3
+  - type: executable_for
+    from: SYM-test-prolog-permission-error-names-refusal
+    to: TEST-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T10:00:31.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c922cba277aa
+  - type: validates
+    from: TEST-agent-hosts-rule-reason-capture
+    to: REQ-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T16:17:33.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8213abce58b7
+  - type: validates
+    from: TEST-agent-hosts-rule-reason-capture
+    to: SCEN-agent-hosts-capture-template-why
+    created_at: 2026-11-16T16:17:33.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-144393f1b9fc
+  - type: validates
+    from: TEST-agent-hosts-rule-reason-capture
+    to: SCEN-agent-hosts-stated-reason-asked
+    created_at: 2026-11-16T16:17:33.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16ef7491d2ae
+  - type: validates
+    from: TEST-agent-hosts-rule-reason-capture
+    to: SCEN-NEG-agent-hosts-capture-template-why-NO-WHY
+    created_at: 2026-11-16T16:23:52.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aab009a13b56
+  - type: validates
+    from: TEST-agent-hosts-rule-reason-capture
+    to: SCEN-NEG-agent-hosts-stated-reason-asked-NOT-ASKED
+    created_at: 2026-11-16T16:23:52.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7f37ab3835c
+  - type: constrains
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-16T13:34:06.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11c06ff44957
+  - type: requires_property
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: FACT-kb-upsert-missing-endpoint-rejected
+    created_at: 2026-11-16T13:34:06.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-965fe4aeddb6
+  - type: requires_property
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: FACT-kb-upsert-missing-endpoint-fix-hint
+    created_at: 2026-11-16T13:34:06.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e8ecf89bf3a
+  - type: specified_by
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: SCEN-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:34:06.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55c77e909d71
+  - type: specified_by
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: SCEN-kb-upsert-missing-endpoint-created-first
+    created_at: 2026-11-16T13:38:45.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b48bb6bf143
+  - type: specified_by
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: SCEN-NEG-kb-upsert-missing-endpoint-rejection-FAILURE
+    created_at: 2026-11-16T13:40:34.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-faa1ea319cd9
+  - type: specified_by
+    from: REQ-kb-upsert-missing-endpoint-rejection
+    to: SCEN-NEG-kb-upsert-missing-endpoint-rejection-NO-HINT
+    created_at: 2026-11-16T13:40:38.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d3114ae4b83

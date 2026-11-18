@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
+import { supersedingRequirement } from "kibi-agent-core/knowledge-index";
 import {
   createMaintenanceSourceAnalysisService,
   readSnapshotSourceConfig,
@@ -17,6 +19,11 @@ import {
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
 } from "./diagnostics.js";
+import { createFirmEditGateDiagnostics } from "./firm-edit-gate.js";
+import {
+  currentSuccessor,
+  stagedFirmEditGateOptions,
+} from "./firm-edit-staged.js";
 import {
   createImpactManifestLookup,
   readImpactManifestResults,
@@ -166,6 +173,28 @@ export async function analyzeChangedFileImpact(
       // A missing source file adds undefined, which names no file.
       .map((result) => result.sourceFile as string),
   );
+  const contentByFile = new Map(
+    sourceChanges.map((change) => [change.file, change.content]),
+  );
+  // A snapshot holds every endpoint its symbols link to.
+  const readRequirement = (id: string) =>
+    snapshotKnowledge
+      ? snapshotEntities.get(id)
+      : readWorkspaceRequirement(workspaceRoot, id);
+  const readTree = (tree: string, file: string): string | undefined => {
+    try {
+      return (snapshot as NonNullable<typeof snapshot>)
+        .readGit(["show", `${tree}:${file}`])
+        .toString("utf8");
+    } catch {
+      // A file the tree does not hold has no text.
+    }
+    return undefined;
+  };
+  const requirementChanged = (requirement: { source: string }) =>
+    snapshot
+      ? snapshot.inventory.some((file) => file.path === requirement.source)
+      : workspaceFileChanged(workspaceRoot, requirement.source);
   const impactDiagnostics =
     options.includeImpactDiagnostics === false
       ? []
@@ -182,18 +211,104 @@ export async function analyzeChangedFileImpact(
           ...createRequirementStatementDiagnostics({
             workspaceRoot,
             symbolsByFile,
-            // A snapshot holds every endpoint its symbols link to.
-            readRequirement: (id) =>
+            readRequirement,
+            requirementChanged,
+            supersededBy: (id) =>
               snapshotKnowledge
-                ? snapshotEntities.get(id)
-                : readWorkspaceRequirement(workspaceRoot, id),
-            requirementChanged: (requirement) =>
-              snapshot
-                ? snapshot.inventory.some(
-                    (file) => file.path === requirement.source,
-                  )
-                : workspaceFileChanged(workspaceRoot, requirement.source),
+                ? currentSuccessor(snapshotKnowledge, id)
+                : supersedingRequirement(workspaceRoot, id),
           }),
+          ...createFirmEditGateDiagnostics(
+            snapshot
+              ? await stagedFirmEditGateOptions({
+                  sourceFiles: snapshotSources ?? [],
+                  // Knowledge documents and manifests too: firm code renamed
+                  // to docs/x.md leaves its declarations behind.
+                  unreadFiles: (snapshotInventory ?? []).map((file) => ({
+                    path: file.path,
+                    ...(file.oldPath === undefined
+                      ? {}
+                      : { oldPath: file.oldPath }),
+                    status: file.status,
+                    hunkRanges: [],
+                  })),
+                  // Every declaration, each with the hunks it owns, so a
+                  // symbol the change only removes lines from is still seen.
+                  extractAll: (file) =>
+                    extractSymbolsFromStagedFileAsync(
+                      { ...file, status: "A" },
+                      manifestLookup,
+                      {
+                        analyzeText: async () =>
+                          (analyses?.get(file.path) as SourceChangeAnalysis)
+                            .after,
+                      },
+                    ),
+                  extractBase: async (file) => {
+                    const basePath = file.oldPath ?? file.path;
+                    const content = readTree(snapshot.baseTree, basePath);
+                    if (content === undefined) return [];
+                    return extractSymbolsFromStagedFileAsync(
+                      { ...file, path: basePath, content, status: "A" },
+                      manifestLookup,
+                      {
+                        // An unread file (skipped, or renamed to a path
+                        // that is not source) was not analyzed.
+                        analyzeText: async (name, text) =>
+                          analyses?.has(file.path)
+                            ? (analyses.get(file.path) as SourceChangeAnalysis)
+                                .before
+                            : service.analyzeTextV2(name, text),
+                      },
+                    );
+                  },
+                  changedPaths: new Set(
+                    snapshot.inventory.flatMap((file) =>
+                      file.oldPath === undefined
+                        ? [file.path]
+                        : [file.path, file.oldPath],
+                    ),
+                  ),
+                  knowledge: snapshotKnowledge ?? [],
+                  readBaseKnowledge: () => {
+                    try {
+                      return readSnapshotKnowledge(
+                        snapshot.readGit,
+                        snapshot.baseTree,
+                        snapshot.readBlobs,
+                      );
+                    } catch {
+                      // Knowledge the base cannot compile names no removal.
+                      return [];
+                    }
+                  },
+                  readChanged: (file) => readTree(snapshot.headTree, file),
+                  readBase: (file) => readTree(snapshot.baseTree, file),
+                  readContent: (file) => contentByFile.get(file),
+                  readReceipt: (receiptPath) =>
+                    readTree(snapshot.headTree, receiptPath),
+                  hasUnstagedChanges: () => false,
+                })
+              : {
+                  symbolsByFile,
+                  readContent: (file) => contentByFile.get(file),
+                  readRequirement,
+                  requirementChanged,
+                  supersededBy: (id) =>
+                    supersedingRequirement(workspaceRoot, id),
+                  readReceipt: (receiptPath) => {
+                    try {
+                      return readFileSync(
+                        path.join(workspaceRoot, receiptPath),
+                        "utf8",
+                      );
+                    } catch {
+                      // A receipt that cannot be read counts as missing.
+                    }
+                    return undefined;
+                  },
+                },
+          ),
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeManifestResults,
             symbolsByFile,

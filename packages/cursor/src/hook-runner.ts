@@ -3,11 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { shellToolEditPaths } from "kibi-agent-core/bash-command";
 import { missingHooksNote } from "kibi-agent-core/checkout-hooks";
 import {
   type DecisionSession,
   captureReminder,
   claimCaptureReminder,
+  claimRuleCaptureTemplate,
   claimSignoffReminder,
   confirmFirmEdits,
   firmEditNotice,
@@ -18,11 +20,15 @@ import {
   markDecisionFlag,
   recordRequest,
   removesOnlyDeadImplementsComments,
+  sessionRulePhrase,
   settleFirmRequirements,
   settledFirmRequirements,
   signoffReminder,
+  startDecisionSession,
+  statedReason,
   takeRuleNote,
 } from "kibi-agent-core/decision-guard";
+import { parseStdinJson, readStdin } from "kibi-agent-core/hook-input";
 import {
   type HookTrace,
   appendHookUsage,
@@ -35,6 +41,7 @@ import {
 } from "kibi-agent-core/hook-usage-log";
 import { stampKibiWorkspace } from "kibi-agent-core/kb-mcp-tools";
 import { classifyPath } from "kibi-agent-core/path-policy";
+import { sessionBriefWith } from "kibi-agent-core/session-brief";
 import {
   type LineRange,
   createEntitySummarizer,
@@ -42,8 +49,9 @@ import {
   fileKnowledgeSnippet,
   implementedRequirementIds,
 } from "kibi-agent-core/snippets";
+import { resolveKibiWorkspace } from "kibi-agent-core/workspace-optin";
 import { preEditGuidance, readGuidance, writeGuidance } from "./guidance.js";
-import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import { parseHookInput } from "./hook-input.js";
 import {
   addDirtyPaths,
   clearSessionHookState,
@@ -56,7 +64,6 @@ import {
 } from "./hook-state.js";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
-  BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
   interfaceAdvisory,
   stopFollowupMessage,
@@ -136,6 +143,7 @@ function firmNotice(
     symbols: linked.symbols,
     focus,
     wholeFile: focus === undefined,
+    absolutePath: path.join(workspaceRoot, linked.relativePath),
     summarize,
     confirmed: settledFirmRequirements(session),
     commentOnly,
@@ -222,13 +230,17 @@ function emptyResult(): CursorHookResult {
   return {};
 }
 
-/** Whether the Cursor workspace root holds `.kb/manifest.json`, the initialized-project signal. */
-export function hasKibiConfig(cwd: string | undefined): boolean {
-  if (!cwd) {
-    return false;
-  }
-
-  return fs.existsSync(path.join(cwd, ".kb", "manifest.json"));
+/**
+ * The Cursor window's Kibi workspace and whether it adopted Kibi: the nearest
+ * ancestor holding `.kb/manifest.json` (the initialized-project signal, not
+ * a leftover `.kb/config.json`), so a window opened on a subdirectory of a
+ * Kibi project belongs to it.
+ */
+export function cursorKibiWorkspace(
+  directory: string,
+  env: NodeJS.ProcessEnv,
+): { root: string; optedIn: boolean } {
+  return resolveKibiWorkspace(directory, env);
 }
 
 /**
@@ -278,6 +290,17 @@ function resolveWorkspaceRoot(
   return input.workspaceRoots?.[0] ?? input.cwd ?? process.cwd();
 }
 
+/** The workspace-relative paths among `paths` whose edits are tracked. */
+function trackedPaths(paths: readonly string[], cwd: string): string[] {
+  return paths
+    .map((candidate) => toRepoRelativePath(candidate, cwd))
+    .filter(
+      (candidate) =>
+        isMeaningfulTrackedPath(candidate) ||
+        isKbFreshnessRelevantPath(candidate),
+    );
+}
+
 function resolvePrimaryPath(
   input: ReturnType<typeof parseHookInput>,
 ): string | undefined {
@@ -297,8 +320,12 @@ export async function runHook(
   const input = parseHookInput(rawInput);
   const pluginData = environment.pluginData ?? process.env.PLUGIN_DATA;
   const stateDir = resolveStateDir(pluginData, input.conversationId);
-  const cwd = resolveWorkspaceRoot(input);
-  const kibiReady = hasKibiConfig(cwd);
+  const workspace = cursorKibiWorkspace(
+    resolveWorkspaceRoot(input),
+    environment.env ?? process.env,
+  );
+  const cwd = workspace.root;
+  const kibiReady = workspace.optedIn;
   const workspaceTrusted = environment.workspaceTrusted === true;
   const initialState = loadHookState(stateDir);
   const session: DecisionSession = {
@@ -311,26 +338,20 @@ export async function runHook(
     switch (input.event) {
       case "sessionStart":
         trace.action = "session_start";
-        if (!kibiReady) {
-          const advisory = interfaceAdvisory(
-            initialState.mcpState,
-            workspaceTrusted,
-          );
-          return {
-            additional_context: advisory
-              ? `${BOOTSTRAP_REMINDER}\n${advisory}`
-              : BOOTSTRAP_REMINDER,
-          };
-        }
+        // A workspace that never adopted Kibi stays quiet, as on every host.
+        if (!kibiReady) return emptyResult();
+        startDecisionSession(session, "startup");
         {
           const advisory = interfaceAdvisory(
             initialState.mcpState,
             workspaceTrusted,
           );
-          const context = [advisory, missingHooksNote(cwd)]
-            .filter((line): line is string => Boolean(line))
-            .join("\n");
-          return context ? { additional_context: context } : emptyResult();
+          return {
+            additional_context: sessionBriefWith([
+              advisory ?? "",
+              missingHooksNote(cwd) ?? "",
+            ]),
+          };
         }
 
       case "preToolUse": {
@@ -348,7 +369,9 @@ export async function runHook(
         }
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         const hasDirectKbEdit =
-          isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
+          kibiReady &&
+          isEditLikeTool(input.toolName) &&
+          explicitPaths.some(isDirectKbPath);
 
         if (hasDirectKbEdit) {
           trace.action = "kb_direct_note";
@@ -357,6 +380,29 @@ export async function runHook(
             permission: "allow",
             agent_message: DIRECT_KB_EDIT_WARNING,
           };
+        }
+
+        // A shell call that writes files in place gets the firm notice an
+        // edit of those files would, read as a whole-file write.
+        if (kibiReady && !isKnownEditableTool(input.toolName)) {
+          const env = environment.env ?? process.env;
+          for (const absolute of shellToolEditPaths(
+            input.toolName,
+            input.toolInput,
+            input.cwd ?? cwd,
+          )) {
+            const notice = firmNotice(
+              cwd,
+              getSourceLinkedSymbols(cwd, absolute, stateDir),
+              undefined,
+              session,
+              env,
+              false,
+            );
+            if (notice === undefined) continue;
+            trace.action = "edit_snippet";
+            return { permission: "allow", agent_message: notice };
+          }
         }
 
         const primaryPath = resolvePrimaryPath(input);
@@ -378,6 +424,12 @@ export async function runHook(
           input.toolInput,
         );
         const ruleNote = takeRuleNote(session);
+        // The capture template rides on the first source pre-edit of a rule
+        // session, so a session with one edit gets it too.
+        const captureTemplate = claimRuleCaptureTemplate(
+          session,
+          isSourceImpactRelevantPath(relativePath),
+        );
         const notice = firmNotice(
           cwd,
           linked,
@@ -404,7 +456,7 @@ export async function runHook(
         if (guidance) {
           rememberGuidedPath(stateDir, "pre-edit", relativePath);
         }
-        const parts = [ruleNote, notice, guidance].filter(
+        const parts = [ruleNote, captureTemplate, notice, guidance].filter(
           (part): part is string => part !== undefined,
         );
         trace.action = parts.length > 0 ? "edit_snippet" : "edit_silent";
@@ -418,7 +470,8 @@ export async function runHook(
         // waits for the next pre-edit message.
         if (kibiReady && input.prompt) {
           const rule = recordRequest(session, input.prompt);
-          if (rule !== undefined) holdRuleNote(session, rule);
+          if (rule !== undefined)
+            holdRuleNote(session, rule, statedReason(input.prompt));
           trace.action =
             rule === undefined ? "prompt_silent" : "prompt_rule_note";
         }
@@ -466,18 +519,12 @@ export async function runHook(
       }
 
       case "postToolUse": {
-        if (kibiReady) {
-          try {
-            recordToolTelemetry(
-              input,
-              cwd,
-              stateDir,
-              startedAt,
-              environment.env,
-            );
-          } catch {
-            // Telemetry is best effort and must never change the hook's output.
-          }
+        // Nothing is tracked in a workspace that never adopted Kibi.
+        if (!kibiReady) return emptyResult();
+        try {
+          recordToolTelemetry(input, cwd, stateDir, startedAt, environment.env);
+        } catch {
+          // Telemetry is best effort and must never change the hook's output.
         }
         const kbToolCall = extractKbMcpToolCall(
           input.toolName,
@@ -496,19 +543,32 @@ export async function runHook(
 
         const explicitPaths = extractExplicitPathFields(input.toolInput);
         if (isKnownEditableTool(input.toolName)) {
-          const dirtyPaths = explicitPaths
-            .map((candidate) => toRepoRelativePath(candidate, cwd))
-            .filter(
-              (candidate) =>
-                isMeaningfulTrackedPath(candidate) ||
-                isKbFreshnessRelevantPath(candidate),
-            );
+          const dirtyPaths = trackedPaths(explicitPaths, cwd);
 
           if (dirtyPaths.length > 0) {
             addDirtyPaths(stateDir, dirtyPaths);
           }
           if (dirtyPaths.some(isSourceImpactRelevantPath)) {
             markDecisionFlag(session, "source-edited");
+          }
+        }
+        // A `sed -i`, `>` or `tee` through the shell edits files too; its
+        // rule note and capture template ride on this tool's result, since
+        // no pre-edit hook saw the edit.
+        const shellEdits = trackedPaths(
+          shellToolEditPaths(input.toolName, input.toolInput, input.cwd ?? cwd),
+          cwd,
+        );
+        let shellNote: string | undefined;
+        if (shellEdits.length > 0) {
+          addDirtyPaths(stateDir, shellEdits);
+          if (shellEdits.some(isSourceImpactRelevantPath)) {
+            markDecisionFlag(session, "source-edited");
+            const parts = [
+              takeRuleNote(session),
+              claimRuleCaptureTemplate(session),
+            ].filter((part): part is string => part !== undefined);
+            if (parts.length > 0) shellNote = parts.join("\n\n");
           }
         }
         // An MCP call is judged by its parsed name, under which a dry-run
@@ -523,8 +583,13 @@ export async function runHook(
           }
         }
 
+        if (shellNote !== undefined) {
+          trace.action = "shell_edit_note";
+          return { additional_context: shellNote };
+        }
+
         const primaryPath = resolvePrimaryPath(input);
-        if (!primaryPath || !kibiReady) {
+        if (!primaryPath) {
           return emptyResult();
         }
 
@@ -593,7 +658,13 @@ export async function runHook(
           state.kbCheckRun ||
           state.planDelivered;
 
-        if (input.status === "aborted" || input.status === "error") {
+        // A workspace that never adopted Kibi gets no follow-up: nothing in it
+        // can be recorded or checked.
+        if (
+          !kibiReady ||
+          input.status === "aborted" ||
+          input.status === "error"
+        ) {
           if (shouldClearSession) {
             clearSessionHookState(stateDir);
           }
@@ -603,7 +674,7 @@ export async function runHook(
         // Source changed and nothing was recorded: the follow-up asks for the
         // decision to be recorded, once per conversation.
         const capture = claimCaptureReminder(session)
-          ? captureReminder(hasDecisionFlag(session, "rule-prompt"))
+          ? captureReminder(sessionRulePhrase(session))
           : undefined;
         // Requirements were written without a signoff view since: ask once.
         // A recorded requirement also counts as recorded knowledge, so this

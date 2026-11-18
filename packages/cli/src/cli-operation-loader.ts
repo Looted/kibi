@@ -74,6 +74,9 @@ export async function loadOperationSpec(
     case "kb_upsert":
       spec = (await import("./public/operations/specs/upsert.js")).upsertSpec;
       break;
+    case "kb_record":
+      spec = (await import("./public/operations/specs/record.js")).recordSpec;
+      break;
     case "kb_delete":
       spec = (await import("./public/operations/specs/mutation.js")).deleteSpec;
       break;
@@ -84,6 +87,10 @@ export async function loadOperationSpec(
       spec = (
         await import("./public/operations/specs/impact-review-preparation.js")
       ).prepareImpactReviewSpec;
+      break;
+    case "kb_review_firm_edit":
+      spec = (await import("./public/operations/specs/firm-edit-review.js"))
+        .reviewFirmEditSpec;
       break;
     case "kb_compile_intent":
       spec = (await import("./public/operations/specs/planning.js"))

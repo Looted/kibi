@@ -6,11 +6,13 @@ import {
   readdirSync,
   realpathSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { isolatedMcpSandboxEnv } from "../helpers/isolated-env.js";
 
 /**
@@ -33,14 +35,34 @@ const AGENT_FACING_TOOLS = [
   "kb_graph",
   "kb_model",
   "kb_upsert",
+  "kb_record",
   "kb_delete",
   "kb_check",
+  "kb_review_firm_edit",
   "kb_prepare_impact_review",
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
   "kb_ingest_proof",
 ];
+
+/** The core profile: the core seven and the receipt tool, in catalog order. */
+const CORE_TOOLS = [
+  "kb_query",
+  "kb_search",
+  "kb_status",
+  "kb_skills",
+  "kb_upsert",
+  "kb_record",
+  "kb_check",
+  "kb_review_firm_edit",
+];
+
+/** A freshly initialized KB is empty, so the bootstrap tools are listed too. */
+const EMPTY_KB_TOOLS = [...CORE_TOOLS, "kb_plan_bootstrap", "kb_apply_plan"];
+
+const FULL = { KIBI_MCP_TOOLS: "full" };
+const CORE = { KIBI_MCP_TOOLS: "core" };
 
 type Json = Record<string, unknown>;
 
@@ -143,15 +165,41 @@ function requirementFiles(workspace: string): string[] {
 }
 
 describe("kibi-mcp consolidated tool surface", () => {
-  test("lists 16 tools, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
+  test("lists all 18 tools by default and the core tools in the core profile, routes composites to the CLI operation payload, and dry-run upserts write nothing", async () => {
     const workspace = initWorkspace();
-    const client = await connect(workspace);
+    const listed = await connect(workspace);
+    expect((await listed.listTools()).tools.map((tool) => tool.name)).toEqual(
+      AGENT_FACING_TOOLS,
+    );
+    const core = await connect(workspace, CORE);
+    // The KB is empty after kibi init, so the bootstrap tools are listed.
+    expect((await core.listTools()).tools.map((tool) => tool.name)).toEqual(
+      EMPTY_KB_TOOLS,
+    );
+    const instructions = String(core.getInstructions());
+    expect(instructions).toContain(
+      `This server lists ${[
+        "kb_search",
+        "kb_query",
+        "kb_record",
+        "kb_upsert",
+        "kb_check",
+        "kb_status",
+        "kb_skills",
+        "kb_review_firm_edit",
+        "kb_plan_bootstrap",
+        "kb_apply_plan",
+      ].join(", ")}.`,
+    );
+    expect(instructions).not.toContain("KIBI_MCP_TOOLS");
+    const client = await connect(workspace, FULL);
 
     const { tools } = await client.listTools();
     const names = tools.map((tool) => tool.name);
     expect(names).toEqual(AGENT_FACING_TOOLS);
     expect(names).not.toContain("kb_sparql_remote");
     expect(names).not.toContain("kb_job_status");
+    expect(String(client.getInstructions())).not.toContain("This server lists");
 
     // Composite kb_skills returns the routed kb_skills_list payload plus
     // the selector; the narrower operation stays on the CLI.
@@ -187,11 +235,33 @@ describe("kibi-mcp consolidated tool surface", () => {
       id: "REQ-consumer-dry-run",
     });
     expect(query.entities).toEqual([]);
+
+    // kb_record with dryRun returns the one kb_upsert payload it stands for
+    // and kb_upsert's dry run of it, and writes nothing; the CLI agrees.
+    writeFileSync(
+      path.join(workspace, "src-quota.ts"),
+      "export function capCalls(calls: string[]): string[] {\n  return calls.slice(0, 20);\n}\n",
+    );
+    const recordInput = {
+      statement: "The quota page must list at most twenty client calls.",
+      why: "Reason not stated",
+      saidBy: "agent",
+      code: [{ file: "src-quota.ts", symbol: "capCalls" }],
+      dryRun: true,
+    };
+    const recorded = await call(client, "kb_record", recordInput);
+    expect(recorded.dryRun).toBe(true);
+    expect(recorded.valid).toBe(true);
+    expect((recorded.upsert as Json).type).toBe("req");
+    expect(recorded.skippedEffects).toEqual(["kb-write", "workspace-write"]);
+    expect(requirementFiles(workspace)).toEqual(before);
+    const cliRecord = kibi(workspace, ["record"], recordInput);
+    expect((cliRecord.data as Json).upsert).toEqual(recorded.upsert);
   }, 180_000);
 
   test("a rejected input keeps its Kibi error code on MCP, as on the CLI JSON route", async () => {
     const workspace = initWorkspace();
-    const client = await connect(workspace);
+    const client = await connect(workspace, FULL);
     const input = {
       intent: "Refunds must not exceed the original charge.",
       mode: "create",
@@ -232,15 +302,125 @@ describe("kibi-mcp consolidated tool surface", () => {
     expect(cli.error).toEqual(error);
   }, 180_000);
 
+  test("advertises each tool within its size budget and spells out a stubbed field when it rejects one", async () => {
+    const workspace = initWorkspace();
+    const client = await connect(workspace, FULL);
+
+    // Every session loads these definitions, so their size is a cost every
+    // host pays. kb_upsert advertises its capture fields only, and every
+    // field description is one short line.
+    const { tools } = await client.listTools();
+    const budget = (name: string) => (name === "kb_upsert" ? 16_000 : 15_000);
+    for (const tool of tools) {
+      expect({
+        name: tool.name,
+        size: JSON.stringify(tool).length <= budget(tool.name),
+      }).toEqual({ name: tool.name, size: true });
+    }
+    const size = (list: typeof tools) =>
+      list.reduce((total, tool) => total + JSON.stringify(tool).length, 0);
+    // What a model reads of a tool: its description and input schema.
+    const modelFacing = (list: typeof tools) =>
+      list.reduce(
+        (total, tool) =>
+          total +
+          (tool.description ?? "").length +
+          JSON.stringify(tool.inputSchema).length,
+        0,
+      );
+    expect(size(tools)).toBeLessThanOrEqual(122_000);
+    expect(modelFacing(tools)).toBeLessThanOrEqual(62_000);
+    // The core profile of an empty KB lists ten tools at about half.
+    const core = (await (await connect(workspace, CORE)).listTools()).tools;
+    expect(core.map((tool) => tool.name)).toEqual(EMPTY_KB_TOOLS);
+    expect(size(core)).toBeLessThanOrEqual(64_000);
+    expect(modelFacing(core)).toBeLessThanOrEqual(35_000);
+    const longDescriptions: string[] = [];
+    const walk = (name: string, value: unknown): void => {
+      if (Array.isArray(value)) {
+        for (const child of value) walk(name, child);
+        return;
+      }
+      if (value === null || typeof value !== "object") return;
+      for (const [key, child] of Object.entries(value)) {
+        if (key === "description" && typeof child === "string") {
+          if (child.length > 120) longDescriptions.push(`${name}: ${child}`);
+        } else walk(name, child);
+      }
+    };
+    for (const tool of tools) walk(tool.name, tool.inputSchema);
+    expect(longDescriptions).toEqual([]);
+    const upsert = tools.find((tool) => tool.name === "kb_upsert");
+    const fields = (
+      (upsert?.inputSchema.properties as Json).properties as {
+        properties: Record<string, Json>;
+      }
+    ).properties;
+    expect(JSON.stringify(upsert?.inputSchema).length).toBeLessThanOrEqual(
+      9_000,
+    );
+    expect(Object.keys(fields)).toHaveLength(15);
+    expect(fields.proof_contract).toBeUndefined();
+    expect(fields.proof_receipts).toBeUndefined();
+    // The fields that carry the person's intent stay advertised in full.
+    expect(fields.origin?.properties).toBeDefined();
+    expect(String(fields.firmness?.description)).toContain("origin.ref");
+
+    // The full contract still validates: a malformed proof contract is
+    // refused, and the refusal carries the field's full schema.
+    const input = {
+      type: "test",
+      id: "TEST-consumer-bad-contract",
+      dryRun: true,
+      properties: {
+        title: "Bad contract",
+        status: "open",
+        proof_contract: { version: "kibi.proof-contract.v1" },
+      },
+    };
+    // A raw request: the SDK's callTool checks an error envelope against
+    // the tool's success output schema.
+    const result = (await client.request(
+      { method: "tools/call", params: { name: "kb_upsert", arguments: input } },
+      CallToolResultSchema,
+    )) as { isError?: boolean; structuredContent?: Json };
+    expect(result.isError).toBe(true);
+    const error = (result.structuredContent as Json).error as Json;
+    expect(error.code).toBe("VALIDATION_FAILED");
+    expect(String(error.message)).toContain(
+      "/properties/proof_contract must have required property 'integration'",
+    );
+    expect(String(error.message)).toContain(
+      '/properties/proof_contract full schema: {"type":"object"',
+    );
+
+    let cliStdout = "";
+    try {
+      kibi(workspace, ["upsert"], input);
+    } catch (failure) {
+      cliStdout = String((failure as { stdout?: string }).stdout ?? "");
+    }
+    // The CLI route adds its own `--schema` pointer after the same message.
+    const cliError = (JSON.parse(cliStdout) as Json).error as Json;
+    expect(cliError.code).toBe(error.code);
+    expect(String(cliError.message).startsWith(String(error.message))).toBe(
+      true,
+    );
+  }, 180_000);
+
   test("registers optional tools only when KIBI_MCP_OPTIONAL_TOOLS names them", async () => {
     const workspace = initWorkspace();
     const jobOnly = await connect(workspace, {
+      ...FULL,
       KIBI_MCP_OPTIONAL_TOOLS: "kb_job_status",
     });
     const jobNames = (await jobOnly.listTools()).tools.map((t) => t.name);
     expect(jobNames).toEqual([...AGENT_FACING_TOOLS, "kb_job_status"]);
 
-    const all = await connect(workspace, { KIBI_MCP_OPTIONAL_TOOLS: "all" });
+    const all = await connect(workspace, {
+      ...FULL,
+      KIBI_MCP_OPTIONAL_TOOLS: "all",
+    });
     const allNames = (await all.listTools()).tools.map((t) => t.name);
     expect(allNames.sort()).toEqual(
       [...AGENT_FACING_TOOLS, "kb_job_status", "kb_sparql_remote"].sort(),

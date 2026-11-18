@@ -71,7 +71,13 @@ describe("snapshot symbols for granularity", () => {
           : await deps.analyzeText();
       extracted.push([file.path, file.content, answer]);
       expect(file.status).toBe("M");
-      return [{ name: `sym-${file.path}`, reqLinks: [] }];
+      return [
+        {
+          name: `sym-${file.path}`,
+          reqLinks: [],
+          location: { file: file.path, startLine: 1, endLine: 1 },
+        },
+      ];
     });
     h.world.analysis = new Map([["src/a.ts", { after: side("ok") }]]);
     let granularity: Record<string, unknown> = {};
@@ -111,9 +117,27 @@ describe("snapshot symbols for granularity", () => {
     ]);
     const bySource = granularity.sourceSymbolsByFile as Map<string, unknown>;
     expect([...bySource.entries()]).toEqual([
-      ["src/a.ts", [{ name: "sym-src/a.ts", reqLinks: [] }]],
+      [
+        "src/a.ts",
+        [
+          {
+            name: "sym-src/a.ts",
+            reqLinks: [],
+            location: { file: "src/a.ts", startLine: 1, endLine: 1 },
+          },
+        ],
+      ],
       ["src/active.ts", []],
-      ["src/reg.ts", [{ name: "sym-src/reg.ts", reqLinks: [] }]],
+      [
+        "src/reg.ts",
+        [
+          {
+            name: "sym-src/reg.ts",
+            reqLinks: [],
+            location: { file: "src/reg.ts", startLine: 1, endLine: 1 },
+          },
+        ],
+      ],
     ]);
     expect(
       (granularity.manifestResults as Array<{ entity: { id: string } }>).map(
@@ -170,6 +194,147 @@ describe("snapshot symbols for granularity", () => {
       ...(granularity.sourceContentByFile as Map<string, unknown>),
     ]).toEqual([["src/a.ts", "content of src/a.ts"]]);
     expect("activeEntityIds" in quality).toBe(false);
+  });
+
+  test("the firm-edit gate reads the staged change: every symbol, both trees and unstaged edits", async () => {
+    h.world.inventory = [
+      src(),
+      entry(REQ),
+      entry("src/new.ts", { oldPath: "src/old.ts", status: "R" }),
+      entry("src/gone.ts", { status: "D", content: undefined }),
+      entry("src/vendored.ts", {
+        status: "D",
+        disposition: "skipped",
+        content: undefined,
+      }),
+    ];
+    h.world.analysis = new Map([
+      ["src/a.ts", { after: side("ok"), before: side("was") }],
+    ]);
+    const requirement = { id: "REQ-1", type: "req", source: REQ };
+    h.world.entities = [{ entity: requirement, relationships: [] }];
+    let input: Record<string, (...args: never[]) => unknown> = {};
+    h.set("stagedFirmEditGateOptions", async (options) => {
+      input = options;
+      return { marker: true };
+    });
+    let gate: unknown;
+    h.set("createFirmEditGateDiagnostics", (options) => {
+      gate = options;
+      return [];
+    });
+    const extracted: Array<[string, string, unknown]> = [];
+    h.set("extractSymbolsFromStagedFileAsync", async (file, _lookup, deps) => {
+      extracted.push([
+        file.path,
+        file.status,
+        await deps.analyzeText(file.path, file.content),
+      ]);
+      return [];
+    });
+    await h.run();
+    expect(gate).toEqual({ marker: true });
+    expect(input.knowledge).toBe(h.world.entities as never);
+    expect([...(input.changedPaths as unknown as Set<string>)]).toEqual([
+      "src/a.ts",
+      REQ,
+      "src/new.ts",
+      "src/old.ts",
+      "src/gone.ts",
+      "src/vendored.ts",
+    ]);
+    extracted.length = 0;
+    await (input.extractAll as (file: unknown) => Promise<unknown>)({
+      path: "src/a.ts",
+      status: "M",
+    });
+    await (input.extractAll as (file: unknown) => Promise<unknown>)({
+      path: "src/none.ts",
+      status: "M",
+    });
+    // Every declaration is kept, each with the hunks it owns.
+    expect(extracted).toEqual([
+      ["src/a.ts", "A", h.world.analysis.get("src/a.ts")?.after],
+      ["src/none.ts", "A", null],
+    ]);
+    expect((input.readContent as (file: string) => unknown)("src/a.ts")).toBe(
+      "content of src/a.ts",
+    );
+    // Every staged entry goes to the gate with no text, so a deleted,
+    // skipped or renamed-away file is judged by its base declarations.
+    expect(input.unreadFiles as unknown).toEqual([
+      { path: "src/a.ts", status: "M", hunkRanges: [] },
+      { path: REQ, status: "M", hunkRanges: [] },
+      {
+        path: "src/new.ts",
+        oldPath: "src/old.ts",
+        status: "R",
+        hunkRanges: [],
+      },
+      { path: "src/gone.ts", status: "D", hunkRanges: [] },
+      { path: "src/vendored.ts", status: "D", hunkRanges: [] },
+    ]);
+    const gitCalls: string[][] = [];
+    h.world.git = (args) => {
+      gitCalls.push([...args]);
+      if (args[0] === "show") return `blob ${args[1]}`;
+      if (args[0] === "diff") return args[3]?.endsWith("dirty.ts") ? "x\n" : "";
+      throw new Error("unexpected");
+    };
+    const call = (name: string, value: string) =>
+      (input[name] as (value: string) => unknown)(value);
+    expect(call("readChanged", REQ)).toBe(`blob HEAD:${REQ}`);
+    expect(call("readBase", REQ)).toBe(`blob BASE:${REQ}`);
+    expect(call("readReceipt", "r.json")).toBe("blob HEAD:r.json");
+    // The base declarations come from the base tree, at the old path of a
+    // rename, analyzed as before the change; a file the change did not
+    // analyze (skipped, or renamed to a path that is not source) has its
+    // base text analyzed here.
+    extracted.length = 0;
+    const fromBase = input.extractBase as (file: unknown) => Promise<unknown>;
+    await fromBase({ path: "src/a.ts", status: "M" });
+    await fromBase({ path: "src/new.ts", oldPath: "src/old.ts", status: "R" });
+    expect(extracted).toEqual([
+      ["src/a.ts", "A", h.world.analysis.get("src/a.ts")?.before],
+      [
+        "src/old.ts",
+        "A",
+        { analyzed: "src/old.ts", text: "blob BASE:src/old.ts" },
+      ],
+    ]);
+    expect(gitCalls.slice(-2)).toEqual([
+      ["show", "BASE:src/a.ts"],
+      ["show", "BASE:src/old.ts"],
+    ]);
+    expect(call("hasUnstagedChanges", "src/dirty.ts")).toBe(true);
+    expect(call("hasUnstagedChanges", "src/a.ts")).toBe(false);
+    expect(gitCalls.at(-1)).toEqual([
+      "diff",
+      "--name-only",
+      "--",
+      ":(literal)src/a.ts",
+    ]);
+    let base: unknown[] = [];
+    h.set("readSnapshotKnowledge", (_git, tree) => {
+      base = [tree];
+      return [{ tree }];
+    });
+    expect((input.readBaseKnowledge as () => unknown)()).toEqual([
+      { tree: "BASE" },
+    ]);
+    expect(base).toEqual(["BASE"]);
+    h.set("readSnapshotKnowledge", () => {
+      throw new Error("base does not compile");
+    });
+    expect((input.readBaseKnowledge as () => unknown)()).toEqual([]);
+    h.world.git = () => {
+      throw new Error("not in the tree");
+    };
+    expect(call("readChanged", REQ)).toBeUndefined();
+    expect(call("readBase", REQ)).toBeUndefined();
+    expect(call("readReceipt", "r.json")).toBeUndefined();
+    expect(await fromBase({ path: "src/a.ts", status: "M" })).toEqual([]);
+    expect(call("hasUnstagedChanges", "src/a.ts")).toBe(false);
   });
 
   test("a snapshot source that is not a regular file is an error", async () => {
@@ -361,6 +526,81 @@ describe("staged verdicts", () => {
     expect(h.output().messages).toEqual(messages);
   });
 
+  test("owner findings come first and stand for the findings they merge", async () => {
+    withSymbols();
+    const owner = { blocks: "commit", symbol: "a" };
+    const raw = [{ v: "raw" }];
+    const kept = diagnostic(true);
+    h.set("validateStagedSymbols", async () => raw);
+    h.set("collectStagedKibiDiagnostics", () => [diagnostic(false), kept]);
+    h.world.entities = [
+      {
+        entity: { id: "REQ-a", title: "A", status: "open" },
+        relationships: [],
+      },
+    ];
+    h.set("analyzeStagedFileCoverage", () => ({
+      version: 1,
+      files: [{ path: "src/a.ts", requirementIds: ["REQ-a"] }],
+      diagnostics: [],
+    }));
+    h.set("collectOwnerFindings", () => [owner]);
+    h.set("withoutOwnedCauses", () => ({
+      diagnostics: [kept],
+      traceability: [],
+    }));
+    expect(await h.run()).toBe(1);
+    expect(h.output()).toMatchObject({
+      violations: raw,
+      qualityDiagnostics: [diagnostic(false), kept],
+      ownerFindings: [owner],
+      messages: ["owners 1", "[ERROR block] M\n  Suggestion: S"],
+    });
+    const [input] = h.calls.collectOwnerFindings?.[0] as [
+      {
+        traceability: unknown;
+        candidatesByFile: Map<string, string[]>;
+        readRequirement: (id: string) => unknown;
+        testsFor: (file: string, req: string) => unknown;
+        takenIds: unknown;
+        writtenRecords: unknown;
+      },
+    ];
+    expect(input.traceability).toBe(raw);
+    expect(input.writtenRecords).toEqual([]);
+    expect(input.takenIds).toEqual(
+      (h.world.entities as Array<{ entity: { id: string } }>).map(
+        (result) => result.entity.id,
+      ),
+    );
+    expect([...input.candidatesByFile]).toEqual([["src/a.ts", ["REQ-a"]]]);
+    expect(input.readRequirement("REQ-a")).toEqual({
+      id: "REQ-a",
+      title: "A",
+      status: "open",
+    });
+    expect(input.readRequirement("REQ-none")).toBeUndefined();
+    input.testsFor("src/a.ts", "REQ-a");
+    expect(h.calls.coveringTests?.[0]).toEqual([
+      h.world.entities,
+      "src/a.ts",
+      "REQ-a",
+    ]);
+  });
+
+  test("owner findings alone fail through the diagnostics branch", async () => {
+    withSymbols();
+    const owner = { blocks: "commit", symbol: "a" };
+    h.set("collectStagedKibiDiagnostics", () => [diagnostic(true)]);
+    h.set("collectOwnerFindings", () => [owner]);
+    h.set("withoutOwnedCauses", () => ({ diagnostics: [], traceability: [] }));
+    expect(await h.run()).toBe(1);
+    expect(h.output()).toMatchObject({
+      ownerFindings: [owner],
+      messages: ["owners 1"],
+    });
+  });
+
   test("context violations without symbols skip the snapshot check", async () => {
     h.world.inventory = [entry(REQ, { analysisDepth: "metadata" })];
     h.set("collectIntroducedEntityContextViolations", () => [{ v: "ctx" }]);
@@ -377,6 +617,7 @@ describe("staged verdicts", () => {
       qualityDiagnostics: [diagnostic(true)],
       messages: ["[ERROR block] M\n  Suggestion: S"],
     });
+    expect(h.output().ownerFindings).toBeUndefined();
     expect(h.calls.assertUnchanged).toHaveLength(1);
     expect(await h.run({ dryRun: true })).toBe(0);
   });
@@ -398,8 +639,9 @@ describe("staged verdicts", () => {
     h.set("createSymbolQualityDiagnostics", () => [diagnostic(false)]);
     h.set("createSemanticReviewDiagnostics", () => [diagnostic(false)]);
     h.set("createStagedEntityIdStyleDiagnostics", () => [diagnostic(false)]);
+    h.set("createFirmEditGateDiagnostics", () => [diagnostic(false)]);
     expect(await h.run()).toBe(0);
-    expect(h.output().qualityDiagnostics).toHaveLength(4);
+    expect(h.output().qualityDiagnostics).toHaveLength(5);
     expect(h.output().messages).toContain(
       "✓ No violations found in staged symbols.",
     );

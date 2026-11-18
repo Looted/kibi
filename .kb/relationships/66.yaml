@@ -188,3 +188,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3abbc0506f44
+  - type: constrains
+    from: REQ-kb-upsert-related-current-requirements
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-16T16:13:08.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-896b14f9fa84
+  - type: requires_property
+    from: REQ-kb-upsert-related-current-requirements
+    to: FACT-kb-upsert-related-requirements-cap
+    created_at: 2026-11-16T16:13:08.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bb5c5e35f5d
+  - type: specified_by
+    from: REQ-kb-upsert-related-current-requirements
+    to: SCEN-kb-upsert-related-requirements-cap
+    created_at: 2026-11-16T16:13:08.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-324267f9602a
+  - type: specified_by
+    from: REQ-kb-upsert-related-current-requirements
+    to: SCEN-NEG-kb-upsert-related-requirements-cap-TOO-MANY
+    created_at: 2026-11-16T16:13:08.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed6b20708210
+  - type: specified_by
+    from: REQ-kb-upsert-related-current-requirements
+    to: SCEN-kb-upsert-related-requirements-AT-CAP
+    created_at: 2026-11-16T16:25:58.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47b3df03c148
+  - type: specified_by
+    from: REQ-kb-upsert-related-current-requirements
+    to: SCEN-kb-upsert-related-requirements-NONE
+    created_at: 2026-11-16T16:25:58.528Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0ae9243fe4f
+  - type: specified_by
+    from: REQ-kb-upsert-related-current-requirements
+    to: SCEN-kb-upsert-related-requirements-ONE
+    created_at: 2026-11-16T16:25:58.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12698e7e5b3e
+  - type: executable_for
+    from: SYM-test-symbol-id-minting
+    to: TEST-symbol-id-minting
+    created_at: 2026-11-17T18:54:15.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcd7b59b9535

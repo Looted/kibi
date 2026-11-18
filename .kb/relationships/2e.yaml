@@ -99,13 +99,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-bfdd396d6de2
   - type: covered_by
-    from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
-    to: TEST-claude-code-kibi-plugin-v1
-    created_at: 2026-09-27T09:27:47.531Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-22177de92e95
-  - type: covered_by
     from: SYM-impact-stage-e-impactreviewinventory
     to: TEST-impact-policy-stage-e-installed-e2e
     created_at: 2026-09-27T17:43:46.561Z
@@ -126,20 +119,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e9efc7b773f
-  - type: implements
-    from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
-    to: REQ-agent-workspace-opt-in-keys
-    created_at: 2026-10-29T16:33:42.690Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-cd7383fd4a30
-  - type: covered_by
-    from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
-    to: TEST-proof-claude-workspace-env-keys
-    created_at: 2026-10-29T16:34:01.771Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-fd535e9cbd7b
   - type: executable_for
     from: SYM-proof-builtin-alignment-reuse-threshold
     to: TEST-proof-builtin-alignment-reuse-threshold
@@ -168,3 +147,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6240841ccbac
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-implemented-by-UNRESOLVED
+    to: FACT-NEG-kb-upsert-implemented-by-UNRESOLVED
+    created_at: 2026-11-16T07:13:30.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e97b0ba86d9
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-implemented-by-UNRESOLVED
+    to: TEST-kb-upsert-implemented-by
+    created_at: 2026-11-16T07:13:30.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43e1526a216d
+  - type: implements
+    from: SYM-evidence-floor-read-requirement-proof-payload
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T19:32:11.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d81df37113b7
+  - type: covered_by
+    from: SYM-evidence-floor-read-requirement-proof-payload
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T19:35:52.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a36b54582cac
+  - type: validates
+    from: TEST-proof-scoped-check-budget
+    to: SCEN-kibi-scoped-check-output
+    created_at: 2026-11-16T11:01:42.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-376f8b5fba79
+  - type: assumes
+    from: SCEN-check-quantity-duplicate-dangling-distinct
+    to: FACT-check-quantity-duplicate-dangling-distinct
+    created_at: 2026-11-16T16:10:35.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74d014c12026
+  - type: verified_by
+    from: SCEN-check-quantity-duplicate-dangling-distinct
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:35.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f34e71a4e5f0
+  - type: implements
+    from: SYM-mcp-profileToolNames
+    to: REQ-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:42.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24185d3a861b
+  - type: covered_by
+    from: SYM-mcp-profileToolNames
+    to: TEST-mcp-default-tool-profile
+    created_at: 2026-11-16T17:29:42.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21e92151742c
+  - type: assumes
+    from: SCEN-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    to: FACT-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    created_at: 2026-11-17T11:21:31.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97854880f8f2
+  - type: verified_by
+    from: SCEN-NEG-cli-prove-shard-disjoint-parts-VIOLATED
+    to: TEST-cli-prove-shard
+    created_at: 2026-11-17T11:21:31.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11aa2b4848d0

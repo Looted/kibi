@@ -5,9 +5,6 @@ import {
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
 
-export const BOOTSTRAP_REMINDER =
-  "Kibi config was not found at the Cursor workspace root. Use visible Kibi MCP tools or a trusted project-local CLI JSON route with --input (peer surfaces) to bootstrap project memory; if neither interface is available, tell the operator. Do not read or edit `.kb/` files directly. Query before mutate, run kb_upsert sequentially, and run kb_check before completion.";
-
 export const DIRECT_KB_EDIT_WARNING =
   "Do not read or edit `.kb/` files directly. Use visible Kibi MCP tools or trusted project-local CLI JSON routes with --input (peer surfaces). Query before mutate, run kb_upsert sequentially, and run kb_check before completion.";
 
@@ -60,7 +57,7 @@ function impactCheckFollowup(sourcePaths: readonly string[]): string {
   const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
   return [
     `Kibi: run impact-enabled kb_check after ${fileCount} edited source ${noun}.`,
-    `Use kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}).`,
+    `Use kb_check({changed:true, sourceFiles:${sourceFiles}}); findings with blocks:"commit" stop the commit.`,
     "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
   ].join("\n");
 }

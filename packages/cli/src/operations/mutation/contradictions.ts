@@ -132,7 +132,8 @@ export function parseUpsertChangeKinds(
 /**
  * The error a failed store write throws: the formatted message, coded as a
  * rejection when the store refused the entity (a contradiction, an invalid
- * relationship) rather than failing itself.
+ * relationship, a relationship endpoint that does not exist) rather than
+ * failing itself.
  */
 export function upsertFailure(
   entityId: string,
@@ -142,6 +143,9 @@ export function upsertFailure(
   const message = formatUpsertError(entityId, raw, record);
   if (message.startsWith("Contradiction detected for ")) {
     return new KbRejection("SEMANTIC_CONTRADICTION", message);
+  }
+  if (record?.code === "entity_not_found" && record.role !== undefined) {
+    return new KbRejection("RELATIONSHIP_ENDPOINT_MISSING", message);
   }
   const invalidRelationship = record
     ? record.code === "invalid_relationship"
@@ -169,6 +173,19 @@ function formatStructuredUpsertError(
   record: PrologErrorRecord,
   stageSuffix: string,
 ): string {
+  if (
+    record.code === "contradiction" &&
+    record.conflicts?.some((conflict) => conflict.requirementId !== undefined)
+  ) {
+    return formatFactContradiction(
+      entityId,
+      (record.conflicts ?? []).map(
+        (conflict) =>
+          `  - ${conflict.requirementId ?? entityId} conflicts with ${conflict.otherId}: ${conflict.reason}`,
+      ),
+      stageSuffix,
+    );
+  }
   if (record.code === "contradiction") {
     const conflicts = [
       ...new Set(
@@ -183,10 +200,32 @@ function formatStructuredUpsertError(
     }
     return `Contradiction detected for entity ${entityId}: This requirement conflicts with existing requirements. Add a supersedes relationship to the conflicting requirement, or deprecate the old requirement before creating the new one.${stageSuffix}`;
   }
+  if (
+    record.code === "entity_not_found" &&
+    record.role !== undefined &&
+    record.entityId !== undefined
+  ) {
+    return `Failed to upsert entity ${entityId}: ${record.message}. Create ${record.entityId} first, or write both entities in the same kb_apply_plan, then retry${stageSuffix}`;
+  }
   if (record.code === "invalid_relationship" && record.relationship) {
     return `Failed to upsert entity ${entityId}: ${formatInvalidRelationshipTuple(record.relationship)}${stageSuffix}`;
   }
   return `Failed to upsert entity ${entityId}: ${record.message}${stageSuffix}`;
+}
+
+const FACT_CONTRADICTION_REMEDY =
+  "To resolve:\n  1. Change the conflicting requirement in the same kb_apply_plan as this fact, OR\n  2. Supersede one requirement, or scope the two so they no longer constrain one quantity.";
+
+/**
+ * A fact write refused because it makes two current requirements grounded
+ * on the fact contradict: each pair, and how to send the change instead.
+ */
+function formatFactContradiction(
+  factId: string,
+  lines: readonly string[],
+  stageSuffix: string,
+): string {
+  return `Contradiction detected for fact ${factId}: the write makes current requirements conflict:\n${[...new Set(lines)].join("\n")}\n\n${FACT_CONTRADICTION_REMEDY}${stageSuffix}`;
 }
 
 function formatTextUpsertError(
@@ -213,6 +252,14 @@ function formatTextUpsertError(
   const invalidRelationship = formatInvalidRelationshipError(diagnosticFree);
   if (invalidRelationship !== null) {
     return `Failed to upsert entity ${entityId}: ${invalidRelationship}${stageSuffix}`;
+  }
+  const factContradiction = diagnosticFree.match(
+    /Contradiction detected for fact [^:\n]+: the write makes current requirements conflict:((?:\n {2}- [^\n]+)+)/,
+  );
+  if (factContradiction) {
+    // The group is required by the pattern.
+    const lines = (factContradiction[1] as string).split("\n").slice(1);
+    return formatFactContradiction(entityId, lines, stageSuffix);
   }
   const contradiction = diagnosticFree.match(
     /kb_contradiction\(\s*\[([^\]]+)\]\s*\)/,

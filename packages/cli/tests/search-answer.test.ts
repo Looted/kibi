@@ -15,6 +15,10 @@ import {
   buildSearchAnswer,
   fitSearchAnswer,
   projectVerdict,
+  reasonSource,
+  requirementReason,
+  requirementStatementOf,
+  withoutChangeNotes,
 } from "../src/search-answer.js";
 
 type Row = Record<string, string | readonly string[]>;
@@ -1483,8 +1487,16 @@ describe("search answer byte ceiling", () => {
     });
     expect(size(answer)).toBeLessThanOrEqual(maxBytes);
     expect(answer.truncated).toBe(true);
-    // Every governing requirement survives; the excerpts gave way.
-    expect(answer.governing).toHaveLength(5);
+    // The excerpts gave way first. Each requirement's reason is its ADR's
+    // decision, so a requirement that stays keeps its reason and the last
+    // ones yield instead.
+    expect(answer.governing.length).toBeGreaterThan(0);
+    for (const req of answer.governing)
+      expect(req.why).toEqual({
+        recorded: true,
+        from: "adr",
+        text: expect.any(String),
+      });
     expect(answer.rationale.map((adr) => adr.id)).toEqual([
       "ADR-0",
       "ADR-1",
@@ -1517,6 +1529,7 @@ describe("search answer byte ceiling", () => {
             title: "Contradicted",
             score: 1,
             via: "matched",
+            why: { recorded: false },
             facts: [],
             scenarios: [],
             tests: [],
@@ -1565,6 +1578,7 @@ describe("search answer byte ceiling", () => {
           ...entity("REQ", 0),
           score: 1,
           via: `supersedes ${long("REQ", 9)}`,
+          why: { recorded: false },
           facts: [0, 1, 2, 3].map((index) => entity("FACT", index)),
           scenarios: [0, 1].map((index) => entity("SCEN", index)),
           tests: [0, 1].map((index) => ({
@@ -1612,6 +1626,7 @@ describe("search answer byte ceiling", () => {
       title: "t",
       score: 1 - index / 10,
       via: "matched",
+      why: { recorded: false } as const,
       facts: [],
       scenarios: [0, 1, 2].map((scenario) => ({
         id: `SCEN-${index}-${scenario}-${pad}`,
@@ -1653,5 +1668,610 @@ describe("search answer byte ceiling", () => {
     ]);
     expect(fitSearchAnswer(answer, maxBytes)).toBe(answer);
     expect(answer.truncated).toBe(false);
+  });
+});
+
+describe("a governing requirement's recorded reason", () => {
+  const body = (...sections: string[]) => sections.join("\n\n");
+
+  test("the rationale field comes first", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Support asked for it. It cut refunds." },
+        body("Statement.", "## Why", "Another reason."),
+        ["An ADR decision."],
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Support asked for it. It cut refunds.",
+      from: "rationale",
+    });
+  });
+
+  test("then a Why section, before the Why this changed section", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A" },
+        body(
+          "Statement.",
+          "## Why this changed",
+          "The **limit** moved to 9 after the audit.",
+          "## Why",
+          "Finance reconciles to the cent.",
+        ),
+        [],
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Finance reconciles to the cent.",
+      from: "section",
+    });
+    expect(
+      requirementReason(
+        { id: "REQ-A" },
+        body(
+          "Statement.",
+          "## Why",
+          "Reason not stated.",
+          "## Why this changed",
+          "The limit moved to 9 after the audit.",
+        ),
+        [],
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "The limit moved to 9 after the audit.",
+      from: "why_this_changed",
+    });
+  });
+
+  test("split and supersede notes are not a reason", () => {
+    const reason = (...lines: string[]) =>
+      requirementReason({ id: "REQ-A" }, body("Statement.", ...lines), []);
+    expect(
+      reason(
+        "## Why this changed",
+        "Split from REQ-B, which held three behaviors.",
+        "## Context",
+        "Finance reconciles to the cent.",
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Finance reconciles to the cent.",
+      from: "section",
+    });
+    // A note section is skipped for a later section of the same kind.
+    expect(
+      reason(
+        "## Why",
+        "Superseded by REQ-C.",
+        "## Context",
+        "Audits need cents.",
+      ),
+    ).toEqual({ recorded: true, text: "Audits need cents.", from: "section" });
+    expect(
+      reason("## Why this changed", "- Replaces REQ-D.", "- The audit failed."),
+    ).toEqual({
+      recorded: true,
+      text: "The audit failed.",
+      from: "why_this_changed",
+    });
+    expect(
+      reason("## Why this changed", "Supersedes REQ-E.\nThe audit failed."),
+    ).toEqual({
+      recorded: true,
+      text: "The audit failed.",
+      from: "why_this_changed",
+    });
+    expect(reason("## Why", "> Replaced by REQ-F.")).toEqual({
+      recorded: false,
+    });
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Split from REQ-B." },
+        body("Statement.", "## Why", "Real."),
+        [],
+      ),
+    ).toEqual({ recorded: true, text: "Real.", from: "section" });
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Audits need cents.\nSplit from REQ-B." },
+        null,
+        [],
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Audits need cents.",
+      from: "rationale",
+    });
+  });
+
+  test("a note is only a note when it opens its line", () => {
+    expect(
+      withoutChangeNotes([
+        "It was split from REQ-B because it held two rules.",
+        "Splitting from REQ-B helped.",
+        "Split fromREQ-B",
+        "  - Supersedes REQ-C.",
+        ">Replaced by REQ-D.",
+        "*Replaces REQ-E",
+        "",
+        "Kept.",
+      ]),
+    ).toEqual([
+      "It was split from REQ-B because it held two rules.",
+      "Splitting from REQ-B helped.",
+      "Split fromREQ-B",
+      "",
+      "Kept.",
+    ]);
+  });
+
+  test("then a Why, Rationale or Context section, at any level", () => {
+    for (const heading of ["## Why", "### Rationale", "# Context and source"])
+      expect(
+        requirementReason(
+          { id: "REQ-A" },
+          body("Statement.", heading, "- Users churned at checkout."),
+          ["An ADR decision."],
+        ),
+      ).toEqual({
+        recorded: true,
+        text: "Users churned at checkout.",
+        from: "section",
+      });
+  });
+
+  test("then the first linked ADR with an excerpt", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "  " },
+        body("Statement.", "## Why", "", "## Source", "> quote"),
+        [undefined, "Allow a zero total."],
+      ),
+    ).toEqual({ recorded: true, text: "Allow a zero total.", from: "adr" });
+  });
+
+  test("a section that says no reason was stated records none", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A" },
+        body("Statement.", "## Context", "Reason not stated. Asked in review."),
+        [],
+      ),
+    ).toEqual({ recorded: false });
+  });
+
+  test("a section that names who asked before saying no reason was stated records none", () => {
+    for (const lines of [
+      ["Asked by the owner in the project chat on 2026-11-10. Reason not stated."],
+      ["Requested by the owner (chat); reason not stated."],
+      ["- Asked by the owner", "- Source: chat", "- Reason", "  not stated"],
+      [`Asked by the owner. ${"Background words. ".repeat(30)}Reason not stated.`],
+    ])
+      expect(
+        requirementReason(
+          { id: "REQ-A" },
+          body("Statement.", "## Context", ...lines),
+          [],
+        ),
+      ).toEqual({ recorded: false });
+  });
+
+  test("a rationale field that says no reason was stated records none", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Asked by the owner. Reason not stated." },
+        null,
+        [],
+      ),
+    ).toEqual({ recorded: false });
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Reason not stated" },
+        body("Statement.", "## Why", "Users churned at checkout."),
+        [],
+      ),
+    ).toEqual({
+      recorded: true,
+      text: "Users churned at checkout.",
+      from: "section",
+    });
+  });
+
+  test("no reason stated across a line break, or with extra spaces, records none", () => {
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Asked by the owner. Reason not\nstated." },
+        null,
+        [],
+      ),
+    ).toEqual({ recorded: false });
+    for (const lines of [
+      ["Asked by the owner. Reason not", "stated."],
+      ["Asked by the owner. Reason not  stated."],
+    ])
+      expect(
+        requirementReason(
+          { id: "REQ-A" },
+          body("Statement.", "## Context", ...lines),
+          [],
+        ),
+      ).toEqual({ recorded: false });
+  });
+
+  test("nothing recorded, or no readable document, is marked", () => {
+    expect(requirementReason({ id: "REQ-A" }, null, [])).toEqual({
+      recorded: false,
+    });
+    expect(
+      requirementReason({ id: "REQ-A" }, body("Statement.", "## Source"), []),
+    ).toEqual({ recorded: false });
+  });
+
+  test("the text is at most 280 characters", () => {
+    const reason = requirementReason(
+      { id: "REQ-A", rationale: `${"w".repeat(400)}. Next.` },
+      null,
+      [],
+    );
+    expect(reason.recorded).toBe(true);
+    if (reason.recorded)
+      expect(Array.from(reason.text ?? "").length).toBe(
+        SEARCH_ANSWER_LIMITS.excerptChars,
+      );
+  });
+
+  test("the answer carries each governing requirement's reason", async () => {
+    const root = workspaceWith({
+      ".kb/requirements/REQ-WHY.md": body(
+        "---\nid: REQ-WHY\n---",
+        "# Cap retries",
+        "Retries are capped at 3.",
+        "## Why",
+        "The provider bans clients that retry more.",
+      ),
+    });
+    const entities: Record<string, Row> = {
+      "REQ-WHY": {
+        id: "REQ-WHY",
+        type: "req",
+        title: "Cap retries",
+        status: "open",
+        source: ".kb/requirements/REQ-WHY.md",
+      },
+      "REQ-BARE": { id: "REQ-BARE", type: "req", title: "t", status: "open" },
+    };
+    const answer = await buildSearchAnswer(
+      fakeKb(entities, []),
+      [
+        match(entities["REQ-WHY"] as Row, 0.9),
+        match(entities["REQ-BARE"] as Row, 0.8),
+      ],
+      { workspaceRoot: root },
+    );
+    expect(answer.governing.map((req) => [req.id, req.why])).toEqual([
+      [
+        "REQ-WHY",
+        {
+          recorded: true,
+          text: "The provider bans clients that retry more.",
+          from: "section",
+        },
+      ],
+      ["REQ-BARE", { recorded: false }],
+    ]);
+  });
+
+  test("the reason text goes after side lists, before the requirement's links", () => {
+    const pad = "q".repeat(3_000);
+    const answer = fitSearchAnswer(
+      {
+        version: "kibi.search-answer.v1",
+        governing: [
+          {
+            id: "REQ-0",
+            title: "t",
+            score: 1,
+            via: "matched",
+            why: { recorded: true, text: "r".repeat(280), from: "rationale" },
+            facts: [0, 1, 2, 3, 4].map((index) => ({
+              id: `FACT-${index}-${pad}`,
+              title: "t",
+            })),
+            scenarios: [],
+            tests: [],
+            adrs: [],
+            verdict: { status: "none", witnesses: [] },
+            exceptions: [],
+            unknowns: [],
+          },
+        ],
+        rationale: [],
+        notGoverning: [{ id: `REQ-9-${pad}`, title: "t" }],
+        observations: [],
+        ungoverned: [],
+        scope: { branch: null, snapshotId: "s", syncedAt: null },
+        truncated: false,
+        note: "n",
+      },
+      15_500,
+    );
+    expect(answer.notGoverning).toEqual([]);
+    expect(answer.governing[0]?.why).toEqual({
+      recorded: true,
+      from: "rationale",
+    });
+    expect(answer.governing[0]?.facts.length).toBe(4);
+  });
+});
+
+describe("who a recorded reason came from", () => {
+  test("the approver, else the origin's kind, with the recorded date", () => {
+    expect(
+      reasonSource({
+        kind: "agent",
+        approved_by: " maintainer ",
+        recorded_at: "2026-11-11T05:45:01.592Z",
+      }),
+    ).toEqual({ by: "maintainer", on: "2026-11-11" });
+    expect(reasonSource({ kind: "human", recorded_at: "2026-10-27" })).toEqual({
+      by: "human",
+      on: "2026-10-27",
+    });
+    expect(reasonSource({ kind: "import", approved_by: "  " })).toStrictEqual({
+      by: "import",
+    });
+    expect(
+      reasonSource({ kind: "agent", recorded_at: "yesterday" }),
+    ).toStrictEqual({ by: "agent" });
+    // Only a date at the start of the timestamp counts.
+    expect(
+      reasonSource({ kind: "agent", recorded_at: "before 2026-11-11" }),
+    ).toStrictEqual({ by: "agent" });
+  });
+
+  test("a migration origin, an unknown kind or no origin names no one", () => {
+    expect(
+      reasonSource({ kind: "migration", recorded_at: "2026-10-04" }),
+    ).toBeUndefined();
+    expect(reasonSource({ kind: "robot" })).toBeUndefined();
+    expect(reasonSource({ approved_by: "maintainer" })).toBeUndefined();
+    expect(reasonSource(null)).toBeUndefined();
+    expect(reasonSource("agent")).toBeUndefined();
+    expect(reasonSource(undefined)).toBeUndefined();
+  });
+
+  test("the requirement's own reason says who and when; an ADR's does not", () => {
+    const origin = {
+      kind: "agent",
+      approved_by: "maintainer",
+      recorded_at: "2026-11-11T05:45:01.592Z",
+    };
+    const said = { by: "maintainer", on: "2026-11-11" };
+    expect(
+      requirementReason(
+        { id: "REQ-A", rationale: "Because.", origin },
+        null,
+        [],
+      ),
+    ).toEqual({ recorded: true, text: "Because.", from: "rationale", said });
+    expect(
+      requirementReason({ id: "REQ-A", origin }, "S.\n\n## Why\n\nSo.", []),
+    ).toEqual({ recorded: true, text: "So.", from: "section", said });
+    expect(
+      requirementReason({ id: "REQ-A", origin }, null, ["ADR decision."]),
+    ).toEqual({ recorded: true, text: "ADR decision.", from: "adr" });
+    expect(requirementReason({ id: "REQ-A", origin }, null, [])).toEqual({
+      recorded: false,
+    });
+  });
+});
+
+describe("a governing requirement's statement", () => {
+  test("the authored semantic_text, flattened", () => {
+    expect(
+      requirementStatementOf(
+        { id: "REQ-A", semantic_text: "  Totals round\n  to cents. " },
+        "Body statement.",
+      ),
+    ).toBe("Totals round to cents.");
+  });
+
+  test("else the statement the body derives, without its context sections", () => {
+    expect(
+      requirementStatementOf(
+        { id: "REQ-A", semantic_text: "  " },
+        "# Title\n\n- Retries stop at 3.\n\n## Why\n\nThe provider bans more.",
+      ),
+    ).toBe("Retries stop at 3.");
+  });
+
+  test("nothing when neither holds prose", () => {
+    expect(requirementStatementOf({ id: "REQ-A" }, null)).toBeUndefined();
+    expect(
+      requirementStatementOf({ id: "REQ-A" }, "## Why\n\nOnly a reason."),
+    ).toBeUndefined();
+  });
+
+  test("at most 300 characters", () => {
+    const statement = requirementStatementOf(
+      { id: "REQ-A", semantic_text: "s".repeat(400) },
+      null,
+    );
+    expect(Array.from(statement ?? "").length).toBe(
+      SEARCH_ANSWER_LIMITS.statementChars,
+    );
+    expect(SEARCH_ANSWER_LIMITS.statementChars).toBe(300);
+    expect(statement?.endsWith("…")).toBe(true);
+    expect(
+      requirementStatementOf(
+        { id: "REQ-A", semantic_text: "s".repeat(300) },
+        null,
+      ),
+    ).toBe("s".repeat(300));
+  });
+
+  test("the answer gives each governing requirement's statement", async () => {
+    const root = workspaceWith({
+      ".kb/requirements/REQ-BODY.md":
+        "---\nid: REQ-BODY\n---\n\nRetries stop at 3.\n\n## Why\n\nBans.\n",
+    });
+    const entities: Record<string, Row> = {
+      "REQ-TEXT": {
+        id: "REQ-TEXT",
+        type: "req",
+        title: "Round",
+        status: "open",
+        semantic_text: "Totals round to cents.",
+      },
+      "REQ-BODY": {
+        id: "REQ-BODY",
+        type: "req",
+        title: "Retries",
+        status: "open",
+        source: ".kb/requirements/REQ-BODY.md",
+      },
+      "REQ-BARE": { id: "REQ-BARE", type: "req", title: "t", status: "open" },
+    };
+    const answer = await buildSearchAnswer(
+      fakeKb(entities, []),
+      [
+        match(entities["REQ-TEXT"] as Row, 0.9),
+        match(entities["REQ-BODY"] as Row, 0.8),
+        match(entities["REQ-BARE"] as Row, 0.7),
+      ],
+      { workspaceRoot: root },
+    );
+    expect(answer.governing.map((req) => [req.id, req.statement])).toEqual([
+      ["REQ-TEXT", "Totals round to cents."],
+      ["REQ-BODY", "Retries stop at 3."],
+      ["REQ-BARE", undefined],
+    ]);
+    expect("statement" in (answer.governing[2] as object)).toBe(false);
+  });
+
+  test("the statement goes before the reason text when the answer must shrink", () => {
+    const pad = "q".repeat(3_000);
+    const answer = fitSearchAnswer(
+      {
+        version: "kibi.search-answer.v1",
+        governing: [
+          {
+            id: "REQ-0",
+            title: "t",
+            score: 1,
+            via: "matched",
+            statement: "s".repeat(300),
+            why: { recorded: true, text: "r".repeat(280), from: "rationale" },
+            facts: [0, 1, 2, 3, 4].map((index) => ({
+              id: `FACT-${index}-${pad}`,
+              title: "t",
+            })),
+            scenarios: [],
+            tests: [],
+            adrs: [],
+            verdict: { status: "none", witnesses: [] },
+            exceptions: [],
+            unknowns: [],
+          },
+        ],
+        rationale: [],
+        notGoverning: [{ id: `REQ-9-${pad}`, title: "t" }],
+        observations: [],
+        ungoverned: [],
+        scope: { branch: null, snapshotId: "s", syncedAt: null },
+        truncated: false,
+        note: "n",
+      },
+      15_900,
+    );
+    expect(answer.notGoverning).toEqual([]);
+    expect("statement" in (answer.governing[0] as object)).toBe(false);
+    expect(answer.governing[0]?.why).toEqual({
+      recorded: true,
+      text: "r".repeat(280),
+      from: "rationale",
+    });
+    expect(answer.governing[0]?.facts.length).toBe(5);
+  });
+});
+
+describe("fact calls in a summary answer", () => {
+  const entities: Record<string, Row> = {
+    "REQ-ROLES": {
+      id: "REQ-ROLES",
+      type: "req",
+      title: "Admins hold at most two roles",
+      status: "open",
+    },
+    "FACT-LIMIT": {
+      id: "FACT-LIMIT",
+      type: "fact",
+      title: "at most two roles per user",
+      status: "active",
+      fact_kind: "property_value",
+      subject_key: "user.role_assignment",
+      property_key: "max_roles",
+      operator: "lte",
+      value_type: "int",
+      value_int: "2",
+    },
+    "FACT-LOOSE": {
+      id: "FACT-LOOSE",
+      type: "fact",
+      title: "bob has the admin role",
+      status: "active",
+      fact_kind: "predicate",
+      predicate_name: "has_role",
+      predicate_args: ["bob", "admin"],
+    },
+  };
+  const edges = [["requires_property", "REQ-ROLES", "FACT-LIMIT"]] as const;
+  const matches = () => [
+    match(entities["FACT-LOOSE"] as Row, 0.95),
+    match(entities["REQ-ROLES"] as Row, 0.9),
+  ];
+
+  test("summary keeps each fact's claim and leaves out its kb_query call", async () => {
+    const answer = await buildSearchAnswer(fakeKb(entities, edges), matches(), {
+      detail: "summary",
+    });
+    expect(answer.governing[0]?.facts).toEqual([
+      {
+        id: "FACT-LIMIT",
+        title: "at most two roles per user",
+        status: "active",
+        factKind: "property_value",
+        claim: "user.role_assignment max_roles lte 2",
+      },
+    ]);
+    expect(answer.ungoverned).toEqual([
+      {
+        id: "FACT-LOOSE",
+        title: "bob has the admin role",
+        status: "active",
+        factKind: "predicate",
+        claim: "has_role(bob, admin)",
+        type: "fact",
+        rank: 1,
+      },
+    ]);
+  });
+
+  test("full, the default, keeps the calls", async () => {
+    for (const options of [{ detail: "full" as const }, {}]) {
+      const answer = await buildSearchAnswer(
+        fakeKb(entities, edges),
+        matches(),
+        options,
+      );
+      expect(answer.governing[0]?.facts[0]?.ask).toBe(
+        'kb_query({"subjectKey":"user.role_assignment","propertyKey":"max_roles"})',
+      );
+      expect(answer.ungoverned[0]?.ask).toBe(
+        'kb_query({"predicate":"has_role","args":["bob","admin"]})',
+      );
+    }
   });
 });

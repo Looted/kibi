@@ -96,6 +96,7 @@ class MockPrologProcess {
 // mock.module() in Bun cannot be undone and pollutes other test files' static imports.
 import * as discovery from "../../src/commands/discovery-shared.js";
 import type { DiscoveryDeps } from "../../src/commands/discovery-shared.js";
+import { useCoreModuleGoal } from "../../src/prolog/codec.js";
 
 const mockDeps: DiscoveryDeps = {
   createProlog: (opts) =>
@@ -224,7 +225,7 @@ describe("discovery-shared", () => {
     ).resolves.toEqual({ rows: [1, 2] });
 
     expect(state.queries[0]).toContain(
-      "use_module('/opt/kibi/core/nested/coverage_json.pl')",
+      useCoreModuleGoal("/opt/kibi/core/nested/coverage_json.pl"),
     );
     expect(state.queries[0]).toContain("kb_attach('/tmp/kb/path')");
     expect(state.queries[0]).toContain("kb_detach");
@@ -249,7 +250,7 @@ describe("discovery-shared", () => {
       ),
     ).resolves.toEqual({ ok: true });
     expect(fakeProlog.query).toHaveBeenCalledWith(
-      "(use_module('/opt/kibi/core/status_json.pl'), status_goal(JsonString))",
+      `(${useCoreModuleGoal("/opt/kibi/core/status_json.pl")}, status_goal(JsonString))`,
     );
 
     await expect(

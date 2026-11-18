@@ -208,6 +208,8 @@ function input(
       fact("F-m8", "pattern_marker", ["card"]),
       fact("F-alt", "alt_marker", ["m-alt"]),
     ],
+    requiresRuleEdges: [],
+    ruleHeads: [],
     readFile: (path) => files[path],
     ...overrides,
   };
@@ -283,6 +285,8 @@ describe("collectCheckPolicyViolations", () => {
     current_req: "[['REQ-1']]",
     predicate_fact:
       "[['F-1',ui_pattern,card,assert],['F-2',pattern_marker,[card,'data-card'],assert],['F-3',ui_pattern,'',assert],['F-4',pattern_marker,['',blank_mark],assert]]",
+    "kb_relationship(requires_rule": "[]",
+    stored_rule_fact: "[]",
   };
   const engine = (failing?: string, bare = false, error = "no") => ({
     query: async (goal: string): Promise<PrologQueryResult> => {
@@ -419,6 +423,8 @@ describe("collectCheckPolicyViolations", () => {
       "Unable to read requires_predicate relationships for check policies: no",
       "Unable to read current requirements for check policies: no",
       "Unable to read predicate facts for check policies: no",
+      "Unable to read requires_rule relationships for check policies: no",
+      "Unable to read rule heads for check policies: no",
     ]);
     await expect(
       collectCheckPolicyViolations(

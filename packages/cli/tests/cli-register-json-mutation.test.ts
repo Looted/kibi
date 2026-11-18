@@ -4,7 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
 import { CLI_OPERATION_METADATA } from "../src/cli-operation-metadata";
-import { registerJsonOnlyCommands } from "../src/cli-register-json";
+import {
+  UNLISTED_OPERATIONS,
+  registerJsonOnlyCommands,
+} from "../src/cli-register-json";
 
 const roots: string[] = [];
 afterEach(() => {
@@ -20,6 +23,52 @@ function jsonOnlyProgram(): Command {
 }
 
 describe("JSON-only commands", () => {
+  test("kibi --help lists each command by its first sentence and leaves out the narrower routes", () => {
+    const program = jsonOnlyProgram().configureHelp({ helpWidth: 1000 });
+    const help = program.helpInformation();
+    const upsert = program.commands.find(
+      (command) => command.name() === "upsert",
+    );
+    const description = CLI_OPERATION_METADATA.find(
+      (metadata) => metadata.name === "kb_upsert",
+    )?.description as string;
+    expect(upsert?.summary()).toBe(
+      "Create or update one entity and its relationships.",
+    );
+    // The command's own help keeps the whole description.
+    expect(upsert?.description()).toBe(description);
+    expect(help).toMatch(
+      /^ {2}upsert \[options\] +Create or update one entity and its relationships\.$/m,
+    );
+    expect(help).not.toContain(description);
+    expect([...UNLISTED_OPERATIONS].sort()).toEqual([
+      "kb_model_requirement",
+      "kb_semantic_advisor",
+      "kb_skills_list",
+      "kb_skills_load",
+      "kb_skills_read",
+      "kb_suggest_predicates",
+      "kb_validate_upsert",
+    ]);
+    for (const name of [
+      "skills-list",
+      "skills-load",
+      "skills-read",
+      "semantic-advisor",
+      "model-requirement",
+      "suggest-predicates",
+      "validate-upsert",
+    ]) {
+      // Still registered and runnable, only not listed.
+      expect(program.commands.some((command) => command.name() === name)).toBe(
+        true,
+      );
+      expect(help).not.toMatch(new RegExp(`^  ${name} `, "m"));
+    }
+    for (const name of ["upsert", "delete", "model", "skill", "apply-plan"])
+      expect(help).toMatch(new RegExp(`^  ${name} `, "m"));
+  });
+
   test("commands with their own flags are not registered again as JSON-only", () => {
     const names = jsonOnlyProgram().commands.map((command) => command.name());
     const cliName = (operation: string) =>

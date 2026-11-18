@@ -412,3 +412,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e23d61e2a3a
+  - type: assumes
+    from: SCEN-NEG-behavioral-kinds-keep-implements-ROLE-EXCUSES-FUNCTION
+    to: FACT-NEG-behavioral-kinds-keep-implements-ROLE-EXCUSES-FUNCTION
+    created_at: 2026-11-16T05:34:08.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9540b52b5147
+  - type: implements
+    from: SYM-search-answer-reason-source
+    to: REQ-search-answer-reason-origin
+    created_at: 2026-11-16T15:54:18.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eaf140976bb5
+  - type: implements
+    from: SYM-knowledge-index-entity-summary
+    to: REQ-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:39.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4b82a8b229e
+  - type: covered_by
+    from: SYM-knowledge-index-entity-summary
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:58:53.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0305093cdfc
+  - type: covered_by
+    from: SYM-search-answer-reason-source
+    to: TEST-search-answer-first-layer
+    created_at: 2026-11-16T15:59:34.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6603e89b4fdf
+  - type: implements
+    from: SYM-env-is-kibi-or-process-env-key
+    to: REQ-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-18T06:23:36.952Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4af3a9bed1dd
+  - type: covered_by
+    from: SYM-env-is-kibi-or-process-env-key
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-18T06:23:36.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6335f4aa6e76

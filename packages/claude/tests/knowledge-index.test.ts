@@ -176,6 +176,7 @@ describe("entity summaries", () => {
       status: "superseded",
       firmness: "firm",
       statement: "Body.",
+      why: { recorded: false },
     });
   });
 

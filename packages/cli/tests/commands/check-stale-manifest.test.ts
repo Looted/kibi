@@ -81,6 +81,7 @@ function createTrackedFixture(): FileMap {
 id: REQ-GREET-001
 title: Greeting behavior
 status: open
+firmness: default
 ---
 
 # Greeting behavior
@@ -150,6 +151,7 @@ function stageRequirementEvidence(root: string, note: string): void {
 id: REQ-GREET-001
 title: Greeting behavior
 status: open
+firmness: default
 ${semanticInventoryFrontmatter(note)}
 ---
 
@@ -268,12 +270,20 @@ export interface GreetOptions {
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(1);
-      expect(output).toContain("symbols_manifest_stale");
+      // The stale-manifest finding is one of the causes the declaration's
+      // block stands for; the block names the declaration and its line.
       expect(output).toContain(
-        "Not in .kb/symbols.yaml: GreetOptions (line 5)",
+        "[BLOCKS COMMIT] GreetOptions (src/greet.ts:5) is new and has no symbol record.",
       );
-      expect(output).toContain(
-        "Author .kb/symbols.yaml entries for the uncovered symbols",
+      expect(output).toContain('"symbol_role":"type-shape"');
+      const json = runKibi(
+        kibiBin,
+        ["check", "--staged", "--format", "json"],
+        tmpDir,
+      );
+      expect(json.stdout).toContain("symbols_manifest_stale");
+      expect(json.stdout).toContain(
+        "Not in .kb/symbols.yaml: GreetOptions (line 5)",
       );
     },
     TEST_TIMEOUT_MS,

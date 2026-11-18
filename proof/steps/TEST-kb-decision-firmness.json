@@ -1,0 +1,19 @@
+{
+  "test_id": "TEST-kb-decision-firmness",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/cli/tests/public/decision-firmness.test.ts",
+      "./packages/cli/tests/commands/decision-firmness.test.ts",
+      "./packages/cli/tests/search-answer.test.ts",
+      "./packages/agent-core/tests/agent-core.test.ts",
+      "./packages/cli/tests/firm-decision-edit.test.ts",
+      "./packages/cli/tests/consumer/firm-reason-rewrite.test.ts"
+    ]
+  ]
+}

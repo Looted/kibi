@@ -1,6 +1,6 @@
 # kibi-mcp
 
-The [Model Context Protocol](https://modelcontextprotocol.io) server for [Kibi](https://looted.github.io/kibi/). It exposes a repository's branch-local Kibi knowledge base to coding agents as `kb_*` tools: search and query, modeling prose into typed facts, compiling and applying approved plans, upserts with dry runs, gap and coverage analysis, and validation with `kb_check`.
+The [Model Context Protocol](https://modelcontextprotocol.io) server for [Kibi](https://looted.github.io/kibi/). It exposes a repository's branch-local Kibi knowledge base to coding agents as `kb_*` tools: search and query, modeling prose into typed facts, compiling and applying approved plans, upserts with dry runs, gap and coverage analysis, and validation with `kb_check`. A session lists all of them. With `KIBI_MCP_TOOLS=core` or `kibi-mcp --tools core` it lists eight (`kb_search`, `kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills`, `kb_review_firm_edit`, plus the bootstrap tools while the knowledge base is empty), and the rest run through the project CLI with the same input.
 
 ## Install
 

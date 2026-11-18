@@ -516,7 +516,7 @@ describe("kibi check", () => {
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -532,7 +532,7 @@ describe("kibi check", () => {
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
       expect(output).toContain("broad_requirement_review");
       expect(output).toContain("Quality diagnostics");
     },
@@ -570,34 +570,38 @@ describe("kibi check", () => {
       writeLargeQualityDiagnosticFixture(tmpDir);
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
+      // kb_check keeps to its size budget; the check command lists every
+      // finding, so it is the large output.
       for (const runtime of ["bun", "node"] as const) {
-        const result = spawnSync(runtime, [kibiBin, "check", "--input", "-"], {
-          cwd: tmpDir,
-          encoding: "utf8",
-          input: "{}\n",
-          maxBuffer: 8 * 1024 * 1024,
-          timeout: TEST_TIMEOUT_MS,
-        });
+        const result = spawnSync(
+          runtime,
+          [kibiBin, "check", "--format", "json"],
+          {
+            cwd: tmpDir,
+            encoding: "utf8",
+            maxBuffer: 8 * 1024 * 1024,
+            timeout: TEST_TIMEOUT_MS,
+          },
+        );
 
         expect(result.error).toBeUndefined();
-        expect(result.status).toBe(0);
         const stdout = result.stdout ?? "";
         expect(Buffer.byteLength(stdout, "utf8")).toBeGreaterThan(128 * 1024);
 
+        // The whole document arrives: it parses, and the exit code is the
+        // check's verdict on it.
         const parsed = JSON.parse(stdout) as {
-          readonly kibiProtocol?: number;
-          readonly operation?: string;
-          readonly status?: string;
-          readonly data?: {
+          readonly structuredContent?: {
+            readonly count?: number;
             readonly qualityDiagnostics?: readonly unknown[];
           };
         };
-        expect(parsed).toMatchObject({
-          kibiProtocol: 1,
-          operation: "kb_check",
-          status: "success",
-        });
-        expect(parsed.data?.qualityDiagnostics?.length).toBeGreaterThan(0);
+        expect(result.status).toBe(
+          parsed.structuredContent?.count === 0 ? 0 : 1,
+        );
+        expect(
+          parsed.structuredContent?.qualityDiagnostics?.length,
+        ).toBeGreaterThan(0);
       }
     },
     TEST_TIMEOUT_MS * 2,
@@ -639,7 +643,7 @@ describe("kibi check", () => {
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
       expect(output).toContain("[REVIEW coverage_depth_review]");
       expect(output).toContain("unit_only");
     },
@@ -833,7 +837,7 @@ links:
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
       expect(output).toContain("rule.strict-readiness");
       expect(output).toContain("REQ-LEGACY-TRACEABLE-001");
       expect(output).toContain("traceable");
@@ -898,7 +902,7 @@ links:
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
       expect(output).toContain("rule.strict-readiness");
       expect(output).toContain("REQ-SUBJECT-ONLY-001");
       expect(output).toContain("has-subject");
@@ -979,8 +983,7 @@ links:
         encoding: "utf8",
       });
 
-      expect(output).toContain("No violations found");
-      expect(output).toContain("KB is valid");
+      expect(output).toMatch(/^✓ No violations\. \d+ rules\./m);
     },
     TEST_TIMEOUT_MS,
   );
@@ -1056,7 +1059,7 @@ links:
         encoding: "utf8",
       });
 
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
 
       const after = readFileSync(rdfPath, "utf8");
       const afterMtime = statSync(rdfPath).mtimeMs;
@@ -1311,7 +1314,7 @@ links:
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -1391,6 +1394,10 @@ links:
         path.join(tmpDir, "src/list/item-card.component.ts"),
         "export class ItemCardComponent {}\n",
       );
+      writeFileSync(
+        path.join(tmpDir, "src/list/confirm-delete.component.ts"),
+        'export class ConfirmDeleteComponent {}\n// role="alertdialog"\n',
+      );
       const factDir = path.join(tmpDir, ".kb/facts");
       const reqDir = path.join(tmpDir, ".kb/requirements");
       mkdirSync(factDir, { recursive: true });
@@ -1429,6 +1436,69 @@ links:
         ]),
       );
       writeFileSync(
+        path.join(factDir, "FACT-DIALOG-MARKER.md"),
+        predicate("FACT-DIALOG-MARKER", "pattern_marker", [
+          "modal_alert_dialog",
+          "alertdialog",
+        ]),
+      );
+      // A quantified claim grounded as a rule: every confirmation dialog is
+      // a modal alert dialog. Its head grounds ui_pattern like a predicate.
+      const variable = (indent: string) =>
+        [
+          `${indent}- kind: var`,
+          `${indent}  name: V1`,
+          `${indent}  type: dialog`,
+        ].join("\n");
+      writeFileSync(
+        path.join(factDir, "FACT-DIALOG-RULE.md"),
+        yamlDoc([
+          "id: FACT-DIALOG-RULE",
+          "title: confirmation dialogs are modal alert dialogs",
+          "type: fact",
+          "status: active",
+          "fact_kind: rule",
+          `rule_hash: ${"a".repeat(64)}`,
+          "rule_schema_id: FACT-RULE-SCHEMA-LOGIC-V1",
+          "rule_name: FACT-RULE-SCHEMA-LOGIC-V1",
+          `semantic_key: SEM-${"A".repeat(24)}`,
+          "rule_ir:",
+          "  version: kibi.logic.v1",
+          "  kind: rule",
+          "  modality: assert",
+          "  head:",
+          "    kind: atom",
+          "    name: ui_pattern",
+          "    args:",
+          variable("      "),
+          "      - kind: const",
+          "        value: modal_alert_dialog",
+          "        type: pattern",
+          "  body:",
+          "    kind: atom",
+          "    name: confirmation_dialog",
+          "    args:",
+          variable("      "),
+          "  variables:",
+          "    - name: V1",
+          "      type: dialog",
+          "      quantifier: forall",
+        ]),
+      );
+      writeFileSync(
+        path.join(reqDir, "REQ-DIALOG-PATTERN.md"),
+        yamlDoc([
+          "id: REQ-DIALOG-PATTERN",
+          "title: Every confirmation dialog is a modal alert dialog",
+          "type: req",
+          "status: open",
+          "priority: should",
+          "links:",
+          "  - type: requires_rule",
+          "    target: FACT-DIALOG-RULE",
+        ]),
+      );
+      writeFileSync(
         path.join(reqDir, "REQ-LIST-PATTERN.md"),
         yamlDoc([
           "id: REQ-LIST-PATTERN",
@@ -1455,6 +1525,16 @@ links:
     title: ItemCardComponent
     status: active
     sourceFile: src/list/item-card.component.ts
+    links:
+      - type: implements
+        target: REQ-DIALOG-PATTERN
+  - id: SYM-CONFIRM-DELETE
+    title: ConfirmDeleteComponent
+    status: active
+    sourceFile: src/list/confirm-delete.component.ts
+    links:
+      - type: implements
+        target: REQ-DIALOG-PATTERN
 `,
       );
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
@@ -1490,7 +1570,7 @@ links:
           violation.evidence?.marker,
         ]),
       ).toEqual([
-        ["policy-ownership", "SYM-ITEM-CARD", undefined],
+        ["policy-markers", "SYM-ITEM-CARD", "alertdialog"],
         ["policy-markers", "SYM-ITEM-LIST", "timeline-connector"],
       ]);
     },
@@ -1609,7 +1689,7 @@ links:
       );
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -1917,7 +1997,7 @@ owner: alice
       );
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -2052,7 +2132,7 @@ links:
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -2284,7 +2364,7 @@ Support tickets showed coordinators need a third role for regional cover, which 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -2668,7 +2748,7 @@ Content
 
       // Rule should be recognized and run without error
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -2709,7 +2789,7 @@ Content
       const output = stdoutToString(stdout || stderr);
 
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -2746,7 +2826,7 @@ Legacy prose fact without strict shape
       const output = stdoutToString(stdout || stderr);
 
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -2827,7 +2907,7 @@ links:
       const output = stdoutToString(stdout || stderr);
 
       expect(status).toBe(0);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
       expect(output).toContain("rule.strict-req-fact-pairing");
       expect(output).toContain("REQ-PAIRING-CLI-001");
     },
@@ -2923,7 +3003,7 @@ links:
       const output = stdoutToString(result.stdout || result.stderr);
       // covered_by alone does NOT satisfy staged ownership gate
       expect(result.status).not.toBe(0);
-      expect(output).toContain("Traceability failed");
+      expect(output).toContain("[BLOCKS COMMIT] loginFlow (src/login.ts:1) has a symbol record but no requirement owns it.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -3013,8 +3093,7 @@ source: .kb/tests/TEST-E2E-LOGOUT.md
       const output = stdoutToString(result.stdout || result.stderr);
       // covered_by alone does NOT satisfy staged ownership gate
       expect(result.status).not.toBe(0);
-      expect(output).toContain("Traceability failed");
-      expect(output).toContain("implement");
+      expect(output).toContain("[BLOCKS COMMIT] logoutFlow (src/logout.ts:1) has a symbol record but no requirement owns it.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -3082,7 +3161,7 @@ source: .kb/tests/TEST-E2E-BARE.md
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).not.toBe(0);
-      expect(output).toContain("Traceability failed");
+      expect(output).toContain("[BLOCKS COMMIT] bareFunction (src/bare.ts:1) has a symbol record but no requirement owns it.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -3170,7 +3249,7 @@ links:
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).not.toBe(0);
-      expect(output).toContain("Traceability failed");
+      expect(output).toContain("[BLOCKS COMMIT] weakFunction (src/weak.ts:1) has a symbol record but no requirement owns it.");
     },
     TEST_TIMEOUT_MS,
   );
@@ -3798,7 +3877,7 @@ export function wtFunction() {
       );
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
-      expect(output).toContain("No violations found");
+      expect(output).toContain("✓ No violations.");
     },
     TEST_TIMEOUT_MS,
   );

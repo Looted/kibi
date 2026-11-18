@@ -412,3 +412,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-160eaf006f7d
+  - type: assumes
+    from: SCEN-NEG-kibi-proof-step-settings-UNKNOWN-OUTCOME
+    to: FACT-NEG-kibi-proof-step-settings-UNKNOWN-OUTCOME
+    created_at: 2026-11-16T08:23:35.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fbf8bc81b2d
+  - type: verified_by
+    from: SCEN-NEG-kibi-proof-step-settings-UNKNOWN-OUTCOME
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T08:23:35.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6a2fb9efefb
+  - type: verified_by
+    from: REQ-kb-upsert-refuse-write-entity-into
+    to: TEST-kb-upsert-source-entity-guard
+    created_at: 2026-11-17T18:13:27.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d7319644fe6
+  - type: requires_property
+    from: REQ-kb-upsert-refuse-write-entity-into
+    to: FACT-kb-upsert-other-entity-document-writes
+    created_at: 2026-11-17T18:15:07.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b3029056576
+  - type: constrains
+    from: REQ-kb-upsert-refuse-write-entity-into
+    to: FACT-SUBJ-REQ-MCP-RELATIONSHIP-PREFLIGHT
+    created_at: 2026-11-17T18:15:07.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b43622c0a23d
+  - type: specified_by
+    from: REQ-kb-upsert-refuse-write-entity-into
+    to: SCEN-kb-upsert-refuse-write-entity-into
+    created_at: 2026-11-17T19:04:01.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be0cce01983f
+  - type: specified_by
+    from: REQ-kb-upsert-refuse-write-entity-into
+    to: SCEN-NEG-kb-upsert-refuse-write-entity-into-VIOLATED
+    created_at: 2026-11-17T19:04:01.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-819e068cac7e

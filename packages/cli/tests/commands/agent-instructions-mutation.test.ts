@@ -10,6 +10,7 @@ import {
 import path from "node:path";
 import {
   CLAUDE_IMPORT_SECTION,
+  GEMINI_IMPORT_SECTION,
   KIBI_AGENT_INSTRUCTIONS,
   KIBI_INSTRUCTIONS_BEGIN,
   KIBI_INSTRUCTIONS_END,
@@ -123,6 +124,7 @@ describe("writeAgentInstructions", () => {
     expect(writeAgentInstructions(root)).toStrictEqual({
       agents: "created",
       claude: "created",
+      gemini: "created",
     });
     expect(read(path.join(root, "AGENTS.md"))).toBe(
       `${section(KIBI_AGENT_INSTRUCTIONS)}\n`,
@@ -130,10 +132,15 @@ describe("writeAgentInstructions", () => {
     expect(read(path.join(root, "CLAUDE.md"))).toBe(
       `${section(CLAUDE_IMPORT_SECTION)}\n`,
     );
+    expect(read(path.join(root, "GEMINI.md"))).toBe(
+      `${section(GEMINI_IMPORT_SECTION)}\n`,
+    );
     expect(CLAUDE_IMPORT_SECTION).toBe("## Kibi\n\n@AGENTS.md");
+    expect(GEMINI_IMPORT_SECTION).toBe("## Kibi\n\n@./AGENTS.md");
     expect(writeAgentInstructions(root)).toStrictEqual({
       agents: "unchanged",
       claude: "unchanged",
+      gemini: "unchanged",
     });
   });
 
@@ -160,6 +167,7 @@ describe("writeAgentInstructions", () => {
     expect(writeAgentInstructions(root)).toStrictEqual({
       agents: "updated",
       claude: "same-file",
+      gemini: "created",
     });
     expect(read(path.join(root, "AGENTS.md"))).toBe(
       `# Shared\n\n${section(KIBI_AGENT_INSTRUCTIONS)}\n`,
@@ -187,6 +195,7 @@ describe("writeAgentInstructions", () => {
     expect(writeAgentInstructions(root)).toStrictEqual({
       agents: "skipped-symlink",
       claude: "skipped-symlink",
+      gemini: "created",
     });
     expect(read(path.join(outside, "AGENTS.md"))).toBe("theirs");
     const sibling = tempRoot();
@@ -197,6 +206,7 @@ describe("writeAgentInstructions", () => {
     expect(writeAgentInstructions(sibling)).toStrictEqual({
       agents: "created",
       claude: "skipped-symlink",
+      gemini: "created",
     });
     expect(read(path.join(outside, "CLAUDE.md"))).toBe("theirs");
   });
@@ -229,15 +239,17 @@ describe("writeAgentInstructions", () => {
     expect(writeAgentInstructions(linked)).toStrictEqual({
       agents: "created",
       claude: "created",
+      gemini: "created",
     });
     expect(read(path.join(real, "AGENTS.md"))).toContain("## Kibi");
   });
 
-  test("skips both files when the worktree cannot be resolved", () => {
+  test("skips every file when the worktree cannot be resolved", () => {
     const root = path.join(tempRoot(), "missing");
     expect(writeAgentInstructions(root)).toStrictEqual({
       agents: "skipped-symlink",
       claude: "skipped-symlink",
+      gemini: "skipped-symlink",
     });
   });
 
@@ -247,7 +259,47 @@ describe("writeAgentInstructions", () => {
     expect(writeAgentInstructions(root)).toStrictEqual({
       agents: "created",
       claude: "skipped-unsupported",
+      gemini: "created",
     });
+  });
+
+  test("leaves a GEMINI.md that already imports AGENTS.md", () => {
+    for (const line of ["@./AGENTS.md", "@AGENTS.md"]) {
+      const root = tempRoot();
+      writeFileSync(path.join(root, "GEMINI.md"), `# Gemini\n${line}\n`);
+      expect(writeAgentInstructions(root).gemini).toBe("unchanged");
+      expect(read(path.join(root, "GEMINI.md"))).toBe(`# Gemini\n${line}\n`);
+    }
+  });
+
+  test("adds the import after the user's own GEMINI.md text", () => {
+    const root = tempRoot();
+    writeFileSync(path.join(root, "GEMINI.md"), "# Gemini\n");
+    expect(writeAgentInstructions(root).gemini).toBe("updated");
+    expect(read(path.join(root, "GEMINI.md"))).toBe(
+      `# Gemini\n\n${section(GEMINI_IMPORT_SECTION)}\n`,
+    );
+  });
+
+  test("a GEMINI.md linked to AGENTS.md is written once", () => {
+    const root = tempRoot();
+    writeFileSync(path.join(root, "AGENTS.md"), "");
+    symlinkSync("AGENTS.md", path.join(root, "GEMINI.md"));
+    expect(writeAgentInstructions(root)).toStrictEqual({
+      agents: "updated",
+      claude: "created",
+      gemini: "same-file",
+    });
+    expect(read(path.join(root, "AGENTS.md"))).not.toContain("@./AGENTS.md");
+  });
+
+  test("never follows a GEMINI.md link out of the worktree", () => {
+    const outside = tempRoot();
+    const root = tempRoot();
+    writeFileSync(path.join(outside, "GEMINI.md"), "theirs");
+    symlinkSync(path.join(outside, "GEMINI.md"), path.join(root, "GEMINI.md"));
+    expect(writeAgentInstructions(root).gemini).toBe("skipped-symlink");
+    expect(read(path.join(outside, "GEMINI.md"))).toBe("theirs");
   });
 
   test("an unreadable CLAUDE.md is an error, not a missing import", () => {
@@ -269,13 +321,17 @@ describe("writeAgentInstructions", () => {
 });
 
 describe("reportAgentInstructions", () => {
-  function report(agents: string, claude: string): string[] {
+  function report(
+    agents: string,
+    claude: string,
+    gemini = "unchanged",
+  ): string[] {
     const logs: string[] = [];
     const spy = spyOn(console, "log").mockImplementation((m) => {
       logs.push(String(m));
     });
     try {
-      reportAgentInstructions({ agents, claude } as never);
+      reportAgentInstructions({ agents, claude, gemini } as never);
     } finally {
       spy.mockRestore();
     }
@@ -297,6 +353,12 @@ describe("reportAgentInstructions", () => {
     ]);
     expect(report("unchanged", "skipped-unsupported")).toStrictEqual([
       "! CLAUDE.md is not a regular file; left untouched.",
+    ]);
+    expect(report("unchanged", "unchanged", "created")).toStrictEqual([
+      "✓ Created GEMINI.md with an @./AGENTS.md import for Gemini CLI",
+    ]);
+    expect(report("unchanged", "unchanged", "updated")).toStrictEqual([
+      "✓ Updated the Kibi section of GEMINI.md",
     ]);
   });
 });

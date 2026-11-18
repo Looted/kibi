@@ -433,7 +433,9 @@ coverage_id_list(Ids, Text) :-
 
 %% check_symbol_traceability(+RequireAdr, -Violations)
 % Finds all symbols lacking direct requirement ownership:
-% - Every symbol must have at least one direct implements ownership path
+% - Every symbol must have at least one direct implements ownership path,
+%   except a linkless record whose symbol_role is structural, type-shape,
+%   config or module (kb:linkless_non_behavioral_symbol/1)
 % - If RequireAdr=true, the symbol must also have at least one 'constrained_by' relationship to an ADR
 check_symbol_traceability(RequireAdr, Violations) :-
     findall(
@@ -462,9 +464,13 @@ symbol_traceability_violation(RequireAdr, violation(
     Source
 )) :-
     kb_entity(SymbolId, symbol, _),
-    % Check if symbol has direct requirement ownership
-    (   symbol_owns_requirement(SymbolId, ReqId),
-        kb_entity(ReqId, req, _)
+    % Check if symbol has direct requirement ownership. A linkless record of
+    % non-behavioral code (structural, type-shape, config or module role)
+    % records a declaration without claiming ownership, so it owes none.
+    (   (   symbol_owns_requirement(SymbolId, ReqId),
+            kb_entity(ReqId, req, _)
+        ;   linkless_non_behavioral_symbol(SymbolId)
+        )
     ->  HasReq = true
     ;   HasReq = false
     ),
@@ -1477,7 +1483,8 @@ compute_scenario_feasibility_analysis(ScenarioId, analysis(Witnesses, Unknowns, 
         findall(Context, scenario_context(Assumptions, Constraints, Context), Contexts),
         foldl(context_results, Contexts, [], ContextResults),
         foldl(general_rule_results(Assumptions), GeneralRules, ContextResults, Results),
-        assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, Statuses),
+        scenario_grounding_facts(ScenarioId, Grounding),
+        assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, Grounding, Statuses),
         findall(Witness, member(witness(Witness), Results), Witnesses0),
         sort(Witnesses0, Witnesses),
         status_ids(unmatched, Statuses, Unmatched),
@@ -1577,14 +1584,43 @@ negated_member(m(Role, Owner, FactId, Key, Scope, Type, Unit, Op, Value, Text),
 property_constraints(ScenarioId, Keys, Window, Constraints) :-
     findall(rc(Member, Applicability, Exempt),
         (   member(Subject-Property, Keys),
-            kb:current_req(ReqId),
-            kb:effective_req_property_fact(ReqId, Subject, FactId, Property, _, _, _, _, _, _, From, To),
+            current_property_fact(Subject, Property, ReqId, FactId, From, To),
             property_member(requirement, ReqId, FactId, Member),
             validity_applicability(Window, From, To, Applicability),
             exemption_flag(ScenarioId, ReqId, FactId, Exempt)
         ),
         Constraints0),
     sort(Constraints0, Constraints).
+
+%% current_property_fact(?Subject, ?Property, -ReqId, -FactId, -From, -To)
+% The property facts of current requirements, as
+%   kb:current_req(ReqId),
+%   kb:effective_req_property_fact(ReqId, Subject, FactId, Property, _, _, _,
+%                                  _, _, _, From, To)
+% gives them. Every scenario asks for the facts of its assumed keys, and
+% walking every current requirement per key and scenario dominated the
+% feasibility check, so the facts are listed once per KB generation and
+% looked up by key. Inside a transaction (what-if staging) the KB is not the
+% generation's, so they are read afresh.
+current_property_fact(Subject, Property, ReqId, FactId, From, To) :-
+    (   \+ rdf_db:rdf_active_transaction(_),
+        kb:index_verification_key(property_fact_index, Key)
+    ->  (   kb:kb_property_fact_index(Key, _, _, _, _, _, _)
+        ->  true
+        ;   retractall(kb:kb_property_fact_index(_, _, _, _, _, _, _)),
+            forall(live_property_fact(S, P, R, F, Fr, T),
+                   assertz(kb:kb_property_fact_index(Key, S, P, R, F, Fr, T))),
+            % The marker row keeps an empty listing from being rebuilt.
+            assertz(kb:kb_property_fact_index(Key, -, -, -, -, -, -))
+        ),
+        kb:kb_property_fact_index(Key, Subject, Property, ReqId, FactId, From, To),
+        ReqId \== (-)
+    ;   live_property_fact(Subject, Property, ReqId, FactId, From, To)
+    ).
+
+live_property_fact(Subject, Property, ReqId, FactId, From, To) :-
+    kb:current_req(ReqId),
+    kb:effective_req_property_fact(ReqId, Subject, FactId, Property, _, _, _, _, _, _, From, To).
 
 exemption_flag(ScenarioId, ReqId, FactId, Exempt) :-
     (   constraint_exempt(ScenarioId, ReqId, FactId)
@@ -2076,7 +2112,26 @@ general_rule_reason(FactId, Core, Reason) :-
         'Assumed ~w satisfy every condition of rule ~w (~w), which forbids the scenario''s action',
         [AssumedText, FactId, RuleText]).
 
-%% assumption_statuses(+Assumed, +Assumptions, +Constraints, +GeneralRules, +Actions, -Statuses)
+%% scenario_grounding_facts(+ScenarioId, -FactIds)
+% The facts that ground (requires_rule, requires_predicate, requires_property)
+% the current requirements a success scenario specifies.  Assuming one of them
+% states the situation the requirement promises; must-positive-scenario asks a
+% success scenario for exactly that.  A scenario that expects rejection or
+% error gets none, so its assumptions are judged as before.
+scenario_grounding_facts(ScenarioId, FactIds) :-
+    (   success_scenario(ScenarioId)
+    ->  findall(FactId,
+            (   kb_relationship(specified_by, ReqId, ScenarioId),
+                kb:current_req(ReqId),
+                member(Relationship, [requires_rule, requires_predicate, requires_property]),
+                kb_relationship(Relationship, ReqId, FactId)
+            ),
+            FactIds0),
+        sort(FactIds0, FactIds)
+    ;   FactIds = []
+    ).
+
+%% assumption_statuses(+Assumed, +Assumptions, +Constraints, +GeneralRules, +Actions, +Grounding, -Statuses)
 % FactId-Status for every assumed fact:
 %   governed          a constraint that is not outside its validity window
 %                     constrains the assumed property in an intersecting scope
@@ -2085,8 +2140,13 @@ general_rule_reason(FactId, Core, Reason) :-
 %                     elsewhere
 %   action            a predicate fact naming the action a governing rule
 %                     restricts
+%   grounding         a rule or predicate fact that grounds a current
+%                     requirement the success scenario specifies
+%                     (scenario_grounding_facts/2)
 %   unmatched         anything else
-assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, Statuses) :-
+% Like action, grounding is matched: it is neither a witness nor a reason the
+% scenario is not applicable.
+assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, Grounding, Statuses) :-
     findall(cover(Key, Scope, Applicability),
         (   member(rc(Member, Applicability, _), Constraints),
             member_key(Key, Member),
@@ -2095,15 +2155,17 @@ assumption_statuses(Assumed, Assumptions, Constraints, GeneralRules, Actions, St
             member(Key, ReadKeys)
         ),
         Covers),
-    maplist(assumption_status(Assumptions, Covers, Actions), Assumed, Statuses).
+    maplist(assumption_status(Assumptions, Covers, Actions, Grounding), Assumed, Statuses).
 
-assumption_status(Assumptions, Covers, Actions, FactId, FactId-Status) :-
+assumption_status(Assumptions, Covers, Actions, Grounding, FactId, FactId-Status) :-
     (   member(Assumption, Assumptions),
         member_fact(Assumption, FactId)
     ->  property_assumption_status(Assumption, Covers, Status)
     ;   kb:predicate_fact(FactId, Namespace, Name, _, assert),
         memberchk(Namespace-Name, Actions)
     ->  Status = action
+    ;   memberchk(FactId, Grounding)
+    ->  Status = grounding
     ;   Status = unmatched
     ).
 

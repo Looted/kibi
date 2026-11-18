@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-scripts-coverage-shard-isolation",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./scripts/tests/unit-coverage-runner.test.ts"
+    ]
+  ]
+}

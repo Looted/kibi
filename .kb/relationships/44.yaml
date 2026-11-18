@@ -398,3 +398,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b22adb4b2560
+  - type: implements
+    from: SYM-cli-signoff-collect-summary
+    to: REQ-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:40.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86237a940b79
+  - type: covered_by
+    from: SYM-cli-signoff-collect-summary
+    to: TEST-kibi-signoff-firm-edit-receipts
+    created_at: 2026-11-16T07:00:40.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0892ad49271e
+  - type: implements
+    from: SYM-core-kb-changedSymbolLinkExempt
+    to: REQ-behavioral-kinds-keep-implements
+    created_at: 2026-11-16T05:46:13.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa51523ce436
+  - type: covered_by
+    from: SYM-core-kb-changedSymbolLinkExempt
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:46:13.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfe120e25b35
+  - type: assumes
+    from: SCEN-kb-upsert-refuse-write-entity-into
+    to: FACT-kb-upsert-other-entity-document-writes
+    created_at: 2026-11-17T19:03:53.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a7c00cfbc38
+  - type: verified_by
+    from: SCEN-kibi-source-proof-scopes-unimplemented-rule
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-18T10:54:34.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63ef67e7ae69
+  - type: assumes
+    from: SCEN-kibi-source-proof-scopes-unimplemented-rule
+    to: FACT-kibi-source-proved-rule-missing-symbol
+    created_at: 2026-11-18T11:04:29.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b78063bc44f

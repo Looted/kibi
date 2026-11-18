@@ -71,6 +71,98 @@ describe("proof step validation", () => {
       { test_id: "TEST-a", steps: [["true"]] },
     ]);
   });
+
+  test("reads proof/steps, one regular non-dot *.json file per test", () => {
+    const root = tempDir();
+    const directory = path.join(root, "proof", "steps");
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(
+      path.join(directory, "TEST-b.json"),
+      JSON.stringify({ test_id: "TEST-b", steps: [["b"]] }),
+    );
+    writeFileSync(
+      path.join(directory, "TEST-a.json"),
+      JSON.stringify({ test_id: "TEST-a", steps: [["a"]] }),
+    );
+    writeFileSync(path.join(directory, "README.md"), "not a steps file\n");
+    // An AppleDouble file and a directory named like a step file are skipped.
+    writeFileSync(path.join(directory, "._TEST-b.json"), "\u0000");
+    mkdirSync(path.join(directory, "nested.json"));
+    expect(loadProofSteps(root)).toStrictEqual([
+      { test_id: "TEST-a", steps: [["a"]] },
+      { test_id: "TEST-b", steps: [["b"]] },
+    ]);
+  });
+
+  test("refuses proof/steps beside proof/steps.json", () => {
+    const root = tempDir();
+    const directory = path.join(root, "proof", "steps");
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(
+      path.join(directory, "TEST-a.json"),
+      JSON.stringify({ test_id: "TEST-a", steps: [["a"]] }),
+    );
+    writeFileSync(
+      path.join(root, "proof", "steps.json"),
+      JSON.stringify([{ test_id: "TEST-old", steps: [["false"]] }]),
+    );
+    expect(() => loadProofSteps(root)).toThrow(
+      new Error(
+        "run-proof-producer: both proof/steps/ and proof/steps.json exist; move each entry of proof/steps.json to proof/steps/<test_id>.json and delete it, or remove the proof/steps directory",
+      ),
+    );
+  });
+
+  test("refuses a steps file whose test_id is not its file name", () => {
+    const root = tempDir();
+    const directory = path.join(root, "proof", "steps");
+    mkdirSync(directory, { recursive: true });
+    const file = path.join(directory, "TEST-a.json");
+    writeFileSync(file, JSON.stringify({ test_id: "TEST-b", steps: [["b"]] }));
+    expect(() => loadProofSteps(root)).toThrow(
+      `run-proof-producer: ${file} declares test_id "TEST-b"; a proof steps file must hold one {test_id, steps} object whose test_id is its file name`,
+    );
+    writeFileSync(
+      file,
+      JSON.stringify([{ test_id: "TEST-a", steps: [["a"]] }]),
+    );
+    expect(() => loadProofSteps(root)).toThrow(
+      `run-proof-producer: ${file} declares test_id undefined;`,
+    );
+    writeFileSync(file, "null");
+    expect(() => loadProofSteps(root)).toThrow(
+      `run-proof-producer: ${file} declares test_id undefined;`,
+    );
+    writeFileSync(file, "{");
+    expect(() => loadProofSteps(root)).toThrow(
+      `run-proof-producer: unable to read ${file}: `,
+    );
+  });
+
+  test("an empty proof/steps directory says it has no step files", () => {
+    const root = tempDir();
+    const directory = path.join(root, "proof", "steps");
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(path.join(directory, "README.md"), "no steps\n");
+    expect(() => loadProofSteps(root)).toThrow(
+      new Error(
+        `run-proof-producer: no step files in ${directory}; add one <test_id>.json file per proof-bearing test`,
+      ),
+    );
+  });
+
+  test("a proof/steps file that is not a directory falls back to steps.json", () => {
+    const root = tempDir();
+    mkdirSync(path.join(root, "proof"));
+    writeFileSync(path.join(root, "proof", "steps"), "");
+    writeFileSync(
+      path.join(root, "proof", "steps.json"),
+      JSON.stringify([{ test_id: "TEST-a", steps: [["true"]] }]),
+    );
+    expect(loadProofSteps(root)).toStrictEqual([
+      { test_id: "TEST-a", steps: [["true"]] },
+    ]);
+  });
 });
 
 describe("terminating a proof step", () => {

@@ -307,3 +307,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2b9e7cb3ab5
+  - type: assumes
+    from: SCEN-NEG-kibi-legacy-apply-STORE-CHANGED
+    to: FACT-NEG-kibi-legacy-apply-CHANGED-STORE-MIGRATED
+    created_at: 2026-11-15T07:46:03.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a117a0d75df
+  - type: executable_for
+    from: SYM-test-mcp-upsert-proof-field-stubs
+    to: TEST-mcp-upsert-proof-field-stubs
+    created_at: 2026-11-15T18:30:53.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c13acb4f92f
+  - type: executable_for
+    from: SYM-test-kibi-firm-edit-receipts
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T06:59:02.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2908e70fce86
+  - type: executable_for
+    from: SYM-test-mcp-upsert-proof-field-stubs
+    to: TEST-mcp-upsert-capture-fields
+    created_at: 2026-11-16T17:28:00.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0151b34f2ec0
+  - type: assumes
+    from: SCEN-kibi-env-reader-presence-tests
+    to: FACT-PROP-kibi-env-reader-presence-tests
+    created_at: 2026-11-16T11:06:29.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d355119c8801
+  - type: verified_by
+    from: SCEN-kibi-env-reader-presence-tests
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-16T11:06:29.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-045f41525f46
+  - type: assumes
+    from: SCEN-NEG-kb-upsert-missing-endpoint-rejection-NO-HINT
+    to: FACT-NEG-kb-upsert-missing-endpoint-rejection-NO-HINT
+    created_at: 2026-11-16T13:40:37.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecd4d45cf90d
+  - type: verified_by
+    from: SCEN-NEG-kb-upsert-missing-endpoint-rejection-NO-HINT
+    to: TEST-kb-upsert-missing-endpoint-rejection
+    created_at: 2026-11-16T13:40:37.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-262f5525e1d3
+  - type: implements
+    from: SYM-kb-merge-action-verify-one
+    to: REQ-kb-merge-action-verify-before-push
+    created_at: 2026-11-16T18:22:37.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8e777767932
+  - type: covered_by
+    from: SYM-kb-merge-action-verify-one
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:22:37.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9c4ea984714

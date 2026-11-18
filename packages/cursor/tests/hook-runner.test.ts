@@ -5,6 +5,18 @@ import os from "node:os";
 import path from "node:path";
 
 import { MISSING_HOOKS_NOTE } from "kibi-agent-core/checkout-hooks";
+import {
+  captureReminder,
+  ruleCaptureTemplate,
+  rulePromptNote,
+} from "kibi-agent-core/decision-guard";
+import {
+  FIRM_EDIT_RECEIPT_VERSION,
+  firmEditCodeHash,
+  firmEditReceiptPath,
+  firmEditStatementHash,
+  serializeFirmEditReceipt,
+} from "kibi-agent-core/firm-edit-review";
 import { MAX_SNIPPET_CHARS } from "kibi-agent-core/snippets";
 import {
   hashTelemetryId,
@@ -29,20 +41,100 @@ afterEach(() => {
   }
 });
 
+/** A workspace that adopted Kibi: it holds `.kb/manifest.json`. */
+function kibiWorkspaceRoot(): string {
+  const root = createTempRoot("kibi-cursor-workspace-");
+  tempRoots.push(root);
+  fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
+  fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}\n");
+  return root;
+}
+
+/**
+ * A current keeps receipt for computeTotal, spanning the whole file, bound to
+ * the requirement's prose.
+ */
+function writeKeepsReceipt(root: string): void {
+  const content = fs.readFileSync(path.join(root, "src/checkout.ts"), "utf8");
+  const lines = content.split("\n").length;
+  const file = path.join(
+    root,
+    firmEditReceiptPath(
+      "REQ-checkout-rounding",
+      "src/checkout.ts",
+      "computeTotal",
+    ) as string,
+  );
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(
+    file,
+    serializeFirmEditReceipt({
+      version: FIRM_EDIT_RECEIPT_VERSION,
+      requirementId: "REQ-checkout-rounding",
+      sourceFile: "src/checkout.ts",
+      symbol: "computeTotal",
+      verdict: "keeps",
+      note: "Still rounds to cents.",
+      statementHash: firmEditStatementHash(
+        "Totals round half up to two decimals.",
+      ),
+      codeHash: firmEditCodeHash(content, 1, lines) as string,
+      startLine: 1,
+      endLine: lines,
+      recordedAt: "2026-11-16T00:00:00.000Z",
+    }),
+  );
+}
+
 describe("Cursor hook runner", () => {
-  test("sessionStart reminds when cwd has no Kibi config", async () => {
+  test("a workspace without Kibi gets nothing and keeps no state", async () => {
     const cwd = createTempRoot("kibi-cursor-cwd-");
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".git"));
+
+    for (const event of [
+      { hook_event_name: "sessionStart", cwd },
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: ".kb/config.json" },
+      },
+      {
+        hook_event_name: "postToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: "src/a.ts" },
+      },
+      {
+        hook_event_name: "postToolUse",
+        cwd,
+        tool_name: "Shell",
+        tool_input: { command: "echo x > src/a.ts" },
+      },
+    ]) {
+      expect(await runHook(event, { pluginData })).toStrictEqual({});
+    }
+    expect(fs.readdirSync(pluginData)).toEqual([]);
+  });
+
+  test("a window opened on a subdirectory belongs to the Kibi project above it", async () => {
+    const root = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(root, pluginData);
+    fs.mkdirSync(path.join(root, ".kb"));
+    fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
+    fs.mkdirSync(path.join(root, "packages", "app"), { recursive: true });
 
     const result = await runHook(
-      { hook_event_name: "sessionStart", cwd },
+      {
+        hook_event_name: "sessionStart",
+        workspace_roots: [path.join(root, "packages", "app")],
+      },
       { pluginData },
     );
-
-    expect(result.additional_context).toContain(
-      "Kibi config was not found at the Cursor workspace root",
-    );
+    expect(result.additional_context).toBeDefined();
   });
 
   test("sessionStart stays quiet when cwd has Kibi config", async () => {
@@ -116,20 +208,6 @@ describe("Cursor hook runner", () => {
     );
 
     expect(result.additional_context).toBeDefined();
-  });
-
-  test("sessionStart treats an empty cwd as missing Kibi config", async () => {
-    const pluginData = createTempRoot("kibi-cursor-data-");
-    tempRoots.push(pluginData);
-
-    const result = await runHook(
-      { hook_event_name: "sessionStart", cwd: "" },
-      { pluginData },
-    );
-
-    expect(result.additional_context).toContain(
-      "Kibi config was not found at the Cursor workspace root",
-    );
   });
 
   test("preToolUse warns on explicit direct .kb path edits without blocking", async () => {
@@ -297,8 +375,7 @@ describe("Cursor hook runner", () => {
 
     expect(result.additional_context).toContain("Kibi impact review");
     expect(result.additional_context).toContain("kb_check");
-    expect(result.additional_context).toContain("includeImpactDiagnostics");
-    expect(result.additional_context).toContain("includeWorkingTreeDiff");
+    expect(result.additional_context).toContain("kb_check({changed:true");
     expect(result.additional_context).toContain("symbol granularity");
   });
 
@@ -375,10 +452,12 @@ describe("Cursor hook runner", () => {
   });
 
   test("stop returns a short freshness follow-up once and clears tracked paths", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "Write",
         tool_input: { file_path: ".kb/requirements/REQ-cursor.md" },
@@ -386,15 +465,18 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
 
     expect(result.followup_message).toBe(
       "Kibi: sync or record no-impact after 1 edited file.",
     );
     expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
-    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
-      {},
-    );
+    expect(
+      await runHook({ cwd: kibiCwd, hook_event_name: "stop" }, { pluginData }),
+    ).toEqual({});
   });
 
   test("stop stays quiet for test-only edits", async () => {
@@ -415,10 +497,12 @@ describe("Cursor hook runner", () => {
   });
 
   test("stop prompts impact-enabled kb_check after source edits without impact check", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "Write",
         tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
@@ -427,6 +511,7 @@ describe("Cursor hook runner", () => {
     );
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "CallMcpTool",
         tool_input: { toolName: "kb_check" },
@@ -434,19 +519,23 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
-    expect(result.followup_message).toContain("includeImpactDiagnostics");
-    expect(result.followup_message).toContain("includeWorkingTreeDiff");
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
+    expect(result.followup_message).toContain("kb_check({changed:true");
     expect(result.followup_message).toContain(
       "packages/cursor/src/hook-runner.ts",
     );
   });
 
   test("stop asks only for the decision record after impact-enabled kb_check covers source edits", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "Write",
         tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
@@ -455,6 +544,7 @@ describe("Cursor hook runner", () => {
     );
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "CallMcpTool",
         tool_input: {
@@ -469,21 +559,26 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const stop = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const stop = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
     expect(stop.followup_message).toStartWith(
       "Kibi: this session changed source files and recorded nothing in the knowledge base.",
     );
     expect(stop.followup_message).not.toContain("kb_check(");
-    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
-      {},
-    );
+    expect(
+      await runHook({ cwd: kibiCwd, hook_event_name: "stop" }, { pluginData }),
+    ).toEqual({});
   });
 
   test("stop summarizes KB mutations briefly", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "kb_upsert",
         tool_input: { type: "fact", id: "FACT-001" },
@@ -491,7 +586,10 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
 
     expect(result.followup_message).toBe("Kibi KB updated (kb_upsert).");
   });
@@ -545,10 +643,12 @@ describe("Cursor hook runner", () => {
   });
 
   test("stop still prompts after CreatePlan when source was edited", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "CreatePlan",
         tool_input: {},
@@ -557,6 +657,7 @@ describe("Cursor hook runner", () => {
     );
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "Write",
         tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
@@ -564,18 +665,23 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
-    expect(result.followup_message).toContain("includeImpactDiagnostics");
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
+    expect(result.followup_message).toContain("kb_check({changed:true");
     expect(result.followup_message).toContain(
       "packages/cursor/src/hook-runner.ts",
     );
   });
 
   test("stop still summarizes KB mutations after CreatePlan", async () => {
+    const kibiCwd = kibiWorkspaceRoot();
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "create_plan",
         tool_input: {},
@@ -584,6 +690,7 @@ describe("Cursor hook runner", () => {
     );
     await runHook(
       {
+        cwd: kibiCwd,
         hook_event_name: "postToolUse",
         tool_name: "kb_upsert",
         tool_input: { type: "fact", id: "FACT-001" },
@@ -591,7 +698,10 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+    const result = await runHook(
+      { cwd: kibiCwd, hook_event_name: "stop" },
+      { pluginData },
+    );
     expect(result.followup_message).toBe("Kibi KB updated (kb_upsert).");
   });
 
@@ -807,7 +917,7 @@ function cursorLinkedWorkspace(): string {
   );
   write(
     ".kb/requirements/REQ-checkout-rounding.md",
-    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n\nTotals round half up to two decimals.\n",
+    "---\nid: REQ-checkout-rounding\ntitle: Checkout totals round to cents\nstatus: open\nlinks:\n  - type: constrains\n    target: FACT-checkout-total\n  - type: requires_property\n    target: FACT-total-rounding-cents\n  - ADR-money-as-decimal\n---\n\nTotals round half up to two decimals.\n\n## Context\n\nFinance reconciles every order to the cent.\n",
   );
   write(
     ".kb/facts/FACT-total-rounding-cents.md",
@@ -822,6 +932,33 @@ function cursorLinkedWorkspace(): string {
 }
 
 describe("Cursor hook command pre-edit knowledge (end to end)", () => {
+  test("a shell call that writes firm code in place gets the firm-edit notice", async () => {
+    const workspace = cursorLinkedWorkspace();
+    const pluginData = createTempRoot("kibi-cursor-e2e-data-");
+    tempRoots.push(pluginData);
+    const shell = (command: string) =>
+      runCursorHookCommand(
+        "preToolUse",
+        {
+          hook_event_name: "preToolUse",
+          conversation_id: "cursor-shell-1",
+          workspace_roots: [workspace],
+          cwd: workspace,
+          tool_name: "Shell",
+          tool_input: { command },
+        },
+        pluginData,
+      );
+    expect(JSON.parse((await shell("cat src/checkout.ts")).stdout)).toEqual({});
+    const output = JSON.parse(
+      (await shell("sed -i s/100/1000/ src/checkout.ts")).stdout,
+    ) as CursorHookResult;
+    expect(output.permission).toBe("allow");
+    expect(output.agent_message).toStartWith(
+      "Kibi: this edit changes src/checkout.ts, which implements a firm requirement",
+    );
+  });
+
   test("the preToolUse command gives an edit of linked code its requirement, what it must keep true and its decision within the snippet budget", async () => {
     const workspace = cursorLinkedWorkspace();
     const pluginData = createTempRoot("kibi-cursor-e2e-data-");
@@ -861,6 +998,9 @@ describe("Cursor hook command pre-edit knowledge (end to end)", () => {
     );
     expect(snippet).toContain(
       "\nREQ-checkout-rounding must keep true: Totals round half up to two decimals.\n",
+    );
+    expect(snippet).toContain(
+      "\nWhy: Finance reconciles every order to the cent (REQ-checkout-rounding context section).\n",
     );
     expect(snippet).toContain(
       "\nDecision: ADR-money-as-decimal [firm: ask before changing]: Money is computed as decimal cents.\n",
@@ -917,6 +1057,16 @@ describe("Cursor decision guard", () => {
     );
   });
 
+  test("a keeps receipt from an earlier session does not stop the firm-edit notice in a new session", async () => {
+    const { event, edit, workspace } = conversation();
+    writeKeepsReceipt(workspace);
+    const result = await event(edit);
+    expect(result.permission).toBe("allow");
+    expect(JSON.stringify(result)).toContain(
+      "which implements a firm requirement",
+    );
+  });
+
   test("KIBI_CONFIRM_FIRM_EDITS=0 turns the firm-edit notice off", async () => {
     const { event, edit } = conversation({ KIBI_CONFIRM_FIRM_EDITS: "0" });
     const message = (await event(edit)).agent_message ?? "";
@@ -940,6 +1090,92 @@ describe("Cursor decision guard", () => {
     expect(message).toContain("Kibi knowledge for src/checkout.ts");
   });
 
+  test("a rule prompt's reason is asked for in why by the held note and the template", async () => {
+    const { event, edit } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded, because refunds drift.",
+    });
+    // The first source pre-edit carries the held note and the template.
+    const message = (await event(edit)).agent_message ?? "";
+    expect(message).toStartWith(
+      rulePromptNote("must not", "because refunds drift"),
+    );
+    expect(message).toContain(
+      ruleCaptureTemplate("must not", "because refunds drift"),
+    );
+  });
+
+  test("a shell in-place edit of source carries the rule note and counts at stop", async () => {
+    const { event, workspace } = conversation({ KIBI_CONFIRM_FIRM_EDITS: "0" });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded, because refunds drift.",
+    });
+    const shell = await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Shell",
+      tool_input: { command: "sed -i s/1/2/ src/checkout.ts" },
+      cwd: workspace,
+    });
+    expect(shell.additional_context).toStartWith(
+      rulePromptNote("must not", "because refunds drift"),
+    );
+    expect(shell.additional_context).toContain(
+      ruleCaptureTemplate("must not", "because refunds drift"),
+    );
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message).toContain(captureReminder("must not"));
+  });
+
+  test("a shell edit of KB or doc files is tracked without a rule note", async () => {
+    const { event, workspace } = conversation({ KIBI_CONFIRM_FIRM_EDITS: "0" });
+    fs.mkdirSync(path.join(workspace, "documentation"));
+    fs.writeFileSync(path.join(workspace, "documentation/guide.md"), "x\n");
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Totals must not be rounded.",
+    });
+    expect(
+      await event({
+        hook_event_name: "postToolUse",
+        tool_name: "Shell",
+        tool_input: {
+          command:
+            "echo x >> .kb/requirements/REQ-checkout-rounding.md && echo y >> documentation/guide.md",
+        },
+        cwd: workspace,
+      }),
+    ).toEqual({});
+  });
+
+  test("stop asks nothing in a workspace that never adopted Kibi", async () => {
+    const workspace = createTempRoot("kibi-cursor-plain-");
+    tempRoots.push(workspace);
+    fs.mkdirSync(path.join(workspace, "src"), { recursive: true });
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    const event = (payload: Record<string, unknown>) =>
+      runHook(
+        {
+          conversation_id: "plain-1",
+          workspace_roots: [workspace],
+          ...payload,
+        },
+        { pluginData },
+      );
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    expect(
+      await event({ hook_event_name: "stop", status: "completed" }),
+    ).toEqual({});
+  });
+
   test("stop asks once for the decision record when source changed and nothing was recorded", async () => {
     const { event, workspace } = conversation();
     await event({
@@ -954,13 +1190,102 @@ describe("Cursor decision guard", () => {
     await event(write);
 
     const stop = await event({ hook_event_name: "stop", status: "completed" });
-    expect(stop.followup_message).toContain("kb_upsert");
+    expect(stop.followup_message).toContain("kb_record");
     expect(stop.followup_message).toContain("kb_check(");
 
     await event(write);
     const again = await event({ hook_event_name: "stop", status: "completed" });
     expect(again.followup_message).not.toContain(
       "recorded nothing in the knowledge base",
+    );
+  });
+
+  test("a rule session's first source pre-edit carries the capture template, and stop quotes the rule phrase", async () => {
+    const { event, edit, workspace } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Guests should never see totals.",
+    });
+    // A pre-edit of a file that is not source carries the rule note only.
+    const readme =
+      (
+        await event({
+          hook_event_name: "preToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: path.join(workspace, "README.md") },
+        })
+      ).agent_message ?? "";
+    expect(readme).toContain(rulePromptNote("should never"));
+    expect(readme).not.toContain("fill in this template");
+    // The first source pre-edit carries the template, so a session with a
+    // single edit gets it.
+    expect((await event(edit)).agent_message ?? "").toContain(
+      ruleCaptureTemplate("should never"),
+    );
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    expect((await event(edit)).agent_message ?? "").not.toContain(
+      "fill in this template",
+    );
+    const stop = await event({ hook_event_name: "stop", status: "completed" });
+    expect(stop.followup_message).toStartWith(captureReminder("should never"));
+  });
+
+  test("a new conversation without an id is not silenced by an earlier one's markers", async () => {
+    const { event, workspace } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    const anonymous = (payload: Record<string, unknown>) => event(payload, "");
+    const write = {
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    };
+    const stop = { hook_event_name: "stop", status: "completed" };
+    await anonymous({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Guests should never see totals.",
+    });
+    await anonymous(write);
+    expect((await anonymous(stop)).followup_message).toStartWith(
+      captureReminder("should never"),
+    );
+    await anonymous({ hook_event_name: "sessionStart" });
+    await anonymous(write);
+    expect((await anonymous(stop)).followup_message).toStartWith(
+      captureReminder(undefined),
+    );
+  });
+
+  test("a rule session whose source was edited before any pre-edit gets the template on the next pre-edit", async () => {
+    const { event, edit, workspace } = conversation({
+      KIBI_CONFIRM_FIRM_EDITS: "0",
+    });
+    await event({
+      hook_event_name: "beforeSubmitPrompt",
+      prompt: "Guests should never see totals.",
+    });
+    await event({
+      hook_event_name: "postToolUse",
+      tool_name: "Write",
+      tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+    });
+    expect(
+      (
+        await event({
+          hook_event_name: "preToolUse",
+          tool_name: "Write",
+          tool_input: { file_path: path.join(workspace, "README.md") },
+        })
+      ).agent_message ?? "",
+    ).toContain(ruleCaptureTemplate("should never"));
+    expect((await event(edit)).agent_message ?? "").not.toContain(
+      "fill in this template",
     );
   });
 
@@ -996,6 +1321,37 @@ describe("Cursor decision guard", () => {
     expect(stop.followup_message ?? "").not.toContain(
       "recorded nothing in the knowledge base",
     );
+  });
+
+  test("a kb_record call is a record; its dry run is not", async () => {
+    for (const [args, recorded] of [
+      [{ statement: "Totals stay positive.", saidBy: "user" }, true],
+      [
+        { statement: "Totals stay positive.", saidBy: "user", dryRun: true },
+        false,
+      ],
+    ] as const) {
+      const { event, workspace } = conversation();
+      await event({
+        hook_event_name: "postToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: path.join(workspace, "src/checkout.ts") },
+      });
+      await event({
+        hook_event_name: "postToolUse",
+        tool_name: "CallMcpTool",
+        tool_input: { toolName: "kb_record", arguments: args },
+      });
+      const stop = await event({
+        hook_event_name: "stop",
+        status: "completed",
+      });
+      expect(
+        (stop.followup_message ?? "").includes(
+          "recorded nothing in the knowledge base",
+        ),
+      ).toBe(!recorded);
+    }
   });
 
   test("a dry-run MCP upsert is no record; a CLI upsert is", async () => {
@@ -1304,7 +1660,7 @@ describe("Cursor hook runner result contracts", () => {
     expect(loadHookState(pluginData).guidedPreEditPaths).toEqual([]);
   });
 
-  test("the rule note, firm notice and knowledge are separate paragraphs", async () => {
+  test("the rule note, capture template, firm notice and knowledge are separate paragraphs", async () => {
     const { event, workspace } = conversation();
     await event({
       hook_event_name: "beforeSubmitPrompt",
@@ -1324,10 +1680,11 @@ describe("Cursor hook runner result contracts", () => {
       ).agent_message ?? "";
     const paragraphs = message.split("\n\n");
     expect(paragraphs[0]).toStartWith(RULE_NOTE_START);
-    expect(paragraphs[1]).toStartWith(
+    expect(paragraphs[1]).toBe(ruleCaptureTemplate("must not"));
+    expect(paragraphs[2]).toStartWith(
       "Kibi: this edit changes computeTotal in src/checkout.ts",
     );
-    expect(paragraphs[2]).toContain("Kibi knowledge for src/checkout.ts");
+    expect(paragraphs[3]).toContain("Kibi knowledge for src/checkout.ts");
   });
 
   test("a prompt without a rule leaves the next edit without a rule note", async () => {

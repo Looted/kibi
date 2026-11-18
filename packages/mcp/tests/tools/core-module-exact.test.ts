@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { useCoreModuleGoal } from "kibi-runtime";
 import {
   parseMaybeDoubleEncodedJson,
   resolveCorePlPath,
@@ -101,6 +102,22 @@ describe("runJsonModuleQuery", () => {
       await runJsonModuleQuery(prolog, "discovery.pl", "g(J)", "L"),
     ).toStrictEqual({ x: 1 });
     expect(goals).toStrictEqual([`(use_module('${atomPath(file)}'), g(J))`]);
+  });
+
+  test("an empty per-module override is unset and loads the engine's core module", async () => {
+    process.env.KIBI_DISCOVERY_PL_PATH = "";
+    process.env.KIBI_KB_PL_PATH = "/fixtures/core/kb.pl";
+    const { prolog, goals } = engine(
+      [{ success: true, bindings: { JsonString: '{"x":1}' } }],
+      false,
+    );
+    expect(
+      await runJsonModuleQuery(prolog, "discovery.pl", "g(J)", "L"),
+    ).toStrictEqual({ x: 1 });
+    expect(goals).toStrictEqual([
+      `(${useCoreModuleGoal("/fixtures/core/discovery.pl")}, g(J))`,
+    ]);
+    expect(goals[0]).not.toContain("use_module('')");
   });
 
   test("a query-only engine failure without detail says Unknown error", async () => {

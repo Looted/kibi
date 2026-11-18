@@ -1,7 +1,7 @@
 {
   "name": "kb_upsert",
   "cliName": "upsert",
-  "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer a dryRun:true call first because it validates without writing and returns semantic advisor receipts for prose-heavy requirements. Use kb_model (mode requirement) before hand-writing strict property facts from prose, and kb_model (mode predicates) before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). An update keeps the properties and relationships it leaves out: send the fields that change (with title and status) and only the links to add. Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request, then upsert the old requirement with status closed (kb_check blocks a superseded requirement that is not closed). Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Pass a sectioned `document.body` when creating a requirement (the statement, then `## Context` stating why it exists, who asked and the source, then `## Source` with the verbatim excerpt) and a prose body for scenarios, tests, ADRs and observation facts; a result warning reports an entity whose body lacks context, and kb_check blocks it under entity-context-missing. Never invent a reason the requester did not give: write 'Reason not stated'. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates; dryRun:true writes nothing.",
+  "description": "Create or update one entity and its relationships. Use it for modeling, updates and every write kb_record does not take (a newly stated rule is one kb_record call). dryRun:true validates without writing. Model prose with kb_model before hand-writing strict property or predicate facts. An update keeps what it leaves out: send the changed fields (with title and status) and only the links to add. Relationship endpoints must already exist. A requirement that contradicts a current one on the same subject is rejected; to replace it, add a `supersedes` link from the new requirement and upsert the old one with status closed. For a requirement send the statement as `document.body` and the reason as `why` (never invent one: write 'Reason not stated'); give other entities a prose body. A requirement write returns its open kb_check steps as nextActions. Side effects: writes KB; dryRun:true writes nothing.",
   "businessInputSchema": {
     "type": "object",
     "required": ["type", "id", "properties"],
@@ -22,11 +22,30 @@
       },
       "id": {
         "type": "string",
-        "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it."
+        "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
+        "x-kibi-advertised-description": "Unique entity ID named by the behavior it governs (<TYPE>-<area>-<behavior>); an existing ID updates the entity."
       },
       "properties": {
         "type": "object",
         "description": "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
+        "x-kibi-advertised-description": "Entity fields; must include title and status. Fact, symbol, test and proof fields: kibi-usage resource operation-fields.",
+        "x-kibi-advertised-fields": [
+          "title",
+          "status",
+          "priority",
+          "tags",
+          "links",
+          "text_ref",
+          "origin",
+          "semantic_text",
+          "rationale",
+          "firmness",
+          "approved_by",
+          "approval_ref",
+          "required_evidence",
+          "sourceFile",
+          "symbol_role"
+        ],
         "properties": {
           "title": {
             "type": "string",
@@ -34,7 +53,8 @@
           },
           "status": {
             "type": "string",
-            "description": "Required lifecycle state. Allowed values depend on entity type; backward-compatible legacy statuses are also accepted. Examples: 'open', 'passing', 'accepted', 'active'."
+            "description": "Required lifecycle state. Allowed values depend on entity type; backward-compatible legacy statuses are also accepted. Examples: 'open', 'passing', 'accepted', 'active'.",
+            "x-kibi-advertised-description": "Required lifecycle state; allowed values depend on the entity type. Examples: 'open', 'passing', 'accepted'."
           },
           "source": {
             "type": "string",
@@ -89,7 +109,7 @@
                 "type": "string",
                 "minLength": 1,
                 "pattern": "\\S",
-                "description": "The person who reviewed and approved this entity's content. Distinct from the requirement-level approved_by of an exception."
+                "description": "The person who reviewed and approved this entity's content, not the approved_by of an exception requirement."
               },
               "recorded_at": {
                 "type": "string",
@@ -98,11 +118,13 @@
               }
             },
             "additionalProperties": false,
-            "description": "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time."
+            "description": "Optional provenance: who authored the entity (kind: human, agent, migration, import) and on what authority (ref, approved_by, recorded_at). Omit it to keep an existing entity's origin; a new entity written without one is recorded as {kind: agent, recorded_at: <write time>}. A supplied origin without recorded_at gets the write time.",
+            "x-kibi-advertised-description": "Optional provenance: kind (human, agent, migration, import) and authority (ref, approved_by, recorded_at)."
           },
           "semantic_text": {
             "type": "string",
-            "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans. Keep text_ref available for independent document or code evidence."
+            "description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans. Keep text_ref available for independent document or code evidence.",
+            "x-kibi-advertised-description": "Requirement-only authored prose used for semantic inventory hashes and UTF-8 spans."
           },
           "logic_claims": {
             "type": "array",
@@ -112,7 +134,8 @@
               "type": "string",
               "pattern": "^CLAIM-[A-F0-9]{16}$"
             },
-            "description": "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: kibi model). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key."
+            "description": "Requirement-only manifest of every atomic normative claim key returned by kb_model mode analyze (CLI: kibi model). A requirement is logic-complete only when every key is grounded by a linked property_value or predicate fact with the same claim_key.",
+            "x-kibi-advertised-description": "Requirement-only: every atomic claim key kb_model mode analyze returned; each must be grounded by a linked fact."
           },
           "semantic_clauses": {
             "type": "array",
@@ -121,7 +144,8 @@
               "type": "string",
               "minLength": 1
             },
-            "description": "Optional complete atomic decomposition used by kb_model mode analyze and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override."
+            "description": "Optional complete atomic decomposition used by kb_model mode analyze and proposition-complete ingestion. Preserve it when automatic sentence splitting needs a reviewed override.",
+            "x-kibi-advertised-description": "Optional reviewed atomic decomposition of the prose, used when automatic sentence splitting needs an override."
           },
           "semantic_inventory_version": {
             "type": "string",
@@ -136,7 +160,8 @@
           "approved_by": {
             "type": "string",
             "minLength": 1,
-            "description": "Requirement-only. The human who approved this exception requirement. An exception that exempts a requirement and is specified_by a success scenario makes that scenario feasible only when approved_by is set."
+            "description": "Requirement-only. The human who approved this exception requirement. An exception that exempts a requirement and is specified_by a success scenario makes that scenario feasible only when approved_by is set.",
+            "x-kibi-advertised-description": "Requirement-only: the human who approved this exception requirement."
           },
           "approval_ref": {
             "type": "string",
@@ -146,7 +171,8 @@
           "failure_side_waiver": {
             "type": "string",
             "minLength": 1,
-            "description": "Requirement-only. Why the requirement has no failure side to test (its claims state a capability or output shape). Waives happy_path_only once failure_side_waiver_approved_by is set."
+            "description": "Requirement-only. Why the requirement has no failure side to test (its claims state a capability or output shape). Waives happy_path_only once failure_side_waiver_approved_by is set.",
+            "x-kibi-advertised-description": "Requirement-only: why the requirement has no failure side to test; counts once failure_side_waiver_approved_by is set."
           },
           "failure_side_waiver_approved_by": {
             "type": "string",
@@ -156,17 +182,20 @@
           "firmness": {
             "type": "string",
             "enum": ["firm", "default", "exploratory"],
-            "description": "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); its title, meaning or firmness changes only with new human words (a new origin.ref) or by supersede. default = delegated or agent choice; exploratory = flagged guess. Absent = default if an agent wrote it, else firm."
+            "description": "req/adr only. firm = a human stated it as a rule (needs origin.ref to their words); its title, meaning or firmness changes only with new human words (a new origin.ref) or by supersede. default = delegated or agent choice; exploratory = flagged guess. Absent = default if an agent wrote it, else firm.",
+            "x-kibi-advertised-description": "req/adr only: firm (a human's rule, needs origin.ref), default or exploratory. Absent = default if an agent wrote it."
           },
           "required_evidence": {
             "type": "string",
             "enum": ["proved", "tested", "asserted", "unverified"],
-            "description": "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified."
+            "description": "Requirement-only. Weakest evidence level it accepts; the evidence-floor rule fails below it. Absent = tested if firm, else unverified.",
+            "x-kibi-advertised-description": "Requirement-only: weakest evidence level it accepts. Absent = tested if firm, else unverified."
           },
           "rationale": {
             "type": "string",
             "minLength": 1,
-            "description": "Requirement-only. Why the requirement exists, in one or two sentences from whoever stated the intent; not part of the checked meaning."
+            "description": "Requirement-only. Why the requirement exists, in one or two sentences in the words of whoever stated the intent. Send it in the same write whenever they gave a reason, and never write one of your own; not part of the checked meaning.",
+            "x-kibi-advertised-description": "Requirement-only: why it exists, in the stater's words; send it in the same write when they gave one, never invent one."
           },
           "exempts_claims": {
             "type": "array",
@@ -176,7 +205,8 @@
               "type": "string",
               "pattern": "^CLAIM-[A-F0-9]{16}$"
             },
-            "description": "Requirement-only. Claim keys of the exempted requirement whose constraints this exception waives; omit to waive the whole requirement."
+            "description": "Requirement-only. Claim keys of the exempted requirement whose constraints this exception waives; omit to waive the whole requirement.",
+            "x-kibi-advertised-description": "Requirement-only: claim keys of the exempted requirement this exception waives; omit to waive all of it."
           },
           "semantic_source_hash": {
             "type": "string",
@@ -196,7 +226,8 @@
               "legacy-link",
               "test-suite"
             ],
-            "description": "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist."
+            "description": "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
+            "x-kibi-advertised-description": "Optional justification for a coarse file or module-level traceability link when narrower symbols exist."
           },
           "symbol_role": {
             "type": "string",
@@ -551,7 +582,8 @@
                 "additionalProperties": false
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "x-kibi-advertised-summary": "test only: kibi.proof-contract.v1 for this test; load the kibi-usage resource `proof` first. Rejections give the schema."
           },
           "proof_bindings": {
             "type": "array",
@@ -589,7 +621,8 @@
                 }
               },
               "additionalProperties": false
-            }
+            },
+            "x-kibi-advertised-summary": "test only: native-runner bindings (symbol_id, target) for proof obligations; a rejection returns the full schema."
           },
           "proof_receipts": {
             "type": "array",
@@ -941,7 +974,8 @@
               },
               "additionalProperties": false
             },
-            "description": "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap."
+            "description": "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
+            "x-kibi-advertised-summary": "test only: proof receipts kb_ingest_proof derives; never hand-write them. Send the stored list unchanged or omit it."
           },
           "fact_kind": {
             "type": "string",
@@ -955,15 +989,18 @@
               "rule_schema",
               "rule"
             ],
-            "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose."
+            "description": "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model (mode requirement or predicates) when starting from prose.",
+            "x-kibi-advertised-description": "Optional fact lane: subject, property_value, observation, meta, predicate_schema or predicate."
           },
           "subject_key": {
             "type": "string",
-            "description": "Snake_case only. Optional canonical subject key for strict fact entities. Example: 'user.session'. Do not use subjectKey in kb_upsert.properties."
+            "description": "Snake_case only. Optional canonical subject key for strict fact entities. Example: 'user.session'. Do not use subjectKey in kb_upsert.properties.",
+            "x-kibi-advertised-description": "Optional snake_case subject key for strict fact entities. Example: 'user.session'."
           },
           "property_key": {
             "type": "string",
-            "description": "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties."
+            "description": "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
+            "x-kibi-advertised-description": "Optional snake_case property key for property_value facts. Example: 'session.timeout_minutes'."
           },
           "operator": {
             "type": "string",
@@ -979,12 +1016,14 @@
               "subset_of",
               "excludes"
             ],
-            "description": "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole. Set facts only: 'includes' means every member of value_set has the property and other members may have it too; 'subset_of' means every member that has the property is in value_set ('every env var the server reads is one of ...'); 'excludes' means no member of value_set has it ('never imports md5'); 'eq' on a set means exactly those members."
+            "description": "Optional comparison operator for property_value facts. Example: 'eq'. 'matches' (string facts only): value_string is a JavaScript regular expression (u flag) every value must match as a whole. Set facts only: 'includes' means every member of value_set has the property and other members may have it too; 'subset_of' means every member that has the property is in value_set ('every env var the server reads is one of ...'); 'excludes' means no member of value_set has it ('never imports md5'); 'eq' on a set means exactly those members.",
+            "x-kibi-advertised-description": "Optional comparison operator for property_value facts, e.g. eq, gt, matches (regex), includes, subset_of, excludes."
           },
           "value_type": {
             "type": "string",
             "enum": ["string", "int", "number", "bool", "set"],
-            "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value."
+            "description": "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, value_bool, or value_set (set: a list of members, with operator eq, includes, subset_of or excludes); do not use generic value.",
+            "x-kibi-advertised-description": "Optional value type for property_value facts; pair with exactly one value_string, _int, _number, _bool or _set."
           },
           "value_string": {
             "type": "string",
@@ -1036,16 +1075,19 @@
           "claim_key": {
             "type": "string",
             "pattern": "^CLAIM-[A-F0-9]{16}$",
-            "description": "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key."
+            "description": "Stable key of the atomic prose clause grounded by this fact, derived from claim_text. Optional: when omitted, Kibi derives it; when sent, it must equal the derived key.",
+            "x-kibi-advertised-description": "Optional key of the clause this fact grounds; Kibi derives it from claim_text, and a sent key must match."
           },
           "claim_text": {
             "type": "string",
-            "description": "Exact atomic requirement clause represented by this fact, retained for human audit. On a grounding fact Kibi derives claim_key from it; an observation or meta fact quotes the clause it is about without a key."
+            "description": "Exact atomic requirement clause represented by this fact, retained for human audit. On a grounding fact Kibi derives claim_key from it; an observation or meta fact quotes the clause it is about without a key.",
+            "x-kibi-advertised-description": "Exact atomic requirement clause this fact represents; Kibi derives claim_key from it on a grounding fact."
           },
           "dimension_waiver": {
             "type": "string",
             "minLength": 1,
-            "description": "Fact-only. Why the quantifier word in claim_text ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented once dimension_waiver_approved_by is set."
+            "description": "Fact-only. Why the quantifier word in claim_text ranges over nothing, so the claim needs no count, set or rule. Waives dimension_unrepresented once dimension_waiver_approved_by is set.",
+            "x-kibi-advertised-description": "Fact-only: why the quantifier in claim_text ranges over nothing; counts once dimension_waiver_approved_by is set."
           },
           "dimension_waiver_approved_by": {
             "type": "string",
@@ -1055,7 +1097,8 @@
           "case_waiver": {
             "type": "string",
             "minLength": 1,
-            "description": "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set."
+            "description": "Fact-only. Why the edge cases derived from this fact are covered some other way or cannot occur. Waives uncovered_case once case_waiver_approved_by is set.",
+            "x-kibi-advertised-description": "Fact-only: why the edge cases derived from this fact are covered elsewhere or cannot occur."
           },
           "case_waiver_approved_by": {
             "type": "string",
@@ -1064,14 +1107,16 @@
           },
           "predicate_name": {
             "type": "string",
-            "description": "Optional predicate name for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_name."
+            "description": "Optional predicate name for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_name.",
+            "x-kibi-advertised-description": "Optional predicate name for ontology predicate facts; prefer kb_model mode predicates."
           },
           "predicate_args": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_args."
+            "description": "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_model mode predicates before hand-writing predicate_args.",
+            "x-kibi-advertised-description": "Optional ordered predicate arguments for ontology predicate facts; prefer kb_model mode predicates."
           },
           "predicate_namespace": {
             "type": "string",
@@ -1111,7 +1156,8 @@
             },
             "minItems": 1,
             "uniqueItems": true,
-            "description": "predicate_schema only: argument names that determine the remaining arguments (a functional dependency), e.g. [\"sensor\"] for reading(sensor, value). Rule contradiction analysis treats two atoms with identical keys as the same fact; without it the predicate is multivalued and opposing rules stay unresolved instead of disjoint."
+            "description": "predicate_schema only: argument names that determine the remaining arguments (a functional dependency), e.g. [\"sensor\"] for reading(sensor, value). Rule contradiction analysis treats two atoms with identical keys as the same fact; without it the predicate is multivalued and opposing rules stay unresolved instead of disjoint.",
+            "x-kibi-advertised-description": "predicate_schema only: argument names that determine the remaining arguments (a functional dependency)."
           },
           "argument_constants": {
             "type": "object",
@@ -1123,7 +1169,8 @@
               },
               "minItems": 1
             },
-            "description": "predicate_schema only: allowed constants keyed by argument name, e.g. {\"severity\": [\"warning\", \"info\"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open."
+            "description": "predicate_schema only: allowed constants keyed by argument name, e.g. {\"severity\": [\"warning\", \"info\"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open.",
+            "x-kibi-advertised-description": "predicate_schema only: allowed constants keyed by argument name; unlisted arguments stay open."
           },
           "argument_aliases": {
             "type": "object",
@@ -1134,7 +1181,8 @@
                 "minLength": 1
               }
             },
-            "description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {\"severity\": {\"warn\": \"warning\"}}. kibi migrate rewrites facts that still use an alias."
+            "description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {\"severity\": {\"warn\": \"warning\"}}. kibi migrate rewrites facts that still use an alias.",
+            "x-kibi-advertised-description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant."
           },
           "aliases": {
             "type": "array",
@@ -1155,7 +1203,8 @@
             "items": {
               "type": "string"
             },
-            "description": "subject only: defined subject keys this subject is a part of. A dotted key prefix that is itself a defined subject is broader already."
+            "description": "subject only: defined subject keys this subject is a part of. A dotted key prefix that is itself a defined subject is broader already.",
+            "x-kibi-advertised-description": "subject only: defined subject keys this subject is a part of."
           },
           "kind_of": {
             "type": "array",
@@ -1169,11 +1218,13 @@
             "items": {
               "type": "string"
             },
-            "description": "subject only: similar defined subject keys this subject was checked to differ from; the body says how. Silences subject-duplicate for those pairs."
+            "description": "subject facts: similar defined subject keys this subject was checked to differ from; property_value facts: subject_key.property_key of value facts that state a different quantity. The body says how. Silences subject-duplicate or quantity-duplicate for those pairs.",
+            "x-kibi-advertised-description": "Keys this subject or value fact was checked to differ from; silences subject-duplicate and quantity-duplicate."
           },
           "semantic_inventory": {
             "type": "array",
             "description": "Requirement proposition ledger returned by kb_model mode analyze (CLI: kibi model); preserve entries while modeling each assertive span. An unmodeled normative, condition, exception or definition entry must carry `subjects`: the defined subject keys it is about.",
+            "x-kibi-advertised-description": "Requirement proposition ledger from kb_model mode analyze; preserve entries while modeling each span.",
             "items": {
               "type": "object"
             }
@@ -1181,6 +1232,7 @@
           "pair_reviews": {
             "type": "array",
             "description": "Requirement only: verdicts on stored pairs (a relates_to edge or a shared subject) whose unmodeled claims cannot be modeled. Each entry: with (the other requirement, which a relates_to edge must link), verdict (no_conflict with separated_by naming the condition or term that separates them; interacts with resolved_by naming what resolves it: a scenario either requirement is specified_by, a fact either links, a third current requirement, or a condition or exception claim_key of either, never the two requirements themselves; conflict, which stays blocking until a person decides), claims (the claim_key of each unmodeled claim; a payload_hash is accepted and ignored) and origin (kind human or agent; on a must or firm pair, a verdict whose origin is missing or agent, or that sits on a requirement an agent wrote, counts only with approved_by from a person). Model the claims first; a verdict is the fallback.",
+            "x-kibi-advertised-description": "Requirement only: verdicts on related pairs whose unmodeled claims cannot be modeled. Model the claims first.",
             "items": {
               "type": "object"
             }
@@ -1237,6 +1289,7 @@
       "relationships": {
         "type": "array",
         "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+        "x-kibi-advertised-description": "Optional relationship rows to create in the same call; asserts edges in the KB.",
         "items": {
           "type": "object",
           "required": ["type", "from", "to"],
@@ -1265,7 +1318,8 @@
                 "exempts",
                 "relates_to"
               ],
-              "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test)."
+              "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
+              "x-kibi-advertised-description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test)."
             },
             "from": {
               "type": "string",
@@ -1281,11 +1335,13 @@
       "dryRun": {
         "type": "boolean",
         "default": false,
-        "description": "Validate the payload and return schema/modeling errors, a normalized preview and the semantic advisor receipt without writing the KB or workspace. Use it as the preflight before the real write."
+        "description": "Validate the payload and return schema/modeling errors, a normalized preview and the semantic advisor receipt without writing the KB or workspace. Use it as the preflight before the real write.",
+        "x-kibi-advertised-description": "Validate and preview without writing the KB or workspace; use it as the preflight before the real write."
       },
       "plannedFacts": {
         "type": "array",
         "description": "dryRun only. Fact upsert payloads (type, id, properties, optional relationships) that will be written before this payload, typically the applyPlan entries kb_model returned. They are validated in order and staged with the payload, so a requires_predicate or requires_property target that does not exist yet resolves, its claim_key is read from the plan, and the contradiction preview runs against the KB as it would be after the whole batch (result: stagedFacts, whatIf). A conflict the batch would introduce, such as an allow and a deny permission_rule on the same key, is refused as the commit would refuse it. Rejected without dryRun: write the facts first.",
+        "x-kibi-advertised-description": "dryRun only: fact payloads (e.g. kb_model applyPlan entries) staged before this one, so their links resolve.",
         "items": {
           "type": "object",
           "required": ["type", "id", "properties"],
@@ -1304,6 +1360,7 @@
             "relationships": {
               "type": "array",
               "description": "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` for strict property facts or `requires_predicate` for ontology predicate facts. Side effect: asserts edges in KB.",
+              "x-kibi-advertised-description": "Optional relationship rows to create in the same call; asserts edges in the KB.",
               "items": {
                 "type": "object",
                 "required": ["type", "from", "to"],
@@ -1332,7 +1389,8 @@
                       "exempts",
                       "relates_to"
                     ],
-                    "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test)."
+                    "description": "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
+                    "x-kibi-advertised-description": "Relationship type, e.g. implements (symbol->req), verified_by (req/scenario->test), executable_for (symbol->test)."
                   },
                   "from": {
                     "type": "string",
@@ -1352,6 +1410,7 @@
         "type": "object",
         "additionalProperties": false,
         "description": "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes (a requirement whose semantic_text changes gets the new statement in place of the old one, with its context sections kept). For a new requirement pass a sectioned body: statement, '## Context' (why, who asked, constraints), '## Source' (blockquoted excerpt and reference); context never changes the checked meaning, which stays in semantic_text.",
+        "x-kibi-advertised-description": "Optional source document write; omit body on update to keep it. New requirements take statement, Context, Source.",
         "properties": {
           "path": {
             "type": "string",
@@ -1361,12 +1420,46 @@
             "type": "string"
           }
         }
+      },
+      "implementedBy": {
+        "type": "array",
+        "minItems": 1,
+        "description": "req only: the declarations that implement it, each {sourceFile, symbol} (function, Class.method or exported constant), with optional coveredBy test ids. Kibi creates or reuses each symbol, links it with implements and to each coveredBy test with covered_by; an entry that resolves to no single granular declaration is refused with candidates.",
+        "x-kibi-advertised-description": "req only: declarations that implement it, each {sourceFile, symbol, coveredBy?}; linked by implements (and covered_by).",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sourceFile", "symbol"],
+          "properties": {
+            "sourceFile": {
+              "type": "string",
+              "minLength": 1
+            },
+            "symbol": {
+              "type": "string",
+              "minLength": 1
+            },
+            "coveredBy": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      },
+      "why": {
+        "type": "string",
+        "minLength": 1,
+        "description": "req only: why the requirement exists, in the words of the person who asked ('Reason not stated' when they gave none). Kibi records it as rationale and as the body's Context section, with origin.ref as its Source.",
+        "x-kibi-advertised-description": "req only: why it exists, in the asker's words."
       }
     }
   },
   "requiresProlog": true,
   "effects": ["kb-write", "workspace-write"],
-  "execute": "[function executeUpsert]",
+  "execute": "[function executeUpsertRequest]",
   "resultVersion": "kibi.kb_upsert.v1",
   "outputSchema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1450,6 +1543,37 @@
               "contradictionCheck": {
                 "type": "object",
                 "additionalProperties": true
+              },
+              "siblings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "inventoryApplied": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Each claim recorded for a requirement sent without its inventory contract."
+              },
+              "implementedBy": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Each implementedBy entry's symbolId and whether it was created."
+              },
+              "relatedRequirements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Current requirements on the same terms."
               }
             }
           },
@@ -1493,6 +1617,34 @@
               "whatIf": {
                 "type": "object",
                 "additionalProperties": true
+              },
+              "inventoryApplied": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "implementedBy": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "siblings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "nextActions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
               },
               "dryRun": {
                 "const": true

@@ -369,6 +369,7 @@ describe("prompts", () => {
       kind: string;
       words: string[];
       rule: boolean;
+      phrase: string;
     }[];
     expect(journal[0]?.rule).toBe(false);
     expect(journal[0]?.words.length).toBeGreaterThan(0);
@@ -376,6 +377,7 @@ describe("prompts", () => {
       kind: "prompt",
       words: [],
       rule: false,
+      phrase: "",
     });
     expect(h.rows().map((r) => r.hook_action)).toStrictEqual([
       "prompt_silent",
@@ -386,8 +388,23 @@ describe("prompts", () => {
       prompt: "From now on totals must never be negative.",
     });
     expect(ruled.hookSpecificOutput?.hookEventName).toBe("UserPromptSubmit");
-    expect((h.journal()[2] as { rule: boolean }).rule).toBe(true);
+    expect(h.journal()[2]).toMatchObject({
+      rule: true,
+      phrase: "from now on",
+    });
+    expect(h.journal()[2]).not.toHaveProperty("reason");
     expect(h.lastRow()?.hook_action).toBe("prompt_rule_note");
+    const reasoned = await h.call({
+      hook_event_name: "UserPromptSubmit",
+      prompt: "Totals must never be negative, because refunds break.",
+    });
+    expect(reasoned.hookSpecificOutput?.additionalContext).toContain(
+      'The request gives its reason ("because refunds break")',
+    );
+    expect(h.journal()[3]).toMatchObject({
+      phrase: "must",
+      reason: "because refunds break",
+    });
   });
 });
 
@@ -420,7 +437,12 @@ describe("tool inputs", () => {
     const h = hooks(fixture);
     await h.post("NotebookEdit", { notebook_path: h.at("src/checkout.ts") });
     expect(h.journal()).toStrictEqual([
-      { kind: "edited", path: "src/checkout.ts", pathKind: "source" },
+      {
+        kind: "edited",
+        path: "src/checkout.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
     ]);
   });
 
@@ -430,7 +452,12 @@ describe("tool inputs", () => {
       const h = hooks(fixture, `edit-${tool}`);
       await h.post(tool, { file_path: h.at("src/helper.ts") });
       expect(h.journal()).toStrictEqual([
-        { kind: "edited", path: "src/helper.ts", pathKind: "source" },
+        {
+          kind: "edited",
+          path: "src/helper.ts",
+          pathKind: "source",
+          edit: expect.any(String),
+        },
       ]);
     }
   });
@@ -753,10 +780,13 @@ describe("firm requirement confirmation", () => {
     expect(output.hookSpecificOutput?.permissionDecisionReason).toContain(
       "src/checkout.ts",
     );
-    expect(h.journal().at(-1)).toStrictEqual({
+    const asked = h.journal().at(-1);
+    expect(asked).toStrictEqual({
       kind: "firm_asked",
       path: "src/checkout.ts",
       ids: ["REQ-checkout-rounding"],
+      at: expect.any(Number),
+      edit: expect.stringMatching(/^[0-9a-f]{64}$/),
     });
   });
 
@@ -951,11 +981,31 @@ describe("shell changes after they run", () => {
       },
     });
     expect(h.journal().slice(1)).toStrictEqual([
-      { kind: "edited", path: "src/checkout.ts", pathKind: "source" },
+      {
+        kind: "edited",
+        path: "src/checkout.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
       { kind: "shown", surface: "edit", path: "src/checkout.ts" },
-      { kind: "edited", path: "src/helper.ts", pathKind: "source" },
-      { kind: "edited", path: "src/two.ts", pathKind: "source" },
-      { kind: "edited", path: "tests/other.test.ts", pathKind: "test" },
+      {
+        kind: "edited",
+        path: "src/helper.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
+      {
+        kind: "edited",
+        path: "src/two.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
+      {
+        kind: "edited",
+        path: "tests/other.test.ts",
+        pathKind: "test",
+        edit: expect.any(String),
+      },
     ]);
     expect(h.lastRow()).toStrictEqual(
       row({
@@ -978,7 +1028,12 @@ describe("shell changes after they run", () => {
     expect(h.rows()).toStrictEqual([]);
     expect(h.journal()).toStrictEqual([
       { kind: "command_started", at: "at" },
-      { kind: "edited", path: "tests/other.test.ts", pathKind: "test" },
+      {
+        kind: "edited",
+        path: "tests/other.test.ts",
+        pathKind: "test",
+        edit: expect.any(String),
+      },
     ]);
     await h.pre("Bash", { command: "true" });
     fs.appendFileSync(h.at("src/helper.ts"), "\n");
@@ -1130,7 +1185,12 @@ describe("Kibi MCP usage after it runs", () => {
         paths: ["src/two.ts", "src/mixed.ts"],
         ids: ["REQ-two-a"],
       },
-      { kind: "edited", path: "src/helper.ts", pathKind: "source" },
+      {
+        kind: "edited",
+        path: "src/helper.ts",
+        pathKind: "source",
+        edit: expect.any(String),
+      },
       { kind: "kb", operation: "kb_check", paths: ["src/helper.ts"], ids: [] },
       { kind: "checked", paths: ["src/helper.ts"], all: false },
     ]);

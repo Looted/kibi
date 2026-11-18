@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-opencode-guidance-bullet-limit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/opencode-guidance-bullet-limit.proof.test.ts"
+    ]
+  ]
+}

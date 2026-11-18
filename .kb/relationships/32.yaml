@@ -454,3 +454,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8bae8cce4eb5
+  - type: implements
+    from: SYM-kibi-committed-on-local-branch
+    to: REQ-kibi-pending-receipt-committed-elsewhere
+    created_at: 2026-11-15T17:27:34.296Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b6feeb43690
+  - type: covered_by
+    from: SYM-kibi-committed-on-local-branch
+    to: TEST-kibi-pending-receipt-committed-elsewhere
+    created_at: 2026-11-15T17:27:34.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc88b339da7c
+  - type: assumes
+    from: SCEN-claude-decision-capture-template
+    to: FACT-claude-capture-template-once
+    created_at: 2026-11-16T08:45:53.115Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-126b6f2bf781
+  - type: verified_by
+    from: SCEN-claude-decision-capture-template
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T08:45:53.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e9b5571267b
+  - type: implements
+    from: SYM-agent-core-extractKbMcpToolCall
+    to: REQ-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:32:47.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a38c71a904d
+  - type: covered_by
+    from: SYM-agent-core-extractKbMcpToolCall
+    to: TEST-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:34:04.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be089d8d87bb
+  - type: assumes
+    from: SCEN-upsert-lists-sibling-requirements
+    to: FACT-upsert-lists-sibling-requirements
+    created_at: 2026-11-16T19:17:13.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3d18d1c1195
+  - type: verified_by
+    from: SCEN-upsert-lists-sibling-requirements
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:13.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ae463fc2d30
+  - type: assumes
+    from: SCEN-NEG-ci-proof-reuse-no-wait-on-changed-tree-VIOLATED
+    to: FACT-NEG-ci-proof-reuse-no-wait-on-changed-tree-VIOLATED
+    created_at: 2026-11-17T10:51:15.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73f18008bb1c
+  - type: verified_by
+    from: SCEN-NEG-ci-proof-reuse-no-wait-on-changed-tree-VIOLATED
+    to: TEST-ci-proof-reuse-decide-before-wait
+    created_at: 2026-11-17T10:51:15.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-284ac5b1c37f
+  - type: implements
+    from: SYM-firm-edit-staged-current-successor
+    to: REQ-pre-edit-hooks-kibi-check-staged
+    created_at: 2026-11-18T06:04:21.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-681a45ca1284
+  - type: covered_by
+    from: SYM-firm-edit-staged-current-successor
+    to: TEST-closed-firm-requirement-guards
+    created_at: 2026-11-18T06:04:21.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04c815bb804f

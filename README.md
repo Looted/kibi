@@ -70,7 +70,7 @@ npm install --save-dev kibi-core kibi-cli kibi-mcp
 npm exec -- kibi init
 ```
 
-`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It never overwrites a hook it did not write; with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add instead. It does not infer product knowledge. So that a fresh clone (a teammate's, a cloud agent's) uses Kibi too, it also writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md`) that tells any agent the knowledge base exists, and adds a `prepare` step that installs the hooks when dependencies are installed; the first Kibi query in a clone compiles the branch's store from the committed knowledge. Each of these can be turned off ([setup choices](https://looted.github.io/kibi/reference/cli.html#setup-choices)). [Connect your coding agent](#connect-your-coding-agent), then ask it:
+`kibi init` creates the `.kb/` layout and installs the Git hooks that keep it in sync. It never overwrites a hook it did not write; with lefthook, husky or the pre-commit framework it installs none and prints the configuration to add instead. It does not infer product knowledge. So that a fresh clone (a teammate's, a cloud agent's) uses Kibi too, it also writes a Kibi section into `AGENTS.md` (imported from `CLAUDE.md` for Claude Code and from `GEMINI.md` for Gemini CLI) that tells any agent the knowledge base exists, and adds a `prepare` step that installs the hooks when dependencies are installed; the first Kibi query in a clone compiles the branch's store from the committed knowledge. Each of these can be turned off ([setup choices](https://looted.github.io/kibi/reference/cli.html#setup-choices)). [Connect your coding agent](#connect-your-coding-agent), then ask it:
 
 > **Bootstrap Kibi for this repository.**
 
@@ -192,9 +192,11 @@ Any stdio MCP client works with `command: npx`, `args: --no-install kibi-mcp`. Z
 
 ### What your agent gets
 
-Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and a small set of MCP tools does the rest:
+Every surface opens a session with the same short brief: search for the recorded intent before changing behaviour, record the person's decisions with their reason, run the commit check before finishing, and treat a request that would make a recorded rule false as a question. The host plugins add it at session start, and the MCP server returns it in its `initialize` instructions and in `kb_status`, so an MCP client without hooks reads it too.
 
-- **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements, the tests and decisions behind them, and what Kibi's checks say about each.
+Kibi's skill subsystem gives the agent seven bundled skills that teach it how to work with Kibi (including `kibi-provable-code`, on writing code whose rules Kibi can prove), so you do not paste a long system prompt, and the MCP tools (`kb_search`, `kb_query`, `kb_record`, `kb_upsert`, `kb_check`, `kb_status`, `kb_skills` and the rest) do the work; a project can list only the eight core tools with `KIBI_MCP_TOOLS=core`. The main skill, `kibi-usage`, is a short arc of about 3k characters (search for prior intent, edit, record the decision, check, commit); its topic guidance, such as modeling claims or changing someone else's KB, loads only when the task needs it:
+
+- **Plain-language answers.** Ask "what governs checkout rounding?" and `kb_search` returns the current requirements with what each says and why it exists (its recorded reason, who gave it and when), the tests and decisions behind them, and what Kibi's checks say about each.
 - **A review of every change.** `kb_check` on the files the agent touched quotes the requirements that code implements and flags new code no requirement covers.
 - **Safe writes.** Every write can be previewed first, and a plan you approve lands in full or not at all.
 - **Other repositories' knowledge, read-only.** Declare a repository your code depends on in `.kb/dependencies.json`, pin it with `kibi deps lock`, and `kb_search` (or `kibi search --kb <name>`) answers from that repository's own KB at the pinned commit. Its KB stays separate from yours, is never written to, and can be on an older KB schema (6 or later).
@@ -215,7 +217,7 @@ The knowledge base itself is checked the same way. `kibi check` (and `kb_check` 
 
 Before you sign off on a change, `kibi signoff` shows the requirements it adds, rewrites or affects, each quoted with its firmness, proof state and evidence level, and `kibi signoff --questions` numbers the decisions waiting for you next to the rule each one would change. Agents put the view in their reply as plain Markdown, so it renders wherever the agent writes, including chat apps and cloud sessions where replies go through a messaging tool; the same view is a self-contained page in `.kb/briefs/signoff/latest.html`. Claude Code, Cursor, ZCode and OpenCode add a `/kibi-signoff` command, OpenCode draws the view as a card, VS Code opens it in a panel, and the agent hooks ask for it once a session has written requirements.
 
-To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the [report workflow](docs/examples/github/kibi-report.yml), badge-only publishing, and a [CI step](docs/examples/github/kibi-kb-merge.yml) that keeps pull requests mergeable when only Kibi's own files conflict. Symbol line positions are never committed: every `kibi sync` derives them into a gitignored cache, so two branches that edit the same source file do not conflict over them.
+To publish the report and a clickable badge on GitHub Pages, run `npm exec -- kibi init --github`, then enable **Settings → Pages → Source → GitHub Actions**. The [GitHub integration guide](https://looted.github.io/kibi/guide/github-integration.html) covers the [report workflow](docs/examples/github/kibi-report.yml), badge-only publishing, and a [CI action](docs/examples/github/kibi-kb-merge.yml) that keeps pull requests mergeable when only Kibi's own files conflict, which GitHub's own merge check cannot resolve. Symbol line positions are never committed: every `kibi sync` derives them into a gitignored cache, so two branches that edit the same source file do not conflict over them.
 
 For day-to-day inspection, `kibi status`, `kibi search`, `kibi gaps`, `kibi coverage`, and `kibi check` are in the [CLI reference](https://looted.github.io/kibi/reference/cli.html).
 
@@ -292,11 +294,13 @@ flowchart LR
 
 For a requirement to be tested end to end rather than merely documented:
 
-- Every production symbol must trace to the requirement it implements.
+- Every behavioral production symbol must trace to the requirement it implements. A schema constant or type can be recorded with a non-behavioral `symbol_role` and no link. When the pre-commit hook refuses a new declaration that nothing owns, it prints one block for it: the requirements the rest of its file implements, each with a paste-ready `kb_upsert` input (`implementedBy` with `coveredBy`), and Kibi never picks one.
 - Every normative requirement clause must be modeled as typed facts or stay explicitly unresolved.
 - Requirements must be specified by scenarios, and tests must verify those scenarios. A success scenario that assumes something a current requirement forbids blocks proof.
 - Executable test symbols must identify the code that actually performs the verification.
 - Proof-bearing production symbols must be covered by qualifying tests, and the pre-commit hook applies the same rule as the full check.
+- The pre-commit hook judges a commit only on the declarations it adds or changes, so an older repository whose KB records only its deciding code can adopt Kibi without first recording every declaration. `kibi check` counts the unrecorded rest as non-blocking symbol debt on its one-line verdict (`kibi check --symbol-debt` lists it), and every commit that touches it records it.
+- `kibi check --changed` (`kb_check` with `changed: true` for agents) gives the pre-commit hook's verdict on every current change before anything is staged, without touching the index, and every finding says whether it blocks the commit (`blocks: "commit"`), the merge (`"merge"`) or nothing (`"none"`). The agent hooks recommend it after each edit.
 - End-to-end evidence must be fresh and bound to the current code snapshot, so CI and a local checkout of the same commit agree.
 
 That makes questions answerable in both directions: which requirement owns this symbol, what this E2E test actually verifies, which requirements lack a scenario or current evidence, and whether two current requirements contradict each other. Code coverage alone cannot answer them: it shows that a test touched a line, not which product behavior was exercised.
@@ -328,6 +332,8 @@ Eight entity types: `req`, `scenario`, `test`, `fact`, `adr`, `flag`, `event`, a
 Every entity records who authored it, a person or an agent, and advisory checks list agent-written requirements no person has approved.
 
 Requirements and ADRs also say how firmly they were decided. A `firm` rule is one a person stated: it points at their words, the agent asks before changing it, and Kibi refuses to rewrite it quietly. A `default` choice can be revisited on evidence, and `exploratory` marks a guess. Every supersede has to say why it changed. A requirement whose behavior is gone without a replacement is `retired` with a reason, so it stops governing; a `closed` one is done and still holds. [How Kibi works](https://looted.github.io/kibi/guide/how-it-works.html) has the details.
+
+When the agent records a rule you stated, one `kb_record` call (`kibi record --input -` without MCP) takes the rule, your reason, who said it, your words and the code that implements it. Kibi turns that into one `kb_upsert` write, checked exactly as a hand-written one, and returns the commit gate's verdict on the result: whether a commit would pass and which findings block it. The result lists what the checks still need (the subject the rule is about, a scenario, a test) as ready calls, and names the current requirements on the same terms, so an older version of the rule is superseded rather than left beside the new one. Facts, links, updates and other modeling stay on `kb_upsert`.
 
 ## Packages
 

@@ -293,3 +293,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-15438c96fe01
+  - type: executable_for
+    from: SYM-test-kibi-proof-steps-directory
+    to: TEST-kibi-proof-steps-directory
+    created_at: 2026-11-16T07:29:31.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e629663bccfc
+  - type: assumes
+    from: SCEN-mcp-default-tool-profile
+    to: FACT-mcp-instructions-name-unlisted
+    created_at: 2026-11-16T17:22:01.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b99e8ded703c
+  - type: assumes
+    from: SCEN-mcp-default-tool-profile
+    to: FACT-mcp-full-profile-unlisted-count
+    created_at: 2026-11-16T18:30:04.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-689b3e3a59e0
+  - type: assumes
+    from: SCEN-mcp-default-tool-profile
+    to: FACT-mcp-default-profile-tools
+    created_at: 2026-11-16T22:37:04.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9559278f5c2a

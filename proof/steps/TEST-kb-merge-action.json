@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kb-merge-action",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./scripts/tests/kb-merge-action.test.ts"
+    ]
+  ]
+}

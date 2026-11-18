@@ -258,3 +258,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbeda49ba2d9
+  - type: assumes
+    from: SCEN-staged-gate-judges-changed-declarations
+    to: FACT-staged-gate-judges-changed-declarations
+    created_at: 2026-11-16T05:33:38.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0db2e8b88b63
+  - type: validates
+    from: TEST-claude-edit-snippet-hook
+    to: SCEN-claude-decision-capture-template
+    created_at: 2026-11-16T08:46:01.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff09f0097676
+  - type: implements
+    from: SYM-session-state-session-state
+    to: REQ-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T17:04:37.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fd057ae7bc2
+  - type: covered_by
+    from: SYM-session-state-session-state
+    to: TEST-agent-hosts-rule-reason-capture
+    created_at: 2026-11-16T17:04:37.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58af75e3b909
+  - type: implements
+    from: SYM-snippets-max-why-chars
+    to: REQ-agent-core-edit-snippet-why
+    created_at: 2026-11-16T15:55:27.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50118640fb3d
+  - type: covered_by
+    from: SYM-snippets-max-why-chars
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T16:00:23.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e91f9c16c913
+  - type: covered_by
+    from: SYM-session-state-session-state
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-17T08:31:07.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b0e2cbdad5c

@@ -1,5 +1,18 @@
 # kibi-plugin-search-hints
 
+## 1.0.1
+
+### Patch Changes
+
+- The package now ships `catalog.json`, which its `integrity.json` lists. Earlier tarballs left it out, so the integrity manifest named a file that was not installed.
+
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [69b636f]
+  - kibi-plugin-sdk@0.8.0
+
 ## 0.1.3
 
 ### Patch Changes

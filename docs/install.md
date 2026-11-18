@@ -225,7 +225,7 @@ After installing the packages, use this short path:
 
 `kibi init` runs once per repository, but `.git/hooks`, the compiled branch store and agent plugins never travel with a clone. So that a teammate's or an agent's fresh clone still uses Kibi, `kibi init` also:
 
-- writes a Kibi section into `AGENTS.md` and an `@AGENTS.md` import into `CLAUDE.md`, so every coding agent, with or without a Kibi plugin, is told the knowledge base exists and how to query it;
+- writes a Kibi section into `AGENTS.md`, an `@AGENTS.md` import into `CLAUDE.md` and an `@./AGENTS.md` import into `GEMINI.md` (Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default), so every coding agent, with or without a Kibi plugin, is told the knowledge base exists and how to query it;
 - adds `kibi hooks install --quiet` to the root `package.json` `prepare` script, so installing dependencies installs the hooks (without a root `package.json`, run `kibi hooks install` after cloning);
 - records these choices in `package.json` `kibi.setup` (or `.kb/setup.json`).
 
@@ -479,8 +479,9 @@ On OpenCode v2:
 - v2 has no toast or structured plugin log, so kibi-opencode shows no toasts and
   reports plugin errors on stderr with a `[kibi-opencode]` prefix.
 - **Code Mode:** v2 exposes MCP tools through Code Mode by default. On
-  OpenCode v2.0.32 the catalog lists `kibi (16 tools, 1 shown)`,
-  `search({ query: "kibi" })` finds all 16, and the tools are reachable
+  OpenCode v2.0.32 the catalog lists
+  `kibi (18 tools, 1 shown)` (eight with the `core` profile), `search({ query:
+  "kibi" })` finds all of them, and the tools are reachable
   through `execute` under `tools.kibi`. To call the native `kibi_*` tools
   directly, set `codemode: false` on a v2-native server entry under
   `mcp.servers`:
@@ -862,6 +863,28 @@ variables always win. `KIBI_ENV_FILE` replaces the project file path. A legacy
 is not preferred (it can pull unrelated app secrets into Kibi). Restart
 long-running MCP or host processes after changing env files. Do not put secrets
 in `package.json`.
+
+The project file and the legacy `.env` come with the checkout, so Kibi lets
+them set only provider secrets and provider settings: `KIBI_JEV_*`, and keys
+named like a provider secret or setting (ending in `_API_KEY`, `_KEY`,
+`_TOKEN`, `_SECRET`, `_PASSWORD`, `_MODEL`, `_ORG`, `_ORG_ID`,
+`_ORGANIZATION`, `_PROJECT`, `_PROJECT_ID` or `_REGION`, such as
+`TYPESAFE_API_KEY`). Every other key there is ignored, including variables
+that make a process load code, such as `OPENSSL_CONF` or `_JAVA_OPTIONS`, and
+provider endpoints (`_URL`, `_ENDPOINT`, such as `TYPESAFE_BASE_URL`), which
+would let a cloned repository send the API key you keep in the user env file
+to its own server.
+That covers any other `KIBI_*` key, such as
+`KIBI_NODE_PATH`, `KIBI_SWIPL`, `KIBI_KB_PL_PATH`, `KIBI_RUNTIME_DIR`,
+`KIBI_ENV_FILE`, `KIBI_WORKSPACE` or `KIBI_BRANCH`, and process variables such
+as `PATH`, `HOME`, `TMPDIR`, `NODE_OPTIONS`, `NODE_*`, `LD_*`, `DYLD_*`,
+`BUN_*`, `GIT_*`, `XDG_*`, `SWI_HOME_DIR` and the proxy variables, so a cloned
+repository cannot choose what Kibi runs or loads. Each command names the
+ignored keys once on stderr (never their values; a line that is not a plain
+upper-case variable name is only counted, and a legacy `.env` names only the
+Kibi and process keys it tries to set, not your application's own settings).
+A quoted value may span lines, as a PEM key does. Set those keys in the process
+environment or in `~/.config/kibi/env`, which Kibi applies unfiltered.
 
 Optional settings:
 

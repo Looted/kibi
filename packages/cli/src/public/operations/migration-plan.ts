@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
+import { legacyBranchMigrationApprovalHash } from "../../commands/branch.js";
 import { planLegacyStorageMigration } from "../../commands/legacy-storage-migration.js";
 import { BRANCH_STORE_NOT_COMPILED } from "../../utils/branch-store.js";
 import {
@@ -886,10 +887,24 @@ export function buildActionsFromStatus(input: {
     typeof attachment?.kbBranch === "string" ? attachment.kbBranch : null;
 
   if (attachment?.migrationRequired === true) {
-    const legacy =
+    // The plan carries the preview's approval hash, which binds the legacy
+    // store's contents: applying the plan approves exactly that move.
+    const approvalHash =
       attachment.kind === "legacy_compat" &&
+      // rationale: the preview hash is undefined for a missing branch name
+      // anyway, so these checks only narrow the types.
+      // Stryker disable next-line ConditionalExpression
       typeof branch === "string" &&
-      typeof kbBranch === "string";
+      // rationale: same type-only narrowing as the check above.
+      // Stryker disable next-line ConditionalExpression
+      typeof kbBranch === "string"
+        ? legacyBranchMigrationApprovalHash(
+            input.workspaceRoot,
+            kbBranch,
+            branch,
+          )
+        : undefined;
+    const legacy = approvalHash !== undefined;
     actions.push(
       migrationAction({
         id: "branch-legacy-attachment",
@@ -909,6 +924,8 @@ export function buildActionsFromStatus(input: {
                 "--to",
                 branch as string,
                 "--apply",
+                "--approval-hash",
+                approvalHash,
               ],
             }
           : {
@@ -921,7 +938,7 @@ export function buildActionsFromStatus(input: {
             ? attachment.storePath
             : ".kb/branches",
         ],
-        evidence: { attachment },
+        evidence: legacy ? { attachment, approvalHash } : { attachment },
         autoApplicable: legacy,
         dispositionRequired: !legacy,
       }),
@@ -957,7 +974,12 @@ export function buildActionsFromStatus(input: {
         autoApplicable: true,
       }),
     );
-  } else if (storeState === "incomplete" || storeState === "unreadable") {
+  } else if (
+    (storeState === "incomplete" || storeState === "unreadable") &&
+    // A legacy literal-named store is moved by the legacy attachment action;
+    // recovering would rebuild the store that migration just moved.
+    store?.errorCode !== "legacy_branch_store"
+  ) {
     actions.push(
       migrationAction({
         id: "branch-store-recover",

@@ -1,0 +1,14 @@
+{
+  "test_id": "TEST-skillopt-harness-telemetry-silent",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--preload",
+      "./scripts/skillopt-eval/offline-test-preload.ts",
+      "--timeout",
+      "120000",
+      "./scripts/skillopt-eval/tests/telemetry-env.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-signoff-markdown-limit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/signoff-brief-location.proof.test.ts"
+    ]
+  ]
+}

@@ -202,3 +202,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0003e16ad10
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: REQ-upsert-refuses-fact-contradiction
+    created_at: 2026-11-16T19:17:20.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-322b83059589
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: REQ-upsert-lists-sibling-requirements
+    created_at: 2026-11-16T19:17:20.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23487e746faf
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: REQ-upsert-flags-stale-sibling-claim
+    created_at: 2026-11-16T19:17:20.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40876b7a2a0c
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: REQ-upsert-dry-run-lists-siblings
+    created_at: 2026-11-16T19:17:20.115Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ee737052374
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: REQ-apply-plan-checks-contradictions-once
+    created_at: 2026-11-16T19:17:20.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dd8568170e5
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: SCEN-upsert-refuses-fact-contradiction
+    created_at: 2026-11-16T19:17:20.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-024b211856e6
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: SCEN-upsert-lists-sibling-requirements
+    created_at: 2026-11-16T19:17:20.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-100b2f96e756
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: SCEN-upsert-flags-stale-sibling-claim
+    created_at: 2026-11-16T19:17:20.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1be2c27a5f2
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: SCEN-upsert-dry-run-lists-siblings
+    created_at: 2026-11-16T19:17:20.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d2cf6c88377
+  - type: validates
+    from: TEST-upsert-stale-siblings
+    to: SCEN-apply-plan-checks-contradictions-once
+    created_at: 2026-11-16T19:17:20.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae38ce7e9e5b
+  - type: assumes
+    from: SCEN-NEG-ci-kb-merge-branch-push-VIOLATED
+    to: FACT-NEG-ci-kb-merge-branch-push-VIOLATED
+    created_at: 2026-11-16T18:11:52.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86e8a5617940
+  - type: verified_by
+    from: SCEN-NEG-ci-kb-merge-branch-push-VIOLATED
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:11:52.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-477da05fcb93

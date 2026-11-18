@@ -216,3 +216,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e4c1806589f
+  - type: implements
+    from: SYM-branch-store-locator-unmigrated-legacy-store-refusal
+    to: REQ-kibi-legacy-attachment-engine-refusal
+    created_at: 2026-11-16T20:45:12.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-318e501c9b91
+  - type: covered_by
+    from: SYM-branch-store-locator-unmigrated-legacy-store-refusal
+    to: TEST-kibi-cli-legacy-apply-safe
+    created_at: 2026-11-16T20:46:20.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb2ceeffc729
+  - type: implements
+    from: SYM-knowledge-index-without-change-notes
+    to: REQ-requirement-reason-skips-change-notes
+    created_at: 2026-11-16T17:37:03.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-322e961e8f4b
+  - type: covered_by
+    from: SYM-knowledge-index-without-change-notes
+    to: TEST-agent-core-edit-snippet-why
+    created_at: 2026-11-16T17:37:35.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79b5658d09ac
+  - type: assumes
+    from: SCEN-NEG-agent-core-session-brief-MISSING-RULE
+    to: FACT-session-brief-steps-missing
+    created_at: 2026-11-16T16:34:49.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c8957ed2768
+  - type: assumes
+    from: SCEN-NEG-agent-core-session-brief-MISSING-RULE
+    to: FACT-session-brief-conflict-rule-missing
+    created_at: 2026-11-16T16:34:49.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5f7cd797ffc
+  - type: implements
+    from: SYM-env-parse-env-content
+    to: REQ-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-18T06:23:39.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7f568717cbf
+  - type: covered_by
+    from: SYM-env-parse-env-content
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-18T06:23:39.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fc3ad6ec608
+  - type: constrains
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: FACT-SUBJECT-kibi-proof-requirement
+    created_at: 2026-11-18T10:54:38.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbae43d0a599
+  - type: requires_property
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: FACT-kibi-source-proved-rule-missing-symbol
+    created_at: 2026-11-18T10:54:38.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18df4ad46904
+  - type: specified_by
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: SCEN-kibi-source-proof-scopes-unimplemented-rule
+    created_at: 2026-11-18T10:54:38.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-850834df4b62
+  - type: specified_by
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: SCEN-NEG-kibi-source-proof-scopes-unimplemented-rule-VIOLATED
+    created_at: 2026-11-18T10:54:38.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa3ba0ad2ec
+  - type: verified_by
+    from: REQ-kibi-source-proof-scopes-unimplemented-rule
+    to: TEST-kibi-source-proof-kinds
+    created_at: 2026-11-18T10:54:38.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20b5165c7fee

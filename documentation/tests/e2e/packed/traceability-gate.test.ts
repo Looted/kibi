@@ -81,6 +81,7 @@ type StagedCheck = Readonly<{
       suggestion: string;
       requirementIds: string[];
       evidencePaths: string[];
+      blocks: string;
     }>;
     staged: Readonly<{
       files: StagedFile[];
@@ -607,6 +608,7 @@ if (RUN_NODE_TEST_SUITE) {
           ".kb/manifest.json",
           "AGENTS.md",
           "CLAUDE.md",
+          "GEMINI.md",
           ".kb/schema/entities.pl",
           ".kb/schema/relationships.pl",
           ".kb/schema/validation.pl",
@@ -654,6 +656,12 @@ if (RUN_NODE_TEST_SUITE) {
             {
               id: "staged_file_ownership_missing",
               path: "CLAUDE.md",
+              severity: "warning",
+              blocking: false,
+            },
+            {
+              id: "staged_file_ownership_missing",
+              path: "GEMINI.md",
               severity: "warning",
               blocking: false,
             },
@@ -985,13 +993,19 @@ if (RUN_NODE_TEST_SUITE) {
           suggestion: check.structuredContent.diagnostics[0]?.suggestion,
           requirementIds: [],
           evidencePaths: [],
+          // Advice: it does not stop the commit.
+          blocks: "none",
         },
       ]);
       assert.ok(check.structuredContent.diagnostics[0]?.message);
       assert.ok(check.structuredContent.diagnostics[0]?.suggestion);
+      // The staged coverage report carries the same diagnostics, without
+      // the blocks tag the result adds.
       assert.deepEqual(
         check.structuredContent.staged?.diagnostics,
-        check.structuredContent.diagnostics,
+        check.structuredContent.diagnostics.map(
+          ({ blocks: _blocks, ...diagnostic }) => diagnostic,
+        ),
       );
       assert.deepEqual(check.structuredContent.messages, [
         "No exported symbols or staged entities found in staged files.",
@@ -1206,8 +1220,21 @@ if (RUN_NODE_TEST_SUITE) {
         "staged check for a behavior edit without impact evidence",
       );
       const output = commandText(result);
-      assert.match(output, /kibi_impact_evidence_missing/);
-      assert.match(output, /src\/sample\.js/);
+      // The text names each unowned declaration once; the JSON keeps the
+      // impact-evidence finding the block stands for.
+      assert.match(
+        output,
+        /\[BLOCKS COMMIT\] missingLink \(src\/sample\.js:\d+\)/,
+      );
+      const json = await kibi(
+        sandbox,
+        ["check", "--staged", "--format", "json"],
+        {
+          timeoutMs: CHECK_TIMEOUT_MS,
+        },
+      );
+      assert.match(commandText(json), /kibi_impact_evidence_missing/);
+      assert.match(commandText(json), /src\/sample\.js/);
     });
 
     it("does not let a no-impact declaration waive a behavior edit", async (testContext) => {
@@ -1262,8 +1289,20 @@ if (RUN_NODE_TEST_SUITE) {
         "staged check for a behavior edit with a no-impact declaration",
       );
       const output = commandText(result);
-      assert.match(output, /kibi_impact_evidence_missing/);
+      assert.match(output, /\[BLOCKS COMMIT\] missingLink/);
+      const json = await kibi(
+        sandbox,
+        ["check", "--staged", "--format", "json"],
+        {
+          timeoutMs: CHECK_TIMEOUT_MS,
+        },
+      );
+      assert.match(commandText(json), /kibi_impact_evidence_missing/);
       assert.doesNotMatch(output, /kibi_impact_override_missing_rationale/);
+      assert.doesNotMatch(
+        commandText(json),
+        /kibi_impact_override_missing_rationale/,
+      );
     });
 
     it("treats a comment-only staged edit as non-behavioral and checks staged knowledge in an overlay without touching the branch store", async (testContext) => {

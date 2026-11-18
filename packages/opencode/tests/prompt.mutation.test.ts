@@ -621,7 +621,7 @@ describe("source-linked bullets", () => {
         blank,
         header,
         "- Existing Kibi links: REQ-a, REQ-b",
-        "- REQ-a must keep true: One holds +1 more.",
+        "- REQ-a must keep true: One holds +1 more. Why: no reason is recorded for REQ-a.",
         ...rest,
       ].join("\n"),
     );

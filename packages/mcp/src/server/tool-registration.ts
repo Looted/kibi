@@ -9,7 +9,7 @@ import {
   executeCompileIntent,
   executeDelete,
   executeIngestProof,
-  executeUpsert,
+  executeUpsertRequest,
   preflightApplyPlan,
 } from "kibi-runtime";
 import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
@@ -58,10 +58,68 @@ type ToolRegistration = {
   ) => Promise<unknown>;
 };
 
+/**
+ * A result whose nextActions name an operation this session does not list
+ * (under the core profile) gets a text line with that operation's CLI route,
+ * so the step can still be followed. Other results are returned as they are.
+ */
+export function withUnlistedRoutes(
+  result: unknown,
+  listed: ReadonlySet<string> | undefined,
+): unknown {
+  if (listed === undefined || result === null || typeof result !== "object")
+    return result;
+  const { content, structuredContent } = result as {
+    content?: unknown;
+    structuredContent?: {
+      nextActions?: unknown;
+      data?: { nextActions?: unknown };
+      // kb_status names its bootstrap step on its own.
+      bootstrap?: { nextAction?: unknown };
+    };
+  };
+  if (!Array.isArray(content)) return result;
+  const actions = [
+    structuredContent?.nextActions,
+    structuredContent?.data?.nextActions,
+    [structuredContent?.bootstrap?.nextAction],
+  ].flatMap((list) => (Array.isArray(list) ? list : []));
+  const routes = new Map<string, string>();
+  for (const action of actions) {
+    const operation = (action as { operation?: unknown } | null)?.operation;
+    if (typeof operation !== "string" || listed.has(operation)) continue;
+    try {
+      routes.set(operation, getSpec(operation as OperationName).cliName);
+    } catch {
+      // Not a Kibi operation: nothing to route.
+    }
+  }
+  if (routes.size === 0) return result;
+  return {
+    ...result,
+    content: [
+      ...content,
+      {
+        type: "text",
+        text: `Not listed in this session, so run with the same input through the project CLI: ${[
+          ...routes,
+        ]
+          .map(
+            ([operation, cli]) =>
+              `${operation} as npx --no-install kibi ${cli} --input -`,
+          )
+          .join("; ")}.`,
+      },
+    ],
+  };
+}
+
 export function registerConfiguredTools<TProlog>(
   server: McpServer,
   runtime: ToolsRuntime<TProlog>,
   registerTool: ToolRegistrar<TProlog>,
+  // The tool profile's names; every configured tool when absent.
+  listed?: ReadonlySet<string>,
 ): void {
   const toolDef = (name: string) => {
     const t = runtime.tools.find((tool) => tool.name === name);
@@ -85,12 +143,13 @@ export function registerConfiguredTools<TProlog>(
     >,
   });
   const register = ({ name, execute }: ToolRegistration): void => {
+    const optional = (OPTIONAL_TOOL_NAMES as readonly string[]).includes(name);
+    // A tool profile lists only its names; an optional tool someone enabled
+    // by name is listed in every profile.
+    if (listed !== undefined && !listed.has(name) && !optional) return;
     // Optional tools (kb_sparql_remote) are registered only when enabled;
     // every other configured tool must have a definition.
-    if (
-      (OPTIONAL_TOOL_NAMES as readonly string[]).includes(name) &&
-      !runtime.tools.some((tool) => tool.name === name)
-    ) {
+    if (optional && !runtime.tools.some((tool) => tool.name === name)) {
       return;
     }
     const definition = toolDef(name);
@@ -102,7 +161,8 @@ export function registerConfiguredTools<TProlog>(
       ...(publicSpec.agentVisibleStructuredData === true
         ? { agentVisibleStructuredData: true }
         : {}),
-      execute: (args, context) => execute(context, args),
+      execute: async (args, context) =>
+        withUnlistedRoutes(await execute(context, args), listed),
     };
     registerTool(
       server,
@@ -234,7 +294,17 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_upsert",
     execute: async (context, args) =>
-      executeUpsert(args as unknown as UpsertArgs, withSessionProlog(context)),
+      // The CLI's entry point, so implementedBy links (or is refused) alike.
+      executeUpsertRequest(
+        args as unknown as UpsertArgs,
+        withSessionProlog(context),
+      ),
+  });
+  register({
+    name: "kb_record",
+    // One kb_upsert payload, run through kb_upsert, then kb_check changed.
+    execute: async (context, args) =>
+      getSpec("kb_record").execute(args, withSessionProlog(context)),
   });
   register({
     name: "kb_delete",
@@ -269,6 +339,11 @@ export function registerConfiguredTools<TProlog>(
         ),
       );
     },
+  });
+  register({
+    name: "kb_review_firm_edit",
+    execute: async (context, args) =>
+      getSpec("kb_review_firm_edit").execute(args, context),
   });
   register({
     name: "kb_prepare_impact_review",

@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-telemetry-acceptance-version",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/telemetry-versions.proof.test.ts"
+    ]
+  ]
+}

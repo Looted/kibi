@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import path from "node:path";
+import { SESSION_BRIEF } from "kibi-agent-core/session-brief";
 import * as syncCache from "../../../src/commands/sync/cache.js";
 import * as engine from "../../../src/engine.js";
 import * as activation from "../../../src/operations/bootstrap/activation.js";
@@ -100,6 +101,7 @@ function harness() {
     storeReason: spy(branchStore, "branchStoreReason").mockReturnValue(null),
     lock: spy(branchStore, "storeLockJournalReason").mockReturnValue(null),
     takeover: spy(branchStore, "storeLockTakeoverReason").mockReturnValue(null),
+    repair: spy(branchStore, "storeRepairReason").mockReturnValue(null),
     compiler: spy(syncCache, "compilerFingerprintReason").mockReturnValue(null),
     extraction: spy(
       syncCache,
@@ -152,6 +154,10 @@ describe("executeStatus engine answer", () => {
     expect(calls.config).toHaveBeenCalledWith("/ws");
     expect(calls.fragment).not.toHaveBeenCalled();
     expect(calls.activation).toHaveBeenCalledWith(expect.anything(), []);
+    // kb_status opens a session the way the host adapters do.
+    expect((result as Loose).structuredContent.sessionBrief).toBe(
+      SESSION_BRIEF,
+    );
     expectGolden("discovery-status-healthy", result);
   });
 
@@ -388,6 +394,37 @@ describe("executeStatus stale reasons", () => {
       syncState: "fresh",
       dirty: false,
     });
+  });
+
+  test("lists a store repair after a lock takeover without making the KB stale", async () => {
+    const calls = harness();
+    calls.repair.mockReturnValue({
+      code: "branch_store_repaired",
+      detail: "Kibi repaired this branch store.",
+    });
+    const repaired = await status();
+    expect(calls.repair).toHaveBeenCalled();
+    expect(repaired.structuredContent).toMatchObject({
+      syncState: "fresh",
+      dirty: false,
+      notices: [
+        {
+          code: "branch_store_repaired",
+          detail: "Kibi repaired this branch store.",
+        },
+      ],
+    });
+    expect(repaired.content[0].text).toEndWith(
+      ". Note: Kibi repaired this branch store.",
+    );
+    calls.takeover.mockReturnValue({ code: "takeover", detail: "took over" });
+    const both = await status();
+    expect(
+      both.structuredContent.notices.map((row: Loose) => row.code),
+    ).toEqual(["takeover", "branch_store_repaired"]);
+    expect(both.content[0].text).toEndWith(
+      ". Note: took over. Note: Kibi repaired this branch store.",
+    );
   });
 
   test("blocks on a store that was never compiled", async () => {

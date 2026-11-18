@@ -499,7 +499,9 @@ describe("createTempKb", () => {
       readFileSync(path.join(ctx.kbPath, "nested", "kb.rdf"), "utf8"),
     ).toBe("data");
     expect(readFileSync(ctx.overlayPath, "utf8")).toBe("");
-    expect(fake.options).toStrictEqual([{ timeout: 120000, oneShot: false }]);
+    expect(fake.options).toStrictEqual([
+      { timeout: 120000, oneShot: false, saveAfterWrites: false },
+    ]);
     expect(fake.events).toStrictEqual(["start"]);
     expect(fake.queries).toStrictEqual([`kb_attach('${ctx.kbPath}')`]);
     expect(once.mock.calls.map((call): unknown => call[0])).toStrictEqual([
@@ -563,13 +565,12 @@ describe("createTempKb", () => {
 });
 
 describe("consultOverlay", () => {
-  test("consults the overlay and saves the KB", async () => {
+  test("consults the overlay without saving the scratch store", async () => {
     const fake = useFake();
     const ctx = await createTempKb();
     await consultOverlay(ctx);
     expect(fake.queries.at(-1)).toStrictEqual([
       `consult('${ctx.overlayPath}')`,
-      "kb_save",
     ]);
     await cleanupTempKb(ctx.tempDir);
   });
@@ -578,10 +579,7 @@ describe("consultOverlay", () => {
     const fake = useFake();
     const ctx = await createTempKb();
     await consultOverlay({ ...ctx, overlayPath: "/a'b.pl" });
-    expect(fake.queries.at(-1)).toStrictEqual([
-      "consult('/a''b.pl')",
-      "kb_save",
-    ]);
+    expect(fake.queries.at(-1)).toStrictEqual(["consult('/a''b.pl')"]);
     await cleanupTempKb(ctx.tempDir);
   });
 
@@ -781,12 +779,15 @@ describe("createOverlayFacts", () => {
       {
         id: "s'1",
         name: "fn'a",
+        kind: "function",
         location: { file: "src/a'.ts", startLine: 3 },
         reqLinks: ["REQ-1", "REQ-2"],
       },
       {
         id: "s2",
         name: "b",
+        kind: "variable",
+        callable: true,
         location: { file: "b.ts", startLine: 9 },
         reqLinks: [],
       },
@@ -795,10 +796,13 @@ describe("createOverlayFacts", () => {
       [
         "kb:changed_symbol('s''1').",
         "kb:changed_symbol_loc('s''1', 'src/a''.ts', 3, 0, 'fn''a').",
+        "kb:changed_symbol_kind('s''1', 'function').",
         "kb:changed_symbol_req('s''1', 'REQ-1').",
         "kb:changed_symbol_req('s''1', 'REQ-2').",
         "kb:changed_symbol('s2').",
         "kb:changed_symbol_loc('s2', 'b.ts', 9, 0, 'b').",
+        "kb:changed_symbol_kind('s2', 'variable').",
+        "kb:changed_symbol_callable('s2').",
       ].join("\n"),
     );
     expect(createOverlayFacts([])).toBe("");

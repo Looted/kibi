@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-ontology-pack-capability-id",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/plugin-protocol-identifiers.proof.test.ts"
+    ]
+  ]
+}

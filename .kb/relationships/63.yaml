@@ -220,3 +220,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37a73b00890a
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-bin
+    to: TEST-kb-merge-action
+    created_at: 2026-11-16T18:30:03.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1753c375746b
+  - type: executable_for
+    from: SYM-kb-merge-fixture-fixture-bin
+    to: TEST-ci-kb-merge-resolution
+    created_at: 2026-11-16T18:30:03.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdbace1fbd6d
+  - type: constrains
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: FACT-SUBJECT-kibi-env-workspace-files
+    created_at: 2026-11-16T20:34:13.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9c1b83ae3bc
+  - type: requires_property
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: FACT-env-workspace-files-non-provider-kibi-keys
+    created_at: 2026-11-16T20:34:13.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b87a918efcca
+  - type: requires_property
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: FACT-env-workspace-files-process-variables
+    created_at: 2026-11-16T20:34:13.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6b22fc17f47
+  - type: requires_property
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: FACT-env-workspace-files-ignored-key-report
+    created_at: 2026-11-16T20:34:13.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2081dfb406ad
+  - type: requires_property
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: FACT-env-user-and-process-env-unrestricted
+    created_at: 2026-11-16T20:34:13.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25bfcf6088fd
+  - type: specified_by
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: SCEN-NEG-kibi-env-workspace-file-runtime-key
+    created_at: 2026-11-16T20:34:13.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36a8a0a8e698
+  - type: verified_by
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: TEST-kibi-env-workspace-file-key-policy
+    created_at: 2026-11-16T20:34:13.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f6f802fef90
+  - type: relates_to
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: REQ-kibi-env-bootstrap-shared
+    created_at: 2026-11-16T20:34:13.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a77a9a48a25
+  - type: specified_by
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: SCEN-kibi-env-workspace-file-provider-keys
+    created_at: 2026-11-16T20:40:41.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8406d218977a
+  - type: constrains
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: FACT-SUBJECT-KIBI-ENV-BOOTSTRAP
+    created_at: 2026-11-16T20:52:57.335Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d554150654c
+  - type: requires_property
+    from: REQ-kibi-env-workspace-file-key-policy
+    to: FACT-env-workspace-files-provider-endpoints
+    created_at: 2026-11-18T06:23:01.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e176c2de15a4

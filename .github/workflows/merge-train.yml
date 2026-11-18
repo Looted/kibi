@@ -1,0 +1,102 @@
+name: Kibi merge train
+
+# Lands pull requests into develop in batches with actions/merge-train, the
+# action Kibi publishes for other repositories (docs/github-integration.md).
+# A person boards a pull request with the `train` label once its own checks
+# are green. The train merges the boarded heads into one merge-train/ branch
+# with `kibi merge-driver` (running kibi sync and the proof gate after each
+# merge), opens it as a pull request into develop so CI and the strict proof
+# run on it once, and merges it only when ci-required and proof-required
+# passed on the exact head it assembled. A failed train re-runs its failed
+# jobs once, then proves each half separately; only a train of one that fails
+# twice ejects its pull request.
+#
+# Each run takes one step and exits; it runs when a check workflow finishes,
+# when the label is added, and on a schedule as a backstop. The train branch
+# and pull request are created with KIBI_MERGE_TOKEN, because pushes and pull
+# requests made with the default GITHUB_TOKEN start no workflows.
+
+concurrency:
+  group: kibi-merge-train
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Kibi's own CI never sends anonymous usage telemetry.
+  KIBI_TELEMETRY: "0"
+
+permissions:
+  contents: read
+
+on:
+  # Runs develop's own workflow and code; it never checks out the pull
+  # request's head except to merge it into the train.
+  pull_request_target:
+    types: [labeled]
+  workflow_run:
+    workflows: ["CI", "Kibi strict requirement proof"]
+    types: [completed]
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+
+jobs:
+  # use-bundled-swipl installs the SWI-Prolog archive this job uploads in the
+  # same run, as in the CI and KB merge workflows.
+  swipl-bundle:
+    name: Bundled SWI-Prolog
+    if: ${{ github.event_name != 'pull_request_target' || github.event.label.name == 'train' }}
+    uses: ./.github/workflows/swipl-ci-bundle.yml
+
+  train:
+    name: Advance the merge train
+    needs: [swipl-bundle]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+      checks: read
+    steps:
+      # The merge driver, the KB compiler and the proof gate come from
+      # develop. The boarded heads are merged in a scratch worktree of this
+      # checkout and never installed or built; its credentials push, and the
+      # commands run in the worktree get no token in their environment.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: "1.4.4"
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      - name: Build Kibi from develop
+        run: |
+          bun install --frozen-lockfile
+          bun run build:cli-stack
+
+      - name: Install SWI-Prolog
+        uses: ./.github/actions/use-bundled-swipl
+
+      - name: Advance the merge train
+        uses: ./actions/merge-train
+        env:
+          KIBI_CLI: ${{ github.workspace }}/packages/cli/bin/kibi
+        with:
+          base: develop
+          checks: |
+            ci-required
+            proof-required
+          kibi: node ${{ github.workspace }}/packages/cli/bin/kibi
+          # develop's proof gate, not the copy in the merged tree, run with
+          # node so no bunfig.toml in the tree is read.
+          check: KIBI_RUNNER=node sh ${{ github.workspace }}/scripts/proof-gate.sh
+          github-token: ${{ secrets.KIBI_MERGE_TOKEN || github.token }}

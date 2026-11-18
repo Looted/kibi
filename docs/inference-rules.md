@@ -57,6 +57,12 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - **Semantic advisor receipts:** MCP preflight and write responses may warn that prose looks machine-checkable but unmodeled, and may include draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions. These suggestions are advisory. They do not add contradiction semantics unless the requirement is linked to strict facts or predicate facts.
 - **Automation:** The modeling pipeline is fully automated and does not require human approval for high-confidence (>= 0.7) claims.
 
+### Writes the contradiction check refuses
+
+`kb_upsert` runs the check at commit time and in its dry run. A requirement write is refused when the requirement contradicts any current requirement. A fact write is refused when it makes two current requirements grounded on the fact (`requires_property`, `requires_predicate`, `requires_rule` or `constrains`, from the store or from the write's own relationships) contradict where they did not before; a contradiction the KB already held is `kb_check`'s finding and does not block an unrelated edit of the fact. The refusal (`SEMANTIC_CONTRADICTION`) names every pair. `kb_apply_plan` stages every step and then runs the check once for the whole plan, so a change to a fact and to the requirement it would otherwise conflict with lands together.
+
+A value fact write that is accepted, and changes the fact's operator, value or unit or creates the fact, lists the other current requirements on the same quantity under `siblings`: those grounded on the fact (`shared_fact`), and those grounded on another fact with the same `subject_key` and `property_key`, or on a fact the `quantity-duplicate` pairing below matches by the value before or after the write (`same_quantity`). Each entry has the requirement's id, title and firmness, the fact, its subject, property and value, the requirement's claim text, and `statesOldValue`: the claim text still contains the old value and not the new one (a literal comparison), or a `same_quantity` fact still holds the old value. Each sibling is also the first lines of `warnings` and a required entry in `nextActions` with a ready input: a `kb_upsert` of a `default` or `exploratory` sibling (its `type`, `id`, `title` and `status`), to which the new value is added so it is updated in the same change, and a `kb_query` of a `firm` one (`includeBody: true`), which the person decides on before anything touches it. Supersede or scope the requirements when the person's change does not cover a sibling.
+
 ### Rule (logic IR) conflicts
 
 Typed `kibi.logic.v1` rules with opposing modalities (oblige or permit vs forbid) are compared three-valued:
@@ -70,6 +76,16 @@ Comparisons of a variable with itself are decided exactly (`X < X` never holds, 
 **Same-fact assumption.** Condition atoms of the two rules are read as the same fact only when their predicate declares a functional dependency: a `predicate_schema` fact with `key_arguments` names the arguments that determine the rest. Two atoms of that predicate whose key arguments are identical must agree on every other argument. With `key_arguments: [sensor]` on `reading(sensor, value)`, `permit act(C) :- reading(C, X), X > 0` and `forbid act(C) :- reading(C, Y), Y =< 0` are `disjoint`. Without the declaration a predicate is multivalued (a sensor may have several readings), so the same pair is `unresolved`, never `disjoint`.
 
 The advisory `rule-key-arguments-missing` check lists opposing rule pairs that are `unresolved` only for this reason. For each condition predicate (namespace, name, arity) without `key_arguments`, it tries every candidate key set (each non-empty proper subset of the argument positions, for predicates of arity 2 to 6) on its own, and reports the predicate with the key sets that would decide the pair; when no single declaration does, it also tries declaring all of them keyed on every argument but the last. A pair that stays undecided whatever is declared (for example because of `X < Y`) is not reported. The finding is a prompt, not a proof: declare the keys only when the predicate really is single-valued per key.
+
+### One quantity under two keys
+
+Contradiction checks compare facts on one `subject_key` and `property_key`, so a limit recorded twice under two keys is never compared with itself: a change under one key leaves the other stating the old value and every check still passes. From KB schema 19 the canonical `quantity-duplicate` rule blocks that split. Two active `property_value` facts, each grounded by a current requirement through `requires_property`, state one quantity when all three hold:
+
+- their values are equal and comparable: numbers after unit canonicalization (`ms`, `s`, `min`, `h`; bytes, `kb`, `mb`) other than 0 and 1, or sets of at least two members. Booleans and strings are never compared;
+- their requirements are implemented (`implements` in `.kb/symbols.yaml`) by symbols in one source file;
+- one signal holds: the requirements share an implementing symbol, the proof of one fact reads its value (`proof_contract.value_source`) from a symbol that implements the other's requirement, or the property keys, or the claim texts, share at least half the content words of the shorter.
+
+A pair grounded by one requirement is not reported (`subject-key-identity` and `domain-redundancy` read those), and neither is a pair where either fact lists the other's `subject_key.property_key` under `distinct_from`. A `distinct_from` entry on a grounded value fact that names no active value fact is reported too, since it exempts nothing. To settle a pair, either ground both claims on one key (and move the facts scenarios assume on the old key with them), or add `distinct_from` and say in the fact's body how the two quantities differ.
 
 ### Unmodeled clauses are not "no conflict"
 

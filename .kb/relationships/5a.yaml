@@ -335,3 +335,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6695c639c6f4
+  - type: assumes
+    from: SCEN-NEG-kibi-pending-receipt-PRESENT-FILE-SKIPPED
+    to: FACT-NEG-kibi-pending-receipt-PRESENT-FILE-SKIPPED
+    created_at: 2026-11-15T11:02:54.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf5892c0b9db
+  - type: implements
+    from: SYM-cli-parse-prolog-error-term
+    to: REQ-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T10:00:44.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55cd677cb8f1
+  - type: covered_by
+    from: SYM-cli-parse-prolog-error-term
+    to: TEST-prolog-permission-error-names-refusal
+    created_at: 2026-11-16T10:00:44.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbc28acf4fbd
+  - type: executable_for
+    from: SYM-test-upsert-reason-notes
+    to: TEST-upsert-reason-notes
+    created_at: 2026-11-16T14:58:16.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e21092b0c0a4
+  - type: assumes
+    from: SCEN-NEG-check-quantity-duplicate-dangling-distinct-UNREPORTED
+    to: FACT-NEG-check-quantity-duplicate-dangling-distinct-UNREPORTED
+    created_at: 2026-11-16T16:10:36.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98afd19ce23f
+  - type: verified_by
+    from: SCEN-NEG-check-quantity-duplicate-dangling-distinct-UNREPORTED
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:36.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afa5149d4dd1
+  - type: assumes
+    from: SCEN-ci-merge-train-lands-assembled-head
+    to: FACT-ci-merge-train-lands-assembled-head
+    created_at: 2026-11-17T11:40:08.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f38e7c15d68
+  - type: verified_by
+    from: SCEN-ci-merge-train-lands-assembled-head
+    to: TEST-ci-merge-train
+    created_at: 2026-11-17T11:40:08.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2abcc28a7503

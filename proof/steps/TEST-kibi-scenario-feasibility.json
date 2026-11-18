@@ -1,0 +1,12 @@
+{
+  "test_id": "TEST-kibi-scenario-feasibility",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "300000",
+      "./packages/cli/tests/consumer/scenario-feasibility.test.ts"
+    ]
+  ]
+}

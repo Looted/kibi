@@ -1030,7 +1030,7 @@ describe("executeProofExplain", () => {
       ? { success: true }
       : { success: true, bindings: { JsonString: JSON.stringify(payload) } };
   const moduleGoal = (goal: string) =>
-    /^\(use_module\('[^']*\/discovery\.pl'\), (.*)\)$/.exec(goal)?.[1];
+    /^\(\\\+ \\\+ \(module_property\(kb, file\(KibiKbFile\)\) -> .*? ; use_module\('[^']*\/discovery\.pl'\)\), (.*)\)$/.exec(goal)?.[1];
 
   test("runs the requirement query with the workspace snapshot", async () => {
     process.env.KIBI_PROOF_BINDING_MODE = "strict-snapshot";
@@ -1092,7 +1092,7 @@ describe("executeProofExplain", () => {
     ).toStrictEqual({
       message: "Proof explain requires a Prolog runtime",
       code: "PROLOG_UNAVAILABLE",
-      retryable: true,
+      retryable: false,
     });
   });
 });

@@ -152,6 +152,53 @@ describe("collectCheckPolicyViolations", () => {
     );
   });
 
+  test("reads requires_rule edges and asserted rule heads", async () => {
+    const root = workspace();
+    const prolog = port({
+      "kb_query_entities('symbol'": {
+        success: true,
+        bindings: {
+          Results: `[['SYM-dialog',symbol,[title='DialogComponent',sourceFile='src/app/dialog.component.ts']],['SYM-denied',symbol,[title='DeniedComponent',sourceFile='src/app/denied.component.ts']]]`,
+        },
+      },
+      "kb_relationship(implements": {
+        success: true,
+        bindings: { Rows: "[['SYM-dialog','REQ-2'],['SYM-denied','REQ-3']]" },
+      },
+      "kb_relationship(requires_rule": {
+        success: true,
+        bindings: { Rows: "[['REQ-2','RULE-2'],['REQ-3','RULE-3']]" },
+      },
+      current_req: {
+        success: true,
+        bindings: { Rows: "[['REQ-2'],['REQ-3']]" },
+      },
+      stored_rule_fact: {
+        success: true,
+        bindings: {
+          Rows: "[['RULE-2',ui_pattern,[[0,'modal-dialog']],true],['RULE-3',ui_pattern,[[0,'modal-dialog']],false]]",
+        },
+      },
+      predicate_fact: {
+        success: true,
+        bindings: {
+          Rows: "[['FACT-M',pattern_marker,['modal-dialog','alertdialog'],assert]]",
+        },
+      },
+    });
+    const violations = await collectCheckPolicyViolations(prolog, RULES, root);
+    expect(
+      violations.map((violation) => [
+        violation.rule,
+        violation.entityId,
+        violation.evidence?.pattern,
+      ]),
+    ).toStrictEqual([
+      [POLICY_OWNERSHIP_RULE, "SYM-denied", undefined],
+      [POLICY_MARKERS_RULE, "SYM-dialog", "modal-dialog"],
+    ]);
+  });
+
   test("a failed KB read names what could not be read", async () => {
     const root = workspace();
     await expect(

@@ -279,12 +279,10 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
 }
 
 /**
- * Held-out traceability objectives whose premise is a seeded KB state; their
- * protocol stays the family default.
+ * Held-out traceability and freshness objectives whose premise is a seeded
+ * KB state; their protocol stays the family default.
  */
-const TRACEABILITY_STATE_FIXTURES: Readonly<
-  Record<string, FixtureSetupMode | undefined>
-> = {
+const STATE_FIXTURES: Readonly<Record<string, FixtureSetupMode | undefined>> = {
   relationship_shard_delete: "seeded_relationship_shard_kb",
   legacy_shard_edge_cleanup: "seeded_stale_relationship_shard_kb",
   legacy_shard_reconciliation: "seeded_removed_shard_edge_kb",
@@ -294,6 +292,14 @@ const TRACEABILITY_STATE_FIXTURES: Readonly<
   append_only_contract_drift: "seeded_receipt_contract_drift_kb",
   final_integration_invalidates_receipts: "seeded_receipt_integration_kb",
   contracted_e2e_with_ontology_gap: "seeded_receipt_ontology_gap_kb",
+  legacy_branch_storage: "seeded_legacy_branch_store_kb",
+  legacy_migration_postconditions: "seeded_legacy_branch_store_kb",
+  unreadable_branch_store_recovery: "seeded_unreadable_legacy_store_kb",
+  unreadable_store_without_prolog: "seeded_unreadable_branch_store_kb",
+  missing_branch_store_status: "seeded_missing_branch_store_kb",
+  dirty_editor_config: "seeded_dirty_editor_config_kb",
+  zero_blocking_but_stale: "seeded_moved_symbol_kb",
+  partial_plan_destructive_refusal: "seeded_destructive_plan_kb",
 };
 
 function needsStatus(task: FixtureTaskSpec): boolean {
@@ -505,9 +511,8 @@ export function buildPrivateManifest(input: {
     fixtureSetup:
       caseContract !== undefined
         ? caseContract.fixtureSetup
-        : TRACEABILITY_STATE_FIXTURES[input.task.taskData.objectiveCode] !==
-            undefined
-          ? TRACEABILITY_STATE_FIXTURES[input.task.taskData.objectiveCode]
+        : STATE_FIXTURES[input.task.taskData.objectiveCode] !== undefined
+          ? STATE_FIXTURES[input.task.taskData.objectiveCode]
           : input.task.taskData.objectiveCode ===
               "generated_only_symbol_coordinate_repair"
             ? ("generated_coordinate_divergence" as const)

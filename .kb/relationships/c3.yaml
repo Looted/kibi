@@ -405,3 +405,213 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a1b34b2d96d
+  - type: specified_by
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: SCEN-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:34:33.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45413bc033c8
+  - type: specified_by
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: SCEN-NEG-kibi-legacy-apply-UNAPPROVED-MIGRATION
+    created_at: 2026-11-15T07:34:34.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04c8b1c77b6f
+  - type: specified_by
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: SCEN-NEG-kibi-legacy-apply-STORE-CHANGED
+    created_at: 2026-11-15T07:34:34.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ec03bd772f5
+  - type: verified_by
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: TEST-kibi-legacy-attachment-apply-migration
+    created_at: 2026-11-15T07:34:34.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dace2e18b07
+  - type: relates_to
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: REQ-kibi-branch-store-same-identity-migration
+    created_at: 2026-11-15T07:34:34.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db8b321095c1
+  - type: relates_to
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: REQ-kibi-migration-apply-gate
+    created_at: 2026-11-15T07:34:34.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6cac9c31185
+  - type: constrains
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-11-15T07:42:54.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8efddcde50aa
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: FACT-kibi-legacy-apply-requires-approved-migration
+    created_at: 2026-11-15T07:46:04.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0391bdafcea5
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: FACT-kibi-legacy-migration-runs-first
+    created_at: 2026-11-15T07:46:04.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60846a81b347
+  - type: requires_property
+    from: REQ-kibi-legacy-attachment-apply-migration
+    to: FACT-kibi-legacy-changed-store-migration-refused
+    created_at: 2026-11-15T07:46:04.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d422661f74b0
+  - type: assumes
+    from: SCEN-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-deontic
+    created_at: 2026-11-15T18:53:06.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-711c9ab7bdad
+  - type: assumes
+    from: SCEN-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-descriptive-ignored
+    created_at: 2026-11-15T18:53:06.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a5ae56b07da
+  - type: assumes
+    from: SCEN-agent-hosts-rule-phrase-detection
+    to: FACT-agent-hosts-rule-phrase-questions-code-ignored
+    created_at: 2026-11-15T18:53:06.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fa262b126b2
+  - type: verified_by
+    from: SCEN-agent-hosts-rule-phrase-detection
+    to: TEST-agent-hosts-rule-phrase-detection
+    created_at: 2026-11-15T18:53:06.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b28b560727e7
+  - type: implements
+    from: SYM-codex-impactCheckReminder
+    to: REQ-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:32:51.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7ac74968d67
+  - type: covered_by
+    from: SYM-codex-impactCheckReminder
+    to: TEST-hooks-recommend-changed-check
+    created_at: 2026-11-16T19:34:12.366Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86989b606343
+  - type: constrains
+    from: REQ-kb-merge-action-no-hooks
+    to: FACT-SUBJECT-kibi-ci-kb-merge-action
+    created_at: 2026-11-16T18:13:01.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9cf773b1ca5
+  - type: requires_property
+    from: REQ-kb-merge-action-no-hooks
+    to: FACT-kb-merge-action-no-hooks
+    created_at: 2026-11-16T18:13:01.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9d3df22efed
+  - type: specified_by
+    from: REQ-kb-merge-action-no-hooks
+    to: SCEN-kb-merge-action-no-hooks
+    created_at: 2026-11-16T18:13:01.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea05d1e34b26
+  - type: specified_by
+    from: REQ-kb-merge-action-no-hooks
+    to: SCEN-NEG-kb-merge-action-no-hooks-VIOLATED
+    created_at: 2026-11-16T18:13:02.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbc6efe19057
+  - type: assumes
+    from: SCEN-check-quantity-duplicate-trivial-values
+    to: FACT-check-quantity-duplicate-trivial-values
+    created_at: 2026-11-16T16:10:32.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a0df2c9f65d
+  - type: verified_by
+    from: SCEN-check-quantity-duplicate-trivial-values
+    to: TEST-check-quantity-duplicate
+    created_at: 2026-11-16T16:10:32.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68ad789aa675
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-requirement
+    to: REQ-upsert-lists-sibling-requirements
+    created_at: 2026-11-16T19:17:22.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d08e545ece21
+  - type: implements
+    from: SYM-cli-sibling-requirements-sibling-requirement
+    to: REQ-upsert-flags-stale-sibling-claim
+    created_at: 2026-11-16T19:17:22.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a442e4557db7
+  - type: covered_by
+    from: SYM-cli-sibling-requirements-sibling-requirement
+    to: TEST-upsert-stale-siblings
+    created_at: 2026-11-16T19:17:22.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4194f9c18f68
+  - type: assumes
+    from: SCEN-NEG-check-unscoped-budget-OVER-BUDGET
+    to: FACT-NEG-check-unscoped-budget-OVER-BUDGET
+    created_at: 2026-11-16T15:48:21.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b71d1a4b3cd
+  - type: implements
+    from: SYM-kibi-traceability-skill-guidance
+    to: REQ-kibi-skills-write-without-ritual
+    created_at: 2026-11-16T15:38:58.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dea94e1bb1cf
+  - type: covered_by
+    from: SYM-kibi-traceability-skill-guidance
+    to: TEST-kibi-skills-core-arc
+    created_at: 2026-11-16T15:38:58.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0d64a6eb3d7
+  - type: implements
+    from: SYM-source-analysis-cache-with-source-analysis-cache
+    to: REQ-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:09.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4137eccfe15f
+  - type: covered_by
+    from: SYM-source-analysis-cache-with-source-analysis-cache
+    to: TEST-check-analysis-cache-shared
+    created_at: 2026-11-17T06:02:09.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7273854feb12

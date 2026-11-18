@@ -6,7 +6,7 @@ requirements, narrowing `implements` links, writing missing context, retiring
 dead knowledge, or auditing a KB someone calls finished. Adding typed facts to
 prose requirements is a different job: see `resources/kb-improvement.md`.
 
-Every step goes through Kibi operations (`kb_upsert`, `kb_delete`,
+Every step goes through Kibi operations (`kb_upsert`, `kb_delete` (core MCP profile: CLI `kibi delete --input -`),
 `kb_apply_plan`, `kibi migrate`, `kibi prove`). Do not read or edit `.kb/`.
 
 ## What the bar is
@@ -150,7 +150,7 @@ the symbol threshold:
 ## Hygiene
 
 - A requirement whose behavior no longer exists is `status: retired` with a
-  `retired_reason`, not `closed` (see Second-agent edits, recipe 3). `closed`
+  `retired_reason`, not `closed` (see `resources/second-agent-edits.md`, recipe 3). `closed`
   still governs search and hooks.
 - Relink or archive (`status: deprecated`) every active fact, scenario and
   test owned only by closed or retired requirements, and every property or

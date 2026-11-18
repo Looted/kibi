@@ -149,6 +149,7 @@ describe(
       };
       try {
         mkdirSync(join(workspace, ".kb", "requirements"), { recursive: true });
+        writeFileSync(join(workspace, ".kb", "manifest.json"), "{}\n");
         // The edit a blocking hook would stop: a direct write into .kb.
         const kbEdit = hook({
           hook_event_name: "preToolUse",
@@ -208,18 +209,15 @@ describe(
           join(workspace, ".kb", "config.json"),
           `${JSON.stringify({ paths: { requirements: "reqs" } })}\n`,
         );
+        // Not adopted: the hook stays quiet, as in any non-Kibi workspace.
         const legacyOnly = sessionStart();
-        assert.match(
-          String(legacyOnly.additional_context ?? ""),
-          /Kibi config was not found/,
-          JSON.stringify(legacyOnly),
-        );
+        assert.deepEqual(legacyOnly, {});
 
         writeFileSync(join(workspace, ".kb", "manifest.json"), "{}\n");
         const initialized = sessionStart();
-        assert.doesNotMatch(
+        assert.match(
           String(initialized.additional_context ?? ""),
-          /Kibi config was not found/,
+          /Kibi/,
           JSON.stringify(initialized),
         );
       } finally {
@@ -260,6 +258,9 @@ describe(
       };
       try {
         mkdirSync(join(workspace, "src"), { recursive: true });
+        // The stop hook speaks only in a workspace that adopted Kibi.
+        mkdirSync(join(workspace, ".kb"), { recursive: true });
+        writeFileSync(join(workspace, ".kb", "manifest.json"), "{}\n");
         hook({
           hook_event_name: "postToolUse",
           tool_name: "CreatePlan",

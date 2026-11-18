@@ -40,7 +40,9 @@
 // success scenario that assumes facts on its subjects.
 // Schema 18 blocks every stored pair with an unmodeled rule claim until it is
 // modeled or a checkable pair_reviews verdict settles it.
-export const LATEST_KB_SCHEMA_VERSION = 18;
+// Schema 19 blocks two value facts that state one quantity under different
+// subject or property keys (quantity-duplicate); the upgrade lists the pairs.
+export const LATEST_KB_SCHEMA_VERSION = 19;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

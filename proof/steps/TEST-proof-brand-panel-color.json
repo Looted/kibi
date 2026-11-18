@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-brand-panel-color",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/report-brand-colors.proof.test.ts"
+    ]
+  ]
+}

@@ -349,3 +349,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5821aad2fe6e
+  - type: requires_property
+    from: REQ-staged-gate-reports-inherited-symbol-gaps
+    to: FACT-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T05:38:12.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db07aab119da
+  - type: constrains
+    from: REQ-staged-gate-reports-inherited-symbol-gaps
+    to: FACT-SUBJ-REQ-CLI-STAGED-IMPACT-ENFORCEMENT
+    created_at: 2026-11-16T05:38:12.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f17ab0be0f70
+  - type: specified_by
+    from: REQ-staged-gate-reports-inherited-symbol-gaps
+    to: SCEN-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T05:38:12.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a17451f12b5c
+  - type: specified_by
+    from: REQ-staged-gate-reports-inherited-symbol-gaps
+    to: SCEN-NEG-staged-gate-reports-inherited-symbol-gaps-INHERITED-GAP-SILENT
+    created_at: 2026-11-16T05:38:12.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-686ef9ad4462
+  - type: verified_by
+    from: REQ-staged-gate-reports-inherited-symbol-gaps
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:38:12.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c33aa13dd709
+  - type: implements
+    from: SYM-types-upsert-input
+    to: REQ-kb-upsert-requirement-why
+    created_at: 2026-11-16T16:40:06.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc7e7d47bd4e
+  - type: covered_by
+    from: SYM-types-upsert-input
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:03.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b532127942b
+  - type: covered_by
+    from: SYM-claude-captureReminder
+    to: TEST-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:57:30.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79b92e5741f4

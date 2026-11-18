@@ -1,0 +1,20 @@
+{
+  "test_id": "TEST-vscode-traceability",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/vscode/tests/traceability.test.ts"
+    ],
+    [
+      "bun",
+      "test",
+      "./packages/vscode/tests/activation/extension.test.ts"
+    ],
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/traceability-gate.test.ts"
+    ]
+  ]
+}

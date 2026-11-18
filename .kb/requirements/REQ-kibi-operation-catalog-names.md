@@ -3,34 +3,34 @@ title: Kibi operation catalog names
 status: open
 priority: must
 firmness: default
-semantic_text: A Kibi catalog operation shall be one of the 24 operations the catalog names.
+semantic_text: A Kibi catalog operation shall be one of the 26 operations the catalog names.
 semantic_clauses:
-  - A Kibi catalog operation shall be one of the 24 operations the catalog names.
+  - A Kibi catalog operation shall be one of the 26 operations the catalog names.
 tags:
   - proof
 origin:
   kind: agent
-  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested."'
+  ref: 'Maintainer decision, 2026-10-27, approving requirement rewrites and splits that let structural claims be proved: "Please work towards full proof." Restated 2026-10-28: "Can we do more than 7? Kibi doesn''t have a UI, so it should be possible to proove more?" Firmness relabelled to default until reviewed. Maintainer decision, 2026-11-03, approving the requirements audit fixes (exact bundled skill sets, the kibi-provable-code skill requirement, requirement body cleanup, firmness relabelling and neutral origin references): "Yes, do both suggested." Maintainer decision, 2026-11-16, approving the catalog count of 25 operations once kb_review_firm_edit joined the catalog: "Approve 25 operations". Maintainer decision, 2026-11-17, approving this count change as worded: "Add kb_record to the defaults and pay for it with enum encoding: yes, both in the kb_record PR".'
   approved_by: maintainer
-  recorded_at: '2026-10-28T22:38:28.615Z'
+  recorded_at: '2026-11-16T09:32:28.155Z'
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: d9627b73d53a12f9ac916617370d7610ed339009b954d49c7f15dc9f89aa38c6
+semantic_source_hash: 2af2803e846dead56671cbd67e0b169742d918c8208ad8a092249cb6180b10ed
 semantic_inventory:
-  - claim_key: CLAIM-9647A6984DF59611
-    claim_text: A Kibi catalog operation shall be one of the 24 operations the catalog names
+  - claim_key: CLAIM-E336EB29BBCA15CD
+    claim_text: A Kibi catalog operation shall be one of the 26 operations the catalog names
     role: normative
     status: modeled
     span:
       start: 0
       end: 76
 logic_claims:
-  - CLAIM-9647A6984DF59611
+  - CLAIM-E336EB29BBCA15CD
 id: REQ-kibi-operation-catalog-names
 type: req
 required_evidence: tested
 ---
-A Kibi catalog operation shall be one of the 24 operations the catalog names.
+A Kibi catalog operation shall be one of the 26 operations the catalog names.
 
 ## Context
 

@@ -118,6 +118,7 @@ function createBehaviorLinkedFixture(): FileMap {
 id: REQ-BEHAVIOR-001
 title: Greeting behavior
 status: open
+firmness: default
 ---
 
 # Greeting behavior
@@ -184,6 +185,7 @@ function stageRequirementEvidence(root: string, note: string): void {
 id: REQ-BEHAVIOR-001
 title: Greeting behavior
 status: open
+firmness: default
 ${semanticInventoryFrontmatter(note)}
 ---
 
@@ -606,8 +608,45 @@ export function farewell() {
 
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(1);
-      expect(output).toContain("kibi_impact_evidence_missing");
-      expect(output).toContain("symbols without authored evidence: farewell");
+      // One block stands for the missing record, the missing evidence,
+      // the review warning and the traceability row of the one function.
+      expect(output).toContain(
+        "[BLOCKS COMMIT] farewell (src/greet.ts:5) is new and no requirement owns it.",
+      );
+      expect(output).toContain(
+        'kb_upsert {"type":"req","id":"REQ-BEHAVIOR-001","properties":{"title":"Greeting behavior","status":"open"},"implementedBy":[{"sourceFile":"src/greet.ts","symbol":"farewell","coveredBy":["TEST-BEHAVIOR-001"]}]}',
+      );
+      expect(output).toContain(
+        "CLI: pipe a kb_upsert input to npx --no-install kibi upsert --input -. Then: git add .kb && git commit",
+      );
+      for (const merged of [
+        "kibi_impact_evidence_missing",
+        "symbols_manifest_stale",
+        "symbol_semantic_review_needed",
+        "Traceability failed",
+      ])
+        expect(output).not.toContain(merged);
+
+      const json = runKibi(
+        kibiBin,
+        ["check", "--staged", "--format", "json"],
+        tmpDir,
+      );
+      const content = JSON.parse(stdoutToString(json.stdout)).structuredContent;
+      expect(content.ownerFindings).toMatchObject([
+        {
+          blocks: "commit",
+          symbol: "farewell",
+          file: "src/greet.ts",
+          causes: expect.arrayContaining([
+            "symbols_manifest_stale",
+            "kibi_impact_evidence_missing",
+          ]),
+        },
+      ]);
+      expect(
+        content.qualityDiagnostics.map((d: { id: string }) => d.id),
+      ).toContain("kibi_impact_evidence_missing");
     },
     TEST_TIMEOUT_MS,
   );
@@ -745,6 +784,7 @@ status: active
 id: REQ-BEHAVIOR-001
 title: Greeting behavior
 status: open
+firmness: default
 links:
   - type: specified_by
     target: SCEN-BEHAVIOR-001
@@ -906,7 +946,10 @@ Calls the covered function through its public export and asserts the value it re
       const output = stdoutToString(stdout || stderr);
       expect(status).toBe(1);
       expect(output).toContain("[symbol-coverage] SYM-UNLINKED-001");
-      expect(output).toContain("Traceability failed");
+      expect(output).toContain(
+        "[BLOCKS COMMIT] unlinkedAction (src/unlinked.ts:1) has a symbol record but no requirement owns it.",
+      );
+      expect(output).not.toContain("Traceability failed");
     },
     TEST_TIMEOUT_MS,
   );

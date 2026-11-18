@@ -1,0 +1,15 @@
+{
+  "test_id": "TEST-kibi-staged-firm-edit-gate",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "60000",
+      "./packages/cli/tests/public-mutation/impact/firm-edit-gate.mutation.test.ts",
+      "./packages/cli/tests/public-mutation/impact/firm-edit-staged.mutation.test.ts",
+      "./packages/cli/tests/public-mutation/impact/analyzer.mutation.test.ts",
+      "./packages/cli/tests/commands-mutation/check/staged-results.test.ts"
+    ]
+  ]
+}

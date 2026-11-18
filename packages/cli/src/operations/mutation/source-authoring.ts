@@ -25,6 +25,7 @@ import {
   CANONICAL_ENTITY_PATHS,
   isDerivedKbPath,
 } from "../../utils/kb-paths.js";
+import { pendingReceiptBranch } from "../../utils/pending-source-branch.js";
 import { isNotStatedDefinition } from "../../utils/subject-definition.js";
 import { blockifySymbolManifest } from "../../utils/symbol-manifest-layout.js";
 import type { RelationshipInput, UpsertInput } from "./types.js";
@@ -60,6 +61,9 @@ export function writePendingSourceReceipt(
   afterHash: string,
 ): void {
   const receiptPath = pendingReceiptPath(workspaceRoot, relativePath);
+  // The branch scopes the receipt: a checkout keeps this folder, and another
+  // branch may not have the file.
+  const branch = pendingReceiptBranch(workspaceRoot);
   fs.mkdirSync(path.dirname(receiptPath), { recursive: true, mode: 0o700 });
   fs.writeFileSync(
     receiptPath,
@@ -68,6 +72,8 @@ export function writePendingSourceReceipt(
         version: 1,
         path: relativePath,
         afterHash,
+        // JSON leaves an undefined branch (outside a Git work tree) out.
+        branch,
         createdAt: new Date().toISOString(),
       },
       null,
@@ -188,6 +194,21 @@ function authoredPath(value: unknown): string | undefined {
   if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(normalized)) return undefined;
   if (!/\.(?:md|mdx|ya?ml)$/i.test(normalized)) return undefined;
   return normalized;
+}
+
+/** What a requested document.path may not name, whatever exists there. */
+function assertDocumentPathShape(relative: string): void {
+  // Git's own directory and installed dependencies hold no Kibi documents.
+  if (
+    relative
+      .split(/[\\/]/)
+      .some((part) => part === ".git" || part === "node_modules")
+  ) {
+    throw new OperationError(
+      "SOURCE_PATH_INVALID",
+      `document.path cannot target .git or node_modules: ${relative}`,
+    );
+  }
 }
 
 export function resolveContainedSourcePath(
@@ -324,7 +345,13 @@ function sourcePath(
   entity: Readonly<Record<string, unknown>>,
   existing: Readonly<Record<string, unknown>> | undefined,
 ): string {
-  const requested = input.document?.path;
+  // A backslash is read as a separator on every platform, as the receipt
+  // reports it, so `.kb\\adr\\x.md` never creates a literal file name.
+  const requested =
+    input.document?.path === undefined || path.isAbsolute(input.document.path)
+      ? input.document?.path
+      : input.document.path.replaceAll("\\", "/");
+  if (requested !== undefined) assertDocumentPathShape(requested);
   const canonical = configuredSourceTarget(context.workspaceRoot, input.type);
   let relative: string | undefined =
     requested ?? authoredPath(existing?.source);
@@ -544,6 +571,16 @@ function renderEntityDocument(
   const existing = existingContent
     ? bodyAndFrontmatter(existingContent)
     : { frontmatter: {}, body: "" };
+  // A document.path naming another entity's file would replace that entity
+  // with this one: the other entity vanishes from the sources and its links
+  // dangle. Only the entity a document already holds may be written into it.
+  const heldId = existing.frontmatter.id;
+  if (heldId !== undefined && heldId !== null && String(heldId) !== entity.id) {
+    throw new OperationError(
+      "SOURCE_ENTITY_MISMATCH",
+      `Authored document holds ${String(heldId)}, not ${String(entity.id)}; write ${String(entity.id)} to its own file or omit document.path`,
+    );
+  }
   // A generated "Definition not stated" body never replaces a subject's
   // authored definition.
   const keepsDefinition =
@@ -608,24 +645,6 @@ function symbolManifestRecord(
         ].includes(key),
     ),
   );
-}
-
-export function manifestRelationships(
-  item: unknown,
-): Array<{ type: string; target: string }> {
-  const value: unknown = isMap(item)
-    ? (item.toJSON() as Record<string, unknown>).relationships
-    : undefined;
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((relationship) => {
-    // Object() reads a missing or scalar row as one without fields.
-    const candidate = Object(relationship) as Record<string, unknown>;
-    const type = candidate.type;
-    const target = candidate.target ?? candidate.to;
-    return typeof type === "string" && typeof target === "string"
-      ? [{ type, target }]
-      : [];
-  });
 }
 
 // A matching entry that is not a mapping (a list whose missing `id` reads as
@@ -1040,6 +1059,39 @@ export function renderYamlRelationshipDeletion(
 }
 
 /**
+ * A Markdown document without an `id` holds the entity sync derives an id
+ * for (from its path and title), so a write into it replaces that entity
+ * unless the store already reads this entity from that very file. The
+ * front-matter id check in renderEntityDocument cannot see such a document.
+ */
+function assertIdlessDocumentHeld(
+  context: OperationContext,
+  input: UpsertInput,
+  existing: Readonly<Record<string, unknown>> | undefined,
+  absolute: string,
+  before: string | undefined,
+): void {
+  if (before === undefined || !/\.mdx?$/i.test(absolute)) return;
+  const { frontmatter } = bodyAndFrontmatter(before);
+  if (Object.keys(frontmatter).length === 0 || frontmatter.id != null) return;
+  // The file the store reads this entity from, resolved as a write to it is.
+  if (
+    authoredPath(existing?.source) !== undefined &&
+    sourcePath(
+      context,
+      { type: input.type, id: input.id, properties: {} },
+      input,
+      existing,
+    ) === absolute
+  )
+    return;
+  throw new OperationError(
+    "SOURCE_ENTITY_MISMATCH",
+    `Authored document ${path.relative(context.workspaceRoot, absolute).replaceAll("\\", "/")} holds another entity (it has no id, so sync derives one from its path and title), not ${input.id}; write ${input.id} to its own file or omit document.path`,
+  );
+}
+
+/**
  * The bytes an upsert of `entity` publishes at `relativePath`, merged into the
  * document's current content. Compile plans render their documents with it
  * so a plan writes exactly what `kb_upsert` would.
@@ -1132,6 +1184,7 @@ export async function renderSourceWrite(
   // keeps its authored formatting (and the workspace snapshot stays stable).
   // Only valid when the document already exists; a new document still needs
   // the canonical render.
+  assertIdlessDocumentHeld(context, input, existing, absolute, before);
   const after =
     before !== undefined && sourceDocumentOverride !== undefined
       ? sourceDocumentOverride

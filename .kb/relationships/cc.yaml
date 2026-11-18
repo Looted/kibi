@@ -342,3 +342,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2a73fe1fd2b
+  - type: implements
+    from: SYM-staged-declaration-declarationsInChange
+    to: REQ-staged-gate-changed-declaration-definition
+    created_at: 2026-11-16T05:44:23.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-441e5098dcd7
+  - type: covered_by
+    from: SYM-staged-declaration-declarationsInChange
+    to: TEST-staged-gate-inherited-symbol-gaps
+    created_at: 2026-11-16T05:44:23.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae8db99b1321
+  - type: implements
+    from: SYM-cli-PrologProcess
+    to: REQ-staged-gate-scratch-store
+    created_at: 2026-11-16T20:42:07.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5938d45e32b1
+  - type: covered_by
+    from: SYM-cli-PrologProcess
+    to: TEST-staged-gate-scratch-store
+    created_at: 2026-11-16T20:42:08.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7504c0f931fb
+  - type: implements
+    from: SYM-agent-core-read-firm-edit-receipt
+    to: REQ-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:22:59.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54545b2294a3
+  - type: covered_by
+    from: SYM-agent-core-read-firm-edit-receipt
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:22:59.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb556cccafb5
+  - type: covered_by
+    from: SYM-agent-core-read-firm-edit-receipt
+    to: TEST-agent-hosts-firm-edit-receipt-notice
+    created_at: 2026-11-16T21:22:59.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4eb07d95dbd

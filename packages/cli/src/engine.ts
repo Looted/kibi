@@ -49,6 +49,7 @@ import { writePerformanceTraceEvent } from "./performance-trace.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import {
   escapeAtom,
+  isCoreModuleGoal,
   parseEntityFromList,
   parseListOfLists,
 } from "./prolog/codec.js";
@@ -74,6 +75,7 @@ import { isValidBranchName } from "./utils/branch-resolver.js";
 import {
   branchStorePath,
   ensureBranchStoreManifest,
+  unmigratedLegacyStoreRefusal,
 } from "./utils/branch-store-locator.js";
 import { canonicalFilesystemPath } from "./utils/canonical-path.js";
 
@@ -1071,6 +1073,13 @@ export class EngineClient {
 
   async start(allowSpawn = true): Promise<void> {
     const wasConnected = this.isRunning();
+    if (!wasConnected) {
+      const refusal = unmigratedLegacyStoreRefusal(
+        this.workspaceRoot,
+        this.branch,
+      );
+      if (refusal !== null) throw new Error(refusal);
+    }
     for (let attempt = 0; ; attempt += 1) {
       await this.connect(allowSpawn);
       if (wasConnected || this.socket === null) return;
@@ -1083,7 +1092,7 @@ export class EngineClient {
         // but before the read-only runtime and attachment handshakes finish:
         // another client replacing the same daemon stops it under this one.
         // Retry those handshakes on a new connection a few times; request()
-        // never retries an application RPC.
+        // retries an application RPC only when the daemon refused to run it.
         if (
           attempt >= ENGINE_HANDSHAKE_ATTEMPTS - 1 ||
           !allowSpawn ||
@@ -1251,7 +1260,45 @@ export class EngineClient {
       pending.reject(new Error(response.error ?? "Kibi engine request failed"));
   }
 
+  /**
+   * One RPC. A daemon that has begun shutting down refuses it before running
+   * it (another client is replacing that daemon), so the request is sent
+   * again on a new connection a few times; any other failure, and a
+   * lifecycle request, is not retried. When no daemon can be reached for a
+   * retry (it is stopping, not being replaced), the refusal is reported.
+   */
   private async request<T>(
+    request: Omit<EngineRequest, "id">,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    let refusal: Error | undefined;
+    for (let attempt = 0; ; attempt += 1) {
+      if (refusal) {
+        try {
+          await this.start();
+        } catch {
+          throw refusal;
+        }
+      }
+      try {
+        return await this.requestOnce<T>(request, signal);
+      } catch (error) {
+        if (
+          attempt >= ENGINE_HANDSHAKE_ATTEMPTS - 1 ||
+          signal?.aborted === true ||
+          !(error instanceof Error) ||
+          error.message !== ENGINE_SHUTTING_DOWN_ERROR ||
+          isEngineLifecycleRequest(request as EngineRequest)
+        )
+          throw error;
+        refusal = error;
+        this.socket?.destroy();
+        this.socket = null;
+      }
+    }
+  }
+
+  private async requestOnce<T>(
     request: Omit<EngineRequest, "id">,
     signal?: AbortSignal,
   ): Promise<T> {
@@ -1943,7 +1990,7 @@ export class EngineSession {
     const normalized = goal.trim().replace(/\.+\s*$/u, "");
     if (
       result.success &&
-      USE_MODULE_GOAL.test(normalized) &&
+      (USE_MODULE_GOAL.test(normalized) || isCoreModuleGoal(normalized)) &&
       !this.modules.some((module) => module.goal === normalized)
     ) {
       this.modules.push({ goal: normalized, label: "client-loaded" });
@@ -2002,6 +2049,12 @@ export async function runEngineDaemon(requestedOptions: {
     ...requestedOptions,
     workspaceRoot: canonicalFilesystemPath(requestedOptions.workspaceRoot),
   };
+  // Never materialize a hashed store beside an unmigrated legacy one.
+  const legacyRefusal = unmigratedLegacyStoreRefusal(
+    options.workspaceRoot,
+    options.branch,
+  );
+  if (legacyRefusal !== null) throw new Error(legacyRefusal);
   const branchPath = ensureBranchStoreManifest(
     options.workspaceRoot,
     options.branch,

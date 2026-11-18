@@ -377,3 +377,157 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36d7dbc1a258
+  - type: assumes
+    from: SCEN-NEG-kibi-pending-receipt-OTHER-BRANCH-FAILS-SYNC
+    to: FACT-NEG-kibi-pending-receipt-OTHER-BRANCH-FAILS-SYNC
+    created_at: 2026-11-15T11:02:53.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5f555d8a614
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-staged-gate-judges-changed-declarations
+    created_at: 2026-11-16T05:34:14.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64df4e489ed5
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-staged-gate-judges-changed-declarations-INHERITED-GAP-BLOCKS
+    created_at: 2026-11-16T05:34:14.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14a7032ffde6
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-staged-gate-changed-declaration-definition
+    created_at: 2026-11-16T05:34:14.766Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5d186719836
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-staged-gate-changed-declaration-definition-CHANGED-DECLARATION-IGNORED
+    created_at: 2026-11-16T05:34:14.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c108bb606e1
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-staged-evidence-scoped-to-changed-declarations
+    created_at: 2026-11-16T05:34:14.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7a7c2ad8932
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-staged-evidence-scoped-to-changed-declarations-UNRECORDED-CHANGE-ACCEPTED
+    created_at: 2026-11-16T05:34:14.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-970a213ea7b8
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-staged-gate-reports-inherited-symbol-gaps
+    created_at: 2026-11-16T05:34:14.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a635765ae943
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-staged-gate-reports-inherited-symbol-gaps-INHERITED-GAP-SILENT
+    created_at: 2026-11-16T05:34:14.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62e4bbdce165
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-behavioral-kinds-keep-implements
+    created_at: 2026-11-16T05:34:14.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5428cf33eb19
+  - type: validates
+    from: TEST-staged-gate-inherited-symbol-gaps
+    to: SCEN-NEG-behavioral-kinds-keep-implements-ROLE-EXCUSES-FUNCTION
+    created_at: 2026-11-16T05:34:15.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b16b76aa2f49
+  - type: implements
+    from: SYM-capture-max-related-statement
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:18.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb950d59bf62
+  - type: implements
+    from: SYM-capture-capture-reads
+    to: REQ-kb-upsert-related-current-requirements
+    created_at: 2026-11-16T16:41:30.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3162e648e76
+  - type: covered_by
+    from: SYM-capture-max-related-statement
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:42:17.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa42557166d8
+  - type: covered_by
+    from: SYM-capture-capture-reads
+    to: TEST-kb-upsert-capture-with-why
+    created_at: 2026-11-16T16:43:38.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54c5cad274ee
+  - type: constrains
+    from: REQ-upsert-quotes-older-reason
+    to: FACT-upsert-reason-notes-subject
+    created_at: 2026-11-16T14:58:19.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b33a58aa631b
+  - type: requires_property
+    from: REQ-upsert-quotes-older-reason
+    to: FACT-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:19.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fcb48f33ea2
+  - type: specified_by
+    from: REQ-upsert-quotes-older-reason
+    to: SCEN-upsert-quotes-older-reason
+    created_at: 2026-11-16T14:58:19.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc48ac245171
+  - type: specified_by
+    from: REQ-upsert-quotes-older-reason
+    to: SCEN-NEG-upsert-quotes-older-reason-UNQUOTED
+    created_at: 2026-11-16T14:58:19.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d1b89031ab6
+  - type: implements
+    from: SYM-check-format-shared-describe-evaluated-rules
+    to: REQ-check-pass-one-line
+    created_at: 2026-11-16T15:52:58.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb0fa17c500d
+  - type: covered_by
+    from: SYM-check-format-shared-describe-evaluated-rules
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T15:57:04.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8610ab4f6947
+  - type: assumes
+    from: SCEN-NEG-core-snapshot-triples-held-once-HELD-TWICE
+    to: FACT-NEG-core-snapshot-triples-held-once-HELD-TWICE
+    created_at: 2026-11-17T09:08:07.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-528a1a8d2c9b

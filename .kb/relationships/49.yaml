@@ -153,3 +153,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1306351bdc42
+  - type: assumes
+    from: SCEN-NEG-mcp-upsert-proof-fields-MALFORMED-PROOF-CONTRACT
+    to: FACT-NEG-mcp-upsert-proof-fields-MALFORMED-PROOF-CONTRACT
+    created_at: 2026-11-15T18:31:00.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-999923b26b7a
+  - type: verified_by
+    from: SCEN-NEG-mcp-upsert-proof-fields-MALFORMED-PROOF-CONTRACT
+    to: TEST-mcp-upsert-proof-field-stubs
+    created_at: 2026-11-15T18:31:00.084Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f035eb2e68b
+  - type: requires_property
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: FACT-bootstrap-states-staged-symbol-rule
+    created_at: 2026-11-16T05:38:19.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35e35d733c81
+  - type: constrains
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: FACT-KIBI-BOOTSTRAP-SUBJECT
+    created_at: 2026-11-16T05:38:19.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dae109152ca5
+  - type: specified_by
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: SCEN-bootstrap-states-staged-symbol-rule
+    created_at: 2026-11-16T05:38:19.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e56f33d91e2e
+  - type: specified_by
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: SCEN-NEG-bootstrap-states-staged-symbol-rule-SILENT-ON-SYMBOL-RULE
+    created_at: 2026-11-16T05:38:19.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ba8c89394ea
+  - type: verified_by
+    from: REQ-bootstrap-states-staged-symbol-rule
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:38:19.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ff5f22ca4ec
+  - type: assumes
+    from: SCEN-NEG-check-pass-one-line-RULES-LISTED
+    to: FACT-NEG-check-pass-one-line-RULES-LISTED
+    created_at: 2026-11-16T15:48:17.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0153e42fa41
+  - type: assumes
+    from: SCEN-NEG-check-pass-one-line-RULES-LISTED
+    to: FACT-NEG-check-pass-one-line-NO-VERDICT
+    created_at: 2026-11-16T16:09:44.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-185b3e878118

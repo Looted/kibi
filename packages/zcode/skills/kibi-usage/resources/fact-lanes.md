@@ -4,7 +4,7 @@ Requirement prose remains the human-readable source. Facts add queryable semanti
 
 ## Atomic Claim Coverage
 
-Logical coverage is clause-based, not entity-based. Give `kb_model` (`mode: "analyze"`) the complete requirement body and verify that its `clauses` list contains every atomic obligation. Supply the `clauses` input yourself when automatic splitting would combine or omit obligations. For every normative clause:
+Logical coverage is clause-based, not entity-based. Give `kb_model` (core MCP profile: CLI `kibi model --input -`) (`mode: "analyze"`) the complete requirement body and verify that its `clauses` list contains every atomic obligation. Supply the `clauses` input yourself when automatic splitting would combine or omit obligations. For every normative clause:
 
 - put the exact clause as `claim_text` on its ground fact, with the returned stable key as `claim_key` or none (Kibi derives a missing key; a sent key must match);
 - add the key to the exact current `logic_claims` set, removing only stale keys whose propositions no longer exist in the source;

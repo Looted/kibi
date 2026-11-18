@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-proof-entity-row-batch-limit",
+  "steps": [
+    [
+      "bun",
+      "test",
+      "./packages/cli/tests/proofs/claims/operation-row-limits.proof.test.ts"
+    ]
+  ]
+}

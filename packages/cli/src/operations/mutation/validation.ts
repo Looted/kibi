@@ -55,6 +55,43 @@ const upsertEntitySchema = {
   },
 };
 
+/**
+ * The shape of a semantic_inventory entry a writer sends for Kibi to
+ * complete: the claim it classifies, by key, with its status and subjects.
+ */
+const PARTIAL_INVENTORY_ENTRY_SCHEMA = (() => {
+  const entry = (
+    properties.semantic_inventory as {
+      items: { properties: Record<string, unknown> };
+    }
+  ).items.properties;
+  return {
+    type: "object",
+    required: ["claim_key", "status"],
+    properties: {
+      claim_key: entry.claim_key,
+      status: entry.status,
+      subjects: entry.subjects,
+    },
+    additionalProperties: false,
+  };
+})();
+let partialInventoryEntryValidator: ValidateFunction | undefined;
+
+/**
+ * Whether a semantic_inventory value holds only entries in the partial shape
+ * ({claim_key, status, subjects}) a requirement write sends for Kibi to
+ * derive the rest of the inventory from the prose.
+ */
+export function isPartialSemanticInventory(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  partialInventoryEntryValidator ??= ajv.compile(
+    PARTIAL_INVENTORY_ENTRY_SCHEMA,
+  );
+  const validate = partialInventoryEntryValidator;
+  return value.every((entry) => validate(entry));
+}
+
 const ALIASES = new Map([
   ["subjectKey", "subject_key"],
   ["propertyKey", "property_key"],
@@ -216,6 +253,9 @@ function formatEntityErrors(
   return [...messages, ...hints].join("; ");
 }
 
+/** The longest id whose `<id>.md` file and its temporary siblings fit a file name. */
+export const MAX_ID_BYTES = 200;
+
 export function validateUpsertInput(
   input: UpsertInput,
   now: Date,
@@ -225,6 +265,24 @@ export function validateUpsertInput(
       "VALIDATION_FAILED",
       "'type' and 'id' are required for upsert",
       [{ rule: "required", field: input.type ? "id" : "type" }],
+    );
+  }
+  // The id names the entity's authored file, so it must be a file-name-safe
+  // token: no whitespace, control characters or path separators, not only
+  // dots (`.` and `..` name directories), and short enough that `<id>.md`
+  // and its temporary siblings fit a 255-byte file name.
+  if (/[\s\p{Cc}/\\]/u.test(input.id) || /^\.+$/.test(input.id)) {
+    throw new KbRejection(
+      "VALIDATION_FAILED",
+      `'id' must not contain whitespace, control characters or path separators, or be only dots: ${JSON.stringify(input.id)}`,
+      [{ rule: "id_format", field: "id" }],
+    );
+  }
+  if (Buffer.byteLength(String(input.id), "utf8") > MAX_ID_BYTES) {
+    throw new KbRejection(
+      "VALIDATION_FAILED",
+      `'id' must be at most ${MAX_ID_BYTES} bytes, since it names the entity's file: ${JSON.stringify(String(input.id).slice(0, 40))}...`,
+      [{ rule: "id_length", field: "id" }],
     );
   }
   const entity: Record<string, unknown> = {

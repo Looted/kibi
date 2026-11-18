@@ -300,3 +300,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-51f86803e1ec
+  - type: assumes
+    from: SCEN-NEG-agent-hosts-rule-phrase-detection-DESCRIPTIVE-NEVER
+    to: FACT-NEG-agent-hosts-rule-phrase-detection-DESCRIPTIVE-NEVER
+    created_at: 2026-11-15T18:53:07.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f97d5a983dc2
+  - type: verified_by
+    from: SCEN-NEG-agent-hosts-rule-phrase-detection-DESCRIPTIVE-NEVER
+    to: TEST-agent-hosts-rule-phrase-detection
+    created_at: 2026-11-15T18:53:07.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c535546a3dc
+  - type: executable_for
+    from: SYM-e2e-test-check-reports-symbol-debt
+    to: TEST-check-reports-symbol-debt
+    created_at: 2026-11-16T05:34:22.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-666478144143
+  - type: covered_by
+    from: SYM-agent-core-firm-edit-removed-code-hash
+    to: TEST-kibi-firm-edit-receipts
+    created_at: 2026-11-16T21:23:19.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b31e96ebdbe

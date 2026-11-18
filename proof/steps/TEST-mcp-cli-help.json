@@ -1,0 +1,10 @@
+{
+  "test_id": "TEST-mcp-cli-help",
+  "steps": [
+    [
+      "node",
+      "scripts/run-proof-packed-e2e.mjs",
+      "documentation/tests/e2e/packed/mcp-cli-help.test.ts"
+    ]
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "test_id": "TEST-native-cli-suite-diagnostics",
+  "steps": [
+    [
+      "node",
+      "-e",
+      "if (process.platform !== 'linux') { console.error('Native CLI diagnostics proof requires Linux'); process.exit(1); }"
+    ],
+    [
+      "bun",
+      "test",
+      "--timeout",
+      "15000",
+      "./scripts/tests/swipl-spike-diagnostics.test.ts"
+    ]
+  ]
+}

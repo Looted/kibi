@@ -265,3 +265,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca480ea2ef6a
+  - type: assumes
+    from: SCEN-CASE-claude-decision-capture-nudges-TEMPLATE-TWICE
+    to: FACT-CASE-claude-decision-capture-nudges-TEMPLATE-TWICE
+    created_at: 2026-11-16T08:45:54.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-865f2476842e
+  - type: verified_by
+    from: SCEN-CASE-claude-decision-capture-nudges-TEMPLATE-TWICE
+    to: TEST-claude-edit-snippet-hook
+    created_at: 2026-11-16T08:45:54.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f57022304e4
+  - type: constrains
+    from: REQ-kb-merge-action-branch-moved
+    to: FACT-SUBJECT-kibi-ci-kb-merge-action
+    created_at: 2026-11-16T18:12:57.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41d2f9495805
+  - type: requires_property
+    from: REQ-kb-merge-action-branch-moved
+    to: FACT-kb-merge-action-branch-moved
+    created_at: 2026-11-16T18:12:57.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00a16c5bc4c4
+  - type: specified_by
+    from: REQ-kb-merge-action-branch-moved
+    to: SCEN-kb-merge-action-branch-moved
+    created_at: 2026-11-16T18:12:57.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b21d63a7c74
+  - type: specified_by
+    from: REQ-kb-merge-action-branch-moved
+    to: SCEN-NEG-kb-merge-action-branch-moved-VIOLATED
+    created_at: 2026-11-16T18:12:57.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d0244870d8e
+  - type: implements
+    from: SYM-agent-core-is-requirement-upsert
+    to: REQ-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:57:32.435Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5de28caac62
+  - type: covered_by
+    from: SYM-agent-core-is-requirement-upsert
+    to: TEST-agent-hosts-first-write-record
+    created_at: 2026-11-17T06:57:32.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f27086530679

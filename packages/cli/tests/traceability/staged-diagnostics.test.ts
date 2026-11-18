@@ -62,7 +62,7 @@ describe("collectStagedKibiDiagnostics symbols_manifest_stale rendering", () => 
       "Not in .kb/symbols.yaml: AppConfig (line 5), AppEnv (line 9)",
     );
     expect(stale?.suggestion).toContain(
-      "Author .kb/symbols.yaml entries for the uncovered symbols",
+      "Author .kb/symbols.yaml entries for the listed declarations",
     );
     expect(stale?.evidence).toMatchObject({
       symbolsManifest: [{ path: "src/app.ts", expectedCount: 8 }],

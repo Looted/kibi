@@ -10,6 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { branchMigrationApprovalHash } from "../../../src/commands/branch.js";
 import {
   FRESHNESS_RESYNC,
   MIGRATION_PLAN_DIGEST_VERSION,
@@ -30,6 +31,10 @@ import {
   readMigrationConfigStatus,
   withoutActionCodes,
 } from "../../../src/public/operations/migration-plan.js";
+import {
+  branchStorePath,
+  legacyBranchStorePath,
+} from "../../../src/utils/branch-store-locator.js";
 import {
   defaultKbManifest,
   writeKbManifest,
@@ -661,7 +666,7 @@ describe("readMigrationConfigStatus", () => {
     expect(status).toMatchObject({
       status: "older",
       currentVersion: 12,
-      latestVersion: 18,
+      latestVersion: 19,
       needsMigration: true,
       warning: null,
     });
@@ -673,7 +678,7 @@ describe("readMigrationConfigStatus", () => {
     expect(readMigrationConfigStatus(root)).toStrictEqual({
       status: "missing",
       currentVersion: null,
-      latestVersion: 18,
+      latestVersion: 19,
       needsMigration: true,
       warning:
         "Kibi lifecycle manifest is missing; run 'kibi init' or 'kibi migrate' to create it.",
@@ -802,6 +807,65 @@ describe("buildActionsFromStatus", () => {
     ).toEqual(["kb"]);
   });
 
+  test("binds a same-identity legacy migration to its preview hash", () => {
+    const root = workspace();
+    const store = legacyBranchStorePath(root, "main");
+    write(root, join(store.slice(root.length + 1), "kb.rdf"), "facts\n");
+    const [action] = status(root, {
+      branchAttachment: {
+        migrationRequired: true,
+        kind: "legacy_compat",
+        gitBranch: "main",
+        kbBranch: "main",
+      },
+    }).actions;
+    const approvalHash = branchMigrationApprovalHash(
+      "main",
+      "main",
+      store,
+      branchStorePath(root, "main"),
+    );
+    expect(action).toMatchObject({
+      code: "legacy_branch_storage",
+      state: "ready",
+      safety: "automatic",
+      autoApplicable: true,
+      dispositionRequired: false,
+      evidence: { approvalHash },
+      invocation: {
+        kind: "cli",
+        command_argv: [
+          "kibi",
+          "branch",
+          "migrate",
+          "--from",
+          "main",
+          "--to",
+          "main",
+          "--apply",
+          "--approval-hash",
+          approvalHash,
+        ],
+      },
+    });
+  });
+
+  test("binds only a legacy_compat attachment to a preview hash", () => {
+    const root = workspace();
+    const store = legacyBranchStorePath(root, "main");
+    write(root, join(store.slice(root.length + 1), "kb.rdf"), "facts\n");
+    const [action] = status(root, {
+      branchAttachment: {
+        migrationRequired: true,
+        kind: "other",
+        gitBranch: "main",
+        kbBranch: "main",
+      },
+    }).actions;
+    expect(action?.code).toBe("ambiguous_branch_attachment");
+    expect(action?.evidence).not.toHaveProperty("approvalHash");
+  });
+
   test("plans branch store repairs", () => {
     const root = workspace();
     expectGolden("migration-plan-status-store", [
@@ -812,6 +876,34 @@ describe("buildActionsFromStatus", () => {
       status(root, { branchStore: { state: "ok" } }).actions,
       status(root, { branchStore: { state: 1 } }).actions,
     ]);
+  });
+
+  test("plans no recovery for a store that is incomplete only because a legacy one exists", () => {
+    const root = workspace();
+    write(root, ".kb/branches/a/kb.rdf", "facts\n");
+    const plan = status(root, {
+      branchAttachment: {
+        migrationRequired: true,
+        kind: "legacy_compat",
+        gitBranch: "a",
+        kbBranch: "a",
+        storePath: join(root, ".kb/branches/a"),
+      },
+      branchStore: {
+        state: "incomplete",
+        path: join(root, ".kb/branches/a"),
+        errorCode: "legacy_branch_store",
+      },
+    });
+    expect(plan.actions.map((action) => action.code)).toEqual([
+      "legacy_branch_storage",
+    ]);
+    // A store damaged for any other reason is still recovered.
+    expect(
+      status(root, {
+        branchStore: { state: "incomplete", errorCode: "journal_torn" },
+      }).actions.map((action) => action.code),
+    ).toEqual(["damaged_exact_branch_store"]);
   });
 
   test("plans schema upgrades", () => {
@@ -977,6 +1069,17 @@ describe("buildActionsFromStatus", () => {
           kind: "legacy_compat",
           gitBranch: "a",
           kbBranch: "b",
+        },
+      }),
+    ).toEqual(["kb"]);
+    write(root, ".kb/branches/a/kb.rdf", "facts\n");
+    expect(
+      incomplete({
+        branchAttachment: {
+          migrationRequired: true,
+          kind: "legacy_compat",
+          gitBranch: "a",
+          kbBranch: "a",
         },
       }),
     ).toEqual([]);
